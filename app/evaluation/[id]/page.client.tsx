@@ -207,10 +207,10 @@ export default function EvaluationDetailsPage() {
               </CardTitle>
             <div className="flex items-center gap-2">
               <Button size="sm" variant="outline" onClick={selectAll}>
-                Select all
+                Show all
               </Button>
               <Button size="sm" variant="outline" onClick={deselectAll}>
-                Deselect all
+                Hide all
               </Button>
             </div>
           </div>
@@ -255,9 +255,15 @@ export default function EvaluationDetailsPage() {
                           </Button>
                         )}
                         <span className="ml-2">
-                          <Badge variant="secondary" className="cursor-pointer">
-                            {category.name}
-                          </Badge>
+                          {isNA ? (
+                            <span className="inline-flex items-center rounded-md px-2 py-0.5 text-xs font-medium bg-muted/30 text-muted-foreground border-2 border-purple-500">
+                              {category.name}
+                            </span>
+                          ) : (
+                            <Badge variant="secondary" className="cursor-pointer">
+                              {category.name}
+                            </Badge>
+                          )}
                         </span>
                       </label>
                     )
@@ -303,9 +309,15 @@ export default function EvaluationDetailsPage() {
                           </Button>
                         )}
                         <span className="ml-2">
-                          <Badge variant="destructive" className="cursor-pointer">
-                            {category.name}
-                          </Badge>
+                          {isNA ? (
+                            <span className="inline-flex items-center rounded-md px-2 py-0.5 text-xs font-medium bg-muted/30 text-muted-foreground border-2 border-red-500">
+                              {category.name}
+                            </span>
+                          ) : (
+                            <Badge variant="destructive" className="cursor-pointer">
+                              {category.name}
+                            </Badge>
+                          )}
                         </span>
                       </label>
                     )
