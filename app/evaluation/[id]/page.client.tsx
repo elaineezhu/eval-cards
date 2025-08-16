@@ -5,8 +5,7 @@ import { useState, useEffect } from "react"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
-import { Checkbox } from "@/components/ui/checkbox"
-import { ArrowLeft, Download } from "lucide-react"
+import { ArrowLeft, Download, Eye, EyeOff } from "lucide-react"
 import { CATEGORIES } from "@/lib/category-data"
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip"
 import { BENCHMARK_QUESTIONS, PROCESS_QUESTIONS } from "@/lib/category-data"
@@ -50,18 +49,14 @@ export default function EvaluationDetailsPage() {
   const [visibleCategories, setVisibleCategories] = useState<Record<string, boolean>>({})
   const toggleCategoryVisibility = (id: string) => setVisibleCategories((p) => ({ ...p, [id]: !p[id] }))
   const selectAll = () => {
-    const map: Record<string, boolean> = {}
-    const sel = new Set(evaluation.selectedCategories || [])
-    CATEGORIES.forEach((c) => {
-      // only select categories that are part of the evaluation's selected list and not NA
-      map[c.id] = sel.has(c.id)
-    })
-    setVisibleCategories(map)
+  const map: Record<string, boolean> = {}
+  CATEGORIES.forEach((c) => (map[c.id] = true))
+  setVisibleCategories(map)
   }
   const deselectAll = () => {
-    const map: Record<string, boolean> = {}
-    CATEGORIES.forEach((c) => (map[c.id] = false))
-    setVisibleCategories(map)
+  const map: Record<string, boolean> = {}
+  CATEGORIES.forEach((c) => (map[c.id] = false))
+  setVisibleCategories(map)
   }
 
   // Persist visibility in localStorage per evaluation
@@ -80,11 +75,11 @@ export default function EvaluationDetailsPage() {
 
     // if nothing saved, initialize defaults (visible for applicable categories)
     if (evaluation) {
-      const sel = new Set(evaluation.selectedCategories || [])
       const init: Record<string, boolean> = {}
+      // default: eyes open (visible) for all categories unless explicitly NA
       CATEGORIES.forEach((c) => {
-        // default visibility: true for categories that are marked selected/applicable, false otherwise
-        init[c.id] = sel.has(c.id)
+        const na = naReasonForCategory(c.id)
+        init[c.id] = !na
       })
       setVisibleCategories((p) => ({ ...init, ...p }))
     }
@@ -232,19 +227,14 @@ export default function EvaluationDetailsPage() {
                     const isNA = !isSelected || !!naReason
                     return (
                       <label key={category.id} className="flex items-center gap-2">
-                        <Checkbox
-                          checked={isNA ? false : visibleCategories[category.id] ?? true}
-                          onCheckedChange={() => !isNA && toggleCategoryVisibility(category.id)}
-                          disabled={isNA}
-                        />
                         {isNA ? (
                           <TooltipProvider>
                             <Tooltip>
                               <TooltipTrigger asChild>
                                 <span>
-                                  <Badge variant="outline" className="cursor-default text-muted-foreground">
-                                    {category.name}
-                                  </Badge>
+                                  <Button variant="ghost" size="sm" className="p-0" disabled>
+                                    <EyeOff className="h-4 w-4 text-muted-foreground" aria-hidden />
+                                  </Button>
                                 </span>
                               </TooltipTrigger>
                               <TooltipContent>
@@ -253,10 +243,22 @@ export default function EvaluationDetailsPage() {
                             </Tooltip>
                           </TooltipProvider>
                         ) : (
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            className="p-0"
+                            onClick={() => toggleCategoryVisibility(category.id)}
+                            aria-pressed={!!visibleCategories[category.id]}
+                            aria-label={visibleCategories[category.id] ? `Hide ${category.name}` : `Show ${category.name}`}
+                          >
+                            {visibleCategories[category.id] ? <Eye className="h-4 w-4" /> : <EyeOff className="h-4 w-4" />}
+                          </Button>
+                        )}
+                        <span className="ml-2">
                           <Badge variant="secondary" className="cursor-pointer">
                             {category.name}
                           </Badge>
-                        )}
+                        </span>
                       </label>
                     )
                   })}
@@ -273,19 +275,14 @@ export default function EvaluationDetailsPage() {
                     const isNA = !isSelected || !!naReason
                     return (
                       <label key={category.id} className="flex items-center gap-2">
-                        <Checkbox
-                          checked={isNA ? false : visibleCategories[category.id] ?? true}
-                          onCheckedChange={() => !isNA && toggleCategoryVisibility(category.id)}
-                          disabled={isNA}
-                        />
                         {isNA ? (
                           <TooltipProvider>
                             <Tooltip>
                               <TooltipTrigger asChild>
                                 <span>
-                                  <Badge variant="outline" className="cursor-default text-muted-foreground">
-                                    {category.name}
-                                  </Badge>
+                                  <Button variant="ghost" size="sm" className="p-0" disabled>
+                                    <EyeOff className="h-4 w-4 text-muted-foreground" aria-hidden />
+                                  </Button>
                                 </span>
                               </TooltipTrigger>
                               <TooltipContent>
@@ -294,10 +291,22 @@ export default function EvaluationDetailsPage() {
                             </Tooltip>
                           </TooltipProvider>
                         ) : (
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            className="p-0"
+                            onClick={() => toggleCategoryVisibility(category.id)}
+                            aria-pressed={!!visibleCategories[category.id]}
+                            aria-label={visibleCategories[category.id] ? `Hide ${category.name}` : `Show ${category.name}`}
+                          >
+                            {visibleCategories[category.id] ? <Eye className="h-4 w-4" /> : <EyeOff className="h-4 w-4" />}
+                          </Button>
+                        )}
+                        <span className="ml-2">
                           <Badge variant="destructive" className="cursor-pointer">
                             {category.name}
                           </Badge>
-                        )}
+                        </span>
                       </label>
                     )
                   })}
@@ -374,7 +383,11 @@ export default function EvaluationDetailsPage() {
       {/* Evaluation Details */}
       {evaluation.categoryEvaluations &&
         Object.entries(evaluation.categoryEvaluations)
-          .filter(([categoryId]) => visibleCategories[categoryId] ?? true)
+          .filter(([categoryId]) => {
+            // hide category cards for categories explicitly marked Not Applicable
+            const na = naReasonForCategory(categoryId)
+            return !na && (visibleCategories[categoryId] ?? true)
+          })
           .map(([categoryId, data]: [string, any]) => {
             const category = CATEGORIES.find((c) => c.id === categoryId)
 
