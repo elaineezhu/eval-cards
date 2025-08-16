@@ -5,11 +5,19 @@
 FROM node:18-bullseye-slim AS builder
 WORKDIR /app
 
-# install build deps and copy package files first for caching
-# NOTE: this repository uses pnpm lockfile but no package-lock.json; `npm ci` requires
-# a package-lock.json and will fail. Use `npm install` so the image builds reliably.
+# install OS build deps required by some native node modules and package manager
+# copy lockfile first to leverage Docker layer caching
 COPY package*.json ./
-RUN npm install --silent
+COPY pnpm-lock.yaml ./
+
+# Install minimal build tools for native modules (node-gyp) and enable pnpm via corepack.
+# Using the repo's `pnpm-lock.yaml` keeps installs deterministic on Spaces.
+RUN apt-get update \
+	&& apt-get install -y --no-install-recommends ca-certificates python3 build-essential git curl \
+	&& rm -rf /var/lib/apt/lists/* \
+	&& corepack enable \
+	&& corepack prepare pnpm@latest --activate \
+	&& pnpm install --frozen-lockfile --reporter=silent
 
 # copy source and build
 COPY . ./
