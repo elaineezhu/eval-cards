@@ -304,6 +304,63 @@
       },
       "additionalAspects": "Broad socio-economic analysis not included in this simplified fixture."
     }
+    ,
+    "social-intelligence": {
+      "benchmarkAnswers": { "A1": "N/A", "A2": "N/A", "A3": "N/A", "A4": "N/A", "A5": "N/A", "A6": "N/A" },
+      "processAnswers": { "B1": "N/A", "B2": "N/A", "B3": "N/A", "B4": "N/A", "B5": "N/A", "B6": "N/A" },
+      "benchmarkSources": {},
+      "processSources": {},
+      "additionalAspects": "Not applicable — social intelligence and interpersonal benchmarks are out of scope for this structured financial fraud detector demo."
+    },
+    "creativity-innovation": {
+      "benchmarkAnswers": { "A1": "N/A", "A2": "N/A", "A3": "N/A", "A4": "N/A", "A5": "N/A", "A6": "N/A" },
+      "processAnswers": { "B1": "N/A", "B2": "N/A", "B3": "N/A", "B4": "N/A", "B5": "N/A", "B6": "N/A" },
+      "benchmarkSources": {},
+      "processSources": {},
+      "additionalAspects": "Not applicable — creativity and open-ended generative benchmarks do not apply to this narrowly scoped transaction fraud detector."
+    },
+    "perception-vision": {
+      "benchmarkAnswers": { "A1": "N/A", "A2": "N/A", "A3": "N/A", "A4": "N/A", "A5": "N/A", "A6": "N/A" },
+      "processAnswers": { "B1": "N/A", "B2": "N/A", "B3": "N/A", "B4": "N/A", "B5": "N/A", "B6": "N/A" },
+      "benchmarkSources": {},
+      "processSources": {},
+      "additionalAspects": "Not applicable — vision and image benchmarks are irrelevant for this text/structured-data fraud detection system."
+    },
+    "physical-manipulation": {
+      "benchmarkAnswers": { "A1": "N/A", "A2": "N/A", "A3": "N/A", "A4": "N/A", "A5": "N/A", "A6": "N/A" },
+      "processAnswers": { "B1": "N/A", "B2": "N/A", "B3": "N/A", "B4": "N/A", "B5": "N/A", "B6": "N/A" },
+      "benchmarkSources": {},
+      "processSources": {},
+      "additionalAspects": "Not applicable — physical manipulation and robotics benchmarks are not relevant for this software-only financial detector."
+    },
+    "metacognition": {
+      "benchmarkAnswers": { "A1": "N/A", "A2": "N/A", "A3": "N/A", "A4": "N/A", "A5": "N/A", "A6": "N/A" },
+      "processAnswers": { "B1": "N/A", "B2": "N/A", "B3": "N/A", "B4": "N/A", "B5": "N/A", "B6": "N/A" },
+      "benchmarkSources": {},
+      "processSources": {},
+      "additionalAspects": "Not applicable — metacognitive self-assessment and calibration evaluations are out of scope for this demo fixture."
+    },
+    "robotic-intelligence": {
+      "benchmarkAnswers": { "A1": "N/A", "A2": "N/A", "A3": "N/A", "A4": "N/A", "A5": "N/A", "A6": "N/A" },
+      "processAnswers": { "B1": "N/A", "B2": "N/A", "B3": "N/A", "B4": "N/A", "B5": "N/A", "B6": "N/A" },
+      "benchmarkSources": {},
+      "processSources": {},
+      "additionalAspects": "Not applicable — robotic autonomy benchmarks are irrelevant for this cloud-hosted fraud detection model."
+    },
+    "environmental-impact": {
+      "benchmarkAnswers": { "A1": "N/A", "A2": "N/A", "A3": "N/A", "A4": "N/A", "A5": "N/A", "A6": "N/A" },
+      "processAnswers": { "B1": "N/A", "B2": "N/A", "B3": "N/A", "B4": "N/A", "B5": "N/A", "B6": "N/A" },
+      "benchmarkSources": {},
+      "processSources": {},
+      "additionalAspects": "Not applicable — environmental/resource impact assessment was not performed for this simplified demo evaluation."
+    },
+    "value-chain": {
+      "benchmarkAnswers": { "A1": "N/A", "A2": "N/A", "A3": "N/A", "A4": "N/A", "A5": "N/A", "A6": "N/A" },
+      "processAnswers": { "B1": "N/A", "B2": "N/A", "B3": "N/A", "B4": "N/A", "B5": "N/A", "B6": "N/A" },
+      "benchmarkSources": {},
+      "processSources": {},
+      "additionalAspects": "Not applicable — detailed value-chain and supply-chain risk analysis is beyond the scope of this demo fixture."
+    }
   },
   "overallStats": {
     "totalApplicable": 12,

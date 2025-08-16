@@ -51,12 +51,16 @@ export default function EvaluationDetailsPage() {
   const toggleCategoryVisibility = (id: string) => setVisibleCategories((p) => ({ ...p, [id]: !p[id] }))
   const selectAll = () => {
     const map: Record<string, boolean> = {}
-    ;(evaluation.selectedCategories || []).forEach((id: string) => (map[id] = true))
+    const sel = new Set(evaluation.selectedCategories || [])
+    CATEGORIES.forEach((c) => {
+      // only select categories that are part of the evaluation's selected list and not NA
+      map[c.id] = sel.has(c.id)
+    })
     setVisibleCategories(map)
   }
   const deselectAll = () => {
     const map: Record<string, boolean> = {}
-    ;(evaluation.selectedCategories || []).forEach((id: string) => (map[id] = false))
+    CATEGORIES.forEach((c) => (map[c.id] = false))
     setVisibleCategories(map)
   }
 
@@ -74,11 +78,13 @@ export default function EvaluationDetailsPage() {
       // ignore
     }
 
-    // if nothing saved, initialize defaults (visible)
-    if (evaluation?.selectedCategories) {
+    // if nothing saved, initialize defaults (visible for applicable categories)
+    if (evaluation) {
+      const sel = new Set(evaluation.selectedCategories || [])
       const init: Record<string, boolean> = {}
-      evaluation.selectedCategories.forEach((id: string) => {
-        init[id] = true
+      CATEGORIES.forEach((c) => {
+        // default visibility: true for categories that are marked selected/applicable, false otherwise
+        init[c.id] = sel.has(c.id)
       })
       setVisibleCategories((p) => ({ ...init, ...p }))
     }
@@ -192,8 +198,18 @@ export default function EvaluationDetailsPage() {
       {/* Applicable Categories - split into Capabilities & Risks with visibility toggles */}
       <Card className="mb-6">
         <CardHeader>
-          <div className="flex items-center justify-between w-full">
-            <CardTitle>Applicable Categories ({evaluation.selectedCategories?.length || 0})</CardTitle>
+            <div className="flex items-center justify-between w-full">
+              {/* compute applicable count as non-NA categories from the full CATEGORIES list */}
+              <CardTitle>
+                Applicable Categories ({
+                  CATEGORIES.filter((c) => {
+                    const sel = new Set(evaluation.selectedCategories || [])
+                    // treat as applicable only when selected and not explicitly NA
+                    const na = naReasonForCategory(c.id)
+                    return sel.has(c.id) && !na
+                  }).length
+                })
+              </CardTitle>
             <div className="flex items-center gap-2">
               <Button size="sm" variant="outline" onClick={selectAll}>
                 Select all
@@ -209,13 +225,11 @@ export default function EvaluationDetailsPage() {
             <div>
               <div className="text-sm font-medium mb-2">Capabilities</div>
               <div className="flex flex-col gap-2">
-                {evaluation.selectedCategories
-                  ?.map((id: string) => CATEGORIES.find((c) => c.id === id))
-                  .filter(Boolean)
-                  .filter((c: any) => c.type === "capability")
-                  .map((category: any) => {
+                {CATEGORIES.filter((c: any) => c.type === "capability").map((category: any) => {
+                    const sel = new Set(evaluation.selectedCategories || [])
                     const naReason = naReasonForCategory(category.id)
-                    const isNA = !!naReason
+                    const isSelected = sel.has(category.id)
+                    const isNA = !isSelected || !!naReason
                     return (
                       <label key={category.id} className="flex items-center gap-2">
                         <Checkbox
@@ -234,7 +248,7 @@ export default function EvaluationDetailsPage() {
                                 </span>
                               </TooltipTrigger>
                               <TooltipContent>
-                                <p className="text-sm">{naReason}</p>
+                                <p className="text-sm">{naReason ?? "Not applicable"}</p>
                               </TooltipContent>
                             </Tooltip>
                           </TooltipProvider>
@@ -252,13 +266,11 @@ export default function EvaluationDetailsPage() {
             <div>
               <div className="text-sm font-medium mb-2">Risks</div>
               <div className="flex flex-col gap-2">
-                {evaluation.selectedCategories
-                  ?.map((id: string) => CATEGORIES.find((c) => c.id === id))
-                  .filter(Boolean)
-                  .filter((c: any) => c.type === "risk")
-                  .map((category: any) => {
+                {CATEGORIES.filter((c: any) => c.type === "risk").map((category: any) => {
+                    const sel = new Set(evaluation.selectedCategories || [])
                     const naReason = naReasonForCategory(category.id)
-                    const isNA = !!naReason
+                    const isSelected = sel.has(category.id)
+                    const isNA = !isSelected || !!naReason
                     return (
                       <label key={category.id} className="flex items-center gap-2">
                         <Checkbox
@@ -277,7 +289,7 @@ export default function EvaluationDetailsPage() {
                                 </span>
                               </TooltipTrigger>
                               <TooltipContent>
-                                <p className="text-sm">{naReason}</p>
+                                <p className="text-sm">{naReason ?? "Not applicable"}</p>
                               </TooltipContent>
                             </Tooltip>
                           </TooltipProvider>
