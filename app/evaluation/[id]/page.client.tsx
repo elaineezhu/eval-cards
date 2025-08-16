@@ -89,13 +89,8 @@ export default function EvaluationDetailsPage() {
     const catEval = evaluation?.categoryEvaluations?.[categoryId]
     if (!catEval) return undefined
 
-    // Priority: additionalAspects containing 'not applicable'
-    if (typeof catEval.additionalAspects === "string" && /not applicable/i.test(catEval.additionalAspects)) {
-      return catEval.additionalAspects
-    }
-
-    // Check processSources and benchmarkSources for explicit scope/description notes
-    const checkSources = (sourcesObj: any) => {
+    // Helper to check sources for explicit NA notes
+    const checkSourcesForNA = (sourcesObj: any) => {
       if (!sourcesObj) return undefined
       for (const entries of Object.values(sourcesObj)) {
         if (Array.isArray(entries)) {
@@ -109,35 +104,49 @@ export default function EvaluationDetailsPage() {
       return undefined
     }
 
-    const fromProcess = checkSources(catEval.processSources)
-    if (fromProcess) return fromProcess
-    const fromBench = checkSources(catEval.benchmarkSources)
-    if (fromBench) return fromBench
-
-    // If all answers in both sections are explicitly 'N/A' or empty, treat as not applicable
-    const allNA = (obj: any, canonicalKeys: string[]) => {
-      if (!obj) return true
-      for (const k of canonicalKeys) {
-        const ans = obj[k]
-        if (Array.isArray(ans)) {
-          if (!ans.every((a) => String(a).toLowerCase() === "n/a" || /not applicable/i.test(String(a)))) return false
-        } else if (ans === undefined || ans === null) {
-          // treat missing as NA
-          continue
-        } else if (String(ans).toLowerCase() === "n/a" || /not applicable/i.test(String(ans))) {
-          continue
-        } else {
-          return false
-        }
+    // If there are any non-NA answers (yes/no or any non 'n/a' text), the category is applicable
+    const isNonNAAnswer = (ans: any) => {
+      if (ans === undefined || ans === null) return false
+      if (Array.isArray(ans)) {
+        return ans.some((a) => {
+          const s = String(a || "").trim().toLowerCase()
+          return s !== "n/a" && !/not applicable/i.test(s) && s.length > 0
+        })
       }
-      return true
+      const s = String(ans).trim().toLowerCase()
+      return s !== "n/a" && !/not applicable/i.test(s) && s.length > 0
     }
 
     const benchmarkQs = BENCHMARK_QUESTIONS.map((q) => q.id)
     const processQs = PROCESS_QUESTIONS.map((q) => q.id)
 
-    if (allNA(catEval.benchmarkAnswers, benchmarkQs) && allNA(catEval.processAnswers, processQs)) {
-      return "Not applicable"
+    // Check answers for any non-NA content
+    let anyNonNA = false
+    if (catEval.benchmarkAnswers) {
+      for (const k of benchmarkQs) {
+        if (isNonNAAnswer(catEval.benchmarkAnswers[k])) {
+          anyNonNA = true
+          break
+        }
+      }
+    }
+    if (!anyNonNA && catEval.processAnswers) {
+      for (const k of processQs) {
+        if (isNonNAAnswer(catEval.processAnswers[k])) {
+          anyNonNA = true
+          break
+        }
+      }
+    }
+
+    if (anyNonNA) return undefined
+
+    // Only treat category as fully N/A when the category-level field `additionalAspects`
+    // explicitly marks it as not applicable (page 2 of the form). Question-level markers
+    // (process/benchmark source descriptions or scopes) should NOT make the entire category
+    // non-selectable — they will still be shown as per-question NA in the details view.
+    if (typeof catEval.additionalAspects === "string" && /not applicable/i.test(catEval.additionalAspects)) {
+      return catEval.additionalAspects
     }
 
     return undefined
