@@ -10,14 +10,14 @@ WORKDIR /app
 COPY package*.json ./
 COPY pnpm-lock.yaml ./
 
-# Install minimal build tools for native modules (node-gyp) and enable pnpm via corepack.
+# Install minimal build tools for native modules (node-gyp) and install pnpm.
 # Using the repo's `pnpm-lock.yaml` keeps installs deterministic on Spaces.
+ENV DEBIAN_FRONTEND=noninteractive
 RUN apt-get update \
 	&& apt-get install -y --no-install-recommends ca-certificates python3 build-essential git curl \
 	&& rm -rf /var/lib/apt/lists/* \
-	&& corepack enable \
-	&& corepack prepare pnpm@latest --activate \
-	&& pnpm install --frozen-lockfile --reporter=silent
+	&& npm install -g pnpm@latest \
+	&& pnpm install --frozen-lockfile
 
 # copy source and build
 COPY . ./
