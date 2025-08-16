@@ -8,6 +8,7 @@ import { Badge } from "@/components/ui/badge"
 import { Checkbox } from "@/components/ui/checkbox"
 import { ArrowLeft, Download } from "lucide-react"
 import { CATEGORIES } from "@/lib/category-data"
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip"
 import { BENCHMARK_QUESTIONS, PROCESS_QUESTIONS } from "@/lib/category-data"
 
 const loadEvaluationDetails = async (id: string) => {
@@ -82,6 +83,65 @@ export default function EvaluationDetailsPage() {
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [evaluationId, evaluation?.selectedCategories])
+
+  // Determine if a category is effectively 'Not applicable' and return a reason string when available
+  const naReasonForCategory = (categoryId: string): string | undefined => {
+    const catEval = evaluation?.categoryEvaluations?.[categoryId]
+    if (!catEval) return undefined
+
+    // Priority: additionalAspects containing 'not applicable'
+    if (typeof catEval.additionalAspects === "string" && /not applicable/i.test(catEval.additionalAspects)) {
+      return catEval.additionalAspects
+    }
+
+    // Check processSources and benchmarkSources for explicit scope/description notes
+    const checkSources = (sourcesObj: any) => {
+      if (!sourcesObj) return undefined
+      for (const entries of Object.values(sourcesObj)) {
+        if (Array.isArray(entries)) {
+          for (const ent of entries) {
+            if (!ent) continue
+            if (typeof ent.scope === "string" && /not applicable/i.test(ent.scope)) return ent.scope
+            if (typeof ent.description === "string" && /not applicable/i.test(ent.description)) return ent.description
+          }
+        }
+      }
+      return undefined
+    }
+
+    const fromProcess = checkSources(catEval.processSources)
+    if (fromProcess) return fromProcess
+    const fromBench = checkSources(catEval.benchmarkSources)
+    if (fromBench) return fromBench
+
+    // If all answers in both sections are explicitly 'N/A' or empty, treat as not applicable
+    const allNA = (obj: any, canonicalKeys: string[]) => {
+      if (!obj) return true
+      for (const k of canonicalKeys) {
+        const ans = obj[k]
+        if (Array.isArray(ans)) {
+          if (!ans.every((a) => String(a).toLowerCase() === "n/a" || /not applicable/i.test(String(a)))) return false
+        } else if (ans === undefined || ans === null) {
+          // treat missing as NA
+          continue
+        } else if (String(ans).toLowerCase() === "n/a" || /not applicable/i.test(String(ans))) {
+          continue
+        } else {
+          return false
+        }
+      }
+      return true
+    }
+
+    const benchmarkQs = BENCHMARK_QUESTIONS.map((q) => q.id)
+    const processQs = PROCESS_QUESTIONS.map((q) => q.id)
+
+    if (allNA(catEval.benchmarkAnswers, benchmarkQs) && allNA(catEval.processAnswers, processQs)) {
+      return "Not applicable"
+    }
+
+    return undefined
+  }
 
   useEffect(() => {
     try {
@@ -202,17 +262,39 @@ export default function EvaluationDetailsPage() {
                   ?.map((id: string) => CATEGORIES.find((c) => c.id === id))
                   .filter(Boolean)
                   .filter((c: any) => c.type === "capability")
-                  .map((category: any) => (
-                    <label key={category.id} className="flex items-center gap-2">
-                      <Checkbox
-                        checked={visibleCategories[category.id] ?? true}
-                        onCheckedChange={() => toggleCategoryVisibility(category.id)}
-                      />
-                      <Badge variant="secondary" className="cursor-pointer">
-                        {category.name}
-                      </Badge>
-                    </label>
-                  ))}
+                  .map((category: any) => {
+                    const naReason = naReasonForCategory(category.id)
+                    const isNA = !!naReason
+                    return (
+                      <label key={category.id} className="flex items-center gap-2">
+                        <Checkbox
+                          checked={isNA ? false : visibleCategories[category.id] ?? true}
+                          onCheckedChange={() => !isNA && toggleCategoryVisibility(category.id)}
+                          disabled={isNA}
+                        />
+                        {isNA ? (
+                          <TooltipProvider>
+                            <Tooltip>
+                              <TooltipTrigger asChild>
+                                <span>
+                                  <Badge variant="outline" className="cursor-default text-muted-foreground">
+                                    {category.name}
+                                  </Badge>
+                                </span>
+                              </TooltipTrigger>
+                              <TooltipContent>
+                                <p className="text-sm">{naReason}</p>
+                              </TooltipContent>
+                            </Tooltip>
+                          </TooltipProvider>
+                        ) : (
+                          <Badge variant="secondary" className="cursor-pointer">
+                            {category.name}
+                          </Badge>
+                        )}
+                      </label>
+                    )
+                  })}
               </div>
             </div>
 
@@ -223,17 +305,39 @@ export default function EvaluationDetailsPage() {
                   ?.map((id: string) => CATEGORIES.find((c) => c.id === id))
                   .filter(Boolean)
                   .filter((c: any) => c.type === "risk")
-                  .map((category: any) => (
-                    <label key={category.id} className="flex items-center gap-2">
-                      <Checkbox
-                        checked={visibleCategories[category.id] ?? true}
-                        onCheckedChange={() => toggleCategoryVisibility(category.id)}
-                      />
-                      <Badge variant="destructive" className="cursor-pointer">
-                        {category.name}
-                      </Badge>
-                    </label>
-                  ))}
+                  .map((category: any) => {
+                    const naReason = naReasonForCategory(category.id)
+                    const isNA = !!naReason
+                    return (
+                      <label key={category.id} className="flex items-center gap-2">
+                        <Checkbox
+                          checked={isNA ? false : visibleCategories[category.id] ?? true}
+                          onCheckedChange={() => !isNA && toggleCategoryVisibility(category.id)}
+                          disabled={isNA}
+                        />
+                        {isNA ? (
+                          <TooltipProvider>
+                            <Tooltip>
+                              <TooltipTrigger asChild>
+                                <span>
+                                  <Badge variant="outline" className="cursor-default text-muted-foreground">
+                                    {category.name}
+                                  </Badge>
+                                </span>
+                              </TooltipTrigger>
+                              <TooltipContent>
+                                <p className="text-sm">{naReason}</p>
+                              </TooltipContent>
+                            </Tooltip>
+                          </TooltipProvider>
+                        ) : (
+                          <Badge variant="destructive" className="cursor-pointer">
+                            {category.name}
+                          </Badge>
+                        )}
+                      </label>
+                    )
+                  })}
               </div>
             </div>
           </div>
