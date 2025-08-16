@@ -10,6 +10,7 @@ import { ArrowLeft, Download } from "lucide-react"
 import { CATEGORIES } from "@/lib/category-data"
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip"
 import { BENCHMARK_QUESTIONS, PROCESS_QUESTIONS } from "@/lib/category-data"
+import { naReasonForCategoryFromEval } from "@/lib/na-utils"
 
 const loadEvaluationDetails = async (id: string) => {
   const evaluationFiles = [
@@ -84,72 +85,13 @@ export default function EvaluationDetailsPage() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [evaluationId, evaluation?.selectedCategories])
 
-  // Determine if a category is effectively 'Not applicable' and return a reason string when available
+  // Proxy to the centralized helper
   const naReasonForCategory = (categoryId: string): string | undefined => {
     const catEval = evaluation?.categoryEvaluations?.[categoryId]
     if (!catEval) return undefined
-
-    // Helper to check sources for explicit NA notes
-    const checkSourcesForNA = (sourcesObj: any) => {
-      if (!sourcesObj) return undefined
-      for (const entries of Object.values(sourcesObj)) {
-        if (Array.isArray(entries)) {
-          for (const ent of entries) {
-            if (!ent) continue
-            if (typeof ent.scope === "string" && /not applicable/i.test(ent.scope)) return ent.scope
-            if (typeof ent.description === "string" && /not applicable/i.test(ent.description)) return ent.description
-          }
-        }
-      }
-      return undefined
-    }
-
-    // If there are any non-NA answers (yes/no or any non 'n/a' text), the category is applicable
-    const isNonNAAnswer = (ans: any) => {
-      if (ans === undefined || ans === null) return false
-      if (Array.isArray(ans)) {
-        return ans.some((a) => {
-          const s = String(a || "").trim().toLowerCase()
-          return s !== "n/a" && !/not applicable/i.test(s) && s.length > 0
-        })
-      }
-      const s = String(ans).trim().toLowerCase()
-      return s !== "n/a" && !/not applicable/i.test(s) && s.length > 0
-    }
-
     const benchmarkQs = BENCHMARK_QUESTIONS.map((q) => q.id)
     const processQs = PROCESS_QUESTIONS.map((q) => q.id)
-
-    // Check answers for any non-NA content
-    let anyNonNA = false
-    if (catEval.benchmarkAnswers) {
-      for (const k of benchmarkQs) {
-        if (isNonNAAnswer(catEval.benchmarkAnswers[k])) {
-          anyNonNA = true
-          break
-        }
-      }
-    }
-    if (!anyNonNA && catEval.processAnswers) {
-      for (const k of processQs) {
-        if (isNonNAAnswer(catEval.processAnswers[k])) {
-          anyNonNA = true
-          break
-        }
-      }
-    }
-
-    if (anyNonNA) return undefined
-
-    // Only treat category as fully N/A when the category-level field `additionalAspects`
-    // explicitly marks it as not applicable (page 2 of the form). Question-level markers
-    // (process/benchmark source descriptions or scopes) should NOT make the entire category
-    // non-selectable — they will still be shown as per-question NA in the details view.
-    if (typeof catEval.additionalAspects === "string" && /not applicable/i.test(catEval.additionalAspects)) {
-      return catEval.additionalAspects
-    }
-
-    return undefined
+    return naReasonForCategoryFromEval(catEval, benchmarkQs, processQs)
   }
 
   useEffect(() => {
