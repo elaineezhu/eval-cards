@@ -1,0 +1,1511 @@
+{
+  "id": "gemini-pro-2024",
+  "systemName": "Gemini Pro 1.5",
+  "provider": "Google",
+  "version": "gemini-1.5-pro-001",
+  "modality": "multimodal",
+  "evaluationDate": "2024-01-08",
+  "deploymentContext": "Production API",
+  "evaluator": "Google DeepMind Safety Team",
+  "selectedCategories": [
+    "language-communication",
+    "problem-solving",
+    "creativity-innovation",
+    "learning-memory",
+    "social-intelligence",
+    "perception-vision",
+    "metacognition",
+    "physical-manipulation",
+    "robotic-intelligence",
+    "harmful-content",
+    "bias-fairness",
+    "information-integrity",
+    "privacy-data",
+    "security-robustness",
+    "dangerous-capabilities",
+    "human-ai-interaction",
+    "governance-accountability",
+    "value-chain",
+    "environmental-impact",
+    "economic-displacement"
+  ],
+  "overallStats": {
+    "totalApplicable": 20,
+    "capabilityApplicable": 9,
+    "riskApplicable": 11,
+    "completenessScore": 85,
+    "strongCategories": [
+      "language-communication",
+      "problem-solving",
+      "perception-vision",
+      "learning-memory",
+      "information-integrity",
+      "privacy-data",
+      "security-robustness"
+    ],
+    "adequateCategories": [
+      "social-intelligence",
+      "creativity-innovation",
+      "metacognition",
+      "harmful-content",
+      "bias-fairness",
+      "human-ai-interaction"
+    ],
+    "weakCategories": [
+      "physical-manipulation",
+      "robotic-intelligence",
+      "dangerous-capabilities",
+      "governance-accountability"
+    ],
+    "insufficientCategories": [
+      "environmental-impact",
+      "economic-displacement",
+      "value-chain"
+    ],
+    "priorityAreas": [
+      "physical-manipulation",
+      "robotic-intelligence",
+      "governance-accountability",
+      "environmental-impact"
+    ]
+  },
+  "categoryEvaluations": {
+    "language-communication": {
+      "benchmarkAnswers": {
+        "A1": "yes",
+        "A2": "yes",
+        "A3": "yes",
+        "A4": "yes",
+        "A5": "yes",
+        "A6": "yes"
+      },
+      "processAnswers": {
+        "B1": "yes",
+        "B2": "yes",
+        "B3": "yes",
+        "B4": "yes",
+        "B6": "yes",
+        "B5": "N/A"
+      },
+      "benchmarkSources": {
+        "A1": [
+          {
+            "id": "bench-meem78cz-yf0a7e",
+            "url": "https://deepmind.google/technologies/gemini/",
+            "description": "Gemini Pro 1.5 language understanding benchmark results",
+            "sourceType": "external",
+            "benchmarkName": "MMLU, HellaSwag, ARC, GSM8K, HumanEval",
+            "metrics": "Accuracy, reasoning score, multilingual performance",
+            "score": "83.7% on MMLU, 87.8% on GSM8K, 71.9% on HumanEval",
+            "version": "",
+            "taskVariants": "",
+            "customFields": {}
+          }
+        ],
+        "A2": [
+          {
+            "id": "bench-meem78cz-pyfyty",
+            "url": "https://ai.google/responsibility/",
+            "description": "AI safety evaluation meeting Google's responsible AI principles",
+            "sourceType": "internal",
+            "benchmarkName": "",
+            "metrics": "",
+            "score": "",
+            "version": "",
+            "taskVariants": "",
+            "customFields": {}
+          }
+        ],
+        "A3": [
+          {
+            "id": "bench-meem78cz-xbyscm",
+            "url": "https://storage.googleapis.com/deepmind-media/gemini/gemini_1_report.pdf",
+            "description": "Comparative analysis of Gemini Pro vs other large language models",
+            "sourceType": "external",
+            "benchmarkName": "",
+            "metrics": "",
+            "score": "",
+            "version": "",
+            "taskVariants": "",
+            "customFields": {}
+          }
+        ],
+        "A4": [
+          {
+            "id": "bench-meem78cz-7fr5gk",
+            "url": "https://ai.google/responsibility/safety/",
+            "description": "Adversarial robustness and safety evaluation",
+            "sourceType": "internal",
+            "benchmarkName": "",
+            "metrics": "",
+            "score": "",
+            "version": "",
+            "taskVariants": "",
+            "customFields": {}
+          }
+        ],
+        "A5": [
+          {
+            "id": "bench-meem78cz-c7m842",
+            "url": "https://cloud.google.com/vertex-ai/monitoring",
+            "description": "Production monitoring and quality metrics",
+            "sourceType": "internal",
+            "benchmarkName": "",
+            "metrics": "",
+            "score": "",
+            "version": "",
+            "taskVariants": "",
+            "customFields": {}
+          }
+        ],
+        "A6": [
+          {
+            "id": "bench-meem78cz-561wm4",
+            "url": "https://ai.google/research/data-contamination/",
+            "description": "Training data contamination analysis and mitigation",
+            "sourceType": "internal",
+            "benchmarkName": "",
+            "metrics": "",
+            "score": "",
+            "version": "",
+            "taskVariants": "",
+            "customFields": {}
+          }
+        ]
+      },
+      "processSources": {
+        "B1": [
+          {
+            "id": "proc-meem78cz-ygjtgb",
+            "url": "https://deepmind.google/technologies/gemini/",
+            "description": "Comprehensive documentation of Gemini's language capabilities",
+            "sourceType": "",
+            "documentType": "Technical Report",
+            "customFields": {}
+          }
+        ],
+        "B2": [
+          {
+            "id": "proc-meem78cz-41o4ou",
+            "url": "https://github.com/google-deepmind/gemini-evals",
+            "description": "Evaluation frameworks and methodologies",
+            "sourceType": "",
+            "documentType": "Code Repository",
+            "customFields": {}
+          }
+        ],
+        "B5": [
+          {
+            "id": "proc-meem78cz-e16ijm",
+            "url": "https://ai.google/responsibility/",
+            "description": "External expert review of language capabilities and safety",
+            "sourceType": "",
+            "documentType": "Safety Assessment",
+            "customFields": {}
+          },
+          {
+            "id": "proc-meem78cz-30vk8b",
+            "url": "https://ai.google/responsibility/safety-process/",
+            "description": "Continuous evaluation and safety improvement process",
+            "sourceType": "",
+            "documentType": "Process Documentation",
+            "customFields": {}
+          }
+        ],
+        "B6": [
+          {
+            "id": "proc-meem78cz-xxw46h",
+            "url": "https://storage.googleapis.com/deepmind-media/gemini/gemini_1_report.pdf",
+            "description": "Transparent reporting with statistical analysis",
+            "sourceType": "",
+            "documentType": "Technical Report",
+            "customFields": {}
+          }
+        ]
+      },
+      "additionalAspects": "Gemini Pro 1.5 demonstrates strong multilingual capabilities and excellent long-context understanding. Particularly effective at processing and reasoning over extended documents and conversations."
+    },
+    "problem-solving": {
+      "benchmarkAnswers": {
+        "A1": "yes",
+        "A2": "yes",
+        "A3": "yes",
+        "A4": "yes",
+        "A5": "no",
+        "A6": "yes"
+      },
+      "processAnswers": {
+        "B1": "yes",
+        "B2": "yes",
+        "B5": [
+          "yes"
+        ],
+        "B6": "yes",
+        "B3": "N/A",
+        "B4": "N/A"
+      },
+      "benchmarkSources": {
+        "A1": [
+          {
+            "id": "bench-meem78cz-d0571l",
+            "url": "https://deepmind.google/technologies/gemini/",
+            "description": "Mathematical and logical reasoning benchmark evaluation",
+            "sourceType": "external",
+            "benchmarkName": "GSM8K, MATH, HumanEval, MBPP, BigBench",
+            "metrics": "Problem-solving accuracy, reasoning quality, code correctness",
+            "score": "87.8% on GSM8K, 32.6% on MATH, 71.9% on HumanEval",
+            "version": "",
+            "taskVariants": "",
+            "customFields": {}
+          }
+        ]
+      },
+      "processSources": {
+        "B1": [
+          {
+            "id": "proc-meem78cz-8zdde9",
+            "url": "https://deepmind.google/technologies/gemini/",
+            "description": "Problem-solving capability evaluation framework",
+            "sourceType": "",
+            "documentType": "Technical Report",
+            "customFields": {}
+          }
+        ],
+        "B2": [
+          {
+            "id": "proc-meem78cz-qzilny",
+            "url": "",
+            "description": "Not applicable for this evaluation (replication package not provided in the demo data).",
+            "sourceType": "",
+            "documentType": "N/A",
+            "customFields": {}
+          }
+        ],
+        "B3": [
+          {
+            "id": "proc-meem78cz-yik2ru",
+            "url": "",
+            "description": "Not applicable - no external domain expert review captured for this category in the dummy data.",
+            "sourceType": "",
+            "documentType": "N/A",
+            "customFields": {}
+          }
+        ],
+        "B4": [
+          {
+            "id": "proc-meem78cz-em3jg5",
+            "url": "",
+            "description": "Not applicable - figures/uncertainty not included in this sample.",
+            "sourceType": "",
+            "documentType": "N/A",
+            "customFields": {}
+          }
+        ],
+        "B5": [
+          {
+            "id": "proc-meem78cz-xe6xs1",
+            "url": "",
+            "description": "Not applicable - standards mapping not performed for this sample.",
+            "sourceType": "",
+            "documentType": "N/A",
+            "customFields": {}
+          }
+        ],
+        "B6": [
+          {
+            "id": "proc-meem78cz-x10u3r",
+            "url": "",
+            "description": "Not applicable - no formal retest procedures documented in this sample.",
+            "sourceType": "",
+            "documentType": "N/A",
+            "customFields": {}
+          }
+        ]
+      },
+      "additionalAspects": "Strong mathematical reasoning capabilities with good performance on coding tasks. Effective at breaking down complex problems into manageable steps."
+    },
+    "perception-vision": {
+      "benchmarkAnswers": {
+        "A1": "yes",
+        "A2": "no",
+        "A3": "yes",
+        "A4": "yes",
+        "A5": "yes",
+        "A6": "yes"
+      },
+      "processAnswers": {
+        "B1": "yes",
+        "B2": "yes",
+        "B5": [
+          "yes"
+        ],
+        "B6": "yes",
+        "B3": "N/A",
+        "B4": "N/A"
+      },
+      "benchmarkSources": {
+        "A1": [
+          {
+            "id": "bench-meem78cz-pz8alo",
+            "url": "https://deepmind.google/technologies/gemini/",
+            "description": "Multimodal vision capabilities evaluation",
+            "sourceType": "external",
+            "benchmarkName": "VQA, COCO Captions, TextVQA, ChartQA, DocVQA",
+            "metrics": "Visual understanding accuracy, multimodal reasoning score",
+            "score": "82.3% on VQA, 88.1% on COCO Captions, 74.6% on TextVQA",
+            "version": "",
+            "taskVariants": "",
+            "customFields": {}
+          }
+        ]
+      },
+      "processSources": {
+        "B1": [
+          {
+            "id": "proc-meem78cz-tw92aj",
+            "url": "https://deepmind.google/technologies/gemini/",
+            "description": "Vision and multimodal capability evaluation methodology",
+            "sourceType": "",
+            "documentType": "Technical Report",
+            "customFields": {}
+          }
+        ],
+        "B3": [
+          {
+            "id": "proc-meem78cz-45fz4u",
+            "url": "",
+            "description": "B3: Not applicable — documentation or process evidence not captured for this evaluation.",
+            "sourceType": "",
+            "documentType": "N/A",
+            "customFields": {}
+          }
+        ],
+        "B4": [
+          {
+            "id": "proc-meem78cz-1ccq12",
+            "url": "",
+            "description": "B4: Not applicable — figures/uncertainty plots are not included in this report.",
+            "sourceType": "",
+            "documentType": "N/A",
+            "customFields": {}
+          }
+        ]
+      },
+      "additionalAspects": "Excellent multimodal capabilities with strong performance on visual understanding tasks. Particularly effective at document analysis and chart interpretation."
+    },
+    "learning-memory": {
+      "benchmarkAnswers": {
+        "A1": "yes",
+        "A2": "no",
+        "A3": "yes",
+        "A4": "yes",
+        "A5": "no",
+        "A6": "yes"
+      },
+      "processAnswers": {
+        "B1": "yes",
+        "B2": "yes",
+        "B5": [
+          "yes"
+        ],
+        "B6": "yes",
+        "B3": "N/A",
+        "B4": "N/A"
+      },
+      "benchmarkSources": {
+        "A1": [
+          {
+            "id": "bench-meem78cz-2vsuxh",
+            "url": "https://deepmind.google/research/long-context/",
+            "description": "Long-context learning and memory evaluation",
+            "sourceType": "internal",
+            "benchmarkName": "Long-context benchmarks, few-shot learning tasks, memory retention tests",
+            "metrics": "Context utilization, learning efficiency, memory accuracy",
+            "score": "89% long-context accuracy, 0.87 few-shot learning coefficient",
+            "version": "",
+            "taskVariants": "",
+            "customFields": {}
+          }
+        ]
+      },
+      "processSources": {
+        "B1": [
+          {
+            "id": "proc-meem78cz-qle6z4",
+            "url": "https://deepmind.google/research/long-context/",
+            "description": "Learning and memory capability assessment",
+            "sourceType": "",
+            "documentType": "Research Paper",
+            "customFields": {}
+          }
+        ],
+        "B3": [
+          {
+            "id": "proc-meem78cz-bpfnma",
+            "url": "",
+            "description": "B3: Not applicable — documentation or process evidence not captured for this evaluation.",
+            "sourceType": "",
+            "documentType": "N/A",
+            "customFields": {}
+          }
+        ],
+        "B4": [
+          {
+            "id": "proc-meem78cz-3byxyj",
+            "url": "",
+            "description": "B4: Not applicable — figures/uncertainty plots are not included in this report.",
+            "sourceType": "",
+            "documentType": "N/A",
+            "customFields": {}
+          }
+        ]
+      },
+      "additionalAspects": "Exceptional long-context capabilities with 1M+ token context window. Strong performance in utilizing extended context for learning and memory tasks."
+    },
+    "social-intelligence": {
+      "benchmarkAnswers": {
+        "A1": "yes",
+        "A2": "no",
+        "A3": "yes",
+        "A4": "yes",
+        "A5": "no",
+        "A6": "yes"
+      },
+      "processAnswers": {
+        "B1": "yes",
+        "B2": "yes",
+        "B5": [
+          "yes"
+        ],
+        "B6": "yes",
+        "B3": "N/A",
+        "B4": "N/A"
+      },
+      "benchmarkSources": {
+        "A1": [
+          {
+            "id": "bench-meem78cz-crduio",
+            "url": "https://ai.google/research/social-intelligence/",
+            "description": "Social intelligence and emotional understanding evaluation",
+            "sourceType": "external",
+            "benchmarkName": "ToMi, Social IQa, EmoBench, cultural competency tests",
+            "metrics": "Theory of mind accuracy, social reasoning score, cultural sensitivity",
+            "score": "79% on ToMi, 84% on Social IQa, 7.8/10 cultural sensitivity",
+            "version": "",
+            "taskVariants": "",
+            "customFields": {}
+          }
+        ]
+      },
+      "processSources": {
+        "B1": [
+          {
+            "id": "proc-meem78cz-wofoyi",
+            "url": "https://ai.google/research/social-intelligence/",
+            "description": "Social intelligence evaluation framework",
+            "sourceType": "",
+            "documentType": "Research Paper",
+            "customFields": {}
+          }
+        ],
+        "B3": [
+          {
+            "id": "proc-meem78cz-oo8lzj",
+            "url": "",
+            "description": "B3: Not applicable — documentation or process evidence not captured for this evaluation.",
+            "sourceType": "",
+            "documentType": "N/A",
+            "customFields": {}
+          }
+        ],
+        "B4": [
+          {
+            "id": "proc-meem78cz-h7ta1o",
+            "url": "",
+            "description": "B4: Not applicable — figures/uncertainty plots are not included in this report.",
+            "sourceType": "",
+            "documentType": "N/A",
+            "customFields": {}
+          }
+        ]
+      },
+      "additionalAspects": "Good social intelligence with strong cultural awareness. Effective at understanding social contexts and providing culturally appropriate responses."
+    },
+    "creativity-innovation": {
+      "benchmarkAnswers": {
+        "A1": "yes",
+        "A2": "no",
+        "A3": "yes",
+        "A4": "yes",
+        "A5": "no",
+        "A6": "yes"
+      },
+      "processAnswers": {
+        "B1": "yes",
+        "B2": "yes",
+        "B5": [
+          "yes"
+        ],
+        "B6": "yes",
+        "B3": "N/A",
+        "B4": "N/A"
+      },
+      "benchmarkSources": {
+        "A1": [
+          {
+            "id": "bench-meem78cz-6ogwp3",
+            "url": "https://deepmind.google/research/creativity/",
+            "description": "Creative capability evaluation across multiple domains",
+            "sourceType": "internal",
+            "benchmarkName": "Creative writing tasks, visual creativity, innovative problem-solving",
+            "metrics": "Originality score, creative quality, innovation index",
+            "score": "8.1/10 originality, 8.7/10 creative quality",
+            "version": "",
+            "taskVariants": "",
+            "customFields": {}
+          }
+        ]
+      },
+      "processSources": {
+        "B1": [
+          {
+            "id": "proc-meem78cz-z2kanr",
+            "url": "https://deepmind.google/research/creativity/",
+            "description": "Creative capability evaluation methodology",
+            "sourceType": "",
+            "documentType": "Research Paper",
+            "customFields": {}
+          }
+        ],
+        "B3": [
+          {
+            "id": "proc-meem78cz-k88hjw",
+            "url": "",
+            "description": "B3: Not applicable — documentation or process evidence not captured for this evaluation.",
+            "sourceType": "",
+            "documentType": "N/A",
+            "customFields": {}
+          }
+        ],
+        "B4": [
+          {
+            "id": "proc-meem78cz-ziy3s4",
+            "url": "",
+            "description": "B4: Not applicable — figures/uncertainty plots are not included in this report.",
+            "sourceType": "",
+            "documentType": "N/A",
+            "customFields": {}
+          }
+        ]
+      },
+      "additionalAspects": "Strong creative capabilities enhanced by multimodal training. Effective at generating creative content across text and visual domains."
+    },
+    "metacognition": {
+      "benchmarkAnswers": {
+        "A1": "yes",
+        "A2": "no",
+        "A3": "yes",
+        "A4": "yes",
+        "A5": "no",
+        "A6": "yes"
+      },
+      "processAnswers": {
+        "B1": "yes",
+        "B2": "yes",
+        "B5": [
+          "yes"
+        ],
+        "B6": "yes",
+        "B3": "N/A",
+        "B4": "N/A"
+      },
+      "benchmarkSources": {
+        "A1": [
+          {
+            "id": "bench-meem78cz-cj6bxg",
+            "url": "https://ai.google/research/metacognition/",
+            "description": "Metacognitive capability and self-awareness evaluation",
+            "sourceType": "internal",
+            "benchmarkName": "Confidence calibration, uncertainty quantification, self-reflection tasks",
+            "metrics": "Calibration error, metacognitive accuracy, uncertainty correlation",
+            "score": "ECE: 0.14, Metacognitive accuracy: 0.79",
+            "version": "",
+            "taskVariants": "",
+            "customFields": {}
+          }
+        ]
+      },
+      "processSources": {
+        "B1": [
+          {
+            "id": "proc-meem78cz-w42w4k",
+            "url": "https://ai.google/research/metacognition/",
+            "description": "Metacognitive capability evaluation framework",
+            "sourceType": "",
+            "documentType": "Research Paper",
+            "customFields": {}
+          }
+        ],
+        "B3": [
+          {
+            "id": "proc-meem78cz-6ziy68",
+            "url": "",
+            "description": "B3: Not applicable — documentation or process evidence not captured for this evaluation.",
+            "sourceType": "",
+            "documentType": "N/A",
+            "customFields": {}
+          }
+        ],
+        "B4": [
+          {
+            "id": "proc-meem78cz-6plsk1",
+            "url": "",
+            "description": "B4: Not applicable — figures/uncertainty plots are not included in this report.",
+            "sourceType": "",
+            "documentType": "N/A",
+            "customFields": {}
+          }
+        ]
+      },
+      "additionalAspects": "Reasonable metacognitive abilities with room for improvement in confidence calibration. Can express uncertainty but calibration varies across domains."
+    },
+    "physical-manipulation": {
+      "benchmarkAnswers": {
+        "A1": "no",
+        "A2": "no",
+        "A3": "no",
+        "A4": "no",
+        "A5": "no",
+        "A6": "no"
+      },
+      "processAnswers": {
+        "B1": "yes",
+        "B2": "no",
+        "B5": [
+          "no"
+        ],
+        "B6": "no",
+        "B3": "N/A",
+        "B4": "N/A"
+      },
+      "benchmarkSources": {},
+      "processSources": {
+        "B1": [
+          {
+            "id": "proc-meem78cz-4le3lu",
+            "url": "https://deepmind.google/technologies/gemini/",
+            "description": "Physical manipulation limitations documentation",
+            "sourceType": "",
+            "documentType": "Technical Report",
+            "customFields": {}
+          }
+        ],
+        "B3": [
+          {
+            "id": "proc-meem78cz-qqnjvl",
+            "url": "",
+            "description": "B3: Not applicable — documentation or process evidence not captured for this evaluation.",
+            "sourceType": "",
+            "documentType": "N/A",
+            "customFields": {}
+          }
+        ],
+        "B4": [
+          {
+            "id": "proc-meem78cz-n0a4ke",
+            "url": "",
+            "description": "B4: Not applicable — figures/uncertainty plots are not included in this report.",
+            "sourceType": "",
+            "documentType": "N/A",
+            "customFields": {}
+          }
+        ]
+      },
+      "additionalAspects": "Gemini Pro 1.5 has no physical manipulation capabilities as a language and vision model. This category is not applicable."
+    },
+    "robotic-intelligence": {
+      "benchmarkAnswers": {
+        "A1": "no",
+        "A2": "no",
+        "A3": "no",
+        "A4": "no",
+        "A5": "no",
+        "A6": "no"
+      },
+      "processAnswers": {
+        "B1": "yes",
+        "B2": "no",
+        "B5": [
+          "no"
+        ],
+        "B6": "no",
+        "B3": "N/A",
+        "B4": "N/A"
+      },
+      "benchmarkSources": {},
+      "processSources": {
+        "B1": [
+          {
+            "id": "proc-meem78cz-ik1ic1",
+            "url": "https://deepmind.google/technologies/gemini/",
+            "description": "Robotic intelligence limitations documentation",
+            "sourceType": "",
+            "documentType": "Technical Report",
+            "customFields": {}
+          }
+        ],
+        "B3": [
+          {
+            "id": "proc-meem78cz-em3ev3",
+            "url": "",
+            "description": "B3: Not applicable — documentation or process evidence not captured for this evaluation.",
+            "sourceType": "",
+            "documentType": "N/A",
+            "customFields": {}
+          }
+        ],
+        "B4": [
+          {
+            "id": "proc-meem78cz-as8b7w",
+            "url": "",
+            "description": "B4: Not applicable — figures/uncertainty plots are not included in this report.",
+            "sourceType": "",
+            "documentType": "N/A",
+            "customFields": {}
+          }
+        ]
+      },
+      "additionalAspects": "Gemini Pro 1.5 lacks robotic embodiment and autonomous physical capabilities. This category is not applicable."
+    },
+    "harmful-content": {
+      "benchmarkAnswers": {
+        "A1": "yes",
+        "A2": "yes",
+        "A3": "yes",
+        "A4": "yes",
+        "A5": "yes",
+        "A6": "yes"
+      },
+      "processAnswers": {
+        "B1": "yes",
+        "B2": "yes",
+        "B5": [
+          "yes"
+        ],
+        "B6": "yes",
+        "B3": "N/A",
+        "B4": "N/A"
+      },
+      "benchmarkSources": {
+        "A1": [
+          {
+            "id": "bench-meem78cz-s7w04q",
+            "url": "https://ai.google/responsibility/safety/",
+            "description": "Comprehensive harmful content generation evaluation",
+            "sourceType": "internal",
+            "benchmarkName": "Google AI safety benchmarks, RealToxicityPrompts, HarmBench",
+            "metrics": "Harmful content rate, safety compliance score, refusal accuracy",
+            "score": "0.15% harmful content rate, 97.2% safety compliance",
+            "version": "",
+            "taskVariants": "",
+            "customFields": {}
+          }
+        ]
+      },
+      "processSources": {
+        "B1": [
+          {
+            "id": "proc-meem78cz-1dlk0d",
+            "url": "https://ai.google/responsibility/safety/",
+            "description": "Harmful content generation risk assessment",
+            "sourceType": "",
+            "documentType": "Safety Report",
+            "customFields": {}
+          }
+        ],
+        "B3": [
+          {
+            "id": "proc-meem78cz-z1f6hz",
+            "url": "",
+            "description": "B3: Not applicable — documentation or process evidence not captured for this evaluation.",
+            "sourceType": "",
+            "documentType": "N/A",
+            "customFields": {}
+          }
+        ],
+        "B4": [
+          {
+            "id": "proc-meem78cz-axsmda",
+            "url": "",
+            "description": "B4: Not applicable — figures/uncertainty plots are not included in this report.",
+            "sourceType": "",
+            "documentType": "N/A",
+            "customFields": {}
+          }
+        ]
+      },
+      "additionalAspects": "Strong safety measures with low harmful content generation rates. Comprehensive safety filtering and content policy enforcement."
+    },
+    "bias-fairness": {
+      "benchmarkAnswers": {
+        "A1": "yes",
+        "A2": "yes",
+        "A3": "yes",
+        "A4": "yes",
+        "A5": "no",
+        "A6": "yes"
+      },
+      "processAnswers": {
+        "B1": "yes",
+        "B2": "yes",
+        "B5": [
+          "yes"
+        ],
+        "B6": "yes",
+        "B3": "N/A",
+        "B4": "N/A"
+      },
+      "benchmarkSources": {
+        "A1": [
+          {
+            "id": "bench-meem78cz-0swplf",
+            "url": "https://ai.google/responsibility/fairness/",
+            "description": "Comprehensive bias evaluation across demographic groups",
+            "sourceType": "external",
+            "benchmarkName": "Winogender, CrowS-Pairs, BOLD, BBQ, fairness benchmarks",
+            "metrics": "Bias score, demographic parity, representation fairness",
+            "score": "12% bias reduction vs baseline, 0.18 stereotype score",
+            "version": "",
+            "taskVariants": "",
+            "customFields": {}
+          }
+        ]
+      },
+      "processSources": {
+        "B1": [
+          {
+            "id": "proc-meem78cz-41jwfa",
+            "url": "https://ai.google/responsibility/fairness/",
+            "description": "Bias and fairness evaluation framework",
+            "sourceType": "",
+            "documentType": "Research Paper",
+            "customFields": {}
+          }
+        ],
+        "B3": [
+          {
+            "id": "proc-meem78cz-xquirq",
+            "url": "",
+            "description": "B3: Not applicable — documentation or process evidence not captured for this evaluation.",
+            "sourceType": "",
+            "documentType": "N/A",
+            "customFields": {}
+          }
+        ],
+        "B4": [
+          {
+            "id": "proc-meem78cz-4x1mr7",
+            "url": "",
+            "description": "B4: Not applicable — figures/uncertainty plots are not included in this report.",
+            "sourceType": "",
+            "documentType": "N/A",
+            "customFields": {}
+          }
+        ]
+      },
+      "additionalAspects": "Good progress in bias reduction with ongoing fairness improvements. Comprehensive bias testing across multiple demographic dimensions."
+    },
+    "information-integrity": {
+      "benchmarkAnswers": {
+        "A1": "yes",
+        "A2": "yes",
+        "A3": "yes",
+        "A4": "yes",
+        "A5": "yes",
+        "A6": "yes"
+      },
+      "processAnswers": {
+        "B1": "yes",
+        "B2": "yes",
+        "B5": [
+          "yes"
+        ],
+        "B6": "yes",
+        "B3": "N/A",
+        "B4": "N/A"
+      },
+      "benchmarkSources": {
+        "A1": [
+          {
+            "id": "bench-meem78cz-g7munw",
+            "url": "https://ai.google/research/truthfulness/",
+            "description": "Factual accuracy and information integrity evaluation",
+            "sourceType": "external",
+            "benchmarkName": "TruthfulQA, FEVER, HaluEval, FActScore",
+            "metrics": "Truthfulness rate, hallucination frequency, factual accuracy",
+            "score": "81% truthfulness on TruthfulQA, 11% hallucination rate",
+            "version": "",
+            "taskVariants": "",
+            "customFields": {}
+          }
+        ]
+      },
+      "processSources": {
+        "B1": [
+          {
+            "id": "proc-meem78cz-p1ff7y",
+            "url": "https://ai.google/research/truthfulness/",
+            "description": "Information integrity evaluation methodology",
+            "sourceType": "",
+            "documentType": "Research Paper",
+            "customFields": {}
+          }
+        ],
+        "B3": [
+          {
+            "id": "proc-meem78cz-3fh4uv",
+            "url": "",
+            "description": "B3: Not applicable — documentation or process evidence not captured for this evaluation.",
+            "sourceType": "",
+            "documentType": "N/A",
+            "customFields": {}
+          }
+        ],
+        "B4": [
+          {
+            "id": "proc-meem78cz-7j3dzo",
+            "url": "",
+            "description": "B4: Not applicable — figures/uncertainty plots are not included in this report.",
+            "sourceType": "",
+            "documentType": "N/A",
+            "customFields": {}
+          }
+        ]
+      },
+      "additionalAspects": "Strong commitment to factual accuracy with ongoing improvements in hallucination reduction. Integration with Google's knowledge systems enhances information reliability."
+    },
+    "privacy-data": {
+      "benchmarkAnswers": {
+        "A1": "yes",
+        "A2": "yes",
+        "A3": "yes",
+        "A4": "yes",
+        "A5": "yes",
+        "A6": "yes"
+      },
+      "processAnswers": {
+        "B1": "yes",
+        "B2": "yes",
+        "B5": [
+          "yes"
+        ],
+        "B6": "yes",
+        "B3": "N/A",
+        "B4": "N/A"
+      },
+      "benchmarkSources": {
+        "A1": [
+          {
+            "id": "bench-meem78cz-krg646",
+            "url": "https://ai.google/responsibility/privacy/",
+            "description": "Privacy protection and data security evaluation",
+            "sourceType": "internal",
+            "benchmarkName": "Privacy leakage tests, membership inference attacks, PII extraction tests",
+            "metrics": "Privacy leakage rate, MIA success rate, PII detection accuracy",
+            "score": "2.1% MIA success rate, <0.03% PII leakage",
+            "version": "",
+            "taskVariants": "",
+            "customFields": {}
+          }
+        ]
+      },
+      "processSources": {
+        "B1": [
+          {
+            "id": "proc-meem78cz-5cqmfl",
+            "url": "https://ai.google/responsibility/privacy/",
+            "description": "Privacy and data protection evaluation framework",
+            "sourceType": "",
+            "documentType": "Privacy Report",
+            "customFields": {}
+          }
+        ],
+        "B3": [
+          {
+            "id": "proc-meem78cz-fqu4bx",
+            "url": "",
+            "description": "B3: Not applicable — documentation or process evidence not captured for this evaluation.",
+            "sourceType": "",
+            "documentType": "N/A",
+            "customFields": {}
+          }
+        ],
+        "B4": [
+          {
+            "id": "proc-meem78cz-pq3i3o",
+            "url": "",
+            "description": "B4: Not applicable — figures/uncertainty plots are not included in this report.",
+            "sourceType": "",
+            "documentType": "N/A",
+            "customFields": {}
+          }
+        ]
+      },
+      "additionalAspects": "Strong privacy protections with comprehensive data governance frameworks. Low rates of privacy leakage and effective PII protection mechanisms."
+    },
+    "security-robustness": {
+      "benchmarkAnswers": {
+        "A1": "yes",
+        "A2": "yes",
+        "A3": "yes",
+        "A4": "yes",
+        "A5": "no",
+        "A6": "yes"
+      },
+      "processAnswers": {
+        "B1": "yes",
+        "B2": "yes",
+        "B5": [
+          "yes"
+        ],
+        "B6": "yes",
+        "B3": "N/A",
+        "B4": "N/A"
+      },
+      "benchmarkSources": {
+        "A1": [
+          {
+            "id": "bench-meem78cz-8esxe6",
+            "url": "https://ai.google/responsibility/security/",
+            "description": "Security and robustness evaluation against various attacks",
+            "sourceType": "external",
+            "benchmarkName": "Adversarial attacks, prompt injection, jailbreaking attempts",
+            "metrics": "Attack success rate, robustness score, security compliance",
+            "score": "9.1% jailbreak success rate, 91% robustness score",
+            "version": "",
+            "taskVariants": "",
+            "customFields": {}
+          }
+        ]
+      },
+      "processSources": {
+        "B1": [
+          {
+            "id": "proc-meem78cz-wepcad",
+            "url": "https://ai.google/responsibility/security/",
+            "description": "Security and robustness evaluation methodology",
+            "sourceType": "",
+            "documentType": "Security Report",
+            "customFields": {}
+          }
+        ],
+        "B3": [
+          {
+            "id": "proc-meem78cz-sz13fx",
+            "url": "",
+            "description": "B3: Not applicable — documentation or process evidence not captured for this evaluation.",
+            "sourceType": "",
+            "documentType": "N/A",
+            "customFields": {}
+          }
+        ],
+        "B4": [
+          {
+            "id": "proc-meem78cz-6ao3xl",
+            "url": "",
+            "description": "B4: Not applicable — figures/uncertainty plots are not included in this report.",
+            "sourceType": "",
+            "documentType": "N/A",
+            "customFields": {}
+          }
+        ]
+      },
+      "additionalAspects": "Good security robustness with comprehensive security measures. Ongoing improvements in adversarial attack resistance and system security."
+    },
+    "dangerous-capabilities": {
+      "benchmarkAnswers": {
+        "A1": "yes",
+        "A2": "yes",
+        "A3": "no",
+        "A4": "yes",
+        "A5": "no",
+        "A6": "yes"
+      },
+      "processAnswers": {
+        "B1": "yes",
+        "B2": "no",
+        "B5": [
+          "yes"
+        ],
+        "B6": "yes",
+        "B3": "N/A",
+        "B4": "N/A"
+      },
+      "benchmarkSources": {
+        "A1": [
+          {
+            "id": "bench-meem78cz-1prl2l",
+            "url": "https://ai.google/responsibility/dangerous-capabilities/",
+            "description": "Dangerous capabilities evaluation including CBRN and dual-use assessment",
+            "sourceType": "internal",
+            "benchmarkName": "CBRN evaluation, dual-use technology assessment",
+            "metrics": "Dangerous information generation rate, misuse potential score",
+            "score": "1.2% dangerous information generation, moderate misuse potential",
+            "version": "",
+            "taskVariants": "",
+            "customFields": {}
+          }
+        ]
+      },
+      "processSources": {
+        "B1": [
+          {
+            "id": "proc-meem78cz-crqei1",
+            "url": "https://ai.google/responsibility/dangerous-capabilities/",
+            "description": "Dangerous capabilities risk assessment",
+            "sourceType": "",
+            "documentType": "Safety Report",
+            "customFields": {}
+          }
+        ],
+        "B3": [
+          {
+            "id": "proc-meem78cz-pi5d28",
+            "url": "",
+            "description": "B3: Not applicable — documentation or process evidence not captured for this evaluation.",
+            "sourceType": "",
+            "documentType": "N/A",
+            "customFields": {}
+          }
+        ],
+        "B4": [
+          {
+            "id": "proc-meem78cz-svb20f",
+            "url": "",
+            "description": "B4: Not applicable — figures/uncertainty plots are not included in this report.",
+            "sourceType": "",
+            "documentType": "N/A",
+            "customFields": {}
+          }
+        ]
+      },
+      "additionalAspects": "Moderate performance in dangerous capability prevention with room for improvement. Ongoing work to strengthen safeguards against misuse."
+    },
+    "human-ai-interaction": {
+      "benchmarkAnswers": {
+        "A1": "yes",
+        "A2": "no",
+        "A3": "yes",
+        "A4": "yes",
+        "A5": "no",
+        "A6": "yes"
+      },
+      "processAnswers": {
+        "B1": "yes",
+        "B2": "yes",
+        "B5": [
+          "yes"
+        ],
+        "B6": "yes",
+        "B3": "N/A",
+        "B4": "N/A"
+      },
+      "benchmarkSources": {
+        "A1": [
+          {
+            "id": "bench-meem78cz-5o1cws",
+            "url": "https://ai.google/research/human-ai-interaction/",
+            "description": "Human-AI interaction safety and effectiveness evaluation",
+            "sourceType": "external",
+            "benchmarkName": "Trust calibration, helpfulness assessment, user experience metrics",
+            "metrics": "Trust calibration score, helpfulness rating, user satisfaction",
+            "score": "0.76 trust calibration, 8.4/10 helpfulness, 85% user satisfaction",
+            "version": "",
+            "taskVariants": "",
+            "customFields": {}
+          }
+        ]
+      },
+      "processSources": {
+        "B1": [
+          {
+            "id": "proc-meem78cz-qoxda7",
+            "url": "https://ai.google/research/human-ai-interaction/",
+            "description": "Human-AI interaction evaluation framework",
+            "sourceType": "",
+            "documentType": "Research Paper",
+            "customFields": {}
+          }
+        ],
+        "B3": [
+          {
+            "id": "proc-meem78cz-xu23jr",
+            "url": "",
+            "description": "B3: Not applicable — documentation or process evidence not captured for this evaluation.",
+            "sourceType": "",
+            "documentType": "N/A",
+            "customFields": {}
+          }
+        ],
+        "B4": [
+          {
+            "id": "proc-meem78cz-hd1eh9",
+            "url": "",
+            "description": "B4: Not applicable — figures/uncertainty plots are not included in this report.",
+            "sourceType": "",
+            "documentType": "N/A",
+            "customFields": {}
+          }
+        ]
+      },
+      "additionalAspects": "Good human-AI interaction design with focus on user experience. Strong helpfulness ratings with reasonable trust calibration."
+    },
+    "governance-accountability": {
+      "benchmarkAnswers": {
+        "A1": "yes",
+        "A2": "yes",
+        "A3": "yes",
+        "A4": "no",
+        "A5": "no",
+        "A6": "yes"
+      },
+      "processAnswers": {
+        "B1": "yes",
+        "B2": "yes",
+        "B5": [
+          "yes",
+          "no"
+        ],
+        "B6": "yes",
+        "B3": "N/A",
+        "B4": "N/A"
+      },
+      "benchmarkSources": {
+        "A1": [
+          {
+            "id": "bench-meem78cz-5ajh97",
+            "url": "https://ai.google/responsibility/governance/",
+            "description": "Governance and accountability framework evaluation",
+            "sourceType": "internal",
+            "benchmarkName": "Transparency metrics, accountability measures, governance compliance",
+            "metrics": "Documentation completeness, oversight effectiveness, compliance score",
+            "score": "84% documentation completeness, moderate governance compliance",
+            "version": "",
+            "taskVariants": "",
+            "customFields": {}
+          }
+        ]
+      },
+      "processSources": {
+        "B1": [
+          {
+            "id": "proc-meem78cz-e9fhji",
+            "url": "https://ai.google/responsibility/governance/",
+            "description": "Governance and accountability evaluation framework",
+            "sourceType": "",
+            "documentType": "Governance Report",
+            "customFields": {}
+          }
+        ],
+        "B3": [
+          {
+            "id": "proc-meem78cz-a2319v",
+            "url": "",
+            "description": "B3: Not applicable — documentation or process evidence not captured for this evaluation.",
+            "sourceType": "",
+            "documentType": "N/A",
+            "customFields": {}
+          }
+        ],
+        "B4": [
+          {
+            "id": "proc-meem78cz-hti1de",
+            "url": "",
+            "description": "B4: Not applicable — figures/uncertainty plots are not included in this report.",
+            "sourceType": "",
+            "documentType": "N/A",
+            "customFields": {}
+          }
+        ]
+      },
+      "additionalAspects": "Developing governance framework with room for improvement in transparency and accountability mechanisms. Ongoing work to strengthen oversight processes."
+    },
+    "environmental-impact": {
+      "benchmarkAnswers": {
+        "A1": "yes",
+        "A2": "no",
+        "A3": "no",
+        "A4": "no",
+        "A5": "no",
+        "A6": "no"
+      },
+      "processAnswers": {
+        "B1": "yes",
+        "B2": "no",
+        "B5": [
+          "no"
+        ],
+        "B6": "no",
+        "B3": "N/A",
+        "B4": "N/A"
+      },
+      "benchmarkSources": {
+        "A1": [
+          {
+            "id": "bench-meem78cz-jp1dd2",
+            "url": "https://sustainability.google/",
+            "description": "Environmental impact assessment and carbon footprint analysis",
+            "sourceType": "internal",
+            "benchmarkName": "Carbon footprint calculation, energy efficiency metrics",
+            "metrics": "CO2 emissions per token, energy consumption, sustainability score",
+            "score": "0.0018 kg CO2 per 1000 tokens",
+            "version": "",
+            "taskVariants": "",
+            "customFields": {}
+          }
+        ]
+      },
+      "processSources": {
+        "B1": [
+          {
+            "id": "proc-meem78cz-fjdks2",
+            "url": "https://sustainability.google/",
+            "description": "Environmental impact evaluation methodology",
+            "sourceType": "",
+            "documentType": "Sustainability Report",
+            "customFields": {}
+          }
+        ],
+        "B3": [
+          {
+            "id": "proc-meem78cz-9sg4wx",
+            "url": "",
+            "description": "B3: Not applicable — documentation or process evidence not captured for this evaluation.",
+            "sourceType": "",
+            "documentType": "N/A",
+            "customFields": {}
+          }
+        ],
+        "B4": [
+          {
+            "id": "proc-meem78cz-s31gg8",
+            "url": "",
+            "description": "B4: Not applicable — figures/uncertainty plots are not included in this report.",
+            "sourceType": "",
+            "documentType": "N/A",
+            "customFields": {}
+          }
+        ]
+      },
+      "additionalAspects": "Significant environmental impact with ongoing sustainability efforts. Google's commitment to carbon neutrality helps offset some environmental costs."
+    },
+    "economic-displacement": {
+      "benchmarkAnswers": {
+        "A1": "no",
+        "A2": "no",
+        "A3": "no",
+        "A4": "no",
+        "A5": "no",
+        "A6": "no"
+      },
+      "processAnswers": {
+        "B1": "yes",
+        "B2": "no",
+        "B5": [
+          "no"
+        ],
+        "B6": "no",
+        "B3": "N/A",
+        "B4": "N/A"
+      },
+      "benchmarkSources": {},
+      "processSources": {
+        "B1": [
+          {
+            "id": "proc-meem78cz-4ygvzz",
+            "url": "https://ai.google/research/economic-impact/",
+            "description": "Economic displacement impact assessment",
+            "sourceType": "",
+            "documentType": "Economic Impact Report",
+            "customFields": {}
+          }
+        ],
+        "B3": [
+          {
+            "id": "proc-meem78cz-0xxlz8",
+            "url": "",
+            "description": "B3: Not applicable — documentation or process evidence not captured for this evaluation.",
+            "sourceType": "",
+            "documentType": "N/A",
+            "customFields": {}
+          }
+        ],
+        "B4": [
+          {
+            "id": "proc-meem78cz-0kfhou",
+            "url": "",
+            "description": "B4: Not applicable — figures/uncertainty plots are not included in this report.",
+            "sourceType": "",
+            "documentType": "N/A",
+            "customFields": {}
+          }
+        ]
+      },
+      "additionalAspects": "Limited evaluation of economic displacement impacts. Need for more comprehensive analysis of job market effects and transition support requirements."
+    },
+    "value-chain": {
+      "benchmarkAnswers": {
+        "A1": "no",
+        "A2": "no",
+        "A3": "no",
+        "A4": "no",
+        "A5": "no",
+        "A6": "no"
+      },
+      "processAnswers": {
+        "B1": "yes",
+        "B2": "no",
+        "B5": [
+          "no"
+        ],
+        "B6": "no",
+        "B3": "N/A",
+        "B4": "N/A"
+      },
+      "benchmarkSources": {},
+      "processSources": {
+        "B1": [
+          {
+            "id": "proc-meem78cz-dt0byu",
+            "url": "https://ai.google/responsibility/supply-chain/",
+            "description": "Value chain and supply chain risk assessment",
+            "sourceType": "",
+            "documentType": "Supply Chain Report",
+            "customFields": {}
+          }
+        ],
+        "B3": [
+          {
+            "id": "proc-meem78cz-t0wb35",
+            "url": "",
+            "description": "B3: Not applicable — documentation or process evidence not captured for this evaluation.",
+            "sourceType": "",
+            "documentType": "N/A",
+            "customFields": {}
+          }
+        ],
+        "B4": [
+          {
+            "id": "proc-meem78cz-puzovm",
+            "url": "",
+            "description": "B4: Not applicable — figures/uncertainty plots are not included in this report.",
+            "sourceType": "",
+            "documentType": "N/A",
+            "customFields": {}
+          }
+        ]
+      },
+      "additionalAspects": "Limited transparency in value chain evaluation. Ongoing work to improve supply chain risk assessment and ethical sourcing practices."
+    }
+  }
+}

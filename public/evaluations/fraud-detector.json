@@ -1,0 +1,337 @@
+{
+  "id": "fraud-detector-2024",
+  "systemName": "FraudDetector AI",
+  "provider": "FinTech Solutions",
+  "modality": "text-to-text",
+  "evaluationDate": "2024-01-05",
+  "evaluator": "FinTech Risk Team",
+  "selectedCategories": [
+    "problem-solving",
+    "bias-fairness",
+    "security-robustness",
+    "governance-accountability",
+    "learning-memory",
+    "privacy-data",
+    "human-ai-interaction",
+    "language-communication",
+    "harmful-content",
+    "information-integrity",
+    "dangerous-capabilities",
+    "economic-displacement"
+  ],
+  "categoryEvaluations": {
+    "problem-solving": {
+      "benchmarkAnswers": { "A1": "yes", "A2": "N/A", "A3": "yes", "A4": "N/A", "A5": "N/A", "A6": "yes" },
+      "processAnswers": { "B1": "yes", "B2": "N/A", "B3": "N/A", "B4": "N/A", "B5": "N/A", "B6": "N/A" },
+      "benchmarkSources": {
+        "A1": [
+          {
+            "id": "fd-bench-ps-1",
+            "url": "https://fintech.example.com/reports/frauddetector/problem-solving",
+            "description": "Internal evaluation on transaction anomaly detection benchmarks",
+            "sourceType": "internal",
+            "benchmarkName": "FraudBench-TS, Transaction-QA",
+            "metrics": "Precision, recall, AUC",
+            "score": "92% precision",
+            "version": "1.0",
+            "taskVariants": "financial-transactions",
+            "customFields": {}
+          }
+        ],
+        "A3": [
+          {
+            "id": "fd-bench-ps-2",
+            "url": "",
+            "description": "A3: Not applicable — benchmark for adversarial physical tasks not relevant to this text-only fraud detector.",
+            "sourceType": "N/A",
+            "benchmarkName": "",
+            "metrics": "",
+            "score": "",
+            "version": "",
+            "taskVariants": "",
+            "customFields": {}
+          }
+        ]
+      },
+      "processSources": {
+        "B1": [
+          {
+            "id": "fd-proc-ps-1",
+            "url": "https://fintech.example.com/processes/fraud-models",
+            "description": "Documentation of model development, training procedures and evaluation reproducibility",
+            "sourceType": "internal",
+            "documentType": "Technical Report",
+            "customFields": {}
+          }
+        ],
+        "B2": [
+          {
+            "id": "fd-proc-ps-2",
+            "url": "",
+            "description": "B2: Not applicable — replication package or reproducible artifacts were not published for this sample.",
+            "documentType": "N/A",
+            "scope": "B2: Not applicable — replication package or reproducible artifacts were not published for this sample.",
+            "customFields": {}
+          }
+        ]
+      },
+      "additionalAspects": "High performance on curated transaction anomaly datasets; limited public replication artifacts available."
+    },
+    "bias-fairness": {
+      "benchmarkAnswers": { "A1": "yes", "A2": "N/A", "A3": "N/A", "A4": "N/A", "A5": "N/A", "A6": "N/A" },
+      "processAnswers": { "B1": "yes", "B2": "N/A", "B3": "N/A", "B4": "N/A", "B5": "N/A", "B6": "N/A" },
+      "benchmarkSources": {
+        "A1": [
+          {
+            "id": "fd-bench-bf-1",
+            "url": "https://fintech.example.com/reports/fairness",
+            "description": "Internal fairness audits across demographic and merchant segments",
+            "sourceType": "internal",
+            "benchmarkName": "FairAudit v1",
+            "metrics": "Disparate impact, false positive rate parity",
+            "score": "Acceptable parity across segments",
+            "version": "1.0",
+            "taskVariants": "transactional",
+            "customFields": {}
+          }
+        ]
+      },
+      "processSources": {
+        "B1": [
+          {
+            "id": "fd-proc-bf-1",
+            "url": "",
+            "description": "B1: Not applicable — external audits were not conducted for this demo evaluation.",
+            "documentType": "N/A",
+            "scope": "B1: Not applicable — external audits were not conducted for this demo evaluation.",
+            "customFields": {}
+          }
+        ]
+      },
+      "additionalAspects": "Bias testing performed on internal splits; no external third-party audits available for this fixture."
+    },
+    "security-robustness": {
+      "benchmarkAnswers": { "A1": "yes", "A2": "N/A", "A3": "N/A", "A4": "N/A", "A5": "N/A", "A6": "N/A" },
+      "processAnswers": { "B1": "yes", "B2": "N/A", "B3": "N/A", "B4": "N/A", "B5": "N/A", "B6": "N/A" },
+      "benchmarkSources": {
+        "A1": [
+          {
+            "id": "fd-bench-sec-1",
+            "url": "https://fintech.example.com/reports/robustness",
+            "description": "Adversarial robustness testing against obfuscated transaction patterns",
+            "sourceType": "internal",
+            "benchmarkName": "AdvTransBench",
+            "metrics": "Robustness under obfuscation",
+            "score": "Good resilience",
+            "version": "1.0",
+            "taskVariants": "obfuscated-transactions",
+            "customFields": {}
+          }
+        ]
+      },
+      "processSources": {
+        "B1": [
+          {
+            "id": "fd-proc-sec-1",
+            "url": "",
+            "description": "B1: Not applicable — public incident reports are not part of this evaluation sample.",
+            "documentType": "N/A",
+            "scope": "B1: Not applicable — public incident reports are not part of this evaluation sample.",
+            "customFields": {}
+          }
+        ]
+      },
+      "additionalAspects": "Internal red-team testing performed; external penetration tests not available in this demo fixture."
+    },
+    "governance-accountability": {
+      "benchmarkAnswers": { "A1": "N/A", "A2": "N/A", "A3": "N/A", "A4": "N/A", "A5": "N/A", "A6": "N/A" },
+      "processAnswers": { "B1": "N/A", "B2": "N/A", "B3": "N/A", "B4": "N/A", "B5": "N/A", "B6": "N/A" },
+      "benchmarkSources": {},
+      "processSources": {
+        "B2": [
+          {
+            "id": "fd-proc-gov-1",
+            "url": "",
+            "description": "B2: Not applicable — governance replication artifacts not published for this demo.",
+            "documentType": "N/A",
+            "scope": "B2: Not applicable — governance replication artifacts not published for this demo.",
+            "customFields": {}
+          }
+        ]
+      },
+      "additionalAspects": "Governance processes exist internally but are not included in this public fixture and thus marked not applicable."
+    },
+    "learning-memory": {
+      "benchmarkAnswers": { "A1": "N/A", "A2": "N/A", "A3": "N/A", "A4": "N/A", "A5": "N/A", "A6": "N/A" },
+      "processAnswers": { "B1": "N/A", "B2": "N/A", "B3": "N/A", "B4": "N/A", "B5": "N/A", "B6": "N/A" },
+      "benchmarkSources": {},
+      "processSources": {
+        "B3": [
+          {
+            "id": "fd-proc-lm-1",
+            "url": "",
+            "description": "B3: Not applicable — domain expert review not captured for this category in the demo data.",
+            "documentType": "N/A",
+            "scope": "B3: Not applicable — domain expert review not captured for this category in the demo data.",
+            "customFields": {}
+          }
+        ]
+      },
+      "additionalAspects": "In-context learning and adaptation are limited in this embedded demo dataset."
+    },
+    "privacy-data": {
+      "benchmarkAnswers": { "A1": "N/A", "A2": "N/A", "A3": "N/A", "A4": "N/A", "A5": "N/A", "A6": "N/A" },
+      "processAnswers": { "B1": "yes", "B2": "N/A", "B3": "N/A", "B4": "N/A", "B5": "N/A", "B6": "N/A" },
+      "benchmarkSources": {},
+      "processSources": {
+        "B1": [
+          {
+            "id": "fd-proc-priv-1",
+            "url": "https://fintech.example.com/privacy",
+            "description": "Privacy-preserving data handling documentation (redacted in public fixtures)",
+            "documentType": "Process Documentation",
+            "customFields": {}
+          }
+        ]
+      },
+      "additionalAspects": "Privacy controls implemented; public artifacts are limited in this demo."
+    },
+    "human-ai-interaction": {
+      "benchmarkAnswers": { "A1": "N/A", "A2": "N/A", "A3": "N/A", "A4": "N/A", "A5": "N/A", "A6": "N/A" },
+      "processAnswers": { "B1": "N/A", "B2": "N/A", "B3": "N/A", "B4": "N/A", "B5": "N/A", "B6": "N/A" },
+      "benchmarkSources": {},
+      "processSources": {
+        "B4": [
+          {
+            "id": "fd-proc-hai-1",
+            "url": "",
+            "description": "B4: Not applicable — figures and uncertainty plots are not included in this report.",
+            "documentType": "N/A",
+            "scope": "B4: Not applicable — figures and uncertainty plots are not included in this report.",
+            "customFields": {}
+          }
+        ]
+      },
+      "additionalAspects": "User interaction flows are out-of-scope for this simple demo fixture."
+    },
+    "language-communication": {
+      "benchmarkAnswers": { "A1": "N/A", "A2": "N/A", "A3": "N/A", "A4": "N/A", "A5": "N/A", "A6": "N/A" },
+      "processAnswers": { "B1": "N/A", "B2": "N/A", "B3": "N/A", "B4": "N/A", "B5": "N/A", "B6": "N/A" },
+      "benchmarkSources": {},
+      "processSources": {
+        "B1": [
+          {
+            "id": "fd-proc-lc-1",
+            "url": "",
+            "description": "B1: Not applicable — language communication benchmarks not run for this domain-specific detector.",
+            "documentType": "N/A",
+            "scope": "B1: Not applicable — language communication benchmarks not run for this domain-specific detector.",
+            "customFields": {}
+          }
+        ]
+      },
+      "additionalAspects": "This system focuses on structured transaction data; generic language benchmarks are not applicable."
+    },
+    "harmful-content": {
+      "benchmarkAnswers": { "A1": "N/A", "A2": "N/A", "A3": "N/A", "A4": "N/A", "A5": "N/A", "A6": "N/A" },
+      "processAnswers": { "B1": "N/A", "B2": "N/A", "B3": "N/A", "B4": "N/A", "B5": "N/A", "B6": "N/A" },
+      "benchmarkSources": {},
+      "processSources": {
+        "B5": [
+          {
+            "id": "fd-proc-hc-1",
+            "url": "",
+            "description": "B5: Not applicable — content policy mappings are not performed for this demo detector.",
+            "documentType": "N/A",
+            "scope": "B5: Not applicable — content policy mappings are not performed for this demo detector.",
+            "customFields": {}
+          }
+        ]
+      },
+      "additionalAspects": "Harmful content detection is outside the primary scope of this demo dataset."
+    },
+    "information-integrity": {
+      "benchmarkAnswers": { "A1": "N/A", "A2": "N/A", "A3": "N/A", "A4": "N/A", "A5": "N/A", "A6": "N/A" },
+      "processAnswers": { "B1": "N/A", "B2": "N/A", "B3": "N/A", "B4": "N/A", "B5": "N/A", "B6": "N/A" },
+      "benchmarkSources": {},
+      "processSources": {
+        "B3": [
+          {
+            "id": "fd-proc-ii-1",
+            "url": "",
+            "description": "B3: Not applicable — external domain expert review not captured for this demo.",
+            "documentType": "N/A",
+            "scope": "B3: Not applicable — external domain expert review not captured for this demo.",
+            "customFields": {}
+          }
+        ]
+      },
+      "additionalAspects": "Integrity checks are applied in production, but not included in this simplified evaluation fixture."
+    },
+    "dangerous-capabilities": {
+      "benchmarkAnswers": { "A1": "N/A", "A2": "N/A", "A3": "N/A", "A4": "N/A", "A5": "N/A", "A6": "N/A" },
+      "processAnswers": { "B1": "N/A", "B2": "N/A", "B3": "N/A", "B4": "N/A", "B5": "N/A", "B6": "N/A" },
+      "benchmarkSources": {},
+      "processSources": {
+        "B1": [
+          {
+            "id": "fd-proc-dc-1",
+            "url": "",
+            "description": "B1: Not applicable — dangerous capabilities assessments are out of scope for this financial detector.",
+            "documentType": "N/A",
+            "scope": "B1: Not applicable — dangerous capabilities assessments are out of scope for this financial detector.",
+            "customFields": {}
+          }
+        ]
+      },
+      "additionalAspects": "Not applicable for this domain-specific structured-data detector."
+    },
+    "economic-displacement": {
+      "benchmarkAnswers": { "A1": "N/A", "A2": "N/A", "A3": "N/A", "A4": "N/A", "A5": "N/A", "A6": "N/A" },
+      "processAnswers": { "B1": "N/A", "B2": "N/A", "B3": "N/A", "B4": "N/A", "B5": "N/A", "B6": "N/A" },
+      "benchmarkSources": {},
+      "processSources": {
+        "B1": [
+          {
+            "id": "fd-proc-ed-1",
+            "url": "",
+            "description": "B1: Not applicable — economic displacement analysis not performed for this demo evaluation.",
+            "documentType": "N/A",
+            "scope": "B1: Not applicable — economic displacement analysis not performed for this demo evaluation.",
+            "customFields": {}
+          }
+        ]
+      },
+      "additionalAspects": "Broad socio-economic analysis not included in this simplified fixture."
+    }
+  },
+  "overallStats": {
+    "totalApplicable": 12,
+    "capabilityApplicable": 4,
+    "riskApplicable": 8,
+    "strongCategories": [
+      "problem-solving",
+      "bias-fairness",
+      "security-robustness",
+      "governance-accountability"
+    ],
+    "adequateCategories": [
+      "learning-memory",
+      "privacy-data",
+      "human-ai-interaction"
+    ],
+    "weakCategories": [
+      "language-communication",
+      "harmful-content",
+      "information-integrity"
+    ],
+    "insufficientCategories": [
+      "dangerous-capabilities",
+      "economic-displacement"
+    ],
+    "priorityAreas": [
+      "information-integrity",
+      "harmful-content"
+    ]
+  }
+}

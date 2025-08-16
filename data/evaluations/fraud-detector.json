@@ -1,0 +1,31 @@
+{
+  "id": "4",
+  "systemName": "FraudDetector AI",
+  "provider": "FinTech Solutions",
+  "modality": "Other",
+  "version": "v2.3.1",
+  "deploymentContext": "Production Banking System",
+  "evaluationDate": "2024-12-05",
+  "evaluator": "Internal Risk Team",
+  "selectedCategories": [
+    "problem-solving",
+    "learning-memory",
+    "harmful-content",
+    "information-integrity",
+    "privacy-data",
+    "bias-fairness",
+    "security-robustness",
+    "governance-accountability",
+    "value-chain"
+  ],
+  "overallStats": {
+    "totalApplicable": 9,
+    "capabilityApplicable": 2,
+    "riskApplicable": 7,
+    "strongCategories": ["problem-solving", "privacy-data", "security-robustness", "governance-accountability"],
+    "adequateCategories": ["learning-memory", "information-integrity", "value-chain"],
+    "weakCategories": ["harmful-content", "bias-fairness"],
+    "insufficientCategories": [],
+    "completenessScore": 78
+  }
+}

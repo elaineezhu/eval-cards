@@ -1,0 +1,268 @@
+{
+  "id": "1",
+  "systemName": "GPT-4 Turbo",
+  "provider": "OpenAI",
+  "modality": "Text-to-Text",
+  "version": "gpt-4-turbo-2024-04-09",
+  "deploymentContext": "API Service",
+  "evaluationDate": "2024-12-15",
+  "evaluator": "OpenAI Safety Team",
+  "selectedCategories": [
+    "language-communication",
+    "social-intelligence",
+    "problem-solving",
+    "creativity-innovation",
+    "learning-memory",
+    "perception-vision",
+    "metacognition",
+    "harmful-content",
+    "information-integrity",
+    "privacy-data",
+    "bias-fairness",
+    "security-robustness",
+    "dangerous-capabilities",
+    "human-ai-interaction",
+    "environmental-impact",
+    "economic-displacement",
+    "governance-accountability",
+    "value-chain"
+  ],
+  "categoryEvaluations": {
+    "language-communication": {
+      "benchmarkAnswers": {
+        "A1": "yes",
+        "A2": "yes",
+        "A3": "yes",
+        "A4": "yes",
+        "A5": "yes",
+        "A6": "yes"
+      },
+      "processAnswers": {
+        "B1": "yes",
+        "B2": "yes",
+        "B5": [
+          "yes"
+        ],
+        "B6": "yes"
+      },
+      "benchmarkSources": {
+        "A1": [
+          {
+            "id": "1",
+            "benchmarkName": "MMLU",
+            "version": "2023-05",
+            "taskVariants": "multiple choice",
+            "metrics": "accuracy",
+            "url": "https://github.com/hendrycks/test",
+            "description": "Massive Multitask Language Understanding benchmark covering 57 academic subjects",
+            "sourceType": "external",
+            "score": "86.4%",
+            "customFields": {}
+          }
+        ],
+        "A2": [
+          {
+            "id": "2",
+            "benchmarkName": "TruthfulQA",
+            "version": "v1.0",
+            "taskVariants": "generation",
+            "metrics": "truthfulness rate",
+            "url": "https://github.com/sylinrl/TruthfulQA",
+            "description": "Measures truthfulness in language models",
+            "sourceType": "external",
+            "score": "Pass - 78% truthful",
+            "customFields": {
+              "thresholds": ">70% truthfulness rate",
+              "regulatorySource": "AI safety guidelines",
+              "complianceStatus": "Compliant"
+            }
+          }
+        ],
+        "A3": [
+          {
+            "id": "3",
+            "benchmarkName": "HellaSwag",
+            "version": "v1.1",
+            "taskVariants": "completion",
+            "metrics": "accuracy",
+            "url": "https://rowanzellers.com/hellaswag/",
+            "description": "Commonsense reasoning benchmark",
+            "sourceType": "external",
+            "score": "95.3%",
+            "customFields": {
+              "comparativeScores": "GPT-4 Turbo: 95.3%, GPT-3.5: 85.5%, Claude-3: 88.0%",
+              "comparisonTargets": "GPT-3.5, Claude-3, Gemini Pro",
+              "significance": "p<0.001, 95% CI: [94.8, 95.8]"
+            }
+          }
+        ],
+        "A4": [
+          {
+            "id": "4",
+            "benchmarkName": "AdvGLUE",
+            "version": "v1.0",
+            "taskVariants": "adversarial",
+            "metrics": "robustness score",
+            "url": "https://adversarialglue.github.io/",
+            "description": "Adversarial evaluation of language understanding",
+            "sourceType": "external",
+            "score": "72.1%",
+            "customFields": {
+              "testTypes": "adversarial attacks, paraphrase attacks, typo attacks",
+              "failureRates": "28% degradation under adversarial inputs",
+              "robustnessMetrics": "attack success rate: 15%, performance drop: 12%"
+            }
+          }
+        ],
+        "A5": [
+          {
+            "id": "5",
+            "benchmarkName": "Production Monitoring",
+            "version": "v2.1",
+            "taskVariants": "live traffic",
+            "metrics": "error rate, latency",
+            "url": "https://openai.com/safety",
+            "description": "Real-time monitoring of production API",
+            "sourceType": "internal",
+            "score": "99.9% uptime",
+            "customFields": {
+              "liveMetrics": "error rates, response latency, content policy violations",
+              "samplingCadence": "every 1000 requests",
+              "alertThresholds": ">1% error rate, >2s latency"
+            }
+          }
+        ],
+        "A6": [
+          {
+            "id": "6",
+            "benchmarkName": "Contamination Analysis",
+            "version": "v1.0",
+            "taskVariants": "overlap detection",
+            "metrics": "contamination rate",
+            "url": "https://openai.com/research/contamination",
+            "description": "Analysis of training-test data overlap",
+            "sourceType": "internal",
+            "score": "<0.5% overlap",
+            "customFields": {
+              "procedure": "13-gram overlap analysis, fuzzy matching, URL deduplication",
+              "contaminationRate": "0.3% exact matches, 0.8% fuzzy matches",
+              "mitigations": "removed overlapping samples, used holdout validation set"
+            }
+          }
+        ]
+      },
+      "processSources": {
+        "B1": [
+          {
+            "id": "7",
+            "url": "https://openai.com/research/language-models",
+            "description": "Language model evaluation methodology and scope definition",
+            "sourceType": "internal",
+            "documentType": "Research Paper",
+            "customFields": {
+              "scope": "Evaluates natural language understanding and generation across diverse domains",
+              "successFailureDefinitions": "Success: >80% on standardized benchmarks, coherent generation",
+              "hypotheses": "Model can understand context and generate human-like responses"
+            }
+          }
+        ],
+        "B2": [
+          {
+            "id": "8",
+            "url": "https://github.com/openai/evals",
+            "description": "OpenAI Evals framework for reproducible evaluations",
+            "sourceType": "external",
+            "documentType": "Code Repository",
+            "customFields": {
+              "replicationPackage": "GitHub repository with evaluation code, prompts, and configurations",
+              "accessLevel": "Public repository with documented APIs",
+              "proxies": "Synthetic examples provided for proprietary benchmarks"
+            }
+          }
+        ],
+        "B5": [
+          {
+            "id": "9",
+            "url": "https://openai.com/safety/practices",
+            "description": "External review process for model evaluations",
+            "sourceType": "cooperative",
+            "documentType": "Process Documentation",
+            "customFields": {
+              "reviewers": "Academic researchers, AI safety experts, domain specialists",
+              "feedbackChanges": "Added bias metrics, revised safety thresholds",
+              "disagreements": "Threshold levels for harmful content detection"
+            }
+          },
+          {
+            "id": "11",
+            "url": "https://openai.com/safety/monitoring",
+            "description": "Continuous monitoring and re-evaluation procedures",
+            "sourceType": "internal",
+            "documentType": "Standard Operating Procedure",
+            "customFields": {
+              "triggers": "Model updates, performance drift >5%, safety incidents",
+              "versionedSpecs": "Evaluation specifications v3.2 with change tracking",
+              "auditTrail": "All changes logged with timestamps and rationale",
+              "mitigationProtocols": "Automated rollback procedures, manual safety review",
+              "retestProcedures": "Full evaluation suite after fixes, regression testing"
+            }
+          }
+        ],
+        "B6": [
+          {
+            "id": "10",
+            "url": "https://openai.com/research/model-cards",
+            "description": "Model card with transparent reporting of capabilities and limitations",
+            "sourceType": "internal",
+            "documentType": "Model Card",
+            "customFields": {
+              "uncertaintyDisclosure": "95% confidence intervals, error bars on all metrics",
+              "axesConsistency": "Consistent 0-100 scale, no truncated axes",
+              "sampleSizes": "n=10,000 test samples, 5 random seeds",
+              "selectionCriteria": "All results reported, no cherry-picking"
+            }
+          }
+        ]
+      },
+      "additionalAspects": "Additional evaluation includes multilingual performance testing across 25 languages, domain-specific evaluations for medical and legal text, and long-context evaluation up to 128k tokens.",
+      "score": {
+        "benchmarkScore": 6,
+        "processScore": 5,
+        "totalScore": 11,
+        "status": "strong"
+      }
+    }
+  },
+  "overallStats": {
+    "totalApplicable": 18,
+    "capabilityApplicable": 7,
+    "riskApplicable": 11,
+    "strongCategories": [
+      "language-communication",
+      "problem-solving",
+      "creativity-innovation",
+      "learning-memory",
+      "metacognition",
+      "governance-accountability"
+    ],
+    "adequateCategories": [
+      "social-intelligence",
+      "perception-vision",
+      "information-integrity",
+      "privacy-data",
+      "security-robustness",
+      "human-ai-interaction",
+      "environmental-impact",
+      "value-chain"
+    ],
+    "weakCategories": [
+      "harmful-content",
+      "bias-fairness",
+      "dangerous-capabilities"
+    ],
+    "insufficientCategories": [
+      "economic-displacement"
+    ],
+    "completenessScore": 89
+  }
+}

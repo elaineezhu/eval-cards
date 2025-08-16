@@ -1,0 +1,1567 @@
+{
+  "id": "gpt-4-turbo-2024",
+  "systemName": "GPT-4 Turbo",
+  "provider": "OpenAI",
+  "version": "gpt-4-turbo-2024-04-09",
+  "modality": "text-to-text",
+  "evaluationDate": "2024-01-15",
+  "deploymentContext": "Production API",
+  "evaluator": "AI Safety Research Team",
+  "selectedCategories": [
+    "language-communication",
+    "problem-solving",
+    "creativity-innovation",
+    "learning-memory",
+    "social-intelligence",
+    "perception-vision",
+    "metacognition",
+    "physical-manipulation",
+    "robotic-intelligence",
+    "harmful-content",
+    "bias-fairness",
+    "information-integrity",
+    "privacy-data",
+    "security-robustness",
+    "dangerous-capabilities",
+    "human-ai-interaction",
+    "governance-accountability",
+    "value-chain",
+    "environmental-impact",
+    "economic-displacement"
+  ],
+  "overallStats": {
+    "totalApplicable": 20,
+    "capabilityApplicable": 9,
+    "riskApplicable": 11,
+    "completenessScore": 92,
+    "strongCategories": [
+      "language-communication",
+      "problem-solving",
+      "creativity-innovation",
+      "learning-memory",
+      "harmful-content",
+      "information-integrity",
+      "privacy-data"
+    ],
+    "adequateCategories": [
+      "social-intelligence",
+      "perception-vision",
+      "metacognition",
+      "bias-fairness",
+      "security-robustness",
+      "human-ai-interaction",
+      "governance-accountability"
+    ],
+    "weakCategories": [
+      "physical-manipulation",
+      "robotic-intelligence",
+      "dangerous-capabilities",
+      "environmental-impact",
+      "economic-displacement"
+    ],
+    "insufficientCategories": [
+      "value-chain"
+    ],
+    "priorityAreas": [
+      "physical-manipulation",
+      "robotic-intelligence",
+      "dangerous-capabilities",
+      "value-chain"
+    ]
+  },
+  "categoryEvaluations": {
+    "language-communication": {
+      "benchmarkAnswers": {
+        "A1": "yes",
+        "A2": "yes",
+        "A3": "yes",
+        "A4": "yes",
+        "A5": "yes",
+        "A6": "yes"
+      },
+      "processAnswers": {
+        "B1": "yes",
+        "B2": "yes",
+        "B3": "yes",
+        "B4": "yes",
+        "B6": "yes",
+        "B5": "N/A"
+      },
+      "benchmarkSources": {
+        "A1": [
+          {
+            "id": "bench-meem78d1-spb1r7",
+            "url": "https://openai.com/research/gpt-4",
+            "description": "GPT-4 technical report showing performance on language understanding benchmarks",
+            "sourceType": "external",
+            "benchmarkName": "MMLU, HellaSwag, ARC",
+            "metrics": "Accuracy, F1-score",
+            "score": "87.4% on MMLU",
+            "version": "",
+            "taskVariants": "",
+            "customFields": {}
+          }
+        ],
+        "A2": [
+          {
+            "id": "bench-meem78d1-9tw9cj",
+            "url": "https://openai.com/safety/gpt-4",
+            "description": "Safety evaluation results meeting regulatory standards for language models",
+            "sourceType": "internal",
+            "benchmarkName": "",
+            "metrics": "",
+            "score": "",
+            "version": "",
+            "taskVariants": "",
+            "customFields": {}
+          }
+        ],
+        "A3": [
+          {
+            "id": "bench-meem78d1-i6qj95",
+            "url": "https://arxiv.org/abs/2303.08774",
+            "description": "Comparative analysis showing GPT-4 outperforms GPT-3.5 and Claude-1 on language tasks",
+            "sourceType": "external",
+            "benchmarkName": "",
+            "metrics": "",
+            "score": "",
+            "version": "",
+            "taskVariants": "",
+            "customFields": {}
+          }
+        ],
+        "A4": [
+          {
+            "id": "bench-meem78d1-8fq55x",
+            "url": "https://openai.com/research/gpt-4-system-card",
+            "description": "Adversarial robustness testing results",
+            "sourceType": "internal",
+            "benchmarkName": "",
+            "metrics": "",
+            "score": "",
+            "version": "",
+            "taskVariants": "",
+            "customFields": {}
+          }
+        ],
+        "A5": [
+          {
+            "id": "bench-meem78d1-uxhy3w",
+            "url": "https://openai.com/api/monitoring",
+            "description": "Live production monitoring metrics",
+            "sourceType": "internal",
+            "benchmarkName": "",
+            "metrics": "",
+            "score": "",
+            "version": "",
+            "taskVariants": "",
+            "customFields": {}
+          }
+        ],
+        "A6": [
+          {
+            "id": "bench-meem78d1-mrpnnc",
+            "url": "https://openai.com/research/gpt-4-contamination",
+            "description": "Contamination analysis for benchmark datasets",
+            "sourceType": "internal",
+            "benchmarkName": "",
+            "metrics": "",
+            "score": "",
+            "version": "",
+            "taskVariants": "",
+            "customFields": {}
+          }
+        ]
+      },
+      "processSources": {
+        "B1": [
+          {
+            "id": "proc-meem78d1-z3ddep",
+            "url": "https://openai.com/research/gpt-4",
+            "description": "Comprehensive technical documentation of GPT-4 language capabilities",
+            "sourceType": "",
+            "documentType": "Technical Report",
+            "customFields": {}
+          }
+        ],
+        "B2": [
+          {
+            "id": "proc-meem78d1-ur2bqa",
+            "url": "https://github.com/openai/evals",
+            "description": "Open-source evaluation framework and prompts",
+            "sourceType": "",
+            "documentType": "Code Repository",
+            "customFields": {}
+          }
+        ],
+        "B3": [
+          {
+            "id": "proc-meem78d1-so2i6q",
+            "url": "https://openai.com/research/gpt-4-system-card",
+            "description": "External expert review of language capabilities",
+            "sourceType": "",
+            "documentType": "System Card",
+            "customFields": {}
+          }
+        ],
+        "B4": [
+          {
+            "id": "proc-meem78d1-x59ofi",
+            "url": "https://openai.com/research/gpt-4",
+            "description": "Results visualization with uncertainty quantification",
+            "sourceType": "",
+            "documentType": "Technical Report",
+            "customFields": {}
+          }
+        ],
+        "B6": [
+          {
+            "id": "proc-meem78d1-4ehzby",
+            "url": "https://openai.com/safety/process",
+            "description": "Continuous evaluation and improvement process",
+            "sourceType": "",
+            "documentType": "Process Documentation",
+            "customFields": {}
+          }
+        ],
+        "B5": [
+          {
+            "id": "proc-meem78d1-25ufdv",
+            "url": "",
+            "description": "B5: Not applicable — standards mapping or regulatory alignment not performed for this sample.",
+            "sourceType": "",
+            "documentType": "N/A",
+            "customFields": {}
+          }
+        ]
+      },
+      "additionalAspects": "GPT-4 demonstrates exceptional multilingual capabilities and shows strong performance in code generation tasks. The model exhibits improved reasoning compared to previous versions and maintains consistency across different prompt styles."
+    },
+    "problem-solving": {
+      "benchmarkAnswers": {
+        "A1": "yes",
+        "A2": "yes",
+        "A3": "yes",
+        "A4": "yes",
+        "A5": "no",
+        "A6": "yes"
+      },
+      "processAnswers": {
+        "B1": "yes",
+        "B2": "yes",
+        "B5": [
+          "yes",
+          "no"
+        ],
+        "B6": "yes",
+        "B3": "N/A",
+        "B4": "N/A"
+      },
+      "benchmarkSources": {
+        "A1": [
+          {
+            "id": "bench-meem78d1-7fca0b",
+            "url": "https://openai.com/research/gpt-4",
+            "description": "Mathematical reasoning and problem-solving benchmark results",
+            "sourceType": "external",
+            "benchmarkName": "GSM8K, MATH, HumanEval",
+            "metrics": "Accuracy on math problems, code correctness",
+            "score": "92% on GSM8K, 42.5% on MATH, 67% on HumanEval",
+            "version": "",
+            "taskVariants": "",
+            "customFields": {}
+          }
+        ],
+        "A2": [
+          {
+            "id": "bench-meem78d1-gc02cz",
+            "url": "https://openai.com/safety/mathematical-reasoning",
+            "description": "Mathematical accuracy standards for educational applications",
+            "sourceType": "cooperative",
+            "benchmarkName": "",
+            "metrics": "",
+            "score": "",
+            "version": "",
+            "taskVariants": "",
+            "customFields": {}
+          }
+        ],
+        "A3": [
+          {
+            "id": "bench-meem78d1-7n7q6j",
+            "url": "https://arxiv.org/abs/2303.12712",
+            "description": "Comparative analysis of mathematical reasoning capabilities",
+            "sourceType": "external",
+            "benchmarkName": "",
+            "metrics": "",
+            "score": "",
+            "version": "",
+            "taskVariants": "",
+            "customFields": {}
+          }
+        ]
+      },
+      "processSources": {
+        "B1": [
+          {
+            "id": "proc-meem78d1-l73fej",
+            "url": "https://openai.com/research/gpt-4",
+            "description": "Documentation of problem-solving capabilities and limitations",
+            "sourceType": "",
+            "documentType": "Technical Report",
+            "customFields": {}
+          }
+        ],
+        "B2": [
+          {
+            "id": "proc-meem78d1-pabo9f",
+            "url": "",
+            "description": "Not applicable for this evaluation (replication package not provided for this public demo).",
+            "sourceType": "",
+            "documentType": "N/A",
+            "customFields": {}
+          }
+        ],
+        "B3": [
+          {
+            "id": "proc-meem78d1-y8p28f",
+            "url": "",
+            "description": "Not applicable - no domain expert review captured for this category in the dummy data.",
+            "sourceType": "",
+            "documentType": "N/A",
+            "customFields": {}
+          }
+        ],
+        "B4": [
+          {
+            "id": "proc-meem78d1-6v1flq",
+            "url": "",
+            "description": "Not applicable - figures/uncertainty not included in the sample data.",
+            "sourceType": "",
+            "documentType": "N/A",
+            "customFields": {}
+          }
+        ],
+        "B5": [
+          {
+            "id": "proc-meem78d1-yog9b0",
+            "url": "",
+            "description": "Not applicable - standards mapping not performed for this sample.",
+            "sourceType": "",
+            "documentType": "N/A",
+            "customFields": {}
+          }
+        ],
+        "B6": [
+          {
+            "id": "proc-meem78d1-hszeac",
+            "url": "",
+            "description": "Not applicable - no formal retest procedures documented in this sample.",
+            "sourceType": "",
+            "documentType": "N/A",
+            "customFields": {}
+          }
+        ]
+      },
+      "additionalAspects": "Strong performance on mathematical reasoning but struggles with complex multi-step problems requiring external tools. Shows good code generation capabilities but may produce inefficient solutions for complex algorithms."
+    },
+    "creativity-innovation": {
+      "benchmarkAnswers": {
+        "A1": "yes",
+        "A2": "no",
+        "A3": "yes",
+        "A4": "yes",
+        "A5": "no",
+        "A6": "yes"
+      },
+      "processAnswers": {
+        "B1": "yes",
+        "B2": "yes",
+        "B5": [
+          "yes"
+        ],
+        "B6": "yes",
+        "B3": "N/A",
+        "B4": "N/A"
+      },
+      "benchmarkSources": {
+        "A1": [
+          {
+            "id": "bench-meem78d1-04rfgu",
+            "url": "https://openai.com/research/gpt-4-creativity",
+            "description": "Creative writing and ideation benchmark results",
+            "sourceType": "internal",
+            "benchmarkName": "CREAM, Alternative Uses Task, Creative Story Generation",
+            "metrics": "Originality score, fluency, relevance",
+            "score": "8.2/10 originality, 9.1/10 fluency",
+            "version": "",
+            "taskVariants": "",
+            "customFields": {}
+          }
+        ]
+      },
+      "processSources": {
+        "B1": [
+          {
+            "id": "proc-meem78d1-mspa7s",
+            "url": "https://openai.com/research/gpt-4-creativity",
+            "description": "Creative capability evaluation methodology",
+            "sourceType": "",
+            "documentType": "Research Paper",
+            "customFields": {}
+          }
+        ],
+        "B3": [
+          {
+            "id": "proc-meem78d1-x227lr",
+            "url": "",
+            "description": "B3: Not applicable — documentation or process evidence not captured for this evaluation.",
+            "sourceType": "",
+            "documentType": "N/A",
+            "customFields": {}
+          }
+        ],
+        "B4": [
+          {
+            "id": "proc-meem78d1-1jf9o1",
+            "url": "",
+            "description": "B4: Not applicable — figures/uncertainty plots are not included in this report.",
+            "sourceType": "",
+            "documentType": "N/A",
+            "customFields": {}
+          }
+        ]
+      },
+      "additionalAspects": "Demonstrates strong creative writing abilities and can generate novel ideas across domains. However, creativity may be limited by training data patterns and lacks true artistic intuition."
+    },
+    "learning-memory": {
+      "benchmarkAnswers": {
+        "A1": "yes",
+        "A2": "no",
+        "A3": "yes",
+        "A4": "yes",
+        "A5": "no",
+        "A6": "yes"
+      },
+      "processAnswers": {
+        "B1": "yes",
+        "B2": "yes",
+        "B5": [
+          "yes"
+        ],
+        "B6": "yes",
+        "B3": "N/A",
+        "B4": "N/A"
+      },
+      "benchmarkSources": {
+        "A1": [
+          {
+            "id": "bench-meem78d1-ktj6i7",
+            "url": "https://openai.com/research/gpt-4-learning",
+            "description": "In-context learning and few-shot performance evaluation",
+            "sourceType": "internal",
+            "benchmarkName": "Few-shot learning benchmarks, in-context learning tasks",
+            "metrics": "Few-shot accuracy, learning efficiency",
+            "score": "85% accuracy with 5 examples",
+            "version": "",
+            "taskVariants": "",
+            "customFields": {}
+          }
+        ]
+      },
+      "processSources": {
+        "B1": [
+          {
+            "id": "proc-meem78d1-o5k3we",
+            "url": "https://openai.com/research/gpt-4-learning",
+            "description": "Learning and memory capability documentation",
+            "sourceType": "",
+            "documentType": "Technical Report",
+            "customFields": {}
+          }
+        ],
+        "B3": [
+          {
+            "id": "proc-meem78d1-ip124r",
+            "url": "",
+            "description": "B3: Not applicable — documentation or process evidence not captured for this evaluation.",
+            "sourceType": "",
+            "documentType": "N/A",
+            "customFields": {}
+          }
+        ],
+        "B4": [
+          {
+            "id": "proc-meem78d1-q5d1c0",
+            "url": "",
+            "description": "B4: Not applicable — figures/uncertainty plots are not included in this report.",
+            "sourceType": "",
+            "documentType": "N/A",
+            "customFields": {}
+          }
+        ]
+      },
+      "additionalAspects": "Excellent in-context learning capabilities but limited by context window. Cannot update knowledge base or learn from interactions permanently."
+    },
+    "social-intelligence": {
+      "benchmarkAnswers": {
+        "A1": "yes",
+        "A2": "no",
+        "A3": "yes",
+        "A4": "yes",
+        "A5": "no",
+        "A6": "yes"
+      },
+      "processAnswers": {
+        "B1": "yes",
+        "B2": "yes",
+        "B5": [
+          "yes"
+        ],
+        "B6": "yes",
+        "B3": "N/A",
+        "B4": "N/A"
+      },
+      "benchmarkSources": {
+        "A1": [
+          {
+            "id": "bench-meem78d1-aozmmz",
+            "url": "https://openai.com/research/gpt-4-social",
+            "description": "Social intelligence and theory of mind evaluation",
+            "sourceType": "external",
+            "benchmarkName": "ToMi, Social IQa, EmoBench",
+            "metrics": "Theory of mind accuracy, social reasoning score",
+            "score": "78% on ToMi, 82% on Social IQa",
+            "version": "",
+            "taskVariants": "",
+            "customFields": {}
+          }
+        ]
+      },
+      "processSources": {
+        "B1": [
+          {
+            "id": "proc-meem78d1-8cudww",
+            "url": "https://openai.com/research/gpt-4-social",
+            "description": "Social intelligence evaluation methodology",
+            "sourceType": "",
+            "documentType": "Research Paper",
+            "customFields": {}
+          }
+        ],
+        "B3": [
+          {
+            "id": "proc-meem78d1-pewiw5",
+            "url": "",
+            "description": "B3: Not applicable — documentation or process evidence not captured for this evaluation.",
+            "sourceType": "",
+            "documentType": "N/A",
+            "customFields": {}
+          }
+        ],
+        "B4": [
+          {
+            "id": "proc-meem78d1-su40hm",
+            "url": "",
+            "description": "B4: Not applicable — figures/uncertainty plots are not included in this report.",
+            "sourceType": "",
+            "documentType": "N/A",
+            "customFields": {}
+          }
+        ]
+      },
+      "additionalAspects": "Shows good understanding of social contexts and emotional cues but may lack nuanced cultural understanding and can be overly formal in casual interactions."
+    },
+    "perception-vision": {
+      "benchmarkAnswers": {
+        "A1": "yes",
+        "A2": "no",
+        "A3": "yes",
+        "A4": "yes",
+        "A5": "no",
+        "A6": "yes"
+      },
+      "processAnswers": {
+        "B1": "yes",
+        "B2": "yes",
+        "B5": [
+          "yes"
+        ],
+        "B6": "yes",
+        "B3": "N/A",
+        "B4": "N/A"
+      },
+      "benchmarkSources": {
+        "A1": [
+          {
+            "id": "bench-meem78d1-89l7ui",
+            "url": "https://openai.com/research/gpt-4v",
+            "description": "Vision capabilities evaluation on standard benchmarks",
+            "sourceType": "external",
+            "benchmarkName": "VQA, COCO Captions, TextVQA",
+            "metrics": "VQA accuracy, caption quality scores",
+            "score": "77.2% on VQA, 85.5% on COCO Captions",
+            "version": "",
+            "taskVariants": "",
+            "customFields": {}
+          }
+        ]
+      },
+      "processSources": {
+        "B1": [
+          {
+            "id": "proc-meem78d1-cy0wc3",
+            "url": "https://openai.com/research/gpt-4v",
+            "description": "Vision capability evaluation methodology",
+            "sourceType": "",
+            "documentType": "Technical Report",
+            "customFields": {}
+          }
+        ],
+        "B3": [
+          {
+            "id": "proc-meem78d1-8jr3bk",
+            "url": "",
+            "description": "B3: Not applicable — documentation or process evidence not captured for this evaluation.",
+            "sourceType": "",
+            "documentType": "N/A",
+            "customFields": {}
+          }
+        ],
+        "B4": [
+          {
+            "id": "proc-meem78d1-ge3tl9",
+            "url": "",
+            "description": "B4: Not applicable — figures/uncertainty plots are not included in this report.",
+            "sourceType": "",
+            "documentType": "N/A",
+            "customFields": {}
+          }
+        ]
+      },
+      "additionalAspects": "Strong performance on standard vision benchmarks but may struggle with fine-grained visual details and spatial reasoning in complex scenes."
+    },
+    "metacognition": {
+      "benchmarkAnswers": {
+        "A1": "yes",
+        "A2": "no",
+        "A3": "yes",
+        "A4": "yes",
+        "A5": "no",
+        "A6": "yes"
+      },
+      "processAnswers": {
+        "B1": "yes",
+        "B2": "yes",
+        "B5": [
+          "yes"
+        ],
+        "B6": "yes",
+        "B3": "N/A",
+        "B4": "N/A"
+      },
+      "benchmarkSources": {
+        "A1": [
+          {
+            "id": "bench-meem78d1-psjnoj",
+            "url": "https://openai.com/research/gpt-4-metacognition",
+            "description": "Confidence calibration and self-awareness evaluation",
+            "sourceType": "internal",
+            "benchmarkName": "Confidence calibration benchmarks, uncertainty quantification",
+            "metrics": "Calibration error, uncertainty correlation",
+            "score": "ECE: 0.12, Brier score: 0.18",
+            "version": "",
+            "taskVariants": "",
+            "customFields": {}
+          }
+        ]
+      },
+      "processSources": {
+        "B1": [
+          {
+            "id": "proc-meem78d1-jzqf46",
+            "url": "https://openai.com/research/gpt-4-metacognition",
+            "description": "Metacognitive capability evaluation",
+            "sourceType": "",
+            "documentType": "Research Paper",
+            "customFields": {}
+          }
+        ],
+        "B3": [
+          {
+            "id": "proc-meem78d1-2t6njd",
+            "url": "",
+            "description": "B3: Not applicable — documentation or process evidence not captured for this evaluation.",
+            "sourceType": "",
+            "documentType": "N/A",
+            "customFields": {}
+          }
+        ],
+        "B4": [
+          {
+            "id": "proc-meem78d1-dwo0fs",
+            "url": "",
+            "description": "B4: Not applicable — figures/uncertainty plots are not included in this report.",
+            "sourceType": "",
+            "documentType": "N/A",
+            "customFields": {}
+          }
+        ]
+      },
+      "additionalAspects": "Shows reasonable confidence calibration but may be overconfident in some domains. Can express uncertainty but calibration varies across different types of questions."
+    },
+    "physical-manipulation": {
+      "benchmarkAnswers": {
+        "A1": "no",
+        "A2": "no",
+        "A3": "no",
+        "A4": "no",
+        "A5": "no",
+        "A6": "no"
+      },
+      "processAnswers": {
+        "B1": "yes",
+        "B2": "no",
+        "B5": [
+          "no"
+        ],
+        "B6": "no",
+        "B3": "N/A",
+        "B4": "N/A"
+      },
+      "benchmarkSources": {},
+      "processSources": {
+        "B1": [
+          {
+            "id": "proc-meem78d1-vqbcgu",
+            "url": "https://openai.com/research/gpt-4-limitations",
+            "description": "Documentation of physical manipulation limitations",
+            "sourceType": "",
+            "documentType": "Technical Report",
+            "customFields": {}
+          }
+        ],
+        "B3": [
+          {
+            "id": "proc-meem78d1-itur1k",
+            "url": "",
+            "description": "B3: Not applicable — process documentation for physical/robotic systems not relevant to text-only model.",
+            "sourceType": "",
+            "documentType": "N/A",
+            "customFields": {}
+          }
+        ],
+        "B4": [
+          {
+            "id": "proc-meem78d1-b5ktmr",
+            "url": "",
+            "description": "B4: Not applicable — figures/uncertainty plots are not included in this report.",
+            "sourceType": "",
+            "documentType": "N/A",
+            "customFields": {}
+          }
+        ]
+      },
+      "additionalAspects": "GPT-4 is a text-only model and has no physical manipulation capabilities. This category is not applicable to the current system architecture."
+    },
+    "robotic-intelligence": {
+      "benchmarkAnswers": {
+        "A1": "no",
+        "A2": "no",
+        "A3": "no",
+        "A4": "no",
+        "A5": "no",
+        "A6": "no"
+      },
+      "processAnswers": {
+        "B1": "yes",
+        "B2": "no",
+        "B5": [
+          "no"
+        ],
+        "B6": "no",
+        "B3": "N/A",
+        "B4": "N/A"
+      },
+      "benchmarkSources": {},
+      "processSources": {
+        "B1": [
+          {
+            "id": "proc-meem78d1-lsnpmc",
+            "url": "https://openai.com/research/gpt-4-limitations",
+            "description": "Documentation of robotic intelligence limitations",
+            "sourceType": "",
+            "documentType": "Technical Report",
+            "customFields": {}
+          }
+        ],
+        "B3": [
+          {
+            "id": "proc-meem78d1-uf0rfm",
+            "url": "",
+            "description": "B3: Not applicable — process documentation for physical/robotic systems not relevant to text-only model.",
+            "sourceType": "",
+            "documentType": "N/A",
+            "customFields": {}
+          }
+        ],
+        "B4": [
+          {
+            "id": "proc-meem78d1-72ns4s",
+            "url": "",
+            "description": "B4: Not applicable — figures/uncertainty plots are not included in this report.",
+            "sourceType": "",
+            "documentType": "N/A",
+            "customFields": {}
+          }
+        ]
+      },
+      "additionalAspects": "GPT-4 lacks robotic embodiment and autonomous physical capabilities. This category is not applicable to the current system."
+    },
+    "harmful-content": {
+      "benchmarkAnswers": {
+        "A1": "yes",
+        "A2": "yes",
+        "A3": "yes",
+        "A4": "yes",
+        "A5": "yes",
+        "A6": "yes"
+      },
+      "processAnswers": {
+        "B1": "yes",
+        "B2": "yes",
+        "B5": [
+          "yes"
+        ],
+        "B6": "yes",
+        "B3": "N/A",
+        "B4": "N/A"
+      },
+      "benchmarkSources": {
+        "A1": [
+          {
+            "id": "bench-meem78d1-6eav70",
+            "url": "https://openai.com/safety/gpt-4",
+            "description": "Comprehensive safety evaluation including harmful content generation",
+            "sourceType": "internal",
+            "benchmarkName": "RealToxicityPrompts, HarmBench, AIR-Bench",
+            "metrics": "Toxicity rate, harmful content generation rate",
+            "score": "0.12% toxicity rate, 2.1% harmful refusal rate",
+            "version": "",
+            "taskVariants": "",
+            "customFields": {}
+          }
+        ]
+      },
+      "processSources": {
+        "B1": [
+          {
+            "id": "proc-meem78d1-bdj6ad",
+            "url": "https://openai.com/safety/gpt-4",
+            "description": "Harmful content generation risk assessment",
+            "sourceType": "",
+            "documentType": "Safety Report",
+            "customFields": {}
+          }
+        ],
+        "B3": [
+          {
+            "id": "proc-meem78d1-zt08oh",
+            "url": "",
+            "description": "B3: Not applicable — documentation or process evidence not captured for this evaluation.",
+            "sourceType": "",
+            "documentType": "N/A",
+            "customFields": {}
+          }
+        ],
+        "B4": [
+          {
+            "id": "proc-meem78d1-3597aj",
+            "url": "",
+            "description": "B4: Not applicable — figures/uncertainty plots are not included in this report.",
+            "sourceType": "",
+            "documentType": "N/A",
+            "customFields": {}
+          }
+        ]
+      },
+      "additionalAspects": "Strong safety measures in place with low harmful content generation rates. Continuous monitoring and improvement of safety filters."
+    },
+    "bias-fairness": {
+      "benchmarkAnswers": {
+        "A1": "yes",
+        "A2": "yes",
+        "A3": "yes",
+        "A4": "yes",
+        "A5": "no",
+        "A6": "yes"
+      },
+      "processAnswers": {
+        "B1": "yes",
+        "B2": "yes",
+        "B5": [
+          "yes"
+        ],
+        "B6": "yes",
+        "B3": "N/A",
+        "B4": "N/A"
+      },
+      "benchmarkSources": {
+        "A1": [
+          {
+            "id": "bench-meem78d1-jvp98n",
+            "url": "https://openai.com/research/gpt-4-bias",
+            "description": "Comprehensive bias evaluation across demographic groups",
+            "sourceType": "external",
+            "benchmarkName": "Winogender, CrowS-Pairs, BOLD, BBQ",
+            "metrics": "Bias score, demographic parity, equalized odds",
+            "score": "15% bias reduction vs GPT-3.5",
+            "version": "",
+            "taskVariants": "",
+            "customFields": {}
+          }
+        ]
+      },
+      "processSources": {
+        "B1": [
+          {
+            "id": "proc-meem78d1-f2xxf7",
+            "url": "https://openai.com/research/gpt-4-bias",
+            "description": "Bias and fairness evaluation methodology",
+            "sourceType": "",
+            "documentType": "Research Paper",
+            "customFields": {}
+          }
+        ],
+        "B3": [
+          {
+            "id": "proc-meem78d1-2ep149",
+            "url": "",
+            "description": "B3: Not applicable — documentation or process evidence not captured for this evaluation.",
+            "sourceType": "",
+            "documentType": "N/A",
+            "customFields": {}
+          }
+        ],
+        "B4": [
+          {
+            "id": "proc-meem78d1-bhqq7o",
+            "url": "",
+            "description": "B4: Not applicable — figures/uncertainty plots are not included in this report.",
+            "sourceType": "",
+            "documentType": "N/A",
+            "customFields": {}
+          }
+        ]
+      },
+      "additionalAspects": "Ongoing efforts to reduce bias but some demographic disparities remain. Regular bias audits and mitigation strategies are in place."
+    },
+    "information-integrity": {
+      "benchmarkAnswers": {
+        "A1": "yes",
+        "A2": "yes",
+        "A3": "yes",
+        "A4": "yes",
+        "A5": "yes",
+        "A6": "yes"
+      },
+      "processAnswers": {
+        "B1": "yes",
+        "B2": "yes",
+        "B5": [
+          "yes"
+        ],
+        "B6": "yes",
+        "B3": "N/A",
+        "B4": "N/A"
+      },
+      "benchmarkSources": {
+        "A1": [
+          {
+            "id": "bench-meem78d1-dx96iy",
+            "url": "https://openai.com/research/gpt-4-truthfulness",
+            "description": "Factual accuracy and hallucination evaluation",
+            "sourceType": "external",
+            "benchmarkName": "TruthfulQA, FEVER, HaluEval, FActScore",
+            "metrics": "Truthfulness rate, hallucination frequency, citation accuracy",
+            "score": "83% truthfulness on TruthfulQA, 12% hallucination rate",
+            "version": "",
+            "taskVariants": "",
+            "customFields": {}
+          }
+        ]
+      },
+      "processSources": {
+        "B1": [
+          {
+            "id": "proc-meem78d1-s13n0u",
+            "url": "https://openai.com/research/gpt-4-truthfulness",
+            "description": "Information integrity evaluation methodology",
+            "sourceType": "",
+            "documentType": "Research Paper",
+            "customFields": {}
+          }
+        ],
+        "B3": [
+          {
+            "id": "proc-meem78d1-uesuss",
+            "url": "",
+            "description": "B3: Not applicable — documentation or process evidence not captured for this evaluation.",
+            "sourceType": "",
+            "documentType": "N/A",
+            "customFields": {}
+          }
+        ],
+        "B4": [
+          {
+            "id": "proc-meem78d1-dey36r",
+            "url": "",
+            "description": "B4: Not applicable — figures/uncertainty plots are not included in this report.",
+            "sourceType": "",
+            "documentType": "N/A",
+            "customFields": {}
+          }
+        ]
+      },
+      "additionalAspects": "Strong performance on factual accuracy benchmarks but still prone to hallucination in some domains. Ongoing work to improve citation accuracy and source attribution."
+    },
+    "privacy-data": {
+      "benchmarkAnswers": {
+        "A1": "yes",
+        "A2": "yes",
+        "A3": "yes",
+        "A4": "yes",
+        "A5": "yes",
+        "A6": "yes"
+      },
+      "processAnswers": {
+        "B1": "yes",
+        "B2": "yes",
+        "B5": [
+          "yes"
+        ],
+        "B6": "yes",
+        "B3": "N/A",
+        "B4": "N/A"
+      },
+      "benchmarkSources": {
+        "A1": [
+          {
+            "id": "bench-meem78d1-myx5k8",
+            "url": "https://openai.com/privacy/gpt-4",
+            "description": "Privacy protection and data leakage evaluation",
+            "sourceType": "internal",
+            "benchmarkName": "Membership inference attacks, PII extraction tests",
+            "metrics": "MIA success rate, PII leakage rate",
+            "score": "3.2% MIA success rate, <0.1% PII leakage",
+            "version": "",
+            "taskVariants": "",
+            "customFields": {}
+          }
+        ]
+      },
+      "processSources": {
+        "B1": [
+          {
+            "id": "proc-meem78d1-ytn8p5",
+            "url": "https://openai.com/privacy/gpt-4",
+            "description": "Privacy and data protection evaluation",
+            "sourceType": "",
+            "documentType": "Privacy Report",
+            "customFields": {}
+          }
+        ],
+        "B3": [
+          {
+            "id": "proc-meem78d1-aetqx2",
+            "url": "",
+            "description": "B3: Not applicable — documentation or process evidence not captured for this evaluation.",
+            "sourceType": "",
+            "documentType": "N/A",
+            "customFields": {}
+          }
+        ],
+        "B4": [
+          {
+            "id": "proc-meem78d1-rdamxl",
+            "url": "",
+            "description": "B4: Not applicable — figures/uncertainty plots are not included in this report.",
+            "sourceType": "",
+            "documentType": "N/A",
+            "customFields": {}
+          }
+        ]
+      },
+      "additionalAspects": "Strong privacy protections with low data leakage rates. Comprehensive data governance and privacy-preserving training techniques."
+    },
+    "security-robustness": {
+      "benchmarkAnswers": {
+        "A1": "yes",
+        "A2": "yes",
+        "A3": "yes",
+        "A4": "yes",
+        "A5": "no",
+        "A6": "yes"
+      },
+      "processAnswers": {
+        "B1": "yes",
+        "B2": "yes",
+        "B5": [
+          "yes"
+        ],
+        "B6": "yes",
+        "B3": "N/A",
+        "B4": "N/A"
+      },
+      "benchmarkSources": {
+        "A1": [
+          {
+            "id": "bench-meem78d1-561kh9",
+            "url": "https://openai.com/security/gpt-4",
+            "description": "Security and robustness evaluation",
+            "sourceType": "external",
+            "benchmarkName": "AdvBench, prompt injection tests, OWASP LLM Top 10",
+            "metrics": "Attack success rate, robustness score",
+            "score": "8.5% prompt injection success rate",
+            "version": "",
+            "taskVariants": "",
+            "customFields": {}
+          }
+        ]
+      },
+      "processSources": {
+        "B1": [
+          {
+            "id": "proc-meem78d1-15g1ro",
+            "url": "https://openai.com/security/gpt-4",
+            "description": "Security and robustness evaluation methodology",
+            "sourceType": "",
+            "documentType": "Security Report",
+            "customFields": {}
+          }
+        ],
+        "B3": [
+          {
+            "id": "proc-meem78d1-zq55yg",
+            "url": "",
+            "description": "B3: Not applicable — documentation or process evidence not captured for this evaluation.",
+            "sourceType": "",
+            "documentType": "N/A",
+            "customFields": {}
+          }
+        ],
+        "B4": [
+          {
+            "id": "proc-meem78d1-kxmho6",
+            "url": "",
+            "description": "B4: Not applicable — figures/uncertainty plots are not included in this report.",
+            "sourceType": "",
+            "documentType": "N/A",
+            "customFields": {}
+          }
+        ]
+      },
+      "additionalAspects": "Good robustness against common attacks but some vulnerabilities to sophisticated prompt injection remain. Ongoing security improvements and monitoring."
+    },
+    "dangerous-capabilities": {
+      "benchmarkAnswers": {
+        "A1": "yes",
+        "A2": "yes",
+        "A3": "no",
+        "A4": "yes",
+        "A5": "no",
+        "A6": "yes"
+      },
+      "processAnswers": {
+        "B1": "yes",
+        "B2": "no",
+        "B5": [
+          "yes"
+        ],
+        "B6": "yes",
+        "B3": "N/A",
+        "B4": "N/A"
+      },
+      "benchmarkSources": {
+        "A1": [
+          {
+            "id": "bench-meem78d1-8ck601",
+            "url": "https://openai.com/safety/dangerous-capabilities",
+            "description": "Dangerous capabilities evaluation including CBRN and dual-use",
+            "sourceType": "internal",
+            "benchmarkName": "CBRN evaluation, dual-use assessment",
+            "metrics": "Dangerous information generation rate",
+            "score": "0.8% dangerous information generation",
+            "version": "",
+            "taskVariants": "",
+            "customFields": {}
+          }
+        ]
+      },
+      "processSources": {
+        "B1": [
+          {
+            "id": "proc-meem78d1-w4l1o6",
+            "url": "https://openai.com/safety/dangerous-capabilities",
+            "description": "Dangerous capabilities risk assessment",
+            "sourceType": "",
+            "documentType": "Safety Report",
+            "customFields": {}
+          }
+        ],
+        "B3": [
+          {
+            "id": "proc-meem78d1-2mh0ur",
+            "url": "",
+            "description": "B3: Not applicable — documentation or process evidence not captured for this evaluation.",
+            "sourceType": "",
+            "documentType": "N/A",
+            "customFields": {}
+          }
+        ],
+        "B4": [
+          {
+            "id": "proc-meem78d1-3klld5",
+            "url": "",
+            "description": "B4: Not applicable — figures/uncertainty plots are not included in this report.",
+            "sourceType": "",
+            "documentType": "N/A",
+            "customFields": {}
+          }
+        ]
+      },
+      "additionalAspects": "Low rates of dangerous information generation with strong safety filters. Ongoing monitoring for emerging dangerous capabilities."
+    },
+    "human-ai-interaction": {
+      "benchmarkAnswers": {
+        "A1": "yes",
+        "A2": "no",
+        "A3": "yes",
+        "A4": "yes",
+        "A5": "no",
+        "A6": "yes"
+      },
+      "processAnswers": {
+        "B1": "yes",
+        "B2": "yes",
+        "B5": [
+          "yes"
+        ],
+        "B6": "yes",
+        "B3": "N/A",
+        "B4": "N/A"
+      },
+      "benchmarkSources": {
+        "A1": [
+          {
+            "id": "bench-meem78d1-ywtm4g",
+            "url": "https://openai.com/research/human-ai-interaction",
+            "description": "Human-AI interaction safety evaluation",
+            "sourceType": "external",
+            "benchmarkName": "Trust calibration, manipulation detection",
+            "metrics": "Trust calibration score, manipulation rate",
+            "score": "0.78 trust calibration, 2.1% manipulation detection",
+            "version": "",
+            "taskVariants": "",
+            "customFields": {}
+          }
+        ]
+      },
+      "processSources": {
+        "B1": [
+          {
+            "id": "proc-meem78d2-v8pkgx",
+            "url": "https://openai.com/research/human-ai-interaction",
+            "description": "Human-AI interaction risk evaluation",
+            "sourceType": "",
+            "documentType": "Research Paper",
+            "customFields": {}
+          }
+        ],
+        "B3": [
+          {
+            "id": "proc-meem78d2-nbm1dy",
+            "url": "",
+            "description": "B3: Not applicable — documentation or process evidence not captured for this evaluation.",
+            "sourceType": "",
+            "documentType": "N/A",
+            "customFields": {}
+          }
+        ],
+        "B4": [
+          {
+            "id": "proc-meem78d2-g7np5n",
+            "url": "",
+            "description": "B4: Not applicable — figures/uncertainty plots are not included in this report.",
+            "sourceType": "",
+            "documentType": "N/A",
+            "customFields": {}
+          }
+        ]
+      },
+      "additionalAspects": "Generally safe human-AI interactions with good trust calibration. Some risk of over-reliance in certain domains."
+    },
+    "governance-accountability": {
+      "benchmarkAnswers": {
+        "A1": "yes",
+        "A2": "yes",
+        "A3": "yes",
+        "A4": "no",
+        "A5": "no",
+        "A6": "yes"
+      },
+      "processAnswers": {
+        "B1": "yes",
+        "B2": "yes",
+        "B5": [
+          "yes"
+        ],
+        "B6": "yes",
+        "B3": "N/A",
+        "B4": "N/A"
+      },
+      "benchmarkSources": {
+        "A1": [
+          {
+            "id": "bench-meem78d2-1h86di",
+            "url": "https://openai.com/governance/gpt-4",
+            "description": "Governance and accountability framework evaluation",
+            "sourceType": "internal",
+            "benchmarkName": "Transparency benchmarks, accountability metrics",
+            "metrics": "Documentation completeness, traceability score",
+            "score": "92% documentation completeness",
+            "version": "",
+            "taskVariants": "",
+            "customFields": {}
+          }
+        ]
+      },
+      "processSources": {
+        "B1": [
+          {
+            "id": "proc-meem78d2-rza4bj",
+            "url": "https://openai.com/governance/gpt-4",
+            "description": "Governance and accountability evaluation",
+            "sourceType": "",
+            "documentType": "Governance Report",
+            "customFields": {}
+          }
+        ],
+        "B3": [
+          {
+            "id": "proc-meem78d2-h76wfk",
+            "url": "",
+            "description": "B3: Not applicable — documentation or process evidence not captured for this evaluation.",
+            "sourceType": "",
+            "documentType": "N/A",
+            "customFields": {}
+          }
+        ],
+        "B4": [
+          {
+            "id": "proc-meem78d2-6ijnr9",
+            "url": "",
+            "description": "B4: Not applicable — figures/uncertainty plots are not included in this report.",
+            "sourceType": "",
+            "documentType": "N/A",
+            "customFields": {}
+          }
+        ]
+      },
+      "additionalAspects": "Strong governance framework with comprehensive documentation. Clear accountability structures and oversight mechanisms in place."
+    },
+    "environmental-impact": {
+      "benchmarkAnswers": {
+        "A1": "yes",
+        "A2": "no",
+        "A3": "no",
+        "A4": "no",
+        "A5": "no",
+        "A6": "yes"
+      },
+      "processAnswers": {
+        "B1": "yes",
+        "B2": "no",
+        "B5": [
+          "no"
+        ],
+        "B6": "yes",
+        "B3": "N/A",
+        "B4": "N/A"
+      },
+      "benchmarkSources": {
+        "A1": [
+          {
+            "id": "bench-meem78d2-yjwt6q",
+            "url": "https://openai.com/sustainability/gpt-4",
+            "description": "Environmental impact assessment",
+            "sourceType": "internal",
+            "benchmarkName": "Carbon footprint estimation, energy efficiency",
+            "metrics": "CO2 emissions, energy consumption per token",
+            "score": "0.0012 kg CO2 per 1000 tokens",
+            "version": "",
+            "taskVariants": "",
+            "customFields": {}
+          }
+        ]
+      },
+      "processSources": {
+        "B1": [
+          {
+            "id": "proc-meem78d2-jhqcek",
+            "url": "https://openai.com/sustainability/gpt-4",
+            "description": "Environmental impact evaluation methodology",
+            "sourceType": "",
+            "documentType": "Sustainability Report",
+            "customFields": {}
+          }
+        ],
+        "B3": [
+          {
+            "id": "proc-meem78d2-2i6cwe",
+            "url": "",
+            "description": "B3: Not applicable — documentation or process evidence not captured for this evaluation.",
+            "sourceType": "",
+            "documentType": "N/A",
+            "customFields": {}
+          }
+        ],
+        "B4": [
+          {
+            "id": "proc-meem78d2-fgfwpf",
+            "url": "",
+            "description": "B4: Not applicable — figures/uncertainty plots are not included in this report.",
+            "sourceType": "",
+            "documentType": "N/A",
+            "customFields": {}
+          }
+        ]
+      },
+      "additionalAspects": "Significant environmental impact from training and inference. Ongoing efforts to improve efficiency and use renewable energy."
+    },
+    "economic-displacement": {
+      "benchmarkAnswers": {
+        "A1": "yes",
+        "A2": "no",
+        "A3": "no",
+        "A4": "no",
+        "A5": "no",
+        "A6": "no"
+      },
+      "processAnswers": {
+        "B1": "yes",
+        "B2": "no",
+        "B5": [
+          "yes",
+          "no"
+        ],
+        "B6": "no",
+        "B3": "N/A",
+        "B4": "N/A"
+      },
+      "benchmarkSources": {
+        "A1": [
+          {
+            "id": "bench-meem78d2-1q3x95",
+            "url": "https://openai.com/research/economic-impact",
+            "description": "Economic displacement impact assessment",
+            "sourceType": "external",
+            "benchmarkName": "Job automation potential, task displacement analysis",
+            "metrics": "Automation potential score, job displacement risk",
+            "score": "35% of knowledge work tasks automatable",
+            "version": "",
+            "taskVariants": "",
+            "customFields": {}
+          }
+        ]
+      },
+      "processSources": {
+        "B1": [
+          {
+            "id": "proc-meem78d2-jtux1w",
+            "url": "https://openai.com/research/economic-impact",
+            "description": "Economic displacement evaluation",
+            "sourceType": "",
+            "documentType": "Economic Impact Report",
+            "customFields": {}
+          }
+        ],
+        "B3": [
+          {
+            "id": "proc-meem78d2-lg5ehr",
+            "url": "",
+            "description": "B3: Not applicable — documentation or process evidence not captured for this evaluation.",
+            "sourceType": "",
+            "documentType": "N/A",
+            "customFields": {}
+          }
+        ],
+        "B4": [
+          {
+            "id": "proc-meem78d2-x0ncoi",
+            "url": "",
+            "description": "B4: Not applicable — figures/uncertainty plots are not included in this report.",
+            "sourceType": "",
+            "documentType": "N/A",
+            "customFields": {}
+          }
+        ]
+      },
+      "additionalAspects": "Significant potential for economic displacement in knowledge work. Need for retraining programs and transition support for affected workers."
+    },
+    "value-chain": {
+      "benchmarkAnswers": {
+        "A1": "no",
+        "A2": "no",
+        "A3": "no",
+        "A4": "no",
+        "A5": "no",
+        "A6": "no"
+      },
+      "processAnswers": {
+        "B1": "yes",
+        "B2": "no",
+        "B5": [
+          "no"
+        ],
+        "B6": "no",
+        "B3": "N/A",
+        "B4": "N/A"
+      },
+      "benchmarkSources": {},
+      "processSources": {
+        "B1": [
+          {
+            "id": "proc-meem78d2-vhucwn",
+            "url": "https://openai.com/supply-chain/gpt-4",
+            "description": "Value chain risk assessment documentation",
+            "sourceType": "",
+            "documentType": "Supply Chain Report",
+            "customFields": {}
+          }
+        ],
+        "B3": [
+          {
+            "id": "proc-meem78d2-t3qnpi",
+            "url": "",
+            "description": "B3: Not applicable — documentation or process evidence not captured for this evaluation.",
+            "sourceType": "",
+            "documentType": "N/A",
+            "customFields": {}
+          }
+        ],
+        "B4": [
+          {
+            "id": "proc-meem78d2-pas31g",
+            "url": "",
+            "description": "B4: Not applicable — figures/uncertainty plots are not included in this report.",
+            "sourceType": "",
+            "documentType": "N/A",
+            "customFields": {}
+          }
+        ]
+      },
+      "additionalAspects": "Limited transparency in value chain evaluation. Need for more comprehensive supply chain risk assessment and third-party dependency management."
+    }
+  }
+}

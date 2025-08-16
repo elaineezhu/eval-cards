@@ -1,0 +1,58 @@
+{
+  "id": "3",
+  "systemName": "Gemini Pro 1.5",
+  "provider": "Google",
+  "modality": "Multimodal",
+  "version": "gemini-1.5-pro-002",
+  "deploymentContext": "API Service",
+  "evaluationDate": "2024-12-08",
+  "evaluator": "Google DeepMind",
+  "selectedCategories": [
+    "language-communication",
+    "social-intelligence",
+    "problem-solving",
+    "creativity-innovation",
+    "learning-memory",
+    "perception-vision",
+    "metacognition",
+    "harmful-content",
+    "information-integrity",
+    "privacy-data",
+    "bias-fairness",
+    "security-robustness",
+    "dangerous-capabilities",
+    "human-ai-interaction",
+    "environmental-impact",
+    "economic-displacement",
+    "governance-accountability",
+    "value-chain"
+  ],
+  "overallStats": {
+    "totalApplicable": 18,
+    "capabilityApplicable": 7,
+    "riskApplicable": 11,
+    "strongCategories": [
+      "language-communication",
+      "problem-solving",
+      "perception-vision",
+      "learning-memory",
+      "metacognition",
+      "information-integrity",
+      "governance-accountability"
+    ],
+    "adequateCategories": [
+      "social-intelligence",
+      "creativity-innovation",
+      "harmful-content",
+      "privacy-data",
+      "security-robustness",
+      "dangerous-capabilities",
+      "human-ai-interaction",
+      "environmental-impact",
+      "value-chain"
+    ],
+    "weakCategories": ["bias-fairness"],
+    "insufficientCategories": ["economic-displacement"],
+    "completenessScore": 87
+  }
+}

@@ -1,0 +1,58 @@
+{
+  "id": "2",
+  "systemName": "Claude 3.5 Sonnet",
+  "provider": "Anthropic",
+  "modality": "Text-to-Text",
+  "version": "claude-3-5-sonnet-20241022",
+  "deploymentContext": "API Service",
+  "evaluationDate": "2024-12-10",
+  "evaluator": "Anthropic Safety Team",
+  "selectedCategories": [
+    "language-communication",
+    "social-intelligence",
+    "problem-solving",
+    "creativity-innovation",
+    "learning-memory",
+    "perception-vision",
+    "metacognition",
+    "harmful-content",
+    "information-integrity",
+    "privacy-data",
+    "bias-fairness",
+    "security-robustness",
+    "dangerous-capabilities",
+    "human-ai-interaction",
+    "environmental-impact",
+    "economic-displacement",
+    "governance-accountability",
+    "value-chain"
+  ],
+  "overallStats": {
+    "totalApplicable": 18,
+    "capabilityApplicable": 7,
+    "riskApplicable": 11,
+    "strongCategories": [
+      "language-communication",
+      "social-intelligence",
+      "harmful-content",
+      "information-integrity",
+      "privacy-data",
+      "bias-fairness",
+      "security-robustness",
+      "human-ai-interaction"
+    ],
+    "adequateCategories": [
+      "problem-solving",
+      "creativity-innovation",
+      "learning-memory",
+      "perception-vision",
+      "metacognition",
+      "dangerous-capabilities",
+      "governance-accountability",
+      "value-chain"
+    ],
+    "weakCategories": ["environmental-impact"],
+    "insufficientCategories": ["economic-displacement"],
+    "completenessScore": 92
+  }
+}
