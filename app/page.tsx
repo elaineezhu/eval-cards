@@ -3,11 +3,12 @@
 import { useState, useMemo, useEffect } from "react"
 import { Button } from "@/components/ui/button"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { Plus, Moon, Sun, Filter, ArrowUpDown } from "lucide-react"
+import { Plus, Moon, Sun, Filter, ArrowUpDown, Info } from "lucide-react"
 import { useTheme } from "next-themes"
 import { EvaluationCard, type EvaluationCardData } from "@/components/evaluation-card"
 import { getBenchmarkQuestions, getProcessQuestions } from "@/lib/schema"
 import { AIEvaluationDashboard } from "@/components/ai-evaluation-dashboard"
+import Link from "next/link"
 
 const loadEvaluationData = async (): Promise<EvaluationCardData[]> => {
   const evaluationFiles = [
@@ -460,6 +461,12 @@ export default function HomePage() {
               <p className="text-sm text-muted-foreground">Manage and track your AI system evaluations</p>
             </div>
             <div className="flex items-center gap-3">
+              <Link href="/about">
+                <Button variant="ghost" size="sm" className="gap-2">
+                  <Info className="h-4 w-4" />
+                  About
+                </Button>
+              </Link>
               <Button
                 variant="ghost"
                 size="sm"

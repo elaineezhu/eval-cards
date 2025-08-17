@@ -5,10 +5,11 @@ import { useState, useEffect } from "react"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
-import { ArrowLeft, Download, Eye, EyeOff } from "lucide-react"
+import { ArrowLeft, Download, Eye, EyeOff, Info } from "lucide-react"
 import { getAllCategories, getCategoryById, getBenchmarkQuestions, getProcessQuestions } from "@/lib/schema"
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip"
 import { naReasonForCategoryFromEval } from "@/lib/na-utils"
+import Link from "next/link"
 
 const loadEvaluationDetails = async (id: string) => {
   const evaluationFiles = [
@@ -180,10 +181,18 @@ export default function EvaluationDetailsPage() {
             <ArrowLeft className="h-4 w-4 mr-2" />
             Back to Dashboard
           </Button>
-          <Button variant="outline" size="sm">
-            <Download className="h-4 w-4 mr-2" />
-            Export Report
-          </Button>
+          <div className="flex items-center gap-2">
+            <Link href="/about">
+              <Button variant="ghost" size="sm">
+                <Info className="h-4 w-4 mr-2" />
+                About
+              </Button>
+            </Link>
+            <Button variant="outline" size="sm">
+              <Download className="h-4 w-4 mr-2" />
+              Export Report
+            </Button>
+          </div>
         </div>
 
         <div className="mt-3 text-center">

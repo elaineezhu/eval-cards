@@ -10,7 +10,49 @@ app_port: 3000
 
 # AI Evaluation Dashboard
 
-This repository is a Next.js application for viewing and authoring AI evaluations. It includes demo evaluation fixtures under `public/evaluations/` and a dynamic details page that performs server-side rendering and route-handler based inference.
+This repository is a Next.js application for viewing and authoring AI evaluations. It provides a comprehensive platform for documenting and sharing AI system evaluations across multiple dimensions including capabilities and risks.
+
+## Project Goals
+
+The AI Evaluation Dashboard aims to:
+- **Standardize AI evaluation reporting** across different AI systems and models
+- **Facilitate transparency** by providing detailed evaluation cards for AI systems
+- **Enable comparative analysis** of AI capabilities and risks
+- **Support research and policy** by consolidating evaluation data in an accessible format
+- **Promote responsible AI development** through comprehensive risk assessment
+
+## For External Collaborators
+
+### Making Changes to Evaluation Categories and Schema
+
+All evaluation categories, form fields, and data structures are centrally managed in the `schema/` folder. **This is the primary location for making structural changes to the evaluation framework.**
+
+Key schema files:
+- **`schema/evaluation-schema.json`** - Defines all evaluation categories (capabilities and risks)
+- **`schema/output-schema.json`** - Defines the complete data structure for evaluation outputs
+- **`schema/system-info-schema.json`** - Defines form field options for system information
+- **`schema/category-details.json`** - Contains detailed descriptions and criteria for each category
+- **`schema/form-hints.json`** - Provides help text and guidance for form fields
+
+### Standards and Frameworks Used
+
+The evaluation framework is based on established standards:
+- **Risk categories** are derived from **NIST AI 600-1** (AI Risk Management Framework)
+- **Capability categories** are based on the **OECD AI Classification Framework**
+
+This ensures consistency with international AI governance standards and facilitates interoperability with other evaluation systems.
+
+### Contributing Evaluation Data
+
+Evaluation data files are stored in `public/evaluations/` as JSON files. Each file represents a complete evaluation of an AI system and must conform to the schema defined in `schema/output-schema.json`.
+
+To add a new evaluation:
+1. Create a new JSON file in `public/evaluations/`
+2. Follow the structure defined in `schema/output-schema.json`
+3. Ensure all required fields are populated
+4. Validate against the schema before submission
+
+### Development Setup
 
 ## Run locally
 
@@ -50,46 +92,7 @@ Visit `http://localhost:3000` to verify.
 ### Deploy to Hugging Face Spaces
 
 1. Create a new Space at https://huggingface.co/new-space and choose **Docker** as the runtime.
-2. Add a secret named `HF_TOKEN` (if you plan to access private or gated models or the Inference API) in the Space settings.
-3. Push this repository to the Space Git (or upload files through the UI). The Space will build the Docker image using the included `Dockerfile` and serve your app on port 3000.
+2. Push this repository to the Space Git (or upload files through the UI). The Space will build the Docker image using the included `Dockerfile` and serve your app on port 3000.
 
 Notes:
-- The app's server may attempt to construct ML pipelines server-side if you use Transformers.js and large models; prefer small/quantized models or use the Hugging Face Inference API instead (see below).
 - If your build needs native dependencies (e.g. `sharp`), the Docker image may require extra apt packages; update the Dockerfile accordingly.
-
-## Alternative: Use Hugging Face Inference API (avoid hosting model weights)
-
-If downloading and running model weights inside the Space is impractical (memory/disk limits), modify the server route to proxy requests to the Hugging Face Inference API.
-
-Example server-side call (Route Handler):
-
-```js
-const resp = await fetch('https://api-inference.huggingface.co/models/<model-id>', {
-  method: 'POST',
-  headers: { Authorization: `Bearer ${process.env.HF_TOKEN}`, 'Content-Type': 'application/json' },
-  body: JSON.stringify({ inputs: text })
-})
-const json = await resp.json()
-```
-
-Store `HF_TOKEN` in the Space secrets and your route will be able to call the API.
-
-## Troubleshooting
-
-- Build fails in Spaces: check the build logs; you may need extra apt packages or to pin Node version.
-- Runtime OOM / killed: model is too large for Spaces; use Inference API or smaller models.
-
-## What I added
-
-- `Dockerfile` — multi-stage build for production
-- `.dockerignore` — to reduce image size
-- Updated `README.md` with Spaces frontmatter and deployment instructions
-
-If you want, I can:
-- Modify the Dockerfile to use Next.js standalone mode for a smaller runtime image.
-- Add a small health-check route and a simple `docker-compose.yml` for local testing.
-
-Which of those would you like next?
-npm run build
-
-Send the contents of the "out" folder to https://huggingface.co/spaces/evaleval/general-eval-card
