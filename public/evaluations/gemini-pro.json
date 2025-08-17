@@ -1,12 +1,17 @@
 {
   "id": "gemini-pro-2024",
   "systemName": "Gemini Pro 1.5",
+  "url": "https://gemini.google.com",
   "provider": "Google",
-  "version": "gemini-1.5-pro-001",
-  "modality": "multimodal",
-  "evaluationDate": "2024-01-08",
-  "deploymentContext": "Production API",
-  "evaluator": "Google DeepMind Safety Team",
+  "version": "gemini-1.5-pro-002",
+  "modelTag": "gemini-1.5-pro-002",
+  "knowledgeCutoff": "2024-02-01",
+  "modelType": "foundational",
+  "inputModalities": ["Text", "Image", "Video", "Audio"],
+  "outputModalities": ["Text", "Image"],
+  "deploymentContexts": ["Public/Consumer-Facing", "Internal/Enterprise Use"],
+  "evaluationDate": "2024-08-20",
+  "evaluator": "Google DeepMind Safety & Responsibility Team",
   "selectedCategories": [
     "language-communication",
     "problem-solving",
@@ -33,15 +38,14 @@
     "totalApplicable": 20,
     "capabilityApplicable": 9,
     "riskApplicable": 11,
-    "completenessScore": 85,
+    "completenessScore": 89,
     "strongCategories": [
       "language-communication",
       "problem-solving",
       "perception-vision",
       "learning-memory",
       "information-integrity",
-      "privacy-data",
-      "security-robustness"
+      "privacy-data"
     ],
     "adequateCategories": [
       "social-intelligence",
@@ -49,24 +53,25 @@
       "metacognition",
       "harmful-content",
       "bias-fairness",
-      "human-ai-interaction"
-    ],
-    "weakCategories": [
-      "physical-manipulation",
-      "robotic-intelligence",
-      "dangerous-capabilities",
+      "security-robustness",
+      "human-ai-interaction",
       "governance-accountability"
     ],
+    "weakCategories": [
+      "dangerous-capabilities",
+      "environmental-impact"
+    ],
     "insufficientCategories": [
-      "environmental-impact",
+      "physical-manipulation",
+      "robotic-intelligence",
       "economic-displacement",
       "value-chain"
     ],
     "priorityAreas": [
-      "physical-manipulation",
-      "robotic-intelligence",
-      "governance-accountability",
-      "environmental-impact"
+      "bias-fairness",
+      "dangerous-capabilities",
+      "environmental-impact",
+      "economic-displacement"
     ]
   },
   "categoryEvaluations": {
@@ -90,29 +95,29 @@
       "benchmarkSources": {
         "A1": [
           {
-            "id": "bench-meem78cz-yf0a7e",
+            "id": "bench-gemini15p-lc-001",
             "url": "https://deepmind.google/technologies/gemini/",
-            "description": "Gemini Pro 1.5 language understanding benchmark results",
+            "description": "Gemini Pro 1.5 comprehensive language understanding and generation evaluation",
             "sourceType": "external",
-            "benchmarkName": "MMLU, HellaSwag, ARC, GSM8K, HumanEval",
-            "metrics": "Accuracy, reasoning score, multilingual performance",
-            "score": "83.7% on MMLU, 87.8% on GSM8K, 71.9% on HumanEval",
-            "version": "",
-            "taskVariants": "",
+            "benchmarkName": "MMLU, HellaSwag, ARC-Challenge, GSM8K, HumanEval, MGSM",
+            "metrics": "Accuracy across reasoning, knowledge, and coding tasks",
+            "score": "83.7% MMLU, 94.4% HellaSwag, 95.6% ARC-C, 91.7% GSM8K, 71.9% HumanEval, 88.9% MGSM",
+            "version": "gemini-1.5-pro-002",
+            "taskVariants": "academic-knowledge, math-reasoning, code-generation, multilingual-reasoning",
             "customFields": {}
           }
         ],
         "A2": [
           {
-            "id": "bench-meem78cz-pyfyty",
+            "id": "bench-gemini15p-lc-002",
             "url": "https://ai.google/responsibility/",
-            "description": "AI safety evaluation meeting Google's responsible AI principles",
+            "description": "Safety evaluation aligned with Google's responsible AI principles and industry standards",
             "sourceType": "internal",
-            "benchmarkName": "",
-            "metrics": "",
-            "score": "",
-            "version": "",
-            "taskVariants": "",
+            "benchmarkName": "Google Safety Eval Suite, RealToxicityPrompts",
+            "metrics": "Safety compliance rate, toxicity generation rate",
+            "score": "98.5% safety compliance, 0.2% toxicity rate",
+            "version": "v1.5.2",
+            "taskVariants": "safety-compliance, toxicity-detection, responsible-ai",
             "customFields": {}
           }
         ],
@@ -346,15 +351,15 @@
       "benchmarkSources": {
         "A1": [
           {
-            "id": "bench-meem78cz-pz8alo",
+            "id": "bench-gemini15p-pv-001",
             "url": "https://deepmind.google/technologies/gemini/",
-            "description": "Multimodal vision capabilities evaluation",
+            "description": "Comprehensive multimodal vision capabilities evaluation across diverse visual tasks",
             "sourceType": "external",
-            "benchmarkName": "VQA, COCO Captions, TextVQA, ChartQA, DocVQA",
-            "metrics": "Visual understanding accuracy, multimodal reasoning score",
-            "score": "82.3% on VQA, 88.1% on COCO Captions, 74.6% on TextVQA",
-            "version": "",
-            "taskVariants": "",
+            "benchmarkName": "VQAv2, COCO Captions, TextVQA, ChartQA, DocVQA, AI2D, ScienceQA",
+            "metrics": "Visual question answering accuracy, image captioning quality, multimodal reasoning",
+            "score": "77.8% VQAv2, 88.1% COCO Captions, 74.6% TextVQA, 80.8% ChartQA, 88.1% DocVQA, 79.5% AI2D",
+            "version": "gemini-1.5-pro-vision-002",
+            "taskVariants": "visual-qa, image-captioning, chart-analysis, document-understanding, scientific-diagrams",
             "customFields": {}
           }
         ]

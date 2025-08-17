@@ -12,151 +12,15 @@ import { Separator } from "@/components/ui/separator"
 import type { CategoryScore } from "@/components/ai-evaluation-dashboard"
 import { HelpCircle, CheckCircle, Plus, Trash2 } from "lucide-react"
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip"
-import { BENCHMARK_QUESTIONS, PROCESS_QUESTIONS, SOURCE_TYPES, ADDITIONAL_ASPECTS_SECTION, getFieldPlaceholder, getHint } from "@/lib/category-data"
+import { SOURCE_TYPES, ADDITIONAL_ASPECTS_SECTION, getFieldPlaceholder, getHint } from "@/lib/schema"
+import { getBenchmarkQuestions, getProcessQuestions } from '@/lib/schema'
+import formSchema from '@/schema/evaluation-schema.json'
 
 // The detailed per-category and per-question hints, plus recommended placeholders,
 // are centralized in `lib/category-data.ts`. This component uses the exported
 // helpers `getHint` and `getFieldPlaceholder` and the question lists.
 
-const CustomFieldComponent = ({
-  questionId,
-  fieldType,
-  value,
-  onChange,
-}: {
-  questionId: string
-  fieldType: string
-  value: string
-  onChange: (value: string) => void
-}) => {
-  const getFieldConfig = (questionId: string, fieldType: string) => {
-    const configs: Record<string, Record<string, { label: string; placeholder: string; type?: string }>> = {
-      A2: {
-        thresholds: { label: "Quantitative Thresholds", placeholder: "e.g., >85% accuracy, <0.1 error rate" },
-        thresholdSource: {
-          label: "Threshold Source",
-          placeholder: "e.g., industry standard, research paper, policy requirement",
-        },
-        passFail: { label: "Pass/Fail Determination", placeholder: "e.g., Pass - exceeded 85% threshold" },
-      },
-      A3: {
-        comparativeScores: {
-          label: "Comparative Scores",
-          placeholder: "e.g., Our model: 87.2%, GPT-4: 85.1%, Previous version: 82.3%",
-        },
-        baselineType: { label: "Baseline Type", placeholder: "e.g., SOTA, previous version, industry standard" },
-        significance: { label: "Statistical Significance", placeholder: "e.g., p<0.05, 95% CI: [1.2, 3.8]" },
-      },
-      A4: {
-        testTypes: { label: "Test Types", placeholder: "e.g., adversarial attacks, load testing, distribution shift" },
-        failureRates: { label: "Failure/Degradation Rates", placeholder: "e.g., 15% failure under adversarial inputs" },
-        robustnessMetrics: {
-          label: "Robustness Metrics",
-          placeholder: "e.g., attack success rate, performance drop %",
-        },
-      },
-      A5: {
-        liveMetrics: { label: "Live Metrics Tracked", placeholder: "e.g., error rates, latency, drift detection" },
-        samplingCadence: { label: "Sampling Cadence", placeholder: "e.g., every 1000 requests, hourly, daily" },
-        alertThresholds: { label: "Alert Thresholds", placeholder: "e.g., >5% error rate, >500ms latency" },
-      },
-      A6: {
-        procedure: {
-          label: "Contamination Check Procedure",
-          placeholder: "e.g., n-gram overlap analysis, URL deduplication",
-        },
-        contaminationRate: {
-          label: "Contamination Rate",
-          placeholder: "e.g., <1% overlap detected, 0.3% exact matches",
-        },
-        mitigations: { label: "Mitigations Taken", placeholder: "e.g., removed overlapping samples, used holdout set" },
-      },
-      A7: {
-        comparisonSystems: { label: "Comparison Systems", placeholder: "e.g., GPT-4, Claude-3, Gemini Pro" },
-        evaluationConditions: {
-          label: "Evaluation Conditions",
-          placeholder: "e.g., same prompts, temperature=0, identical hardware",
-        },
-        relativeMetrics: {
-          label: "Relative Performance Metrics",
-          placeholder: "e.g., 15% better accuracy, 2x faster inference",
-        },
-      },
-      B1: {
-        scope: {
-          label: "Evaluation Scope",
-          placeholder: "e.g., measures reasoning capability in mathematical contexts",
-        },
-        successFailureDefinitions: {
-          label: "Success/Failure Definitions",
-          placeholder: "e.g., success = >80% on grade-level problems",
-        },
-        hypotheses: { label: "Hypotheses Being Tested", placeholder: "e.g., model can solve multi-step word problems" },
-      },
-      B2: {
-        replicationPackage: {
-          label: "Replication Package",
-          placeholder: "e.g., GitHub repo with code, configs, prompts",
-        },
-        accessLevel: { label: "Access Level", placeholder: "e.g., public, access-controlled, internal only" },
-        proxies: { label: "Proxies (if not shareable)", placeholder: "e.g., synthetic examples, anonymized data" },
-      },
-      B5: {
-        reviewers: { label: "Reviewers", placeholder: "e.g., domain experts, affected user groups, ethics board" },
-        feedbackChanges: {
-          label: "Changes from Feedback",
-          placeholder: "e.g., added bias metrics, revised interpretation",
-        },
-        disagreements: {
-          label: "Unresolved Disagreements",
-          placeholder: "e.g., threshold levels, risk severity ratings",
-        },
-      },
-      B6: {
-        uncertaintyDisclosure: {
-          label: "Uncertainty Disclosure",
-          placeholder: "e.g., error bars, confidence intervals, variance across runs",
-        },
-        axesConsistency: { label: "Axes Consistency", placeholder: "e.g., consistent 0-100 scale, no truncated axes" },
-        sampleSizes: { label: "Sample Sizes", placeholder: "e.g., n=1000 test samples, 5 random seeds" },
-        selectionCriteria: { label: "Selection Criteria", placeholder: "e.g., all results shown, no cherry-picking" },
-      },
-      B8: {
-        triggers: {
-          label: "Re-evaluation Triggers",
-          placeholder: "e.g., model updates, data drift >5%, security incidents",
-        },
-        versionedSpecs: { label: "Versioned Eval Specs", placeholder: "e.g., eval spec v2.1, change log maintained" },
-        auditTrail: { label: "Audit Trail", placeholder: "e.g., all changes logged with timestamps and rationale" },
-        mitigationProtocols: {
-          label: "Mitigation Protocols",
-          placeholder: "e.g., automated rollback, manual review process",
-        },
-        retestProcedures: {
-          label: "Retest Procedures",
-          placeholder: "e.g., full eval suite after fixes, regression testing",
-        },
-      },
-    }
-
-    return configs[questionId]?.[fieldType] || { label: fieldType, placeholder: "" }
-  }
-
-  const config = getFieldConfig(questionId, fieldType)
-
-  return (
-    <div>
-      <Label className="text-xs font-medium">{config.label}</Label>
-      <Textarea
-        placeholder={config.placeholder}
-        value={value}
-        onChange={(e) => onChange(e.target.value)}
-        rows={2}
-        className="mt-1"
-      />
-    </div>
-  )
-}
+// All benchmark questions share the same input fields; all process questions share the same input fields.
 
 // Local types used by this component (kept minimal for readability)
 export type Source = {
@@ -190,9 +54,10 @@ export type CategoryEvaluationProps = {
   category: { id: string; name: string; description: string; type: string; detailedGuidance?: string }
   score?: CategoryScore | null
   onScoreUpdate: (score: CategoryScore) => void
+  onSaveDetailed?: (categoryId: string, data: any) => void
 }
 
-export function CategoryEvaluation({ category, score, onScoreUpdate }: CategoryEvaluationProps) {
+export function CategoryEvaluation({ category, score, onScoreUpdate, onSaveDetailed }: CategoryEvaluationProps) {
   const [benchmarkAnswers, setBenchmarkAnswers] = useState<Record<string, string>>({})
   const [processAnswers, setProcessAnswers] = useState<Record<string, string>>({})
   const [benchmarkSources, setBenchmarkSources] = useState<Record<string, Source[]>>({})
@@ -209,8 +74,11 @@ export function CategoryEvaluation({ category, score, onScoreUpdate }: CategoryE
 
   const addSource = (questionId: string, section: "benchmark" | "process") => {
     if (section === "benchmark") {
+      const newId = (globalThis.crypto && (globalThis.crypto as any).randomUUID)
+        ? (globalThis.crypto as any).randomUUID()
+        : Date.now().toString()
       const newSource: Source = {
-        id: Date.now().toString(),
+        id: newId,
         url: "",
         description: "",
         sourceType: "internal",
@@ -227,8 +95,11 @@ export function CategoryEvaluation({ category, score, onScoreUpdate }: CategoryE
         [questionId]: [...(prev[questionId] || []), newSource],
       }))
     } else {
+      const newId = (globalThis.crypto && (globalThis.crypto as any).randomUUID)
+        ? (globalThis.crypto as any).randomUUID()
+        : Date.now().toString()
       const newDocSource: DocumentationSource = {
-        id: Date.now().toString(),
+        id: newId,
         url: "",
         description: "",
         sourceType: "internal",
@@ -326,8 +197,8 @@ export function CategoryEvaluation({ category, score, onScoreUpdate }: CategoryE
 
   const currentScore = useMemo(() => {
     // Calculate counts
-    const totalBenchmarkQuestions = BENCHMARK_QUESTIONS.length
-    const totalProcessQuestions = PROCESS_QUESTIONS.length
+  const totalBenchmarkQuestions = getBenchmarkQuestions().length
+  const totalProcessQuestions = getProcessQuestions().length
     const totalQuestions = totalBenchmarkQuestions + totalProcessQuestions
 
     const benchmarkYesCount = Object.values(benchmarkAnswers).filter((answer) => answer === "yes").length
@@ -410,12 +281,22 @@ export function CategoryEvaluation({ category, score, onScoreUpdate }: CategoryE
     }
 
     console.log("[v0] Saving category evaluation")
+    const detailed = {
+      benchmarkAnswers,
+      processAnswers,
+      benchmarkSources,
+      processSources,
+      additionalAspects,
+      score: currentScore,
+    }
+    console.log("[v0] Calling onSaveDetailed with:", detailed)
+    onSaveDetailed?.(category.id, detailed)
     console.log("[v0] Calling onScoreUpdate with:", currentScore)
     onScoreUpdate(currentScore)
   }
 
   const isComplete =
-    Object.keys(benchmarkAnswers).length + Object.keys(processAnswers).length === BENCHMARK_QUESTIONS.length + PROCESS_QUESTIONS.length
+    Object.keys(benchmarkAnswers).length + Object.keys(processAnswers).length === getBenchmarkQuestions().length + getProcessQuestions().length
 
   return (
     <TooltipProvider>
@@ -485,7 +366,7 @@ export function CategoryEvaluation({ category, score, onScoreUpdate }: CategoryE
             </CardDescription>
           </CardHeader>
           <CardContent className="space-y-6">
-            {BENCHMARK_QUESTIONS.map((question) => (
+            {getBenchmarkQuestions().map((question) => (
               <div key={question.id} className="space-y-3">
                 <div className="flex items-start gap-2">
                   <Label className="text-sm font-medium flex-1">
@@ -568,114 +449,45 @@ export function CategoryEvaluation({ category, score, onScoreUpdate }: CategoryE
                         <div className="grid gap-3">
                           {/* no structured hint here; description has contextual hints */}
 
-                          <div>
-                            <Label className="text-xs">Benchmark/Dataset Name</Label>
-                            <Input
-                              placeholder={getFieldPlaceholder(category.id, question.id, "benchmarkName")}
-                              value={source.benchmarkName || ""}
-                              onChange={(e) =>
-                                updateSource(question.id, source.id, "benchmarkName", e.target.value, "benchmark")
-                              }
-                            />
-                          </div>
-
-                          <div className="grid grid-cols-2 gap-3">
-                            <div>
-                              <Label className="text-xs">Version</Label>
-                              <Input
-                                placeholder="e.g., v1.2, 2024-01"
-                                value={source.version || ""}
-                                onChange={(e) =>
-                                  updateSource(question.id, source.id, "version", e.target.value, "benchmark")
-                                }
-                              />
-                            </div>
-                            <div>
-                              <Label className="text-xs">Task Variants</Label>
-                              <Input
-                                placeholder="e.g., multiple choice, generation"
-                                value={source.taskVariants || ""}
-                                onChange={(e) =>
-                                  updateSource(question.id, source.id, "taskVariants", e.target.value, "benchmark")
-                                }
-                              />
-                            </div>
-                          </div>
-
-                          <div>
-                            <Label className="text-xs">Metrics</Label>
-                            <Input
-                              placeholder={getFieldPlaceholder(category.id, question.id, "metrics")}
-                              value={source.metrics || ""}
-                              onChange={(e) =>
-                                updateSource(question.id, source.id, "metrics", e.target.value, "benchmark")
-                              }
-                            />
-                          </div>
-
-                          <div>
-                            <Label className="text-xs">URL</Label>
-                            <Input
-                              placeholder="https://..."
-                              value={source.url}
-                              onChange={(e) => updateSource(question.id, source.id, "url", e.target.value, "benchmark")}
-                            />
-                          </div>
-
-                          <div>
-                            <Label className="text-xs">Description</Label>
-                            <Textarea
-                              placeholder="Describe the benchmark, test, or evaluation method..."
-                              value={source.description}
-                              onChange={(e) =>
-                                updateSource(question.id, source.id, "description", e.target.value, "benchmark")
-                              }
-                              rows={2}
-                            />
-                            <p className="text-xs text-muted-foreground mt-1">
-                              {getHint(category.id, question.id, "benchmark")}
-                            </p>
-                          </div>
-
-                          <div className="grid grid-cols-2 gap-3">
-                            <div>
-                              <Label className="text-xs">Source Type</Label>
-                              <RadioGroup
-                                value={source.sourceType}
-                                onValueChange={(value) =>
-                                  updateSource(question.id, source.id, "sourceType", value, "benchmark")
-                                }
-                              >
-                                {Object.entries(SOURCE_TYPES).map(([key, type]) => (
-                                  <div key={key} className="flex items-center space-x-2">
-                                    <RadioGroupItem value={key} id={`${source.id}-${key}`} />
-                                    <Label htmlFor={`${source.id}-${key}`} className="text-xs">
-                                      {type.label}
-                                    </Label>
+                          {/* Render benchmark source fields from form-schema.json to keep fields uniform */}
+                          {formSchema.benchmarkSourceFields.map((field: any) => (
+                            <div key={field.name}>
+                              <Label className="text-xs">{field.label}</Label>
+                              {field.type === "textarea" ? (
+                                <Textarea
+                                  placeholder={field.placeholder || ""}
+                                  value={(source as any)[field.name] || ""}
+                                  onChange={(e) => updateSource(question.id, source.id, field.name, e.target.value, "benchmark")}
+                                  rows={field.rows || 2}
+                                />
+                              ) : field.type === "radio" ? (
+                                <RadioGroup
+                                  value={(source as any)[field.name] || "internal"}
+                                  onValueChange={(value) => updateSource(question.id, source.id, field.name, value, "benchmark")}
+                                >
+                                  <div className="flex flex-col gap-2">
+                                    {field.options.map((opt: any) => (
+                                      <div key={opt.value} className="flex items-center space-x-2">
+                                        <RadioGroupItem value={opt.value} id={`${source.id}-${field.name}-${opt.value}`} />
+                                        <Label htmlFor={`${source.id}-${field.name}-${opt.value}`} className="text-xs">
+                                          {opt.label}
+                                        </Label>
+                                      </div>
+                                    ))}
                                   </div>
-                                ))}
-                              </RadioGroup>
+                                </RadioGroup>
+                              ) : (
+                                <Input
+                                  placeholder={field.placeholder || ""}
+                                  value={(source as any)[field.name] || ""}
+                                  onChange={(e) => updateSource(question.id, source.id, field.name, e.target.value, "benchmark")}
+                                />
+                              )}
+                              {field.name === "description" && (
+                                <p className="text-xs text-muted-foreground mt-1">{getHint(category.id, question.id, "benchmark")}</p>
+                              )}
                             </div>
-
-                            <div>
-                              <Label className="text-xs">Score (if applicable)</Label>
-                              <Input
-                                placeholder="e.g., 85%, 0.92, Pass"
-                                value={source.score || ""}
-                                onChange={(e) =>
-                                  updateSource(question.id, source.id, "score", e.target.value, "benchmark")
-                                }
-                              />
-                              <Label className="text-xs mt-2">Confidence Interval (optional)</Label>
-                              <Input
-                                placeholder="e.g., 95% CI [90,94]"
-                                value={(source as any).confidenceInterval || ""}
-                                onChange={(e) =>
-                                  updateSource(question.id, source.id, "confidenceInterval", e.target.value, "benchmark")
-                                }
-                              />
-                            </div>
-                          </div>
+                          ))}
                         </div>
                       </div>
                     ))}
@@ -702,7 +514,7 @@ export function CategoryEvaluation({ category, score, onScoreUpdate }: CategoryE
             </CardDescription>
           </CardHeader>
           <CardContent className="space-y-6">
-            {PROCESS_QUESTIONS.map((question) => (
+            {getProcessQuestions().map((question) => (
               <div key={question.id} className="space-y-3">
                 <div className="flex items-start gap-2">
                   <Label className="text-sm font-medium flex-1">
@@ -785,99 +597,29 @@ export function CategoryEvaluation({ category, score, onScoreUpdate }: CategoryE
                         <div className="grid gap-3">
                           {/* no structured hint here; description has contextual hints */}
 
-                          <div>
-                            <Label className="text-xs">URL</Label>
-                            <Input
-                              placeholder="https://..."
-                              value={source.url}
-                              onChange={(e) => updateSource(question.id, source.id, "url", e.target.value, "process")}
-                            />
-                          </div>
-
-                          <div>
-                            <Label className="text-xs">Description</Label>
-                            <Textarea
-                              placeholder="Describe the documentation, policy, or process..."
-                              value={source.description}
-                              onChange={(e) =>
-                                updateSource(question.id, source.id, "description", e.target.value, "process")
-                              }
-                              rows={2}
-                            />
-                            <p className="text-xs text-muted-foreground mt-1">
-                              {getHint(category.id, question.id, "process")}
-                            </p>
-                          </div>
-
-                          <div className="grid grid-cols-2 gap-3">
-                            <div>
-                              <Label className="text-xs">Source Type</Label>
-                              <RadioGroup
-                                value={source.sourceType}
-                                onValueChange={(value) =>
-                                  updateSource(question.id, source.id, "sourceType", value, "process")
-                                }
-                              >
-                                {Object.entries(SOURCE_TYPES).map(([key, type]) => (
-                                  <div key={key} className="flex items-center space-x-2">
-                                    <RadioGroupItem value={key} id={`${source.id}-${key}`} />
-                                    <Label htmlFor={`${source.id}-${key}`} className="text-xs">
-                                      {type.label}
-                                    </Label>
-                                  </div>
-                                ))}
-                              </RadioGroup>
+                          {/* Render process source fields from form-schema.json */}
+                          {formSchema.processSourceFields.map((field: any) => (
+                            <div key={field.name}>
+                              <Label className="text-xs">{field.label}</Label>
+                              {field.type === "textarea" ? (
+                                <Textarea
+                                  placeholder={field.placeholder || ""}
+                                  value={(source as any)[field.name] || ""}
+                                  onChange={(e) => updateSource(question.id, source.id, field.name, e.target.value, "process")}
+                                  rows={field.rows || 2}
+                                />
+                              ) : (
+                                <Input
+                                  placeholder={field.placeholder || ""}
+                                  value={(source as any)[field.name] || ""}
+                                  onChange={(e) => updateSource(question.id, source.id, field.name, e.target.value, "process")}
+                                />
+                              )}
+                              {field.name === "description" && (
+                                <p className="text-xs text-muted-foreground mt-1">{getHint(category.id, question.id, "process")}</p>
+                              )}
                             </div>
-
-                            <div>
-                              <Label className="text-xs">Document Type</Label>
-                              <Input
-                                placeholder="e.g., Policy, Procedure, Report"
-                                value={source.documentType || ""}
-                                onChange={(e) =>
-                                  updateSource(question.id, source.id, "documentType", e.target.value, "process")
-                                }
-                              />
-                            </div>
-                          </div>
-
-                          <div className="grid grid-cols-2 gap-3 mt-2">
-                            <div>
-                              <Label className="text-xs">Title</Label>
-                              <Input
-                                placeholder="Document title"
-                                value={(source as any).title || ""}
-                                onChange={(e) => updateSource(question.id, source.id, "title", e.target.value, "process")}
-                              />
-                            </div>
-                            <div>
-                              <Label className="text-xs">Author</Label>
-                              <Input
-                                placeholder="Author or owner"
-                                value={(source as any).author || ""}
-                                onChange={(e) => updateSource(question.id, source.id, "author", e.target.value, "process")}
-                              />
-                            </div>
-                          </div>
-
-                          <div className="grid grid-cols-2 gap-3 mt-2">
-                            <div>
-                              <Label className="text-xs">Organization</Label>
-                              <Input
-                                placeholder="Owning org"
-                                value={(source as any).organization || ""}
-                                onChange={(e) => updateSource(question.id, source.id, "organization", e.target.value, "process")}
-                              />
-                            </div>
-                            <div>
-                              <Label className="text-xs">Date</Label>
-                              <Input
-                                placeholder="YYYY-MM-DD"
-                                value={(source as any).date || ""}
-                                onChange={(e) => updateSource(question.id, source.id, "date", e.target.value, "process")}
-                              />
-                            </div>
-                          </div>
+                          ))}
 
                           
                         </div>

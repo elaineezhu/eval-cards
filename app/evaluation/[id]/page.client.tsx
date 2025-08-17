@@ -6,9 +6,8 @@ import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { ArrowLeft, Download, Eye, EyeOff } from "lucide-react"
-import { CATEGORIES } from "@/lib/category-data"
+import { getAllCategories, getCategoryById, getBenchmarkQuestions, getProcessQuestions } from "@/lib/schema"
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip"
-import { BENCHMARK_QUESTIONS, PROCESS_QUESTIONS } from "@/lib/category-data"
 import { naReasonForCategoryFromEval } from "@/lib/na-utils"
 
 const loadEvaluationDetails = async (id: string) => {
@@ -50,12 +49,12 @@ export default function EvaluationDetailsPage() {
   const toggleCategoryVisibility = (id: string) => setVisibleCategories((p) => ({ ...p, [id]: !p[id] }))
   const selectAll = () => {
   const map: Record<string, boolean> = {}
-  CATEGORIES.forEach((c) => (map[c.id] = true))
+  getAllCategories().forEach((c) => (map[c.id] = true))
   setVisibleCategories(map)
   }
   const deselectAll = () => {
   const map: Record<string, boolean> = {}
-  CATEGORIES.forEach((c) => (map[c.id] = false))
+  getAllCategories().forEach((c) => (map[c.id] = false))
   setVisibleCategories(map)
   }
 
@@ -77,7 +76,7 @@ export default function EvaluationDetailsPage() {
     if (evaluation) {
       const init: Record<string, boolean> = {}
       // default: eyes open (visible) for all categories unless explicitly NA
-      CATEGORIES.forEach((c) => {
+      getAllCategories().forEach((c) => {
         const na = naReasonForCategory(c.id)
         init[c.id] = !na
       })
@@ -90,10 +89,46 @@ export default function EvaluationDetailsPage() {
   const naReasonForCategory = (categoryId: string): string | undefined => {
     const catEval = evaluation?.categoryEvaluations?.[categoryId]
     if (!catEval) return undefined
-    const benchmarkQs = BENCHMARK_QUESTIONS.map((q) => q.id)
-    const processQs = PROCESS_QUESTIONS.map((q) => q.id)
+  const benchmarkQs = getBenchmarkQuestions().map((q) => q.id)
+  const processQs = getProcessQuestions().map((q) => q.id)
     return naReasonForCategoryFromEval(catEval, benchmarkQs, processQs)
   }
+
+  // Compute overall stats from evaluation data dynamically
+  const computedStats = (() => {
+    const strongCategories: string[] = []
+    const adequateCategories: string[] = []
+    const weakCategories: string[] = []
+    const insufficientCategories: string[] = []
+
+    const allEntries = evaluation?.categoryEvaluations || {}
+    for (const [catId, catData] of Object.entries(allEntries)) {
+      // Count yes/no across A & B
+      let yes = 0
+      let no = 0
+      let na = 0
+      const bQs = getBenchmarkQuestions().map((q) => q.id)
+      const pQs = getProcessQuestions().map((q) => q.id)
+      for (const qid of [...bQs, ...pQs]) {
+        const raw = (catData as any).benchmarkAnswers?.[qid] ?? (catData as any).processAnswers?.[qid]
+        const arr = Array.isArray(raw) ? raw : raw ? [raw] : []
+        const hasYes = arr.some((a: string) => String(a).toLowerCase() === "yes")
+        const hasNo = arr.some((a: string) => String(a).toLowerCase() === "no")
+        if (hasYes) yes++
+        else if (hasNo) no++
+        else na++
+      }
+
+      const totalApplicable = yes + no
+      const ratio = totalApplicable > 0 ? yes / totalApplicable : 0
+      if (ratio >= 0.8) strongCategories.push(catId)
+      else if (ratio >= 0.6) adequateCategories.push(catId)
+      else if (ratio >= 0.4) weakCategories.push(catId)
+      else insufficientCategories.push(catId)
+    }
+
+    return { strongCategories, adequateCategories, weakCategories, insufficientCategories }
+  })()
 
   useEffect(() => {
     try {
@@ -197,7 +232,7 @@ export default function EvaluationDetailsPage() {
               {/* compute applicable count as non-NA categories from the full CATEGORIES list */}
               <CardTitle>
                 Applicable Categories ({
-                  CATEGORIES.filter((c) => {
+                  getAllCategories().filter((c) => {
                     const sel = new Set(evaluation.selectedCategories || [])
                     // treat as applicable only when selected and not explicitly NA
                     const na = naReasonForCategory(c.id)
@@ -220,7 +255,7 @@ export default function EvaluationDetailsPage() {
             <div>
               <div className="text-sm font-medium mb-2">Capabilities</div>
               <div className="flex flex-col gap-2">
-                {CATEGORIES.filter((c: any) => c.type === "capability").map((category: any) => {
+                {getAllCategories().filter((c) => c.type === "capability").map((category) => {
                     const sel = new Set(evaluation.selectedCategories || [])
                     const naReason = naReasonForCategory(category.id)
                     const isSelected = sel.has(category.id)
@@ -256,14 +291,14 @@ export default function EvaluationDetailsPage() {
                         )}
                         <span className="ml-2">
                           {isNA ? (
-                            <span className="inline-flex items-center rounded-md px-2 py-0.5 text-xs font-medium bg-muted/30 text-muted-foreground border-2 border-purple-500">
-                              {category.name}
-                            </span>
-                          ) : (
-                            <Badge variant="secondary" className="cursor-pointer">
-                              {category.name}
-                            </Badge>
-                          )}
+                              <span className="inline-flex items-center rounded-md px-2 py-0.5 text-xs font-medium bg-muted/30 text-muted-foreground border-2 border-purple-500">
+                                {getCategoryById(category.id)?.name || category.name}
+                              </span>
+                            ) : (
+                              <Badge variant="secondary" className="cursor-pointer">
+                                {getCategoryById(category.id)?.name || category.name}
+                              </Badge>
+                            )}
                         </span>
                       </label>
                     )
@@ -274,7 +309,7 @@ export default function EvaluationDetailsPage() {
             <div>
               <div className="text-sm font-medium mb-2">Risks</div>
               <div className="flex flex-col gap-2">
-                {CATEGORIES.filter((c: any) => c.type === "risk").map((category: any) => {
+                {getAllCategories().filter((c) => c.type === "risk").map((category) => {
                     const sel = new Set(evaluation.selectedCategories || [])
                     const naReason = naReasonForCategory(category.id)
                     const isSelected = sel.has(category.id)
@@ -311,11 +346,11 @@ export default function EvaluationDetailsPage() {
                         <span className="ml-2">
                           {isNA ? (
                             <span className="inline-flex items-center rounded-md px-2 py-0.5 text-xs font-medium bg-muted/30 text-muted-foreground border-2 border-red-500">
-                              {category.name}
+                              {getCategoryById(category.id)?.name || category.name}
                             </span>
                           ) : (
                             <Badge variant="destructive" className="cursor-pointer">
-                              {category.name}
+                              {getCategoryById(category.id)?.name || category.name}
                             </Badge>
                           )}
                         </span>
@@ -337,25 +372,25 @@ export default function EvaluationDetailsPage() {
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
             <div className="text-center p-4 bg-green-50 dark:bg-green-950 rounded-lg">
               <div className="text-2xl font-bold text-green-700 dark:text-green-300">
-                {evaluation.overallStats?.strongCategories?.length || 0}
+                {computedStats.strongCategories.length}
               </div>
               <div className="text-sm text-green-600 dark:text-green-400">Strong</div>
             </div>
             <div className="text-center p-4 bg-blue-50 dark:bg-blue-950 rounded-lg">
               <div className="text-2xl font-bold text-blue-700 dark:text-blue-300">
-                {evaluation.overallStats?.adequateCategories?.length || 0}
+                {computedStats.adequateCategories.length}
               </div>
               <div className="text-sm text-blue-600 dark:text-blue-400">Adequate</div>
             </div>
             <div className="text-center p-4 bg-yellow-50 dark:bg-yellow-950 rounded-lg">
               <div className="text-2xl font-bold text-yellow-700 dark:text-yellow-300">
-                {evaluation.overallStats?.weakCategories?.length || 0}
+                {computedStats.weakCategories.length}
               </div>
               <div className="text-sm text-yellow-600 dark:text-yellow-400">Weak</div>
             </div>
             <div className="text-center p-4 bg-red-50 dark:bg-red-950 rounded-lg">
               <div className="text-2xl font-bold text-red-700 dark:text-red-300">
-                {evaluation.overallStats?.insufficientCategories?.length || 0}
+                {computedStats.insufficientCategories.length}
               </div>
               <div className="text-sm text-red-600 dark:text-red-400">Insufficient</div>
             </div>
@@ -374,7 +409,7 @@ export default function EvaluationDetailsPage() {
               {[...(evaluation.overallStats?.insufficientCategories || []), ...(evaluation.overallStats?.weakCategories || [])]
                 .filter(Boolean)
                 .map((catId: string) => {
-                  const category = CATEGORIES.find((c) => c.id === catId)
+                  const category = getCategoryById(catId)
                   return (
                     <div key={catId} className="p-3 border rounded-md flex items-center justify-between">
                       <div>
@@ -400,17 +435,17 @@ export default function EvaluationDetailsPage() {
             const na = naReasonForCategory(categoryId)
             return !na && (visibleCategories[categoryId] ?? true)
           })
-          .map(([categoryId, data]: [string, any]) => {
-            const category = CATEGORIES.find((c) => c.id === categoryId)
+      .map(([categoryId, data]: [string, any]) => {
+    const category = getCategoryById(categoryId)
 
             // compute per-category score (yes out of applicable (yes+no)) across A & B
-            const benchmarkQs = BENCHMARK_QUESTIONS.map((q) => q.id)
-            const processQs = PROCESS_QUESTIONS.map((q) => q.id)
+            const benchmarkQs = getBenchmarkQuestions().map((q) => q.id)
+            const processQs = getProcessQuestions().map((q) => q.id)
             let yesCount = 0
             let noCount = 0
             let naCount = 0
 
-            for (const qid of benchmarkQs) {
+            for (const qid of getBenchmarkQuestions().map((q) => q.id)) {
               const raw = data.benchmarkAnswers?.[qid]
               const answers = Array.isArray(raw) ? raw : raw ? [raw] : []
               const hasYes = answers.some((a: string) => String(a).toLowerCase() === "yes")
@@ -422,7 +457,7 @@ export default function EvaluationDetailsPage() {
               else naCount++
             }
 
-            for (const qid of processQs) {
+            for (const qid of getProcessQuestions().map((q) => q.id)) {
               const raw = data.processAnswers?.[qid]
               const answers = Array.isArray(raw) ? raw : raw ? [raw] : []
               const hasYes = answers.some((a: string) => String(a).toLowerCase() === "yes")
@@ -437,10 +472,10 @@ export default function EvaluationDetailsPage() {
             const totalApplicable = yesCount + noCount
             const scoreText = totalApplicable > 0 ? `${yesCount}/${totalApplicable}` : "N/A"
             let rating = "Unknown"
-            if (evaluation.overallStats?.strongCategories?.includes(categoryId)) rating = "Strong"
-            else if (evaluation.overallStats?.adequateCategories?.includes(categoryId)) rating = "Adequate"
-            else if (evaluation.overallStats?.weakCategories?.includes(categoryId)) rating = "Weak"
-            else if (evaluation.overallStats?.insufficientCategories?.includes(categoryId)) rating = "Insufficient"
+            if (computedStats.strongCategories.includes(categoryId)) rating = "Strong"
+            else if (computedStats.adequateCategories.includes(categoryId)) rating = "Adequate"
+            else if (computedStats.weakCategories.includes(categoryId)) rating = "Weak"
+            else if (computedStats.insufficientCategories.includes(categoryId)) rating = "Insufficient"
 
             const ratingClass =
               rating === "Strong"
@@ -480,183 +515,128 @@ export default function EvaluationDetailsPage() {
                     <div>
                       <h4 className="font-semibold mb-3">Part A: Benchmark & Testing</h4>
                       <div className="space-y-4">
-                        {(() => {
-                          const entries = Object.entries(data.benchmarkSources || {}) as [string, any][]
-                          const yesItems: any[] = []
-                          const noItems: any[] = []
-                          const naItems: any[] = []
+                        {getBenchmarkQuestions().map((q) => {
+                          const questionId = q.id
+                          const sources = data.benchmarkSources?.[questionId] || []
+                          const qText = q.text
+                          const rawAnswer = data.benchmarkAnswers?.[questionId]
+                          const answers = Array.isArray(rawAnswer) ? rawAnswer : rawAnswer ? [rawAnswer] : []
+                          const hasYes = answers.some((a: string) => String(a).toLowerCase() === "yes")
+                          const hasNo = answers.some((a: string) => String(a).toLowerCase() === "no")
+                          const hasNA = answers.length === 0 || answers.some((a: string) => String(a).toLowerCase().includes("not applicable") || String(a).toLowerCase() === "n/a")
 
-                          // iterate the union of known source keys and answer keys so we show questions
-                          const canonicalKeys = BENCHMARK_QUESTIONS.map((q) => q.id)
-                          const answerKeys = Object.keys(data.benchmarkAnswers || {})
-                          const sourceKeys = Object.keys(data.benchmarkSources || {})
-                          const keySet = new Set<string>([...canonicalKeys, ...answerKeys, ...sourceKeys])
-                          for (const questionId of Array.from(keySet)) {
-                            const sources = data.benchmarkSources?.[questionId] || []
-                            const qText = BENCHMARK_QUESTIONS.find((x) => x.id === questionId)?.text || questionId
-                            const rawAnswer = data.benchmarkAnswers?.[questionId]
-                            const answers = Array.isArray(rawAnswer) ? rawAnswer : rawAnswer ? [rawAnswer] : []
-                            const hasYes = answers.some((a: string) => String(a).toLowerCase() === "yes")
-                            const hasNo = answers.some((a: string) => String(a).toLowerCase() === "no")
-                            const hasNA = answers.length === 0 || answers.some((a: string) => String(a).toLowerCase().includes("not applicable") || String(a).toLowerCase() === "n/a")
-
-                            const reason =
-                              sources?.[0]?.scope || sources?.[0]?.description || data.additionalAspects || (hasNA ? "Not applicable" : undefined)
-
-                            if (hasYes) yesItems.push({ questionId, qText, sources })
-                            else if (hasNo) noItems.push({ questionId, qText })
-                            else if (hasNA) naItems.push({ questionId, qText, reason })
-                            else naItems.push({ questionId, qText, reason: reason || "Not applicable" })
-                          }
+                          const key = `bench-${categoryId}-${questionId}`
 
                           return (
-                            <>
-                              {yesItems.map((it) => {
-                                const key = `bench-${categoryId}-${it.questionId}`
-                                return (
-                                  <div key={it.questionId} className="border rounded-lg p-4">
-                                    <div
-                                      role="button"
-                                      tabIndex={0}
-                                      onClick={() => toggleNegatives(key)}
-                                      className="flex items-center gap-2 mb-2 justify-between cursor-pointer"
-                                    >
-                                      <div className="flex items-center gap-3">
-                                        <span className="font-medium">{it.questionId}:</span>
-                                        <div className="text-sm">{it.qText}</div>
-                                      </div>
-                                      <div className="flex items-center gap-2">
-                                        <span className="inline-flex items-center rounded-md px-2 py-0.5 text-xs font-medium bg-green-100 text-green-700">yes</span>
-                                      </div>
-                                    </div>
-
-                                    {expandedNegatives[key] && (() => {
-                                      const cards = (it.sources || []).flatMap((src: any) => {
-                                        const names = String(src.benchmarkName || '')
-                                          .split(',')
-                                          .map((s: string) => s.trim())
-                                          .filter(Boolean)
-
-                                        const scoreParts = String(src.score || '')
-                                          .split(',')
-                                          .map((s: string) => s.trim())
-                                          .filter(Boolean)
-
-                                        return (names.length > 0 ? names : ['Benchmark']).map((name: string, idx: number) => {
-                                          // determine score for this benchmark (positional or by name) or fallback to any numeric
-                                          let scoreNum: number | undefined
-                                          if (scoreParts.length === names.length && scoreParts[idx]) {
-                                            const m = scoreParts[idx].match(/(\d+(?:\.\d+)?)/)
-                                            if (m) scoreNum = parseFloat(m[1])
-                                          } else if (scoreParts.length > 0) {
-                                            const byName = scoreParts.find((p: string) => p.toLowerCase().includes(name.toLowerCase()))
-                                            const m = (byName || scoreParts[0]).match(/(\d+(?:\.\d+)?)/)
-                                            if (m) scoreNum = parseFloat(m[1])
-                                          } else if (src?.score) {
-                                            const m = String(src.score).match(/(\d+(?:\.\d+)?)/)
-                                            if (m) scoreNum = parseFloat(m[1])
-                                          }
-
-                                          return (
-                                            <div key={`${it.questionId}-${name}-${idx}`} className="p-4 border rounded-lg bg-background">
-                                              <div className="flex items-start justify-between">
-                                                <div className="text-xs inline-flex items-center rounded-full px-2 py-1 bg-indigo-50 text-indigo-700">Percentage</div>
-                                                <div className="text-2xl font-bold text-indigo-600">{scoreNum != null ? `${scoreNum}%` : '—'}</div>
-                                              </div>
-
-                                              <div className="mt-3 text-lg font-semibold">{name}</div>
-
-                                              {scoreNum != null && (
-                                                <div className="mt-3">
-                                                  <div className="h-2 bg-gray-200 rounded-full overflow-hidden">
-                                                    <div className="h-2 bg-indigo-500" style={{ width: `${Math.max(0, Math.min(100, scoreNum))}%` }} />
-                                                  </div>
-                                                </div>
-                                              )}
-
-                                              <div className="mt-3 space-y-2 text-sm">
-                                                <div>
-                                                  <span className="text-muted-foreground">Source:</span>{' '}
-                                                  {src.url ? (
-                                                    <a className="text-primary underline" href={src.url} target="_blank" rel="noreferrer">
-                                                      {src.url}
-                                                    </a>
-                                                  ) : (
-                                                    '—'
-                                                  )}
-                                                </div>
-                                                <div>
-                                                  <span className="text-muted-foreground">Type:</span> {src.sourceType || src.documentType || '—'}
-                                                </div>
-                                                {src.metrics && (
-                                                  <div>
-                                                    <span className="text-muted-foreground">Metric:</span> {src.metrics}
-                                                  </div>
-                                                )}
-                                                {src.confidenceInterval && (
-                                                  <div>
-                                                    <span className="text-muted-foreground">Confidence Interval:</span> {src.confidenceInterval}
-                                                  </div>
-                                                )}
-                                                {src.description && (
-                                                  <div className="mt-2 p-2 bg-muted/40 rounded text-sm">{src.description}</div>
-                                                )}
-                                              </div>
-                                            </div>
-                                          )
-                                        })
-                                      })
-
-                                      if (cards.length === 0) return <div className="text-sm text-muted-foreground">No benchmark details available.</div>
-
-                                      return <div className="mt-3 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">{cards}</div>
-                                    })()}
-                                  </div>
-                                )
-                              })}
-
-                              {noItems.map((it) => (
-                                <div key={it.questionId} className="border rounded-lg p-4">
-                                  <div className="flex items-center gap-2 mb-2 justify-between">
-                                    <div className="flex items-center gap-3">
-                                      <span className="font-medium">{it.questionId}:</span>
-                                      <div className="text-sm">{it.qText}</div>
-                                    </div>
-                                    <div>
-                                      <span className="inline-flex items-center rounded-md px-2 py-0.5 text-xs font-medium bg-red-100 text-red-700">no</span>
-                                    </div>
-                                  </div>
+                            <div key={questionId} className="border rounded-lg p-4">
+                              <div
+                                role="button"
+                                tabIndex={0}
+                                onClick={() => toggleNegatives(key)}
+                                className="flex items-center gap-2 mb-2 justify-between cursor-pointer"
+                              >
+                                <div className="flex items-center gap-3">
+                                  <span className="font-medium">{questionId}:</span>
+                                  <div className="text-sm">{qText}</div>
                                 </div>
-                              ))}
-
-                              {naItems.length > 0 && (
-                                <div className="border rounded-lg p-3">
-                                  <div className="flex items-center justify-between">
-                                    <div className="font-medium">Not applicable ({naItems.length})</div>
-                                    <button onClick={() => toggleNegatives(`bench-na-${categoryId}`)} className="text-sm text-primary underline">
-                                      {expandedNegatives[`bench-na-${categoryId}`] ? "Hide" : "Show"}
-                                    </button>
-                                  </div>
-
-                                  {expandedNegatives[`bench-na-${categoryId}`] && (
-                                    <div className="mt-3 space-y-2">
-                                      {naItems.map((it) => (
-                                        <div key={it.questionId} className="p-2 bg-muted rounded">
-                                          <div className="flex items-center justify-between">
-                                            <div className="text-sm">
-                                              <span className="font-medium">{it.questionId}:</span> {it.qText}
-                                            </div>
-                                            <div className="text-xs text-muted-foreground">Reason: {it.reason}</div>
-                                          </div>
-                                        </div>
-                                      ))}
-                                    </div>
+                                <div className="flex items-center gap-2">
+                                  {hasYes ? (
+                                    <span className="inline-flex items-center rounded-md px-2 py-0.5 text-xs font-medium bg-green-100 text-green-700">yes</span>
+                                  ) : hasNo ? (
+                                    <span className="inline-flex items-center rounded-md px-2 py-0.5 text-xs font-medium bg-red-100 text-red-700">no</span>
+                                  ) : (
+                                    <span className="inline-flex items-center rounded-md px-2 py-0.5 text-xs font-medium bg-muted/20 text-muted-foreground">n/a</span>
                                   )}
                                 </div>
+                              </div>
+
+                              {hasYes && expandedNegatives[key] && (() => {
+                                const cards = (sources || []).flatMap((src: any) => {
+                                  const names = String(src.benchmarkName || '')
+                                    .split(',')
+                                    .map((s: string) => s.trim())
+                                    .filter(Boolean)
+
+                                  const scoreParts = String(src.score || '')
+                                    .split(',')
+                                    .map((s: string) => s.trim())
+                                    .filter(Boolean)
+
+                                  return (names.length > 0 ? names : ['Benchmark']).map((name: string, idx: number) => {
+                                    let scoreNum: number | undefined
+                                    if (scoreParts.length === names.length && scoreParts[idx]) {
+                                      const m = scoreParts[idx].match(/(\d+(?:\.\d+)?)/)
+                                      if (m) scoreNum = parseFloat(m[1])
+                                    } else if (scoreParts.length > 0) {
+                                      const byName = scoreParts.find((p: string) => p.toLowerCase().includes(name.toLowerCase()))
+                                      const m = (byName || scoreParts[0]).match(/(\d+(?:\.\d+)?)/)
+                                      if (m) scoreNum = parseFloat(m[1])
+                                    } else if (src?.score) {
+                                      const m = String(src.score).match(/(\d+(?:\.\d+)?)/)
+                                      if (m) scoreNum = parseFloat(m[1])
+                                    }
+
+                                    return (
+                                      <div key={`${questionId}-${name}-${idx}`} className="p-4 border rounded-lg bg-background">
+                                        <div className="flex items-start justify-between">
+                                          <div className="text-xs inline-flex items-center rounded-full px-2 py-1 bg-indigo-50 text-indigo-700">Percentage</div>
+                                          <div className="text-2xl font-bold text-indigo-600">{scoreNum != null ? `${scoreNum}%` : '—'}</div>
+                                        </div>
+
+                                        <div className="mt-3 text-lg font-semibold">{name}</div>
+
+                                        {scoreNum != null && (
+                                          <div className="mt-3">
+                                            <div className="h-2 bg-gray-200 rounded-full overflow-hidden">
+                                              <div className="h-2 bg-indigo-500" style={{ width: `${Math.max(0, Math.min(100, scoreNum))}%` }} />
+                                            </div>
+                                          </div>
+                                        )}
+
+                                        <div className="mt-3 space-y-2 text-sm">
+                                          <div>
+                                            <span className="text-muted-foreground">Source:</span>{' '}
+                                            {src.url ? (
+                                              <a className="text-primary underline" href={src.url} target="_blank" rel="noreferrer">
+                                                {src.url}
+                                              </a>
+                                            ) : (
+                                              '—'
+                                            )}
+                                          </div>
+                                          <div>
+                                            <span className="text-muted-foreground">Type:</span> {src.sourceType || src.documentType || '—'}
+                                          </div>
+                                          {src.metrics && (
+                                            <div>
+                                              <span className="text-muted-foreground">Metric:</span> {src.metrics}
+                                            </div>
+                                          )}
+                                          {src.confidenceInterval && (
+                                            <div>
+                                              <span className="text-muted-foreground">Confidence Interval:</span> {src.confidenceInterval}
+                                            </div>
+                                          )}
+                                          {src.description && (
+                                            <div className="mt-2 p-2 bg-muted/40 rounded text-sm">{src.description}</div>
+                                          )}
+                                        </div>
+                                      </div>
+                                    )
+                                  })
+                                })
+
+                                if (cards.length === 0) return <div className="text-sm text-muted-foreground">No benchmark details available.</div>
+
+                                return <div className="mt-3 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">{cards}</div>
+                              })()}
+
+                              {hasNA && (
+                                <div className="mt-2 text-sm text-muted-foreground">Reason: {sources?.[0]?.description || data.additionalAspects || 'Not applicable'}</div>
                               )}
-                            </>
+                            </div>
                           )
-                        })()}
+                        })}
                       </div>
                     </div>
                   )}
@@ -666,121 +646,69 @@ export default function EvaluationDetailsPage() {
                     <div>
                       <h4 className="font-semibold mb-3">Part B: Documentation & Process</h4>
                       <div className="space-y-4">
-                        {(() => {
-                          const entries = Object.entries(data.processSources || {}) as [string, any][]
-                          const yesItems: any[] = []
-                          const noItems: any[] = []
-                          const naItems: any[] = []
+                        {getProcessQuestions().map((q) => {
+                          const questionId = q.id
+                          const sources = data.processSources?.[questionId] || []
+                          const qText = q.text
+                          const rawAnswer = data.processAnswers?.[questionId]
+                          const answers = Array.isArray(rawAnswer) ? rawAnswer : rawAnswer ? [rawAnswer] : []
+                          const hasYes = answers.some((a: string) => String(a).toLowerCase() === "yes")
+                          const hasNo = answers.some((a: string) => String(a).toLowerCase() === "no")
+                          const hasNA = answers.length === 0 || answers.some((a: string) => String(a).toLowerCase().includes("not applicable") || String(a).toLowerCase() === "n/a")
 
-                          const canonicalKeys = PROCESS_QUESTIONS.map((q) => q.id)
-                          const answerKeys = Object.keys(data.processAnswers || {})
-                          const sourceKeys = Object.keys(data.processSources || {})
-                          const keySet = new Set<string>([...canonicalKeys, ...answerKeys, ...sourceKeys])
-                          for (const questionId of Array.from(keySet)) {
-                            const sources = data.processSources?.[questionId] || []
-                            const qText = PROCESS_QUESTIONS.find((x) => x.id === questionId)?.text || questionId
-                            const rawAnswer = data.processAnswers?.[questionId]
-                            const answers = Array.isArray(rawAnswer) ? rawAnswer : rawAnswer ? [rawAnswer] : []
-                            const hasYes = answers.some((a: string) => String(a).toLowerCase() === "yes")
-                            const hasNo = answers.some((a: string) => String(a).toLowerCase() === "no")
-                            const hasNA = answers.length === 0 || answers.some((a: string) => String(a).toLowerCase().includes("not applicable") || String(a).toLowerCase() === "n/a")
-
-                            const reason = sources?.[0]?.scope || sources?.[0]?.description || data.additionalAspects || (hasNA ? "Not applicable" : undefined)
-
-                            if (hasYes) yesItems.push({ questionId, qText, sources })
-                            else if (hasNo) noItems.push({ questionId, qText })
-                            else if (hasNA) naItems.push({ questionId, qText, reason })
-                            else naItems.push({ questionId, qText, reason: reason || "Not applicable" })
-                          }
+                          const key = `proc-${categoryId}-${questionId}`
 
                           return (
-                            <>
-                              {yesItems.map((it) => {
-                                const key = `proc-${categoryId}-${it.questionId}`
-                                return (
-                                  <div key={it.questionId} className="border rounded-lg p-4">
-                                    <div
-                                      role="button"
-                                      tabIndex={0}
-                                      onClick={() => toggleNegatives(key)}
-                                      className="flex items-center gap-2 mb-2 justify-between cursor-pointer"
-                                    >
-                                      <div className="flex items-center gap-3">
-                                        <span className="font-medium">{it.questionId}:</span>
-                                        <div className="text-sm">{it.qText}</div>
-                                      </div>
-                                      <div className="flex items-center gap-2">
-                                          <span className="inline-flex items-center rounded-md px-2 py-0.5 text-xs font-medium bg-green-100 text-green-700">yes</span>
-                                        </div>
-                                    </div>
-
-                                    {expandedNegatives[key] && (
-                                      <div className="mt-3 space-y-3">
-                                        {(it.sources || []).map((src: any, i: number) => (
-                                          <div key={i} className="p-3 bg-muted rounded">
-                                            <div className="grid grid-cols-1 gap-2 text-sm">
-                                              <div>
-                                                <span className="text-muted-foreground">URL:</span> {src?.url || '—'}
-                                              </div>
-                                              <div>
-                                                <span className="text-muted-foreground">Document Type:</span> {src?.documentType || src?.sourceType || '—'}
-                                              </div>
-                                            </div>
-                                            {src?.description && (
-                                              <div className="mt-2 text-sm">
-                                                <span className="text-muted-foreground">Description:</span> {src.description}
-                                              </div>
-                                            )}
-                                          </div>
-                                        ))}
-                                      </div>
-                                    )}
-                                  </div>
-                                )
-                              })}
-
-                              {noItems.map((it) => (
-                                <div key={it.questionId} className="border rounded-lg p-4">
-                                  <div className="flex items-center gap-2 mb-2 justify-between">
-                                    <div className="flex items-center gap-3">
-                                      <span className="font-medium">{it.questionId}:</span>
-                                      <div className="text-sm">{it.qText}</div>
-                                    </div>
-                                    <div>
-                                      <span className="inline-flex items-center rounded-md px-2 py-0.5 text-xs font-medium bg-red-100 text-red-700">no</span>
-                                    </div>
-                                  </div>
+                            <div key={questionId} className="border rounded-lg p-4">
+                              <div
+                                role="button"
+                                tabIndex={0}
+                                onClick={() => toggleNegatives(key)}
+                                className="flex items-center gap-2 mb-2 justify-between cursor-pointer"
+                              >
+                                <div className="flex items-center gap-3">
+                                  <span className="font-medium">{questionId}:</span>
+                                  <div className="text-sm">{qText}</div>
                                 </div>
-                              ))}
-
-                              {naItems.length > 0 && (
-                                <div className="border rounded-lg p-3">
-                                  <div className="flex items-center justify-between">
-                                    <div className="font-medium">Not applicable ({naItems.length})</div>
-                                    <button onClick={() => toggleNegatives(`proc-na-${categoryId}`)} className="text-sm text-primary underline">
-                                      {expandedNegatives[`proc-na-${categoryId}`] ? "Hide" : "Show"}
-                                    </button>
-                                  </div>
-
-                                  {expandedNegatives[`proc-na-${categoryId}`] && (
-                                    <div className="mt-3 space-y-2">
-                                      {naItems.map((it) => (
-                                        <div key={it.questionId} className="p-2 bg-muted rounded">
-                                          <div className="flex items-center justify-between">
-                                            <div className="text-sm">
-                                              <span className="font-medium">{it.questionId}:</span> {it.qText}
-                                            </div>
-                                            <div className="text-xs text-muted-foreground">Reason: {it.reason}</div>
-                                          </div>
-                                        </div>
-                                      ))}
-                                    </div>
+                                <div className="flex items-center gap-2">
+                                  {hasYes ? (
+                                    <span className="inline-flex items-center rounded-md px-2 py-0.5 text-xs font-medium bg-green-100 text-green-700">yes</span>
+                                  ) : hasNo ? (
+                                    <span className="inline-flex items-center rounded-md px-2 py-0.5 text-xs font-medium bg-red-100 text-red-700">no</span>
+                                  ) : (
+                                    <span className="inline-flex items-center rounded-md px-2 py-0.5 text-xs font-medium bg-muted/20 text-muted-foreground">n/a</span>
                                   )}
                                 </div>
+                              </div>
+
+                              {hasYes && expandedNegatives[key] && (
+                                <div className="mt-3 space-y-3">
+                                  {(sources || []).map((src: any, i: number) => (
+                                    <div key={i} className="p-3 bg-muted rounded">
+                                      <div className="grid grid-cols-1 gap-2 text-sm">
+                                        <div>
+                                          <span className="text-muted-foreground">URL:</span> {src?.url || '—'}
+                                        </div>
+                                        <div>
+                                          <span className="text-muted-foreground">Document Type:</span> {src?.documentType || src?.sourceType || '—'}
+                                        </div>
+                                      </div>
+                                      {src?.description && (
+                                        <div className="mt-2 text-sm">
+                                          <span className="text-muted-foreground">Description:</span> {src.description}
+                                        </div>
+                                      )}
+                                    </div>
+                                  ))}
+                                </div>
                               )}
-                            </>
+
+                              {hasNA && (
+                                <div className="mt-2 text-sm text-muted-foreground">Reason: {sources?.[0]?.description || data.additionalAspects || 'Not applicable'}</div>
+                              )}
+                            </div>
                           )
-                        })()}
+                        })}
                       </div>
                     </div>
                   )}

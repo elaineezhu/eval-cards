@@ -13,7 +13,8 @@ export type EvaluationCardData = {
   id: string
   systemName: string
   provider: string
-  modality: string // Added modality field
+  inputModalities: string[]
+  outputModalities: string[]
   completedDate: string
   applicableCategories: number
   completedCategories: number
@@ -68,13 +69,42 @@ export function EvaluationCard({ evaluation, onView, onDelete }: EvaluationCardP
   const toggleArea = (area: string) => setExpandedAreas((p) => ({ ...p, [area]: !p[area] }))
   const router = useRouter()
   const modalityMap: Record<string, { label: string; emoji?: string; variant?: string }> = {
-    "text-to-text": { label: "Text → Text", emoji: "📝" },
-    "text-to-image": { label: "Text → Image", emoji: "🖼️" },
-    multimodal: { label: "Multimodal", emoji: "🤖" },
-    "speech-to-text": { label: "Speech → Text", emoji: "🗣️" },
-    "speech-to-speech": { label: "Speech → Speech", emoji: "🔊" },
-    "image-to-text": { label: "Image → Text", emoji: "📷" },
-    code: { label: "Code", emoji: "💻" },
+    "Text": { label: "Text", emoji: "📝" },
+    "Image": { label: "Image", emoji: "🖼️" },
+    "Audio": { label: "Audio", emoji: "🔊" },
+    "Video": { label: "Video", emoji: "🎥" },
+    "Tabular": { label: "Tabular", emoji: "📊" },
+    "Robotics/Action": { label: "Robotics", emoji: "🤖" },
+    "Other": { label: "Other", emoji: "⚡" },
+  }
+
+  const getModalityDisplay = (inputModalities: string[], outputModalities: string[]) => {
+    const inputStr = inputModalities.join(", ")
+    const outputStr = outputModalities.join(", ")
+    
+    // Special cases for common patterns
+    if (inputModalities.length === 1 && outputModalities.length === 1) {
+      if (inputModalities[0] === "Text" && outputModalities[0] === "Text") {
+        return { label: "Text → Text", emoji: "�" }
+      }
+      if (inputModalities[0] === "Text" && outputModalities[0] === "Image") {
+        return { label: "Text → Image", emoji: "�️" }
+      }
+      if (inputModalities[0] === "Image" && outputModalities[0] === "Text") {
+        return { label: "Image → Text", emoji: "📷" }
+      }
+      if (inputModalities[0] === "Tabular" && outputModalities[0] === "Tabular") {
+        return { label: "Tabular", emoji: "📊" }
+      }
+    }
+    
+    // Multimodal cases
+    if (inputModalities.length > 1 || outputModalities.length > 1) {
+      return { label: "Multimodal", emoji: "🤖" }
+    }
+    
+    // Fallback
+    return { label: `${inputStr} → ${outputStr}`, emoji: "⚡" }
   }
   const getUniqueCount = (lists: string[][]) => {
     const set = new Set<string>()
@@ -147,14 +177,24 @@ export function EvaluationCard({ evaluation, onView, onDelete }: EvaluationCardP
             <div className="space-y-1 flex-1 min-w-0">
               <CardTitle className="text-lg font-heading truncate">{evaluation.systemName}</CardTitle>
               <p className="text-sm text-muted-foreground truncate">{evaluation.provider}</p>
-              {/* Pretty modality badge with emoji */}
+              {/* Enhanced modality badge with emoji and hover detail */}
               {(() => {
-                const info = modalityMap[evaluation.modality] || { label: evaluation.modality }
+                const info = getModalityDisplay(evaluation.inputModalities, evaluation.outputModalities)
                 return (
-                  <Badge variant={info.variant as any || "secondary"} className="text-xs px-2 py-1 w-fit flex items-center gap-2">
-                    {info.emoji ? <span aria-hidden>{info.emoji}</span> : null}
-                    <span className="whitespace-nowrap">{info.label}</span>
-                  </Badge>
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <Badge variant="secondary" className="text-xs px-2 py-1 w-fit flex items-center gap-2 cursor-help">
+                        {info.emoji ? <span aria-hidden className="text-sm">{info.emoji}</span> : null}
+                        <span className="whitespace-nowrap">{info.label}</span>
+                      </Badge>
+                    </TooltipTrigger>
+                    <TooltipContent side="bottom" className="max-w-xs">
+                      <div className="text-sm">
+                        <div><strong>Input:</strong> {evaluation.inputModalities.join(", ")}</div>
+                        <div><strong>Output:</strong> {evaluation.outputModalities.join(", ")}</div>
+                      </div>
+                    </TooltipContent>
+                  </Tooltip>
                 )
               })()}
             </div>

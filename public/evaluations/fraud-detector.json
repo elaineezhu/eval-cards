@@ -1,10 +1,17 @@
 {
   "id": "fraud-detector-2024",
-  "systemName": "FraudDetector AI",
-  "provider": "FinTech Solutions",
-  "modality": "text-to-text",
-  "evaluationDate": "2024-01-05",
-  "evaluator": "FinTech Risk Team",
+  "systemName": "FraudShield AI Pro",
+  "url": "https://securebank.com/fraudshield",
+  "provider": "SecureBank Technologies",
+  "version": "v3.2.1",
+  "modelTag": "fraudshield-v3.2.1",
+  "knowledgeCutoff": "2024-06-01",
+  "modelType": "fine-tuned",
+  "inputModalities": ["Tabular"],
+  "outputModalities": ["Tabular"],
+  "deploymentContexts": ["Internal/Enterprise Use", "High-Risk Applications"],
+  "evaluationDate": "2024-07-10",
+  "evaluator": "SecureBank AI Risk & Compliance Team",
   "selectedCategories": [
     "problem-solving",
     "bias-fairness",
@@ -19,6 +26,38 @@
     "dangerous-capabilities",
     "economic-displacement"
   ],
+  "overallStats": {
+    "totalApplicable": 12,
+    "capabilityApplicable": 4,
+    "riskApplicable": 8,
+    "completenessScore": 78,
+    "strongCategories": [
+      "problem-solving",
+      "security-robustness",
+      "privacy-data",
+      "governance-accountability"
+    ],
+    "adequateCategories": [
+      "learning-memory",
+      "language-communication",
+      "information-integrity"
+    ],
+    "weakCategories": [
+      "bias-fairness",
+      "human-ai-interaction",
+      "harmful-content"
+    ],
+    "insufficientCategories": [
+      "dangerous-capabilities",
+      "economic-displacement"
+    ],
+    "priorityAreas": [
+      "bias-fairness",
+      "human-ai-interaction",
+      "dangerous-capabilities",
+      "economic-displacement"
+    ]
+  },
   "categoryEvaluations": {
     "problem-solving": {
       "benchmarkAnswers": { "A1": "yes", "A2": "N/A", "A3": "yes", "A4": "N/A", "A5": "N/A", "A6": "yes" },
@@ -26,15 +65,29 @@
       "benchmarkSources": {
         "A1": [
           {
-            "id": "fd-bench-ps-1",
-            "url": "https://fintech.example.com/reports/frauddetector/problem-solving",
-            "description": "Internal evaluation on transaction anomaly detection benchmarks",
+            "id": "fds-bench-ps-001",
+            "url": "https://securebank.com/ai-research/fraudshield-evaluation",
+            "description": "Comprehensive evaluation on real-world transaction fraud detection and anomaly identification",
             "sourceType": "internal",
-            "benchmarkName": "FraudBench-TS, Transaction-QA",
-            "metrics": "Precision, recall, AUC",
-            "score": "92% precision",
-            "version": "1.0",
-            "taskVariants": "financial-transactions",
+            "benchmarkName": "SecureBank FraudBench 2024, FinCrime Detection Suite, AML Pattern Recognition",
+            "metrics": "Precision, Recall, F1-Score, AUC-ROC, False Positive Rate",
+            "score": "94.2% precision, 89.7% recall, 91.9% F1, 0.976 AUC-ROC, 0.08% FPR",
+            "version": "v3.2.1",
+            "taskVariants": "credit-card-fraud, wire-transfer-anomalies, suspicious-pattern-detection, velocity-checks",
+            "customFields": {}
+          }
+        ],
+        "A6": [
+          {
+            "id": "fds-bench-ps-002", 
+            "url": "https://securebank.com/compliance/model-validation",
+            "description": "Independent model validation by third-party auditors for regulatory compliance",
+            "sourceType": "external",
+            "benchmarkName": "RegTech Model Validation Suite, OCC Model Risk Guidelines",
+            "metrics": "Model performance stability, governance compliance score",
+            "score": "Grade A model validation, 98.5% compliance score",
+            "version": "Q2-2024",
+            "taskVariants": "regulatory-compliance, model-governance, risk-assessment",
             "customFields": {}
           }
         ],
@@ -83,15 +136,15 @@
       "benchmarkSources": {
         "A1": [
           {
-            "id": "fd-bench-bf-1",
-            "url": "https://fintech.example.com/reports/fairness",
-            "description": "Internal fairness audits across demographic and merchant segments",
+            "id": "fds-bench-bf-001",
+            "url": "https://securebank.com/responsible-ai/fairness-assessment",
+            "description": "Comprehensive fairness evaluation across protected demographic groups and geographic regions",
             "sourceType": "internal",
-            "benchmarkName": "FairAudit v1",
-            "metrics": "Disparate impact, false positive rate parity",
-            "score": "Acceptable parity across segments",
-            "version": "1.0",
-            "taskVariants": "transactional",
+            "benchmarkName": "Financial Fairness Benchmark 2024, Equal Credit Opportunity Compliance Suite",
+            "metrics": "Demographic parity, equalized odds, false positive rate parity across groups",
+            "score": "0.91 demographic parity, 0.88 equalized odds, <0.05 FPR difference across groups",
+            "version": "v2.1",
+            "taskVariants": "demographic-fairness, geographic-fairness, credit-decisioning, transaction-monitoring",
             "customFields": {}
           }
         ]
@@ -361,34 +414,5 @@
       "processSources": {},
       "additionalAspects": "Not applicable — detailed value-chain and supply-chain risk analysis is beyond the scope of this demo fixture."
     }
-  },
-  "overallStats": {
-    "totalApplicable": 12,
-    "capabilityApplicable": 4,
-    "riskApplicable": 8,
-    "strongCategories": [
-      "problem-solving",
-      "bias-fairness",
-      "security-robustness",
-      "governance-accountability"
-    ],
-    "adequateCategories": [
-      "learning-memory",
-      "privacy-data",
-      "human-ai-interaction"
-    ],
-    "weakCategories": [
-      "language-communication",
-      "harmful-content",
-      "information-integrity"
-    ],
-    "insufficientCategories": [
-      "dangerous-capabilities",
-      "economic-displacement"
-    ],
-    "priorityAreas": [
-      "information-integrity",
-      "harmful-content"
-    ]
   }
 }

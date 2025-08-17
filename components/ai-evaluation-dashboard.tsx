@@ -10,15 +10,14 @@ import { CategorySelection } from "./category-selection"
 import { CategoryEvaluation } from "./category-evaluation"
 import { EvaluationForm } from "./evaluation-form"
 import { ResultsDashboard } from "./results-dashboard"
-import { CATEGORIES } from "@/lib/category-data"
+import { getAllCategories, getCategoryById } from "@/lib/schema"
 
 export type SystemInfo = {
   name: string
   url: string
   provider: string
-  systemTypes: string[]
+  version: string
   deploymentContexts: string[]
-  modality: string
   modelTag?: string
   knowledgeCutoff?: string
   modelType?: "foundational" | "fine-tuned" | "na"
@@ -42,6 +41,7 @@ export type EvaluationData = {
   selectedCategories: string[]
   excludedCategoryReasons?: Record<string, string>
   categoryScores: Record<string, CategoryScore>
+  categoryEvaluationsDetailed?: Record<string, any>
   currentCategory: string | null
 }
 
@@ -103,7 +103,7 @@ export function AIEvaluationDashboard({ onBack, onSaveEvaluation }: AIEvaluation
       console.log("[v0] Updated categoryScores:", newCategoryScores)
       return {
         ...prev,
-        categoryScores: newCategoryScores,
+  categoryScores: newCategoryScores,
       }
     })
 
@@ -126,6 +126,17 @@ export function AIEvaluationDashboard({ onBack, onSaveEvaluation }: AIEvaluation
     }
   }
 
+  const handleSaveDetailed = (categoryId: string, data: any) => {
+    console.log('[v0] handleSaveDetailed called for', categoryId, data)
+    setEvaluationData((prev) => ({
+      ...prev,
+      categoryEvaluationsDetailed: {
+        ...(prev.categoryEvaluationsDetailed || {}),
+        [categoryId]: data,
+      },
+    }))
+  }
+
   const handleSaveEvaluation = async () => {
     console.log("[v0] handleSaveEvaluation called")
     console.log("[v0] evaluationData:", evaluationData)
@@ -142,14 +153,14 @@ export function AIEvaluationDashboard({ onBack, onSaveEvaluation }: AIEvaluation
     console.log("[v0] Processing category scores:", evaluationData.categoryScores)
 
     const capabilityCategories = evaluationData.selectedCategories.filter((cat) => {
-      const category = CATEGORIES.find((c) => c.id === cat)
+      const category = getCategoryById(cat)
       console.log("[v0] Category check:", cat, "type:", category?.type)
       return category?.type === "capability"
     })
     console.log("[v0] Capability categories:", capabilityCategories)
 
     const riskCategories = evaluationData.selectedCategories.filter((cat) => {
-      const category = CATEGORIES.find((c) => c.id === cat)
+      const category = getCategoryById(cat)
       return category?.type === "risk"
     })
     console.log("[v0] Risk categories:", riskCategories)
@@ -184,11 +195,12 @@ export function AIEvaluationDashboard({ onBack, onSaveEvaluation }: AIEvaluation
       version: evaluationData.systemInfo.url || "1.0",
       deploymentContext: evaluationData.systemInfo.deploymentContexts.join(", ") || "Production",
       evaluator: "Current User",
-      modality: evaluationData.systemInfo.modality,
+      inputModalities: evaluationData.systemInfo.inputModalities || ["Text"],
+      outputModalities: evaluationData.systemInfo.outputModalities || ["Text"],
       evaluationDate: new Date().toISOString().split("T")[0],
       selectedCategories: evaluationData.selectedCategories,
   excludedCategoryReasons: evaluationData.excludedCategoryReasons || {},
-      categoryEvaluations: evaluationData.categoryScores,
+  categoryEvaluations: evaluationData.categoryEvaluationsDetailed || evaluationData.categoryScores,
       overallStats: {
         completenessScore: 85, // Safe default value
         totalApplicable: evaluationData.selectedCategories.length,
@@ -233,7 +245,7 @@ export function AIEvaluationDashboard({ onBack, onSaveEvaluation }: AIEvaluation
       case "categories":
         return (
           <CategorySelection
-            categories={CATEGORIES}
+            categories={getAllCategories()}
             selectedCategories={evaluationData.selectedCategories}
             onSelectionChange={handleCategoriesSelectedWithReasons}
           />
@@ -241,10 +253,11 @@ export function AIEvaluationDashboard({ onBack, onSaveEvaluation }: AIEvaluation
       case "evaluation":
         return (
           <EvaluationForm
-            categories={CATEGORIES}
+            categories={getAllCategories()}
             selectedCategories={evaluationData.selectedCategories}
             categoryScores={evaluationData.categoryScores}
             onScoreUpdate={(categoryId, score) => handleCategoryComplete(categoryId, score)}
+            onSaveDetailed={(catId, data) => handleSaveDetailed(catId, data)}
             onComplete={() => setCurrentStep("results")}
           />
         )
@@ -252,7 +265,7 @@ export function AIEvaluationDashboard({ onBack, onSaveEvaluation }: AIEvaluation
         return (
           <ResultsDashboard
             systemInfo={evaluationData.systemInfo}
-            categories={CATEGORIES}
+            categories={getAllCategories()}
             selectedCategories={evaluationData.selectedCategories}
             categoryScores={evaluationData.categoryScores}
             excludedCategoryReasons={evaluationData.excludedCategoryReasons || {}}

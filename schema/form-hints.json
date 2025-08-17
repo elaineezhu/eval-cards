@@ -1,0 +1,167 @@
+{
+  "sourceTypes": {
+    "internal": {
+      "label": "Internal",
+      "description": "Evaluations conducted by the organization developing or deploying the AI system using internal resources, teams, and methodologies."
+    },
+    "external": {
+      "label": "External",
+      "description": "Independent evaluations conducted by third-party organizations, academic institutions, or external auditors without direct involvement from the developing organization."
+    },
+    "cooperative": {
+      "label": "Cooperative",
+      "description": "Collaborative evaluations involving multiple stakeholders, including the developing organization, external experts, affected communities, and regulatory bodies working together."
+    }
+  },
+  "additionalAspectsSection": {
+    "id": "C",
+    "title": "Additional Evaluation Aspects",
+    "description": "Document any other evaluation aspects for this category that may not have been captured by the structured questions above. This section will not be scored but will be visible in the final documentation."
+  },
+  "categoryHints": {
+    "language-communication": {
+      "benchmark": "Hint: mention benchmarks for language understanding/generation, prompt settings, multilingual splits, and whether factuality checks were performed.",
+      "process": "Hint: note consulted linguists or annotators, dataset provenance concerns, and any applicable content/regulatory considerations."
+    },
+    "social-intelligence": {
+      "benchmark": "Hint: mention emotion/social reasoning benchmarks used, annotator protocols, and demographic coverage.",
+      "process": "Hint: list consulted domain experts (psychologists, sociologists), user study details, and consent/ethics notes."
+    },
+    "problem-solving": {
+      "benchmark": "Hint: list math/programming/reasoning benchmarks, scoring rules, and seed/temperature settings.",
+      "process": "Hint: note expert reviewers, validation of solutions, and how ambiguous answers were adjudicated."
+    },
+    "creativity-innovation": {
+      "benchmark": "Hint: mention creative evaluation setups, human rating protocols, and diversity of prompts/tasks.",
+      "process": "Hint: note creative experts or juries consulted, copyright/IP checks, and content filtering policies."
+    },
+    "learning-memory": {
+      "benchmark": "Hint: indicate few-shot/transfer benchmarks, replay/continual learning setups, and sample sizes.",
+      "process": "Hint: describe retention tests, dataset refresh cadence, and any contamination checks performed."
+    },
+    "perception-vision": {
+      "benchmark": "Hint: list vision datasets, augmentation/robustness tests, and evaluation resolutions/settings.",
+      "process": "Hint: note labelling protocols, demographic coverage of imagery, and reviewer/ethical considerations."
+    },
+    "physical-manipulation": {
+      "benchmark": "Hint: mention robotics tasks, real/sim evaluation conditions, and safety/collision metrics.",
+      "process": "Hint: include safety review notes, field test observers, and incident mitigation procedures."
+    },
+    "metacognition": {
+      "benchmark": "Hint: report calibration metrics, uncertainty quantification methods, and multi-seed variance.",
+      "process": "Hint: list reviewers who evaluated uncertainty reporting and any user-facing confidence disclosures."
+    },
+    "robotic-intelligence": {
+      "benchmark": "Hint: note integrated task suites, sim-to-real gaps, and hardware/configuration details.",
+      "process": "Hint: document safety reviews, human-in-the-loop safeguards, and autonomy limits."
+    },
+    "harmful-content": {
+      "benchmark": "Hint: describe toxicity/harm benchmarks, prompt hardening, and red-team scenarios used.",
+      "process": "Hint: list safety reviewers, incident response plans, and content moderation policies referenced."
+    },
+    "information-integrity": {
+      "benchmark": "Hint: mention fact-checking datasets, prompt calibrations, and hallucination detection metrics.",
+      "process": "Hint: note expert fact-checkers consulted, provenance practices, and external audit reports."
+    },
+    "privacy-data": {
+      "benchmark": "Hint: include privacy tests, membership inference/MI defenses, and redaction results.",
+      "process": "Hint: list privacy officers consulted, data handling policies, and any regulatory mappings (e.g., GDPR)."
+    },
+    "bias-fairness": {
+      "benchmark": "Hint: indicate fairness metrics, subgroup breakdowns, and statistical significance of gaps.",
+      "process": "Hint: document which stakeholder groups and domain experts were engaged and mitigation steps taken."
+    },
+    "security-robustness": {
+      "benchmark": "Hint: report adversarial tests, perturbation strengths, and failure rates under attack.",
+      "process": "Hint: include red-team summaries, security reviewers, and incident response procedures."
+    },
+    "dangerous-capabilities": {
+      "benchmark": "Hint: describe tests for dual-use behaviors and misuse scenarios evaluated.",
+      "process": "Hint: note external safety reviews, legal counsel input, and controls/mitigations in place."
+    },
+    "human-ai-interaction": {
+      "benchmark": "Hint: list usability/UX tasks, user study protocols, and measures of over-reliance or deception.",
+      "process": "Hint: capture which user groups were involved, consent procedures, and human factors reviewers."
+    },
+    "environmental-impact": {
+      "benchmark": "Hint: report energy/perf tradeoff tests, FLOPs/throughput, and measured carbon estimates.",
+      "process": "Hint: include sustainability reviewers, lifecycle assessment notes, and mitigation plans."
+    },
+    "economic-displacement": {
+      "benchmark": "Hint: mention labor-impact scenarios evaluated and economic modeling assumptions used.",
+      "process": "Hint: document stakeholder consultations, affected worker groups engaged, and mitigation strategies."
+    },
+    "governance-accountability": {
+      "benchmark": "Hint: N/A for benchmarking; focus on process evidence instead.",
+      "process": "Hint: cite governance frameworks used, responsible owners, and escalation/audit trails."
+    },
+    "value-chain": {
+      "benchmark": "Hint: include supply-chain dependency tests, third-party component assessments if applicable.",
+      "process": "Hint: note vendor audits, data sourcing reviews, and contractual safeguards."
+    }
+  },
+  "categoryQuestionHints": {
+    "language-communication": {
+      "A1": { "benchmark": "List exact language benchmarks, dataset versions, prompt templates, split (train/val/test), and evaluation conditions." },
+      "A2": { "benchmark": "State numeric thresholds and which regulatory or domain thresholds apply (e.g., accuracy, FPR/FNR targets)." },
+      "A3": { "benchmark": "Provide side-by-side comparisons vs. baselines/SOTA, significance tests, and matched prompt/hyperparams." },
+      "A4": { "benchmark": "Describe adversarial or distribution-shift tests (prompt perturbations, paraphrase attacks) and failure rates." },
+      "A5": { "benchmark": "Explain live monitoring metrics (latency, error rate, hallucination rate), sampling cadence, and alert rules." },
+      "A6": { "benchmark": "Document overlap checks (n‑gram, URL hashing), contamination rates, and mitigation steps taken." },
+      "B1": { "process": "Define scope, claims being evaluated, success criteria (e.g., BLEU/F1 cutoffs), and evaluation hypotheses." },
+      "B2": { "process": "List reproducibility artifacts (code, prompts, seeds), availability level, and proxies if materials are restricted." },
+      "B3": { "process": "Name reviewers (linguists, annotators), review protocol, and how feedback was incorporated or adjudicated." },
+      "B4": { "process": "Show how figures present uncertainty (CI, SE), axes choices, sample sizes, and raw tables for transparency." },
+      "B5": { "process": "Reference any applicable standards (e.g., ISO, domain regs), mapping to practices, and noted gaps." },
+      "B6": { "process": "Describe re-eval triggers (model updates, drift), versioned specs, audit trails, and retest procedures." }
+    }
+  },
+  "recommendedBenchmarks": {
+    "language-communication": "e.g., MMLU, BBH, SuperGLUE",
+    "social-intelligence": "e.g., SocialIQA, EmoBench, PersonaChat (human-eval)",
+    "problem-solving": "e.g., GSM8K, MATH, HumanEval",
+    "creativity-innovation": "e.g., human preference studies, CREAM (human-eval)",
+    "learning-memory": "e.g., few-shot transfer suites, continual-learning benchmarks",
+    "perception-vision": "e.g., ImageNet, COCO, VQA",
+    "physical-manipulation": "e.g., RoboSuite, YCB benchmarks, real/sim task suites",
+    "metacognition": "e.g., calibration datasets (ECE), uncertainty benchmarks",
+    "robotic-intelligence": "e.g., Habitat, AI2-THOR, DARPA challenge tasks",
+    "harmful-content": "e.g., toxicity/harm benchmarks like ToxicBERT evals, red-team suites",
+    "information-integrity": "e.g., FEVER, fact-checking datasets, hallucination benchmarks",
+    "privacy-data": "e.g., membership-inference tests, MI challenge datasets",
+    "bias-fairness": "e.g., fairness benchmark suites (subgroup metrics), demographic breakdown tests",
+    "security-robustness": "e.g., adversarial robustness suites, attack-replay benchmarks",
+    "dangerous-capabilities": "e.g., dual-use/red-team evaluation suites (internal or published)",
+    "human-ai-interaction": "e.g., user-study protocols, SUS, human preference tests",
+    "environmental-impact": "e.g., FLOPs/energy measurement reports, carbon accounting tests",
+    "economic-displacement": "e.g., scenario/projection models, labor-impact analyses",
+    "governance-accountability": "e.g., audit logs, governance checklists (process evidence)",
+    "value-chain": "e.g., third-party audit reports, supply-chain assessments"
+  },
+  "recommendedMetrics": {
+    "language-communication": "e.g., accuracy, F1, BLEU, ROUGE, BERTScore",
+    "social-intelligence": "e.g., human rating scores, agreement rates, F1 for intent detection",
+    "problem-solving": "e.g., exact-match, pass@k, accuracy, solution correctness percentage",
+    "creativity-innovation": "e.g., human preference %, novelty/diversity scores",
+    "learning-memory": "e.g., few-shot accuracy, retention rate, forgetting metric",
+    "perception-vision": "e.g., mAP, IoU, top-1/top-5 accuracy",
+    "physical-manipulation": "e.g., success rate, collision rate, completion time",
+    "metacognition": "e.g., ECE, calibration error, confidence-accuracy correlation",
+    "robotic-intelligence": "e.g., task success rate, path efficiency, failure modes count",
+    "harmful-content": "e.g., toxicity rate, harmful-response rate, false negative rate for filters",
+    "information-integrity": "e.g., precision/recall of fact-checking, citation accuracy",
+    "privacy-data": "e.g., membership inference advantage, reconstruction error rates",
+    "bias-fairness": "e.g., subgroup parity gaps, disparate impact ratios, statistical significance",
+    "security-robustness": "e.g., attack success rate, robustness delta under perturbation",
+    "dangerous-capabilities": "e.g., misuse rate under red-team prompts, severity counts",
+    "human-ai-interaction": "e.g., SUS, task completion rate, user satisfaction scores",
+    "environmental-impact": "e.g., energy per inference, carbon per training run",
+    "economic-displacement": "e.g., projected job impact metrics, economic sensitivity metrics",
+    "governance-accountability": "e.g., audit coverage %, policy alignment scoring",
+    "value-chain": "e.g., vendor risk scores, dependency vulnerability counts"
+  },
+  "defaultHints": {
+    "benchmark": "Hint: include relevant benchmark settings, scoring rules, and notable limitations.",
+    "process": "Hint: mention reviewers consulted, applicable standards/regulations, and scope limitations."
+  }
+}

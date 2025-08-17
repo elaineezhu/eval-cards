@@ -6,7 +6,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Plus, Moon, Sun, Filter, ArrowUpDown } from "lucide-react"
 import { useTheme } from "next-themes"
 import { EvaluationCard, type EvaluationCardData } from "@/components/evaluation-card"
-import { BENCHMARK_QUESTIONS, PROCESS_QUESTIONS } from "@/lib/category-data"
+import { getBenchmarkQuestions, getProcessQuestions } from "@/lib/schema"
 import { AIEvaluationDashboard } from "@/components/ai-evaluation-dashboard"
 
 const loadEvaluationData = async (): Promise<EvaluationCardData[]> => {
@@ -36,7 +36,8 @@ const loadEvaluationData = async (): Promise<EvaluationCardData[]> => {
         id: data.id || `eval-${Date.now()}`,
         systemName: data.systemName || "Unknown System",
         provider: data.provider || "Unknown Provider",
-        modality: data.modality || "Unknown",
+        inputModalities: data.inputModalities || ["Text"],
+        outputModalities: data.outputModalities || ["Text"],
         completedDate: data.evaluationDate || new Date().toISOString().split("T")[0],
         applicableCategories: data.overallStats?.totalApplicable || 0,
         completedCategories: data.overallStats?.totalApplicable || 0,
@@ -323,7 +324,7 @@ const loadEvaluationData = async (): Promise<EvaluationCardData[]> => {
                 const isArray = Array.isArray(answer)
                 const negative = answer === "no" || (isArray && (answer as any[]).includes("no"))
                 const positive = answer === "yes" || (isArray && (answer as any[]).includes("yes"))
-                const qText = BENCHMARK_QUESTIONS.find((x) => x.id === qid)?.text || qid
+                const qText = getBenchmarkQuestions().find((x) => x.id === qid)?.text || qid
                 if (positive) yesList.push(qText)
                 if (negative) {
                   const status = naMeta ? "na" : "no"
@@ -339,7 +340,7 @@ const loadEvaluationData = async (): Promise<EvaluationCardData[]> => {
                 const isArray = Array.isArray(answer)
                 const negative = answer === "no" || (isArray && (answer as any[]).includes("no"))
                 const positive = answer === "yes" || (isArray && (answer as any[]).includes("yes"))
-                const qText = PROCESS_QUESTIONS.find((x) => x.id === qid)?.text || qid
+                const qText = getProcessQuestions().find((x) => x.id === qid)?.text || qid
                 if (positive) yesList.push(qText)
                 if (negative) {
                   const status = naMeta ? "na" : "no"
@@ -388,8 +389,12 @@ export default function HomePage() {
   }, [evaluationsData])
 
   const uniqueModalities = useMemo(() => {
-    const modalities = [...new Set(evaluationsData.map((item) => item.modality))].sort()
-    return modalities
+    const modalities = new Set<string>()
+    evaluationsData.forEach((item) => {
+      item.inputModalities.forEach((mod) => modalities.add(mod))
+      item.outputModalities.forEach((mod) => modalities.add(mod))
+    })
+    return [...modalities].sort()
   }, [evaluationsData])
 
   const filteredAndSortedEvaluations = useMemo(() => {
@@ -400,7 +405,10 @@ export default function HomePage() {
     }
 
     if (filterByModality !== "all") {
-      filtered = filtered.filter((item) => item.modality === filterByModality)
+      filtered = filtered.filter((item) => 
+        item.inputModalities.includes(filterByModality) || 
+        item.outputModalities.includes(filterByModality)
+      )
     }
 
     filtered = [...filtered].sort((a, b) => {

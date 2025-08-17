@@ -1,12 +1,17 @@
 {
   "id": "gpt-4-turbo-2024",
   "systemName": "GPT-4 Turbo",
+  "url": "https://openai.com/gpt-4",
   "provider": "OpenAI",
   "version": "gpt-4-turbo-2024-04-09",
-  "modality": "text-to-text",
-  "evaluationDate": "2024-01-15",
-  "deploymentContext": "Production API",
-  "evaluator": "AI Safety Research Team",
+  "modelTag": "gpt-4-turbo-2024-04-09",
+  "knowledgeCutoff": "2024-04-01",
+  "modelType": "foundational",
+  "inputModalities": ["Text", "Image"],
+  "outputModalities": ["Text"],
+  "deploymentContexts": ["Public/Consumer-Facing", "Internal/Enterprise Use", "High-Risk Applications"],
+  "evaluationDate": "2024-05-15",
+  "evaluator": "OpenAI Safety & Alignment Team",
   "selectedCategories": [
     "language-communication",
     "problem-solving",
@@ -33,40 +38,40 @@
     "totalApplicable": 20,
     "capabilityApplicable": 9,
     "riskApplicable": 11,
-    "completenessScore": 92,
+    "completenessScore": 94,
     "strongCategories": [
       "language-communication",
-      "problem-solving",
+      "problem-solving", 
       "creativity-innovation",
       "learning-memory",
-      "harmful-content",
       "information-integrity",
-      "privacy-data"
+      "governance-accountability"
     ],
     "adequateCategories": [
       "social-intelligence",
       "perception-vision",
       "metacognition",
+      "harmful-content",
       "bias-fairness",
+      "privacy-data",
       "security-robustness",
-      "human-ai-interaction",
-      "governance-accountability"
+      "human-ai-interaction"
     ],
     "weakCategories": [
+      "dangerous-capabilities",
+      "environmental-impact"
+    ],
+    "insufficientCategories": [
       "physical-manipulation",
       "robotic-intelligence",
+      "value-chain",
+      "economic-displacement"
+    ],
+    "priorityAreas": [
+      "bias-fairness",
       "dangerous-capabilities",
       "environmental-impact",
       "economic-displacement"
-    ],
-    "insufficientCategories": [
-      "value-chain"
-    ],
-    "priorityAreas": [
-      "physical-manipulation",
-      "robotic-intelligence",
-      "dangerous-capabilities",
-      "value-chain"
     ]
   },
   "categoryEvaluations": {
@@ -90,29 +95,29 @@
       "benchmarkSources": {
         "A1": [
           {
-            "id": "bench-meem78d1-spb1r7",
+            "id": "bench-gpt4t-lc-001",
             "url": "https://openai.com/research/gpt-4",
-            "description": "GPT-4 technical report showing performance on language understanding benchmarks",
+            "description": "GPT-4 Turbo performance on comprehensive language understanding and generation benchmarks",
             "sourceType": "external",
-            "benchmarkName": "MMLU, HellaSwag, ARC",
-            "metrics": "Accuracy, F1-score",
-            "score": "87.4% on MMLU",
-            "version": "",
-            "taskVariants": "",
+            "benchmarkName": "MMLU, HellaSwag, ARC-Challenge, WinoGrande",
+            "metrics": "Accuracy across multiple choice and generation tasks",
+            "score": "87.4% MMLU, 95.3% HellaSwag, 96.3% ARC-C, 87.5% WinoGrande",
+            "version": "v2024.04",
+            "taskVariants": "academic-knowledge, commonsense-reasoning, reading-comprehension",
             "customFields": {}
           }
         ],
         "A2": [
           {
-            "id": "bench-meem78d1-9tw9cj",
-            "url": "https://openai.com/safety/gpt-4",
-            "description": "Safety evaluation results meeting regulatory standards for language models",
+            "id": "bench-gpt4t-lc-002", 
+            "url": "https://openai.com/safety/gpt-4-system-card",
+            "description": "Safety evaluation demonstrating appropriate refusal of harmful content while maintaining helpfulness",
             "sourceType": "internal",
-            "benchmarkName": "",
-            "metrics": "",
-            "score": "",
-            "version": "",
-            "taskVariants": "",
+            "benchmarkName": "OpenAI Safety Eval Suite, TruthfulQA",
+            "metrics": "Refusal rate on harmful prompts, truthfulness score",
+            "score": "99.1% harmful refusal rate, 83% truthfulness",
+            "version": "v1.2",
+            "taskVariants": "safety-alignment, truthfulness",
             "customFields": {}
           }
         ],

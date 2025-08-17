@@ -10,57 +10,32 @@ import { Label } from "@/components/ui/label"
 import { Checkbox } from "@/components/ui/checkbox"
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group"
 import type { SystemInfo } from "@/components/ai-evaluation-dashboard"
+import { getSystemInfoFormOptions } from "@/lib/schema"
 
 interface SystemInfoFormProps {
   onSubmit: (data: SystemInfo) => void
   initialData: SystemInfo | null
 }
 
-const SYSTEM_TYPES = [
-  "Text-to-Text (e.g., chatbots, language models)",
-  "Text-to-Image (e.g., image generation)",
-  "Image-to-Text (e.g., image captioning, OCR)",
-  "Image-to-Image (e.g., image editing, style transfer)",
-  "Audio/Speech (e.g., speech recognition, text-to-speech)",
-  "Video (e.g., video generation, analysis)",
-  "Multimodal",
-  "Robotic/Embodied AI",
-  "Other",
-]
-
-const DEPLOYMENT_CONTEXTS = [
-  "Research/Academic",
-  "Internal/Enterprise Use",
-  "Public/Consumer-Facing",
-  "High-Risk Applications",
-  "Other",
-]
+const formOptions = getSystemInfoFormOptions()
 
 export function SystemInfoForm({ onSubmit, initialData }: SystemInfoFormProps) {
   const [formData, setFormData] = useState<SystemInfo>({
     name: initialData?.name || "",
     url: initialData?.url || "",
     provider: initialData?.provider || "",
-    systemTypes: initialData?.systemTypes || [],
-  deploymentContexts: initialData?.deploymentContexts || [],
-  modality: initialData?.modality || "text",
-  modelTag: (initialData as any)?.modelTag || "",
-  knowledgeCutoff: (initialData as any)?.knowledgeCutoff || "",
-  modelType: (initialData as any)?.modelType || "na",
-  inputModalities: (initialData as any)?.inputModalities || [],
-  outputModalities: (initialData as any)?.outputModalities || [],
+    version: initialData?.version || "",
+    deploymentContexts: initialData?.deploymentContexts || [],
+    modelTag: initialData?.modelTag || "",
+    knowledgeCutoff: initialData?.knowledgeCutoff || "",
+    modelType: initialData?.modelType || "na",
+    inputModalities: initialData?.inputModalities || [],
+    outputModalities: initialData?.outputModalities || [],
   })
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault()
     onSubmit(formData)
-  }
-
-  const handleSystemTypeChange = (type: string, checked: boolean) => {
-    setFormData((prev: SystemInfo) => ({
-      ...prev,
-      systemTypes: checked ? [...prev.systemTypes, type] : prev.systemTypes.filter((t) => t !== type),
-    }))
   }
 
   const handleDeploymentContextChange = (context: string, checked: boolean) => {
@@ -114,6 +89,18 @@ export function SystemInfoForm({ onSubmit, initialData }: SystemInfoFormProps) {
               />
             </div>
             <div className="space-y-2">
+              <Label htmlFor="version">System Version</Label>
+              <Input
+                id="version"
+                value={formData.version}
+                onChange={(e) => setFormData((prev) => ({ ...prev, version: e.target.value }))}
+                placeholder="e.g., v3.2.1"
+              />
+            </div>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div className="space-y-2">
               <Label htmlFor="knowledgeCutoff">Knowledge Cutoff Date</Label>
               <Input
                 id="knowledgeCutoff"
@@ -122,17 +109,16 @@ export function SystemInfoForm({ onSubmit, initialData }: SystemInfoFormProps) {
                 placeholder="YYYY-MM-DD"
               />
             </div>
-          </div>
-
-          <div className="space-y-2">
-            <Label htmlFor="provider">Provider/Organization *</Label>
-            <Input
-              id="provider"
-              value={formData.provider}
-              onChange={(e) => setFormData((prev) => ({ ...prev, provider: e.target.value }))}
-              placeholder="e.g., OpenAI, Anthropic, Internal Team"
-              required
-            />
+            <div className="space-y-2">
+              <Label htmlFor="provider">Provider/Organization *</Label>
+              <Input
+                id="provider"
+                value={formData.provider}
+                onChange={(e) => setFormData((prev) => ({ ...prev, provider: e.target.value }))}
+                placeholder="e.g., OpenAI, Anthropic, Internal Team"
+                required
+              />
+            </div>
           </div>
 
           <div className="space-y-4">
@@ -141,18 +127,12 @@ export function SystemInfoForm({ onSubmit, initialData }: SystemInfoFormProps) {
               <div className="mt-3">
                 <RadioGroup value={formData.modelType} onValueChange={(val) => setFormData((prev) => ({ ...prev, modelType: val as any }))}>
                   <div className="flex items-center gap-4">
-                    <div className="flex items-center gap-2">
-                      <RadioGroupItem value="foundational" id="mt-foundational" />
-                      <Label htmlFor="mt-foundational" className="text-sm">Foundational Model</Label>
-                    </div>
-                    <div className="flex items-center gap-2">
-                      <RadioGroupItem value="fine-tuned" id="mt-finetuned" />
-                      <Label htmlFor="mt-finetuned" className="text-sm">Fine-tuned Model</Label>
-                    </div>
-                    <div className="flex items-center gap-2">
-                      <RadioGroupItem value="na" id="mt-na" />
-                      <Label htmlFor="mt-na" className="text-sm">Doesn't apply</Label>
-                    </div>
+                    {formOptions.modelTypes.map((type) => (
+                      <div key={type.value} className="flex items-center gap-2">
+                        <RadioGroupItem value={type.value} id={`mt-${type.value}`} />
+                        <Label htmlFor={`mt-${type.value}`} className="text-sm">{type.label}</Label>
+                      </div>
+                    ))}
                   </div>
                 </RadioGroup>
               </div>
@@ -161,7 +141,7 @@ export function SystemInfoForm({ onSubmit, initialData }: SystemInfoFormProps) {
             <div>
               <Label className="text-base font-medium">Input modalities (select all that apply) *</Label>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-3 mt-3">
-                {['Text','Image','Audio','Video','Tabular','Robotics/Action','Other'].map((m) => (
+                {formOptions.modalities.map((m) => (
                   <div key={m} className="flex items-center gap-2">
                     <Checkbox
                       id={`in-${m}`}
@@ -186,7 +166,7 @@ export function SystemInfoForm({ onSubmit, initialData }: SystemInfoFormProps) {
             <div>
               <Label className="text-base font-medium">Output modalities (select all that apply) *</Label>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-3 mt-3">
-                {['Text','Image','Audio','Video','Tabular','Robotics/Action','Other'].map((m) => (
+                {formOptions.modalities.map((m) => (
                   <div key={m} className="flex items-center gap-2">
                     <Checkbox
                       id={`out-${m}`}
@@ -211,7 +191,7 @@ export function SystemInfoForm({ onSubmit, initialData }: SystemInfoFormProps) {
             <div>
               <Label className="text-base font-medium">Deployment Context (select all that apply) *</Label>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-3 mt-3">
-                {DEPLOYMENT_CONTEXTS.map((context) => (
+                {formOptions.deploymentContexts.map((context) => (
                   <div key={context} className="flex items-center space-x-2">
                     <Checkbox
                       id={`context-${context}`}

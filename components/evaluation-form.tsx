@@ -15,7 +15,7 @@ interface Category {
   name: string
   type: "capability" | "risk"
   description: string
-  detailedGuidance: string
+  detailedGuidance?: string
 }
 
 interface EvaluationFormProps {
@@ -23,6 +23,7 @@ interface EvaluationFormProps {
   selectedCategories: string[]
   categoryScores: Record<string, CategoryScore>
   onScoreUpdate: (categoryId: string, score: CategoryScore) => void
+  onSaveDetailed?: (categoryId: string, data: any) => void
   onComplete: () => void
 }
 
@@ -31,6 +32,7 @@ export function EvaluationForm({
   selectedCategories,
   categoryScores,
   onScoreUpdate,
+  onSaveDetailed,
   onComplete,
 }: EvaluationFormProps) {
   const [currentCategoryIndex, setCurrentCategoryIndex] = useState(0)
@@ -150,6 +152,7 @@ export function EvaluationForm({
               category={currentCategory}
               score={categoryScores[currentCategory.id]}
               onScoreUpdate={(score) => onScoreUpdate(currentCategory.id, score)}
+              onSaveDetailed={(catId, data) => onSaveDetailed?.(catId, data)}
             />
           )}
 
