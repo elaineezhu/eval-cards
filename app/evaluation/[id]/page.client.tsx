@@ -771,25 +771,40 @@ export default function EvaluationDetailsPage() {
                           const key = `bench-${categoryId}-${questionId}`
 
                           return (
-                            <div key={questionId} className="border rounded-lg p-4">
+                            <div key={questionId} className="border rounded-lg overflow-hidden">
                               <div
                                 role="button"
                                 tabIndex={0}
                                 onClick={() => toggleNegatives(key)}
-                                className="flex items-center gap-2 mb-2 justify-between cursor-pointer"
+                                className="p-4 hover:bg-muted/20 cursor-pointer transition-colors"
                               >
-                                <div className="flex items-center gap-3">
-                                  <span className="font-medium">{questionId}:</span>
-                                  <div className="text-sm">{qText}</div>
-                                </div>
-                                <div className="flex items-center gap-2">
-                                  {hasYes ? (
-                                    <span className="inline-flex items-center rounded-md px-2 py-0.5 text-xs font-medium bg-green-100 text-green-700">yes</span>
-                                  ) : hasNo ? (
-                                    <span className="inline-flex items-center rounded-md px-2 py-0.5 text-xs font-medium bg-red-100 text-red-700">no</span>
-                                  ) : (
-                                    <span className="inline-flex items-center rounded-md px-2 py-0.5 text-xs font-medium bg-muted/20 text-muted-foreground">n/a</span>
-                                  )}
+                                <div className="flex items-start justify-between gap-4">
+                                  <div className="flex-1 min-w-0">
+                                    <div className="flex items-center gap-2 mb-2">
+                                      <span className="font-semibold text-sm bg-blue-50 dark:bg-blue-950 px-2 py-1 rounded text-blue-700 dark:text-blue-300">
+                                        {questionId}
+                                      </span>
+                                      {hasYes ? (
+                                        <Badge variant="default" className="bg-green-100 text-green-700 hover:bg-green-100">
+                                          ✓ Yes
+                                        </Badge>
+                                      ) : hasNo ? (
+                                        <Badge variant="destructive">
+                                          ✗ No
+                                        </Badge>
+                                      ) : (
+                                        <Badge variant="secondary" className="bg-gray-100 text-gray-600">
+                                          N/A
+                                        </Badge>
+                                      )}
+                                    </div>
+                                    <div className="text-sm text-muted-foreground leading-relaxed">{qText}</div>
+                                    {hasYes && (
+                                      <div className="mt-2 text-xs text-blue-600 dark:text-blue-400">
+                                        Click to {expandedNegatives[key] ? 'hide' : 'view'} benchmark details
+                                      </div>
+                                    )}
+                                  </div>
                                 </div>
                               </div>
 
@@ -820,50 +835,81 @@ export default function EvaluationDetailsPage() {
                                     }
 
                                     return (
-                                      <div key={`${questionId}-${name}-${idx}`} className="p-4 border rounded-lg bg-background">
-                                        <div className="flex items-start justify-between">
-                                          <div className="text-xs inline-flex items-center rounded-full px-2 py-1 bg-indigo-50 text-indigo-700">Percentage</div>
-                                          <div className="text-2xl font-bold text-indigo-600">{scoreNum != null ? `${scoreNum}%` : '—'}</div>
+                                      <div key={`${questionId}-${name}-${idx}`} className="bg-gradient-to-br from-white to-blue-50 dark:from-gray-900 dark:to-blue-950 border border-blue-200 dark:border-blue-800 rounded-lg p-4 hover:shadow-sm transition-shadow">
+                                        {/* Header with score */}
+                                        <div className="flex items-center justify-between mb-3">
+                                          <div className="text-xs font-medium text-blue-600 dark:text-blue-400 bg-blue-100 dark:bg-blue-900 px-2 py-1 rounded-full">
+                                            Percentage Score
+                                          </div>
+                                          <div className="text-2xl font-bold text-blue-700 dark:text-blue-300">
+                                            {scoreNum != null ? `${scoreNum}%` : '—'}
+                                          </div>
                                         </div>
 
-                                        <div className="mt-3 text-lg font-semibold">{name}</div>
+                                        {/* Benchmark name */}
+                                        <div className="mb-3">
+                                          <h4 className="font-semibold text-lg text-foreground leading-tight">{name}</h4>
+                                        </div>
 
+                                        {/* Progress bar */}
                                         {scoreNum != null && (
-                                          <div className="mt-3">
-                                            <div className="h-2 bg-gray-200 rounded-full overflow-hidden">
-                                              <div className="h-2 bg-indigo-500" style={{ width: `${Math.max(0, Math.min(100, scoreNum))}%` }} />
+                                          <div className="mb-4">
+                                            <div className="h-3 bg-gray-200 dark:bg-gray-700 rounded-full overflow-hidden">
+                                              <div 
+                                                className="h-3 bg-gradient-to-r from-blue-500 to-blue-600 rounded-full transition-all duration-500 ease-out" 
+                                                style={{ width: `${Math.max(0, Math.min(100, scoreNum))}%` }} 
+                                              />
                                             </div>
                                           </div>
                                         )}
 
-                                        <div className="mt-3 space-y-2 text-sm">
-                                          <div>
-                                            <span className="text-muted-foreground">Source:</span>{' '}
-                                            {src.url ? (
-                                              <a className="text-primary underline" href={src.url} target="_blank" rel="noreferrer">
-                                                {src.url}
-                                              </a>
-                                            ) : (
-                                              '—'
-                                            )}
+                                        {/* Details */}
+                                        <div className="space-y-2 text-sm">
+                                          <div className="flex items-start gap-2">
+                                            <span className="text-muted-foreground font-medium min-w-[60px]">Source:</span>
+                                            <div className="flex-1 min-w-0">
+                                              {src.url ? (
+                                                <a 
+                                                  className="text-primary hover:text-primary/80 underline decoration-primary/30 hover:decoration-primary/60 transition-colors break-all" 
+                                                  href={src.url} 
+                                                  target="_blank" 
+                                                  rel="noreferrer"
+                                                  title={src.url}
+                                                >
+                                                  {src.url.length > 50 ? `${src.url.substring(0, 50)}...` : src.url}
+                                                </a>
+                                              ) : (
+                                                <span className="text-muted-foreground">—</span>
+                                              )}
+                                            </div>
                                           </div>
-                                          <div>
-                                            <span className="text-muted-foreground">Type:</span> {src.sourceType || src.documentType || '—'}
+                                          
+                                          <div className="flex items-center gap-2">
+                                            <span className="text-muted-foreground font-medium min-w-[60px]">Type:</span>
+                                            <span className="text-foreground">{src.sourceType || src.documentType || '—'}</span>
                                           </div>
+                                          
                                           {src.metrics && (
-                                            <div>
-                                              <span className="text-muted-foreground">Metric:</span> {src.metrics}
+                                            <div className="flex items-center gap-2">
+                                              <span className="text-muted-foreground font-medium min-w-[60px]">Metric:</span>
+                                              <span className="text-foreground">{src.metrics}</span>
                                             </div>
                                           )}
+                                          
                                           {src.confidenceInterval && (
-                                            <div>
-                                              <span className="text-muted-foreground">Confidence Interval:</span> {src.confidenceInterval}
+                                            <div className="flex items-center gap-2">
+                                              <span className="text-muted-foreground font-medium min-w-[60px]">CI:</span>
+                                              <span className="text-foreground">{src.confidenceInterval}</span>
                                             </div>
-                                          )}
-                                          {src.description && (
-                                            <div className="mt-2 p-2 bg-muted/40 rounded text-sm">{src.description}</div>
                                           )}
                                         </div>
+
+                                        {/* Description */}
+                                        {src.description && (
+                                          <div className="mt-3 p-3 bg-muted/30 dark:bg-muted/10 rounded-lg">
+                                            <p className="text-sm text-muted-foreground leading-relaxed">{src.description}</p>
+                                          </div>
+                                        )}
                                       </div>
                                     )
                                   })
