@@ -380,7 +380,7 @@ export default function HomePage() {
     loadData()
   }, [])
 
-  const [sortBy, setSortBy] = useState<"date-newest" | "date-oldest">("date-newest")
+  const [sortBy, setSortBy] = useState<"date-newest" | "date-oldest" | "completeness-highest" | "completeness-lowest">("date-newest")
   const [filterByProvider, setFilterByProvider] = useState<string>("all")
   const [filterByModality, setFilterByModality] = useState<string>("all")
 
@@ -390,12 +390,21 @@ export default function HomePage() {
   }, [evaluationsData])
 
   const uniqueModalities = useMemo(() => {
-    const modalities = new Set<string>()
+    // Define all possible modalities to ensure complete filter options
+    const allModalities = ["Text", "Image", "Audio", "Video", "Tabular", "Robotics/Action", "Other"]
+    
+    // Get modalities that actually exist in the data
+    const existingModalities = new Set<string>()
     evaluationsData.forEach((item) => {
-      item.inputModalities.forEach((mod) => modalities.add(mod))
-      item.outputModalities.forEach((mod) => modalities.add(mod))
+      item.inputModalities.forEach((mod) => existingModalities.add(mod))
+      item.outputModalities.forEach((mod) => existingModalities.add(mod))
     })
-    return [...modalities].sort()
+    
+    // Return all predefined modalities, with existing ones first, then missing ones
+    const existing = allModalities.filter(mod => existingModalities.has(mod)).sort()
+    const missing = allModalities.filter(mod => !existingModalities.has(mod)).sort()
+    
+    return [...existing, ...missing]
   }, [evaluationsData])
 
   const filteredAndSortedEvaluations = useMemo(() => {
@@ -413,13 +422,38 @@ export default function HomePage() {
     }
 
     filtered = [...filtered].sort((a, b) => {
-      const dateA = new Date(a.completedDate)
-      const dateB = new Date(b.completedDate)
-
-      if (sortBy === "date-newest") {
-        return dateB.getTime() - dateA.getTime()
+      if (sortBy === "completeness-highest" || sortBy === "completeness-lowest") {
+        // Calculate completeness scores for both items
+        const calculateCompletenessScore = (evaluation: EvaluationCardData) => {
+          const capTotal = evaluation.capabilityEval.strong + evaluation.capabilityEval.adequate + evaluation.capabilityEval.weak + evaluation.capabilityEval.insufficient
+          const riskTotal = evaluation.riskEval.strong + evaluation.riskEval.adequate + evaluation.riskEval.weak + evaluation.riskEval.insufficient
+          const totalItems = capTotal + riskTotal
+          
+          if (totalItems === 0) return 0
+          
+          const capScore = evaluation.capabilityEval.strong * 4 + evaluation.capabilityEval.adequate * 3 + evaluation.capabilityEval.weak * 2 + evaluation.capabilityEval.insufficient * 1
+          const riskScore = evaluation.riskEval.strong * 4 + evaluation.riskEval.adequate * 3 + evaluation.riskEval.weak * 2 + evaluation.riskEval.insufficient * 1
+          
+          return Math.round(((capScore + riskScore) / (totalItems * 4)) * 100)
+        }
+        
+        const scoreA = calculateCompletenessScore(a)
+        const scoreB = calculateCompletenessScore(b)
+        
+        if (sortBy === "completeness-highest") {
+          return scoreB - scoreA
+        } else {
+          return scoreA - scoreB
+        }
       } else {
-        return dateA.getTime() - dateB.getTime()
+        const dateA = new Date(a.completedDate)
+        const dateB = new Date(b.completedDate)
+
+        if (sortBy === "date-newest") {
+          return dateB.getTime() - dateA.getTime()
+        } else {
+          return dateA.getTime() - dateB.getTime()
+        }
       }
     })
 
@@ -497,13 +531,15 @@ export default function HomePage() {
             <div className="flex items-center gap-2">
               <ArrowUpDown className="h-4 w-4 text-muted-foreground" />
               <span className="text-sm font-medium">Sort by:</span>
-              <Select value={sortBy} onValueChange={(value: "date-newest" | "date-oldest") => setSortBy(value)}>
-                <SelectTrigger className="w-40">
+              <Select value={sortBy} onValueChange={(value: "date-newest" | "date-oldest" | "completeness-highest" | "completeness-lowest") => setSortBy(value)}>
+                <SelectTrigger className="w-48">
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="date-newest">Date (Newest)</SelectItem>
                   <SelectItem value="date-oldest">Date (Oldest)</SelectItem>
+                  <SelectItem value="completeness-highest">Completeness (Highest)</SelectItem>
+                  <SelectItem value="completeness-lowest">Completeness (Lowest)</SelectItem>
                 </SelectContent>
               </Select>
             </div>

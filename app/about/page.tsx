@@ -176,31 +176,6 @@ export default function AboutPage() {
             </Link>
           </CardContent>
         </Card>
-
-        {/* <Card>
-          <CardHeader>
-            <CardTitle>Technical Implementation</CardTitle>
-            <CardDescription>
-              Built with modern web technologies for performance and accessibility
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
-            <div className="grid gap-3 md:grid-cols-3">
-              <div className="text-center p-3 border rounded-lg">
-                <h4 className="font-semibold">Next.js 14</h4>
-                <p className="text-xs text-muted-foreground">React framework with SSR</p>
-              </div>
-              <div className="text-center p-3 border rounded-lg">
-                <h4 className="font-semibold">TypeScript</h4>
-                <p className="text-xs text-muted-foreground">Type-safe development</p>
-              </div>
-              <div className="text-center p-3 border rounded-lg">
-                <h4 className="font-semibold">Tailwind CSS</h4>
-                <p className="text-xs text-muted-foreground">Utility-first styling</p>
-              </div>
-            </div>
-          </CardContent>
-        </Card> */}
       </div>
 
       <Separator className="my-8" />

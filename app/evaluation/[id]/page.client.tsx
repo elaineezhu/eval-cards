@@ -8,7 +8,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { ArrowLeft, Download, Eye, EyeOff, Info, Database, Globe, Calendar, User, Building, Cpu, MonitorSpeaker, Hash, Tags, Clock, Activity, Settings, Sun, Moon,
   // Section icons
-  Target, BarChart3, Shield, AlertTriangle, 
+  Target, BarChart3, Shield, AlertTriangle, ShieldAlert,
   // Capability icons
   MessageCircle, Heart, Brain, Lightbulb, BookOpen, Camera, Hand, Search, Bot,
   // Risk icons
@@ -102,6 +102,39 @@ export default function EvaluationDetailsPage() {
   const [expandedNegatives, setExpandedNegatives] = useState<Record<string, boolean>>({})
   const toggleNegatives = (key: string) => setExpandedNegatives((p) => ({ ...p, [key]: !p[key] }))
   const [visibleCategories, setVisibleCategories] = useState<Record<string, boolean>>({})
+  const [capabilitiesStatsExpanded, setCapabilitiesStatsExpanded] = useState(false)
+  const [risksStatsExpanded, setRisksStatsExpanded] = useState(false)
+
+  const exportReport = () => {
+    const reportData = {
+      systemName: evaluation.systemName,
+      provider: evaluation.provider,
+      version: evaluation.version,
+      evaluationDate: evaluation.evaluationDate,
+      exportDate: new Date().toISOString(),
+      url: evaluation.url,
+      inputModalities: evaluation.inputModalities,
+      outputModalities: evaluation.outputModalities,
+      deploymentContexts: evaluation.deploymentContexts,
+      knowledgeCutoff: evaluation.knowledgeCutoff,
+      modelType: evaluation.modelType,
+      completenessScore: Math.round((Object.keys(evaluation.categoryEvaluations || {}).length / getAllCategories().length) * 100),
+      overallStats: evaluation.overallStats,
+      categoryEvaluations: evaluation.categoryEvaluations,
+      processResponses: evaluation.processResponses,
+      evaluator: evaluation.evaluator
+    }
+
+    const blob = new Blob([JSON.stringify(reportData, null, 2)], { type: "application/json" })
+    const url = URL.createObjectURL(blob)
+    const a = document.createElement("a")
+    a.href = url
+    a.download = `evaluation-report-${evaluation.systemName.replace(/[^a-zA-Z0-9]/g, '-')}-${new Date().toISOString().split("T")[0]}.json`
+    a.click()
+    URL.revokeObjectURL(url)
+  }
+  const toggleCapabilitiesStats = () => setCapabilitiesStatsExpanded(prev => !prev)
+  const toggleRisksStats = () => setRisksStatsExpanded(prev => !prev)
   const toggleCategoryVisibility = (id: string) => setVisibleCategories((p) => ({ ...p, [id]: !p[id] }))
   const selectAll = () => {
   const map: Record<string, boolean> = {}
@@ -285,7 +318,7 @@ export default function EvaluationDetailsPage() {
               <Moon className="absolute h-4 w-4 rotate-90 scale-0 transition-all dark:rotate-0 dark:scale-100" />
               <span className="sr-only">Toggle theme</span>
             </Button>
-            <Button variant="outline" size="sm">
+            <Button variant="outline" size="sm" onClick={exportReport}>
               <Download className="h-4 w-4 mr-2" />
               Export Report
             </Button>
@@ -472,7 +505,39 @@ export default function EvaluationDetailsPage() {
               </div>
               <div className="flex-1">
                 <p className="text-sm font-medium text-muted-foreground">Completeness Score</p>
-                <p className="text-lg font-semibold text-foreground mt-1">{evaluation.overallStats?.completenessScore ? `${evaluation.overallStats.completenessScore}%` : "N/A"}</p>
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <p className="text-lg font-semibold text-foreground mt-1 cursor-help">
+                      {evaluation.overallStats?.completenessScore ? `${evaluation.overallStats.completenessScore}%` : "N/A"}
+                    </p>
+                  </TooltipTrigger>
+                  <TooltipContent className="max-w-sm">
+                    <div className="space-y-2 text-xs">
+                      <div className="font-semibold text-foreground">Weighted Average Formula:</div>
+                      <div className="bg-muted p-2 rounded border text-foreground">
+                        (Strong×4 + Adequate×3 + Weak×2 + Insufficient×1) ÷ (Total×4) × 100
+                      </div>
+                      <div className="space-y-1">
+                        <div className="flex items-center gap-2">
+                          <div className="w-2 h-2 bg-emerald-500 rounded-full"></div>
+                          <span className="text-foreground"><strong>Strong (4 pts):</strong> Most evals reported</span>
+                        </div>
+                        <div className="flex items-center gap-2">
+                          <div className="w-2 h-2 bg-blue-500 rounded-full"></div>
+                          <span className="text-foreground"><strong>Adequate (3 pts):</strong> Many evals reported</span>
+                        </div>
+                        <div className="flex items-center gap-2">
+                          <div className="w-2 h-2 bg-yellow-500 rounded-full"></div>
+                          <span className="text-foreground"><strong>Weak (2 pts):</strong> Some evals reported</span>
+                        </div>
+                        <div className="flex items-center gap-2">
+                          <div className="w-2 h-2 bg-red-500 rounded-full"></div>
+                          <span className="text-foreground"><strong>Insufficient (1 pt):</strong> Few evals reported</span>
+                        </div>
+                      </div>
+                    </div>
+                  </TooltipContent>
+                </Tooltip>
               </div>
             </div>
           </div>
@@ -658,73 +723,299 @@ export default function EvaluationDetailsPage() {
             Overall Statistics
           </CardTitle>
         </CardHeader>
-        <CardContent>
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-            <div className="text-center p-4 bg-green-50 dark:bg-green-950 rounded-lg">
-              <div className="text-2xl font-bold text-green-700 dark:text-green-300">
-                {computedStats.strongCategories.length}
-              </div>
-              <div className="text-sm text-green-600 dark:text-green-400">Strong</div>
+        <CardContent className="space-y-8">
+          {/* Capabilities Section */}
+          <div>
+            <div 
+              className="cursor-pointer hover:bg-muted/50 transition-colors p-3 -m-3 rounded-lg mb-4"
+              onClick={toggleCapabilitiesStats}
+            >
+              <h3 className="flex items-center justify-between text-lg font-semibold">
+                <div className="flex items-center gap-2">
+                  <Brain className="h-4 w-4 text-blue-600" />
+                  Capabilities
+                </div>
+                <div className="flex items-center gap-2">
+                  <span className="text-sm font-normal text-muted-foreground">
+                    {capabilitiesStatsExpanded ? 'Hide details' : 'Show details'}
+                  </span>
+                  {capabilitiesStatsExpanded ? (
+                    <ChevronUp className="h-4 w-4 text-muted-foreground" />
+                  ) : (
+                    <ChevronDown className="h-4 w-4 text-muted-foreground" />
+                  )}
+                </div>
+              </h3>
             </div>
-            <div className="text-center p-4 bg-blue-50 dark:bg-blue-950 rounded-lg">
-              <div className="text-2xl font-bold text-blue-700 dark:text-blue-300">
-                {computedStats.adequateCategories.length}
+            
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+              <div className="text-center p-4 bg-green-50 dark:bg-green-950 rounded-lg">
+                <div className="text-2xl font-bold text-green-700 dark:text-green-300">
+                  {computedStats.strongCategories.filter((cat: string) => getCategoryById(cat)?.type === 'capability').length}
+                </div>
+                <div className="text-sm text-green-600 dark:text-green-400">Strong</div>
               </div>
-              <div className="text-sm text-blue-600 dark:text-blue-400">Adequate</div>
-            </div>
-            <div className="text-center p-4 bg-yellow-50 dark:bg-yellow-950 rounded-lg">
-              <div className="text-2xl font-bold text-yellow-700 dark:text-yellow-300">
-                {computedStats.weakCategories.length}
+              <div className="text-center p-4 bg-blue-50 dark:bg-blue-950 rounded-lg">
+                <div className="text-2xl font-bold text-blue-700 dark:text-blue-300">
+                  {computedStats.adequateCategories.filter((cat: string) => getCategoryById(cat)?.type === 'capability').length}
+                </div>
+                <div className="text-sm text-blue-600 dark:text-blue-400">Adequate</div>
               </div>
-              <div className="text-sm text-yellow-600 dark:text-yellow-400">Weak</div>
-            </div>
-            <div className="text-center p-4 bg-red-50 dark:bg-red-950 rounded-lg">
-              <div className="text-2xl font-bold text-red-700 dark:text-red-300">
-                {computedStats.insufficientCategories.length}
+              <div className="text-center p-4 bg-yellow-50 dark:bg-yellow-950 rounded-lg">
+                <div className="text-2xl font-bold text-yellow-700 dark:text-yellow-300">
+                  {computedStats.weakCategories.filter((cat: string) => getCategoryById(cat)?.type === 'capability').length}
+                </div>
+                <div className="text-sm text-yellow-600 dark:text-yellow-400">Weak</div>
               </div>
-              <div className="text-sm text-red-600 dark:text-red-400">Insufficient</div>
+              <div className="text-center p-4 bg-red-50 dark:bg-red-950 rounded-lg">
+                <div className="text-2xl font-bold text-red-700 dark:text-red-300">
+                  {computedStats.insufficientCategories.filter((cat: string) => getCategoryById(cat)?.type === 'capability').length}
+                </div>
+                <div className="text-sm text-red-600 dark:text-red-400">Insufficient</div>
+              </div>
             </div>
+            
+            {capabilitiesStatsExpanded && (
+              <div className="mt-6 space-y-6">
+                {/* Strong Capabilities */}
+                {computedStats.strongCategories.filter((cat: string) => getCategoryById(cat)?.type === 'capability').length > 0 && (
+                  <div>
+                    <h4 className="font-semibold text-green-700 dark:text-green-300 mb-3 flex items-center gap-2">
+                      <div className="w-3 h-3 bg-green-500 rounded-full"></div>
+                      Strong ({computedStats.strongCategories.filter((cat: string) => getCategoryById(cat)?.type === 'capability').length})
+                    </h4>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
+                      {computedStats.strongCategories.filter((cat: string) => getCategoryById(cat)?.type === 'capability').map((catId: string) => {
+                        const category = getCategoryById(catId)
+                        const IconComponent = getCategoryIcon(catId)
+                        return (
+                          <div key={catId} className="flex items-center gap-3 p-2 bg-green-50 dark:bg-green-950/50 rounded">
+                            <IconComponent className="h-4 w-4 text-green-600 dark:text-green-400" />
+                            <span className="text-sm">{category?.name || catId}</span>
+                          </div>
+                        )
+                      })}
+                    </div>
+                  </div>
+                )}
+
+                {/* Adequate Capabilities */}
+                {computedStats.adequateCategories.filter((cat: string) => getCategoryById(cat)?.type === 'capability').length > 0 && (
+                  <div>
+                    <h4 className="font-semibold text-blue-700 dark:text-blue-300 mb-3 flex items-center gap-2">
+                      <div className="w-3 h-3 bg-blue-500 rounded-full"></div>
+                      Adequate ({computedStats.adequateCategories.filter((cat: string) => getCategoryById(cat)?.type === 'capability').length})
+                    </h4>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
+                      {computedStats.adequateCategories.filter((cat: string) => getCategoryById(cat)?.type === 'capability').map((catId: string) => {
+                        const category = getCategoryById(catId)
+                        const IconComponent = getCategoryIcon(catId)
+                        return (
+                          <div key={catId} className="flex items-center gap-3 p-2 bg-blue-50 dark:bg-blue-950/50 rounded">
+                            <IconComponent className="h-4 w-4 text-blue-600 dark:text-blue-400" />
+                            <span className="text-sm">{category?.name || catId}</span>
+                          </div>
+                        )
+                      })}
+                    </div>
+                  </div>
+                )}
+
+                {/* Weak Capabilities */}
+                {computedStats.weakCategories.filter((cat: string) => getCategoryById(cat)?.type === 'capability').length > 0 && (
+                  <div>
+                    <h4 className="font-semibold text-yellow-700 dark:text-yellow-300 mb-3 flex items-center gap-2">
+                      <div className="w-3 h-3 bg-yellow-500 rounded-full"></div>
+                      Weak ({computedStats.weakCategories.filter((cat: string) => getCategoryById(cat)?.type === 'capability').length})
+                    </h4>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
+                      {computedStats.weakCategories.filter((cat: string) => getCategoryById(cat)?.type === 'capability').map((catId: string) => {
+                        const category = getCategoryById(catId)
+                        const IconComponent = getCategoryIcon(catId)
+                        return (
+                          <div key={catId} className="flex items-center gap-3 p-2 bg-yellow-50 dark:bg-yellow-950/50 rounded">
+                            <IconComponent className="h-4 w-4 text-yellow-600 dark:text-yellow-400" />
+                            <span className="text-sm">{category?.name || catId}</span>
+                          </div>
+                        )
+                      })}
+                    </div>
+                  </div>
+                )}
+
+                {/* Insufficient Capabilities */}
+                {computedStats.insufficientCategories.filter((cat: string) => getCategoryById(cat)?.type === 'capability').length > 0 && (
+                  <div>
+                    <h4 className="font-semibold text-red-700 dark:text-red-300 mb-3 flex items-center gap-2">
+                      <div className="w-3 h-3 bg-red-500 rounded-full"></div>
+                      Insufficient ({computedStats.insufficientCategories.filter((cat: string) => getCategoryById(cat)?.type === 'capability').length})
+                    </h4>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
+                      {computedStats.insufficientCategories.filter((cat: string) => getCategoryById(cat)?.type === 'capability').map((catId: string) => {
+                        const category = getCategoryById(catId)
+                        const IconComponent = getCategoryIcon(catId)
+                        return (
+                          <div key={catId} className="flex items-center gap-3 p-2 bg-red-50 dark:bg-red-950/50 rounded">
+                            <IconComponent className="h-4 w-4 text-red-600 dark:text-red-400" />
+                            <span className="text-sm">{category?.name || catId}</span>
+                          </div>
+                        )
+                      })}
+                    </div>
+                  </div>
+                )}
+              </div>
+            )}
+          </div>
+
+          {/* Divider */}
+          <div className="border-t border-muted"></div>
+
+          {/* Risks Section */}
+          <div>
+            <div 
+              className="cursor-pointer hover:bg-muted/50 transition-colors p-3 -m-3 rounded-lg mb-4"
+              onClick={toggleRisksStats}
+            >
+              <h3 className="flex items-center justify-between text-lg font-semibold">
+                <div className="flex items-center gap-2">
+                  <ShieldAlert className="h-4 w-4 text-red-600" />
+                  Risks
+                </div>
+                <div className="flex items-center gap-2">
+                  <span className="text-sm font-normal text-muted-foreground">
+                    {risksStatsExpanded ? 'Hide details' : 'Show details'}
+                  </span>
+                  {risksStatsExpanded ? (
+                    <ChevronUp className="h-4 w-4 text-muted-foreground" />
+                  ) : (
+                    <ChevronDown className="h-4 w-4 text-muted-foreground" />
+                  )}
+                </div>
+              </h3>
+            </div>
+            
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+              <div className="text-center p-4 bg-green-50 dark:bg-green-950 rounded-lg">
+                <div className="text-2xl font-bold text-green-700 dark:text-green-300">
+                  {computedStats.strongCategories.filter((cat: string) => getCategoryById(cat)?.type === 'risk').length}
+                </div>
+                <div className="text-sm text-green-600 dark:text-green-400">Strong</div>
+              </div>
+              <div className="text-center p-4 bg-blue-50 dark:bg-blue-950 rounded-lg">
+                <div className="text-2xl font-bold text-blue-700 dark:text-blue-300">
+                  {computedStats.adequateCategories.filter((cat: string) => getCategoryById(cat)?.type === 'risk').length}
+                </div>
+                <div className="text-sm text-blue-600 dark:text-blue-400">Adequate</div>
+              </div>
+              <div className="text-center p-4 bg-yellow-50 dark:bg-yellow-950 rounded-lg">
+                <div className="text-2xl font-bold text-yellow-700 dark:text-yellow-300">
+                  {computedStats.weakCategories.filter((cat: string) => getCategoryById(cat)?.type === 'risk').length}
+                </div>
+                <div className="text-sm text-yellow-600 dark:text-yellow-400">Weak</div>
+              </div>
+              <div className="text-center p-4 bg-red-50 dark:bg-red-950 rounded-lg">
+                <div className="text-2xl font-bold text-red-700 dark:text-red-300">
+                  {computedStats.insufficientCategories.filter((cat: string) => getCategoryById(cat)?.type === 'risk').length}
+                </div>
+                <div className="text-sm text-red-600 dark:text-red-400">Insufficient</div>
+              </div>
+            </div>
+            
+            {risksStatsExpanded && (
+              <div className="mt-6 space-y-6">
+                {/* Strong Risks */}
+                {computedStats.strongCategories.filter((cat: string) => getCategoryById(cat)?.type === 'risk').length > 0 && (
+                  <div>
+                    <h4 className="font-semibold text-green-700 dark:text-green-300 mb-3 flex items-center gap-2">
+                      <div className="w-3 h-3 bg-green-500 rounded-full"></div>
+                      Strong ({computedStats.strongCategories.filter((cat: string) => getCategoryById(cat)?.type === 'risk').length})
+                    </h4>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
+                      {computedStats.strongCategories.filter((cat: string) => getCategoryById(cat)?.type === 'risk').map((catId: string) => {
+                        const category = getCategoryById(catId)
+                        const IconComponent = getCategoryIcon(catId)
+                        return (
+                          <div key={catId} className="flex items-center gap-3 p-2 bg-green-50 dark:bg-green-950/50 rounded">
+                            <IconComponent className="h-4 w-4 text-green-600 dark:text-green-400" />
+                            <span className="text-sm">{category?.name || catId}</span>
+                          </div>
+                        )
+                      })}
+                    </div>
+                  </div>
+                )}
+
+                {/* Adequate Risks */}
+                {computedStats.adequateCategories.filter((cat: string) => getCategoryById(cat)?.type === 'risk').length > 0 && (
+                  <div>
+                    <h4 className="font-semibold text-blue-700 dark:text-blue-300 mb-3 flex items-center gap-2">
+                      <div className="w-3 h-3 bg-blue-500 rounded-full"></div>
+                      Adequate ({computedStats.adequateCategories.filter((cat: string) => getCategoryById(cat)?.type === 'risk').length})
+                    </h4>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
+                      {computedStats.adequateCategories.filter((cat: string) => getCategoryById(cat)?.type === 'risk').map((catId: string) => {
+                        const category = getCategoryById(catId)
+                        const IconComponent = getCategoryIcon(catId)
+                        return (
+                          <div key={catId} className="flex items-center gap-3 p-2 bg-blue-50 dark:bg-blue-950/50 rounded">
+                            <IconComponent className="h-4 w-4 text-blue-600 dark:text-blue-400" />
+                            <span className="text-sm">{category?.name || catId}</span>
+                          </div>
+                        )
+                      })}
+                    </div>
+                  </div>
+                )}
+
+                {/* Weak Risks */}
+                {computedStats.weakCategories.filter((cat: string) => getCategoryById(cat)?.type === 'risk').length > 0 && (
+                  <div>
+                    <h4 className="font-semibold text-yellow-700 dark:text-yellow-300 mb-3 flex items-center gap-2">
+                      <div className="w-3 h-3 bg-yellow-500 rounded-full"></div>
+                      Weak ({computedStats.weakCategories.filter((cat: string) => getCategoryById(cat)?.type === 'risk').length})
+                    </h4>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
+                      {computedStats.weakCategories.filter((cat: string) => getCategoryById(cat)?.type === 'risk').map((catId: string) => {
+                        const category = getCategoryById(catId)
+                        const IconComponent = getCategoryIcon(catId)
+                        return (
+                          <div key={catId} className="flex items-center gap-3 p-2 bg-yellow-50 dark:bg-yellow-950/50 rounded">
+                            <IconComponent className="h-4 w-4 text-yellow-600 dark:text-yellow-400" />
+                            <span className="text-sm">{category?.name || catId}</span>
+                          </div>
+                        )
+                      })}
+                    </div>
+                  </div>
+                )}
+
+                {/* Insufficient Risks */}
+                {computedStats.insufficientCategories.filter((cat: string) => getCategoryById(cat)?.type === 'risk').length > 0 && (
+                  <div>
+                    <h4 className="font-semibold text-red-700 dark:text-red-300 mb-3 flex items-center gap-2">
+                      <div className="w-3 h-3 bg-red-500 rounded-full"></div>
+                      Insufficient ({computedStats.insufficientCategories.filter((cat: string) => getCategoryById(cat)?.type === 'risk').length})
+                    </h4>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
+                      {computedStats.insufficientCategories.filter((cat: string) => getCategoryById(cat)?.type === 'risk').map((catId: string) => {
+                        const category = getCategoryById(catId)
+                        const IconComponent = getCategoryIcon(catId)
+                        return (
+                          <div key={catId} className="flex items-center gap-3 p-2 bg-red-50 dark:bg-red-950/50 rounded">
+                            <IconComponent className="h-4 w-4 text-red-600 dark:text-red-400" />
+                            <span className="text-sm">{category?.name || catId}</span>
+                          </div>
+                        )
+                      })}
+                    </div>
+                  </div>
+                )}
+              </div>
+            )}
           </div>
         </CardContent>
       </Card>
-
-      {/* Priority Areas (show only weak/insufficient like results) */}
-      {((evaluation.overallStats?.weakCategories || []).length > 0 || (evaluation.overallStats?.insufficientCategories || []).length > 0) && (
-        <Card className="mb-6">
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2 text-xl font-bold">
-              <AlertTriangle className="h-5 w-5 text-amber-600" />
-              Priority Areas
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-              {[...(evaluation.overallStats?.insufficientCategories || []), ...(evaluation.overallStats?.weakCategories || [])]
-                .filter(Boolean)
-                .map((catId: string) => {
-                  const category = getCategoryById(catId)
-                  return (
-                    <div key={catId} className="p-3 border rounded-md flex items-center justify-between">
-                      <div>
-                        <div className="font-medium flex items-center gap-2">
-                          {(() => {
-                            const IconComponent = getCategoryIcon(catId)
-                            return <IconComponent className="h-4 w-4 text-muted-foreground" />
-                          })()}
-                          {category?.name || catId}
-                        </div>
-                        <div className="text-xs text-muted-foreground ml-6">{category?.description}</div>
-                      </div>
-                      <Badge variant={evaluation.overallStats?.insufficientCategories?.includes(catId) ? "destructive" : "outline"}>
-                        {evaluation.overallStats?.insufficientCategories?.includes(catId) ? "insufficient" : "weak"}
-                      </Badge>
-                    </div>
-                  )
-                })}
-            </div>
-          </CardContent>
-        </Card>
-      )}
 
       {/* Evaluation Details */}
       {evaluation.categoryEvaluations &&

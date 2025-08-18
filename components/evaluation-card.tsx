@@ -8,6 +8,7 @@ import { MoreHorizontal, Eye, Download, Trash2 } from "lucide-react"
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu"
 import { useRouter } from "next/navigation"
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip"
+import { getAllCategories } from "@/lib/schema"
 
 export type EvaluationCardData = {
   id: string
@@ -68,6 +69,43 @@ export function EvaluationCard({ evaluation, onView, onDelete }: EvaluationCardP
   const [expandedAreas, setExpandedAreas] = useState<Record<string, boolean>>({})
   const toggleArea = (area: string) => setExpandedAreas((p) => ({ ...p, [area]: !p[area] }))
   const router = useRouter()
+  
+  const handleCardClick = () => {
+    router.push(`/evaluation/${evaluation.id}`)
+  }
+
+  const handleMenuClick = (e: React.MouseEvent) => {
+    e.stopPropagation() // Prevent card click when clicking menu
+  }
+
+  const handleExport = (e: React.MouseEvent) => {
+    e.stopPropagation() // Prevent card click when clicking export
+    
+    const reportData = {
+      id: evaluation.id,
+      systemName: evaluation.systemName,
+      provider: evaluation.provider,
+      completedDate: evaluation.completedDate,
+      exportDate: new Date().toISOString(),
+      inputModalities: evaluation.inputModalities,
+      outputModalities: evaluation.outputModalities,
+      completenessScore: Math.round((evaluation.completedCategories / evaluation.applicableCategories) * 100),
+      status: evaluation.status,
+      capabilityEvaluation: evaluation.capabilityEval,
+      riskEvaluation: evaluation.riskEval,
+      priorityAreas: evaluation.priorityAreas,
+      priorityDetails: evaluation.priorityDetails
+    }
+
+    const blob = new Blob([JSON.stringify(reportData, null, 2)], { type: "application/json" })
+    const url = URL.createObjectURL(blob)
+    const a = document.createElement("a")
+    a.href = url
+    a.download = `evaluation-summary-${evaluation.systemName.replace(/[^a-zA-Z0-9]/g, '-')}-${new Date().toISOString().split("T")[0]}.json`
+    a.click()
+    URL.revokeObjectURL(url)
+  }
+
   const modalityMap: Record<string, { label: string; emoji?: string; variant?: string }> = {
     "Text": { label: "Text", emoji: "📝" },
     "Image": { label: "Image", emoji: "🖼️" },
@@ -171,12 +209,15 @@ export function EvaluationCard({ evaluation, onView, onDelete }: EvaluationCardP
 
   return (
     <TooltipProvider>
-      <Card className="hover:shadow-lg transition-shadow duration-200">
+      <Card 
+        className="hover:shadow-lg transition-all duration-200 cursor-pointer hover:border-primary/20 hover:shadow-primary/5"
+        onClick={handleCardClick}
+      >
         <CardHeader className="pb-3">
           <div className="flex items-start justify-between">
             <div className="space-y-1 flex-1 min-w-0">
-              <CardTitle className="text-lg font-heading truncate">{evaluation.systemName}</CardTitle>
-              <p className="text-sm text-muted-foreground truncate">{evaluation.provider}</p>
+              <CardTitle className="text-xl font-bold truncate">{evaluation.systemName}</CardTitle>
+              <p className="text-sm text-muted-foreground truncate font-medium">{evaluation.provider}</p>
               {/* Enhanced modality badge with emoji and hover detail */}
               {(() => {
                 const info = getModalityDisplay(evaluation.inputModalities, evaluation.outputModalities)
@@ -199,18 +240,19 @@ export function EvaluationCard({ evaluation, onView, onDelete }: EvaluationCardP
               })()}
             </div>
             <div className="flex items-center gap-2 flex-shrink-0">
-              <DropdownMenu>
-                <DropdownMenuTrigger asChild>
-                  <Button variant="ghost" size="sm" className="h-8 w-8 p-0">
-                    <MoreHorizontal className="h-4 w-4" />
-                  </Button>
-                </DropdownMenuTrigger>
+              <div onClick={handleMenuClick}>
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                    <Button variant="ghost" size="sm" className="h-8 w-8 p-0 hover:bg-muted">
+                      <MoreHorizontal className="h-4 w-4" />
+                    </Button>
+                  </DropdownMenuTrigger>
                 <DropdownMenuContent align="end">
                   <DropdownMenuItem onClick={handleViewDetails}>
                     <Eye className="h-4 w-4 mr-2" />
                     View Details
                   </DropdownMenuItem>
-                  <DropdownMenuItem>
+                  <DropdownMenuItem onClick={handleExport}>
                     <Download className="h-4 w-4 mr-2" />
                     Export Report
                   </DropdownMenuItem>
@@ -220,265 +262,165 @@ export function EvaluationCard({ evaluation, onView, onDelete }: EvaluationCardP
                   </DropdownMenuItem>
                 </DropdownMenuContent>
               </DropdownMenu>
+              </div>
             </div>
           </div>
         </CardHeader>
         <CardContent className="space-y-4">
+          {/* Top row: Key metrics */}
           <div className="grid grid-cols-2 gap-4">
             <div className="space-y-1">
               <span className="text-sm text-muted-foreground font-medium">Completeness</span>
-              <Tooltip>
-                <TooltipTrigger asChild>
-                  <div
-                    className={`px-2 py-1 rounded text-sm font-semibold cursor-help ${getCompletenessColor(completenessScore)}`}
-                  >
-                    {completenessScore}%
-                  </div>
-                </TooltipTrigger>
-                <TooltipContent className="max-w-xs">
-                  <p className="text-xs">
-                    Weighted average: (Strong×4 + Adequate×3 + Weak×2 + Insufficient×1) ÷ (Total×4) × 100
-                    <br />
-                    Capability: {evaluation.capabilityEval.totalApplicable} categories
-                    <br />
-                    Risk: {evaluation.riskEval.totalApplicable} categories
-                  </p>
-                </TooltipContent>
-              </Tooltip>
+              <div className="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-6 overflow-hidden">
+                <div
+                  className={`h-full rounded-full transition-all duration-300 flex items-center justify-center text-xs font-bold text-white ${getCompletenessColor(completenessScore)}`}
+                  style={{ width: `${Math.max(completenessScore, 8)}%` }}
+                >
+                  {completenessScore}%
+                </div>
+              </div>
             </div>
             <div className="space-y-1">
-              <span className="text-sm text-muted-foreground font-medium">Date</span>
+              <span className="text-sm text-muted-foreground font-medium">Submitted</span>
               <p className="text-sm font-semibold">{evaluation.completedDate}</p>
             </div>
           </div>
 
+          {/* Quick summary stats */}
           <div className="space-y-3">
-            <div className="space-y-2">
-              <p className="text-sm text-muted-foreground">
-                Capability Eval ({evaluation.capabilityEval.totalApplicable} applicable)
-              </p>
-              <div className="grid grid-cols-4 gap-4 text-xs items-end">
-                {/* Vertical histogram bars for Capability */}
-                <Tooltip>
-                  <TooltipTrigger asChild>
-                    <div className="text-center cursor-help">
-                      <div className="w-full h-20 flex items-end justify-center mb-2">
-                        <div
-                          className="w-full rounded-t-md bg-emerald-500"
-                          style={{
-                            height: `${Math.round(
-                              (evaluation.capabilityEval.strong / Math.max(1, capTotalComputed)) * 100
-                            )}%`,
-                          }}
-                        />
+            <div className="grid grid-cols-2 gap-3">
+              <div className="space-y-2">
+                <div className="flex items-center justify-between">
+                  <span className="text-sm text-muted-foreground font-medium">Capability Eval</span>
+                  <span className="text-xs text-muted-foreground">({evaluation.capabilityEval.totalApplicable} applicable)</span>
+                </div>
+                <div className="flex gap-1">
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <div className="flex-1 h-2 bg-emerald-500 rounded-full cursor-help" style={{
+                        opacity: evaluation.capabilityEval.strong > 0 ? 1 : 0.2,
+                        flexGrow: evaluation.capabilityEval.strong
+                      }} />
+                    </TooltipTrigger>
+                    <TooltipContent>
+                      <div className="flex items-center gap-2">
+                        <div className="w-3 h-3 bg-emerald-500 rounded-full"></div>
+                        <span className="text-xs"><strong>Strong:</strong> {evaluation.capabilityEval.strong} categories - Most evals reported</span>
                       </div>
-                      <div className="text-[10px] text-muted-foreground uppercase tracking-wide mb-1">Strong</div>
-                      <p className="font-medium">{evaluation.capabilityEval.strong}</p>
-                    </div>
-                  </TooltipTrigger>
-                  <TooltipContent>
-                    <p className="text-xs">
-                      {evaluation.capabilityEval.strongCategories.length > 0
-                        ? evaluation.capabilityEval.strongCategories.join(", ")
-                        : "No categories"}
-                    </p>
-                  </TooltipContent>
-                </Tooltip>
-
-                <Tooltip>
-                  <TooltipTrigger asChild>
-                    <div className="text-center cursor-help">
-                      <div className="w-full h-20 flex items-end justify-center mb-2">
-                        <div
-                          className="w-full rounded-t-md bg-blue-500"
-                          style={{
-                            height: `${Math.round(
-                              (evaluation.capabilityEval.adequate / Math.max(1, capTotalComputed)) * 100
-                            )}%`,
-                          }}
-                        />
+                    </TooltipContent>
+                  </Tooltip>
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <div className="flex-1 h-2 bg-blue-500 rounded-full cursor-help" style={{
+                        opacity: evaluation.capabilityEval.adequate > 0 ? 1 : 0.2,
+                        flexGrow: evaluation.capabilityEval.adequate
+                      }} />
+                    </TooltipTrigger>
+                    <TooltipContent>
+                      <div className="flex items-center gap-2">
+                        <div className="w-3 h-3 bg-blue-500 rounded-full"></div>
+                        <span className="text-xs"><strong>Adequate:</strong> {evaluation.capabilityEval.adequate} categories - Many evals reported</span>
                       </div>
-                      <div className="text-[10px] text-muted-foreground uppercase tracking-wide mb-1">Adequate</div>
-                      <p className="font-medium">{evaluation.capabilityEval.adequate}</p>
-                    </div>
-                  </TooltipTrigger>
-                  <TooltipContent>
-                    <p className="text-xs">
-                      {evaluation.capabilityEval.adequateCategories.length > 0
-                        ? evaluation.capabilityEval.adequateCategories.join(", ")
-                        : "No categories"}
-                    </p>
-                  </TooltipContent>
-                </Tooltip>
-
-                <Tooltip>
-                  <TooltipTrigger asChild>
-                    <div className="text-center cursor-help">
-                      <div className="w-full h-20 flex items-end justify-center mb-2">
-                        <div
-                          className="w-full rounded-t-md bg-amber-500"
-                          style={{
-                            height: `${Math.round(
-                              (evaluation.capabilityEval.weak / Math.max(1, capTotalComputed)) * 100
-                            )}%`,
-                          }}
-                        />
+                    </TooltipContent>
+                  </Tooltip>
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <div className="flex-1 h-2 bg-yellow-500 rounded-full cursor-help" style={{
+                        opacity: evaluation.capabilityEval.weak > 0 ? 1 : 0.2,
+                        flexGrow: evaluation.capabilityEval.weak
+                      }} />
+                    </TooltipTrigger>
+                    <TooltipContent>
+                      <div className="flex items-center gap-2">
+                        <div className="w-3 h-3 bg-yellow-500 rounded-full"></div>
+                        <span className="text-xs"><strong>Weak:</strong> {evaluation.capabilityEval.weak} categories - Some evals reported</span>
                       </div>
-                      <div className="text-[10px] text-muted-foreground uppercase tracking-wide mb-1">Weak</div>
-                      <p className="font-medium">{evaluation.capabilityEval.weak}</p>
-                    </div>
-                  </TooltipTrigger>
-                  <TooltipContent>
-                    <p className="text-xs">
-                      {evaluation.capabilityEval.weakCategories.length > 0
-                        ? evaluation.capabilityEval.weakCategories.join(", ")
-                        : "No categories"}
-                    </p>
-                  </TooltipContent>
-                </Tooltip>
-
-                <Tooltip>
-                  <TooltipTrigger asChild>
-                    <div className="text-center cursor-help">
-                      <div className="w-full h-20 flex items-end justify-center mb-2">
-                        <div
-                          className="w-full rounded-t-md bg-red-500"
-                          style={{
-                            height: `${Math.round(
-                              (evaluation.capabilityEval.insufficient / Math.max(1, capTotalComputed)) * 100
-                            )}%`,
-                          }}
-                        />
+                    </TooltipContent>
+                  </Tooltip>
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <div className="flex-1 h-2 bg-red-500 rounded-full cursor-help" style={{
+                        opacity: evaluation.capabilityEval.insufficient > 0 ? 1 : 0.2,
+                        flexGrow: evaluation.capabilityEval.insufficient
+                      }} />
+                    </TooltipTrigger>
+                    <TooltipContent>
+                      <div className="flex items-center gap-2">
+                        <div className="w-3 h-3 bg-red-500 rounded-full"></div>
+                        <span className="text-xs"><strong>Insufficient:</strong> {evaluation.capabilityEval.insufficient} categories - Few evals reported</span>
                       </div>
-                      <div className="text-[10px] text-muted-foreground uppercase tracking-wide mb-1">Insufficient</div>
-                      <p className="font-medium">{evaluation.capabilityEval.insufficient}</p>
-                    </div>
-                  </TooltipTrigger>
-                  <TooltipContent>
-                    <p className="text-xs">
-                      {evaluation.capabilityEval.insufficientCategories.length > 0
-                        ? evaluation.capabilityEval.insufficientCategories.join(", ")
-                        : "No categories"}
-                    </p>
-                  </TooltipContent>
-                </Tooltip>
+                    </TooltipContent>
+                  </Tooltip>
+                </div>
               </div>
-            </div>
 
-            <div className="space-y-2">
-              <p className="text-sm text-muted-foreground">
-                Risk Eval ({evaluation.riskEval.totalApplicable} applicable)
-              </p>
-              <div className="grid grid-cols-4 gap-4 text-xs items-end">
-                {/* Vertical histogram bars for Risk */}
-                <Tooltip>
-                  <TooltipTrigger asChild>
-                    <div className="text-center cursor-help">
-                      <div className="w-full h-20 flex items-end justify-center mb-2">
-                        <div
-                          className="w-full rounded-t-md bg-emerald-500"
-                          style={{
-                            height: `${Math.round(
-                              (evaluation.riskEval.strong / Math.max(1, riskTotalComputed)) * 100
-                            )}%`,
-                          }}
-                        />
+              <div className="space-y-2">
+                <div className="flex items-center justify-between">
+                  <span className="text-sm text-muted-foreground font-medium">Risk Eval</span>
+                  <span className="text-xs text-muted-foreground">({evaluation.riskEval.totalApplicable} applicable)</span>
+                </div>
+                <div className="flex gap-1">
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <div className="flex-1 h-2 bg-emerald-500 rounded-full cursor-help" style={{
+                        opacity: evaluation.riskEval.strong > 0 ? 1 : 0.2,
+                        flexGrow: evaluation.riskEval.strong
+                      }} />
+                    </TooltipTrigger>
+                    <TooltipContent>
+                      <div className="flex items-center gap-2">
+                        <div className="w-3 h-3 bg-emerald-500 rounded-full"></div>
+                        <span className="text-xs"><strong>Strong:</strong> {evaluation.riskEval.strong} categories - Most evals reported</span>
                       </div>
-                      <div className="text-[10px] text-muted-foreground uppercase tracking-wide mb-1">Strong</div>
-                      <p className="font-medium">{evaluation.riskEval.strong}</p>
-                    </div>
-                  </TooltipTrigger>
-                  <TooltipContent>
-                    <p className="text-xs">
-                      {evaluation.riskEval.strongCategories.length > 0
-                        ? evaluation.riskEval.strongCategories.join(", ")
-                        : "No categories"}
-                    </p>
-                  </TooltipContent>
-                </Tooltip>
-
-                <Tooltip>
-                  <TooltipTrigger asChild>
-                    <div className="text-center cursor-help">
-                      <div className="w-full h-20 flex items-end justify-center mb-2">
-                        <div
-                          className="w-full rounded-t-md bg-blue-500"
-                          style={{
-                            height: `${Math.round(
-                              (evaluation.riskEval.adequate / Math.max(1, riskTotalComputed)) * 100
-                            )}%`,
-                          }}
-                        />
+                    </TooltipContent>
+                  </Tooltip>
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <div className="flex-1 h-2 bg-blue-500 rounded-full cursor-help" style={{
+                        opacity: evaluation.riskEval.adequate > 0 ? 1 : 0.2,
+                        flexGrow: evaluation.riskEval.adequate
+                      }} />
+                    </TooltipTrigger>
+                    <TooltipContent>
+                      <div className="flex items-center gap-2">
+                        <div className="w-3 h-3 bg-blue-500 rounded-full"></div>
+                        <span className="text-xs"><strong>Adequate:</strong> {evaluation.riskEval.adequate} categories - Many evals reported</span>
                       </div>
-                      <div className="text-[10px] text-muted-foreground uppercase tracking-wide mb-1">Adequate</div>
-                      <p className="font-medium">{evaluation.riskEval.adequate}</p>
-                    </div>
-                  </TooltipTrigger>
-                  <TooltipContent>
-                    <p className="text-xs">
-                      {evaluation.riskEval.adequateCategories.length > 0
-                        ? evaluation.riskEval.adequateCategories.join(", ")
-                        : "No categories"}
-                    </p>
-                  </TooltipContent>
-                </Tooltip>
-
-                <Tooltip>
-                  <TooltipTrigger asChild>
-                    <div className="text-center cursor-help">
-                      <div className="w-full h-20 flex items-end justify-center mb-2">
-                        <div
-                          className="w-full rounded-t-md bg-amber-500"
-                          style={{
-                            height: `${Math.round(
-                              (evaluation.riskEval.weak / Math.max(1, riskTotalComputed)) * 100
-                            )}%`,
-                          }}
-                        />
+                    </TooltipContent>
+                  </Tooltip>
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <div className="flex-1 h-2 bg-yellow-500 rounded-full cursor-help" style={{
+                        opacity: evaluation.riskEval.weak > 0 ? 1 : 0.2,
+                        flexGrow: evaluation.riskEval.weak
+                      }} />
+                    </TooltipTrigger>
+                    <TooltipContent>
+                      <div className="flex items-center gap-2">
+                        <div className="w-3 h-3 bg-yellow-500 rounded-full"></div>
+                        <span className="text-xs"><strong>Weak:</strong> {evaluation.riskEval.weak} categories - Some evals reported</span>
                       </div>
-                      <div className="text-[10px] text-muted-foreground uppercase tracking-wide mb-1">Weak</div>
-                      <p className="font-medium">{evaluation.riskEval.weak}</p>
-                    </div>
-                  </TooltipTrigger>
-                  <TooltipContent>
-                    <p className="text-xs">
-                      {evaluation.riskEval.weakCategories.length > 0
-                        ? evaluation.riskEval.weakCategories.join(", ")
-                        : "No categories"}
-                    </p>
-                  </TooltipContent>
-                </Tooltip>
-
-                <Tooltip>
-                  <TooltipTrigger asChild>
-                    <div className="text-center cursor-help">
-                      <div className="w-full h-20 flex items-end justify-center mb-2">
-                        <div
-                          className="w-full rounded-t-md bg-red-500"
-                          style={{
-                            height: `${Math.round(
-                              (evaluation.riskEval.insufficient / Math.max(1, riskTotalComputed)) * 100
-                            )}%`,
-                          }}
-                        />
+                    </TooltipContent>
+                  </Tooltip>
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <div className="flex-1 h-2 bg-red-500 rounded-full cursor-help" style={{
+                        opacity: evaluation.riskEval.insufficient > 0 ? 1 : 0.2,
+                        flexGrow: evaluation.riskEval.insufficient
+                      }} />
+                    </TooltipTrigger>
+                    <TooltipContent>
+                      <div className="flex items-center gap-2">
+                        <div className="w-3 h-3 bg-red-500 rounded-full"></div>
+                        <span className="text-xs"><strong>Insufficient:</strong> {evaluation.riskEval.insufficient} categories - Few evals reported</span>
                       </div>
-                      <div className="text-[10px] text-muted-foreground uppercase tracking-wide mb-1">Insufficient</div>
-                      <p className="font-medium">{evaluation.riskEval.insufficient}</p>
-                    </div>
-                  </TooltipTrigger>
-                  <TooltipContent>
-                    <p className="text-xs">
-                      {evaluation.riskEval.insufficientCategories.length > 0
-                        ? evaluation.riskEval.insufficientCategories.join(", ")
-                        : "No categories"}
-                    </p>
-                  </TooltipContent>
-                </Tooltip>
+                    </TooltipContent>
+                  </Tooltip>
+                </div>
               </div>
             </div>
           </div>
         </CardContent>
-  {/* priorityAreas/details intentionally removed from summary card — shown on details page */}
       </Card>
     </TooltipProvider>
   )
