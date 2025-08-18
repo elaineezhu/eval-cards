@@ -495,6 +495,12 @@ export default function HomePage() {
               <p className="text-sm text-muted-foreground">Manage and track your AI system evaluations</p>
             </div>
             <div className="flex items-center gap-2 sm:gap-3">
+              <Link href="/analytics">
+                <Button variant="ghost" size="sm" className="gap-2">
+                  <ArrowUpDown className="h-4 w-4" />
+                  <span className="hidden sm:inline">Analytics</span>
+                </Button>
+              </Link>
               <Link href="/about">
                 <Button variant="ghost" size="sm" className="gap-2">
                   <Info className="h-4 w-4" />
