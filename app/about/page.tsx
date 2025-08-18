@@ -1,20 +1,37 @@
+"use client"
+
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { Separator } from "@/components/ui/separator"
 import { Button } from "@/components/ui/button"
 import Link from "next/link"
-import { ArrowLeft, ExternalLink } from "lucide-react"
+import { ArrowLeft, ExternalLink, Sun, Moon } from "lucide-react"
+import { useTheme } from "next-themes"
 
 export default function AboutPage() {
+  const { theme, setTheme } = useTheme()
+  
   return (
     <div className="container mx-auto px-4 py-8 max-w-4xl">
       <div className="mb-6">
-        <Link href="/">
-          <Button variant="ghost" className="mb-4">
-            <ArrowLeft className="mr-2 h-4 w-4" />
-            Back to Dashboard
+        <div className="flex items-center justify-between mb-4">
+          <Link href="/">
+            <Button variant="ghost">
+              <ArrowLeft className="mr-2 h-4 w-4" />
+              Back to Dashboard
+            </Button>
+          </Link>
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={() => setTheme(theme === "dark" ? "light" : "dark")}
+            className="h-9 w-9 p-0"
+          >
+            <Sun className="h-4 w-4 rotate-0 scale-100 transition-all dark:-rotate-90 dark:scale-0" />
+            <Moon className="absolute h-4 w-4 rotate-90 scale-0 transition-all dark:rotate-0 dark:scale-100" />
+            <span className="sr-only">Toggle theme</span>
           </Button>
-        </Link>
+        </div>
         <h1 className="text-4xl font-bold mb-2">About AI Evaluation Dashboard</h1>
         <p className="text-xl text-muted-foreground">
           A comprehensive platform for documenting and sharing AI system evaluations
@@ -160,7 +177,7 @@ export default function AboutPage() {
           </CardContent>
         </Card>
 
-        <Card>
+        {/* <Card>
           <CardHeader>
             <CardTitle>Technical Implementation</CardTitle>
             <CardDescription>
@@ -183,7 +200,7 @@ export default function AboutPage() {
               </div>
             </div>
           </CardContent>
-        </Card>
+        </Card> */}
       </div>
 
       <Separator className="my-8" />

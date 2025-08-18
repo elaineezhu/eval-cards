@@ -2,10 +2,11 @@
 
 import { useParams, useRouter } from "next/navigation"
 import { useState, useEffect } from "react"
+import { useTheme } from "next-themes"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
-import { ArrowLeft, Download, Eye, EyeOff, Info, Database, Globe, Calendar, User, Building, Cpu, MonitorSpeaker, Hash, Tags, Clock, Activity, Settings,
+import { ArrowLeft, Download, Eye, EyeOff, Info, Database, Globe, Calendar, User, Building, Cpu, MonitorSpeaker, Hash, Tags, Clock, Activity, Settings, Sun, Moon,
   // Section icons
   Target, BarChart3, Shield, AlertTriangle, 
   // Capability icons
@@ -90,6 +91,7 @@ const getCategoryIcon = (categoryId: string) => {
 export default function EvaluationDetailsPage() {
   const params = useParams()
   const router = useRouter()
+  const { theme, setTheme } = useTheme()
   const evaluationId = params.id as string
 
   const [evaluation, setEvaluation] = useState<any>(null)
@@ -273,6 +275,16 @@ export default function EvaluationDetailsPage() {
                 About
               </Button>
             </Link>
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => setTheme(theme === "dark" ? "light" : "dark")}
+              className="h-9 w-9 p-0"
+            >
+              <Sun className="h-4 w-4 rotate-0 scale-100 transition-all dark:-rotate-90 dark:scale-0" />
+              <Moon className="absolute h-4 w-4 rotate-90 scale-0 transition-all dark:rotate-0 dark:scale-100" />
+              <span className="sr-only">Toggle theme</span>
+            </Button>
             <Button variant="outline" size="sm">
               <Download className="h-4 w-4 mr-2" />
               Export Report
@@ -291,7 +303,7 @@ export default function EvaluationDetailsPage() {
         <CardHeader>
           <div className="flex items-center justify-between w-full">
             <div>
-              <CardTitle className="flex items-center gap-2">
+              <CardTitle className="flex items-center gap-2 text-xl font-bold">
                 <Database className="h-5 w-5 text-blue-600" />
                 System Information
               </CardTitle>
@@ -472,7 +484,7 @@ export default function EvaluationDetailsPage() {
         <CardHeader>
             <div className="flex items-center justify-between w-full">
               {/* compute applicable count as non-NA categories from the full CATEGORIES list */}
-              <CardTitle className="flex items-center gap-2">
+              <CardTitle className="flex items-center gap-2 text-xl font-bold">
                 <Target className="h-5 w-5 text-green-600" />
                 Applicable Categories ({
                   getAllCategories().filter((c) => {
@@ -641,7 +653,7 @@ export default function EvaluationDetailsPage() {
       {/* Overall Statistics */}
       <Card className="mb-6">
         <CardHeader>
-          <CardTitle className="flex items-center gap-2">
+          <CardTitle className="flex items-center gap-2 text-xl font-bold">
             <BarChart3 className="h-5 w-5 text-blue-600" />
             Overall Statistics
           </CardTitle>
@@ -680,7 +692,7 @@ export default function EvaluationDetailsPage() {
       {((evaluation.overallStats?.weakCategories || []).length > 0 || (evaluation.overallStats?.insufficientCategories || []).length > 0) && (
         <Card className="mb-6">
           <CardHeader>
-            <CardTitle className="flex items-center gap-2">
+            <CardTitle className="flex items-center gap-2 text-xl font-bold">
               <AlertTriangle className="h-5 w-5 text-amber-600" />
               Priority Areas
             </CardTitle>
@@ -778,7 +790,7 @@ export default function EvaluationDetailsPage() {
                 <CardHeader>
                   <div className="flex items-start justify-between w-full gap-4">
                     <div>
-                      <CardTitle className="flex items-center gap-2">
+                      <CardTitle className="flex items-center gap-2 text-xl font-bold">
                         {(() => {
                           const IconComponent = getCategoryIcon(categoryId)
                           return <IconComponent className="h-5 w-5" />
@@ -1152,8 +1164,8 @@ export default function EvaluationDetailsPage() {
                   {data.additionalAspects && (
                     <div>
                       <h4 className="font-semibold mb-3">Part C: Additional Aspects</h4>
-                      <div className="p-4 bg-muted rounded-lg">
-                        <p className="text-sm">{data.additionalAspects}</p>
+                      <div className="text-sm text-muted-foreground">
+                        {data.additionalAspects}
                       </div>
                     </div>
                   )}
