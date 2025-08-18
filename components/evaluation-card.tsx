@@ -214,17 +214,17 @@ export function EvaluationCard({ evaluation, onView, onDelete }: EvaluationCardP
         onClick={handleCardClick}
       >
         <CardHeader className="pb-3">
-          <div className="flex items-start justify-between">
+          <div className="flex items-start justify-between gap-3">
             <div className="space-y-1 flex-1 min-w-0">
-              <CardTitle className="text-xl font-bold truncate">{evaluation.systemName}</CardTitle>
-              <p className="text-sm text-muted-foreground truncate font-medium">{evaluation.provider}</p>
+              <CardTitle className="text-lg sm:text-xl font-bold leading-tight">{evaluation.systemName}</CardTitle>
+              <p className="text-sm text-muted-foreground font-medium">{evaluation.provider}</p>
               {/* Enhanced modality badge with emoji and hover detail */}
               {(() => {
                 const info = getModalityDisplay(evaluation.inputModalities, evaluation.outputModalities)
                 return (
                   <Tooltip>
                     <TooltipTrigger asChild>
-                      <Badge variant="secondary" className="text-xs px-2 py-1 w-fit flex items-center gap-2 cursor-help">
+                      <Badge variant="secondary" className="text-xs px-2 py-1 w-fit flex items-center gap-1 cursor-help">
                         {info.emoji ? <span aria-hidden className="text-sm">{info.emoji}</span> : null}
                         <span className="whitespace-nowrap">{info.label}</span>
                       </Badge>
@@ -268,7 +268,7 @@ export function EvaluationCard({ evaluation, onView, onDelete }: EvaluationCardP
         </CardHeader>
         <CardContent className="space-y-4">
           {/* Top row: Key metrics */}
-          <div className="grid grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div className="space-y-1">
               <span className="text-sm text-muted-foreground font-medium">Completeness</span>
               <div className="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-6 overflow-hidden">
@@ -288,9 +288,9 @@ export function EvaluationCard({ evaluation, onView, onDelete }: EvaluationCardP
 
           {/* Quick summary stats */}
           <div className="space-y-3">
-            <div className="grid grid-cols-2 gap-3">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div className="space-y-2">
-                <div className="flex items-center justify-between">
+                <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-1">
                   <span className="text-sm text-muted-foreground font-medium">Capability Eval</span>
                   <span className="text-xs text-muted-foreground">({evaluation.capabilityEval.totalApplicable} applicable)</span>
                 </div>
@@ -355,7 +355,7 @@ export function EvaluationCard({ evaluation, onView, onDelete }: EvaluationCardP
               </div>
 
               <div className="space-y-2">
-                <div className="flex items-center justify-between">
+                <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-1">
                   <span className="text-sm text-muted-foreground font-medium">Risk Eval</span>
                   <span className="text-xs text-muted-foreground">({evaluation.riskEval.totalApplicable} applicable)</span>
                 </div>

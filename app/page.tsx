@@ -488,17 +488,17 @@ export default function HomePage() {
   return (
     <div className="min-h-screen bg-background">
       <header className="border-b bg-card">
-        <div className="container mx-auto px-6 py-4">
-          <div className="flex items-center justify-between">
+        <div className="container mx-auto px-4 sm:px-6 py-4">
+          <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
             <div>
-              <h1 className="text-2xl font-bold font-heading text-foreground">AI Evaluation Dashboard</h1>
+              <h1 className="text-xl sm:text-2xl font-bold font-heading text-foreground">AI Evaluation Dashboard</h1>
               <p className="text-sm text-muted-foreground">Manage and track your AI system evaluations</p>
             </div>
-            <div className="flex items-center gap-3">
+            <div className="flex items-center gap-2 sm:gap-3">
               <Link href="/about">
                 <Button variant="ghost" size="sm" className="gap-2">
                   <Info className="h-4 w-4" />
-                  About
+                  <span className="hidden sm:inline">About</span>
                 </Button>
               </Link>
               <Button
@@ -513,26 +513,27 @@ export default function HomePage() {
               </Button>
               <Button onClick={() => setShowNewEvaluation(true)} className="gap-2">
                 <Plus className="h-4 w-4" />
-                New Eval Card
+                <span className="hidden sm:inline">New Eval Card</span>
+                <span className="sm:hidden">New</span>
               </Button>
             </div>
           </div>
         </div>
       </header>
 
-      <div className="container mx-auto px-6 py-6">
+      <div className="container mx-auto px-4 sm:px-6 py-4 sm:py-6">
         <div className="space-y-6">
           <div className="flex items-center justify-between">
             <h2 className="text-xl font-semibold font-heading">Evaluation Cards</h2>
             <p className="text-sm text-muted-foreground">{filteredAndSortedEvaluations.length} eval cards</p>
           </div>
 
-          <div className="flex flex-wrap items-center gap-4 p-4 bg-card rounded-lg border">
-            <div className="flex items-center gap-2">
+          <div className="flex flex-col sm:flex-row sm:flex-wrap items-start sm:items-center gap-3 sm:gap-4 p-4 bg-card rounded-lg border">
+            <div className="flex items-center gap-2 w-full sm:w-auto">
               <ArrowUpDown className="h-4 w-4 text-muted-foreground" />
               <span className="text-sm font-medium">Sort by:</span>
               <Select value={sortBy} onValueChange={(value: "date-newest" | "date-oldest" | "completeness-highest" | "completeness-lowest") => setSortBy(value)}>
-                <SelectTrigger className="w-48">
+                <SelectTrigger className="w-full sm:w-48">
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
@@ -544,11 +545,11 @@ export default function HomePage() {
               </Select>
             </div>
 
-            <div className="flex items-center gap-2">
+            <div className="flex items-center gap-2 w-full sm:w-auto">
               <Filter className="h-4 w-4 text-muted-foreground" />
               <span className="text-sm font-medium">Provider:</span>
               <Select value={filterByProvider} onValueChange={setFilterByProvider}>
-                <SelectTrigger className="w-40">
+                <SelectTrigger className="w-full sm:w-40">
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
@@ -562,11 +563,11 @@ export default function HomePage() {
               </Select>
             </div>
 
-            <div className="flex items-center gap-2">
+            <div className="flex items-center gap-2 w-full sm:w-auto">
               <Filter className="h-4 w-4 text-muted-foreground" />
               <span className="text-sm font-medium">Modality:</span>
               <Select value={filterByModality} onValueChange={setFilterByModality}>
-                <SelectTrigger className="w-40">
+                <SelectTrigger className="w-full sm:w-40">
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
