@@ -286,8 +286,8 @@ export function AIEvaluationDashboard({ onBack, onSaveEvaluation }: AIEvaluation
     <div className="min-h-screen bg-background flex flex-col">
       {/* Header */}
       <header className="border-b bg-card">
-        <div className="container mx-auto px-6 py-4">
-          <div className="flex items-center justify-between">
+        <div className="container mx-auto px-4 sm:px-6 py-4">
+          <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
             <div className="flex items-center gap-4">
               {onBack && (
                 <Button variant="ghost" size="sm" onClick={onBack} className="gap-2">
@@ -296,26 +296,29 @@ export function AIEvaluationDashboard({ onBack, onSaveEvaluation }: AIEvaluation
                 </Button>
               )}
               <div>
-                <h1 className="text-2xl font-bold font-heading text-foreground">New Eval Card</h1>
-                <p className="text-muted-foreground">Create comprehensive AI system evaluation card</p>
+                <h1 className="text-xl sm:text-2xl font-bold font-heading text-foreground">New Eval Card</h1>
+                <p className="text-sm sm:text-base text-muted-foreground">Create comprehensive AI system evaluation card</p>
               </div>
             </div>
-            <div className="flex items-center gap-4">
-              <div className="text-right">
+            <div className="flex flex-col sm:flex-row items-start sm:items-center gap-3 sm:gap-4 w-full sm:w-auto">
+              <div className="text-left sm:text-right">
                 <p className="text-sm text-muted-foreground">Overall Progress</p>
                 <div className="flex items-center gap-2">
                   <Progress value={getOverallProgress()} className="w-24" />
                   <span className="text-sm font-medium">{Math.round(getOverallProgress())}%</span>
                 </div>
               </div>
-              {evaluationData.systemInfo && (
-                <Badge variant="secondary" className="font-medium">
-                  {evaluationData.systemInfo.name}
-                </Badge>
-              )}
-              <Button onClick={handleSaveEvaluation} className="gap-2">
-                Save Eval Card
-              </Button>
+              <div className="flex items-center gap-2 w-full sm:w-auto">
+                {evaluationData.systemInfo && (
+                  <Badge variant="secondary" className="font-medium">
+                    {evaluationData.systemInfo.name}
+                  </Badge>
+                )}
+                <Button onClick={handleSaveEvaluation} className="gap-2 w-full sm:w-auto">
+                  <span className="hidden sm:inline">Save Eval Card</span>
+                  <span className="sm:hidden">Save</span>
+                </Button>
+              </div>
             </div>
           </div>
         </div>
@@ -323,8 +326,8 @@ export function AIEvaluationDashboard({ onBack, onSaveEvaluation }: AIEvaluation
 
       {/* Step tabs navigation */}
       <div className="border-b bg-card">
-        <div className="container mx-auto px-6">
-          <div className="flex items-center space-x-8">
+        <div className="container mx-auto px-4 sm:px-6 py-4">
+          <div className="flex items-center space-x-4 sm:space-x-8 overflow-x-auto">
             {steps.map((step) => {
               const isActive = currentStep === step.id
               const isCompleted =
@@ -336,7 +339,7 @@ export function AIEvaluationDashboard({ onBack, onSaveEvaluation }: AIEvaluation
               return (
                 <div
                   key={step.id}
-                  className={`flex items-center gap-3 py-4 border-b-2 transition-colors ${
+                  className={`flex items-center gap-2 sm:gap-3 py-4 border-b-2 transition-colors whitespace-nowrap ${
                     isActive
                       ? "border-primary text-primary"
                       : isCompleted
@@ -345,7 +348,7 @@ export function AIEvaluationDashboard({ onBack, onSaveEvaluation }: AIEvaluation
                   }`}
                 >
                   <div
-                    className={`flex items-center justify-center w-8 h-8 rounded-full text-sm font-medium ${
+                    className={`flex items-center justify-center w-6 h-6 sm:w-8 sm:h-8 rounded-full text-xs sm:text-sm font-medium ${
                       isActive
                         ? "bg-primary text-primary-foreground"
                         : isCompleted
@@ -355,7 +358,7 @@ export function AIEvaluationDashboard({ onBack, onSaveEvaluation }: AIEvaluation
                   >
                     {step.number}
                   </div>
-                  <span className="font-medium">{step.label}</span>
+                  <span className="font-medium text-sm sm:text-base">{step.label}</span>
                 </div>
               )
             })}
@@ -363,7 +366,9 @@ export function AIEvaluationDashboard({ onBack, onSaveEvaluation }: AIEvaluation
         </div>
       </div>
 
-  <div className="container mx-auto px-6 py-6 flex-1 min-h-0">{renderCurrentStep()}</div>
+      <div className="container mx-auto px-4 sm:px-6 py-4 sm:py-6 flex-1 min-h-0">
+        {renderCurrentStep()}
+      </div>
     </div>
   )
 }

@@ -294,9 +294,9 @@ export default function EvaluationDetailsPage() {
 
   return (
     <TooltipProvider>
-      <div className="container mx-auto px-4 py-8 max-w-4xl">
+      <div className="container mx-auto px-4 sm:px-6 py-4 sm:py-8 max-w-4xl">
       <div className="mb-6">
-        <div className="flex items-center justify-between">
+        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
           <Button onClick={() => router.push("/")} variant="outline" size="sm">
             <ArrowLeft className="h-4 w-4 mr-2" />
             Back to Dashboard
@@ -305,7 +305,7 @@ export default function EvaluationDetailsPage() {
             <Link href="/about">
               <Button variant="ghost" size="sm">
                 <Info className="h-4 w-4 mr-2" />
-                About
+                <span className="hidden sm:inline">About</span>
               </Button>
             </Link>
             <Button
@@ -320,13 +320,14 @@ export default function EvaluationDetailsPage() {
             </Button>
             <Button variant="outline" size="sm" onClick={exportReport}>
               <Download className="h-4 w-4 mr-2" />
-              Export Report
+              <span className="hidden sm:inline">Export Report</span>
+              <span className="sm:hidden">Export</span>
             </Button>
           </div>
         </div>
 
         <div className="mt-3 text-center">
-          <h1 className="text-3xl font-heading">{evaluation.systemName}</h1>
+          <h1 className="text-2xl sm:text-3xl font-heading">{evaluation.systemName}</h1>
           <p className="text-muted-foreground">{evaluation.provider}</p>
         </div>
       </div>
@@ -730,13 +731,13 @@ export default function EvaluationDetailsPage() {
               className="cursor-pointer hover:bg-muted/50 transition-colors p-3 -m-3 rounded-lg mb-4"
               onClick={toggleCapabilitiesStats}
             >
-              <h3 className="flex items-center justify-between text-lg font-semibold">
+              <h3 className="flex items-center justify-between text-base sm:text-lg font-semibold">
                 <div className="flex items-center gap-2">
                   <Brain className="h-4 w-4 text-blue-600" />
                   Capabilities
                 </div>
                 <div className="flex items-center gap-2">
-                  <span className="text-sm font-normal text-muted-foreground">
+                  <span className="text-xs sm:text-sm font-normal text-muted-foreground">
                     {capabilitiesStatsExpanded ? 'Hide details' : 'Show details'}
                   </span>
                   {capabilitiesStatsExpanded ? (
@@ -877,13 +878,13 @@ export default function EvaluationDetailsPage() {
               className="cursor-pointer hover:bg-muted/50 transition-colors p-3 -m-3 rounded-lg mb-4"
               onClick={toggleRisksStats}
             >
-              <h3 className="flex items-center justify-between text-lg font-semibold">
+              <h3 className="flex items-center justify-between text-base sm:text-lg font-semibold">
                 <div className="flex items-center gap-2">
                   <ShieldAlert className="h-4 w-4 text-red-600" />
                   Risks
                 </div>
                 <div className="flex items-center gap-2">
-                  <span className="text-sm font-normal text-muted-foreground">
+                  <span className="text-xs sm:text-sm font-normal text-muted-foreground">
                     {risksStatsExpanded ? 'Hide details' : 'Show details'}
                   </span>
                   {risksStatsExpanded ? (

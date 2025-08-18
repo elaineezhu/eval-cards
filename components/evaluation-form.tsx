@@ -71,19 +71,19 @@ export function EvaluationForm({
       {/* Progress Header */}
       <Card>
         <CardHeader>
-          <div className="flex items-center justify-between">
+          <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
             <div>
-              <CardTitle className="font-heading">Detailed Evaluation</CardTitle>
+              <CardTitle className="text-lg sm:text-xl font-heading">Detailed Evaluation</CardTitle>
               <CardDescription>Complete the evaluation for each selected category</CardDescription>
             </div>
-            <div className="text-right">
+            <div className="text-left sm:text-right w-full sm:w-auto">
               <div className="flex items-center gap-2 mb-2">
                 <span className="text-sm font-medium">Progress:</span>
                 <Badge variant="secondary">
                   {completedCount}/{totalCount}
                 </Badge>
               </div>
-              <Progress value={progress} className="w-32" />
+              <Progress value={progress} className="w-full sm:w-32" />
             </div>
           </div>
         </CardHeader>

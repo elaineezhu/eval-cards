@@ -12,9 +12,9 @@ export default function AboutPage() {
   const { theme, setTheme } = useTheme()
   
   return (
-    <div className="container mx-auto px-4 py-8 max-w-4xl">
+    <div className="container mx-auto px-4 sm:px-6 py-4 sm:py-8 max-w-4xl">
       <div className="mb-6">
-        <div className="flex items-center justify-between mb-4">
+        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 mb-4">
           <Link href="/">
             <Button variant="ghost">
               <ArrowLeft className="mr-2 h-4 w-4" />
@@ -32,8 +32,8 @@ export default function AboutPage() {
             <span className="sr-only">Toggle theme</span>
           </Button>
         </div>
-        <h1 className="text-4xl font-bold mb-2">About AI Evaluation Dashboard</h1>
-        <p className="text-xl text-muted-foreground">
+        <h1 className="text-2xl sm:text-3xl lg:text-4xl font-bold mb-2">About AI Evaluation Dashboard</h1>
+        <p className="text-lg sm:text-xl text-muted-foreground">
           A comprehensive platform for documenting and sharing AI system evaluations
         </p>
       </div>

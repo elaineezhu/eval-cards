@@ -303,19 +303,19 @@ export function CategoryEvaluation({ category, score, onScoreUpdate, onSaveDetai
       <div className="space-y-6">
         <Card>
           <CardHeader>
-            <div className="flex items-center justify-between">
+            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
               <div className="flex-1">
-                <CardTitle className="font-heading flex items-center gap-2">
-                  {category.name}
+                <CardTitle className="font-heading flex flex-col sm:flex-row sm:items-center gap-2">
+                  <span>{category.name}</span>
                   <Badge variant={category.type === "capability" ? "secondary" : "destructive"}>{category.type}</Badge>
                 </CardTitle>
                 <CardDescription className="mt-2">{category.description}</CardDescription>
               </div>
               {isComplete && (
-                <div className="text-right">
+                <div className="text-left sm:text-right">
                   <div className="flex items-center gap-2 mb-1">
                     <CheckCircle className="h-5 w-5 text-green-600" />
-                    <span className="font-medium">Score: {currentScore.totalScore}/{currentScore.totalApplicable || currentScore.totalQuestions}</span>
+                    <span className="font-medium text-sm sm:text-base">Score: {currentScore.totalScore}/{currentScore.totalApplicable || currentScore.totalQuestions}</span>
                   </div>
                   <Badge
                     variant={
@@ -418,14 +418,14 @@ export function CategoryEvaluation({ category, score, onScoreUpdate, onSaveDetai
 
                 {benchmarkAnswers[question.id] === "yes" && (
                   <div className="space-y-4 ml-4 p-4 bg-muted/30 rounded-lg">
-                    <div className="flex items-center justify-between">
+                    <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
                       <Label className="text-sm font-medium">Sources & Evidence</Label>
                       <Button
                         type="button"
                         variant="outline"
                         size="sm"
                         onClick={() => addSource(question.id, "benchmark")}
-                        className="flex items-center gap-1"
+                        className="flex items-center gap-1 self-start sm:self-auto"
                       >
                         <Plus className="h-3 w-3" />
                         Add Source
@@ -434,13 +434,14 @@ export function CategoryEvaluation({ category, score, onScoreUpdate, onSaveDetai
 
                     {(benchmarkSources[question.id] || []).map((source, index) => (
                       <div key={source.id} className="space-y-3 p-3 border rounded-lg bg-background">
-                        <div className="flex items-center justify-between">
+                        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
                           <span className="text-sm font-medium">Source {index + 1}</span>
                           <Button
                             type="button"
                             variant="ghost"
                             size="sm"
                             onClick={() => removeSource(question.id, source.id, "benchmark")}
+                            className="self-start sm:self-auto"
                           >
                             <Trash2 className="h-3 w-3" />
                           </Button>
@@ -566,14 +567,14 @@ export function CategoryEvaluation({ category, score, onScoreUpdate, onSaveDetai
 
                 {processAnswers[question.id] === "yes" && (
                   <div className="space-y-4 ml-4 p-4 bg-muted/30 rounded-lg">
-                    <div className="flex items-center justify-between">
+                    <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
                       <Label className="text-sm font-medium">Documentation & Evidence</Label>
                       <Button
                         type="button"
                         variant="outline"
                         size="sm"
                         onClick={() => addSource(question.id, "process")}
-                        className="flex items-center gap-1"
+                        className="flex items-center gap-1 self-start sm:self-auto"
                       >
                         <Plus className="h-3 w-3" />
                         Add Documentation
@@ -582,13 +583,14 @@ export function CategoryEvaluation({ category, score, onScoreUpdate, onSaveDetai
 
                     {(processSources[question.id] || []).map((source, index) => (
                       <div key={source.id} className="space-y-3 p-3 border rounded-lg bg-background">
-                        <div className="flex items-center justify-between">
+                        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
                           <span className="text-sm font-medium">Document {index + 1}</span>
                           <Button
                             type="button"
                             variant="ghost"
                             size="sm"
                             onClick={() => removeSource(question.id, source.id, "process")}
+                            className="self-start sm:self-auto"
                           >
                             <Trash2 className="h-3 w-3" />
                           </Button>
