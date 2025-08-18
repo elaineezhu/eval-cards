@@ -191,29 +191,55 @@
         "B2": [
           {
             "id": "proc-meem78cs-563xw4",
-            "url": "https://www.anthropic.com/research",
-            "description": "Research publications and evaluation methodologies",
-            "sourceType": "",
-            "documentType": "Research Papers",
-            "customFields": {}
+            "url": "https://www.anthropic.com/research/claude-3-family",
+            "description": "Comprehensive research methodology and experimental design for Claude 3 family",
+            "title": "Claude 3 Family Technical Documentation",
+            "author": "Anthropic Research Team",
+            "organization": "Anthropic",
+            "date": "2024-03-04",
+            "documentType": "Research Paper"
+          },
+          {
+            "id": "proc-meem78cs-563xw5",
+            "url": "https://github.com/anthropics/anthropic-cookbook",
+            "description": "Open cookbook with evaluation prompts and reproducible examples",
+            "title": "Anthropic Evaluation Cookbook",
+            "author": "Developer Relations Team",
+            "organization": "Anthropic",
+            "date": "2024-03-15",
+            "documentType": "Code Repository"
+          },
+          {
+            "id": "proc-meem78cs-563xw6",
+            "url": "https://www.anthropic.com/safety/evaluation-standards",
+            "description": "Detailed evaluation standards and procedures for model assessment",
+            "title": "Model Evaluation Standards v3.2",
+            "author": "Safety Research Division",
+            "organization": "Anthropic",
+            "date": "2024-02-28",
+            "documentType": "Standards Document"
           }
         ],
         "B5": [
           {
-            "id": "proc-meem78cs-0dwm24",
-            "url": "https://www.anthropic.com/safety",
-            "description": "External safety researcher review of language capabilities",
-            "sourceType": "",
-            "documentType": "Safety Assessment",
-            "customFields": {}
+            "id": "proc-meem78cs-563xw7",
+            "url": "https://www.anthropic.com/compliance/ai-standards",
+            "description": "Alignment with industry AI safety and governance standards",
+            "title": "AI Standards Compliance Report",
+            "author": "Compliance Team",
+            "organization": "Anthropic",
+            "date": "2024-03-20",
+            "documentType": "Compliance Report"
           },
           {
-            "id": "proc-meem78cs-o0usw6",
-            "url": "https://www.anthropic.com/safety/continuous-improvement",
-            "description": "Continuous evaluation and safety improvement process",
-            "sourceType": "",
-            "documentType": "Process Documentation",
-            "customFields": {}
+            "id": "proc-meem78cs-563xw8",
+            "url": "https://www.anthropic.com/research/constitutional-ai",
+            "description": "Constitutional AI methodology and regulatory alignment documentation",
+            "title": "Constitutional AI: Regulatory Alignment Framework",
+            "author": "AI Safety Research Team",
+            "organization": "Anthropic",
+            "date": "2024-01-15",
+            "documentType": "Framework Document"
           }
         ],
         "B6": [

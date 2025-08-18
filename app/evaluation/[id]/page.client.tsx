@@ -11,7 +11,9 @@ import { ArrowLeft, Download, Eye, EyeOff, Info, Database, Globe, Calendar, User
   // Capability icons
   MessageCircle, Heart, Brain, Lightbulb, BookOpen, Camera, Hand, Search, Bot,
   // Risk icons
-  Skull, AlertCircle, Lock, Zap, Gavel, Users, Leaf, TrendingDown, Scale, Factory } from "lucide-react"
+  Skull, AlertCircle, Lock, Zap, Gavel, Users, Leaf, TrendingDown, Scale, Factory,
+  // Process question icons
+  FileText, CheckCircle, XCircle, Minus, ChevronUp, ChevronDown } from "lucide-react"
 import { getAllCategories, getCategoryById, getBenchmarkQuestions, getProcessQuestions } from "@/lib/schema"
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip"
 import { naReasonForCategoryFromEval } from "@/lib/na-utils"
@@ -39,6 +41,19 @@ const loadEvaluationDetails = async (id: string) => {
   }
 
   return null
+}
+
+const loadFormHints = async () => {
+  try {
+    const response = await fetch('/schema/form-hints.json')
+    if (!response.ok) {
+      throw new Error(`Failed to load form hints: ${response.statusText}`)
+    }
+    return response.json()
+  } catch (error) {
+    console.error('Failed to load form hints:', error)
+    return null
+  }
 }
 
 // Category icon mapping
@@ -79,6 +94,7 @@ export default function EvaluationDetailsPage() {
 
   const [evaluation, setEvaluation] = useState<any>(null)
   const [loading, setLoading] = useState(true)
+  const [formHints, setFormHints] = useState<any>(null)
   const [expandedAreas, setExpandedAreas] = useState<Record<string, boolean>>({})
   const toggleArea = (area: string) => setExpandedAreas((p) => ({ ...p, [area]: !p[area] }))
   const [expandedNegatives, setExpandedNegatives] = useState<Record<string, boolean>>({})
@@ -132,6 +148,33 @@ export default function EvaluationDetailsPage() {
     return naReasonForCategoryFromEval(catEval, benchmarkQs, processQs)
   }
 
+  // Get question hint from form hints
+  const getQuestionHint = (categoryId: string, questionId: string, type: 'benchmark' | 'process'): string | undefined => {
+    if (!formHints) return undefined
+    
+    // Try category-specific question hints first
+    const categoryQuestionHints = formHints.categoryQuestionHints?.[categoryId]?.[questionId]
+    if (categoryQuestionHints?.[type]) {
+      return categoryQuestionHints[type]
+    }
+    
+    // Fall back to general category hints
+    const categoryHints = formHints.categoryHints?.[categoryId]
+    if (categoryHints?.[type]) {
+      return categoryHints[type]
+    }
+    
+    // Fall back to default hints
+    return formHints.defaultHints?.[type]
+  }
+
+  // Format hint text for tooltip display
+  const formatHintForTooltip = (hint: string): string => {
+    // Remove "Hint: " prefix and add "Explainer: " prefix
+    const cleanHint = hint.replace(/^Hint:\s*/i, '')
+    return `Explainer: ${cleanHint}`
+  }
+
   // Compute overall stats from evaluation data dynamically
   const computedStats = (() => {
     const strongCategories: string[] = []
@@ -178,8 +221,12 @@ export default function EvaluationDetailsPage() {
 
   useEffect(() => {
     const loadData = async () => {
-      const data = await loadEvaluationDetails(evaluationId)
-      setEvaluation(data)
+      const [evalData, hintsData] = await Promise.all([
+        loadEvaluationDetails(evaluationId),
+        loadFormHints()
+      ])
+      setEvaluation(evalData)
+      setFormHints(hintsData)
       setLoading(false)
     }
     loadData()
@@ -211,7 +258,8 @@ export default function EvaluationDetailsPage() {
   }
 
   return (
-    <div className="container mx-auto px-4 py-8 max-w-4xl">
+    <TooltipProvider>
+      <div className="container mx-auto px-4 py-8 max-w-4xl">
       <div className="mb-6">
         <div className="flex items-center justify-between">
           <Button onClick={() => router.push("/")} variant="outline" size="sm">
@@ -778,34 +826,49 @@ export default function EvaluationDetailsPage() {
                                 onClick={() => toggleNegatives(key)}
                                 className="p-4 hover:bg-muted/20 cursor-pointer transition-colors"
                               >
-                                <div className="flex items-start justify-between gap-4">
-                                  <div className="flex-1 min-w-0">
-                                    <div className="flex items-center gap-2 mb-2">
-                                      <span className="font-semibold text-sm bg-blue-50 dark:bg-blue-950 px-2 py-1 rounded text-blue-700 dark:text-blue-300">
-                                        {questionId}
-                                      </span>
-                                      {hasYes ? (
-                                        <Badge variant="default" className="bg-green-100 text-green-700 hover:bg-green-100">
-                                          ✓ Yes
-                                        </Badge>
-                                      ) : hasNo ? (
-                                        <Badge variant="destructive">
-                                          ✗ No
-                                        </Badge>
-                                      ) : (
-                                        <Badge variant="secondary" className="bg-gray-100 text-gray-600">
-                                          N/A
-                                        </Badge>
-                                      )}
-                                    </div>
+                                <div className="flex items-center justify-between gap-4">
+                                  <div className="flex items-center gap-3">
+                                    <Tooltip>
+                                      <TooltipTrigger asChild>
+                                        <div className="text-sm font-semibold text-blue-700 dark:text-blue-300 bg-blue-100 dark:bg-blue-900 px-2 py-1 rounded-full border border-blue-300 dark:border-blue-700 min-w-[40px] text-center cursor-help">
+                                          {questionId}
+                                        </div>
+                                      </TooltipTrigger>
+                                      <TooltipContent className="max-w-sm">
+                                        <p className="text-sm">
+                                          {(() => {
+                                            const hint = getQuestionHint(categoryId, questionId, 'benchmark') || q.tooltip
+                                            return hint ? formatHintForTooltip(hint) : 'Explainer: No specific guidance available for this question.'
+                                          })()}
+                                        </p>
+                                      </TooltipContent>
+                                    </Tooltip>
                                     <div className="text-sm text-muted-foreground leading-relaxed">{qText}</div>
-                                    {hasYes && (
-                                      <div className="mt-2 text-xs text-blue-600 dark:text-blue-400">
-                                        Click to {expandedNegatives[key] ? 'hide' : 'view'} benchmark details
-                                      </div>
+                                  </div>
+                                  <div className="flex items-center gap-2">
+                                    {hasYes ? (
+                                      <Badge variant="outline" className="border-green-300 bg-green-50 text-green-700 dark:border-green-700 dark:bg-green-950 dark:text-green-300">
+                                        <CheckCircle className="h-3 w-3 mr-1" />
+                                        Yes
+                                      </Badge>
+                                    ) : hasNo ? (
+                                      <Badge variant="outline" className="border-red-300 bg-red-50 text-red-700 dark:border-red-700 dark:bg-red-950 dark:text-red-300">
+                                        <XCircle className="h-3 w-3 mr-1" />
+                                        No
+                                      </Badge>
+                                    ) : (
+                                      <Badge variant="outline" className="border-gray-300 bg-gray-50 text-gray-700 dark:border-gray-700 dark:bg-gray-950 dark:text-gray-300">
+                                        <Minus className="h-3 w-3 mr-1" />
+                                        N/A
+                                      </Badge>
                                     )}
                                   </div>
                                 </div>
+                                {hasYes && (
+                                  <div className="mt-2 text-xs text-blue-600 dark:text-blue-400">
+                                    Click to {expandedNegatives[key] ? 'hide' : 'view'} benchmark details
+                                  </div>
+                                )}
                               </div>
 
                               {hasYes && expandedNegatives[key] && (() => {
@@ -953,42 +1016,125 @@ export default function EvaluationDetailsPage() {
                                 role="button"
                                 tabIndex={0}
                                 onClick={() => toggleNegatives(key)}
-                                className="flex items-center gap-2 mb-2 justify-between cursor-pointer"
+                                className="cursor-pointer"
                               >
-                                <div className="flex items-center gap-3">
-                                  <span className="font-medium">{questionId}:</span>
-                                  <div className="text-sm">{qText}</div>
+                                <div className="flex items-center justify-between gap-4">
+                                  <div className="flex items-center gap-3">
+                                    <Tooltip>
+                                      <TooltipTrigger asChild>
+                                        <div className="text-sm font-semibold text-purple-700 dark:text-purple-300 bg-purple-100 dark:bg-purple-900 px-2 py-1 rounded-full border border-purple-300 dark:border-purple-700 min-w-[40px] text-center cursor-help">
+                                          {questionId}
+                                        </div>
+                                      </TooltipTrigger>
+                                      <TooltipContent className="max-w-sm">
+                                        <p className="text-sm">
+                                          {(() => {
+                                            const hint = getQuestionHint(categoryId, questionId, 'process') || q.tooltip
+                                            return hint ? formatHintForTooltip(hint) : 'Explainer: No specific guidance available for this question.'
+                                          })()}
+                                        </p>
+                                      </TooltipContent>
+                                    </Tooltip>
+                                    <div className="text-sm text-muted-foreground leading-relaxed">{qText}</div>
+                                  </div>
+                                  <div className="flex items-center gap-2">
+                                    {hasYes ? (
+                                      <Badge variant="outline" className="border-green-300 bg-green-50 text-green-700 dark:border-green-700 dark:bg-green-950 dark:text-green-300">
+                                        <CheckCircle className="h-3 w-3 mr-1" />
+                                        Yes
+                                      </Badge>
+                                    ) : hasNo ? (
+                                      <Badge variant="outline" className="border-red-300 bg-red-50 text-red-700 dark:border-red-700 dark:bg-red-950 dark:text-red-300">
+                                        <XCircle className="h-3 w-3 mr-1" />
+                                        No
+                                      </Badge>
+                                    ) : (
+                                      <Badge variant="outline" className="border-gray-300 bg-gray-50 text-gray-700 dark:border-gray-700 dark:bg-gray-950 dark:text-gray-300">
+                                        <Minus className="h-3 w-3 mr-1" />
+                                        N/A
+                                      </Badge>
+                                    )}
+                                  </div>
                                 </div>
-                                <div className="flex items-center gap-2">
-                                  {hasYes ? (
-                                    <span className="inline-flex items-center rounded-md px-2 py-0.5 text-xs font-medium bg-green-100 text-green-700">yes</span>
-                                  ) : hasNo ? (
-                                    <span className="inline-flex items-center rounded-md px-2 py-0.5 text-xs font-medium bg-red-100 text-red-700">no</span>
-                                  ) : (
-                                    <span className="inline-flex items-center rounded-md px-2 py-0.5 text-xs font-medium bg-muted/20 text-muted-foreground">n/a</span>
-                                  )}
-                                </div>
+                                {hasYes && sources.length > 0 && (
+                                  <div className="mt-2 text-xs text-purple-600 dark:text-purple-400">
+                                    Click to {expandedNegatives[key] ? 'hide' : 'view'} {sources.length} documentation source{sources.length !== 1 ? 's' : ''}
+                                  </div>
+                                )}
                               </div>
 
-                              {hasYes && expandedNegatives[key] && (
-                                <div className="mt-3 space-y-3">
-                                  {(sources || []).map((src: any, i: number) => (
-                                    <div key={i} className="p-3 bg-muted rounded">
-                                      <div className="grid grid-cols-1 gap-2 text-sm">
-                                        <div>
-                                          <span className="text-muted-foreground">URL:</span> {src?.url || '—'}
+                              {hasYes && expandedNegatives[key] && sources.length > 0 && (
+                                <div className="mt-3">
+                                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                                    {sources.map((src: any, i: number) => (
+                                      <div key={i} className="bg-gradient-to-br from-white to-purple-50 dark:from-gray-900 dark:to-purple-950 border border-purple-200 dark:border-purple-800 rounded-lg p-4 hover:shadow-sm transition-shadow">
+                                        {/* Header */}
+                                        <div className="mb-3">
+                                          <div className="text-xs font-medium text-purple-600 dark:text-purple-400 bg-purple-100 dark:bg-purple-900 px-2 py-1 rounded-full inline-flex items-center gap-1">
+                                            <FileText className="h-3 w-3" />
+                                            {src.documentType || 'Documentation'}
+                                          </div>
                                         </div>
-                                        <div>
-                                          <span className="text-muted-foreground">Document Type:</span> {src?.documentType || src?.sourceType || '—'}
+
+                                        {/* Title */}
+                                        {src.title && (
+                                          <div className="mb-3">
+                                            <h4 className="font-semibold text-lg text-foreground leading-tight">{src.title}</h4>
+                                          </div>
+                                        )}
+
+                                        {/* Details */}
+                                        <div className="space-y-2 text-sm">
+                                          {src.author && (
+                                            <div className="flex items-center gap-2">
+                                              <span className="text-muted-foreground font-medium min-w-[60px]">Author:</span>
+                                              <span className="text-foreground">{src.author}</span>
+                                            </div>
+                                          )}
+                                          
+                                          {src.organization && (
+                                            <div className="flex items-center gap-2">
+                                              <span className="text-muted-foreground font-medium min-w-[60px]">Org:</span>
+                                              <span className="text-foreground">{src.organization}</span>
+                                            </div>
+                                          )}
+                                          
+                                          {src.date && (
+                                            <div className="flex items-center gap-2">
+                                              <span className="text-muted-foreground font-medium min-w-[60px]">Date:</span>
+                                              <span className="text-foreground">{src.date}</span>
+                                            </div>
+                                          )}
+
+                                          <div className="flex items-start gap-2">
+                                            <span className="text-muted-foreground font-medium min-w-[60px]">Source:</span>
+                                            <div className="flex-1 min-w-0">
+                                              {src.url ? (
+                                                <a 
+                                                  className="text-primary hover:text-primary/80 underline decoration-primary/30 hover:decoration-primary/60 transition-colors break-all" 
+                                                  href={src.url} 
+                                                  target="_blank" 
+                                                  rel="noreferrer"
+                                                  title={src.url}
+                                                >
+                                                  {src.url.length > 50 ? `${src.url.substring(0, 50)}...` : src.url}
+                                                </a>
+                                              ) : (
+                                                <span className="text-muted-foreground">—</span>
+                                              )}
+                                            </div>
+                                          </div>
                                         </div>
+
+                                        {/* Description */}
+                                        {src.description && (
+                                          <div className="mt-3 p-3 bg-muted/30 dark:bg-muted/10 rounded-lg">
+                                            <p className="text-sm text-muted-foreground leading-relaxed">{src.description}</p>
+                                          </div>
+                                        )}
                                       </div>
-                                      {src?.description && (
-                                        <div className="mt-2 text-sm">
-                                          <span className="text-muted-foreground">Description:</span> {src.description}
-                                        </div>
-                                      )}
-                                    </div>
-                                  ))}
+                                    ))}
+                                  </div>
                                 </div>
                               )}
 
@@ -1016,5 +1162,6 @@ export default function EvaluationDetailsPage() {
             )
           })}
     </div>
+    </TooltipProvider>
   )
 }

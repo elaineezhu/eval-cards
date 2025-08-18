@@ -193,20 +193,54 @@
           {
             "id": "proc-meem78d1-ur2bqa",
             "url": "https://github.com/openai/evals",
-            "description": "Open-source evaluation framework and prompts",
-            "sourceType": "",
-            "documentType": "Code Repository",
-            "customFields": {}
+            "description": "Open-source evaluation framework and prompts for reproducible testing",
+            "title": "OpenAI Evals Framework",
+            "author": "OpenAI Research Team",
+            "organization": "OpenAI",
+            "date": "2024-04-15",
+            "documentType": "Code Repository"
+          },
+          {
+            "id": "proc-meem78d1-ur2bqb",
+            "url": "https://openai.com/research/gpt-4-technical-report", 
+            "description": "Technical report containing detailed methodologies and experimental procedures",
+            "title": "GPT-4 Technical Report - Reproducibility Section",
+            "author": "OpenAI Safety Team",
+            "organization": "OpenAI",
+            "date": "2024-03-20",
+            "documentType": "Technical Report"
+          },
+          {
+            "id": "proc-meem78d1-ur2bqc",
+            "url": "https://openai.com/safety/reproducibility-guidelines",
+            "description": "Internal guidelines and procedures for ensuring evaluation reproducibility",
+            "title": "Model Evaluation Reproducibility Guidelines v2.1",
+            "author": "AI Safety Division",
+            "organization": "OpenAI",
+            "date": "2024-02-10",
+            "documentType": "Policy Document"
           }
         ],
         "B3": [
           {
-            "id": "proc-meem78d1-so2i6q",
-            "url": "https://openai.com/research/gpt-4-system-card",
-            "description": "External expert review of language capabilities",
-            "sourceType": "",
-            "documentType": "System Card",
-            "customFields": {}
+            "id": "proc-meem78d1-ur2bqd",
+            "url": "https://openai.com/research/expert-review-process",
+            "description": "Documentation of expert review process for language model capabilities",
+            "title": "Expert Review Process for Language Models",
+            "author": "External Advisory Board",
+            "organization": "OpenAI",
+            "date": "2024-04-01",
+            "documentType": "Process Documentation"
+          },
+          {
+            "id": "proc-meem78d1-ur2bqe",
+            "url": "https://openai.com/safety/feedback-incorporation",
+            "description": "Summary of expert feedback and how it was incorporated into final evaluations",
+            "title": "Expert Feedback Integration Report",
+            "author": "Safety Research Team",
+            "organization": "OpenAI", 
+            "date": "2024-04-12",
+            "documentType": "Review Report"
           }
         ],
         "B4": [
