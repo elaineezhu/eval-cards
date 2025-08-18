@@ -23,6 +23,12 @@ export type SystemInfo = {
   modelType?: "foundational" | "fine-tuned" | "na"
   inputModalities?: string[]
   outputModalities?: string[]
+  id?: string
+  systemName?: string
+  systemTypes?: string[]
+  deploymentContext?: string
+  evaluationDate?: string
+  evaluator?: string
 }
 
 export type CategoryScore = {

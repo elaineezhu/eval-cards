@@ -5,7 +5,13 @@ import { useState, useEffect } from "react"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
-import { ArrowLeft, Download, Eye, EyeOff, Info } from "lucide-react"
+import { ArrowLeft, Download, Eye, EyeOff, Info, Database, Globe, Calendar, User, Building, Cpu, MonitorSpeaker, Hash, Tags, Clock, Activity, Settings,
+  // Section icons
+  Target, BarChart3, Shield, AlertTriangle, 
+  // Capability icons
+  MessageCircle, Heart, Brain, Lightbulb, BookOpen, Camera, Hand, Search, Bot,
+  // Risk icons
+  Skull, AlertCircle, Lock, Zap, Gavel, Users, Leaf, TrendingDown, Scale, Factory } from "lucide-react"
 import { getAllCategories, getCategoryById, getBenchmarkQuestions, getProcessQuestions } from "@/lib/schema"
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip"
 import { naReasonForCategoryFromEval } from "@/lib/na-utils"
@@ -33,6 +39,37 @@ const loadEvaluationDetails = async (id: string) => {
   }
 
   return null
+}
+
+// Category icon mapping
+const getCategoryIcon = (categoryId: string) => {
+  const iconMap: Record<string, any> = {
+    // Capabilities
+    "language-communication": MessageCircle,
+    "social-intelligence": Heart,
+    "problem-solving": Brain,
+    "creativity-innovation": Lightbulb,
+    "learning-memory": BookOpen,
+    "perception-vision": Camera,
+    "physical-manipulation": Hand,
+    "metacognition": Search,
+    "robotic-intelligence": Bot,
+    
+    // Risks
+    "harmful-content": Skull,
+    "information-integrity": AlertCircle,
+    "privacy-data": Lock,
+    "bias-fairness": Scale,
+    "security-robustness": Shield,
+    "dangerous-capabilities": Zap,
+    "human-ai-interaction": Users,
+    "environmental-impact": Leaf,
+    "economic-displacement": TrendingDown,
+    "governance-accountability": Gavel,
+    "value-chain": Factory
+  }
+  
+  return iconMap[categoryId] || Target
 }
 
 export default function EvaluationDetailsPage() {
@@ -201,35 +238,183 @@ export default function EvaluationDetailsPage() {
         </div>
       </div>
 
-      {/* System Information */}
+      {/* System Information (detailed) */}
       <Card className="mb-6">
         <CardHeader>
-          <CardTitle>System Information</CardTitle>
+          <div className="flex items-center justify-between w-full">
+            <div>
+              <CardTitle className="flex items-center gap-2">
+                <Database className="h-5 w-5 text-blue-600" />
+                System Information
+              </CardTitle>
+              <p className="text-sm text-muted-foreground">Metadata about the evaluated system</p>
+            </div>
+          </div>
         </CardHeader>
-        <CardContent className="grid grid-cols-2 gap-4">
-          <div>
-            <p className="text-sm text-muted-foreground">System Version</p>
-            <p className="font-medium">{evaluation.version}</p>
+        <CardContent>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+            {/* Left Column */}
+            <div className="space-y-6">
+              <div className="flex items-start gap-3">
+                <div className="p-2 bg-blue-50 dark:bg-blue-950 rounded-lg">
+                  <Cpu className="h-4 w-4 text-blue-600 dark:text-blue-400" />
+                </div>
+                <div className="flex-1">
+                  <p className="text-sm font-medium text-muted-foreground">System Name</p>
+                  <p className="text-lg font-semibold text-foreground mt-1">{evaluation.systemName || evaluation.systemName || "—"}</p>
+                </div>
+              </div>
+
+              <div className="flex items-start gap-3">
+                <div className="p-2 bg-green-50 dark:bg-green-950 rounded-lg">
+                  <Tags className="h-4 w-4 text-green-600 dark:text-green-400" />
+                </div>
+                <div className="flex-1">
+                  <p className="text-sm font-medium text-muted-foreground">System Version</p>
+                  <p className="text-lg font-semibold text-foreground mt-1">{evaluation.version || evaluation.modelTag || "—"}</p>
+                </div>
+              </div>
+
+              <div className="flex items-start gap-3">
+                <div className="p-2 bg-purple-50 dark:bg-purple-950 rounded-lg">
+                  <Building className="h-4 w-4 text-purple-600 dark:text-purple-400" />
+                </div>
+                <div className="flex-1">
+                  <p className="text-sm font-medium text-muted-foreground">Provider</p>
+                  <p className="text-lg font-semibold text-foreground mt-1">{evaluation.provider || "—"}</p>
+                </div>
+              </div>
+
+              <div className="flex items-start gap-3">
+                <div className="p-2 bg-indigo-50 dark:bg-indigo-950 rounded-lg">
+                  <Globe className="h-4 w-4 text-indigo-600 dark:text-indigo-400" />
+                </div>
+                <div className="flex-1">
+                  <p className="text-sm font-medium text-muted-foreground">URL</p>
+                  <p className="text-lg font-semibold text-foreground mt-1 break-all">
+                    {evaluation.url ? (
+                      <a href={evaluation.url} target="_blank" rel="noreferrer" className="text-primary hover:text-primary/80 underline decoration-primary/30 hover:decoration-primary/60 transition-colors">
+                        {evaluation.url}
+                      </a>
+                    ) : (
+                      "—"
+                    )}
+                  </p>
+                </div>
+              </div>
+            </div>
+
+            {/* Right Column */}
+            <div className="space-y-6">
+              <div className="flex items-start gap-3">
+                <div className="p-2 bg-cyan-50 dark:bg-cyan-950 rounded-lg">
+                  <Globe className="h-4 w-4 text-cyan-600 dark:text-cyan-400" />
+                </div>
+                <div className="flex-1">
+                  <p className="text-sm font-medium text-muted-foreground">Deployment Context</p>
+                  <p className="text-lg font-semibold text-foreground mt-1">{evaluation.deploymentContext || (evaluation.deploymentContexts && evaluation.deploymentContexts.join(", ")) || "—"}</p>
+                </div>
+              </div>
+
+              <div className="flex items-start gap-3">
+                <div className="p-2 bg-emerald-50 dark:bg-emerald-950 rounded-lg">
+                  <Activity className="h-4 w-4 text-emerald-600 dark:text-emerald-400" />
+                </div>
+                <div className="flex-1">
+                  <p className="text-sm font-medium text-muted-foreground">Input Modalities</p>
+                  <div className="text-lg font-semibold text-foreground mt-1">
+                    {evaluation.inputModalities?.length ? (
+                      <div className="flex flex-wrap gap-1">
+                        {evaluation.inputModalities.map((modality: string, idx: number) => (
+                          <Badge key={idx} variant="outline" className="text-xs">
+                            {modality}
+                          </Badge>
+                        ))}
+                      </div>
+                    ) : "—"}
+                  </div>
+                </div>
+              </div>
+
+              <div className="flex items-start gap-3">
+                <div className="p-2 bg-rose-50 dark:bg-rose-950 rounded-lg">
+                  <MonitorSpeaker className="h-4 w-4 text-rose-600 dark:text-rose-400" />
+                </div>
+                <div className="flex-1">
+                  <p className="text-sm font-medium text-muted-foreground">Output Modalities</p>
+                  <div className="text-lg font-semibold text-foreground mt-1">
+                    {evaluation.outputModalities?.length ? (
+                      <div className="flex flex-wrap gap-1">
+                        {evaluation.outputModalities.map((modality: string, idx: number) => (
+                          <Badge key={idx} variant="outline" className="text-xs">
+                            {modality}
+                          </Badge>
+                        ))}
+                      </div>
+                    ) : "—"}
+                  </div>
+                </div>
+              </div>
+
+              <div className="flex items-start gap-3">
+                <div className="p-2 bg-amber-50 dark:bg-amber-950 rounded-lg">
+                  <Clock className="h-4 w-4 text-amber-600 dark:text-amber-400" />
+                </div>
+                <div className="flex-1">
+                  <p className="text-sm font-medium text-muted-foreground">Knowledge Cutoff</p>
+                  <p className="text-lg font-semibold text-foreground mt-1">{evaluation.knowledgeCutoff || "—"}</p>
+                </div>
+              </div>
+            </div>
           </div>
-          <div>
-            <p className="text-sm text-muted-foreground">Deployment Context</p>
-            <p className="font-medium">{evaluation.deploymentContext}</p>
+
+          {/* Bottom Row - Metadata Cards */}
+          <div className="mt-8 grid grid-cols-1 md:grid-cols-3 gap-4">
+            <div className="p-4 bg-gradient-to-r from-blue-50 to-blue-100 dark:from-blue-950/50 dark:to-blue-900/50 rounded-lg border border-blue-200 dark:border-blue-800">
+              <div className="flex items-center gap-2 mb-2">
+                <Hash className="h-4 w-4 text-blue-600 dark:text-blue-400" />
+                <div className="text-sm font-medium text-blue-700 dark:text-blue-300">System ID</div>
+              </div>
+              <div className="font-mono text-sm text-blue-900 dark:text-blue-100 break-all">{evaluation.id || "—"}</div>
+            </div>
+
+            <div className="p-4 bg-gradient-to-r from-green-50 to-green-100 dark:from-green-950/50 dark:to-green-900/50 rounded-lg border border-green-200 dark:border-green-800">
+              <div className="flex items-center gap-2 mb-2">
+                <Tags className="h-4 w-4 text-green-600 dark:text-green-400" />
+                <div className="text-sm font-medium text-green-700 dark:text-green-300">System Types</div>
+              </div>
+              <div className="font-medium text-green-900 dark:text-green-100">{evaluation.systemTypes?.length ? evaluation.systemTypes.join(", ") : "—"}</div>
+            </div>
+
+            <div className="p-4 bg-gradient-to-r from-purple-50 to-purple-100 dark:from-purple-950/50 dark:to-purple-900/50 rounded-lg border border-purple-200 dark:border-purple-800">
+              <div className="flex items-center gap-2 mb-2">
+                <Calendar className="h-4 w-4 text-purple-600 dark:text-purple-400" />
+                <div className="text-sm font-medium text-purple-700 dark:text-purple-300">Evaluation Date</div>
+              </div>
+              <div className="font-medium text-purple-900 dark:text-purple-100">{evaluation.evaluationDate || "—"}</div>
+            </div>
           </div>
-          <div>
-            <p className="text-sm text-muted-foreground">Evaluation Date</p>
-            <p className="font-medium">{evaluation.evaluationDate}</p>
-          </div>
-          <div>
-            <p className="text-sm text-muted-foreground">Evaluator</p>
-            <p className="font-medium">{evaluation.evaluator}</p>
-          </div>
-          <div>
-            <p className="text-sm text-muted-foreground">Modality</p>
-            <p className="font-medium">{evaluation.modality}</p>
-          </div>
-          <div>
-            <p className="text-sm text-muted-foreground">Completeness Score</p>
-            <p className="font-medium">{evaluation.overallStats?.completenessScore || "N/A"}%</p>
+
+          {/* Additional Bottom Fields */}
+          <div className="mt-6 grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div className="flex items-start gap-3">
+              <div className="p-2 bg-violet-50 dark:bg-violet-950 rounded-lg">
+                <User className="h-4 w-4 text-violet-600 dark:text-violet-400" />
+              </div>
+              <div className="flex-1">
+                <p className="text-sm font-medium text-muted-foreground">Evaluator</p>
+                <p className="text-lg font-semibold text-foreground mt-1">{evaluation.evaluator || "—"}</p>
+              </div>
+            </div>
+            <div className="flex items-start gap-3">
+              <div className="p-2 bg-pink-50 dark:bg-pink-950 rounded-lg">
+                <Activity className="h-4 w-4 text-pink-600 dark:text-pink-400" />
+              </div>
+              <div className="flex-1">
+                <p className="text-sm font-medium text-muted-foreground">Completeness Score</p>
+                <p className="text-lg font-semibold text-foreground mt-1">{evaluation.overallStats?.completenessScore ? `${evaluation.overallStats.completenessScore}%` : "N/A"}</p>
+              </div>
+            </div>
           </div>
         </CardContent>
       </Card>
@@ -239,7 +424,8 @@ export default function EvaluationDetailsPage() {
         <CardHeader>
             <div className="flex items-center justify-between w-full">
               {/* compute applicable count as non-NA categories from the full CATEGORIES list */}
-              <CardTitle>
+              <CardTitle className="flex items-center gap-2">
+                <Target className="h-5 w-5 text-green-600" />
                 Applicable Categories ({
                   getAllCategories().filter((c) => {
                     const sel = new Set(evaluation.selectedCategories || [])
@@ -301,11 +487,27 @@ export default function EvaluationDetailsPage() {
                         <span className="ml-2">
                           {isNA ? (
                               <span className="inline-flex items-center rounded-md px-2 py-0.5 text-xs font-medium bg-muted/30 text-muted-foreground border-2 border-purple-500">
-                                {getCategoryById(category.id)?.name || category.name}
+                                {(() => {
+                                  const IconComponent = getCategoryIcon(category.id)
+                                  return (
+                                    <>
+                                      <IconComponent className="h-3 w-3 mr-1" />
+                                      {getCategoryById(category.id)?.name || category.name}
+                                    </>
+                                  )
+                                })()}
                               </span>
                             ) : (
                               <Badge variant="secondary" className="cursor-pointer">
-                                {getCategoryById(category.id)?.name || category.name}
+                                {(() => {
+                                  const IconComponent = getCategoryIcon(category.id)
+                                  return (
+                                    <>
+                                      <IconComponent className="h-3 w-3 mr-1" />
+                                      {getCategoryById(category.id)?.name || category.name}
+                                    </>
+                                  )
+                                })()}
                               </Badge>
                             )}
                         </span>
@@ -355,11 +557,27 @@ export default function EvaluationDetailsPage() {
                         <span className="ml-2">
                           {isNA ? (
                             <span className="inline-flex items-center rounded-md px-2 py-0.5 text-xs font-medium bg-muted/30 text-muted-foreground border-2 border-red-500">
-                              {getCategoryById(category.id)?.name || category.name}
+                              {(() => {
+                                const IconComponent = getCategoryIcon(category.id)
+                                return (
+                                  <>
+                                    <IconComponent className="h-3 w-3 mr-1" />
+                                    {getCategoryById(category.id)?.name || category.name}
+                                  </>
+                                )
+                              })()}
                             </span>
                           ) : (
                             <Badge variant="destructive" className="cursor-pointer">
-                              {getCategoryById(category.id)?.name || category.name}
+                              {(() => {
+                                const IconComponent = getCategoryIcon(category.id)
+                                return (
+                                  <>
+                                    <IconComponent className="h-3 w-3 mr-1" />
+                                    {getCategoryById(category.id)?.name || category.name}
+                                  </>
+                                )
+                              })()}
                             </Badge>
                           )}
                         </span>
@@ -375,7 +593,10 @@ export default function EvaluationDetailsPage() {
       {/* Overall Statistics */}
       <Card className="mb-6">
         <CardHeader>
-          <CardTitle>Overall Statistics</CardTitle>
+          <CardTitle className="flex items-center gap-2">
+            <BarChart3 className="h-5 w-5 text-blue-600" />
+            Overall Statistics
+          </CardTitle>
         </CardHeader>
         <CardContent>
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
@@ -411,7 +632,10 @@ export default function EvaluationDetailsPage() {
       {((evaluation.overallStats?.weakCategories || []).length > 0 || (evaluation.overallStats?.insufficientCategories || []).length > 0) && (
         <Card className="mb-6">
           <CardHeader>
-            <CardTitle>Priority Areas</CardTitle>
+            <CardTitle className="flex items-center gap-2">
+              <AlertTriangle className="h-5 w-5 text-amber-600" />
+              Priority Areas
+            </CardTitle>
           </CardHeader>
           <CardContent>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
@@ -422,8 +646,14 @@ export default function EvaluationDetailsPage() {
                   return (
                     <div key={catId} className="p-3 border rounded-md flex items-center justify-between">
                       <div>
-                        <div className="font-medium">{category?.name || catId}</div>
-                        <div className="text-xs text-muted-foreground">{category?.description}</div>
+                        <div className="font-medium flex items-center gap-2">
+                          {(() => {
+                            const IconComponent = getCategoryIcon(catId)
+                            return <IconComponent className="h-4 w-4 text-muted-foreground" />
+                          })()}
+                          {category?.name || catId}
+                        </div>
+                        <div className="text-xs text-muted-foreground ml-6">{category?.description}</div>
                       </div>
                       <Badge variant={evaluation.overallStats?.insufficientCategories?.includes(catId) ? "destructive" : "outline"}>
                         {evaluation.overallStats?.insufficientCategories?.includes(catId) ? "insufficient" : "weak"}
@@ -501,6 +731,10 @@ export default function EvaluationDetailsPage() {
                   <div className="flex items-start justify-between w-full gap-4">
                     <div>
                       <CardTitle className="flex items-center gap-2">
+                        {(() => {
+                          const IconComponent = getCategoryIcon(categoryId)
+                          return <IconComponent className="h-5 w-5" />
+                        })()}
                         {category?.name || categoryId}
                         <Badge variant={category?.type === "capability" ? "secondary" : "destructive"}>
                           {category?.type || "unknown"}
