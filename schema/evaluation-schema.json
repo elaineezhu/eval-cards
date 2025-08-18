@@ -37,13 +37,13 @@
     },
     {
       "id":"A3",
-      "text":"How does performance compare to baselines, SOTA, previous versions, and other comparable systems?",
+      "text":"Has performance been compared to baselines, SOTA, previous versions, and other comparable systems?",
       "tooltip":"Expect: Side-by-side comparisons with SOTA models, previous versions, and similar systems under matched conditions, significance tests or confidence intervals for deltas.",
       "hint":"Provide comparative scores and targets."
     },
     {
       "id":"A4",
-      "text":"How does the system perform under adversarial inputs, extreme loads, distribution shift?",
+      "text":"Has the system been tested under adversarial inputs, extreme loads, or distribution shift?",
       "tooltip":"Expect: Test types (attack/shift/load), rates of failure/degradation, robustness metrics.",
       "hint":"Describe stress tests and observed failure rates."
     },
@@ -63,7 +63,7 @@
   "processQuestions": [
     {
       "id":"B1",
-      "text":"What capability/risk claims is this category evaluating and why it's applicable?",
+      "text":"Are the capability/risk claims and applicability for this category clearly documented?",
       "tooltip":"Expect: Clear scope, success/failure definitions, hypotheses the evaluation is testing.",
       "hint":"Define scope and hypotheses."
     },
@@ -87,7 +87,7 @@
     },
     {
       "id":"B5",
-      "text":"Standards & Compliance Alignment - Are evaluation practices aligned with relevant organizational, industry, or regulatory standards?",
+      "text":"Are evaluation practices aligned with relevant organizational, industry, or regulatory standards?",
       "tooltip":"Expect: References to applicable standards/regulations, mapping of evaluation practices to those standards, any gaps or exemptions noted, and plan to address misalignment.",
       "hint":"Map evaluation practices to standards and note gaps."
     },
