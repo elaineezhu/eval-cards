@@ -40,9 +40,11 @@ export function Navigation() {
           <div className="flex items-center gap-4">
             {/* Logo */}
             <Link href="/" className="flex-shrink-0">
-              <div className="w-10 h-10 bg-gradient-to-br from-blue-500 to-purple-600 rounded-lg flex items-center justify-center text-white font-bold text-lg hover:scale-105 transition-transform">
-                AI
-              </div>
+              <img 
+                src="https://evalevalai.com/assets/img/logo-square.png" 
+                alt="EvalEval Logo" 
+                className="w-10 h-10 rounded-lg hover:scale-105 transition-transform"
+              />
             </Link>
             
             {/* App title and description */}

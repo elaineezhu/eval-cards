@@ -150,6 +150,49 @@ export default function AboutPage() {
                   </div>
                 </div>
               </div>
+              
+              <Separator className="my-6" />
+              
+              <div className="space-y-4">
+                <h4 className="font-medium text-foreground">Taxonomy Sources</h4>
+                <p className="text-sm text-muted-foreground">
+                  Our evaluation framework builds upon established research and industry standards:
+                </p>
+                <div className="grid gap-3 sm:grid-cols-2">
+                  <div className="flex items-start gap-3 p-3 border rounded-lg">
+                    <ExternalLink className="h-4 w-4 text-muted-foreground mt-0.5 flex-shrink-0" />
+                    <div>
+                      <h5 className="font-medium text-sm">OECD AI Capability Indicators</h5>
+                      <p className="text-xs text-muted-foreground mb-2">
+                        OECD framework for AI capabilities assessment and evaluation
+                      </p>
+                      <Link 
+                        href="https://www.oecd.org/en/publications/introducing-the-oecd-ai-capability-indicators_be745f04-en.html" 
+                        target="_blank"
+                        className="text-xs text-primary hover:underline"
+                      >
+                        oecd.org/ai-capability-indicators
+                      </Link>
+                    </div>
+                  </div>
+                  <div className="flex items-start gap-3 p-3 border rounded-lg">
+                    <ExternalLink className="h-4 w-4 text-muted-foreground mt-0.5 flex-shrink-0" />
+                    <div>
+                      <h5 className="font-medium text-sm">NIST AI Risk Management Framework</h5>
+                      <p className="text-xs text-muted-foreground mb-2">
+                        NIST framework for identifying and managing AI risks
+                      </p>
+                      <Link 
+                        href="https://nvlpubs.nist.gov/nistpubs/ai/NIST.AI.600-1.pdf" 
+                        target="_blank"
+                        className="text-xs text-primary hover:underline"
+                      >
+                        nvlpubs.nist.gov/NIST.AI.600-1.pdf
+                      </Link>
+                    </div>
+                  </div>
+                </div>
+              </div>
             </CardContent>
           </Card>
 
