@@ -230,6 +230,71 @@ export default function AboutPage() {
             </CardContent>
           </Card>
 
+          <Card>
+            <CardHeader>
+              <CardTitle>Contributions & Open Data</CardTitle>
+              <CardDescription>
+                Explore our open-source evaluation framework and example datasets
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div className="grid gap-4 sm:grid-cols-2">
+                <div className="flex items-start gap-3 p-4 border rounded-lg">
+                  <div className="w-8 h-8 bg-blue-100 dark:bg-blue-900 rounded-lg flex items-center justify-center flex-shrink-0">
+                    <svg className="w-4 h-4 text-blue-600 dark:text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                    </svg>
+                  </div>
+                  <div>
+                    <h4 className="font-medium mb-2">Evaluation Schema</h4>
+                    <p className="text-sm text-muted-foreground mb-3">
+                      Access our complete evaluation framework including category definitions, question sets, and validation schemas.
+                    </p>
+                    <Link 
+                      href="https://huggingface.co/spaces/evaleval/general-eval-card/tree/main/schema" 
+                      target="_blank" 
+                      className="inline-flex items-center gap-1 text-sm text-primary hover:underline"
+                    >
+                      View on Hugging Face
+                      <ExternalLink className="h-3 w-3" />
+                    </Link>
+                  </div>
+                </div>
+                
+                <div className="flex items-start gap-3 p-4 border rounded-lg">
+                  <div className="w-8 h-8 bg-green-100 dark:bg-green-900 rounded-lg flex items-center justify-center flex-shrink-0">
+                    <svg className="w-4 h-4 text-green-600 dark:text-green-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 7v10a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2H5a2 2 0 00-2-2z" />
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 5a2 2 0 012-2h4a2 2 0 012 2v10a2 2 0 01-2 2H10a2 2 0 01-2-2V5z" />
+                    </svg>
+                  </div>
+                  <div>
+                    <h4 className="font-medium mb-2">Example Evaluations</h4>
+                    <p className="text-sm text-muted-foreground mb-3">
+                      Explore completed evaluation examples from leading AI systems to understand the evaluation process.
+                    </p>
+                    <Link 
+                      href="https://huggingface.co/spaces/evaleval/general-eval-card/tree/main/public/evaluations" 
+                      target="_blank" 
+                      className="inline-flex items-center gap-1 text-sm text-primary hover:underline"
+                    >
+                      View on Hugging Face
+                      <ExternalLink className="h-3 w-3" />
+                    </Link>
+                  </div>
+                </div>
+              </div>
+              
+              <div className="bg-muted/50 p-4 rounded-lg">
+                <h5 className="font-medium mb-2 text-sm">Contribute to the Framework</h5>
+                <p className="text-xs text-muted-foreground">
+                  Our evaluation framework is open for community contributions. Use these schemas and examples to create your own evaluations, 
+                  or contribute improvements to help advance AI transparency and accountability standards.
+                </p>
+              </div>
+            </CardContent>
+          </Card>
+
           <Separator />
 
           <div className="text-center space-y-4">
