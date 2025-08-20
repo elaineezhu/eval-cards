@@ -3,7 +3,7 @@
 import { useState, useMemo, useEffect } from "react"
 import { Button } from "@/components/ui/button"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { Filter, ArrowUpDown, Plus } from "lucide-react"
+import { Filter, ArrowUpDown } from "lucide-react"
 import { EvaluationCard, type EvaluationCardData } from "@/components/evaluation-card"
 import { getBenchmarkQuestions, getProcessQuestions } from "@/lib/schema"
 import { AIEvaluationDashboard } from "@/components/ai-evaluation-dashboard"
@@ -472,18 +472,12 @@ export default function HomePage() {
 
   return (
     <div className="min-h-screen bg-background">
-      <Navigation />
+      <Navigation onNewEvaluation={() => setShowNewEvaluation(true)} />
       
       <PageHeader 
         title="Evaluation Cards"
         description={`Track and manage AI system evaluations across capabilities and risks. ${filteredAndSortedEvaluations.length} eval cards available.`}
-      >
-        <Button onClick={() => setShowNewEvaluation(true)} className="gap-2">
-          <Plus className="h-4 w-4" />
-          <span className="hidden sm:inline">New Eval Card</span>
-          <span className="sm:hidden">New</span>
-        </Button>
-      </PageHeader>
+      />
 
       <div className="container mx-auto px-4 sm:px-6 py-6">
         <div className="space-y-6">

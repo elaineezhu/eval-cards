@@ -3,9 +3,21 @@
 import { useState, useMemo, useEffect } from "react"
 import { Button } from "@/components/ui/button"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { Filter, ArrowUpDown, Plus } from "lucide-react"
+import { Filter, ArrowUpDown } from "lucide-react"
 import { EvaluationCard, type EvaluationCardData } from "@/components/evaluation-card"
-import { getBenchmarkQuestions, getProcessQuestions } from "@/lib/schema"
+import { geexport default function HomePage() {
+  const [showNewEvaluation, setShowNewEvaluation] = useState(false)
+  const [evaluationsData, setEvaluationsData] = useState<EvaluationCardData[]>([])
+  const [loading, setLoading] = useState(true)
+
+  useEffect(() => {
+    const loadData = async () => {
+      const data = await loadEvaluationData()
+      setEvaluationsData(data)
+      setLoading(false)
+    }
+    loadData()
+  }, [])tions, getProcessQuestions } from "@/lib/schema"
 import { AIEvaluationDashboard } from "@/components/ai-evaluation-dashboard"
 import { Navigation } from "@/components/navigation"
 import { PageHeader } from "@/components/page-header"
@@ -366,6 +378,7 @@ const loadEvaluationData = async (): Promise<EvaluationCardData[]> => {
 }
 
 export default function HomePage() {
+  const { theme, setTheme } = useTheme()
   const [showNewEvaluation, setShowNewEvaluation] = useState(false)
   const [evaluationsData, setEvaluationsData] = useState<EvaluationCardData[]>([])
   const [loading, setLoading] = useState(true)
@@ -398,9 +411,12 @@ export default function HomePage() {
       item.inputModalities.forEach((mod) => existingModalities.add(mod))
       item.outputModalities.forEach((mod) => existingModalities.add(mod))
     })
-
-    // Return only modalities that exist in the data, in the order defined by allModalities
-    return allModalities.filter((mod) => existingModalities.has(mod))
+    
+    // Return all predefined modalities, with existing ones first, then missing ones
+    const existing = allModalities.filter(mod => existingModalities.has(mod)).sort()
+    const missing = allModalities.filter(mod => !existingModalities.has(mod)).sort()
+    
+    return [...existing, ...missing]
   }, [evaluationsData])
 
   const filteredAndSortedEvaluations = useMemo(() => {
@@ -417,15 +433,29 @@ export default function HomePage() {
       )
     }
 
-    filtered = filtered.sort((a, b) => {
-      if (sortBy.includes("completeness")) {
-        const aCompleteness = (a.completedCategories / a.applicableCategories) * 100
-        const bCompleteness = (b.completedCategories / b.applicableCategories) * 100
-
+    filtered = [...filtered].sort((a, b) => {
+      if (sortBy === "completeness-highest" || sortBy === "completeness-lowest") {
+        // Calculate completeness scores for both items
+        const calculateCompletenessScore = (evaluation: EvaluationCardData) => {
+          const capTotal = evaluation.capabilityEval.strong + evaluation.capabilityEval.adequate + evaluation.capabilityEval.weak + evaluation.capabilityEval.insufficient
+          const riskTotal = evaluation.riskEval.strong + evaluation.riskEval.adequate + evaluation.riskEval.weak + evaluation.riskEval.insufficient
+          const totalItems = capTotal + riskTotal
+          
+          if (totalItems === 0) return 0
+          
+          const capScore = evaluation.capabilityEval.strong * 4 + evaluation.capabilityEval.adequate * 3 + evaluation.capabilityEval.weak * 2 + evaluation.capabilityEval.insufficient * 1
+          const riskScore = evaluation.riskEval.strong * 4 + evaluation.riskEval.adequate * 3 + evaluation.riskEval.weak * 2 + evaluation.riskEval.insufficient * 1
+          
+          return Math.round(((capScore + riskScore) / (totalItems * 4)) * 100)
+        }
+        
+        const scoreA = calculateCompletenessScore(a)
+        const scoreB = calculateCompletenessScore(b)
+        
         if (sortBy === "completeness-highest") {
-          return bCompleteness - aCompleteness
+          return scoreB - scoreA
         } else {
-          return aCompleteness - bCompleteness
+          return scoreA - scoreB
         }
       } else {
         const dateA = new Date(a.completedDate)
@@ -458,13 +488,10 @@ export default function HomePage() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-background">
-        <Navigation />
-        <div className="flex items-center justify-center min-h-[60vh]">
-          <div className="text-center">
-            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto mb-4"></div>
-            <p className="text-muted-foreground">Loading evaluations...</p>
-          </div>
+      <div className="min-h-screen bg-background flex items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto mb-4"></div>
+          <p className="text-muted-foreground">Loading evaluations...</p>
         </div>
       </div>
     )
@@ -472,22 +499,53 @@ export default function HomePage() {
 
   return (
     <div className="min-h-screen bg-background">
-      <Navigation />
-      
-      <PageHeader 
-        title="Evaluation Cards"
-        description={`Track and manage AI system evaluations across capabilities and risks. ${filteredAndSortedEvaluations.length} eval cards available.`}
-      >
-        <Button onClick={() => setShowNewEvaluation(true)} className="gap-2">
-          <Plus className="h-4 w-4" />
-          <span className="hidden sm:inline">New Eval Card</span>
-          <span className="sm:hidden">New</span>
-        </Button>
-      </PageHeader>
+      <header className="border-b bg-card">
+        <div className="container mx-auto px-4 sm:px-6 py-4">
+          <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
+            <div>
+              <h1 className="text-xl sm:text-2xl font-bold font-heading text-foreground">AI Evaluation Dashboard</h1>
+              <p className="text-sm text-muted-foreground">Manage and track your AI system evaluations</p>
+            </div>
+            <div className="flex items-center gap-2 sm:gap-3">
+              <Link href="/analytics">
+                <Button variant="ghost" size="sm" className="gap-2">
+                  <ArrowUpDown className="h-4 w-4" />
+                  <span className="hidden sm:inline">Analytics</span>
+                </Button>
+              </Link>
+              <Link href="/about">
+                <Button variant="ghost" size="sm" className="gap-2">
+                  <Info className="h-4 w-4" />
+                  <span className="hidden sm:inline">About</span>
+                </Button>
+              </Link>
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => setTheme(theme === "dark" ? "light" : "dark")}
+                className="h-9 w-9 p-0"
+              >
+                <Sun className="h-4 w-4 rotate-0 scale-100 transition-all dark:-rotate-90 dark:scale-0" />
+                <Moon className="absolute h-4 w-4 rotate-90 scale-0 transition-all dark:rotate-0 dark:scale-100" />
+                <span className="sr-only">Toggle theme</span>
+              </Button>
+              <Button onClick={() => setShowNewEvaluation(true)} className="gap-2">
+                <Plus className="h-4 w-4" />
+                <span className="hidden sm:inline">New Eval Card</span>
+                <span className="sm:hidden">New</span>
+              </Button>
+            </div>
+          </div>
+        </div>
+      </header>
 
-      <div className="container mx-auto px-4 sm:px-6 py-6">
+      <div className="container mx-auto px-4 sm:px-6 py-4 sm:py-6">
         <div className="space-y-6">
-          {/* Filters */}
+          <div className="flex items-center justify-between">
+            <h2 className="text-xl font-semibold font-heading">Evaluation Cards</h2>
+            <p className="text-sm text-muted-foreground">{filteredAndSortedEvaluations.length} eval cards</p>
+          </div>
+
           <div className="flex flex-col sm:flex-row sm:flex-wrap items-start sm:items-center gap-3 sm:gap-4 p-4 bg-card rounded-lg border">
             <div className="flex items-center gap-2 w-full sm:w-auto">
               <ArrowUpDown className="h-4 w-4 text-muted-foreground" />
@@ -542,7 +600,6 @@ export default function HomePage() {
             </div>
           </div>
 
-          {/* Results */}
           {filteredAndSortedEvaluations.length > 0 ? (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
               {filteredAndSortedEvaluations.map((evaluation) => (
