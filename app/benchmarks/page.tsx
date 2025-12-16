@@ -3,7 +3,7 @@
 import { useState, useMemo, useEffect } from "react"
 import { Button } from "@/components/ui/button"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { Filter, ArrowUpDown } from "lucide-react"
+import { Filter, ArrowUpDown, Plus } from "lucide-react"
 import { BenchmarkEvaluationCard, type BenchmarkEvaluationCardData } from "@/components/benchmark-evaluation-card"
 import { Navigation } from "@/components/navigation"
 import { PageHeader } from "@/components/page-header"
@@ -11,7 +11,7 @@ import { processEvaluationsToCards } from "@/lib/eval-processing"
 import type { CategoryType } from "@/lib/benchmark-schema"
 import { EVALUATION_CATEGORIES } from "@/lib/benchmark-schema"
 
-export default function HomePage() {
+export default function BenchmarksPage() {
   const [evaluations, setEvaluations] = useState<BenchmarkEvaluationCardData[]>([])
   const [loading, setLoading] = useState(true)
   const [sortBy, setSortBy] = useState<"date" | "name" | "benchmarks">("date")
@@ -21,7 +21,7 @@ export default function HomePage() {
   useEffect(() => {
     const loadData = async () => {
       try {
-        // Discover all benchmark files dynamically
+        // Load all benchmark evaluation files
         const benchmarkFiles = [
           "/benchmarks/meta-llama-3-70b.json",
           "/benchmarks/mistral-mistral-large.json",

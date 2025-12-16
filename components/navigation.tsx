@@ -1,7 +1,7 @@
 "use client"
 
 import { Button } from "@/components/ui/button"
-import { Moon, Sun, Home, ArrowUpDown, Info } from "lucide-react"
+import { Moon, Sun, Home, ArrowUpDown, Info, BarChart3 } from "lucide-react"
 import { useTheme } from "next-themes"
 import Link from "next/link"
 import { usePathname } from "next/navigation"
@@ -16,7 +16,7 @@ export function Navigation() {
       href: "/",
       label: "Home",
       icon: Home,
-      isActive: pathname === "/"
+      isActive: pathname === "/" || pathname?.startsWith("/benchmark")
     },
     {
       href: "/analytics",
