@@ -91,8 +91,17 @@ export function createModelSummary(
   }
   
   // Find latest timestamp
-  const timestamps = evaluations.map(e => parseFloat(e.retrieved_timestamp))
-  const latestTimestamp = new Date(Math.max(...timestamps) * 1000).toISOString()
+  const timestamps = evaluations.map(e => {
+    const ts = e.retrieved_timestamp
+    // Check if it's a number (unix timestamp in seconds)
+    if (!isNaN(Number(ts)) && !ts.includes('-')) {
+      return parseFloat(ts) * 1000
+    }
+    // Assume ISO string or date string
+    return new Date(ts).getTime()
+  })
+  
+  const latestTimestamp = new Date(Math.max(...timestamps)).toISOString()
   
   // Calculate total benchmark results
   const totalResults = evaluations.reduce((sum, eval_) => sum + eval_.evaluation_results.length, 0)
@@ -133,7 +142,15 @@ export function createEvaluationCard(
           benchmarksSet.add(result.evaluation_name)
         }
       } else {
-        benchmarksSet.add(eval_.source_data.dataset_name)
+        // Even if source_data is an object, we should try to extract individual benchmarks
+        // from evaluation_results if available, as dataset_name might be a suite name.
+        if (eval_.evaluation_results && eval_.evaluation_results.length > 0) {
+           for (const result of eval_.evaluation_results) {
+             benchmarksSet.add(result.evaluation_name)
+           }
+        } else {
+           benchmarksSet.add(eval_.source_data.dataset_name)
+        }
       }
       
       if (eval_.source_metadata.source_url) {
@@ -190,7 +207,23 @@ export function createEvaluationCard(
         // But wait, inferCategoryFromBenchmark might have been used to categorize the whole file
         // Let's just count the benchmarks in this file that match the category
         for (const result of eval_.evaluation_results) {
-           const resultCategory = inferCategoryFromBenchmark(result.evaluation_name)
+           // Determine category using the same logic as createModelSummary
+           let resultCategory: CategoryType | undefined;
+           
+           if (result.factsheet?.functional_props) {
+             const props = result.factsheet.functional_props.split(';').map(p => p.trim());
+             for (const prop of props) {
+               if (EVALUATION_CATEGORIES.includes(prop as CategoryType)) {
+                 resultCategory = prop as CategoryType;
+                 break;
+               }
+             }
+           }
+           
+           if (!resultCategory) {
+             resultCategory = inferCategoryFromBenchmark(result.evaluation_name)
+           }
+
            if (resultCategory === category) {
              categoryBenchmarks.add(result.evaluation_name)
            }

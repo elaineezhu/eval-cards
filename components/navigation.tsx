@@ -19,12 +19,6 @@ export function Navigation() {
       isActive: pathname === "/" || pathname?.startsWith("/benchmark")
     },
     {
-      href: "/analytics",
-      label: "Analytics",
-      icon: ArrowUpDown,
-      isActive: pathname === "/analytics"
-    },
-    {
       href: "/about",
       label: "About",
       icon: Info,

@@ -1,7 +1,7 @@
 {
   "schema_version": "0.1.0",
   "evaluation_id": "alibaba-qwen-2-72b-1765899234259",
-  "retrieved_timestamp": "2025-12-16T15:33:54.259Z",
+  "retrieved_timestamp": "2024-12-06T21:40:08.740Z",
   "source_data": {
     "dataset_name": "Demo Benchmark Suite",
     "samples_number": 1000
@@ -35,9 +35,9 @@
   },
   "evaluation_results": [
     {
-      "evaluation_name": "Cityscapes",
+      "evaluation_name": "DigiData: Training and Evaluating General-Purpose Mobile Control Agents",
       "metric_config": {
-        "evaluation_description": "Cityscapes Standard Accuracy",
+        "evaluation_description": "DigiData: Training and Evaluating General-Purpose Mobile Control Agents Standard Accuracy",
         "lower_is_better": false,
         "score_type": "continuous",
         "min_score": 0,
@@ -45,623 +45,40 @@
         "unit": "accuracy"
       },
       "score_details": {
-        "score": 0.6719698671709685,
+        "score": 0.7199758725087615,
         "details": {
-          "subtask_a": 0.6719698671709685,
-          "subtask_b": 0.6719698671709685
+          "subtask_a": 0.7199758725087615,
+          "subtask_b": 0.7199758725087615
         }
       },
       "factsheet": {
-        "purpose": "Research; Development; Deployment",
-        "principles_tested": "Semantic segmentation, Instance segmentation, Scene understanding, Autonomous driving perception",
-        "functional_props": "Core Performance; Robustness",
-        "input_modality": "Vision (Image); Video",
-        "output_modality": "Structured Data",
-        "input_source": "New dataset (released with eval)",
-        "output_source": "Expert annotations",
-        "size": "Medium (1K - 100K samples)",
-        "splits": "Train (2975), Val (500), Test (1525)",
-        "design": "Fixed data-driven (static test set)",
-        "judge": "Automatic (Reference-based)",
-        "protocol": "1. Model receives street scene image (2048×1024) 2. Model predicts per-pixel semantic class (19 or 30 classes) 3. IoU and accuracy metrics computed",
-        "model_access": "Outputs",
-        "has_heldout": true,
-        "alignment_validation": "Expert annotators with domain knowledge, multi-pass quality control, consistency verification across video sequences",
-        "baseline_models": "FCN-8s: 65.3 mIoU DeepLab v3+: 82.1 mIoU HRNetV2: 83.0 mIoU SegFormer: 84.0 mIoU",
-        "robustness_measures": "Multiple runs per sample; Ablation studies; Significance testing",
-        "known_limitations": "Limited to European cities; Weather bias (mostly good conditions); Class imbalance for rare objects; Fine annotation boundaries challenging",
-        "benchmarks_list": "ADE20K, KITTI, Mapillary Vistas, BDD100K, nuScenes"
-      }
-    },
-    {
-      "evaluation_name": "DROP (Discrete Reasoning Over Paragraphs)",
-      "metric_config": {
-        "evaluation_description": "DROP (Discrete Reasoning Over Paragraphs) Standard Accuracy",
-        "lower_is_better": false,
-        "score_type": "continuous",
-        "min_score": 0,
-        "max_score": 1,
-        "unit": "accuracy"
-      },
-      "score_details": {
-        "score": 0.6292049886124126,
-        "details": {
-          "subtask_a": 0.6292049886124126,
-          "subtask_b": 0.6292049886124126
-        }
-      },
-      "factsheet": {
-        "purpose": "Research; Development",
-        "principles_tested": "Reading comprehension, Numerical reasoning, Discrete operations, Multi-hop reasoning",
+        "purpose": "Development; Research",
+        "principles_tested": "mobile control agents",
         "functional_props": "Core Performance",
-        "input_modality": "Text",
-        "output_modality": "Text",
-        "input_source": "New dataset (released with eval)",
-        "output_source": "Crowdsourced annotations",
-        "size": "Large (100K - 1M samples)",
-        "splits": "Train (77,409), Dev (9,536), Test (9,622)",
-        "design": "Fixed data-driven (static test set)",
-        "judge": "Automatic (Reference-based)",
-        "protocol": "1. Model receives paragraph and question 2. Model generates answer (number, span, or date) 3. F1 and Exact Match metrics computed",
-        "model_access": "Outputs",
-        "has_heldout": false,
-        "alignment_validation": "Crowdsourced questions with verification, requires discrete reasoning operations confirmed through analysis",
-        "baseline_models": "BERT: 47.0 F1 RoBERTa: 80.9 F1 GPT-3: 29.0 F1 GPT-4: 80.9 F1 Human performance: 96.4 F1",
-        "robustness_measures": "Multiple answer types; Question type analysis; Human baseline comparison",
-        "known_limitations": "Requires careful answer extraction; Some questions ambiguous; Numerical reasoning can be brittle; Limited diversity in reasoning types",
-        "benchmarks_list": "SQuAD, NewsQA, NaturalQuestions, NumGLUE, TAT-QA"
-      }
-    },
-    {
-      "evaluation_name": "ScanNet",
-      "metric_config": {
-        "evaluation_description": "ScanNet Standard Accuracy",
-        "lower_is_better": false,
-        "score_type": "continuous",
-        "min_score": 0,
-        "max_score": 1,
-        "unit": "accuracy"
-      },
-      "score_details": {
-        "score": 0.5068754540473442,
-        "details": {
-          "subtask_a": 0.5068754540473442,
-          "subtask_b": 0.5068754540473442
-        }
-      },
-      "factsheet": {
-        "purpose": "Research; Development",
-        "principles_tested": "3D scene understanding, Semantic segmentation, Instance segmentation, 3D reconstruction",
-        "functional_props": "Core Performance",
-        "input_modality": "Vision (Image); Video; Structured Data",
-        "output_modality": "Structured Data",
-        "input_source": "New dataset (released with eval)",
-        "output_source": "Human annotations; Programmatically generated",
-        "size": "Medium (1K - 100K samples)",
-        "splits": "Train (1201), Val (312), Test (100)",
-        "design": "Fixed data-driven (static test set)",
-        "judge": "Automatic (Reference-based)",
-        "protocol": "1. Model receives 3D scene (RGB-D scans) 2. Model predicts semantic labels or instance masks 3. mIoU for semantic segmentation, mAP for instance segmentation",
-        "model_access": "Outputs",
-        "has_heldout": true,
-        "alignment_validation": "Manual verification of 3D reconstructions, multi-annotator consistency for semantic labels",
-        "baseline_models": "PointNet++: 53.5 mIoU SparseConvNet: 72.5 mIoU MinkowskiNet: 73.6 mIoU",
-        "robustness_measures": "Multiple runs per sample; Ablation studies",
-        "known_limitations": "Limited to indoor scenes; Reconstruction artifacts; Scanning noise and occlusions; Limited scene diversity (mostly offices and apartments)",
-        "benchmarks_list": "Matterport3D, S3DIS, 2D-3D-S, ARKitScenes"
-      }
-    },
-    {
-      "evaluation_name": "VQA (Visual Question Answering)",
-      "metric_config": {
-        "evaluation_description": "VQA (Visual Question Answering) Standard Accuracy",
-        "lower_is_better": false,
-        "score_type": "continuous",
-        "min_score": 0,
-        "max_score": 1,
-        "unit": "accuracy"
-      },
-      "score_details": {
-        "score": 0.5557888964910147,
-        "details": {
-          "subtask_a": 0.5557888964910147,
-          "subtask_b": 0.5557888964910147
-        }
-      },
-      "factsheet": {
-        "purpose": "Research; Development",
-        "principles_tested": "Visual question answering, Visual reasoning, Multimodal understanding, Common sense reasoning",
-        "functional_props": "Core Performance; Robustness",
         "input_modality": "Text + Vision",
-        "output_modality": "Text",
-        "input_source": "MS COCO",
-        "output_source": "Crowdsourced annotations",
-        "size": "Huge (> 10M samples)",
-        "splits": "Train, Val, Test",
-        "design": "Fixed data-driven (static test set)",
-        "judge": "Automatic (Reference-based); Human: Representative sample",
-        "protocol": "1. Model receives image and question 2. Model generates answer 3. Accuracy computed with consensus matching (multiple human answers)",
-        "model_access": "Outputs",
-        "has_heldout": true,
-        "alignment_validation": "Multiple human answers per question (10 answers), consensus-based evaluation",
-        "baseline_models": "Bottom-Up Top-Down: 70.3% VILBERT: 72.4% OSCAR: 73.8% BLIP: 78.3%",
-        "robustness_measures": "Multiple human references; Prompt variations tested; Inter-rater reliability",
-        "known_limitations": "Language bias (can answer many questions without image); Dataset bias toward common objects; Answer distribution imbalance; Ambiguous questions",
-        "benchmarks_list": "GQA, VQA v2, OK-VQA, TextVQA, VizWiz"
-      }
-    },
-    {
-      "evaluation_name": "Waymo Open Dataset",
-      "metric_config": {
-        "evaluation_description": "Waymo Open Dataset Standard Accuracy",
-        "lower_is_better": false,
-        "score_type": "continuous",
-        "min_score": 0,
-        "max_score": 1,
-        "unit": "accuracy"
-      },
-      "score_details": {
-        "score": 0.5265938860999003,
-        "details": {
-          "subtask_a": 0.5265938860999003,
-          "subtask_b": 0.5265938860999003
-        }
-      },
-      "factsheet": {
-        "purpose": "Research; Development; Deployment",
-        "principles_tested": "3D object detection, 2D object detection, Tracking, Domain adaptation, Sensor fusion",
-        "functional_props": "Core Performance; Robustness",
-        "input_modality": "Vision (Image); Video; Structured Data",
-        "output_modality": "Structured Data",
-        "input_source": "New dataset (released with eval)",
-        "output_source": "Human annotations; Programmatically generated",
-        "size": "Huge (> 10M samples)",
-        "splits": "Train (798), Val (202), Test (150)",
-        "design": "Fixed data-driven (static test set)",
-        "judge": "Automatic (Reference-based)",
-        "protocol": "1. Model receives multimodal sensor data 2. Model predicts 3D bounding boxes with tracking IDs 3. AP/APH metrics at different IoU thresholds and difficulty levels",
-        "model_access": "Outputs",
-        "has_heldout": true,
-        "alignment_validation": "Multi-stage annotation pipeline with quality checks, temporal consistency validation",
-        "baseline_models": "PointPillars: 63.8 L2 APH (Vehicle) CenterPoint: 73.9 L2 APH PV-RCNN++: 77.8 L2 APH",
-        "robustness_measures": "Geographic diversity; Time of day variations; Weather conditions; Multiple difficulty levels",
-        "known_limitations": "Geographic concentration in specific cities; Sensor-specific challenges; Annotation latency for distant objects; Class imbalance",
-        "benchmarks_list": "nuScenes, KITTI, Argoverse 2, Once, Lyft Level 5"
-      }
-    },
-    {
-      "evaluation_name": "HellaSwag",
-      "metric_config": {
-        "evaluation_description": "HellaSwag Standard Accuracy",
-        "lower_is_better": false,
-        "score_type": "continuous",
-        "min_score": 0,
-        "max_score": 1,
-        "unit": "accuracy"
-      },
-      "score_details": {
-        "score": 0.5432118015528332,
-        "details": {
-          "subtask_a": 0.5432118015528332,
-          "subtask_b": 0.5432118015528332
-        }
-      },
-      "factsheet": {
-        "purpose": "Research; Development",
-        "principles_tested": "Commonsense reasoning, Physical understanding, Situation modeling, Plausibility judgment",
-        "functional_props": "Core Performance; Robustness",
-        "input_modality": "Text",
-        "output_modality": "Text",
-        "input_source": "New dataset (released with eval)",
-        "output_source": "Crowdsourced annotations",
-        "size": "Medium (1K - 100K samples)",
-        "splits": "Train (39,905), Val (10,042), Test (10,003)",
-        "design": "Fixed data-driven (static test set)",
-        "judge": "Automatic (Reference-based)",
-        "protocol": "1. Model receives scenario context 2. Model selects most plausible continuation from 4 options 3. Accuracy computed",
-        "model_access": "Outputs",
-        "has_heldout": false,
-        "alignment_validation": "Adversarial filtering using BERT to ensure difficulty, human validation of plausibility",
-        "baseline_models": "BERT-Large: 47.3% GPT-2: 50.9% GPT-3: 78.9% GPT-4: 95.3% Human performance: 95.6%",
-        "robustness_measures": "Adversarial filtering; Multiple runs per sample; Human baseline comparison",
-        "known_limitations": "Dataset may be easier than originally intended for modern LLMs; Multiple choice format; Adversarial examples may have artifacts; Potential data contamination",
-        "benchmarks_list": "PIQA, WinoGrande, CommonsenseQA, ARC"
-      }
-    },
-    {
-      "evaluation_name": "CIFAR-10 and CIFAR-100",
-      "metric_config": {
-        "evaluation_description": "CIFAR-10 and CIFAR-100 Standard Accuracy",
-        "lower_is_better": false,
-        "score_type": "continuous",
-        "min_score": 0,
-        "max_score": 1,
-        "unit": "accuracy"
-      },
-      "score_details": {
-        "score": 0.6353855781310864,
-        "details": {
-          "subtask_a": 0.6353855781310864,
-          "subtask_b": 0.6353855781310864
-        }
-      },
-      "factsheet": {
-        "purpose": "Research; Development; Selection",
-        "principles_tested": "Image classification, Transfer learning, Generalization",
-        "functional_props": "Core Performance; Robustness",
-        "input_modality": "Vision (Image)",
-        "output_modality": "Structured Data",
-        "input_source": "New dataset (released with eval)",
-        "output_source": "Human annotations",
-        "size": "Medium (1K - 100K samples)",
-        "splits": "Train (50K), Test (10K)",
-        "design": "Fixed data-driven (static test set)",
-        "judge": "Automatic (Reference-based)",
-        "protocol": "1. Model receives 32x32 RGB image 2. Model predicts class label (10 or 100 classes) 3. Classification accuracy computed",
-        "model_access": "Outputs",
-        "has_heldout": false,
-        "alignment_validation": "Systematic sampling from larger dataset (80 million tiny images), human verification of labels",
-        "baseline_models": "CIFAR-10: ResNet-56: 93.03% Wide ResNet-28-10: 96.11% PyramidNet: 96.54%  CIFAR-100: ResNet-56: 71.35% Wide ResNet-28-10: 81.15% PyramidNet: 83.78%",
-        "robustness_measures": "Multiple runs per sample; Seed variation tested; Ablation studies",
-        "known_limitations": "Low resolution (32x32) limits fine-grained recognition; Some label noise in CIFAR-100; Dataset size enables memorization in large models; Limited diversity in poses and contexts",
-        "benchmarks_list": "CIFAR-10-C, CIFAR-10.1, CIFAR-100-C, STL-10, Tiny ImageNet"
-      }
-    },
-    {
-      "evaluation_name": "Kinetics",
-      "metric_config": {
-        "evaluation_description": "Kinetics Standard Accuracy",
-        "lower_is_better": false,
-        "score_type": "continuous",
-        "min_score": 0,
-        "max_score": 1,
-        "unit": "accuracy"
-      },
-      "score_details": {
-        "score": 0.5534482686246083,
-        "details": {
-          "subtask_a": 0.5534482686246083,
-          "subtask_b": 0.5534482686246083
-        }
-      },
-      "factsheet": {
-        "purpose": "Research; Development",
-        "principles_tested": "Action recognition, Video understanding, Temporal reasoning, Human activity recognition",
-        "functional_props": "Core Performance",
-        "input_modality": "Video",
-        "output_modality": "Structured Data",
-        "input_source": "New dataset (released with eval)",
-        "output_source": "Human annotations",
-        "size": "Large (100K - 1M samples)",
-        "splits": "Train, Val, Test",
-        "design": "Fixed data-driven (static test set)",
-        "judge": "Automatic (Reference-based)",
-        "protocol": "1. Model receives 10-second video clip 2. Model predicts action class (400/600/700 classes) 3. Top-1 and Top-5 accuracy computed",
-        "model_access": "Outputs",
-        "has_heldout": false,
-        "alignment_validation": "Human verification of video labels, removal of ambiguous clips, consistency checks for similar actions",
-        "baseline_models": "I3D: 71.1% top-1 (K400) SlowFast: 79.8% top-1 (K400) X3D: 80.4% top-1 (K400) VideoMAE: 81.5% top-1 (K400)",
-        "robustness_measures": "Multiple runs per sample; Temporal ordering tested",
-        "known_limitations": "YouTube videos may become unavailable over time; Some action classes overlap or are ambiguous; Camera viewpoint bias; Dataset drift as internet content changes",
-        "benchmarks_list": "UCF-101, HMDB-51, ActivityNet, Something-Something, Moments in Time"
-      }
-    },
-    {
-      "evaluation_name": "WinoGrande",
-      "metric_config": {
-        "evaluation_description": "WinoGrande Standard Accuracy",
-        "lower_is_better": false,
-        "score_type": "continuous",
-        "min_score": 0,
-        "max_score": 1,
-        "unit": "accuracy"
-      },
-      "score_details": {
-        "score": 0.6906881359602444,
-        "details": {
-          "subtask_a": 0.6906881359602444,
-          "subtask_b": 0.6906881359602444
-        }
-      },
-      "factsheet": {
-        "purpose": "Research; Development",
-        "principles_tested": "Commonsense reasoning, Coreference resolution, World knowledge, Causal reasoning",
-        "functional_props": "Core Performance; Robustness",
-        "input_modality": "Text",
-        "output_modality": "Text",
-        "input_source": "New dataset (released with eval)",
-        "output_source": "Crowdsourced annotations",
-        "size": "Medium (1K - 100K samples)",
-        "splits": "Train (40,398), Dev (1,267), Test (1,767)",
-        "design": "Fixed data-driven (static test set)",
-        "judge": "Automatic (Reference-based)",
-        "protocol": "1. Model receives sentence with pronoun ambiguity 2. Model selects correct referent from 2 options 3. Accuracy computed",
-        "model_access": "Outputs",
-        "has_heldout": false,
-        "alignment_validation": "Adversarial filtering using language models, crowdsourced generation with validation",
-        "baseline_models": "BERT-Large: 59.4% RoBERTa-Large: 79.1% GPT-3: 70.2% GPT-4: 87.5% Human performance: 94.0%",
-        "robustness_measures": "Adversarial filtering; Large-scale dataset; Multiple difficulty levels",
-        "known_limitations": "Binary choice may be limiting; Adversarial filtering may introduce artifacts; Saturation with modern models; Limited reasoning depth",
-        "benchmarks_list": "Winograd Schema Challenge, COPA, CommonsenseQA, PIQA"
-      }
-    },
-    {
-      "evaluation_name": "Places365",
-      "metric_config": {
-        "evaluation_description": "Places365 Standard Accuracy",
-        "lower_is_better": false,
-        "score_type": "continuous",
-        "min_score": 0,
-        "max_score": 1,
-        "unit": "accuracy"
-      },
-      "score_details": {
-        "score": 0.5600307461499519,
-        "details": {
-          "subtask_a": 0.5600307461499519,
-          "subtask_b": 0.5600307461499519
-        }
-      },
-      "factsheet": {
-        "purpose": "Research; Development",
-        "principles_tested": "Scene recognition, Scene classification, Environmental understanding, Context recognition",
-        "functional_props": "Core Performance",
-        "input_modality": "Vision (Image)",
-        "output_modality": "Structured Data",
-        "input_source": "New dataset (released with eval)",
-        "output_source": "Human annotations",
-        "size": "Very Huge (> 100M samples)",
-        "splits": "Train, Val, Test",
-        "design": "Fixed data-driven (static test set)",
-        "judge": "Automatic (Reference-based)",
-        "protocol": "1. Model receives scene image 2. Model predicts scene category (365 classes) 3. Top-1 and Top-5 accuracy computed",
-        "model_access": "Outputs",
-        "has_heldout": false,
-        "alignment_validation": "Human verification, consistency checks for scene categories, hierarchical taxonomy validation",
-        "baseline_models": "ResNet-152: 55.24% top-1 DenseNet-161: 56.12% top-1 ResNeXt-101: 56.05% top-1",
-        "robustness_measures": "Inter-rater reliability; Multiple runs per sample",
-        "known_limitations": "Some scene categories overlap semantically; Cultural bias in scene definitions; Indoor scenes better represented than outdoor; Ambiguous boundary cases",
-        "benchmarks_list": "SUN397, MIT Indoor 67, Scene-15, ADE20K"
-      }
-    },
-    {
-      "evaluation_name": "UCF-101",
-      "metric_config": {
-        "evaluation_description": "UCF-101 Standard Accuracy",
-        "lower_is_better": false,
-        "score_type": "continuous",
-        "min_score": 0,
-        "max_score": 1,
-        "unit": "accuracy"
-      },
-      "score_details": {
-        "score": 0.6440431833857043,
-        "details": {
-          "subtask_a": 0.6440431833857043,
-          "subtask_b": 0.6440431833857043
-        }
-      },
-      "factsheet": {
-        "purpose": "Research; Development",
-        "principles_tested": "Action recognition, Video classification, Temporal understanding",
-        "functional_props": "Core Performance",
-        "input_modality": "Video",
-        "output_modality": "Structured Data",
-        "input_source": "New dataset (released with eval)",
-        "output_source": "Human annotations",
-        "size": "Medium (1K - 100K samples)",
-        "splits": "Train/Test (3 splits provided)",
-        "design": "Fixed data-driven (static test set)",
-        "judge": "Automatic (Reference-based)",
-        "protocol": "1. Model receives video clip 2. Model predicts action class (101 classes) 3. Average accuracy across 3 splits reported",
-        "model_access": "Outputs",
-        "has_heldout": false,
-        "alignment_validation": "Manual verification of action labels, removal of ambiguous videos",
-        "baseline_models": "Two-Stream CNN: 88.0% I3D: 95.6% SlowFast: 96.8% VideoMAE: 97.2%",
-        "robustness_measures": "Multiple evaluation splits; Seed variation tested",
-        "known_limitations": "YouTube videos may become unavailable; Camera motion and quality vary; Some action classes are very similar; Dataset saturation with modern methods",
-        "benchmarks_list": "HMDB-51, Kinetics, ActivityNet, Something-Something-V2"
-      }
-    },
-    {
-      "evaluation_name": "MPII Human Pose",
-      "metric_config": {
-        "evaluation_description": "MPII Human Pose Standard Accuracy",
-        "lower_is_better": false,
-        "score_type": "continuous",
-        "min_score": 0,
-        "max_score": 1,
-        "unit": "accuracy"
-      },
-      "score_details": {
-        "score": 0.5735067049623849,
-        "details": {
-          "subtask_a": 0.5735067049623849,
-          "subtask_b": 0.5735067049623849
-        }
-      },
-      "factsheet": {
-        "purpose": "Research; Development",
-        "principles_tested": "Human pose estimation, Keypoint detection, Articulated pose estimation, Activity recognition",
-        "functional_props": "Core Performance",
-        "input_modality": "Vision (Image)",
-        "output_modality": "Structured Data",
-        "input_source": "New dataset (released with eval)",
-        "output_source": "Human annotations",
-        "size": "Medium (1K - 100K samples)",
-        "splits": "Train (~29K people), Test (~12K people)",
-        "design": "Fixed data-driven (static test set)",
-        "judge": "Automatic (Reference-based)",
-        "protocol": "1. Model receives image with person 2. Model predicts 2D joint locations (16 joints) 3. PCKh (Percentage of Correct Keypoints) at various thresholds",
-        "model_access": "Outputs",
-        "has_heldout": false,
-        "alignment_validation": "Manual annotation with consistency checks, multi-annotator agreement for difficult poses",
-        "baseline_models": "Hourglass Network: 90.9 PCKh@0.5 HRNet: 92.3 PCKh@0.5 SimpleBaseline: 91.5 PCKh@0.5",
-        "robustness_measures": "Multiple difficulty levels; Inter-rater reliability; Occlusion analysis",
-        "known_limitations": "2D annotations only (no 3D); Occlusion and truncation challenges; Some joint definitions ambiguous; Dataset bias toward certain activities",
-        "benchmarks_list": "COCO Keypoints, Human3.6M, PoseTrack, CrowdPose"
-      }
-    },
-    {
-      "evaluation_name": "CLEVR",
-      "metric_config": {
-        "evaluation_description": "CLEVR Standard Accuracy",
-        "lower_is_better": false,
-        "score_type": "continuous",
-        "min_score": 0,
-        "max_score": 1,
-        "unit": "accuracy"
-      },
-      "score_details": {
-        "score": 0.6308990063124624,
-        "details": {
-          "subtask_a": 0.6308990063124624,
-          "subtask_b": 0.6308990063124624
-        }
-      },
-      "factsheet": {
-        "purpose": "Research; Development",
-        "principles_tested": "Compositional reasoning, Spatial reasoning, Counting, Logical reasoning, Visual reasoning",
-        "functional_props": "Core Performance; Robustness",
-        "input_modality": "Text + Vision",
-        "output_modality": "Text",
-        "input_source": "Synthetic/Generated",
-        "output_source": "Programmatically generated",
-        "size": "Huge (> 10M samples)",
-        "splits": "Train (70K), Val (15K), Test (15K)",
-        "design": "Fixed data-driven (static test set)",
-        "judge": "Automatic (Reference-based)",
-        "protocol": "1. Model receives synthetic image and question 2. Model predicts answer from predefined set 3. Accuracy computed, can analyze by question type",
-        "model_access": "Outputs",
-        "has_heldout": false,
-        "alignment_validation": "Programmatically generated with known ground truth, exhaustive question type coverage",
-        "baseline_models": "CNN+LSTM: 52.3% Film: 97.7% NS-VQA: 99.8% MAC: 98.9%",
-        "robustness_measures": "Ablation studies; Question type analysis; Compositional generalization tested",
-        "known_limitations": "Synthetic domain (limited real-world applicability); Simple shapes and colors; No natural language variation; Programmatic biases",
-        "benchmarks_list": "CLEVR-CoGenT, GQA, NLVR2, CLOSURE"
-      }
-    },
-    {
-      "evaluation_name": "ActivityNet",
-      "metric_config": {
-        "evaluation_description": "ActivityNet Standard Accuracy",
-        "lower_is_better": false,
-        "score_type": "continuous",
-        "min_score": 0,
-        "max_score": 1,
-        "unit": "accuracy"
-      },
-      "score_details": {
-        "score": 0.688458491175051,
-        "details": {
-          "subtask_a": 0.688458491175051,
-          "subtask_b": 0.688458491175051
-        }
-      },
-      "factsheet": {
-        "purpose": "Research; Development",
-        "principles_tested": "Temporal action detection, Action recognition, Dense video captioning, Video understanding",
-        "functional_props": "Core Performance",
-        "input_modality": "Video",
-        "output_modality": "Structured Data; Text",
-        "input_source": "New dataset (released with eval)",
-        "output_source": "Human annotations",
-        "size": "Medium (1K - 100K samples)",
-        "splits": "Train (50%), Val (25%), Test (25%)",
-        "design": "Fixed data-driven (static test set)",
-        "judge": "Automatic (Reference-based)",
-        "protocol": "1. Model receives untrimmed video 2. Model predicts action segments with class labels 3. mAP at different IoU thresholds (0.5, 0.75, 0.95)",
-        "model_access": "Outputs",
-        "has_heldout": true,
-        "alignment_validation": "Multi-annotator temporal boundary agreement, consistency checks for activity definitions",
-        "baseline_models": "SSN: 41.3 mAP@0.5 BMN: 50.1 mAP@0.5 TALLFormer: 59.8 mAP@0.5",
-        "robustness_measures": "Inter-rater reliability; Multiple IoU thresholds; Temporal boundary sensitivity",
-        "known_limitations": "YouTube video availability issues; Temporal boundary ambiguity; Action class overlap; Video quality variance",
-        "benchmarks_list": "THUMOS14, Kinetics, Charades, MultiTHUMOS, AVA"
-      }
-    },
-    {
-      "evaluation_name": "MATH",
-      "metric_config": {
-        "evaluation_description": "MATH Standard Accuracy",
-        "lower_is_better": false,
-        "score_type": "continuous",
-        "min_score": 0,
-        "max_score": 1,
-        "unit": "accuracy"
-      },
-      "score_details": {
-        "score": 0.6390989993455921,
-        "details": {
-          "subtask_a": 0.6390989993455921,
-          "subtask_b": 0.6390989993455921
-        }
-      },
-      "factsheet": {
-        "purpose": "Research; Development",
-        "principles_tested": "Advanced mathematical reasoning, Problem solving, Multi-step reasoning, Mathematical knowledge",
-        "functional_props": "Core Performance",
-        "input_modality": "Text",
-        "output_modality": "Text",
-        "input_source": "New dataset (released with eval)",
-        "output_source": "Published references",
-        "size": "Medium (1K - 100K samples)",
-        "splits": "Train (7,500), Test (5,000)",
-        "design": "Fixed data-driven (static test set)",
-        "judge": "Automatic (Reference-based)",
-        "protocol": "1. Model receives competition math problem 2. Model generates solution with steps 3. Final answer extracted and checked against ground truth 4. Problems span 7 subjects with 5 difficulty levels",
-        "model_access": "Outputs",
-        "has_heldout": false,
-        "alignment_validation": "Problems from real math competitions with verified solutions, difficulty levels validated",
-        "baseline_models": "GPT-3: 6.9% GPT-4: 42.5% Minerva (540B): 33.6% GPT-4 Turbo: 52.9% Claude 3.5 Sonnet: 71.1%",
-        "robustness_measures": "Multiple difficulty levels; Subject-wise analysis; Chain-of-thought evaluation",
-        "known_limitations": "Answer extraction challenges; LaTeX formatting issues; Symbolic vs numeric answers; High difficulty may not reflect practical math usage",
-        "benchmarks_list": "GSM8K, MathQA, SVAMP, ASDiv, Hendrycks MATH"
-      }
-    },
-    {
-      "evaluation_name": "DAVIS (Densely Annotated VIdeo Segmentation)",
-      "metric_config": {
-        "evaluation_description": "DAVIS (Densely Annotated VIdeo Segmentation) Standard Accuracy",
-        "lower_is_better": false,
-        "score_type": "continuous",
-        "min_score": 0,
-        "max_score": 1,
-        "unit": "accuracy"
-      },
-      "score_details": {
-        "score": 0.5354520185214521,
-        "details": {
-          "subtask_a": 0.5354520185214521,
-          "subtask_b": 0.5354520185214521
-        }
-      },
-      "factsheet": {
-        "purpose": "Research; Development",
-        "principles_tested": "Video object segmentation, Temporal consistency, Object tracking, Dense prediction",
-        "functional_props": "Core Performance; Robustness",
-        "input_modality": "Video",
-        "output_modality": "Structured Data",
+        "output_modality": "Actions",
         "input_source": "New dataset (released with eval)",
         "output_source": "Human annotations",
         "size": "Small (< 1K samples)",
-        "splits": "Train/Val (60 sequences), Test-dev (30 sequences)",
-        "design": "Fixed data-driven (static test set)",
-        "judge": "Automatic (Reference-based)",
-        "protocol": "1. Model receives video sequence with first frame annotation 2. Model propagates segmentation to subsequent frames 3. J&F metric (region similarity and contour accuracy)",
+        "splits": "",
+        "design": "Dynamic data-driven (adaptive/interactive)",
+        "judge": "Model-based: In the wild",
+        "protocol": "1. Given a goal and a trajectory produced by an agent, an LLM judge classifies whether it successfully achieved 2. the goal. We use LLM judges relying on both the screenshot and UI tree.",
         "model_access": "Outputs",
-        "has_heldout": true,
-        "alignment_validation": "High-quality manual annotations with temporal consistency verification",
-        "baseline_models": "OSVOS: 79.8 J&F STM: 84.3 J&F XMem: 86.2 J&F",
-        "robustness_measures": "Temporal consistency tested; Occlusion robustness; Multiple runs per sample",
-        "known_limitations": "Small dataset size; Limited object categories; Short video sequences; Primarily objects with clear boundaries",
-        "benchmarks_list": "YouTube-VOS, FBMS, SegTrack, OVIS"
-      }
+        "has_heldout": false,
+        "heldout_details": "",
+        "alignment_validation": "human operator is asked to judge whether the trajectory successfully achieves the goal or not. Then we assess the alignment between human judge and LLM judge to ensure a high alignment",
+        "baseline_models": "",
+        "robustness_measures": "Prompt variations tested; Multiple runs per sample; Temperature sensitivity tested; Repeated evaluations; Ablation studies; Inter-rater reliability; Significance testing",
+        "known_limitations": "-live and dynamic environment introduces uncontrollable factors (feature deprecation, version changes etc) that makes certain tasks unavailable after a period -sizable efforts required to manually set up prework in the environment ",
+        "benchmarks_list": "AndroidControl, Android in the wild"
+      },
+      "evaluation_timestamp": "2024-12-03T09:32:24.015Z"
     },
     {
-      "evaluation_name": "LVIS (Large Vocabulary Instance Segmentation)",
+      "evaluation_name": "IntPhys 2",
       "metric_config": {
-        "evaluation_description": "LVIS (Large Vocabulary Instance Segmentation) Standard Accuracy",
+        "evaluation_description": "IntPhys 2 Standard Accuracy",
         "lower_is_better": false,
         "score_type": "continuous",
         "min_score": 0,
@@ -669,72 +86,76 @@
         "unit": "accuracy"
       },
       "score_details": {
-        "score": 0.5532790626723612,
+        "score": 0.9169133277017978,
         "details": {
-          "subtask_a": 0.5532790626723612,
-          "subtask_b": 0.5532790626723612
+          "subtask_a": 0.9169133277017978,
+          "subtask_b": 0.9169133277017978
         }
       },
       "factsheet": {
-        "purpose": "Research; Development",
-        "principles_tested": "Instance segmentation, Long-tail recognition, Object detection, Fine-grained categorization",
-        "functional_props": "Core Performance; Robustness",
-        "input_modality": "Vision (Image)",
-        "output_modality": "Structured Data",
-        "input_source": "MS COCO",
-        "output_source": "Expert annotations",
-        "size": "Large (100K - 1M samples)",
-        "splits": "Train, Val, Test",
+        "purpose": "Research",
+        "principles_tested": "Intuitive Physics",
+        "functional_props": "Core Performance",
+        "input_modality": "Video",
+        "output_modality": "Scores/Embeddings",
+        "input_source": "New dataset (released with eval)",
+        "output_source": "Simulation-based",
+        "size": "Medium (1K - 100K samples)",
+        "splits": "Debug Set: 60 videos for Model calibration Main Set: 1,012 videos as Main evaluation set Held-Out Set: 344 videos as Test set",
         "design": "Fixed data-driven (static test set)",
         "judge": "Automatic (Reference-based)",
-        "protocol": "1. Model receives image 2. Model predicts instance masks and categories (1203 classes) 3. AP computed separately for rare, common, and frequent categories",
+        "protocol": "Feed a video to the model Ask the model using specific prompts wether the video is physically plausible or not Check if the model's answer match the ground truth label ",
         "model_access": "Outputs",
         "has_heldout": true,
-        "alignment_validation": "Expert annotators with WordNet taxonomy, quality control for long-tail categories",
-        "baseline_models": "Mask R-CNN: 21.2 AP (v1.0) Cascade R-CNN: 26.2 AP Swin Transformer: 50.9 AP",
-        "robustness_measures": "Multiple runs per sample; Ablation studies; Category frequency stratification",
-        "known_limitations": "Rare categories have very few examples; Annotation cost for 1203 categories; Some category definitions overlap; Challenging for zero-shot generalization",
-        "benchmarks_list": "COCO, Objects365, OpenImages, iNaturalist"
-      }
+        "heldout_details": "Held-Out Set: 344 videos as Test set",
+        "alignment_validation": "We ran human baselines to ensure that this task is easy for humans. ",
+        "baseline_models": "- Human baseline: 96% - Best model baseline: V-JEPA2 56%",
+        "robustness_measures": "Prompt variations tested; Multiple runs per sample; Temperature sensitivity tested",
+        "known_limitations": "Model can be very sensitive to the way they are prompted. Also the compression artefact of the video can also impact the results. Those are mostly limitations on the model sides, since human are not sensitive to those. ",
+        "benchmarks_list": "IntPhys: A Framework and Benchmark for Visual Intuitive Physics Reasoning, Riochet et al. 2020"
+      },
+      "evaluation_timestamp": "2024-12-06T06:09:00.866Z"
     },
     {
-      "evaluation_name": "HumanEval",
+      "evaluation_name": "ImageNet",
       "metric_config": {
-        "evaluation_description": "Pass@1 Accuracy",
+        "evaluation_description": "ImageNet Standard Accuracy",
         "lower_is_better": false,
         "score_type": "continuous",
         "min_score": 0,
         "max_score": 1,
-        "unit": "pass@1"
+        "unit": "accuracy"
       },
       "score_details": {
-        "score": 0.6284191084279801,
+        "score": 0.42513843311245847,
         "details": {
-          "subtask_a": 0.6284191084279801,
-          "subtask_b": 0.6284191084279801
+          "subtask_a": 0.42513843311245847,
+          "subtask_b": 0.42513843311245847
         }
       },
       "factsheet": {
-        "purpose": "Research; Development; Selection",
-        "principles_tested": "Code generation, Programming ability, Functional correctness, Code understanding",
+        "purpose": "Research; Development",
+        "principles_tested": "Object recognition, Visual categorization, Multi-class classification",
         "functional_props": "Core Performance",
-        "input_modality": "Text; Code",
-        "output_modality": "Code",
+        "input_modality": "Vision (Image)",
+        "output_modality": "Structured Data",
         "input_source": "New dataset (released with eval)",
-        "output_source": "Author-provided",
-        "size": "Small (< 1K samples)",
-        "splits": "Test (164 problems)",
+        "output_source": "Human annotations",
+        "size": "Huge (> 10M samples)",
+        "splits": "Train, Validation, Test",
         "design": "Fixed data-driven (static test set)",
-        "judge": "Automatic (Execution-based)",
-        "protocol": "1. Model receives function signature and docstring 2. Model generates function implementation 3. Generated code executed against unit tests 4. pass@k metric computed (% passing all tests in k samples)",
+        "judge": "Automatic (Reference-based)",
+        "protocol": "1. Model receives an image as input 2. Model predicts class label from 1000 classes 3. Top-1 and Top-5 accuracy computed against ground truth",
         "model_access": "Outputs",
-        "has_heldout": false,
-        "alignment_validation": "Hand-written problems with comprehensive unit tests, manual verification of test correctness",
-        "baseline_models": "Codex (12B): 28.8% pass@1 GPT-3.5-turbo: 48.1% pass@1 GPT-4: 67.0% pass@1 Claude 3.5 Sonnet: 92.0% pass@1",
-        "robustness_measures": "Multiple samples per problem (pass@k); Temperature sensitivity tested; Execution-based verification",
-        "known_limitations": "Limited to Python; Small dataset size (164 problems); Relatively simple problems; May be contaminated in training data; No testing of code efficiency or style",
-        "benchmarks_list": "MBPP, APPS, CodeContests, HumanEval+, MultiPL-E"
-      }
+        "has_heldout": true,
+        "heldout_details": "Private test set maintained by organizers, used for annual ILSVRC competitions",
+        "alignment_validation": "Expert curation of hierarchical categories, manual verification of labels, consistency checks across similar categories",
+        "baseline_models": "AlexNet: 63.3% top-1 VGG: 71.5% top-1 ResNet-50: 76.1% top-1 ResNet-152: 78.3% top-1 EfficientNet-B7: 84.3% top-1 Human performance: ~95% top-5",
+        "robustness_measures": "Multiple runs per sample; Significance testing; Inter-rater reliability",
+        "known_limitations": "Class imbalance in some categories; Label noise in training set; Some ambiguous images with multiple valid labels; Bias towards certain object viewpoints and contexts",
+        "benchmarks_list": "ImageNet-V2, ImageNet-C, ImageNet-R, ImageNet-A, ImageNet-Sketch"
+      },
+      "evaluation_timestamp": "2024-12-06T07:17:43.304Z"
     },
     {
       "evaluation_name": "COCO (Common Objects in Context)",
@@ -747,10 +168,10 @@
         "unit": "accuracy"
       },
       "score_details": {
-        "score": 0.5452461922279577,
+        "score": 0.5513070296655359,
         "details": {
-          "subtask_a": 0.5452461922279577,
-          "subtask_b": 0.5452461922279577
+          "subtask_a": 0.5513070296655359,
+          "subtask_b": 0.5513070296655359
         }
       },
       "factsheet": {
@@ -768,441 +189,14 @@
         "protocol": "1. Model receives image as input 2. Model outputs bounding boxes, segmentation masks, or captions 3. Metrics computed: mAP for detection, IoU for segmentation, BLEU/CIDEr for captioning",
         "model_access": "Outputs",
         "has_heldout": true,
+        "heldout_details": "Test-dev and test-challenge splits maintained privately, submissions via evaluation server",
         "alignment_validation": "Multi-annotator consensus for instance annotations, quality control through redundant labeling",
         "baseline_models": "Faster R-CNN: 42.0 mAP Mask R-CNN: 37.1 mask mAP YOLOv8: 53.9 mAP Human performance (detection): ~70 mAP",
         "robustness_measures": "Inter-rater reliability; Multiple runs per sample; Confidence intervals",
         "known_limitations": "Small object detection remains challenging; Occlusion handling difficulties; Dataset bias toward certain object contexts; Annotation inconsistencies in crowded scenes",
         "benchmarks_list": "LVIS, Objects365, Open Images, Visual Genome"
-      }
-    },
-    {
-      "evaluation_name": "ADE20K",
-      "metric_config": {
-        "evaluation_description": "ADE20K Standard Accuracy",
-        "lower_is_better": false,
-        "score_type": "continuous",
-        "min_score": 0,
-        "max_score": 1,
-        "unit": "accuracy"
       },
-      "score_details": {
-        "score": 0.5163270839884204,
-        "details": {
-          "subtask_a": 0.5163270839884204,
-          "subtask_b": 0.5163270839884204
-        }
-      },
-      "factsheet": {
-        "purpose": "Research; Development",
-        "principles_tested": "Scene parsing, Semantic segmentation, Multi-scale recognition, Part segmentation",
-        "functional_props": "Core Performance",
-        "input_modality": "Vision (Image)",
-        "output_modality": "Structured Data",
-        "input_source": "New dataset (released with eval)",
-        "output_source": "Human annotations",
-        "size": "Medium (1K - 100K samples)",
-        "splits": "Train (20K), Val (2K), Test (3K)",
-        "design": "Fixed data-driven (static test set)",
-        "judge": "Automatic (Reference-based)",
-        "protocol": "1. Model receives diverse scene image 2. Model predicts per-pixel semantic labels (150 classes) 3. Mean IoU and pixel accuracy computed",
-        "model_access": "Outputs",
-        "has_heldout": false,
-        "alignment_validation": "Crowdsourced annotations with expert review, hierarchical consistency checks, multi-round verification",
-        "baseline_models": "PSPNet: 43.29 mIoU DeepLab v3: 45.65 mIoU UPerNet: 44.85 mIoU SegFormer-B5: 51.8 mIoU",
-        "robustness_measures": "Inter-rater reliability; Multiple runs per sample",
-        "known_limitations": "Long-tail distribution of object classes; Annotation granularity varies; Some scenes have ambiguous boundaries; Challenging for rare categories",
-        "benchmarks_list": "Cityscapes, Pascal Context, COCO-Stuff, Mapillary Vistas"
-      }
-    },
-    {
-      "evaluation_name": "IFEval (Instruction-Following Eval)",
-      "metric_config": {
-        "evaluation_description": "IFEval (Instruction-Following Eval) Standard Accuracy",
-        "lower_is_better": false,
-        "score_type": "continuous",
-        "min_score": 0,
-        "max_score": 1,
-        "unit": "accuracy"
-      },
-      "score_details": {
-        "score": 0.6352374911391097,
-        "details": {
-          "subtask_a": 0.6352374911391097,
-          "subtask_b": 0.6352374911391097
-        }
-      },
-      "factsheet": {
-        "purpose": "Research; Development; Selection",
-        "principles_tested": "Instruction following, Constraint satisfaction, Format compliance, Precise control",
-        "functional_props": "Core Performance; Robustness",
-        "input_modality": "Text",
-        "output_modality": "Text",
-        "input_source": "New dataset (released with eval)",
-        "output_source": "Programmatically generated",
-        "size": "Small (< 1K samples)",
-        "splits": "Test (541 prompts with ~25 verifiable instructions)",
-        "design": "Fixed data-driven (static test set)",
-        "judge": "Automatic (Reference-free)",
-        "protocol": "1. Model receives prompt with verifiable instructions (e.g., 'respond in exactly 3 paragraphs', 'include word X at least 5 times') 2. Model generates response 3. Programmatic checks verify instruction compliance 4. Strict and loose accuracy metrics computed",
-        "model_access": "Outputs",
-        "has_heldout": false,
-        "alignment_validation": "Verifiable instructions with programmatic checking, no ambiguity in correctness",
-        "baseline_models": "GPT-3.5: 57.4% strict GPT-4: 76.9% strict Claude 2: 66.7% strict Gemini Ultra: 79.4% strict",
-        "robustness_measures": "Strict and loose metrics; Multiple instruction types; Programmatic verification; No human evaluation needed",
-        "known_limitations": "Limited to verifiable instructions only; May not reflect realistic usage; Some instructions may be conflicting; Excludes semantic quality assessment",
-        "benchmarks_list": "MT-Bench, AlpacaEval, InstructGPT evals, FollowBench"
-      }
-    },
-    {
-      "evaluation_name": "TruthfulQA",
-      "metric_config": {
-        "evaluation_description": "TruthfulQA Standard Accuracy",
-        "lower_is_better": false,
-        "score_type": "continuous",
-        "min_score": 0,
-        "max_score": 1,
-        "unit": "accuracy"
-      },
-      "score_details": {
-        "score": 0.6450621366796366,
-        "details": {
-          "subtask_a": 0.6450621366796366,
-          "subtask_b": 0.6450621366796366
-        }
-      },
-      "factsheet": {
-        "purpose": "Research; Development; Safety",
-        "principles_tested": "Truthfulness, Factual accuracy, Resistance to misconceptions, Calibration",
-        "functional_props": "Safety; Core Performance; Calibration",
-        "input_modality": "Text",
-        "output_modality": "Text",
-        "input_source": "New dataset (released with eval)",
-        "output_source": "Expert annotations",
-        "size": "Small (< 1K samples)",
-        "splits": "Test (817 questions across 38 categories)",
-        "design": "Fixed data-driven (static test set)",
-        "judge": "Model-based: Expert; Human: Experts",
-        "protocol": "1. Model receives question designed to elicit false beliefs 2. Model generates answer 3. Answers judged for truthfulness and informativeness using GPT-judge or human evaluation",
-        "model_access": "Outputs",
-        "has_heldout": false,
-        "alignment_validation": "Expert-curated questions targeting known misconceptions, multi-rater validation of truth labels",
-        "baseline_models": "GPT-3 (175B): 58.0% GPT-3.5: 47.0% GPT-4: 59.0% Claude 2: 62.0% Human baseline: 94.0%",
-        "robustness_measures": "Multiple evaluation methods (MC1, MC2, generative); Human validation; Model-based evaluation correlation",
-        "known_limitations": "Subjective truthfulness judgments in some cases; Cultural bias in what constitutes 'truth'; Model-based evaluation may not align with human judgment; Limited coverage of misconceptions",
-        "benchmarks_list": "FactScore, HaluEval, SelfCheckGPT, FELM"
-      }
-    },
-    {
-      "evaluation_name": "Mapillary Vistas",
-      "metric_config": {
-        "evaluation_description": "Mapillary Vistas Standard Accuracy",
-        "lower_is_better": false,
-        "score_type": "continuous",
-        "min_score": 0,
-        "max_score": 1,
-        "unit": "accuracy"
-      },
-      "score_details": {
-        "score": 0.617394936359998,
-        "details": {
-          "subtask_a": 0.617394936359998,
-          "subtask_b": 0.617394936359998
-        }
-      },
-      "factsheet": {
-        "purpose": "Research; Development; Deployment",
-        "principles_tested": "Semantic segmentation, Panoptic segmentation, Scene understanding, Robust perception",
-        "functional_props": "Core Performance; Robustness",
-        "input_modality": "Vision (Image)",
-        "output_modality": "Structured Data",
-        "input_source": "User-generated content",
-        "output_source": "Expert annotations",
-        "size": "Medium (1K - 100K samples)",
-        "splits": "Train (18K), Val (2K), Test (5K)",
-        "design": "Fixed data-driven (static test set)",
-        "judge": "Automatic (Reference-based)",
-        "protocol": "1. Model receives street-level image 2. Model predicts per-pixel semantic labels (66 classes) 3. mIoU computed across all classes",
-        "model_access": "Outputs",
-        "has_heldout": true,
-        "alignment_validation": "Expert annotators, multi-stage quality control, geographic diversity validation",
-        "baseline_models": "PSPNet: 42.7 mIoU DeepLab v3+: 45.8 mIoU HRNetV2: 50.3 mIoU",
-        "robustness_measures": "Geographic diversity tested; Weather variations included; Multiple runs per sample",
-        "known_limitations": "Varying image quality from crowdsourced data; Camera parameter diversity; Some regions overrepresented; Annotation inconsistencies across diverse scenes",
-        "benchmarks_list": "Cityscapes, BDD100K, IDD, WildDash"
-      }
-    },
-    {
-      "evaluation_name": "Open Images",
-      "metric_config": {
-        "evaluation_description": "Open Images Standard Accuracy",
-        "lower_is_better": false,
-        "score_type": "continuous",
-        "min_score": 0,
-        "max_score": 1,
-        "unit": "accuracy"
-      },
-      "score_details": {
-        "score": 0.5916143740215067,
-        "details": {
-          "subtask_a": 0.5916143740215067,
-          "subtask_b": 0.5916143740215067
-        }
-      },
-      "factsheet": {
-        "purpose": "Research; Development; Selection",
-        "principles_tested": "Object detection, Image classification, Visual relationship detection, Instance segmentation",
-        "functional_props": "Core Performance; Robustness",
-        "input_modality": "Vision (Image)",
-        "output_modality": "Structured Data",
-        "input_source": "New dataset (released with eval)",
-        "output_source": "Human annotations; Crowdsourced annotations",
-        "size": "Very Huge (> 100M samples)",
-        "splits": "Train, Val, Test",
-        "design": "Fixed data-driven (static test set)",
-        "judge": "Automatic (Reference-based)",
-        "protocol": "1. Model receives image 2. Model performs classification, detection, or segmentation 3. mAP computed for detection, top-k accuracy for classification",
-        "model_access": "Outputs",
-        "has_heldout": true,
-        "alignment_validation": "Multi-stage crowdsourced annotation with verification, automated quality filters",
-        "baseline_models": "Faster R-CNN: 54.3 mAP (detection) YOLOv4: 55.8 mAP EfficientDet: 56.1 mAP",
-        "robustness_measures": "Multiple runs per sample; Confidence intervals; Large-scale diversity",
-        "known_limitations": "Long-tail class distribution; Annotation inconsistencies at scale; Some classes poorly defined; Label noise in crowdsourced annotations",
-        "benchmarks_list": "COCO, LVIS, Objects365, ImageNet"
-      }
-    },
-    {
-      "evaluation_name": "BIG-bench (Beyond the Imitation Game)",
-      "metric_config": {
-        "evaluation_description": "BIG-bench (Beyond the Imitation Game) Standard Accuracy",
-        "lower_is_better": false,
-        "score_type": "continuous",
-        "min_score": 0,
-        "max_score": 1,
-        "unit": "accuracy"
-      },
-      "score_details": {
-        "score": 0.5128746974738502,
-        "details": {
-          "subtask_a": 0.5128746974738502,
-          "subtask_b": 0.5128746974738502
-        }
-      },
-      "factsheet": {
-        "purpose": "Research; Development",
-        "principles_tested": "Diverse capabilities across 204 tasks including reasoning, knowledge, language understanding, bias detection",
-        "functional_props": "Core Performance; Fairness; Robustness",
-        "input_modality": "Text",
-        "output_modality": "Text",
-        "input_source": "New dataset (released with eval)",
-        "output_source": "Multiple/Mixed sources",
-        "size": "Large (100K - 1M samples)",
-        "splits": "Varies by task",
-        "design": "Composite",
-        "judge": "Automatic (Reference-based); Model-based: In the wild",
-        "protocol": "1. Model evaluated on 204 diverse tasks 2. Each task has its own evaluation protocol 3. Performance aggregated across tasks",
-        "model_access": "Outputs",
-        "has_heldout": false,
-        "alignment_validation": "Crowdsourced task creation with quality review, diverse authorship for broad coverage",
-        "baseline_models": "Average human rater: 89.0% Few-shot PaLM (540B): 65.7% GPT-4: ~83% (estimated on BIG-Bench Hard)",
-        "robustness_measures": "Multiple tasks provide robustness; Human baseline comparison; Cross-task analysis",
-        "known_limitations": "Task quality varies; Some tasks too easy or too hard; Computational cost of running all 204 tasks; Aggregation methodology debatable",
-        "benchmarks_list": "BIG-Bench Hard, MMLU, HELM, SuperGLUE"
-      }
-    },
-    {
-      "evaluation_name": "MT-Bench",
-      "metric_config": {
-        "evaluation_description": "Multi-turn conversation quality score (1-10)",
-        "lower_is_better": false,
-        "score_type": "continuous",
-        "min_score": 1,
-        "max_score": 10,
-        "unit": "points"
-      },
-      "score_details": {
-        "score": 7.077630013459684,
-        "details": {
-          "Turn 1": 6.577630013459684,
-          "Turn 2": 7.577630013459684
-        }
-      },
-      "factsheet": {
-        "purpose": "Development; Selection",
-        "principles_tested": "Multi-turn conversation, Instruction following, Reasoning, Writing, Role-playing, Knowledge",
-        "functional_props": "Core Performance; Core Quality Dimensions",
-        "input_modality": "Text",
-        "output_modality": "Text",
-        "input_source": "New dataset (released with eval)",
-        "output_source": "Author-provided",
-        "size": "Small (< 1K samples)",
-        "splits": "Test (80 questions with 2 turns each)",
-        "design": "Fixed data-driven (static test set)",
-        "judge": "Model-based: In the wild",
-        "protocol": "1. Model engages in 2-turn conversation 2. GPT-4 evaluates responses on 10-point scale 3. Scores averaged across turns and categories",
-        "model_access": "Outputs",
-        "has_heldout": false,
-        "alignment_validation": "Strong correlation with human preferences validated on Chatbot Arena data, GPT-4 judge agreement measured",
-        "baseline_models": "Vicuna-13B: 6.39 GPT-3.5-turbo: 7.94 Claude 2: 8.06 GPT-4: 8.99 GPT-4-turbo: 9.32",
-        "robustness_measures": "Multiple categories; Position bias mitigation; Agreement with human ratings validated; Pairwise comparison",
-        "known_limitations": "Small dataset (80 questions); GPT-4 judge may have biases; Evaluation cost; Model-based judge limitations; Prompt sensitivity",
-        "benchmarks_list": "Chatbot Arena, AlpacaEval, Arena-Hard, LiveBench"
-      }
-    },
-    {
-      "evaluation_name": "HellaSwag",
-      "metric_config": {
-        "evaluation_description": "HellaSwag Standard Accuracy",
-        "lower_is_better": false,
-        "score_type": "continuous",
-        "min_score": 0,
-        "max_score": 1,
-        "unit": "accuracy"
-      },
-      "score_details": {
-        "score": 0.5452479136267735,
-        "details": {
-          "subtask_a": 0.5452479136267735,
-          "subtask_b": 0.5452479136267735
-        }
-      },
-      "factsheet": {
-        "purpose": "Research; Development",
-        "principles_tested": "Commonsense reasoning, Physical understanding, Situation modeling, Plausibility judgment",
-        "functional_props": "Core Performance; Robustness",
-        "input_modality": "Text",
-        "output_modality": "Text",
-        "input_source": "New dataset (released with eval)",
-        "output_source": "Crowdsourced annotations",
-        "size": "Medium (1K - 100K samples)",
-        "splits": "Train (39,905), Val (10,042), Test (10,003)",
-        "design": "Fixed data-driven (static test set)",
-        "judge": "Automatic (Reference-based)",
-        "protocol": "1. Model receives scenario context 2. Model selects most plausible continuation from 4 options 3. Accuracy computed",
-        "model_access": "Outputs",
-        "has_heldout": false,
-        "alignment_validation": "Adversarial filtering using BERT to ensure difficulty, human validation of plausibility",
-        "baseline_models": "BERT-Large: 47.3% GPT-2: 50.9% GPT-3: 78.9% GPT-4: 95.3% Human performance: 95.6%",
-        "robustness_measures": "Adversarial filtering; Multiple runs per sample; Human baseline comparison",
-        "known_limitations": "Dataset may be easier than originally intended for modern LLMs; Multiple choice format; Adversarial examples may have artifacts; Potential data contamination",
-        "benchmarks_list": "PIQA, WinoGrande, CommonsenseQA, ARC"
-      }
-    },
-    {
-      "evaluation_name": "Mapillary Vistas",
-      "metric_config": {
-        "evaluation_description": "Mapillary Vistas Standard Accuracy",
-        "lower_is_better": false,
-        "score_type": "continuous",
-        "min_score": 0,
-        "max_score": 1,
-        "unit": "accuracy"
-      },
-      "score_details": {
-        "score": 0.6047996079543738,
-        "details": {
-          "subtask_a": 0.6047996079543738,
-          "subtask_b": 0.6047996079543738
-        }
-      },
-      "factsheet": {
-        "purpose": "Research; Development; Deployment",
-        "principles_tested": "Semantic segmentation, Panoptic segmentation, Scene understanding, Robust perception",
-        "functional_props": "Core Performance; Robustness",
-        "input_modality": "Vision (Image)",
-        "output_modality": "Structured Data",
-        "input_source": "User-generated content",
-        "output_source": "Expert annotations",
-        "size": "Medium (1K - 100K samples)",
-        "splits": "Train (18K), Val (2K), Test (5K)",
-        "design": "Fixed data-driven (static test set)",
-        "judge": "Automatic (Reference-based)",
-        "protocol": "1. Model receives street-level image 2. Model predicts per-pixel semantic labels (66 classes) 3. mIoU computed across all classes",
-        "model_access": "Outputs",
-        "has_heldout": true,
-        "alignment_validation": "Expert annotators, multi-stage quality control, geographic diversity validation",
-        "baseline_models": "PSPNet: 42.7 mIoU DeepLab v3+: 45.8 mIoU HRNetV2: 50.3 mIoU",
-        "robustness_measures": "Geographic diversity tested; Weather variations included; Multiple runs per sample",
-        "known_limitations": "Varying image quality from crowdsourced data; Camera parameter diversity; Some regions overrepresented; Annotation inconsistencies across diverse scenes",
-        "benchmarks_list": "Cityscapes, BDD100K, IDD, WildDash"
-      }
-    },
-    {
-      "evaluation_name": "IFEval (Instruction-Following Eval)",
-      "metric_config": {
-        "evaluation_description": "IFEval (Instruction-Following Eval) Standard Accuracy",
-        "lower_is_better": false,
-        "score_type": "continuous",
-        "min_score": 0,
-        "max_score": 1,
-        "unit": "accuracy"
-      },
-      "score_details": {
-        "score": 0.5004573523401303,
-        "details": {
-          "subtask_a": 0.5004573523401303,
-          "subtask_b": 0.5004573523401303
-        }
-      },
-      "factsheet": {
-        "purpose": "Research; Development; Selection",
-        "principles_tested": "Instruction following, Constraint satisfaction, Format compliance, Precise control",
-        "functional_props": "Core Performance; Robustness",
-        "input_modality": "Text",
-        "output_modality": "Text",
-        "input_source": "New dataset (released with eval)",
-        "output_source": "Programmatically generated",
-        "size": "Small (< 1K samples)",
-        "splits": "Test (541 prompts with ~25 verifiable instructions)",
-        "design": "Fixed data-driven (static test set)",
-        "judge": "Automatic (Reference-free)",
-        "protocol": "1. Model receives prompt with verifiable instructions (e.g., 'respond in exactly 3 paragraphs', 'include word X at least 5 times') 2. Model generates response 3. Programmatic checks verify instruction compliance 4. Strict and loose accuracy metrics computed",
-        "model_access": "Outputs",
-        "has_heldout": false,
-        "alignment_validation": "Verifiable instructions with programmatic checking, no ambiguity in correctness",
-        "baseline_models": "GPT-3.5: 57.4% strict GPT-4: 76.9% strict Claude 2: 66.7% strict Gemini Ultra: 79.4% strict",
-        "robustness_measures": "Strict and loose metrics; Multiple instruction types; Programmatic verification; No human evaluation needed",
-        "known_limitations": "Limited to verifiable instructions only; May not reflect realistic usage; Some instructions may be conflicting; Excludes semantic quality assessment",
-        "benchmarks_list": "MT-Bench, AlpacaEval, InstructGPT evals, FollowBench"
-      }
-    },
-    {
-      "evaluation_name": "Waymo Open Dataset",
-      "metric_config": {
-        "evaluation_description": "Waymo Open Dataset Standard Accuracy",
-        "lower_is_better": false,
-        "score_type": "continuous",
-        "min_score": 0,
-        "max_score": 1,
-        "unit": "accuracy"
-      },
-      "score_details": {
-        "score": 0.6443135557730899,
-        "details": {
-          "subtask_a": 0.6443135557730899,
-          "subtask_b": 0.6443135557730899
-        }
-      },
-      "factsheet": {
-        "purpose": "Research; Development; Deployment",
-        "principles_tested": "3D object detection, 2D object detection, Tracking, Domain adaptation, Sensor fusion",
-        "functional_props": "Core Performance; Robustness",
-        "input_modality": "Vision (Image); Video; Structured Data",
-        "output_modality": "Structured Data",
-        "input_source": "New dataset (released with eval)",
-        "output_source": "Human annotations; Programmatically generated",
-        "size": "Huge (> 10M samples)",
-        "splits": "Train (798), Val (202), Test (150)",
-        "design": "Fixed data-driven (static test set)",
-        "judge": "Automatic (Reference-based)",
-        "protocol": "1. Model receives multimodal sensor data 2. Model predicts 3D bounding boxes with tracking IDs 3. AP/APH metrics at different IoU thresholds and difficulty levels",
-        "model_access": "Outputs",
-        "has_heldout": true,
-        "alignment_validation": "Multi-stage annotation pipeline with quality checks, temporal consistency validation",
-        "baseline_models": "PointPillars: 63.8 L2 APH (Vehicle) CenterPoint: 73.9 L2 APH PV-RCNN++: 77.8 L2 APH",
-        "robustness_measures": "Geographic diversity; Time of day variations; Weather conditions; Multiple difficulty levels",
-        "known_limitations": "Geographic concentration in specific cities; Sensor-specific challenges; Annotation latency for distant objects; Class imbalance",
-        "benchmarks_list": "nuScenes, KITTI, Argoverse 2, Once, Lyft Level 5"
-      }
+      "evaluation_timestamp": "2024-11-30T23:02:13.864Z"
     },
     {
       "evaluation_name": "CIFAR-10 and CIFAR-100",
@@ -1215,10 +209,10 @@
         "unit": "accuracy"
       },
       "score_details": {
-        "score": 0.6476991658227166,
+        "score": 0.4613533168817197,
         "details": {
-          "subtask_a": 0.6476991658227166,
-          "subtask_b": 0.6476991658227166
+          "subtask_a": 0.4613533168817197,
+          "subtask_b": 0.4613533168817197
         }
       },
       "factsheet": {
@@ -1236,17 +230,19 @@
         "protocol": "1. Model receives 32x32 RGB image 2. Model predicts class label (10 or 100 classes) 3. Classification accuracy computed",
         "model_access": "Outputs",
         "has_heldout": false,
+        "heldout_details": "",
         "alignment_validation": "Systematic sampling from larger dataset (80 million tiny images), human verification of labels",
         "baseline_models": "CIFAR-10: ResNet-56: 93.03% Wide ResNet-28-10: 96.11% PyramidNet: 96.54%  CIFAR-100: ResNet-56: 71.35% Wide ResNet-28-10: 81.15% PyramidNet: 83.78%",
         "robustness_measures": "Multiple runs per sample; Seed variation tested; Ablation studies",
         "known_limitations": "Low resolution (32x32) limits fine-grained recognition; Some label noise in CIFAR-100; Dataset size enables memorization in large models; Limited diversity in poses and contexts",
         "benchmarks_list": "CIFAR-10-C, CIFAR-10.1, CIFAR-100-C, STL-10, Tiny ImageNet"
-      }
+      },
+      "evaluation_timestamp": "2024-11-14T07:33:09.354Z"
     },
     {
-      "evaluation_name": "DAVIS (Densely Annotated VIdeo Segmentation)",
+      "evaluation_name": "Pascal VOC",
       "metric_config": {
-        "evaluation_description": "DAVIS (Densely Annotated VIdeo Segmentation) Standard Accuracy",
+        "evaluation_description": "Pascal VOC Standard Accuracy",
         "lower_is_better": false,
         "score_type": "continuous",
         "min_score": 0,
@@ -1254,38 +250,163 @@
         "unit": "accuracy"
       },
       "score_details": {
-        "score": 0.6232228420729622,
+        "score": 0.4604420780555958,
         "details": {
-          "subtask_a": 0.6232228420729622,
-          "subtask_b": 0.6232228420729622
+          "subtask_a": 0.4604420780555958,
+          "subtask_b": 0.4604420780555958
+        }
+      },
+      "factsheet": {
+        "purpose": "Research; Development; Selection",
+        "principles_tested": "Object detection, Semantic segmentation, Instance segmentation, Action classification",
+        "functional_props": "Core Performance",
+        "input_modality": "Vision (Image)",
+        "output_modality": "Structured Data",
+        "input_source": "New dataset (released with eval)",
+        "output_source": "Human annotations",
+        "size": "Medium (1K - 100K samples)",
+        "splits": "Train, Validation, Test",
+        "design": "Fixed data-driven (static test set)",
+        "judge": "Automatic (Reference-based)",
+        "protocol": "1. Model receives image as input 2. Model predicts bounding boxes and class labels 3. mAP computed at IoU threshold 0.5",
+        "model_access": "Outputs",
+        "has_heldout": true,
+        "heldout_details": "Test set labels held privately, evaluation via submission to organizers (historically)",
+        "alignment_validation": "Careful manual annotation with quality control, multiple annotators for difficult cases",
+        "baseline_models": "R-CNN: 58.5 mAP (VOC 2007) Fast R-CNN: 70.0 mAP Faster R-CNN: 75.9 mAP YOLOv3: 78.6 mAP",
+        "robustness_measures": "Inter-rater reliability; Significance testing",
+        "known_limitations": "Limited to 20 classes; Small dataset size by modern standards; Some annotation inconsistencies; Relatively simple backgrounds",
+        "benchmarks_list": "COCO, LVIS, Open Images, Cityscapes"
+      },
+      "evaluation_timestamp": "2024-11-14T04:25:24.106Z"
+    },
+    {
+      "evaluation_name": "Cityscapes",
+      "metric_config": {
+        "evaluation_description": "Cityscapes Standard Accuracy",
+        "lower_is_better": false,
+        "score_type": "continuous",
+        "min_score": 0,
+        "max_score": 1,
+        "unit": "accuracy"
+      },
+      "score_details": {
+        "score": 0.37575958069439674,
+        "details": {
+          "subtask_a": 0.37575958069439674,
+          "subtask_b": 0.37575958069439674
+        }
+      },
+      "factsheet": {
+        "purpose": "Research; Development; Deployment",
+        "principles_tested": "Semantic segmentation, Instance segmentation, Scene understanding, Autonomous driving perception",
+        "functional_props": "Core Performance; Robustness",
+        "input_modality": "Vision (Image); Video",
+        "output_modality": "Structured Data",
+        "input_source": "New dataset (released with eval)",
+        "output_source": "Expert annotations",
+        "size": "Medium (1K - 100K samples)",
+        "splits": "Train (2975), Val (500), Test (1525)",
+        "design": "Fixed data-driven (static test set)",
+        "judge": "Automatic (Reference-based)",
+        "protocol": "1. Model receives street scene image (2048×1024) 2. Model predicts per-pixel semantic class (19 or 30 classes) 3. IoU and accuracy metrics computed",
+        "model_access": "Outputs",
+        "has_heldout": true,
+        "heldout_details": "Test set labels private, evaluation via online server with leaderboard",
+        "alignment_validation": "Expert annotators with domain knowledge, multi-pass quality control, consistency verification across video sequences",
+        "baseline_models": "FCN-8s: 65.3 mIoU DeepLab v3+: 82.1 mIoU HRNetV2: 83.0 mIoU SegFormer: 84.0 mIoU",
+        "robustness_measures": "Multiple runs per sample; Ablation studies; Significance testing",
+        "known_limitations": "Limited to European cities; Weather bias (mostly good conditions); Class imbalance for rare objects; Fine annotation boundaries challenging",
+        "benchmarks_list": "ADE20K, KITTI, Mapillary Vistas, BDD100K, nuScenes"
+      },
+      "evaluation_timestamp": "2024-11-22T19:50:32.267Z"
+    },
+    {
+      "evaluation_name": "ADE20K",
+      "metric_config": {
+        "evaluation_description": "ADE20K Standard Accuracy",
+        "lower_is_better": false,
+        "score_type": "continuous",
+        "min_score": 0,
+        "max_score": 1,
+        "unit": "accuracy"
+      },
+      "score_details": {
+        "score": 0.6263190164923835,
+        "details": {
+          "subtask_a": 0.6263190164923835,
+          "subtask_b": 0.6263190164923835
         }
       },
       "factsheet": {
         "purpose": "Research; Development",
-        "principles_tested": "Video object segmentation, Temporal consistency, Object tracking, Dense prediction",
-        "functional_props": "Core Performance; Robustness",
+        "principles_tested": "Scene parsing, Semantic segmentation, Multi-scale recognition, Part segmentation",
+        "functional_props": "Core Performance",
+        "input_modality": "Vision (Image)",
+        "output_modality": "Structured Data",
+        "input_source": "New dataset (released with eval)",
+        "output_source": "Human annotations",
+        "size": "Medium (1K - 100K samples)",
+        "splits": "Train (20K), Val (2K), Test (3K)",
+        "design": "Fixed data-driven (static test set)",
+        "judge": "Automatic (Reference-based)",
+        "protocol": "1. Model receives diverse scene image 2. Model predicts per-pixel semantic labels (150 classes) 3. Mean IoU and pixel accuracy computed",
+        "model_access": "Outputs",
+        "has_heldout": false,
+        "heldout_details": "",
+        "alignment_validation": "Crowdsourced annotations with expert review, hierarchical consistency checks, multi-round verification",
+        "baseline_models": "PSPNet: 43.29 mIoU DeepLab v3: 45.65 mIoU UPerNet: 44.85 mIoU SegFormer-B5: 51.8 mIoU",
+        "robustness_measures": "Inter-rater reliability; Multiple runs per sample",
+        "known_limitations": "Long-tail distribution of object classes; Annotation granularity varies; Some scenes have ambiguous boundaries; Challenging for rare categories",
+        "benchmarks_list": "Cityscapes, Pascal Context, COCO-Stuff, Mapillary Vistas"
+      },
+      "evaluation_timestamp": "2024-11-23T15:12:57.192Z"
+    },
+    {
+      "evaluation_name": "Kinetics",
+      "metric_config": {
+        "evaluation_description": "Kinetics Standard Accuracy",
+        "lower_is_better": false,
+        "score_type": "continuous",
+        "min_score": 0,
+        "max_score": 1,
+        "unit": "accuracy"
+      },
+      "score_details": {
+        "score": 0.3150751099364491,
+        "details": {
+          "subtask_a": 0.3150751099364491,
+          "subtask_b": 0.3150751099364491
+        }
+      },
+      "factsheet": {
+        "purpose": "Research; Development",
+        "principles_tested": "Action recognition, Video understanding, Temporal reasoning, Human activity recognition",
+        "functional_props": "Core Performance",
         "input_modality": "Video",
         "output_modality": "Structured Data",
         "input_source": "New dataset (released with eval)",
         "output_source": "Human annotations",
-        "size": "Small (< 1K samples)",
-        "splits": "Train/Val (60 sequences), Test-dev (30 sequences)",
+        "size": "Large (100K - 1M samples)",
+        "splits": "Train, Val, Test",
         "design": "Fixed data-driven (static test set)",
         "judge": "Automatic (Reference-based)",
-        "protocol": "1. Model receives video sequence with first frame annotation 2. Model propagates segmentation to subsequent frames 3. J&F metric (region similarity and contour accuracy)",
+        "protocol": "1. Model receives 10-second video clip 2. Model predicts action class (400/600/700 classes) 3. Top-1 and Top-5 accuracy computed",
         "model_access": "Outputs",
-        "has_heldout": true,
-        "alignment_validation": "High-quality manual annotations with temporal consistency verification",
-        "baseline_models": "OSVOS: 79.8 J&F STM: 84.3 J&F XMem: 86.2 J&F",
-        "robustness_measures": "Temporal consistency tested; Occlusion robustness; Multiple runs per sample",
-        "known_limitations": "Small dataset size; Limited object categories; Short video sequences; Primarily objects with clear boundaries",
-        "benchmarks_list": "YouTube-VOS, FBMS, SegTrack, OVIS"
-      }
+        "has_heldout": false,
+        "heldout_details": "",
+        "alignment_validation": "Human verification of video labels, removal of ambiguous clips, consistency checks for similar actions",
+        "baseline_models": "I3D: 71.1% top-1 (K400) SlowFast: 79.8% top-1 (K400) X3D: 80.4% top-1 (K400) VideoMAE: 81.5% top-1 (K400)",
+        "robustness_measures": "Multiple runs per sample; Temporal ordering tested",
+        "known_limitations": "YouTube videos may become unavailable over time; Some action classes overlap or are ambiguous; Camera viewpoint bias; Dataset drift as internet content changes",
+        "benchmarks_list": "UCF-101, HMDB-51, ActivityNet, Something-Something, Moments in Time"
+      },
+      "evaluation_timestamp": "2024-11-20T00:16:45.120Z"
     },
     {
-      "evaluation_name": "WinoGrande",
+      "evaluation_name": "KITTI",
       "metric_config": {
-        "evaluation_description": "WinoGrande Standard Accuracy",
+        "evaluation_description": "KITTI Standard Accuracy",
         "lower_is_better": false,
         "score_type": "continuous",
         "min_score": 0,
@@ -1293,33 +414,240 @@
         "unit": "accuracy"
       },
       "score_details": {
-        "score": 0.6106030387010124,
+        "score": 0.8657291570523511,
         "details": {
-          "subtask_a": 0.6106030387010124,
-          "subtask_b": 0.6106030387010124
+          "subtask_a": 0.8657291570523511,
+          "subtask_b": 0.8657291570523511
+        }
+      },
+      "factsheet": {
+        "purpose": "Research; Development; Deployment",
+        "principles_tested": "3D object detection, Stereo vision, Optical flow, Visual odometry, Tracking",
+        "functional_props": "Core Performance; Robustness",
+        "input_modality": "Vision (Image); Video",
+        "output_modality": "Structured Data",
+        "input_source": "New dataset (released with eval)",
+        "output_source": "Human annotations; Programmatically generated",
+        "size": "Medium (1K - 100K samples)",
+        "splits": "Train, Val, Test",
+        "design": "Fixed data-driven (static test set)",
+        "judge": "Automatic (Reference-based)",
+        "protocol": "1. Model receives stereo image pair or point cloud 2. Model predicts 3D bounding boxes, orientation, class 3. 3D AP computed at different difficulty levels (easy/moderate/hard)",
+        "model_access": "Outputs",
+        "has_heldout": true,
+        "heldout_details": "Test set labels held privately, evaluation via online server with public leaderboard",
+        "alignment_validation": "LiDAR ground truth for 3D positions, manual verification of annotations, multi-sensor fusion for accuracy",
+        "baseline_models": "PointPillars: 79.05 AP (Car, Moderate) PV-RCNN: 83.90 AP (Car, Moderate) CenterPoint: 85.15 AP (Car, Moderate)",
+        "robustness_measures": "Multiple difficulty levels; Ablation studies; Significance testing",
+        "known_limitations": "Limited to specific geographic region; Weather bias (mostly clear); Limited nighttime data; Class imbalance (cars dominate)",
+        "benchmarks_list": "nuScenes, Waymo Open Dataset, Argoverse, A2D2, Lyft Level 5"
+      },
+      "evaluation_timestamp": "2024-12-01T10:45:16.436Z"
+    },
+    {
+      "evaluation_name": "Places365",
+      "metric_config": {
+        "evaluation_description": "Places365 Standard Accuracy",
+        "lower_is_better": false,
+        "score_type": "continuous",
+        "min_score": 0,
+        "max_score": 1,
+        "unit": "accuracy"
+      },
+      "score_details": {
+        "score": 0.5630047952110273,
+        "details": {
+          "subtask_a": 0.5630047952110273,
+          "subtask_b": 0.5630047952110273
         }
       },
       "factsheet": {
         "purpose": "Research; Development",
-        "principles_tested": "Commonsense reasoning, Coreference resolution, World knowledge, Causal reasoning",
-        "functional_props": "Core Performance; Robustness",
-        "input_modality": "Text",
-        "output_modality": "Text",
+        "principles_tested": "Scene recognition, Scene classification, Environmental understanding, Context recognition",
+        "functional_props": "Core Performance",
+        "input_modality": "Vision (Image)",
+        "output_modality": "Structured Data",
         "input_source": "New dataset (released with eval)",
-        "output_source": "Crowdsourced annotations",
-        "size": "Medium (1K - 100K samples)",
-        "splits": "Train (40,398), Dev (1,267), Test (1,767)",
+        "output_source": "Human annotations",
+        "size": "Very Huge (> 100M samples)",
+        "splits": "Train, Val, Test",
         "design": "Fixed data-driven (static test set)",
         "judge": "Automatic (Reference-based)",
-        "protocol": "1. Model receives sentence with pronoun ambiguity 2. Model selects correct referent from 2 options 3. Accuracy computed",
+        "protocol": "1. Model receives scene image 2. Model predicts scene category (365 classes) 3. Top-1 and Top-5 accuracy computed",
         "model_access": "Outputs",
         "has_heldout": false,
-        "alignment_validation": "Adversarial filtering using language models, crowdsourced generation with validation",
-        "baseline_models": "BERT-Large: 59.4% RoBERTa-Large: 79.1% GPT-3: 70.2% GPT-4: 87.5% Human performance: 94.0%",
-        "robustness_measures": "Adversarial filtering; Large-scale dataset; Multiple difficulty levels",
-        "known_limitations": "Binary choice may be limiting; Adversarial filtering may introduce artifacts; Saturation with modern models; Limited reasoning depth",
-        "benchmarks_list": "Winograd Schema Challenge, COPA, CommonsenseQA, PIQA"
-      }
+        "heldout_details": "",
+        "alignment_validation": "Human verification, consistency checks for scene categories, hierarchical taxonomy validation",
+        "baseline_models": "ResNet-152: 55.24% top-1 DenseNet-161: 56.12% top-1 ResNeXt-101: 56.05% top-1",
+        "robustness_measures": "Inter-rater reliability; Multiple runs per sample",
+        "known_limitations": "Some scene categories overlap semantically; Cultural bias in scene definitions; Indoor scenes better represented than outdoor; Ambiguous boundary cases",
+        "benchmarks_list": "SUN397, MIT Indoor 67, Scene-15, ADE20K"
+      },
+      "evaluation_timestamp": "2024-11-30T00:03:45.356Z"
+    },
+    {
+      "evaluation_name": "UCF-101",
+      "metric_config": {
+        "evaluation_description": "UCF-101 Standard Accuracy",
+        "lower_is_better": false,
+        "score_type": "continuous",
+        "min_score": 0,
+        "max_score": 1,
+        "unit": "accuracy"
+      },
+      "score_details": {
+        "score": 0.6112542685443574,
+        "details": {
+          "subtask_a": 0.6112542685443574,
+          "subtask_b": 0.6112542685443574
+        }
+      },
+      "factsheet": {
+        "purpose": "Research; Development",
+        "principles_tested": "Action recognition, Video classification, Temporal understanding",
+        "functional_props": "Core Performance",
+        "input_modality": "Video",
+        "output_modality": "Structured Data",
+        "input_source": "New dataset (released with eval)",
+        "output_source": "Human annotations",
+        "size": "Medium (1K - 100K samples)",
+        "splits": "Train/Test (3 splits provided)",
+        "design": "Fixed data-driven (static test set)",
+        "judge": "Automatic (Reference-based)",
+        "protocol": "1. Model receives video clip 2. Model predicts action class (101 classes) 3. Average accuracy across 3 splits reported",
+        "model_access": "Outputs",
+        "has_heldout": false,
+        "heldout_details": "",
+        "alignment_validation": "Manual verification of action labels, removal of ambiguous videos",
+        "baseline_models": "Two-Stream CNN: 88.0% I3D: 95.6% SlowFast: 96.8% VideoMAE: 97.2%",
+        "robustness_measures": "Multiple evaluation splits; Seed variation tested",
+        "known_limitations": "YouTube videos may become unavailable; Camera motion and quality vary; Some action classes are very similar; Dataset saturation with modern methods",
+        "benchmarks_list": "HMDB-51, Kinetics, ActivityNet, Something-Something-V2"
+      },
+      "evaluation_timestamp": "2024-12-03T16:57:04.071Z"
+    },
+    {
+      "evaluation_name": "NYU Depth V2",
+      "metric_config": {
+        "evaluation_description": "NYU Depth V2 Standard Accuracy",
+        "lower_is_better": false,
+        "score_type": "continuous",
+        "min_score": 0,
+        "max_score": 1,
+        "unit": "accuracy"
+      },
+      "score_details": {
+        "score": 0.7713016710244271,
+        "details": {
+          "subtask_a": 0.7713016710244271,
+          "subtask_b": 0.7713016710244271
+        }
+      },
+      "factsheet": {
+        "purpose": "Research; Development",
+        "principles_tested": "Depth estimation, RGB-D understanding, Indoor scene parsing, 3D reconstruction",
+        "functional_props": "Core Performance",
+        "input_modality": "Vision (Image); Structured Data",
+        "output_modality": "Structured Data",
+        "input_source": "New dataset (released with eval)",
+        "output_source": "Expert annotations",
+        "size": "Small (< 1K samples)",
+        "splits": "Train (795), Test (654)",
+        "design": "Fixed data-driven (static test set)",
+        "judge": "Automatic (Reference-based)",
+        "protocol": "1. Model receives RGB image 2. Model predicts depth map or semantic segmentation 3. RMSE, absolute relative error, and accuracy metrics computed",
+        "model_access": "Outputs",
+        "has_heldout": false,
+        "heldout_details": "",
+        "alignment_validation": "Kinect sensor ground truth with manual alignment corrections, multi-view consistency",
+        "baseline_models": "Depth Estimation: Eigen et al.: 0.641 RMSE AdaBins: 0.364 RMSE BTS: 0.392 RMSE",
+        "robustness_measures": "Multiple runs per sample; Ablation studies",
+        "known_limitations": "Small dataset size; Limited to indoor scenes; Kinect depth sensor limitations (range, IR interference); Mostly residential environments",
+        "benchmarks_list": "ScanNet, Matterport3D, SUNRGB-D, KITTI Depth"
+      },
+      "evaluation_timestamp": "2024-11-13T03:58:14.042Z"
+    },
+    {
+      "evaluation_name": "CelebA",
+      "metric_config": {
+        "evaluation_description": "CelebA Standard Accuracy",
+        "lower_is_better": false,
+        "score_type": "continuous",
+        "min_score": 0,
+        "max_score": 1,
+        "unit": "accuracy"
+      },
+      "score_details": {
+        "score": 0.8645165139091098,
+        "details": {
+          "subtask_a": 0.8645165139091098,
+          "subtask_b": 0.8645165139091098
+        }
+      },
+      "factsheet": {
+        "purpose": "Research; Development",
+        "principles_tested": "Face attribute recognition, Face detection, Facial landmark detection, Identity recognition",
+        "functional_props": "Core Performance; Fairness",
+        "input_modality": "Vision (Image)",
+        "output_modality": "Structured Data",
+        "input_source": "New dataset (released with eval)",
+        "output_source": "Human annotations",
+        "size": "Large (100K - 1M samples)",
+        "splits": "Train (162,770), Val (19,867), Test (19,962)",
+        "design": "Fixed data-driven (static test set)",
+        "judge": "Automatic (Reference-based)",
+        "protocol": "1. Model receives face image 2. Model predicts binary attributes (40 dimensions) 3. Per-attribute accuracy and mean accuracy computed",
+        "model_access": "Outputs",
+        "has_heldout": false,
+        "heldout_details": "",
+        "alignment_validation": "Manual annotation with quality control, consistency verification across multiple attributes",
+        "baseline_models": "LNets+ANet: 87.30% mean accuracy Walk and Learn: 88.06% FaceNet: 89.35%",
+        "robustness_measures": "Inter-rater reliability; Multiple runs per sample",
+        "known_limitations": "Demographic bias (celebrity images); Some attributes are subjective; Label noise in some attributes; Privacy concerns with celebrity images; Lighting and pose variation",
+        "benchmarks_list": "LFW, VGGFace2, MS-Celeb-1M, FFHQ"
+      },
+      "evaluation_timestamp": "2024-11-18T01:50:34.830Z"
+    },
+    {
+      "evaluation_name": "Visual Genome",
+      "metric_config": {
+        "evaluation_description": "Visual Genome Standard Accuracy",
+        "lower_is_better": false,
+        "score_type": "continuous",
+        "min_score": 0,
+        "max_score": 1,
+        "unit": "accuracy"
+      },
+      "score_details": {
+        "score": 0.5316718730927161,
+        "details": {
+          "subtask_a": 0.5316718730927161,
+          "subtask_b": 0.5316718730927161
+        }
+      },
+      "factsheet": {
+        "purpose": "Research; Development",
+        "principles_tested": "Scene graph generation, Visual relationship detection, Visual question answering, Dense captioning",
+        "functional_props": "Core Performance",
+        "input_modality": "Vision (Image)",
+        "output_modality": "Structured Data; Text",
+        "input_source": "MS COCO",
+        "output_source": "Crowdsourced annotations",
+        "size": "Large (100K - 1M samples)",
+        "splits": "Train, Val, Test",
+        "design": "Fixed data-driven (static test set)",
+        "judge": "Automatic (Reference-based)",
+        "protocol": "1. Model receives image 2. Model predicts objects, attributes, and relationships 3. Recall@K metrics for scene graph components",
+        "model_access": "Outputs",
+        "has_heldout": false,
+        "heldout_details": "",
+        "alignment_validation": "Multi-round crowdsourced annotations with validation, consistency checks for relationships",
+        "baseline_models": "IMP: 14.6 R@50 (scene graph detection) Motifs: 21.4 R@50 VCTree: 22.0 R@50 GPS-Net: 24.0 R@50",
+        "robustness_measures": "Inter-rater reliability; Multiple runs per sample",
+        "known_limitations": "Long-tail distribution of relationships; Annotation inconsistencies; Subjective relationship definitions; Incomplete annotations (not all relationships captured)",
+        "benchmarks_list": "GQA, Scene Graph Benchmark, VRD, OpenImages V6"
+      },
+      "evaluation_timestamp": "2024-11-12T14:35:23.797Z"
     },
     {
       "evaluation_name": "LVIS (Large Vocabulary Instance Segmentation)",
@@ -1332,10 +660,10 @@
         "unit": "accuracy"
       },
       "score_details": {
-        "score": 0.5053512833031226,
+        "score": 0.4930081840810291,
         "details": {
-          "subtask_a": 0.5053512833031226,
-          "subtask_b": 0.5053512833031226
+          "subtask_a": 0.4930081840810291,
+          "subtask_b": 0.4930081840810291
         }
       },
       "factsheet": {
@@ -1353,12 +681,178 @@
         "protocol": "1. Model receives image 2. Model predicts instance masks and categories (1203 classes) 3. AP computed separately for rare, common, and frequent categories",
         "model_access": "Outputs",
         "has_heldout": true,
+        "heldout_details": "Test set labels private, evaluation via online server",
         "alignment_validation": "Expert annotators with WordNet taxonomy, quality control for long-tail categories",
         "baseline_models": "Mask R-CNN: 21.2 AP (v1.0) Cascade R-CNN: 26.2 AP Swin Transformer: 50.9 AP",
         "robustness_measures": "Multiple runs per sample; Ablation studies; Category frequency stratification",
         "known_limitations": "Rare categories have very few examples; Annotation cost for 1203 categories; Some category definitions overlap; Challenging for zero-shot generalization",
         "benchmarks_list": "COCO, Objects365, OpenImages, iNaturalist"
-      }
+      },
+      "evaluation_timestamp": "2024-11-26T06:42:26.490Z"
+    },
+    {
+      "evaluation_name": "Mapillary Vistas",
+      "metric_config": {
+        "evaluation_description": "Mapillary Vistas Standard Accuracy",
+        "lower_is_better": false,
+        "score_type": "continuous",
+        "min_score": 0,
+        "max_score": 1,
+        "unit": "accuracy"
+      },
+      "score_details": {
+        "score": 0.6694674184471474,
+        "details": {
+          "subtask_a": 0.6694674184471474,
+          "subtask_b": 0.6694674184471474
+        }
+      },
+      "factsheet": {
+        "purpose": "Research; Development; Deployment",
+        "principles_tested": "Semantic segmentation, Panoptic segmentation, Scene understanding, Robust perception",
+        "functional_props": "Core Performance; Robustness",
+        "input_modality": "Vision (Image)",
+        "output_modality": "Structured Data",
+        "input_source": "User-generated content",
+        "output_source": "Expert annotations",
+        "size": "Medium (1K - 100K samples)",
+        "splits": "Train (18K), Val (2K), Test (5K)",
+        "design": "Fixed data-driven (static test set)",
+        "judge": "Automatic (Reference-based)",
+        "protocol": "1. Model receives street-level image 2. Model predicts per-pixel semantic labels (66 classes) 3. mIoU computed across all classes",
+        "model_access": "Outputs",
+        "has_heldout": true,
+        "heldout_details": "Test set labels private, evaluation via online platform",
+        "alignment_validation": "Expert annotators, multi-stage quality control, geographic diversity validation",
+        "baseline_models": "PSPNet: 42.7 mIoU DeepLab v3+: 45.8 mIoU HRNetV2: 50.3 mIoU",
+        "robustness_measures": "Geographic diversity tested; Weather variations included; Multiple runs per sample",
+        "known_limitations": "Varying image quality from crowdsourced data; Camera parameter diversity; Some regions overrepresented; Annotation inconsistencies across diverse scenes",
+        "benchmarks_list": "Cityscapes, BDD100K, IDD, WildDash"
+      },
+      "evaluation_timestamp": "2024-12-02T01:34:23.356Z"
+    },
+    {
+      "evaluation_name": "MPII Human Pose",
+      "metric_config": {
+        "evaluation_description": "MPII Human Pose Standard Accuracy",
+        "lower_is_better": false,
+        "score_type": "continuous",
+        "min_score": 0,
+        "max_score": 1,
+        "unit": "accuracy"
+      },
+      "score_details": {
+        "score": 0.32625249004626306,
+        "details": {
+          "subtask_a": 0.32625249004626306,
+          "subtask_b": 0.32625249004626306
+        }
+      },
+      "factsheet": {
+        "purpose": "Research; Development",
+        "principles_tested": "Human pose estimation, Keypoint detection, Articulated pose estimation, Activity recognition",
+        "functional_props": "Core Performance",
+        "input_modality": "Vision (Image)",
+        "output_modality": "Structured Data",
+        "input_source": "New dataset (released with eval)",
+        "output_source": "Human annotations",
+        "size": "Medium (1K - 100K samples)",
+        "splits": "Train (~29K people), Test (~12K people)",
+        "design": "Fixed data-driven (static test set)",
+        "judge": "Automatic (Reference-based)",
+        "protocol": "1. Model receives image with person 2. Model predicts 2D joint locations (16 joints) 3. PCKh (Percentage of Correct Keypoints) at various thresholds",
+        "model_access": "Outputs",
+        "has_heldout": false,
+        "heldout_details": "",
+        "alignment_validation": "Manual annotation with consistency checks, multi-annotator agreement for difficult poses",
+        "baseline_models": "Hourglass Network: 90.9 PCKh@0.5 HRNet: 92.3 PCKh@0.5 SimpleBaseline: 91.5 PCKh@0.5",
+        "robustness_measures": "Multiple difficulty levels; Inter-rater reliability; Occlusion analysis",
+        "known_limitations": "2D annotations only (no 3D); Occlusion and truncation challenges; Some joint definitions ambiguous; Dataset bias toward certain activities",
+        "benchmarks_list": "COCO Keypoints, Human3.6M, PoseTrack, CrowdPose"
+      },
+      "evaluation_timestamp": "2024-11-13T23:38:54.815Z"
+    },
+    {
+      "evaluation_name": "Open Images",
+      "metric_config": {
+        "evaluation_description": "Open Images Standard Accuracy",
+        "lower_is_better": false,
+        "score_type": "continuous",
+        "min_score": 0,
+        "max_score": 1,
+        "unit": "accuracy"
+      },
+      "score_details": {
+        "score": 0.49649923386174905,
+        "details": {
+          "subtask_a": 0.49649923386174905,
+          "subtask_b": 0.49649923386174905
+        }
+      },
+      "factsheet": {
+        "purpose": "Research; Development; Selection",
+        "principles_tested": "Object detection, Image classification, Visual relationship detection, Instance segmentation",
+        "functional_props": "Core Performance; Robustness",
+        "input_modality": "Vision (Image)",
+        "output_modality": "Structured Data",
+        "input_source": "New dataset (released with eval)",
+        "output_source": "Human annotations; Crowdsourced annotations",
+        "size": "Very Huge (> 100M samples)",
+        "splits": "Train, Val, Test",
+        "design": "Fixed data-driven (static test set)",
+        "judge": "Automatic (Reference-based)",
+        "protocol": "1. Model receives image 2. Model performs classification, detection, or segmentation 3. mAP computed for detection, top-k accuracy for classification",
+        "model_access": "Outputs",
+        "has_heldout": true,
+        "heldout_details": "Test set labels private for challenges, public validation set available",
+        "alignment_validation": "Multi-stage crowdsourced annotation with verification, automated quality filters",
+        "baseline_models": "Faster R-CNN: 54.3 mAP (detection) YOLOv4: 55.8 mAP EfficientDet: 56.1 mAP",
+        "robustness_measures": "Multiple runs per sample; Confidence intervals; Large-scale diversity",
+        "known_limitations": "Long-tail class distribution; Annotation inconsistencies at scale; Some classes poorly defined; Label noise in crowdsourced annotations",
+        "benchmarks_list": "COCO, LVIS, Objects365, ImageNet"
+      },
+      "evaluation_timestamp": "2024-11-13T22:17:54.242Z"
+    },
+    {
+      "evaluation_name": "ScanNet",
+      "metric_config": {
+        "evaluation_description": "ScanNet Standard Accuracy",
+        "lower_is_better": false,
+        "score_type": "continuous",
+        "min_score": 0,
+        "max_score": 1,
+        "unit": "accuracy"
+      },
+      "score_details": {
+        "score": 0.30993559060665027,
+        "details": {
+          "subtask_a": 0.30993559060665027,
+          "subtask_b": 0.30993559060665027
+        }
+      },
+      "factsheet": {
+        "purpose": "Research; Development",
+        "principles_tested": "3D scene understanding, Semantic segmentation, Instance segmentation, 3D reconstruction",
+        "functional_props": "Core Performance",
+        "input_modality": "Vision (Image); Video; Structured Data",
+        "output_modality": "Structured Data",
+        "input_source": "New dataset (released with eval)",
+        "output_source": "Human annotations; Programmatically generated",
+        "size": "Medium (1K - 100K samples)",
+        "splits": "Train (1201), Val (312), Test (100)",
+        "design": "Fixed data-driven (static test set)",
+        "judge": "Automatic (Reference-based)",
+        "protocol": "1. Model receives 3D scene (RGB-D scans) 2. Model predicts semantic labels or instance masks 3. mIoU for semantic segmentation, mAP for instance segmentation",
+        "model_access": "Outputs",
+        "has_heldout": true,
+        "heldout_details": "Test set labels private, evaluation via online benchmark server",
+        "alignment_validation": "Manual verification of 3D reconstructions, multi-annotator consistency for semantic labels",
+        "baseline_models": "PointNet++: 53.5 mIoU SparseConvNet: 72.5 mIoU MinkowskiNet: 73.6 mIoU",
+        "robustness_measures": "Multiple runs per sample; Ablation studies",
+        "known_limitations": "Limited to indoor scenes; Reconstruction artifacts; Scanning noise and occlusions; Limited scene diversity (mostly offices and apartments)",
+        "benchmarks_list": "Matterport3D, S3DIS, 2D-3D-S, ARKitScenes"
+      },
+      "evaluation_timestamp": "2024-11-18T06:14:39.815Z"
     },
     {
       "evaluation_name": "nuScenes",
@@ -1371,10 +865,10 @@
         "unit": "accuracy"
       },
       "score_details": {
-        "score": 0.6121984247898792,
+        "score": 0.7085060006788142,
         "details": {
-          "subtask_a": 0.6121984247898792,
-          "subtask_b": 0.6121984247898792
+          "subtask_a": 0.7085060006788142,
+          "subtask_b": 0.7085060006788142
         }
       },
       "factsheet": {
@@ -1392,12 +886,137 @@
         "protocol": "1. Model receives multimodal sensor data (cameras, LiDAR, radar) 2. Model predicts 3D bounding boxes and tracking IDs 3. NDS (nuScenes Detection Score) and mAP computed",
         "model_access": "Outputs",
         "has_heldout": true,
+        "heldout_details": "Test set labels private, evaluation via online leaderboard",
         "alignment_validation": "Expert annotators, multi-sensor consistency checks, temporal coherence validation",
         "baseline_models": "PointPillars: 45.3 NDS CenterPoint: 65.5 NDS BEVFusion: 72.9 NDS",
         "robustness_measures": "Geographic diversity; Weather conditions; Day/night variations; Multiple runs per sample",
         "known_limitations": "Limited geographic coverage (Boston, Singapore); Sensor calibration challenges; Annotation latency for fast-moving objects; Class imbalance",
         "benchmarks_list": "Waymo Open Dataset, KITTI, Argoverse, Lyft Level 5, A2D2"
-      }
+      },
+      "evaluation_timestamp": "2024-11-28T17:32:32.482Z"
+    },
+    {
+      "evaluation_name": "ActivityNet",
+      "metric_config": {
+        "evaluation_description": "ActivityNet Standard Accuracy",
+        "lower_is_better": false,
+        "score_type": "continuous",
+        "min_score": 0,
+        "max_score": 1,
+        "unit": "accuracy"
+      },
+      "score_details": {
+        "score": 0.8516150844698773,
+        "details": {
+          "subtask_a": 0.8516150844698773,
+          "subtask_b": 0.8516150844698773
+        }
+      },
+      "factsheet": {
+        "purpose": "Research; Development",
+        "principles_tested": "Temporal action detection, Action recognition, Dense video captioning, Video understanding",
+        "functional_props": "Core Performance",
+        "input_modality": "Video",
+        "output_modality": "Structured Data; Text",
+        "input_source": "New dataset (released with eval)",
+        "output_source": "Human annotations",
+        "size": "Medium (1K - 100K samples)",
+        "splits": "Train (50%), Val (25%), Test (25%)",
+        "design": "Fixed data-driven (static test set)",
+        "judge": "Automatic (Reference-based)",
+        "protocol": "1. Model receives untrimmed video 2. Model predicts action segments with class labels 3. mAP at different IoU thresholds (0.5, 0.75, 0.95)",
+        "model_access": "Outputs",
+        "has_heldout": true,
+        "heldout_details": "Test set used for annual challenges, labels withheld",
+        "alignment_validation": "Multi-annotator temporal boundary agreement, consistency checks for activity definitions",
+        "baseline_models": "SSN: 41.3 mAP@0.5 BMN: 50.1 mAP@0.5 TALLFormer: 59.8 mAP@0.5",
+        "robustness_measures": "Inter-rater reliability; Multiple IoU thresholds; Temporal boundary sensitivity",
+        "known_limitations": "YouTube video availability issues; Temporal boundary ambiguity; Action class overlap; Video quality variance",
+        "benchmarks_list": "THUMOS14, Kinetics, Charades, MultiTHUMOS, AVA"
+      },
+      "evaluation_timestamp": "2024-11-18T08:02:24.614Z"
+    },
+    {
+      "evaluation_name": "DAVIS (Densely Annotated VIdeo Segmentation)",
+      "metric_config": {
+        "evaluation_description": "DAVIS (Densely Annotated VIdeo Segmentation) Standard Accuracy",
+        "lower_is_better": false,
+        "score_type": "continuous",
+        "min_score": 0,
+        "max_score": 1,
+        "unit": "accuracy"
+      },
+      "score_details": {
+        "score": 0.7720742926942818,
+        "details": {
+          "subtask_a": 0.7720742926942818,
+          "subtask_b": 0.7720742926942818
+        }
+      },
+      "factsheet": {
+        "purpose": "Research; Development",
+        "principles_tested": "Video object segmentation, Temporal consistency, Object tracking, Dense prediction",
+        "functional_props": "Core Performance; Robustness",
+        "input_modality": "Video",
+        "output_modality": "Structured Data",
+        "input_source": "New dataset (released with eval)",
+        "output_source": "Human annotations",
+        "size": "Small (< 1K samples)",
+        "splits": "Train/Val (60 sequences), Test-dev (30 sequences)",
+        "design": "Fixed data-driven (static test set)",
+        "judge": "Automatic (Reference-based)",
+        "protocol": "1. Model receives video sequence with first frame annotation 2. Model propagates segmentation to subsequent frames 3. J&F metric (region similarity and contour accuracy)",
+        "model_access": "Outputs",
+        "has_heldout": true,
+        "heldout_details": "Test-challenge set for competitions, labels withheld",
+        "alignment_validation": "High-quality manual annotations with temporal consistency verification",
+        "baseline_models": "OSVOS: 79.8 J&F STM: 84.3 J&F XMem: 86.2 J&F",
+        "robustness_measures": "Temporal consistency tested; Occlusion robustness; Multiple runs per sample",
+        "known_limitations": "Small dataset size; Limited object categories; Short video sequences; Primarily objects with clear boundaries",
+        "benchmarks_list": "YouTube-VOS, FBMS, SegTrack, OVIS"
+      },
+      "evaluation_timestamp": "2024-11-29T02:28:57.091Z"
+    },
+    {
+      "evaluation_name": "VQA (Visual Question Answering)",
+      "metric_config": {
+        "evaluation_description": "VQA (Visual Question Answering) Standard Accuracy",
+        "lower_is_better": false,
+        "score_type": "continuous",
+        "min_score": 0,
+        "max_score": 1,
+        "unit": "accuracy"
+      },
+      "score_details": {
+        "score": 0.3787497191664177,
+        "details": {
+          "subtask_a": 0.3787497191664177,
+          "subtask_b": 0.3787497191664177
+        }
+      },
+      "factsheet": {
+        "purpose": "Research; Development",
+        "principles_tested": "Visual question answering, Visual reasoning, Multimodal understanding, Common sense reasoning",
+        "functional_props": "Core Performance; Robustness",
+        "input_modality": "Text + Vision",
+        "output_modality": "Text",
+        "input_source": "MS COCO",
+        "output_source": "Crowdsourced annotations",
+        "size": "Huge (> 10M samples)",
+        "splits": "Train, Val, Test",
+        "design": "Fixed data-driven (static test set)",
+        "judge": "Automatic (Reference-based); Human: Representative sample",
+        "protocol": "1. Model receives image and question 2. Model generates answer 3. Accuracy computed with consensus matching (multiple human answers)",
+        "model_access": "Outputs",
+        "has_heldout": true,
+        "heldout_details": "Test-dev and test-std splits, evaluation via server",
+        "alignment_validation": "Multiple human answers per question (10 answers), consensus-based evaluation",
+        "baseline_models": "Bottom-Up Top-Down: 70.3% VILBERT: 72.4% OSCAR: 73.8% BLIP: 78.3%",
+        "robustness_measures": "Multiple human references; Prompt variations tested; Inter-rater reliability",
+        "known_limitations": "Language bias (can answer many questions without image); Dataset bias toward common objects; Answer distribution imbalance; Ambiguous questions",
+        "benchmarks_list": "GQA, VQA v2, OK-VQA, TextVQA, VizWiz"
+      },
+      "evaluation_timestamp": "2024-12-04T18:23:39.432Z"
     },
     {
       "evaluation_name": "CLEVR",
@@ -1410,10 +1029,10 @@
         "unit": "accuracy"
       },
       "score_details": {
-        "score": 0.6670278396978662,
+        "score": 0.3003434686093805,
         "details": {
-          "subtask_a": 0.6670278396978662,
-          "subtask_b": 0.6670278396978662
+          "subtask_a": 0.3003434686093805,
+          "subtask_b": 0.3003434686093805
         }
       },
       "factsheet": {
@@ -1431,12 +1050,260 @@
         "protocol": "1. Model receives synthetic image and question 2. Model predicts answer from predefined set 3. Accuracy computed, can analyze by question type",
         "model_access": "Outputs",
         "has_heldout": false,
+        "heldout_details": "",
         "alignment_validation": "Programmatically generated with known ground truth, exhaustive question type coverage",
         "baseline_models": "CNN+LSTM: 52.3% Film: 97.7% NS-VQA: 99.8% MAC: 98.9%",
         "robustness_measures": "Ablation studies; Question type analysis; Compositional generalization tested",
         "known_limitations": "Synthetic domain (limited real-world applicability); Simple shapes and colors; No natural language variation; Programmatic biases",
         "benchmarks_list": "CLEVR-CoGenT, GQA, NLVR2, CLOSURE"
-      }
+      },
+      "evaluation_timestamp": "2024-11-15T18:15:17.007Z"
+    },
+    {
+      "evaluation_name": "Waymo Open Dataset",
+      "metric_config": {
+        "evaluation_description": "Waymo Open Dataset Standard Accuracy",
+        "lower_is_better": false,
+        "score_type": "continuous",
+        "min_score": 0,
+        "max_score": 1,
+        "unit": "accuracy"
+      },
+      "score_details": {
+        "score": 0.3398337175927189,
+        "details": {
+          "subtask_a": 0.3398337175927189,
+          "subtask_b": 0.3398337175927189
+        }
+      },
+      "factsheet": {
+        "purpose": "Research; Development; Deployment",
+        "principles_tested": "3D object detection, 2D object detection, Tracking, Domain adaptation, Sensor fusion",
+        "functional_props": "Core Performance; Robustness",
+        "input_modality": "Vision (Image); Video; Structured Data",
+        "output_modality": "Structured Data",
+        "input_source": "New dataset (released with eval)",
+        "output_source": "Human annotations; Programmatically generated",
+        "size": "Huge (> 10M samples)",
+        "splits": "Train (798), Val (202), Test (150)",
+        "design": "Fixed data-driven (static test set)",
+        "judge": "Automatic (Reference-based)",
+        "protocol": "1. Model receives multimodal sensor data 2. Model predicts 3D bounding boxes with tracking IDs 3. AP/APH metrics at different IoU thresholds and difficulty levels",
+        "model_access": "Outputs",
+        "has_heldout": true,
+        "heldout_details": "Test set labels private, evaluation via online leaderboard",
+        "alignment_validation": "Multi-stage annotation pipeline with quality checks, temporal consistency validation",
+        "baseline_models": "PointPillars: 63.8 L2 APH (Vehicle) CenterPoint: 73.9 L2 APH PV-RCNN++: 77.8 L2 APH",
+        "robustness_measures": "Geographic diversity; Time of day variations; Weather conditions; Multiple difficulty levels",
+        "known_limitations": "Geographic concentration in specific cities; Sensor-specific challenges; Annotation latency for distant objects; Class imbalance",
+        "benchmarks_list": "nuScenes, KITTI, Argoverse 2, Once, Lyft Level 5"
+      },
+      "evaluation_timestamp": "2024-11-09T17:49:33.364Z"
+    },
+    {
+      "evaluation_name": "Fashion-MNIST",
+      "metric_config": {
+        "evaluation_description": "Fashion-MNIST Standard Accuracy",
+        "lower_is_better": false,
+        "score_type": "continuous",
+        "min_score": 0,
+        "max_score": 1,
+        "unit": "accuracy"
+      },
+      "score_details": {
+        "score": 0.7811015670608401,
+        "details": {
+          "subtask_a": 0.7811015670608401,
+          "subtask_b": 0.7811015670608401
+        }
+      },
+      "factsheet": {
+        "purpose": "Research; Development; Selection",
+        "principles_tested": "Image classification, Transfer learning, Benchmark comparison",
+        "functional_props": "Core Performance",
+        "input_modality": "Vision (Image)",
+        "output_modality": "Structured Data",
+        "input_source": "New dataset (released with eval)",
+        "output_source": "Human annotations",
+        "size": "Medium (1K - 100K samples)",
+        "splits": "Train (60K), Test (10K)",
+        "design": "Fixed data-driven (static test set)",
+        "judge": "Automatic (Reference-based)",
+        "protocol": "1. Model receives 28x28 grayscale image 2. Model predicts fashion category (10 classes) 3. Classification accuracy computed",
+        "model_access": "Outputs",
+        "has_heldout": false,
+        "heldout_details": "",
+        "alignment_validation": "Product catalog labels verified by domain experts",
+        "baseline_models": "Linear Classifier: 83.7% CNN: 93.5% ResNet: 94.9% Vision Transformer: 95.1%",
+        "robustness_measures": "Multiple runs per sample; Seed variation tested",
+        "known_limitations": "Low resolution (28x28); Grayscale only; Limited intra-class variation; Some categories overlap visually",
+        "benchmarks_list": "MNIST, EMNIST, Kuzushiji-MNIST, DeepFashion"
+      },
+      "evaluation_timestamp": "2024-11-27T17:21:40.286Z"
+    },
+    {
+      "evaluation_name": "MMLU (Massive Multitask Language Understanding)",
+      "metric_config": {
+        "evaluation_description": "MMLU (Massive Multitask Language Understanding) Standard Accuracy",
+        "lower_is_better": false,
+        "score_type": "continuous",
+        "min_score": 0,
+        "max_score": 1,
+        "unit": "accuracy"
+      },
+      "score_details": {
+        "score": 0.7017011957474361,
+        "details": {
+          "subtask_a": 0.7017011957474361,
+          "subtask_b": 0.7017011957474361
+        }
+      },
+      "factsheet": {
+        "purpose": "Research; Development; Selection",
+        "principles_tested": "World knowledge, Reasoning, Domain expertise across 57 subjects",
+        "functional_props": "Core Performance",
+        "input_modality": "Text",
+        "output_modality": "Text",
+        "input_source": "New dataset (released with eval)",
+        "output_source": "Expert annotations",
+        "size": "Medium (1K - 100K samples)",
+        "splits": "Dev (5 shot examples per task), Test (285 questions per task average)",
+        "design": "Fixed data-driven (static test set)",
+        "judge": "Automatic (Reference-based)",
+        "protocol": "1. Model receives multiple choice question with 4 options 2. Model predicts answer (A/B/C/D) 3. Accuracy computed per subject and overall",
+        "model_access": "Outputs",
+        "has_heldout": false,
+        "heldout_details": "",
+        "alignment_validation": "Questions sourced from practice exams and tests, expert review for correctness",
+        "baseline_models": "GPT-3 (175B): 43.9% GPT-3.5: 70.0% GPT-4: 86.4% Claude 3.5 Sonnet: 88.7% Random baseline: 25%",
+        "robustness_measures": "Multiple evaluation runs; Few-shot prompting variations; Subject-wise analysis",
+        "known_limitations": "Multiple choice format may not reflect real-world usage; Some questions have ambiguous answers; Dataset contamination concerns with web-trained models; Cultural and knowledge cutoff biases",
+        "benchmarks_list": "MMLU-Pro, AGIEval, C-Eval, CMMLU"
+      },
+      "evaluation_timestamp": "2024-12-03T12:12:21.023Z"
+    },
+    {
+      "evaluation_name": "HumanEval",
+      "metric_config": {
+        "evaluation_description": "HumanEval Standard Accuracy",
+        "lower_is_better": false,
+        "score_type": "continuous",
+        "min_score": 0,
+        "max_score": 1,
+        "unit": "accuracy"
+      },
+      "score_details": {
+        "score": 0.859060370733677,
+        "details": {
+          "subtask_a": 0.859060370733677,
+          "subtask_b": 0.859060370733677
+        }
+      },
+      "factsheet": {
+        "purpose": "Research; Development; Selection",
+        "principles_tested": "Code generation, Programming ability, Functional correctness, Code understanding",
+        "functional_props": "Core Performance",
+        "input_modality": "Text; Code",
+        "output_modality": "Code",
+        "input_source": "New dataset (released with eval)",
+        "output_source": "Author-provided",
+        "size": "Small (< 1K samples)",
+        "splits": "Test (164 problems)",
+        "design": "Fixed data-driven (static test set)",
+        "judge": "Automatic (Execution-based)",
+        "protocol": "1. Model receives function signature and docstring 2. Model generates function implementation 3. Generated code executed against unit tests 4. pass@k metric computed (% passing all tests in k samples)",
+        "model_access": "Outputs",
+        "has_heldout": false,
+        "heldout_details": "",
+        "alignment_validation": "Hand-written problems with comprehensive unit tests, manual verification of test correctness",
+        "baseline_models": "Codex (12B): 28.8% pass@1 GPT-3.5-turbo: 48.1% pass@1 GPT-4: 67.0% pass@1 Claude 3.5 Sonnet: 92.0% pass@1",
+        "robustness_measures": "Multiple samples per problem (pass@k); Temperature sensitivity tested; Execution-based verification",
+        "known_limitations": "Limited to Python; Small dataset size (164 problems); Relatively simple problems; May be contaminated in training data; No testing of code efficiency or style",
+        "benchmarks_list": "MBPP, APPS, CodeContests, HumanEval+, MultiPL-E"
+      },
+      "evaluation_timestamp": "2024-11-08T20:08:45.001Z"
+    },
+    {
+      "evaluation_name": "HellaSwag",
+      "metric_config": {
+        "evaluation_description": "HellaSwag Standard Accuracy",
+        "lower_is_better": false,
+        "score_type": "continuous",
+        "min_score": 0,
+        "max_score": 1,
+        "unit": "accuracy"
+      },
+      "score_details": {
+        "score": 0.6867015784243773,
+        "details": {
+          "subtask_a": 0.6867015784243773,
+          "subtask_b": 0.6867015784243773
+        }
+      },
+      "factsheet": {
+        "purpose": "Research; Development",
+        "principles_tested": "Commonsense reasoning, Physical understanding, Situation modeling, Plausibility judgment",
+        "functional_props": "Core Performance; Robustness",
+        "input_modality": "Text",
+        "output_modality": "Text",
+        "input_source": "New dataset (released with eval)",
+        "output_source": "Crowdsourced annotations",
+        "size": "Medium (1K - 100K samples)",
+        "splits": "Train (39,905), Val (10,042), Test (10,003)",
+        "design": "Fixed data-driven (static test set)",
+        "judge": "Automatic (Reference-based)",
+        "protocol": "1. Model receives scenario context 2. Model selects most plausible continuation from 4 options 3. Accuracy computed",
+        "model_access": "Outputs",
+        "has_heldout": false,
+        "heldout_details": "",
+        "alignment_validation": "Adversarial filtering using BERT to ensure difficulty, human validation of plausibility",
+        "baseline_models": "BERT-Large: 47.3% GPT-2: 50.9% GPT-3: 78.9% GPT-4: 95.3% Human performance: 95.6%",
+        "robustness_measures": "Adversarial filtering; Multiple runs per sample; Human baseline comparison",
+        "known_limitations": "Dataset may be easier than originally intended for modern LLMs; Multiple choice format; Adversarial examples may have artifacts; Potential data contamination",
+        "benchmarks_list": "PIQA, WinoGrande, CommonsenseQA, ARC"
+      },
+      "evaluation_timestamp": "2024-12-01T14:55:50.349Z"
+    },
+    {
+      "evaluation_name": "GSM8K (Grade School Math 8K)",
+      "metric_config": {
+        "evaluation_description": "GSM8K (Grade School Math 8K) Standard Accuracy",
+        "lower_is_better": false,
+        "score_type": "continuous",
+        "min_score": 0,
+        "max_score": 1,
+        "unit": "accuracy"
+      },
+      "score_details": {
+        "score": 0.5680278619072021,
+        "details": {
+          "subtask_a": 0.5680278619072021,
+          "subtask_b": 0.5680278619072021
+        }
+      },
+      "factsheet": {
+        "purpose": "Research; Development",
+        "principles_tested": "Mathematical reasoning, Multi-step problem solving, Arithmetic reasoning, Chain-of-thought reasoning",
+        "functional_props": "Core Performance",
+        "input_modality": "Text",
+        "output_modality": "Text",
+        "input_source": "New dataset (released with eval)",
+        "output_source": "Author-provided",
+        "size": "Medium (1K - 100K samples)",
+        "splits": "Train (7,473), Test (1,319)",
+        "design": "Fixed data-driven (static test set)",
+        "judge": "Automatic (Reference-based)",
+        "protocol": "1. Model receives math word problem 2. Model generates solution with reasoning steps 3. Final numerical answer extracted and compared to ground truth",
+        "model_access": "Outputs",
+        "has_heldout": false,
+        "heldout_details": "",
+        "alignment_validation": "Human-written problems with verified solutions, consistency checks for answer correctness",
+        "baseline_models": "GPT-3 (175B): 34.2% GPT-3.5: 57.1% GPT-4: 92.0% GPT-4o: 96.1% Claude 3.5 Sonnet: 96.4%",
+        "robustness_measures": "Multiple runs per sample; Chain-of-thought prompting tested; Answer extraction robustness",
+        "known_limitations": "Limited to grade-school level math; Answer extraction can be brittle; Some problems have ambiguous wording; Potential contamination in training data",
+        "benchmarks_list": "MATH, GSM-Hard, SVAMP, ASDiv, MathQA"
+      },
+      "evaluation_timestamp": "2024-11-26T20:40:42.703Z"
     },
     {
       "evaluation_name": "TruthfulQA",
@@ -1449,10 +1316,10 @@
         "unit": "accuracy"
       },
       "score_details": {
-        "score": 0.5942149514779176,
+        "score": 0.7088947637599603,
         "details": {
-          "subtask_a": 0.5942149514779176,
-          "subtask_b": 0.5942149514779176
+          "subtask_a": 0.7088947637599603,
+          "subtask_b": 0.7088947637599603
         }
       },
       "factsheet": {
@@ -1470,129 +1337,14 @@
         "protocol": "1. Model receives question designed to elicit false beliefs 2. Model generates answer 3. Answers judged for truthfulness and informativeness using GPT-judge or human evaluation",
         "model_access": "Outputs",
         "has_heldout": false,
+        "heldout_details": "",
         "alignment_validation": "Expert-curated questions targeting known misconceptions, multi-rater validation of truth labels",
         "baseline_models": "GPT-3 (175B): 58.0% GPT-3.5: 47.0% GPT-4: 59.0% Claude 2: 62.0% Human baseline: 94.0%",
         "robustness_measures": "Multiple evaluation methods (MC1, MC2, generative); Human validation; Model-based evaluation correlation",
         "known_limitations": "Subjective truthfulness judgments in some cases; Cultural bias in what constitutes 'truth'; Model-based evaluation may not align with human judgment; Limited coverage of misconceptions",
         "benchmarks_list": "FactScore, HaluEval, SelfCheckGPT, FELM"
-      }
-    },
-    {
-      "evaluation_name": "HarmBench",
-      "metric_config": {
-        "evaluation_description": "HarmBench Standard Accuracy",
-        "lower_is_better": false,
-        "score_type": "continuous",
-        "min_score": 0,
-        "max_score": 1,
-        "unit": "accuracy"
       },
-      "score_details": {
-        "score": 0.6260154867288402,
-        "details": {
-          "subtask_a": 0.6260154867288402,
-          "subtask_b": 0.6260154867288402
-        }
-      },
-      "factsheet": {
-        "purpose": "Evaluation",
-        "principles_tested": "Safety; Robustness",
-        "functional_props": "Adversarial",
-        "input_modality": "Text",
-        "output_modality": "Text",
-        "input_source": "New dataset",
-        "output_source": "Human annotations",
-        "size": "Medium (1K - 10K samples)",
-        "splits": "Train/Val/Test",
-        "design": "Static",
-        "judge": "Automatic (LLM Judge)",
-        "protocol": "Comparison against refusal baseline",
-        "model_access": "Outputs",
-        "has_heldout": true,
-        "alignment_validation": "High agreement with human annotators",
-        "baseline_models": "GPT-4: 90% Refusal",
-        "robustness_measures": "Automated Red Teaming",
-        "known_limitations": "Focuses on refusal rather than helpfulness",
-        "benchmarks_list": "JailbreakBench, RealToxicityPrompts"
-      }
-    },
-    {
-      "evaluation_name": "AdvGLUE",
-      "metric_config": {
-        "evaluation_description": "AdvGLUE Standard Accuracy",
-        "lower_is_better": false,
-        "score_type": "continuous",
-        "min_score": 0,
-        "max_score": 1,
-        "unit": "accuracy"
-      },
-      "score_details": {
-        "score": 0.6269886500675274,
-        "details": {
-          "subtask_a": 0.6269886500675274,
-          "subtask_b": 0.6269886500675274
-        }
-      },
-      "factsheet": {
-        "purpose": "Evaluation",
-        "principles_tested": "Robustness",
-        "functional_props": "Adversarial",
-        "input_modality": "Text",
-        "output_modality": "Text",
-        "input_source": "Modified GLUE",
-        "output_source": "Perturbed data",
-        "size": "Medium",
-        "splits": "Dev/Test",
-        "design": "Static",
-        "judge": "Automatic",
-        "protocol": "Accuracy under adversarial perturbation",
-        "model_access": "Outputs",
-        "has_heldout": false,
-        "alignment_validation": "N/A",
-        "baseline_models": "BERT: 40% drop",
-        "robustness_measures": "Word-level perturbations",
-        "known_limitations": "May not transfer to all models",
-        "benchmarks_list": "GLUE, SuperGLUE"
-      }
-    },
-    {
-      "evaluation_name": "Carlini Extraction",
-      "metric_config": {
-        "evaluation_description": "Carlini Extraction Standard Accuracy",
-        "lower_is_better": false,
-        "score_type": "continuous",
-        "min_score": 0,
-        "max_score": 1,
-        "unit": "accuracy"
-      },
-      "score_details": {
-        "score": 0.6947563937161508,
-        "details": {
-          "subtask_a": 0.6947563937161508,
-          "subtask_b": 0.6947563937161508
-        }
-      },
-      "factsheet": {
-        "purpose": "Research",
-        "principles_tested": "Privacy; Memorization",
-        "functional_props": "Memorization",
-        "input_modality": "Text",
-        "output_modality": "Text",
-        "input_source": "C4",
-        "output_source": "Model outputs",
-        "size": "Huge",
-        "splits": "N/A",
-        "design": "Dynamic",
-        "judge": "Automatic",
-        "protocol": "Eidetic memorization metric",
-        "model_access": "Weights",
-        "has_heldout": false,
-        "alignment_validation": "N/A",
-        "baseline_models": "T5: Variable memorization",
-        "robustness_measures": "Varying model scale",
-        "known_limitations": "Computationally expensive",
-        "benchmarks_list": "The Pile Extraction"
-      }
+      "evaluation_timestamp": "2024-11-28T04:52:44.929Z"
     },
     {
       "evaluation_name": "BIG-bench (Beyond the Imitation Game)",
@@ -1605,10 +1357,10 @@
         "unit": "accuracy"
       },
       "score_details": {
-        "score": 0.571212624256759,
+        "score": 0.7974547397226623,
         "details": {
-          "subtask_a": 0.571212624256759,
-          "subtask_b": 0.571212624256759
+          "subtask_a": 0.7974547397226623,
+          "subtask_b": 0.7974547397226623
         }
       },
       "factsheet": {
@@ -1626,17 +1378,19 @@
         "protocol": "1. Model evaluated on 204 diverse tasks 2. Each task has its own evaluation protocol 3. Performance aggregated across tasks",
         "model_access": "Outputs",
         "has_heldout": false,
+        "heldout_details": "",
         "alignment_validation": "Crowdsourced task creation with quality review, diverse authorship for broad coverage",
         "baseline_models": "Average human rater: 89.0% Few-shot PaLM (540B): 65.7% GPT-4: ~83% (estimated on BIG-Bench Hard)",
         "robustness_measures": "Multiple tasks provide robustness; Human baseline comparison; Cross-task analysis",
         "known_limitations": "Task quality varies; Some tasks too easy or too hard; Computational cost of running all 204 tasks; Aggregation methodology debatable",
         "benchmarks_list": "BIG-Bench Hard, MMLU, HELM, SuperGLUE"
-      }
+      },
+      "evaluation_timestamp": "2024-11-19T07:52:41.544Z"
     },
     {
-      "evaluation_name": "BBQ",
+      "evaluation_name": "MATH",
       "metric_config": {
-        "evaluation_description": "BBQ Standard Accuracy",
+        "evaluation_description": "MATH Standard Accuracy",
         "lower_is_better": false,
         "score_type": "continuous",
         "min_score": 0,
@@ -1644,38 +1398,40 @@
         "unit": "accuracy"
       },
       "score_details": {
-        "score": 0.6107373409618154,
+        "score": 0.7755198295063981,
         "details": {
-          "subtask_a": 0.6107373409618154,
-          "subtask_b": 0.6107373409618154
+          "subtask_a": 0.7755198295063981,
+          "subtask_b": 0.7755198295063981
         }
       },
       "factsheet": {
-        "purpose": "Evaluation",
-        "principles_tested": "Fairness",
-        "functional_props": "Fairness",
+        "purpose": "Research; Development",
+        "principles_tested": "Advanced mathematical reasoning, Problem solving, Multi-step reasoning, Mathematical knowledge",
+        "functional_props": "Core Performance",
         "input_modality": "Text",
         "output_modality": "Text",
-        "input_source": "Hand-crafted templates",
-        "output_source": "QA pairs",
-        "size": "Medium (58K examples)",
-        "splits": "Test",
-        "design": "Static",
-        "judge": "Automatic",
-        "protocol": "Accuracy difference between groups",
+        "input_source": "New dataset (released with eval)",
+        "output_source": "Published references",
+        "size": "Medium (1K - 100K samples)",
+        "splits": "Train (7,500), Test (5,000)",
+        "design": "Fixed data-driven (static test set)",
+        "judge": "Automatic (Reference-based)",
+        "protocol": "1. Model receives competition math problem 2. Model generates solution with steps 3. Final answer extracted and checked against ground truth 4. Problems span 7 subjects with 5 difficulty levels",
         "model_access": "Outputs",
         "has_heldout": false,
-        "alignment_validation": "N/A",
-        "baseline_models": "UnifiedQA: Shows bias",
-        "robustness_measures": "Ambiguous contexts",
-        "known_limitations": "US-centric social biases",
-        "benchmarks_list": "CrowS-Pairs, WinoBias"
-      }
+        "heldout_details": "",
+        "alignment_validation": "Problems from real math competitions with verified solutions, difficulty levels validated",
+        "baseline_models": "GPT-3: 6.9% GPT-4: 42.5% Minerva (540B): 33.6% GPT-4 Turbo: 52.9% Claude 3.5 Sonnet: 71.1%",
+        "robustness_measures": "Multiple difficulty levels; Subject-wise analysis; Chain-of-thought evaluation",
+        "known_limitations": "Answer extraction challenges; LaTeX formatting issues; Symbolic vs numeric answers; High difficulty may not reflect practical math usage",
+        "benchmarks_list": "GSM8K, MathQA, SVAMP, ASDiv, Hendrycks MATH"
+      },
+      "evaluation_timestamp": "2024-11-21T10:59:02.979Z"
     },
     {
-      "evaluation_name": "CrowS-Pairs",
+      "evaluation_name": "ARC (AI2 Reasoning Challenge)",
       "metric_config": {
-        "evaluation_description": "CrowS-Pairs Standard Accuracy",
+        "evaluation_description": "ARC (AI2 Reasoning Challenge) Standard Accuracy",
         "lower_is_better": false,
         "score_type": "continuous",
         "min_score": 0,
@@ -1683,38 +1439,40 @@
         "unit": "accuracy"
       },
       "score_details": {
-        "score": 0.606059582657115,
+        "score": 0.559921543065435,
         "details": {
-          "subtask_a": 0.606059582657115,
-          "subtask_b": 0.606059582657115
+          "subtask_a": 0.559921543065435,
+          "subtask_b": 0.559921543065435
         }
       },
       "factsheet": {
-        "purpose": "Evaluation",
-        "principles_tested": "Fairness",
-        "functional_props": "Fairness",
+        "purpose": "Research; Development",
+        "principles_tested": "Scientific reasoning, Commonsense reasoning, Knowledge retrieval, Multi-hop reasoning",
+        "functional_props": "Core Performance; Robustness",
         "input_modality": "Text",
-        "output_modality": "Score",
-        "input_source": "Crowdsourced",
-        "output_source": "Sentence pairs",
-        "size": "Small (1508 pairs)",
-        "splits": "Test",
-        "design": "Static",
-        "judge": "Automatic",
-        "protocol": "Preference for stereotypical sentence",
-        "model_access": "Logprobs",
+        "output_modality": "Text",
+        "input_source": "New dataset (released with eval)",
+        "output_source": "Existing dataset labels",
+        "size": "Medium (1K - 100K samples)",
+        "splits": "Easy (2,376 train, 570 test), Challenge (1,119 train, 1,172 test)",
+        "design": "Fixed data-driven (static test set)",
+        "judge": "Automatic (Reference-based)",
+        "protocol": "1. Model receives science exam question with multiple choice options 2. Model selects answer 3. Accuracy computed separately for Easy and Challenge sets",
+        "model_access": "Outputs",
         "has_heldout": false,
-        "alignment_validation": "N/A",
-        "baseline_models": "BERT: 60% Stereotypical",
-        "robustness_measures": "N/A",
-        "known_limitations": "Crowdworker bias",
-        "benchmarks_list": "BBQ, WinoBias"
-      }
+        "heldout_details": "",
+        "alignment_validation": "Real exam questions filtered to require reasoning, partitioned by difficulty using retrieval-based baseline",
+        "baseline_models": "ARC-Challenge: BERT: 59.1% GPT-3: 51.4% GPT-3.5: 85.2% GPT-4: 96.3%",
+        "robustness_measures": "Two difficulty levels; Multiple choice format variations; Retrieval baseline comparison",
+        "known_limitations": "Multiple choice format; Some questions solvable without reasoning; Challenge set becoming saturated; Grade-school level may not test advanced reasoning",
+        "benchmarks_list": "OpenBookQA, CommonsenseQA, QASC, SciQ"
+      },
+      "evaluation_timestamp": "2024-11-14T11:20:41.985Z"
     },
     {
-      "evaluation_name": "TruthfulQA",
+      "evaluation_name": "DROP (Discrete Reasoning Over Paragraphs)",
       "metric_config": {
-        "evaluation_description": "TruthfulQA Standard Accuracy",
+        "evaluation_description": "DROP (Discrete Reasoning Over Paragraphs) Standard Accuracy",
         "lower_is_better": false,
         "score_type": "continuous",
         "min_score": 0,
@@ -1722,38 +1480,204 @@
         "unit": "accuracy"
       },
       "score_details": {
-        "score": 0.6025955378285834,
+        "score": 0.593253093104343,
         "details": {
-          "subtask_a": 0.6025955378285834,
-          "subtask_b": 0.6025955378285834
+          "subtask_a": 0.593253093104343,
+          "subtask_b": 0.593253093104343
         }
       },
       "factsheet": {
-        "purpose": "Research; Development; Safety",
-        "principles_tested": "Truthfulness, Factual accuracy, Resistance to misconceptions, Calibration",
-        "functional_props": "Safety; Core Performance; Calibration",
+        "purpose": "Research; Development",
+        "principles_tested": "Reading comprehension, Numerical reasoning, Discrete operations, Multi-hop reasoning",
+        "functional_props": "Core Performance",
+        "input_modality": "Text",
+        "output_modality": "Text",
+        "input_source": "New dataset (released with eval)",
+        "output_source": "Crowdsourced annotations",
+        "size": "Large (100K - 1M samples)",
+        "splits": "Train (77,409), Dev (9,536), Test (9,622)",
+        "design": "Fixed data-driven (static test set)",
+        "judge": "Automatic (Reference-based)",
+        "protocol": "1. Model receives paragraph and question 2. Model generates answer (number, span, or date) 3. F1 and Exact Match metrics computed",
+        "model_access": "Outputs",
+        "has_heldout": false,
+        "heldout_details": "",
+        "alignment_validation": "Crowdsourced questions with verification, requires discrete reasoning operations confirmed through analysis",
+        "baseline_models": "BERT: 47.0 F1 RoBERTa: 80.9 F1 GPT-3: 29.0 F1 GPT-4: 80.9 F1 Human performance: 96.4 F1",
+        "robustness_measures": "Multiple answer types; Question type analysis; Human baseline comparison",
+        "known_limitations": "Requires careful answer extraction; Some questions ambiguous; Numerical reasoning can be brittle; Limited diversity in reasoning types",
+        "benchmarks_list": "SQuAD, NewsQA, NaturalQuestions, NumGLUE, TAT-QA"
+      },
+      "evaluation_timestamp": "2024-11-17T18:01:44.281Z"
+    },
+    {
+      "evaluation_name": "WinoGrande",
+      "metric_config": {
+        "evaluation_description": "WinoGrande Standard Accuracy",
+        "lower_is_better": false,
+        "score_type": "continuous",
+        "min_score": 0,
+        "max_score": 1,
+        "unit": "accuracy"
+      },
+      "score_details": {
+        "score": 0.7464012294602601,
+        "details": {
+          "subtask_a": 0.7464012294602601,
+          "subtask_b": 0.7464012294602601
+        }
+      },
+      "factsheet": {
+        "purpose": "Research; Development",
+        "principles_tested": "Commonsense reasoning, Coreference resolution, World knowledge, Causal reasoning",
+        "functional_props": "Core Performance; Robustness",
+        "input_modality": "Text",
+        "output_modality": "Text",
+        "input_source": "New dataset (released with eval)",
+        "output_source": "Crowdsourced annotations",
+        "size": "Medium (1K - 100K samples)",
+        "splits": "Train (40,398), Dev (1,267), Test (1,767)",
+        "design": "Fixed data-driven (static test set)",
+        "judge": "Automatic (Reference-based)",
+        "protocol": "1. Model receives sentence with pronoun ambiguity 2. Model selects correct referent from 2 options 3. Accuracy computed",
+        "model_access": "Outputs",
+        "has_heldout": false,
+        "heldout_details": "",
+        "alignment_validation": "Adversarial filtering using language models, crowdsourced generation with validation",
+        "baseline_models": "BERT-Large: 59.4% RoBERTa-Large: 79.1% GPT-3: 70.2% GPT-4: 87.5% Human performance: 94.0%",
+        "robustness_measures": "Adversarial filtering; Large-scale dataset; Multiple difficulty levels",
+        "known_limitations": "Binary choice may be limiting; Adversarial filtering may introduce artifacts; Saturation with modern models; Limited reasoning depth",
+        "benchmarks_list": "Winograd Schema Challenge, COPA, CommonsenseQA, PIQA"
+      },
+      "evaluation_timestamp": "2024-11-26T20:01:51.464Z"
+    },
+    {
+      "evaluation_name": "BBH (BIG-Bench Hard)",
+      "metric_config": {
+        "evaluation_description": "BBH (BIG-Bench Hard) Standard Accuracy",
+        "lower_is_better": false,
+        "score_type": "continuous",
+        "min_score": 0,
+        "max_score": 1,
+        "unit": "accuracy"
+      },
+      "score_details": {
+        "score": 0.3563789802108846,
+        "details": {
+          "subtask_a": 0.3563789802108846,
+          "subtask_b": 0.3563789802108846
+        }
+      },
+      "factsheet": {
+        "purpose": "Research; Development",
+        "principles_tested": "Complex reasoning, Multi-step thinking, Challenging cognitive tasks, Chain-of-thought reasoning",
+        "functional_props": "Core Performance",
+        "input_modality": "Text",
+        "output_modality": "Text",
+        "input_source": "One or Multiple existing datasets",
+        "output_source": "Multiple/Mixed sources",
+        "size": "Medium (1K - 100K samples)",
+        "splits": "Test (6,511 examples across 23 tasks)",
+        "design": "Fixed data-driven (static test set)",
+        "judge": "Automatic (Reference-based)",
+        "protocol": "1. Model receives task from one of 23 challenging categories 2. Model generates answer 3. Performance aggregated across all tasks 4. Chain-of-thought prompting typically used",
+        "model_access": "Outputs",
+        "has_heldout": false,
+        "heldout_details": "",
+        "alignment_validation": "Tasks selected where models underperform humans, difficulty validated through empirical testing",
+        "baseline_models": "PaLM (540B): 56.5% average PaLM (540B) + CoT: 78.1% GPT-4: ~91% Human raters: ~92% average",
+        "robustness_measures": "Multiple tasks; Chain-of-thought evaluation; Human baseline comparison; Cross-model validation",
+        "known_limitations": "Only 23 tasks (limited coverage); Chain-of-thought prompting required for good performance; Task aggregation methodology; Rapidly saturating with newer models",
+        "benchmarks_list": "BIG-Bench, MMLU, AGIEval, HELM"
+      },
+      "evaluation_timestamp": "2024-12-01T11:16:52.081Z"
+    },
+    {
+      "evaluation_name": "MT-Bench",
+      "metric_config": {
+        "evaluation_description": "MT-Bench Standard Accuracy",
+        "lower_is_better": false,
+        "score_type": "continuous",
+        "min_score": 0,
+        "max_score": 1,
+        "unit": "accuracy"
+      },
+      "score_details": {
+        "score": 0.6082626865974697,
+        "details": {
+          "subtask_a": 0.6082626865974697,
+          "subtask_b": 0.6082626865974697
+        }
+      },
+      "factsheet": {
+        "purpose": "Development; Selection",
+        "principles_tested": "Multi-turn conversation, Instruction following, Reasoning, Writing, Role-playing, Knowledge",
+        "functional_props": "Core Performance; Core Quality Dimensions",
+        "input_modality": "Text",
+        "output_modality": "Text",
+        "input_source": "New dataset (released with eval)",
+        "output_source": "Author-provided",
+        "size": "Small (< 1K samples)",
+        "splits": "Test (80 questions with 2 turns each)",
+        "design": "Fixed data-driven (static test set)",
+        "judge": "Model-based: In the wild",
+        "protocol": "1. Model engages in 2-turn conversation 2. GPT-4 evaluates responses on 10-point scale 3. Scores averaged across turns and categories",
+        "model_access": "Outputs",
+        "has_heldout": false,
+        "heldout_details": "",
+        "alignment_validation": "Strong correlation with human preferences validated on Chatbot Arena data, GPT-4 judge agreement measured",
+        "baseline_models": "Vicuna-13B: 6.39 GPT-3.5-turbo: 7.94 Claude 2: 8.06 GPT-4: 8.99 GPT-4-turbo: 9.32",
+        "robustness_measures": "Multiple categories; Position bias mitigation; Agreement with human ratings validated; Pairwise comparison",
+        "known_limitations": "Small dataset (80 questions); GPT-4 judge may have biases; Evaluation cost; Model-based judge limitations; Prompt sensitivity",
+        "benchmarks_list": "Chatbot Arena, AlpacaEval, Arena-Hard, LiveBench"
+      },
+      "evaluation_timestamp": "2024-11-16T00:04:39.263Z"
+    },
+    {
+      "evaluation_name": "GPQA (Google-Proof Q&A)",
+      "metric_config": {
+        "evaluation_description": "GPQA (Google-Proof Q&A) Standard Accuracy",
+        "lower_is_better": false,
+        "score_type": "continuous",
+        "min_score": 0,
+        "max_score": 1,
+        "unit": "accuracy"
+      },
+      "score_details": {
+        "score": 0.5509915392800566,
+        "details": {
+          "subtask_a": 0.5509915392800566,
+          "subtask_b": 0.5509915392800566
+        }
+      },
+      "factsheet": {
+        "purpose": "Research; Development",
+        "principles_tested": "Expert-level knowledge, Scientific reasoning, Domain expertise, Graduate-level understanding",
+        "functional_props": "Core Performance; Robustness",
         "input_modality": "Text",
         "output_modality": "Text",
         "input_source": "New dataset (released with eval)",
         "output_source": "Expert annotations",
         "size": "Small (< 1K samples)",
-        "splits": "Test (817 questions across 38 categories)",
+        "splits": "Main (198), Extended (246), Diamond (198 highest quality)",
         "design": "Fixed data-driven (static test set)",
-        "judge": "Model-based: Expert; Human: Experts",
-        "protocol": "1. Model receives question designed to elicit false beliefs 2. Model generates answer 3. Answers judged for truthfulness and informativeness using GPT-judge or human evaluation",
+        "judge": "Automatic (Reference-based)",
+        "protocol": "1. Model receives graduate-level science question 2. Model selects from 4 multiple choice options 3. Accuracy computed 4. Questions validated to be difficult for non-experts with Google access",
         "model_access": "Outputs",
         "has_heldout": false,
-        "alignment_validation": "Expert-curated questions targeting known misconceptions, multi-rater validation of truth labels",
-        "baseline_models": "GPT-3 (175B): 58.0% GPT-3.5: 47.0% GPT-4: 59.0% Claude 2: 62.0% Human baseline: 94.0%",
-        "robustness_measures": "Multiple evaluation methods (MC1, MC2, generative); Human validation; Model-based evaluation correlation",
-        "known_limitations": "Subjective truthfulness judgments in some cases; Cultural bias in what constitutes 'truth'; Model-based evaluation may not align with human judgment; Limited coverage of misconceptions",
-        "benchmarks_list": "FactScore, HaluEval, SelfCheckGPT, FELM"
-      }
+        "heldout_details": "",
+        "alignment_validation": "PhD-level experts write and validate questions, non-expert validators with Google access achieve <35% accuracy",
+        "baseline_models": "Random: 25% Non-expert w/ Google: 34% Expert: 81% GPT-4: 39% Claude 3 Opus: 59.4% GPT-4o: 53.6%",
+        "robustness_measures": "Expert validation; Non-expert baseline; Multiple subject areas; Quality tiers (Diamond subset)",
+        "known_limitations": "Small dataset size; Limited to 3 scientific domains; Multiple choice format; High cost of expert question creation; Cultural bias toward Western scientific education",
+        "benchmarks_list": "MMLU-Pro, JEE-Advanced, SciBench, LiveBench"
+      },
+      "evaluation_timestamp": "2024-11-19T19:06:56.112Z"
     },
     {
-      "evaluation_name": "Do Not Answer",
+      "evaluation_name": "IFEval (Instruction-Following Eval)",
       "metric_config": {
-        "evaluation_description": "Do Not Answer Standard Accuracy",
+        "evaluation_description": "IFEval (Instruction-Following Eval) Standard Accuracy",
         "lower_is_better": false,
         "score_type": "continuous",
         "min_score": 0,
@@ -1761,306 +1685,355 @@
         "unit": "accuracy"
       },
       "score_details": {
-        "score": 0.6116615152220208,
+        "score": 0.510035226995889,
         "details": {
-          "subtask_a": 0.6116615152220208,
-          "subtask_b": 0.6116615152220208
+          "subtask_a": 0.510035226995889,
+          "subtask_b": 0.510035226995889
         }
       },
       "factsheet": {
-        "purpose": "Evaluation",
-        "principles_tested": "Safety",
-        "functional_props": "Safety",
+        "purpose": "Research; Development; Selection",
+        "principles_tested": "Instruction following, Constraint satisfaction, Format compliance, Precise control",
+        "functional_props": "Core Performance; Robustness",
         "input_modality": "Text",
         "output_modality": "Text",
-        "input_source": "Hand-crafted harmful instructions",
-        "output_source": "Refusal/Response",
-        "size": "Small (939 instructions)",
-        "splits": "Test",
-        "design": "Static",
-        "judge": "Automatic (GPT-4 Judge)",
-        "protocol": "Refusal rate and harmfulness score",
+        "input_source": "New dataset (released with eval)",
+        "output_source": "Programmatically generated",
+        "size": "Small (< 1K samples)",
+        "splits": "Test (541 prompts with ~25 verifiable instructions)",
+        "design": "Fixed data-driven (static test set)",
+        "judge": "Automatic (Reference-free)",
+        "protocol": "1. Model receives prompt with verifiable instructions (e.g., 'respond in exactly 3 paragraphs', 'include word X at least 5 times') 2. Model generates response 3. Programmatic checks verify instruction compliance 4. Strict and loose accuracy metrics computed",
         "model_access": "Outputs",
         "has_heldout": false,
-        "alignment_validation": "High agreement",
-        "baseline_models": "Llama-2: High refusal",
-        "robustness_measures": "Jailbreaks",
-        "known_limitations": "Judge bias",
-        "benchmarks_list": "SafetyBench"
-      }
+        "heldout_details": "",
+        "alignment_validation": "Verifiable instructions with programmatic checking, no ambiguity in correctness",
+        "baseline_models": "GPT-3.5: 57.4% strict GPT-4: 76.9% strict Claude 2: 66.7% strict Gemini Ultra: 79.4% strict",
+        "robustness_measures": "Strict and loose metrics; Multiple instruction types; Programmatic verification; No human evaluation needed",
+        "known_limitations": "Limited to verifiable instructions only; May not reflect realistic usage; Some instructions may be conflicting; Excludes semantic quality assessment",
+        "benchmarks_list": "MT-Bench, AlpacaEval, InstructGPT evals, FollowBench"
+      },
+      "evaluation_timestamp": "2024-11-13T19:33:22.393Z"
     },
     {
-      "evaluation_name": "RealToxicityPrompts",
+      "evaluation_name": "Confidence Calibration Suite",
       "metric_config": {
-        "evaluation_description": "Average Toxicity Score",
-        "lower_is_better": true,
+        "evaluation_description": "Measures how well the model's predicted probabilities align with empirical frequencies.",
+        "lower_is_better": false,
         "score_type": "continuous",
         "min_score": 0,
         "max_score": 1,
         "unit": "score"
       },
       "score_details": {
-        "score": 0.4727521375406737,
+        "score": 0.8602537670697623,
         "details": {
-          "subtask_a": 0.4727521375406737,
-          "subtask_b": 0.4727521375406737
+          "subtask_a": 0.8602537670697623,
+          "subtask_b": 0.8602537670697623
         }
       },
       "factsheet": {
-        "purpose": "Evaluation",
-        "principles_tested": "Safety",
-        "functional_props": "Safety",
+        "purpose": "Research; Development",
+        "principles_tested": "Calibration",
+        "functional_props": "Calibration",
         "input_modality": "Text",
         "output_modality": "Text",
-        "input_source": "Web text",
-        "output_source": "Continuation",
-        "size": "Large (100K prompts)",
-        "splits": "Train/Test",
-        "design": "Static",
-        "judge": "Automatic (Perspective API)",
-        "protocol": "Toxicity score of continuation",
+        "input_source": "Synthetic",
+        "output_source": "Automatic",
+        "size": "Medium",
+        "splits": "Test",
+        "design": "Fixed",
+        "judge": "Automatic",
+        "protocol": "Standard",
         "model_access": "Outputs",
         "has_heldout": false,
-        "alignment_validation": "N/A",
-        "baseline_models": "GPT-2: Toxic outputs",
-        "robustness_measures": "Top-k sampling",
-        "known_limitations": "Perspective API limitations",
-        "benchmarks_list": "SafetyBench, Do Not Answer"
-      }
+        "alignment_validation": "None",
+        "baseline_models": "None",
+        "robustness_measures": "None",
+        "known_limitations": "Synthetic data",
+        "benchmarks_list": "Confidence Calibration Suite"
+      },
+      "evaluation_timestamp": "2024-11-11T20:08:43.900Z"
     },
     {
-      "evaluation_name": "Min-K% Probes",
+      "evaluation_name": "AdvGLUE",
       "metric_config": {
-        "evaluation_description": "Min-K% Probes Standard Accuracy",
+        "evaluation_description": "Adversarial GLUE benchmark for robustness against adversarial attacks.",
         "lower_is_better": false,
         "score_type": "continuous",
         "min_score": 0,
         "max_score": 1,
-        "unit": "accuracy"
+        "unit": "score"
       },
       "score_details": {
-        "score": 0.6871782084591865,
+        "score": 0.7740242906880356,
         "details": {
-          "subtask_a": 0.6871782084591865,
-          "subtask_b": 0.6871782084591865
+          "subtask_a": 0.7740242906880356,
+          "subtask_b": 0.7740242906880356
         }
       },
       "factsheet": {
-        "purpose": "Evaluation",
-        "principles_tested": "Leakage; Copyright",
+        "purpose": "Research; Development",
+        "principles_tested": "Adversarial",
+        "functional_props": "Adversarial",
+        "input_modality": "Text",
+        "output_modality": "Text",
+        "input_source": "Synthetic",
+        "output_source": "Automatic",
+        "size": "Medium",
+        "splits": "Test",
+        "design": "Fixed",
+        "judge": "Automatic",
+        "protocol": "Standard",
+        "model_access": "Outputs",
+        "has_heldout": false,
+        "alignment_validation": "None",
+        "baseline_models": "None",
+        "robustness_measures": "None",
+        "known_limitations": "Synthetic data",
+        "benchmarks_list": "AdvGLUE"
+      },
+      "evaluation_timestamp": "2024-12-01T20:30:16.489Z"
+    },
+    {
+      "evaluation_name": "JailbreakBench",
+      "metric_config": {
+        "evaluation_description": "Evaluates resistance to jailbreak attempts.",
+        "lower_is_better": false,
+        "score_type": "continuous",
+        "min_score": 0,
+        "max_score": 1,
+        "unit": "rate"
+      },
+      "score_details": {
+        "score": 0.7673066324173796,
+        "details": {
+          "subtask_a": 0.7673066324173796,
+          "subtask_b": 0.7673066324173796
+        }
+      },
+      "factsheet": {
+        "purpose": "Research; Development",
+        "principles_tested": "Adversarial",
+        "functional_props": "Adversarial",
+        "input_modality": "Text",
+        "output_modality": "Text",
+        "input_source": "Synthetic",
+        "output_source": "Automatic",
+        "size": "Medium",
+        "splits": "Test",
+        "design": "Fixed",
+        "judge": "Automatic",
+        "protocol": "Standard",
+        "model_access": "Outputs",
+        "has_heldout": false,
+        "alignment_validation": "None",
+        "baseline_models": "None",
+        "robustness_measures": "None",
+        "known_limitations": "Synthetic data",
+        "benchmarks_list": "JailbreakBench"
+      },
+      "evaluation_timestamp": "2024-11-22T11:41:58.046Z"
+    },
+    {
+      "evaluation_name": "Copyright Probe",
+      "metric_config": {
+        "evaluation_description": "Tests for reproduction of copyrighted material.",
+        "lower_is_better": false,
+        "score_type": "continuous",
+        "min_score": 0,
+        "max_score": 1,
+        "unit": "score"
+      },
+      "score_details": {
+        "score": 0.7173225327779118,
+        "details": {
+          "subtask_a": 0.7173225327779118,
+          "subtask_b": 0.7173225327779118
+        }
+      },
+      "factsheet": {
+        "purpose": "Research; Development",
+        "principles_tested": "Memorization",
+        "functional_props": "Memorization",
+        "input_modality": "Text",
+        "output_modality": "Text",
+        "input_source": "Synthetic",
+        "output_source": "Automatic",
+        "size": "Medium",
+        "splits": "Test",
+        "design": "Fixed",
+        "judge": "Automatic",
+        "protocol": "Standard",
+        "model_access": "Outputs",
+        "has_heldout": false,
+        "alignment_validation": "None",
+        "baseline_models": "None",
+        "robustness_measures": "None",
+        "known_limitations": "Synthetic data",
+        "benchmarks_list": "Copyright Probe"
+      },
+      "evaluation_timestamp": "2024-11-13T22:58:55.050Z"
+    },
+    {
+      "evaluation_name": "BBQ (Bias Benchmark for QA)",
+      "metric_config": {
+        "evaluation_description": "Assesses bias in Question Answering models across multiple social dimensions.",
+        "lower_is_better": false,
+        "score_type": "continuous",
+        "min_score": 0,
+        "max_score": 1,
+        "unit": "score"
+      },
+      "score_details": {
+        "score": 0.7273124463232418,
+        "details": {
+          "subtask_a": 0.7273124463232418,
+          "subtask_b": 0.7273124463232418
+        }
+      },
+      "factsheet": {
+        "purpose": "Research; Development",
+        "principles_tested": "Fairness",
+        "functional_props": "Fairness",
+        "input_modality": "Text",
+        "output_modality": "Text",
+        "input_source": "Synthetic",
+        "output_source": "Automatic",
+        "size": "Medium",
+        "splits": "Test",
+        "design": "Fixed",
+        "judge": "Automatic",
+        "protocol": "Standard",
+        "model_access": "Outputs",
+        "has_heldout": false,
+        "alignment_validation": "None",
+        "baseline_models": "None",
+        "robustness_measures": "None",
+        "known_limitations": "Synthetic data",
+        "benchmarks_list": "BBQ (Bias Benchmark for QA)"
+      },
+      "evaluation_timestamp": "2024-11-30T06:32:22.812Z"
+    },
+    {
+      "evaluation_name": "Contamination Detector",
+      "metric_config": {
+        "evaluation_description": "Detects if test set data was present in the training set.",
+        "lower_is_better": false,
+        "score_type": "continuous",
+        "min_score": 0,
+        "max_score": 1,
+        "unit": "score"
+      },
+      "score_details": {
+        "score": 0.7109385820625351,
+        "details": {
+          "subtask_a": 0.7109385820625351,
+          "subtask_b": 0.7109385820625351
+        }
+      },
+      "factsheet": {
+        "purpose": "Research; Development",
+        "principles_tested": "Leakage/Contamination",
         "functional_props": "Leakage/Contamination",
         "input_modality": "Text",
-        "output_modality": "Score",
-        "input_source": "WikiMIA",
-        "output_source": "Log-likelihood",
+        "output_modality": "Text",
+        "input_source": "Synthetic",
+        "output_source": "Automatic",
         "size": "Medium",
-        "splits": "N/A",
-        "design": "Static",
+        "splits": "Test",
+        "design": "Fixed",
         "judge": "Automatic",
-        "protocol": "Likelihood ratio test",
-        "model_access": "Logprobs",
-        "has_heldout": true,
-        "alignment_validation": "N/A",
-        "baseline_models": "Llama-2: High detection",
-        "robustness_measures": "Paraphrase attacks",
-        "known_limitations": "Requires logprobs",
+        "protocol": "Standard",
+        "model_access": "Outputs",
+        "has_heldout": false,
+        "alignment_validation": "None",
+        "baseline_models": "None",
+        "robustness_measures": "None",
+        "known_limitations": "Synthetic data",
         "benchmarks_list": "Contamination Detector"
-      }
+      },
+      "evaluation_timestamp": "2024-11-13T00:45:54.400Z"
     },
     {
       "evaluation_name": "PII Detection",
       "metric_config": {
-        "evaluation_description": "PII Detection Standard Accuracy",
+        "evaluation_description": "Evaluates the model's tendency to leak Personally Identifiable Information.",
         "lower_is_better": false,
         "score_type": "continuous",
         "min_score": 0,
         "max_score": 1,
-        "unit": "accuracy"
+        "unit": "rate"
       },
       "score_details": {
-        "score": 0.5583254817362804,
+        "score": 0.8497863047147645,
         "details": {
-          "subtask_a": 0.5583254817362804,
-          "subtask_b": 0.5583254817362804
+          "subtask_a": 0.8497863047147645,
+          "subtask_b": 0.8497863047147645
         }
       },
       "factsheet": {
-        "purpose": "Evaluation",
+        "purpose": "Research; Development",
         "principles_tested": "Privacy",
         "functional_props": "Privacy",
         "input_modality": "Text",
         "output_modality": "Text",
-        "input_source": "Synthetic PII",
-        "output_source": "Tagged text",
-        "size": "Large",
-        "splits": "Train/Test",
-        "design": "Static",
+        "input_source": "Synthetic",
+        "output_source": "Automatic",
+        "size": "Medium",
+        "splits": "Test",
+        "design": "Fixed",
         "judge": "Automatic",
-        "protocol": "F1 score on PII tags",
+        "protocol": "Standard",
         "model_access": "Outputs",
         "has_heldout": false,
-        "alignment_validation": "N/A",
-        "baseline_models": "BERT-NER: 95% F1",
-        "robustness_measures": "Context variation",
-        "known_limitations": "Definition of PII varies",
-        "benchmarks_list": "PrivacyBench"
-      }
+        "alignment_validation": "None",
+        "baseline_models": "None",
+        "robustness_measures": "None",
+        "known_limitations": "Synthetic data",
+        "benchmarks_list": "PII Detection"
+      },
+      "evaluation_timestamp": "2024-11-13T22:14:32.268Z"
     },
     {
-      "evaluation_name": "Interpretability Benchmark",
+      "evaluation_name": "Meta-Dataset",
       "metric_config": {
-        "evaluation_description": "Interpretability Benchmark Standard Accuracy",
+        "evaluation_description": "Evaluates few-shot learning capabilities across diverse domains.",
         "lower_is_better": false,
         "score_type": "continuous",
         "min_score": 0,
         "max_score": 1,
-        "unit": "accuracy"
+        "unit": "score"
       },
       "score_details": {
-        "score": 0.5522975302424581,
+        "score": 0.6913747590082977,
         "details": {
-          "subtask_a": 0.5522975302424581,
-          "subtask_b": 0.5522975302424581
+          "subtask_a": 0.6913747590082977,
+          "subtask_b": 0.6913747590082977
         }
       },
       "factsheet": {
-        "purpose": "Research",
-        "principles_tested": "Interpretability",
-        "functional_props": "Interpretability",
-        "input_modality": "Text/Image",
-        "output_modality": "Heatmap",
-        "input_source": "Various",
-        "output_source": "Attribution scores",
-        "size": "Medium",
-        "splits": "N/A",
-        "design": "Static",
-        "judge": "Automatic",
-        "protocol": "Faithfulness and Plausibility metrics",
-        "model_access": "Weights",
-        "has_heldout": false,
-        "alignment_validation": "N/A",
-        "baseline_models": "ResNet: High faithfulness",
-        "robustness_measures": "Perturbation tests",
-        "known_limitations": "Metrics can be unstable",
-        "benchmarks_list": "TruthfulQA"
-      }
-    },
-    {
-      "evaluation_name": "Token/sec Benchmark",
-      "metric_config": {
-        "evaluation_description": "Inference throughput (tokens/sec)",
-        "lower_is_better": false,
-        "score_type": "continuous",
-        "min_score": 0,
-        "max_score": 200,
-        "unit": "tok/s"
-      },
-      "score_details": {
-        "score": 123.6267836232318,
-        "details": {
-          "subtask_a": 123.6267836232318,
-          "subtask_b": 123.6267836232318
-        }
-      },
-      "factsheet": {
-        "purpose": "Evaluation",
-        "principles_tested": "Efficiency",
-        "functional_props": "Efficiency",
-        "input_modality": "Text",
-        "output_modality": "Metrics",
-        "input_source": "Various",
-        "output_source": "Tokens/sec",
-        "size": "N/A",
-        "splits": "N/A",
-        "design": "Dynamic",
-        "judge": "Automatic",
-        "protocol": "Tokens per second generation",
-        "model_access": "API",
-        "has_heldout": false,
-        "alignment_validation": "N/A",
-        "baseline_models": "GPT-4: 20 tok/sec",
-        "robustness_measures": "Batch size variation",
-        "known_limitations": "Varies by provider",
-        "benchmarks_list": "LLMPerf"
-      }
-    },
-    {
-      "evaluation_name": "CL-Benchmark",
-      "metric_config": {
-        "evaluation_description": "CL-Benchmark Standard Accuracy",
-        "lower_is_better": false,
-        "score_type": "continuous",
-        "min_score": 0,
-        "max_score": 1,
-        "unit": "accuracy"
-      },
-      "score_details": {
-        "score": 0.52498221840426,
-        "details": {
-          "subtask_a": 0.52498221840426,
-          "subtask_b": 0.52498221840426
-        }
-      },
-      "factsheet": {
-        "purpose": "Research",
-        "principles_tested": "Retrainability",
-        "functional_props": "Retrainability/Continual Learning",
-        "input_modality": "Text",
-        "output_modality": "Text",
-        "input_source": "Split MNIST/Cifar/Text",
-        "output_source": "Accuracy over time",
-        "size": "Medium",
-        "splits": "Sequential",
-        "design": "Dynamic",
-        "judge": "Automatic",
-        "protocol": "Forgetting rate and Forward transfer",
-        "model_access": "Weights",
-        "has_heldout": false,
-        "alignment_validation": "N/A",
-        "baseline_models": "EWC: Reduces forgetting",
-        "robustness_measures": "Task ordering",
-        "known_limitations": "Requires training access",
-        "benchmarks_list": "L2M"
-      }
-    },
-    {
-      "evaluation_name": "Omniglot",
-      "metric_config": {
-        "evaluation_description": "Omniglot Standard Accuracy",
-        "lower_is_better": false,
-        "score_type": "continuous",
-        "min_score": 0,
-        "max_score": 1,
-        "unit": "accuracy"
-      },
-      "score_details": {
-        "score": 0.5763375517493838,
-        "details": {
-          "subtask_a": 0.5763375517493838,
-          "subtask_b": 0.5763375517493838
-        }
-      },
-      "factsheet": {
-        "purpose": "Research",
+        "purpose": "Research; Development",
         "principles_tested": "Meta-Learning",
         "functional_props": "Meta-Learning",
-        "input_modality": "Image",
-        "output_modality": "Class",
-        "input_source": "Handwritten characters",
-        "output_source": "Classification",
-        "size": "Small (1623 chars)",
-        "splits": "Background/Evaluation",
-        "design": "Static",
+        "input_modality": "Text",
+        "output_modality": "Text",
+        "input_source": "Synthetic",
+        "output_source": "Automatic",
+        "size": "Medium",
+        "splits": "Test",
+        "design": "Fixed",
         "judge": "Automatic",
-        "protocol": "One-shot classification accuracy",
+        "protocol": "Standard",
         "model_access": "Outputs",
         "has_heldout": false,
-        "alignment_validation": "N/A",
-        "baseline_models": "Human: 95%",
-        "robustness_measures": "Few-shot variation",
-        "known_limitations": "Simple visual domain",
+        "alignment_validation": "None",
+        "baseline_models": "None",
+        "robustness_measures": "None",
+        "known_limitations": "Synthetic data",
         "benchmarks_list": "Meta-Dataset"
-      }
+      },
+      "evaluation_timestamp": "2024-11-12T09:54:51.629Z"
     }
   ],
   "detailed_evaluation_results_per_samples": [

@@ -4,6 +4,7 @@
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Separator } from "@/components/ui/separator"
 import { Progress } from "@/components/ui/progress"
@@ -30,6 +31,7 @@ interface BenchmarkDetailProps {
 
 export function BenchmarkDetail({ summary }: BenchmarkDetailProps) {
   const stats = getCategoryStats(summary)
+  const [selectedCategory, setSelectedCategory] = useState<string>("all")
   
   // Calculate additional summary stats
   const categoryScores = stats.categories.map(c => ({
@@ -281,8 +283,27 @@ export function BenchmarkDetail({ summary }: BenchmarkDetailProps) {
       </div>
 
       {/* Categories View */}
+      <div className="flex items-center justify-between mb-4">
+        <h3 className="text-lg font-semibold">Detailed Results by Category</h3>
+        <Select value={selectedCategory} onValueChange={setSelectedCategory}>
+          <SelectTrigger className="w-[250px]">
+            <SelectValue placeholder="Filter by category" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="all">All Categories</SelectItem>
+            {stats.categories.map(c => (
+              <SelectItem key={c.category} value={c.category}>
+                {c.category.split('-').map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' ')} ({c.count})
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+      </div>
+
       <Accordion type="multiple" className="space-y-4" defaultValue={stats.categories.map(c => c.category)}>
-        {stats.categories.map((stat) => {
+        {stats.categories
+          .filter(c => selectedCategory === "all" || c.category === selectedCategory)
+          .map((stat) => {
           const evals = summary.evaluations_by_category[stat.category] || []
           
           // Collect all results for this category across all evaluations

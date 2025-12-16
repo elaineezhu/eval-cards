@@ -5,6 +5,7 @@ import { useParams, useRouter } from "next/navigation"
 import { Button } from "@/components/ui/button"
 import { ArrowLeft } from "lucide-react"
 import { Navigation } from "@/components/navigation"
+import { PageHeader } from "@/components/page-header"
 import { BenchmarkDetail } from "@/components/benchmark-detail"
 import { loadEvaluations, groupEvaluationsByModel, createModelSummary } from "@/lib/eval-processing"
 import type { ModelEvaluationSummary } from "@/lib/eval-processing"
@@ -89,14 +90,20 @@ export default function BenchmarkDetailPage() {
   return (
     <div className="min-h-screen bg-background">
       <Navigation />
+      <div className="container mx-auto px-4 sm:px-6 py-6 border-b bg-muted/30 relative flex items-center justify-center">
+        <Button 
+          variant="ghost" 
+          onClick={() => router.push("/")}
+          className="absolute left-4 sm:left-6"
+        >
+          <ArrowLeft className="mr-2 h-4 w-4" />
+          Back to Evaluations
+        </Button>
+        <h2 className="text-2xl sm:text-3xl font-bold font-heading text-foreground text-center">
+          {summary.model_info.name} Eval Card
+        </h2>
+      </div>
       <main className="container mx-auto px-4 py-8">
-        <div className="mb-6">
-          <Button variant="ghost" onClick={() => router.push("/benchmarks")}>
-            <ArrowLeft className="mr-2 h-4 w-4" />
-            Back to Evaluations
-          </Button>
-        </div>
-        
         <BenchmarkDetail summary={summary} />
       </main>
     </div>

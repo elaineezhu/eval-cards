@@ -5,9 +5,10 @@ import { Badge } from "@/components/ui/badge"
 import { Separator } from "@/components/ui/separator"
 import { Button } from "@/components/ui/button"
 import Link from "next/link"
-import { ExternalLink } from "lucide-react"
+import { ExternalLink, BarChart3, FileJson, Search, Layout, FileText, Database, Users, ArrowRight } from "lucide-react"
 import { Navigation } from "@/components/navigation"
 import { PageHeader } from "@/components/page-header"
+import { EVALUATION_CATEGORIES } from "@/lib/benchmark-schema"
 
 export default function AboutPage() {
   return (
@@ -15,302 +16,220 @@ export default function AboutPage() {
       <Navigation />
       
       <PageHeader 
-        title="About AI Evaluation Dashboard"
-        description="A comprehensive platform for documenting and sharing AI system evaluations with transparency and rigor."
+        title="About Eval Cards"
+        description="Building a shared infrastructure for informative, transparent, and comparable AI evaluations."
       />
 
       <div className="container mx-auto px-4 sm:px-6 py-6 max-w-4xl">
-        <div className="grid gap-6">
-          <Card>
-            <CardHeader>
-              <CardTitle>Project Goals</CardTitle>
-              <CardDescription>
-                Our mission is to advance responsible AI development through transparent evaluation
-              </CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="grid gap-3">
-                <div className="flex items-start gap-3">
-                  <div className="w-2 h-2 bg-primary rounded-full mt-2 flex-shrink-0" />
-                  <div>
-                    <h4 className="font-medium">Comprehensive Evaluation Framework</h4>
-                    <p className="text-sm text-muted-foreground">
-                      Support structured evaluation across 20+ categories covering capabilities and risks
-                    </p>
-                  </div>
-                </div>
-                <div className="flex items-start gap-3">
-                  <div className="w-2 h-2 bg-primary rounded-full mt-2 flex-shrink-0" />
-                  <div>
-                    <h4 className="font-medium">Transparency & Accountability</h4>
-                    <p className="text-sm text-muted-foreground">
-                      Promote open documentation of AI system capabilities, limitations, and risks
-                    </p>
-                  </div>
-                </div>
-                <div className="flex items-start gap-3">
-                  <div className="w-2 h-2 bg-primary rounded-full mt-2 flex-shrink-0" />
-                  <div>
-                    <h4 className="font-medium">Industry Standards</h4>
-                    <p className="text-sm text-muted-foreground">
-                      Facilitate adoption of consistent evaluation practices across organizations
-                    </p>
-                  </div>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-
-          <Card>
-            <CardHeader>
-              <CardTitle>Key Features</CardTitle>
-              <CardDescription>
-                Tools and capabilities that support comprehensive AI evaluation
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              <div className="grid gap-4 sm:grid-cols-2">
-                <div className="space-y-2">
-                  <Badge variant="secondary" className="mb-2">Evaluation</Badge>
-                  <ul className="space-y-1 text-sm">
-                    <li>• Structured evaluation forms</li>
-                    <li>• Multi-modal system support</li>
-                    <li>• Evidence-based assessments</li>
-                    <li>• Category-specific questions</li>
-                  </ul>
-                </div>
-                <div className="space-y-2">
-                  <Badge variant="secondary" className="mb-2">Analytics</Badge>
-                  <ul className="space-y-1 text-sm">
-                    <li>• Completeness tracking</li>
-                    <li>• Performance benchmarking</li>
-                    <li>• Risk area identification</li>
-                    <li>• Comparative analysis</li>
-                  </ul>
-                </div>
-                <div className="space-y-2">
-                  <Badge variant="secondary" className="mb-2">Documentation</Badge>
-                  <ul className="space-y-1 text-sm">
-                    <li>• Standardized reporting</li>
-                    <li>• Evidence management</li>
-                    <li>• Version tracking</li>
-                    <li>• Export capabilities</li>
-                  </ul>
-                </div>
-                <div className="space-y-2">
-                  <Badge variant="secondary" className="mb-2">Collaboration</Badge>
-                  <ul className="space-y-1 text-sm">
-                    <li>• Team evaluation workflows</li>
-                    <li>• Review processes</li>
-                    <li>• Stakeholder engagement</li>
-                    <li>• Public transparency</li>
-                  </ul>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-
-          <Card>
-            <CardHeader>
-              <CardTitle>Evaluation Categories</CardTitle>
-              <CardDescription>
-                Comprehensive coverage across capabilities and risk areas
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              <div className="grid gap-6 sm:grid-cols-2">
-                <div>
-                  <h4 className="font-medium mb-3 text-primary">Capability Areas</h4>
-                  <div className="flex flex-wrap gap-2">
-                    <Badge variant="outline">Language Communication</Badge>
-                    <Badge variant="outline">Problem Solving</Badge>
-                    <Badge variant="outline">Creativity Innovation</Badge>
-                    <Badge variant="outline">Learning Memory</Badge>
-                    <Badge variant="outline">Social Intelligence</Badge>
-                    <Badge variant="outline">Perception Vision</Badge>
-                    <Badge variant="outline">Physical Manipulation</Badge>
-                    <Badge variant="outline">Metacognition</Badge>
-                    <Badge variant="outline">Robotic Intelligence</Badge>
-                  </div>
-                </div>
-                <div>
-                  <h4 className="font-medium mb-3 text-destructive">Risk Areas</h4>
-                  <div className="flex flex-wrap gap-2">
-                    <Badge variant="outline">Harmful Content</Badge>
-                    <Badge variant="outline">Information Integrity</Badge>
-                    <Badge variant="outline">Privacy Data</Badge>
-                    <Badge variant="outline">Bias Fairness</Badge>
-                    <Badge variant="outline">Security Robustness</Badge>
-                    <Badge variant="outline">Dangerous Capabilities</Badge>
-                    <Badge variant="outline">Human AI Interaction</Badge>
-                    <Badge variant="outline">Environmental Impact</Badge>
-                    <Badge variant="outline">Economic Displacement</Badge>
-                    <Badge variant="outline">Governance Accountability</Badge>
-                    <Badge variant="outline">Value Chain</Badge>
-                  </div>
-                </div>
-              </div>
-              
-              <Separator className="my-6" />
-              
-              <div className="space-y-4">
-                <h4 className="font-medium text-foreground">Taxonomy Sources</h4>
-                <p className="text-sm text-muted-foreground">
-                  Our evaluation framework builds upon established research and industry standards:
+        <div className="grid gap-8">
+          
+          {/* Overview Section */}
+          <section className="space-y-4">
+            <h2 className="text-2xl font-bold tracking-tight">Overview</h2>
+            <Card>
+              <CardContent className="pt-6 space-y-4">
+                <p className="text-muted-foreground leading-relaxed">
+                  Evaluations are the backbone of progress in AI, yet the ways they are documented and shared have not kept pace with the field’s growth. 
+                  Today, evaluations are produced by a growing mix of first- and third-party actors, using diverse methods, formats, and assumptions. 
+                  As a result, it is increasingly difficult to understand what evaluations exist, how they are conducted, or what they ultimately tell us about an AI model or system.
                 </p>
-                <div className="grid gap-3 sm:grid-cols-2">
-                  <div className="flex items-start gap-3 p-3 border rounded-lg">
-                    <ExternalLink className="h-4 w-4 text-muted-foreground mt-0.5 flex-shrink-0" />
-                    <div>
-                      <h5 className="font-medium text-sm">OECD AI Capability Indicators</h5>
-                      <p className="text-xs text-muted-foreground mb-2">
-                        OECD framework for AI capabilities assessment and evaluation
-                      </p>
-                      <Link 
-                        href="https://www.oecd.org/en/publications/introducing-the-oecd-ai-capability-indicators_be745f04-en.html" 
-                        target="_blank"
-                        className="text-xs text-primary hover:underline"
-                      >
-                        oecd.org/ai-capability-indicators
-                      </Link>
-                    </div>
-                  </div>
-                  <div className="flex items-start gap-3 p-3 border rounded-lg">
-                    <ExternalLink className="h-4 w-4 text-muted-foreground mt-0.5 flex-shrink-0" />
-                    <div>
-                      <h5 className="font-medium text-sm">NIST AI Risk Management Framework</h5>
-                      <p className="text-xs text-muted-foreground mb-2">
-                        NIST framework for identifying and managing AI risks
-                      </p>
-                      <Link 
-                        href="https://nvlpubs.nist.gov/nistpubs/ai/NIST.AI.600-1.pdf" 
-                        target="_blank"
-                        className="text-xs text-primary hover:underline"
-                      >
-                        nvlpubs.nist.gov/NIST.AI.600-1.pdf
-                      </Link>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-
-          <Card>
-            <CardHeader>
-              <CardTitle>Getting Started</CardTitle>
-              <CardDescription>
-                Begin evaluating AI systems with our structured approach
-              </CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="grid gap-4 sm:grid-cols-3">
-                <div className="text-center p-4 border rounded-lg">
-                  <div className="w-8 h-8 bg-primary text-primary-foreground rounded-full flex items-center justify-center mx-auto mb-2 text-sm font-bold">
-                    1
-                  </div>
-                  <h4 className="font-medium mb-1">Create Evaluation</h4>
-                  <p className="text-xs text-muted-foreground">Start a new evaluation for your AI system</p>
-                </div>
-                <div className="text-center p-4 border rounded-lg">
-                  <div className="w-8 h-8 bg-primary text-primary-foreground rounded-full flex items-center justify-center mx-auto mb-2 text-sm font-bold">
-                    2
-                  </div>
-                  <h4 className="font-medium mb-1">Complete Assessment</h4>
-                  <p className="text-xs text-muted-foreground">Answer questions across relevant categories</p>
-                </div>
-                <div className="text-center p-4 border rounded-lg">
-                  <div className="w-8 h-8 bg-primary text-primary-foreground rounded-full flex items-center justify-center mx-auto mb-2 text-sm font-bold">
-                    3
-                  </div>
-                  <h4 className="font-medium mb-1">Review & Share</h4>
-                  <p className="text-xs text-muted-foreground">Analyze results and share with stakeholders</p>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-
-          <Card>
-            <CardHeader>
-              <CardTitle>Contributions & Open Data</CardTitle>
-              <CardDescription>
-                Explore our open-source evaluation framework and example datasets
-              </CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="grid gap-4 sm:grid-cols-2">
-                <div className="flex items-start gap-3 p-4 border rounded-lg">
-                  <div className="w-8 h-8 bg-blue-100 dark:bg-blue-900 rounded-lg flex items-center justify-center flex-shrink-0">
-                    <svg className="w-4 h-4 text-blue-600 dark:text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-                    </svg>
-                  </div>
-                  <div>
-                    <h4 className="font-medium mb-2">Evaluation Schema</h4>
-                    <p className="text-sm text-muted-foreground mb-3">
-                      Access our complete evaluation framework including category definitions, question sets, and validation schemas.
-                    </p>
-                    <Link 
-                      href="https://huggingface.co/spaces/evaleval/general-eval-card/tree/main/schema" 
-                      target="_blank" 
-                      className="inline-flex items-center gap-1 text-sm text-primary hover:underline"
-                    >
-                      View on Hugging Face
-                      <ExternalLink className="h-3 w-3" />
-                    </Link>
-                  </div>
-                </div>
+                <p className="text-muted-foreground leading-relaxed">
+                  We envision a world in which AI evaluations are informative, transparent, and comparable by default. 
+                  In this world, developers, researchers, policymakers, and downstream users can quickly understand how an AI system has been evaluated.
+                </p>
                 
-                <div className="flex items-start gap-3 p-4 border rounded-lg">
-                  <div className="w-8 h-8 bg-green-100 dark:bg-green-900 rounded-lg flex items-center justify-center flex-shrink-0">
-                    <svg className="w-4 h-4 text-green-600 dark:text-green-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 7v10a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2H5a2 2 0 00-2-2z" />
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 5a2 2 0 012-2h4a2 2 0 012 2v10a2 2 0 01-2 2H10a2 2 0 01-2-2V5z" />
-                    </svg>
-                  </div>
-                  <div>
-                    <h4 className="font-medium mb-2">Example Evaluations</h4>
-                    <p className="text-sm text-muted-foreground mb-3">
-                      Explore completed evaluation examples from leading AI systems to understand the evaluation process.
-                    </p>
-                    <Link 
-                      href="https://huggingface.co/spaces/evaleval/general-eval-card/tree/main/public/evaluations" 
-                      target="_blank" 
-                      className="inline-flex items-center gap-1 text-sm text-primary hover:underline"
-                    >
-                      View on Hugging Face
-                      <ExternalLink className="h-3 w-3" />
-                    </Link>
+                <div className="mt-6 bg-muted/30 p-6 rounded-lg border">
+                  <h3 className="font-semibold mb-4 flex items-center gap-2">
+                    <Layout className="h-5 w-5 text-primary" />
+                    The Eval Cards Proposal
+                  </h3>
+                  <div className="grid gap-4 md:grid-cols-3">
+                    <div className="space-y-2">
+                      <div className="font-medium text-sm flex items-center gap-2">
+                        <FileText className="h-4 w-4 text-blue-500" />
+                        Design Information
+                      </div>
+                      <p className="text-xs text-muted-foreground">
+                        Documenting what an evaluation measures and how its results should be interpreted, covering task definition and validity considerations.
+                      </p>
+                    </div>
+                    <div className="space-y-2">
+                      <div className="font-medium text-sm flex items-center gap-2">
+                        <Database className="h-4 w-4 text-green-500" />
+                        EEE Schema
+                      </div>
+                      <p className="text-xs text-muted-foreground">
+                        The "Every Eval Ever" standardized reporting schema for inference- and execution-level details (temperature, tokens, etc.).
+                      </p>
+                    </div>
+                    <div className="space-y-2">
+                      <div className="font-medium text-sm flex items-center gap-2">
+                        <Layout className="h-4 w-4 text-purple-500" />
+                        Central Platform
+                      </div>
+                      <p className="text-xs text-muted-foreground">
+                        A shared repository linking design info with run data, allowing exploration by model or evaluation.
+                      </p>
+                    </div>
                   </div>
                 </div>
-              </div>
-              
-              <div className="bg-muted/50 p-4 rounded-lg">
-                <h5 className="font-medium mb-2 text-sm">Contribute to the Framework</h5>
-                <p className="text-xs text-muted-foreground">
-                  Our evaluation framework is open for community contributions. Use these schemas and examples to create your own evaluations, 
-                  or contribute improvements to help advance AI transparency and accountability standards.
+              </CardContent>
+            </Card>
+          </section>
+
+          {/* Motivation & Why Eval Cards */}
+          <div className="grid md:grid-cols-2 gap-6">
+            <section className="space-y-4">
+              <h2 className="text-xl font-bold tracking-tight">Motivation</h2>
+              <Card className="h-full">
+                <CardContent className="pt-6">
+                  <p className="text-sm text-muted-foreground leading-relaxed">
+                    Evaluations come in a variety of forms and formats depending on the organization conducting them. 
+                    Today, the lack of standardization across evaluation design information and evaluation run metadata limits the impact of evaluations because they are not readily comparable or available.
+                  </p>
+                  <p className="text-sm text-muted-foreground leading-relaxed mt-4">
+                    Moreover, they remain scattered across numerous repos, sites, tables, and papers, making it difficult to grasp what evaluations of a given AI system have been conducted.
+                  </p>
+                </CardContent>
+              </Card>
+            </section>
+
+            <section className="space-y-4">
+              <h2 className="text-xl font-bold tracking-tight">Why Eval Cards?</h2>
+              <Card className="h-full">
+                <CardContent className="pt-6">
+                  <p className="text-sm text-muted-foreground leading-relaxed">
+                    Just as model cards have catalyzed common documentation practices for AI systems, Eval Cards aim to establish a norm for structured reporting of AI evaluations themselves.
+                  </p>
+                  <p className="text-sm text-muted-foreground leading-relaxed mt-4">
+                    By standardizing how evaluation design information and run-level metadata are reported, Eval Cards make apples-to-apples comparison possible and reduce duplicated infrastructure work for evaluation research.
+                  </p>
+                </CardContent>
+              </Card>
+            </section>
+          </div>
+
+          {/* Current State */}
+          <section className="space-y-4">
+            <h2 className="text-2xl font-bold tracking-tight">Current State</h2>
+            <Card>
+              <CardContent className="pt-6 space-y-4">
+                <p className="text-muted-foreground">
+                  Eval Cards are actively under development by the EvalEval coalition. We have completed the following milestones:
                 </p>
-              </div>
-            </CardContent>
-          </Card>
+                <div className="grid gap-3 sm:grid-cols-2 mt-4">
+                  <div className="flex items-start gap-3 p-3 bg-secondary/20 rounded-lg">
+                    <div className="w-2 h-2 bg-green-500 rounded-full mt-2 flex-shrink-0" />
+                    <span className="text-sm">Developed a draft version of the EEE schema</span>
+                  </div>
+                  <div className="flex items-start gap-3 p-3 bg-secondary/20 rounded-lg">
+                    <div className="w-2 h-2 bg-green-500 rounded-full mt-2 flex-shrink-0" />
+                    <span className="text-sm">Designed a GUI mockup for the central platform</span>
+                  </div>
+                  <div className="flex items-start gap-3 p-3 bg-secondary/20 rounded-lg">
+                    <div className="w-2 h-2 bg-green-500 rounded-full mt-2 flex-shrink-0" />
+                    <span className="text-sm">Designed in-platform explanatory tooltips for design details</span>
+                  </div>
+                  <div className="flex items-start gap-3 p-3 bg-secondary/20 rounded-lg">
+                    <div className="w-2 h-2 bg-green-500 rounded-full mt-2 flex-shrink-0" />
+                    <span className="text-sm">Integrated with Eval Factsheets repository</span>
+                  </div>
+                </div>
+                <div className="mt-4 p-4 bg-blue-50 dark:bg-blue-900/20 text-blue-800 dark:text-blue-200 rounded-md text-sm flex items-center gap-3">
+                  <InfoIcon className="h-5 w-5 flex-shrink-0" />
+                  We are currently soliciting community feedback on all components through mid-January 2026.
+                </div>
+              </CardContent>
+            </Card>
+          </section>
+
+          {/* Next Steps */}
+          <section className="space-y-4">
+            <h2 className="text-2xl font-bold tracking-tight">Next Steps</h2>
+            <Card>
+              <CardContent className="pt-6 space-y-4">
+                <div className="flex items-center gap-4 mb-4">
+                  <Badge className="text-base px-4 py-1">Release: February 2026</Badge>
+                </div>
+                <p className="text-muted-foreground">
+                  In the lead-up to this release, we are:
+                </p>
+                <ul className="space-y-3 text-sm text-muted-foreground list-disc pl-5">
+                  <li>
+                    Actively engaging with model developers, independent evaluation organizations, and research groups to solicit feedback and encourage early adoption.
+                  </li>
+                  <li>
+                    Continuing to develop the Eval Cards platform as a central, publicly accessible repository where evaluations can be submitted, discovered, and compared.
+                  </li>
+                </ul>
+                <p className="text-sm text-muted-foreground mt-4">
+                  Following the initial release, we will maintain and evolve the Eval Cards format in consultation with the research and practitioner communities.
+                </p>
+              </CardContent>
+            </Card>
+          </section>
+
+          {/* Coalition */}
+          <section className="space-y-4">
+            <h2 className="text-2xl font-bold tracking-tight">The EvalEval Coalition</h2>
+            <Card className="bg-primary/5 border-primary/20">
+              <CardContent className="pt-6 flex flex-col sm:flex-row items-center gap-6">
+                <div className="p-4 bg-background rounded-full border shadow-sm">
+                  <Users className="h-8 w-8 text-primary" />
+                </div>
+                <div className="space-y-2 text-center sm:text-left">
+                  <h3 className="font-semibold text-lg">A Global Research Community</h3>
+                  <p className="text-muted-foreground">
+                    We are a community of 400+ researchers and practitioners developing rigorous AI evaluation methods and the infrastructure needed to deploy them at scale for real-world impact.
+                  </p>
+                </div>
+              </CardContent>
+            </Card>
+          </section>
 
           <Separator />
 
           <div className="text-center space-y-4">
-            <h3 className="text-lg font-semibold">Ready to get started?</h3>
+            <h3 className="text-lg font-semibold">Get Involved</h3>
             <p className="text-muted-foreground">
-              Create your first evaluation card and begin documenting your AI system's capabilities and risks.
+              Groups interested in collaborating with us on Eval Cards are invited to submit an expression of interest.
             </p>
-            <Link href="/">
-              <Button size="lg" className="gap-2">
-                Start Evaluating
+            <div className="flex justify-center gap-4">
+              <Button variant="outline" className="gap-2">
+                Contact Us
                 <ExternalLink className="h-4 w-4" />
               </Button>
-            </Link>
+              <Link href="/">
+                <Button className="gap-2">
+                  Explore the Platform
+                  <ArrowRight className="h-4 w-4" />
+                </Button>
+              </Link>
+            </div>
           </div>
         </div>
       </div>
     </div>
+  )
+}
+
+function InfoIcon(props: any) {
+  return (
+    <svg
+      {...props}
+      xmlns="http://www.w3.org/2000/svg"
+      width="24"
+      height="24"
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="2"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    >
+      <circle cx="12" cy="12" r="10" />
+      <path d="M12 16v-4" />
+      <path d="M12 8h.01" />
+    </svg>
   )
 }

@@ -117,10 +117,13 @@ export function BenchmarkEvaluationCard({ data, onDelete }: BenchmarkEvaluationC
   const completeness = Math.round((data.categories.length / EVALUATION_CATEGORIES.length) * 100)
   
   return (
-    <Card className="hover:shadow-lg transition-shadow cursor-pointer group">
+    <Card 
+      className="hover:shadow-lg transition-shadow cursor-pointer group"
+      onClick={() => router.push(`/benchmark/${encodeURIComponent(data.id)}`)}
+    >
       <CardHeader className="space-y-4 pb-2">
         <div className="flex items-start justify-between">
-          <div className="flex-1" onClick={() => router.push(`/benchmark/${encodeURIComponent(data.id)}`)}>
+          <div className="flex-1">
             <div className="flex items-center gap-2 mb-1">
               <CardTitle className="text-xl font-bold group-hover:text-primary transition-colors">
                 {data.model_name}
@@ -139,7 +142,12 @@ export function BenchmarkEvaluationCard({ data, onDelete }: BenchmarkEvaluationC
           
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
-              <Button variant="ghost" size="icon" className="opacity-0 group-hover:opacity-100 transition-opacity">
+              <Button 
+                variant="ghost" 
+                size="icon" 
+                className="opacity-0 group-hover:opacity-100 transition-opacity"
+                onClick={(e) => e.stopPropagation()}
+              >
                 <MoreHorizontal className="h-4 w-4" />
               </Button>
             </DropdownMenuTrigger>

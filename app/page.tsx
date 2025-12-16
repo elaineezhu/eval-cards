@@ -100,8 +100,8 @@ export default function HomePage() {
       <Navigation />
       <main className="container mx-auto px-4 py-8">
         <PageHeader
-          title="AI Model Evaluations"
-          description="Browse benchmark evaluation results from standardized datasets"
+          title="Eval Cards Platform"
+          description="A central platform for informative, transparent, and comparable AI evaluations. Explore standardized reports across models and benchmarks."
         />
 
         {/* Filters and Controls */}
@@ -139,16 +139,10 @@ export default function HomePage() {
         </div>
 
         {/* Stats */}
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-8">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
           <div className="p-4 border rounded-lg">
             <div className="text-2xl font-bold">{sortedEvaluations.length}</div>
             <div className="text-sm text-muted-foreground">Models Evaluated</div>
-          </div>
-          <div className="p-4 border rounded-lg">
-            <div className="text-2xl font-bold">
-              {sortedEvaluations.reduce((sum, e) => sum + e.benchmarks_count, 0)}
-            </div>
-            <div className="text-sm text-muted-foreground">Total Benchmarks</div>
           </div>
           <div className="p-4 border rounded-lg">
             <div className="text-2xl font-bold">
