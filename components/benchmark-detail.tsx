@@ -205,86 +205,61 @@ export function BenchmarkDetail({ summary }: BenchmarkDetailProps) {
               </div>
             </div>
 
-            <div className="bg-purple-50 dark:bg-purple-900/20 border border-purple-100 dark:border-purple-900/30 rounded-lg p-4">
-              <div className="flex items-center gap-2 text-purple-600 dark:text-purple-400 mb-2">
-                <Calendar className="h-4 w-4" />
-                <span className="text-sm font-semibold">Evaluation Date</span>
+            <div className="bg-pink-50 dark:bg-pink-900/20 border border-pink-100 dark:border-pink-900/30 rounded-lg p-4">
+              <div className="flex items-center gap-2 text-pink-600 dark:text-pink-400 mb-2">
+                <Activity className="h-4 w-4" />
+                <span className="text-sm font-semibold">Categories Evaluated</span>
               </div>
-              <div className="font-medium text-sm">
-                {formatDate(summary.last_updated).split(' at ')[0]}
-              </div>
-            </div>
-          </div>
-
-          {/* Footer Stats */}
-          <div className="flex flex-col md:flex-row gap-8 pt-4 border-t">
-            <div className="flex gap-3">
-              <div className="mt-1 bg-muted p-2 rounded-md h-fit">
-                <User className="h-4 w-4 text-muted-foreground" />
-              </div>
-              <div>
-                <div className="text-sm text-muted-foreground mb-1">Evaluator</div>
-                <div className="font-medium">Aggregated Benchmarks</div>
-              </div>
-            </div>
-
-            <div className="flex gap-3">
-              <div className="mt-1 bg-pink-100 dark:bg-pink-900/30 p-2 rounded-md h-fit">
-                <Activity className="h-4 w-4 text-pink-600 dark:text-pink-400" />
-              </div>
-              <div>
-                <div className="text-sm text-muted-foreground mb-1">Categories Evaluated</div>
-                <Dialog>
-                  <DialogTrigger asChild>
-                    <Button variant="link" className="h-auto p-0 font-bold text-lg hover:underline">
-                      {stats.categories.length} / {EVALUATION_CATEGORIES.length}
-                    </Button>
-                  </DialogTrigger>
-                  <DialogContent className="max-w-2xl">
-                    <DialogHeader>
-                      <DialogTitle>Evaluation Category Coverage</DialogTitle>
-                      <DialogDescription>
-                        This system has been evaluated on {stats.categories.length} out of {EVALUATION_CATEGORIES.length} standard categories
-                      </DialogDescription>
-                    </DialogHeader>
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
-                      <div>
-                        <h4 className="text-sm font-semibold mb-3 text-green-600 dark:text-green-400 flex items-center gap-2">
-                          <CheckCircle className="h-4 w-4" />
-                          Evaluated ({stats.categories.length})
-                        </h4>
-                        <div className="space-y-2">
-                          {stats.categories.map(c => (
-                            <div key={c.category} className="flex items-center gap-2 text-sm">
-                              <Badge variant="outline" className="bg-green-50 dark:bg-green-900/20 border-green-200 dark:border-green-800">
-                                {c.category.split('-').map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' ')}
-                              </Badge>
-                              <span className="text-muted-foreground text-xs">
-                                {c.total_results} result{c.total_results !== 1 ? 's' : ''}
-                              </span>
-                            </div>
-                          ))}
-                        </div>
-                      </div>
-                      <div>
-                        <h4 className="text-sm font-semibold mb-3 text-muted-foreground flex items-center gap-2">
-                          <AlertTriangle className="h-4 w-4" />
-                          Not Yet Evaluated ({EVALUATION_CATEGORIES.length - stats.categories.length})
-                        </h4>
-                        <div className="space-y-2">
-                          {EVALUATION_CATEGORIES.filter(cat => !stats.categories.find(c => c.category === cat)).map(cat => (
-                            <div key={cat} className="flex items-center gap-2 text-sm">
-                              <Badge variant="outline" className="bg-muted/30 text-muted-foreground">
-                                {cat.split('-').map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' ')}
-                              </Badge>
-                            </div>
-                          ))}
-                        </div>
+              <Dialog>
+                <DialogTrigger asChild>
+                  <Button variant="link" className="h-auto p-0 font-bold text-sm hover:underline text-left">
+                    {stats.categories.length} / {EVALUATION_CATEGORIES.length}
+                  </Button>
+                </DialogTrigger>
+                <DialogContent className="max-w-2xl">
+                  <DialogHeader>
+                    <DialogTitle>Evaluation Category Coverage</DialogTitle>
+                    <DialogDescription>
+                      This system has been evaluated on {stats.categories.length} out of {EVALUATION_CATEGORIES.length} standard categories
+                    </DialogDescription>
+                  </DialogHeader>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
+                    <div>
+                      <h4 className="text-sm font-semibold mb-3 text-green-600 dark:text-green-400 flex items-center gap-2">
+                        <CheckCircle className="h-4 w-4" />
+                        Evaluated ({stats.categories.length})
+                      </h4>
+                      <div className="space-y-2">
+                        {stats.categories.map(c => (
+                          <div key={c.category} className="flex items-center gap-2 text-sm">
+                            <Badge variant="outline" className="bg-green-50 dark:bg-green-900/20 border-green-200 dark:border-green-800">
+                              {c.category.split('-').map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' ')}
+                            </Badge>
+                            <span className="text-muted-foreground text-xs">
+                              {c.total_results} result{c.total_results !== 1 ? 's' : ''}
+                            </span>
+                          </div>
+                        ))}
                       </div>
                     </div>
-                  </DialogContent>
-                </Dialog>
-              </div>
+                    <div>
+                      <h4 className="text-sm font-semibold mb-3 text-muted-foreground flex items-center gap-2">
+                        <AlertTriangle className="h-4 w-4" />
+                        Not Yet Evaluated ({EVALUATION_CATEGORIES.length - stats.categories.length})
+                      </h4>
+                      <div className="space-y-2">
+                        {EVALUATION_CATEGORIES.filter(cat => !stats.categories.find(c => c.category === cat)).map(cat => (
+                          <div key={cat} className="flex items-center gap-2 text-sm">
+                            <Badge variant="outline" className="bg-muted/30 text-muted-foreground">
+                              {cat.split('-').map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' ')}
+                            </Badge>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  </div>
+                </DialogContent>
+              </Dialog>
             </div>
           </div>
         </CardContent>
