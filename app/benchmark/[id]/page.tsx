@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react"
 import { useParams, useRouter } from "next/navigation"
+import Link from "next/link"
 import { Button } from "@/components/ui/button"
 import { ArrowLeft } from "lucide-react"
 import { Navigation } from "@/components/navigation"
@@ -90,21 +91,37 @@ export default function BenchmarkDetailPage() {
   return (
     <div className="min-h-screen bg-background">
       <Navigation />
-      <div className="container mx-auto px-4 sm:px-6 py-4 sm:py-6 border-b bg-muted/30">
-        <div className="flex flex-col sm:grid sm:grid-cols-[auto_1fr_auto] sm:items-center gap-3">
-          <Button 
-            variant="ghost" 
-            onClick={() => router.push("/")}
-            className="self-start"
-          >
-            <ArrowLeft className="mr-2 h-4 w-4" />
-            <span className="hidden sm:inline">Back to Evaluations</span>
-            <span className="sm:hidden">Back</span>
-          </Button>
-          <h2 className="text-xl sm:text-2xl md:text-3xl font-bold font-heading text-foreground sm:text-center sm:mx-auto">
-            {summary.model_info.name} Eval Card
-          </h2>
-          <div className="hidden sm:block" />
+      <div className="border-b bg-muted/30">
+        <div className="container mx-auto px-4 sm:px-6 py-4 sm:py-6">
+          {/* Mobile layout - Back button + centered title */}
+          <div className="flex items-center gap-3 sm:hidden">
+            <Button 
+              variant="ghost" 
+              size="sm"
+              onClick={() => router.push("/")}
+              className="shrink-0"
+            >
+              <ArrowLeft className="h-4 w-4" />
+            </Button>
+            <h2 className="text-lg font-bold font-heading text-foreground text-center flex-1">
+              {summary.model_info.name} Eval Card
+            </h2>
+          </div>
+          
+          {/* Desktop layout - Grid with back button, centered title, empty space */}
+          <div className="hidden sm:grid sm:grid-cols-[auto_1fr_auto] sm:items-center sm:gap-4">
+            <Button 
+              variant="ghost" 
+              onClick={() => router.push("/")}
+            >
+              <ArrowLeft className="mr-2 h-4 w-4" />
+              Back to Evaluations
+            </Button>
+            <h2 className="text-2xl md:text-3xl font-bold font-heading text-foreground text-center">
+              {summary.model_info.name} Eval Card
+            </h2>
+            <div />
+          </div>
         </div>
       </div>
       <main className="container mx-auto px-4 py-8">
