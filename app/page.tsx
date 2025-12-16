@@ -3,7 +3,8 @@
 import { useState, useMemo, useEffect } from "react"
 import { Button } from "@/components/ui/button"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { Filter, ArrowUpDown } from "lucide-react"
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
+import { Filter, ArrowUpDown, Info } from "lucide-react"
 import { BenchmarkEvaluationCard, type BenchmarkEvaluationCardData } from "@/components/benchmark-evaluation-card"
 import { Navigation } from "@/components/navigation"
 import { PageHeader } from "@/components/page-header"
@@ -103,6 +104,14 @@ export default function HomePage() {
           title="Eval Cards Platform"
           description="A central platform for informative, transparent, and comparable AI evaluations. Explore standardized reports across models and benchmarks."
         />
+
+        <Alert className="mb-8 border-amber-200 bg-amber-50 text-amber-900 dark:border-amber-900/50 dark:bg-amber-900/20 dark:text-amber-200">
+          <Info className="h-4 w-4 text-amber-600 dark:text-amber-400" />
+          <AlertTitle>Demo Environment</AlertTitle>
+          <AlertDescription>
+            This is a demonstration of the evaluation dashboard. The data shown below is currently dummy data generated for testing purposes and does not reflect actual model performance.
+          </AlertDescription>
+        </Alert>
 
         {/* Filters and Controls */}
         <div className="flex flex-col sm:flex-row gap-4 mb-8">
