@@ -90,18 +90,22 @@ export default function BenchmarkDetailPage() {
   return (
     <div className="min-h-screen bg-background">
       <Navigation />
-      <div className="container mx-auto px-4 sm:px-6 py-6 border-b bg-muted/30 relative flex items-center justify-center">
-        <Button 
-          variant="ghost" 
-          onClick={() => router.push("/")}
-          className="absolute left-4 sm:left-6"
-        >
-          <ArrowLeft className="mr-2 h-4 w-4" />
-          Back to Evaluations
-        </Button>
-        <h2 className="text-2xl sm:text-3xl font-bold font-heading text-foreground text-center">
-          {summary.model_info.name} Eval Card
-        </h2>
+      <div className="container mx-auto px-4 sm:px-6 py-4 sm:py-6 border-b bg-muted/30">
+        <div className="flex flex-col sm:grid sm:grid-cols-[auto_1fr_auto] sm:items-center gap-3">
+          <Button 
+            variant="ghost" 
+            onClick={() => router.push("/")}
+            className="self-start"
+          >
+            <ArrowLeft className="mr-2 h-4 w-4" />
+            <span className="hidden sm:inline">Back to Evaluations</span>
+            <span className="sm:hidden">Back</span>
+          </Button>
+          <h2 className="text-xl sm:text-2xl md:text-3xl font-bold font-heading text-foreground sm:text-center sm:mx-auto">
+            {summary.model_info.name} Eval Card
+          </h2>
+          <div className="hidden sm:block" />
+        </div>
       </div>
       <main className="container mx-auto px-4 py-8">
         <BenchmarkDetail summary={summary} />

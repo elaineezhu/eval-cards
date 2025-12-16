@@ -3,13 +3,13 @@
   "evaluation_id": "anthropic-claude-3-5-sonnet-1765899234258",
   "retrieved_timestamp": "2024-09-30T02:10:44.020Z",
   "source_data": {
-    "dataset_name": "Demo Benchmark Suite",
+    "dataset_name": "Multi-Domain Benchmark Collection",
     "samples_number": 1000
   },
   "source_metadata": {
-    "source_name": "Demo Evaluation Suite",
+    "source_name": "Claude 3.5 Sonnet Evaluation Suite",
     "source_type": "evaluation_run",
-    "source_organization_name": "General Eval Card Demo",
+    "source_organization_name": "Anthropic Research",
     "evaluator_relationship": "third_party"
   },
   "model_info": {
@@ -45,10 +45,10 @@
         "unit": "accuracy"
       },
       "score_details": {
-        "score": 0.8147018595778255,
+        "score": 0.7824396659385435,
         "details": {
-          "subtask_a": 0.8147018595778255,
-          "subtask_b": 0.8147018595778255
+          "subtask_a": 0.8367626735559687,
+          "subtask_b": 0.7261524681387385
         }
       },
       "factsheet": {
@@ -73,7 +73,7 @@
         "known_limitations": "-live and dynamic environment introduces uncontrollable factors (feature deprecation, version changes etc) that makes certain tasks unavailable after a period -sizable efforts required to manually set up prework in the environment ",
         "benchmarks_list": "AndroidControl, Android in the wild"
       },
-      "evaluation_timestamp": "2024-09-27T01:48:07.232Z"
+      "evaluation_timestamp": "2024-09-26T23:29:35.232Z"
     },
     {
       "evaluation_name": "IntPhys 2",
@@ -86,10 +86,10 @@
         "unit": "accuracy"
       },
       "score_details": {
-        "score": 0.5506736083693,
+        "score": 0.5288669334778757,
         "details": {
-          "subtask_a": 0.5506736083693,
-          "subtask_b": 0.5506736083693
+          "subtask_a": 0.6045594366672734,
+          "subtask_b": 0.47639181107040346
         }
       },
       "factsheet": {
@@ -114,7 +114,7 @@
         "known_limitations": "Model can be very sensitive to the way they are prompted. Also the compression artefact of the video can also impact the results. Those are mostly limitations on the model sides, since human are not sensitive to those. ",
         "benchmarks_list": "IntPhys: A Framework and Benchmark for Visual Intuitive Physics Reasoning, Riochet et al. 2020"
       },
-      "evaluation_timestamp": "2024-09-06T11:18:21.190Z"
+      "evaluation_timestamp": "2024-09-06T09:58:16.190Z"
     },
     {
       "evaluation_name": "ImageNet",
@@ -127,10 +127,10 @@
         "unit": "accuracy"
       },
       "score_details": {
-        "score": 0.6430384540030798,
+        "score": 0.6175741312245578,
         "details": {
-          "subtask_a": 0.6430384540030798,
-          "subtask_b": 0.6430384540030798
+          "subtask_a": 0.6134000091709834,
+          "subtask_b": 0.6957277367309187
         }
       },
       "factsheet": {
@@ -155,7 +155,7 @@
         "known_limitations": "Class imbalance in some categories; Label noise in training set; Some ambiguous images with multiple valid labels; Bias towards certain object viewpoints and contexts",
         "benchmarks_list": "ImageNet-V2, ImageNet-C, ImageNet-R, ImageNet-A, ImageNet-Sketch"
       },
-      "evaluation_timestamp": "2024-09-15T07:46:56.253Z"
+      "evaluation_timestamp": "2024-09-15T21:44:11.253Z"
     },
     {
       "evaluation_name": "COCO (Common Objects in Context)",
@@ -168,10 +168,10 @@
         "unit": "accuracy"
       },
       "score_details": {
-        "score": 0.877344211001631,
+        "score": 0.8426013802459664,
         "details": {
-          "subtask_a": 0.877344211001631,
-          "subtask_b": 0.877344211001631
+          "subtask_a": 0.8955554693216377,
+          "subtask_b": 0.8421355600832854
         }
       },
       "factsheet": {
@@ -196,7 +196,7 @@
         "known_limitations": "Small object detection remains challenging; Occlusion handling difficulties; Dataset bias toward certain object contexts; Annotation inconsistencies in crowded scenes",
         "benchmarks_list": "LVIS, Objects365, Open Images, Visual Genome"
       },
-      "evaluation_timestamp": "2024-09-09T03:14:20.540Z"
+      "evaluation_timestamp": "2024-09-08T12:42:56.540Z"
     },
     {
       "evaluation_name": "CIFAR-10 and CIFAR-100",
@@ -209,10 +209,10 @@
         "unit": "accuracy"
       },
       "score_details": {
-        "score": 0.32578444245414845,
+        "score": 0.31288337853296416,
         "details": {
-          "subtask_a": 0.32578444245414845,
-          "subtask_b": 0.32578444245414845
+          "subtask_a": 0.3273233582236792,
+          "subtask_b": 0.31142873952797184
         }
       },
       "factsheet": {
@@ -237,7 +237,7 @@
         "known_limitations": "Low resolution (32x32) limits fine-grained recognition; Some label noise in CIFAR-100; Dataset size enables memorization in large models; Limited diversity in poses and contexts",
         "benchmarks_list": "CIFAR-10-C, CIFAR-10.1, CIFAR-100-C, STL-10, Tiny ImageNet"
       },
-      "evaluation_timestamp": "2024-09-09T01:45:05.587Z"
+      "evaluation_timestamp": "2024-09-08T23:15:22.587Z"
     },
     {
       "evaluation_name": "Pascal VOC",
@@ -250,10 +250,10 @@
         "unit": "accuracy"
       },
       "score_details": {
-        "score": 0.5036487067762447,
+        "score": 0.48370421798790547,
         "details": {
-          "subtask_a": 0.5036487067762447,
-          "subtask_b": 0.5036487067762447
+          "subtask_a": 0.5222864402117045,
+          "subtask_b": 0.5556538560905849
         }
       },
       "factsheet": {
@@ -278,7 +278,7 @@
         "known_limitations": "Limited to 20 classes; Small dataset size by modern standards; Some annotation inconsistencies; Relatively simple backgrounds",
         "benchmarks_list": "COCO, LVIS, Open Images, Cityscapes"
       },
-      "evaluation_timestamp": "2024-09-21T11:03:01.930Z"
+      "evaluation_timestamp": "2024-09-22T00:37:23.930Z"
     },
     {
       "evaluation_name": "Cityscapes",
@@ -291,10 +291,10 @@
         "unit": "accuracy"
       },
       "score_details": {
-        "score": 0.5837062342540864,
+        "score": 0.5605914673776246,
         "details": {
-          "subtask_a": 0.5837062342540864,
-          "subtask_b": 0.5837062342540864
+          "subtask_a": 0.6051347381175264,
+          "subtask_b": 0.623934253239
         }
       },
       "factsheet": {
@@ -319,7 +319,7 @@
         "known_limitations": "Limited to European cities; Weather bias (mostly good conditions); Class imbalance for rare objects; Fine annotation boundaries challenging",
         "benchmarks_list": "ADE20K, KITTI, Mapillary Vistas, BDD100K, nuScenes"
       },
-      "evaluation_timestamp": "2024-09-01T10:07:15.118Z"
+      "evaluation_timestamp": "2024-09-01T06:29:28.118Z"
     },
     {
       "evaluation_name": "ADE20K",
@@ -332,10 +332,10 @@
         "unit": "accuracy"
       },
       "score_details": {
-        "score": 0.5280858409292599,
+        "score": 0.5071736416284612,
         "details": {
-          "subtask_a": 0.5280858409292599,
-          "subtask_b": 0.5280858409292599
+          "subtask_a": 0.46814462067113055,
+          "subtask_b": 0.5386182205034344
         }
       },
       "factsheet": {
@@ -360,7 +360,7 @@
         "known_limitations": "Long-tail distribution of object classes; Annotation granularity varies; Some scenes have ambiguous boundaries; Challenging for rare categories",
         "benchmarks_list": "Cityscapes, Pascal Context, COCO-Stuff, Mapillary Vistas"
       },
-      "evaluation_timestamp": "2024-09-13T13:35:17.922Z"
+      "evaluation_timestamp": "2024-09-13T19:49:06.922Z"
     },
     {
       "evaluation_name": "Kinetics",
@@ -373,10 +373,10 @@
         "unit": "accuracy"
       },
       "score_details": {
-        "score": 0.6275760788578523,
+        "score": 0.6027240661350812,
         "details": {
-          "subtask_a": 0.6275760788578523,
-          "subtask_b": 0.6275760788578523
+          "subtask_a": 0.6587786977470289,
+          "subtask_b": 0.6582272268681847
         }
       },
       "factsheet": {
@@ -401,7 +401,7 @@
         "known_limitations": "YouTube videos may become unavailable over time; Some action classes overlap or are ambiguous; Camera viewpoint bias; Dataset drift as internet content changes",
         "benchmarks_list": "UCF-101, HMDB-51, ActivityNet, Something-Something, Moments in Time"
       },
-      "evaluation_timestamp": "2024-09-29T19:26:42.949Z"
+      "evaluation_timestamp": "2024-09-29T11:38:55.949Z"
     },
     {
       "evaluation_name": "KITTI",
@@ -414,10 +414,10 @@
         "unit": "accuracy"
       },
       "score_details": {
-        "score": 0.8487772765675112,
+        "score": 0.8151656964154377,
         "details": {
-          "subtask_a": 0.8487772765675112,
-          "subtask_b": 0.8487772765675112
+          "subtask_a": 0.8918925280521871,
+          "subtask_b": 0.7621604062201778
         }
       },
       "factsheet": {
@@ -442,7 +442,7 @@
         "known_limitations": "Limited to specific geographic region; Weather bias (mostly clear); Limited nighttime data; Class imbalance (cars dominate)",
         "benchmarks_list": "nuScenes, Waymo Open Dataset, Argoverse, A2D2, Lyft Level 5"
       },
-      "evaluation_timestamp": "2024-09-03T02:04:25.441Z"
+      "evaluation_timestamp": "2024-09-02T06:42:00.441Z"
     },
     {
       "evaluation_name": "Places365",
@@ -455,10 +455,10 @@
         "unit": "accuracy"
       },
       "score_details": {
-        "score": 0.40061069979785613,
+        "score": 0.384746516085861,
         "details": {
-          "subtask_a": 0.40061069979785613,
-          "subtask_b": 0.40061069979785613
+          "subtask_a": 0.4264061279095671,
+          "subtask_b": 0.3722571720690914
         }
       },
       "factsheet": {
@@ -483,7 +483,7 @@
         "known_limitations": "Some scene categories overlap semantically; Cultural bias in scene definitions; Indoor scenes better represented than outdoor; Ambiguous boundary cases",
         "benchmarks_list": "SUN397, MIT Indoor 67, Scene-15, ADE20K"
       },
-      "evaluation_timestamp": "2024-09-16T09:36:38.012Z"
+      "evaluation_timestamp": "2024-09-16T22:35:32.012Z"
     },
     {
       "evaluation_name": "UCF-101",
@@ -496,10 +496,10 @@
         "unit": "accuracy"
       },
       "score_details": {
-        "score": 0.31879609608180315,
+        "score": 0.3061717706769638,
         "details": {
-          "subtask_a": 0.31879609608180315,
-          "subtask_b": 0.31879609608180315
+          "subtask_a": 0.2947212413112275,
+          "subtask_b": 0.32140090978469965
         }
       },
       "factsheet": {
@@ -524,7 +524,7 @@
         "known_limitations": "YouTube videos may become unavailable; Camera motion and quality vary; Some action classes are very similar; Dataset saturation with modern methods",
         "benchmarks_list": "HMDB-51, Kinetics, ActivityNet, Something-Something-V2"
       },
-      "evaluation_timestamp": "2024-09-29T08:01:15.050Z"
+      "evaluation_timestamp": "2024-09-30T00:59:47.050Z"
     },
     {
       "evaluation_name": "NYU Depth V2",
@@ -537,10 +537,10 @@
         "unit": "accuracy"
       },
       "score_details": {
-        "score": 0.30546773535641625,
+        "score": 0.29337121303630215,
         "details": {
-          "subtask_a": 0.30546773535641625,
-          "subtask_b": 0.30546773535641625
+          "subtask_a": 0.2320601049034233,
+          "subtask_b": 0.22211213138718705
         }
       },
       "factsheet": {
@@ -565,7 +565,7 @@
         "known_limitations": "Small dataset size; Limited to indoor scenes; Kinect depth sensor limitations (range, IR interference); Mostly residential environments",
         "benchmarks_list": "ScanNet, Matterport3D, SUNRGB-D, KITTI Depth"
       },
-      "evaluation_timestamp": "2024-09-08T20:22:41.769Z"
+      "evaluation_timestamp": "2024-09-08T07:27:32.769Z"
     },
     {
       "evaluation_name": "Visual Genome",
@@ -578,10 +578,10 @@
         "unit": "accuracy"
       },
       "score_details": {
-        "score": 0.4389748797847568,
+        "score": 0.42159147454528045,
         "details": {
-          "subtask_a": 0.4389748797847568,
-          "subtask_b": 0.4389748797847568
+          "subtask_a": 0.47096743204235475,
+          "subtask_b": 0.4478491979756136
         }
       },
       "factsheet": {
@@ -606,7 +606,7 @@
         "known_limitations": "Long-tail distribution of relationships; Annotation inconsistencies; Subjective relationship definitions; Incomplete annotations (not all relationships captured)",
         "benchmarks_list": "GQA, Scene Graph Benchmark, VRD, OpenImages V6"
       },
-      "evaluation_timestamp": "2024-09-11T10:51:35.902Z"
+      "evaluation_timestamp": "2024-09-12T02:42:37.902Z"
     },
     {
       "evaluation_name": "LVIS (Large Vocabulary Instance Segmentation)",
@@ -619,10 +619,10 @@
         "unit": "accuracy"
       },
       "score_details": {
-        "score": 0.5460805666933464,
+        "score": 0.5244557762522898,
         "details": {
-          "subtask_a": 0.5460805666933464,
-          "subtask_b": 0.5460805666933464
+          "subtask_a": 0.48846958773434596,
+          "subtask_b": 0.5596971393000408
         }
       },
       "factsheet": {
@@ -647,7 +647,7 @@
         "known_limitations": "Rare categories have very few examples; Annotation cost for 1203 categories; Some category definitions overlap; Challenging for zero-shot generalization",
         "benchmarks_list": "COCO, Objects365, OpenImages, iNaturalist"
       },
-      "evaluation_timestamp": "2024-09-13T22:24:15.430Z"
+      "evaluation_timestamp": "2024-09-13T21:08:09.430Z"
     },
     {
       "evaluation_name": "Mapillary Vistas",
@@ -660,10 +660,10 @@
         "unit": "accuracy"
       },
       "score_details": {
-        "score": 0.8749816366879748,
+        "score": 0.8403323638751309,
         "details": {
-          "subtask_a": 0.8749816366879748,
-          "subtask_b": 0.8749816366879748
+          "subtask_a": 0.8877879757623219,
+          "subtask_b": 0.8133398658484579
         }
       },
       "factsheet": {
@@ -688,7 +688,7 @@
         "known_limitations": "Varying image quality from crowdsourced data; Camera parameter diversity; Some regions overrepresented; Annotation inconsistencies across diverse scenes",
         "benchmarks_list": "Cityscapes, BDD100K, IDD, WildDash"
       },
-      "evaluation_timestamp": "2024-09-26T09:38:38.166Z"
+      "evaluation_timestamp": "2024-09-26T06:35:18.166Z"
     },
     {
       "evaluation_name": "MPII Human Pose",
@@ -701,10 +701,10 @@
         "unit": "accuracy"
       },
       "score_details": {
-        "score": 0.9026748935896227,
+        "score": 0.8669289678034736,
         "details": {
-          "subtask_a": 0.9026748935896227,
-          "subtask_b": 0.9026748935896227
+          "subtask_a": 0.8352125178042712,
+          "subtask_b": 0.8940770554637036
         }
       },
       "factsheet": {
@@ -729,7 +729,7 @@
         "known_limitations": "2D annotations only (no 3D); Occlusion and truncation challenges; Some joint definitions ambiguous; Dataset bias toward certain activities",
         "benchmarks_list": "COCO Keypoints, Human3.6M, PoseTrack, CrowdPose"
       },
-      "evaluation_timestamp": "2024-09-25T14:02:16.196Z"
+      "evaluation_timestamp": "2024-09-25T19:53:47.196Z"
     },
     {
       "evaluation_name": "Open Images",
@@ -742,10 +742,10 @@
         "unit": "accuracy"
       },
       "score_details": {
-        "score": 0.5838393683420595,
+        "score": 0.560719329355714,
         "details": {
-          "subtask_a": 0.5838393683420595,
-          "subtask_b": 0.5838393683420595
+          "subtask_a": 0.5176416139757583,
+          "subtask_b": 0.5566375180701348
         }
       },
       "factsheet": {
@@ -770,7 +770,7 @@
         "known_limitations": "Long-tail class distribution; Annotation inconsistencies at scale; Some classes poorly defined; Label noise in crowdsourced annotations",
         "benchmarks_list": "COCO, LVIS, Objects365, ImageNet"
       },
-      "evaluation_timestamp": "2024-09-12T08:43:06.350Z"
+      "evaluation_timestamp": "2024-09-12T19:17:43.350Z"
     },
     {
       "evaluation_name": "ScanNet",
@@ -783,10 +783,10 @@
         "unit": "accuracy"
       },
       "score_details": {
-        "score": 0.34238204015128815,
+        "score": 0.3288237113612971,
         "details": {
-          "subtask_a": 0.34238204015128815,
-          "subtask_b": 0.34238204015128815
+          "subtask_a": 0.3811078973069023,
+          "subtask_b": 0.3865317022135624
         }
       },
       "factsheet": {
@@ -811,7 +811,7 @@
         "known_limitations": "Limited to indoor scenes; Reconstruction artifacts; Scanning noise and occlusions; Limited scene diversity (mostly offices and apartments)",
         "benchmarks_list": "Matterport3D, S3DIS, 2D-3D-S, ARKitScenes"
       },
-      "evaluation_timestamp": "2024-09-28T17:11:10.944Z"
+      "evaluation_timestamp": "2024-09-28T14:52:13.944Z"
     },
     {
       "evaluation_name": "nuScenes",
@@ -824,10 +824,10 @@
         "unit": "accuracy"
       },
       "score_details": {
-        "score": 0.7883799893000133,
+        "score": 0.7571601417237327,
         "details": {
-          "subtask_a": 0.7883799893000133,
-          "subtask_b": 0.7883799893000133
+          "subtask_a": 0.8267468613519906,
+          "subtask_b": 0.7598779669768665
         }
       },
       "factsheet": {
@@ -852,7 +852,7 @@
         "known_limitations": "Limited geographic coverage (Boston, Singapore); Sensor calibration challenges; Annotation latency for fast-moving objects; Class imbalance",
         "benchmarks_list": "Waymo Open Dataset, KITTI, Argoverse, Lyft Level 5, A2D2"
       },
-      "evaluation_timestamp": "2024-09-12T08:16:26.903Z"
+      "evaluation_timestamp": "2024-09-12T10:04:41.903Z"
     },
     {
       "evaluation_name": "ActivityNet",
@@ -865,10 +865,10 @@
         "unit": "accuracy"
       },
       "score_details": {
-        "score": 0.42363640303928785,
+        "score": 0.40686040147893204,
         "details": {
-          "subtask_a": 0.42363640303928785,
-          "subtask_b": 0.42363640303928785
+          "subtask_a": 0.37923318041567156,
+          "subtask_b": 0.39255712795836634
         }
       },
       "factsheet": {
@@ -893,7 +893,7 @@
         "known_limitations": "YouTube video availability issues; Temporal boundary ambiguity; Action class overlap; Video quality variance",
         "benchmarks_list": "THUMOS14, Kinetics, Charades, MultiTHUMOS, AVA"
       },
-      "evaluation_timestamp": "2024-09-20T02:41:28.037Z"
+      "evaluation_timestamp": "2024-09-19T08:02:11.037Z"
     },
     {
       "evaluation_name": "DAVIS (Densely Annotated VIdeo Segmentation)",
@@ -906,10 +906,10 @@
         "unit": "accuracy"
       },
       "score_details": {
-        "score": 0.5433351153094352,
+        "score": 0.5218190447431816,
         "details": {
-          "subtask_a": 0.5433351153094352,
-          "subtask_b": 0.5433351153094352
+          "subtask_a": 0.5146885039741425,
+          "subtask_b": 0.5268179750084881
         }
       },
       "factsheet": {
@@ -934,7 +934,7 @@
         "known_limitations": "Small dataset size; Limited object categories; Short video sequences; Primarily objects with clear boundaries",
         "benchmarks_list": "YouTube-VOS, FBMS, SegTrack, OVIS"
       },
-      "evaluation_timestamp": "2024-09-02T01:27:00.780Z"
+      "evaluation_timestamp": "2024-09-02T00:35:04.780Z"
     },
     {
       "evaluation_name": "VQA (Visual Question Answering)",
@@ -947,10 +947,10 @@
         "unit": "accuracy"
       },
       "score_details": {
-        "score": 0.5621801142534077,
+        "score": 0.5399177817289728,
         "details": {
-          "subtask_a": 0.5621801142534077,
-          "subtask_b": 0.5621801142534077
+          "subtask_a": 0.5862125520052615,
+          "subtask_b": 0.5592265447740926
         }
       },
       "factsheet": {
@@ -975,7 +975,7 @@
         "known_limitations": "Language bias (can answer many questions without image); Dataset bias toward common objects; Answer distribution imbalance; Ambiguous questions",
         "benchmarks_list": "GQA, VQA v2, OK-VQA, TextVQA, VizWiz"
       },
-      "evaluation_timestamp": "2024-09-28T21:02:52.129Z"
+      "evaluation_timestamp": "2024-09-28T20:40:02.129Z"
     },
     {
       "evaluation_name": "CLEVR",
@@ -988,10 +988,10 @@
         "unit": "accuracy"
       },
       "score_details": {
-        "score": 0.7585800183469515,
+        "score": 0.7285402496204122,
         "details": {
-          "subtask_a": 0.7585800183469515,
-          "subtask_b": 0.7585800183469515
+          "subtask_a": 0.67051814201022,
+          "subtask_b": 0.6676124428287386
         }
       },
       "factsheet": {
@@ -1016,7 +1016,7 @@
         "known_limitations": "Synthetic domain (limited real-world applicability); Simple shapes and colors; No natural language variation; Programmatic biases",
         "benchmarks_list": "CLEVR-CoGenT, GQA, NLVR2, CLOSURE"
       },
-      "evaluation_timestamp": "2024-08-31T14:53:19.602Z"
+      "evaluation_timestamp": "2024-08-31T22:08:04.602Z"
     },
     {
       "evaluation_name": "Waymo Open Dataset",
@@ -1029,10 +1029,10 @@
         "unit": "accuracy"
       },
       "score_details": {
-        "score": 0.7349115796318102,
+        "score": 0.7058090810783906,
         "details": {
-          "subtask_a": 0.7349115796318102,
-          "subtask_b": 0.7349115796318102
+          "subtask_a": 0.6850210109895374,
+          "subtask_b": 0.7280650149897682
         }
       },
       "factsheet": {
@@ -1057,7 +1057,7 @@
         "known_limitations": "Geographic concentration in specific cities; Sensor-specific challenges; Annotation latency for distant objects; Class imbalance",
         "benchmarks_list": "nuScenes, KITTI, Argoverse 2, Once, Lyft Level 5"
       },
-      "evaluation_timestamp": "2024-09-19T07:21:51.450Z"
+      "evaluation_timestamp": "2024-09-19T04:22:34.450Z"
     },
     {
       "evaluation_name": "Fashion-MNIST",
@@ -1070,10 +1070,10 @@
         "unit": "accuracy"
       },
       "score_details": {
-        "score": 0.8506413406599362,
+        "score": 0.8169559435698027,
         "details": {
-          "subtask_a": 0.8506413406599362,
-          "subtask_b": 0.8506413406599362
+          "subtask_a": 0.767660346344093,
+          "subtask_b": 0.7728494335291519
         }
       },
       "factsheet": {
@@ -1098,7 +1098,7 @@
         "known_limitations": "Low resolution (28x28); Grayscale only; Limited intra-class variation; Some categories overlap visually",
         "benchmarks_list": "MNIST, EMNIST, Kuzushiji-MNIST, DeepFashion"
       },
-      "evaluation_timestamp": "2024-09-15T05:18:54.887Z"
+      "evaluation_timestamp": "2024-09-15T18:33:04.887Z"
     },
     {
       "evaluation_name": "MMLU (Massive Multitask Language Understanding)",
@@ -1111,10 +1111,10 @@
         "unit": "accuracy"
       },
       "score_details": {
-        "score": 0.887,
+        "score": 0.8518748,
         "details": {
-          "subtask_a": 0.887,
-          "subtask_b": 0.887
+          "subtask_a": 0.8461055271118896,
+          "subtask_b": 0.9034495583179243
         }
       },
       "factsheet": {
@@ -1139,7 +1139,7 @@
         "known_limitations": "Multiple choice format may not reflect real-world usage; Some questions have ambiguous answers; Dataset contamination concerns with web-trained models; Cultural and knowledge cutoff biases",
         "benchmarks_list": "MMLU-Pro, AGIEval, C-Eval, CMMLU"
       },
-      "evaluation_timestamp": "2024-09-26T08:49:09.324Z"
+      "evaluation_timestamp": "2024-09-26T20:31:45.324Z"
     },
     {
       "evaluation_name": "HumanEval",
@@ -1152,10 +1152,10 @@
         "unit": "accuracy"
       },
       "score_details": {
-        "score": 0.92,
+        "score": 1.0143000000000002,
         "details": {
-          "subtask_a": 0.92,
-          "subtask_b": 0.92
+          "subtask_a": 0.9671804492205904,
+          "subtask_b": 0.9458242309611917
         }
       },
       "factsheet": {
@@ -1180,7 +1180,7 @@
         "known_limitations": "Limited to Python; Small dataset size (164 problems); Relatively simple problems; May be contaminated in training data; No testing of code efficiency or style",
         "benchmarks_list": "MBPP, APPS, CodeContests, HumanEval+, MultiPL-E"
       },
-      "evaluation_timestamp": "2024-09-10T07:36:07.752Z"
+      "evaluation_timestamp": "2024-09-10T04:23:48.752Z"
     },
     {
       "evaluation_name": "HellaSwag",
@@ -1193,10 +1193,10 @@
         "unit": "accuracy"
       },
       "score_details": {
-        "score": 0.5222227622970963,
+        "score": 0.5015427409101313,
         "details": {
-          "subtask_a": 0.5222227622970963,
-          "subtask_b": 0.5222227622970963
+          "subtask_a": 0.5802324367940312,
+          "subtask_b": 0.5575184434186945
         }
       },
       "factsheet": {
@@ -1221,7 +1221,7 @@
         "known_limitations": "Dataset may be easier than originally intended for modern LLMs; Multiple choice format; Adversarial examples may have artifacts; Potential data contamination",
         "benchmarks_list": "PIQA, WinoGrande, CommonsenseQA, ARC"
       },
-      "evaluation_timestamp": "2024-09-17T10:00:46.387Z"
+      "evaluation_timestamp": "2024-09-17T09:25:34.387Z"
     },
     {
       "evaluation_name": "GSM8K (Grade School Math 8K)",
@@ -1234,10 +1234,10 @@
         "unit": "accuracy"
       },
       "score_details": {
-        "score": 0.9640000000000001,
+        "score": 0.9258256000000001,
         "details": {
-          "subtask_a": 0.9640000000000001,
-          "subtask_b": 0.9640000000000001
+          "subtask_a": 0.8643871772739088,
+          "subtask_b": 0.8607777527062217
         }
       },
       "factsheet": {
@@ -1262,7 +1262,7 @@
         "known_limitations": "Limited to grade-school level math; Answer extraction can be brittle; Some problems have ambiguous wording; Potential contamination in training data",
         "benchmarks_list": "MATH, GSM-Hard, SVAMP, ASDiv, MathQA"
       },
-      "evaluation_timestamp": "2024-09-26T13:19:08.268Z"
+      "evaluation_timestamp": "2024-09-26T20:23:55.268Z"
     },
     {
       "evaluation_name": "TruthfulQA",
@@ -1275,10 +1275,10 @@
         "unit": "accuracy"
       },
       "score_details": {
-        "score": 0.8876573772864264,
+        "score": 0.8525061451458839,
         "details": {
-          "subtask_a": 0.8876573772864264,
-          "subtask_b": 0.8876573772864264
+          "subtask_a": 0.7848162419688326,
+          "subtask_b": 0.9289664307614491
         }
       },
       "factsheet": {
@@ -1303,7 +1303,7 @@
         "known_limitations": "Subjective truthfulness judgments in some cases; Cultural bias in what constitutes 'truth'; Model-based evaluation may not align with human judgment; Limited coverage of misconceptions",
         "benchmarks_list": "FactScore, HaluEval, SelfCheckGPT, FELM"
       },
-      "evaluation_timestamp": "2024-09-23T08:41:41.826Z"
+      "evaluation_timestamp": "2024-09-23T04:39:42.826Z"
     },
     {
       "evaluation_name": "BIG-bench (Beyond the Imitation Game)",
@@ -1316,10 +1316,10 @@
         "unit": "accuracy"
       },
       "score_details": {
-        "score": 0.9231439052137356,
+        "score": 0.8865874065672716,
         "details": {
-          "subtask_a": 0.9231439052137356,
-          "subtask_b": 0.9231439052137356
+          "subtask_a": 0.873736845365696,
+          "subtask_b": 0.9064445324419385
         }
       },
       "factsheet": {
@@ -1344,7 +1344,7 @@
         "known_limitations": "Task quality varies; Some tasks too easy or too hard; Computational cost of running all 204 tasks; Aggregation methodology debatable",
         "benchmarks_list": "BIG-Bench Hard, MMLU, HELM, SuperGLUE"
       },
-      "evaluation_timestamp": "2024-09-21T05:06:05.881Z"
+      "evaluation_timestamp": "2024-09-22T00:27:42.881Z"
     },
     {
       "evaluation_name": "MATH",
@@ -1357,10 +1357,10 @@
         "unit": "accuracy"
       },
       "score_details": {
-        "score": 0.711,
+        "score": 0.6828443999999999,
         "details": {
-          "subtask_a": 0.711,
-          "subtask_b": 0.711
+          "subtask_a": 0.6157681335049912,
+          "subtask_b": 0.6778645579796791
         }
       },
       "factsheet": {
@@ -1385,7 +1385,7 @@
         "known_limitations": "Answer extraction challenges; LaTeX formatting issues; Symbolic vs numeric answers; High difficulty may not reflect practical math usage",
         "benchmarks_list": "GSM8K, MathQA, SVAMP, ASDiv, Hendrycks MATH"
       },
-      "evaluation_timestamp": "2024-09-26T04:41:46.968Z"
+      "evaluation_timestamp": "2024-09-26T06:40:36.968Z"
     },
     {
       "evaluation_name": "ARC (AI2 Reasoning Challenge)",
@@ -1398,10 +1398,10 @@
         "unit": "accuracy"
       },
       "score_details": {
-        "score": 0.32619605680646174,
+        "score": 0.31327869295692584,
         "details": {
-          "subtask_a": 0.32619605680646174,
-          "subtask_b": 0.32619605680646174
+          "subtask_a": 0.2458096708767615,
+          "subtask_b": 0.33286727910300395
         }
       },
       "factsheet": {
@@ -1426,7 +1426,7 @@
         "known_limitations": "Multiple choice format; Some questions solvable without reasoning; Challenge set becoming saturated; Grade-school level may not test advanced reasoning",
         "benchmarks_list": "OpenBookQA, CommonsenseQA, QASC, SciQ"
       },
-      "evaluation_timestamp": "2024-09-04T13:29:44.701Z"
+      "evaluation_timestamp": "2024-09-05T01:57:27.701Z"
     },
     {
       "evaluation_name": "DROP (Discrete Reasoning Over Paragraphs)",
@@ -1439,10 +1439,10 @@
         "unit": "accuracy"
       },
       "score_details": {
-        "score": 0.49561740488634554,
+        "score": 0.47599095565284627,
         "details": {
-          "subtask_a": 0.49561740488634554,
-          "subtask_b": 0.49561740488634554
+          "subtask_a": 0.5293947539677878,
+          "subtask_b": 0.5224906617069263
         }
       },
       "factsheet": {
@@ -1467,7 +1467,7 @@
         "known_limitations": "Requires careful answer extraction; Some questions ambiguous; Numerical reasoning can be brittle; Limited diversity in reasoning types",
         "benchmarks_list": "SQuAD, NewsQA, NaturalQuestions, NumGLUE, TAT-QA"
       },
-      "evaluation_timestamp": "2024-09-09T05:58:09.136Z"
+      "evaluation_timestamp": "2024-09-09T09:33:53.136Z"
     },
     {
       "evaluation_name": "WinoGrande",
@@ -1480,10 +1480,10 @@
         "unit": "accuracy"
       },
       "score_details": {
-        "score": 0.8417247737306022,
+        "score": 0.8083924726908703,
         "details": {
-          "subtask_a": 0.8417247737306022,
-          "subtask_b": 0.8417247737306022
+          "subtask_a": 0.8252810138126034,
+          "subtask_b": 0.729504275606082
         }
       },
       "factsheet": {
@@ -1508,7 +1508,7 @@
         "known_limitations": "Binary choice may be limiting; Adversarial filtering may introduce artifacts; Saturation with modern models; Limited reasoning depth",
         "benchmarks_list": "Winograd Schema Challenge, COPA, CommonsenseQA, PIQA"
       },
-      "evaluation_timestamp": "2024-09-03T12:13:19.199Z"
+      "evaluation_timestamp": "2024-09-03T15:27:18.199Z"
     },
     {
       "evaluation_name": "BBH (BIG-Bench Hard)",
@@ -1521,10 +1521,10 @@
         "unit": "accuracy"
       },
       "score_details": {
-        "score": 0.7759733425665599,
+        "score": 0.7452447982009242,
         "details": {
-          "subtask_a": 0.7759733425665599,
-          "subtask_b": 0.7759733425665599
+          "subtask_a": 0.6932819280633697,
+          "subtask_b": 0.8146586614936981
         }
       },
       "factsheet": {
@@ -1549,7 +1549,7 @@
         "known_limitations": "Only 23 tasks (limited coverage); Chain-of-thought prompting required for good performance; Task aggregation methodology; Rapidly saturating with newer models",
         "benchmarks_list": "BIG-Bench, MMLU, AGIEval, HELM"
       },
-      "evaluation_timestamp": "2024-09-24T03:00:12.249Z"
+      "evaluation_timestamp": "2024-09-23T08:20:34.249Z"
     },
     {
       "evaluation_name": "MT-Bench",
@@ -1562,10 +1562,10 @@
         "unit": "accuracy"
       },
       "score_details": {
-        "score": 0.30042341701273495,
+        "score": 0.28852664969903064,
         "details": {
-          "subtask_a": 0.30042341701273495,
-          "subtask_b": 0.30042341701273495
+          "subtask_a": 0.3031540180953402,
+          "subtask_b": 0.362603854224275
         }
       },
       "factsheet": {
@@ -1590,7 +1590,7 @@
         "known_limitations": "Small dataset (80 questions); GPT-4 judge may have biases; Evaluation cost; Model-based judge limitations; Prompt sensitivity",
         "benchmarks_list": "Chatbot Arena, AlpacaEval, Arena-Hard, LiveBench"
       },
-      "evaluation_timestamp": "2024-09-13T14:17:40.241Z"
+      "evaluation_timestamp": "2024-09-13T12:57:21.241Z"
     },
     {
       "evaluation_name": "GPQA (Google-Proof Q&A)",
@@ -1603,10 +1603,10 @@
         "unit": "accuracy"
       },
       "score_details": {
-        "score": 0.594,
+        "score": 0.5704775999999999,
         "details": {
-          "subtask_a": 0.594,
-          "subtask_b": 0.594
+          "subtask_a": 0.6212717148921005,
+          "subtask_b": 0.5464069140383041
         }
       },
       "factsheet": {
@@ -1631,7 +1631,7 @@
         "known_limitations": "Small dataset size; Limited to 3 scientific domains; Multiple choice format; High cost of expert question creation; Cultural bias toward Western scientific education",
         "benchmarks_list": "MMLU-Pro, JEE-Advanced, SciBench, LiveBench"
       },
-      "evaluation_timestamp": "2024-09-05T08:34:01.328Z"
+      "evaluation_timestamp": "2024-09-05T21:44:16.328Z"
     },
     {
       "evaluation_name": "IFEval (Instruction-Following Eval)",
@@ -1644,10 +1644,10 @@
         "unit": "accuracy"
       },
       "score_details": {
-        "score": 0.4296076829614257,
+        "score": 0.41259521871615323,
         "details": {
-          "subtask_a": 0.4296076829614257,
-          "subtask_b": 0.4296076829614257
+          "subtask_a": 0.4082682744405759,
+          "subtask_b": 0.4131178081413335
         }
       },
       "factsheet": {
@@ -1672,7 +1672,7 @@
         "known_limitations": "Limited to verifiable instructions only; May not reflect realistic usage; Some instructions may be conflicting; Excludes semantic quality assessment",
         "benchmarks_list": "MT-Bench, AlpacaEval, InstructGPT evals, FollowBench"
       },
-      "evaluation_timestamp": "2024-09-06T07:30:36.907Z"
+      "evaluation_timestamp": "2024-09-06T21:41:42.907Z"
     },
     {
       "evaluation_name": "Confidence Calibration Suite",
@@ -1685,10 +1685,10 @@
         "unit": "score"
       },
       "score_details": {
-        "score": 0.825936768449326,
+        "score": 0.7932296724187327,
         "details": {
-          "subtask_a": 0.825936768449326,
-          "subtask_b": 0.825936768449326
+          "subtask_a": 0.7843813951291705,
+          "subtask_b": 0.851149062523459
         }
       },
       "factsheet": {
@@ -1712,7 +1712,7 @@
         "known_limitations": "Synthetic data",
         "benchmarks_list": "Confidence Calibration Suite"
       },
-      "evaluation_timestamp": "2024-09-21T17:44:21.222Z"
+      "evaluation_timestamp": "2024-09-22T03:39:49.222Z"
     },
     {
       "evaluation_name": "AdvGLUE",
@@ -1725,10 +1725,10 @@
         "unit": "score"
       },
       "score_details": {
-        "score": 0.9227710651918116,
+        "score": 0.8862293310102158,
         "details": {
-          "subtask_a": 0.9227710651918116,
-          "subtask_b": 0.9227710651918116
+          "subtask_a": 0.8351880970604031,
+          "subtask_b": 0.9315063201165752
         }
       },
       "factsheet": {
@@ -1752,7 +1752,7 @@
         "known_limitations": "Synthetic data",
         "benchmarks_list": "AdvGLUE"
       },
-      "evaluation_timestamp": "2024-09-28T16:22:34.436Z"
+      "evaluation_timestamp": "2024-09-28T15:33:02.436Z"
     },
     {
       "evaluation_name": "JailbreakBench",
@@ -1765,10 +1765,10 @@
         "unit": "rate"
       },
       "score_details": {
-        "score": 0.9350506728046155,
+        "score": 0.8980226661615527,
         "details": {
-          "subtask_a": 0.9350506728046155,
-          "subtask_b": 0.9350506728046155
+          "subtask_a": 0.8258291496360803,
+          "subtask_b": 0.8956635331311735
         }
       },
       "factsheet": {
@@ -1792,7 +1792,7 @@
         "known_limitations": "Synthetic data",
         "benchmarks_list": "JailbreakBench"
       },
-      "evaluation_timestamp": "2024-09-26T15:15:13.689Z"
+      "evaluation_timestamp": "2024-09-26T10:13:16.689Z"
     },
     {
       "evaluation_name": "The Pile Extraction",
@@ -1805,10 +1805,10 @@
         "unit": "rate"
       },
       "score_details": {
-        "score": 0.8461886719457222,
+        "score": 0.8126796005366715,
         "details": {
-          "subtask_a": 0.8461886719457222,
-          "subtask_b": 0.8461886719457222
+          "subtask_a": 0.7985415522263943,
+          "subtask_b": 0.7993503858321832
         }
       },
       "factsheet": {
@@ -1832,7 +1832,7 @@
         "known_limitations": "Synthetic data",
         "benchmarks_list": "The Pile Extraction"
       },
-      "evaluation_timestamp": "2024-09-16T22:08:46.144Z"
+      "evaluation_timestamp": "2024-09-16T08:18:41.144Z"
     },
     {
       "evaluation_name": "Copyright Probe",
@@ -1845,10 +1845,10 @@
         "unit": "score"
       },
       "score_details": {
-        "score": 0.8189660065421952,
+        "score": 0.7865349526831243,
         "details": {
-          "subtask_a": 0.8189660065421952,
-          "subtask_b": 0.8189660065421952
+          "subtask_a": 0.7715413724626021,
+          "subtask_b": 0.858985059614853
         }
       },
       "factsheet": {
@@ -1872,7 +1872,7 @@
         "known_limitations": "Synthetic data",
         "benchmarks_list": "Copyright Probe"
       },
-      "evaluation_timestamp": "2024-09-18T20:49:16.344Z"
+      "evaluation_timestamp": "2024-09-18T05:35:46.344Z"
     },
     {
       "evaluation_name": "BBQ (Bias Benchmark for QA)",
@@ -1885,10 +1885,10 @@
         "unit": "score"
       },
       "score_details": {
-        "score": 0.8453071412072353,
+        "score": 0.8794575497120076,
         "details": {
-          "subtask_a": 0.8453071412072353,
-          "subtask_b": 0.8453071412072353
+          "subtask_a": 0.9390458772048236,
+          "subtask_b": 0.8372694992906002
         }
       },
       "factsheet": {
@@ -1912,7 +1912,7 @@
         "known_limitations": "Synthetic data",
         "benchmarks_list": "BBQ (Bias Benchmark for QA)"
       },
-      "evaluation_timestamp": "2024-09-12T15:52:27.708Z"
+      "evaluation_timestamp": "2024-09-12T06:34:23.708Z"
     },
     {
       "evaluation_name": "CrowS-Pairs",
@@ -1925,10 +1925,10 @@
         "unit": "score"
       },
       "score_details": {
-        "score": 0.9383896412878113,
+        "score": 0.901229411492814,
         "details": {
-          "subtask_a": 0.9383896412878113,
-          "subtask_b": 0.9383896412878113
+          "subtask_a": 0.923344534163419,
+          "subtask_b": 0.8951435331204913
         }
       },
       "factsheet": {
@@ -1952,7 +1952,7 @@
         "known_limitations": "Synthetic data",
         "benchmarks_list": "CrowS-Pairs"
       },
-      "evaluation_timestamp": "2024-09-17T16:55:06.073Z"
+      "evaluation_timestamp": "2024-09-17T06:27:29.073Z"
     },
     {
       "evaluation_name": "PII Detection",
@@ -1965,10 +1965,10 @@
         "unit": "rate"
       },
       "score_details": {
-        "score": 0.9133554481096875,
+        "score": 0.8771865723645439,
         "details": {
-          "subtask_a": 0.9133554481096875,
-          "subtask_b": 0.9133554481096875
+          "subtask_a": 0.8298897388843698,
+          "subtask_b": 0.8711432192316044
         }
       },
       "factsheet": {
@@ -1992,7 +1992,7 @@
         "known_limitations": "Synthetic data",
         "benchmarks_list": "PII Detection"
       },
-      "evaluation_timestamp": "2024-09-15T15:55:37.448Z"
+      "evaluation_timestamp": "2024-09-15T05:46:34.448Z"
     },
     {
       "evaluation_name": "Explainability Harness",
@@ -2005,10 +2005,10 @@
         "unit": "score"
       },
       "score_details": {
-        "score": 0.9677445934701343,
+        "score": 0.9294219075687169,
         "details": {
-          "subtask_a": 0.9677445934701343,
-          "subtask_b": 0.9677445934701343
+          "subtask_a": 0.9876469703666982,
+          "subtask_b": 0.9923482246124444
         }
       },
       "factsheet": {
@@ -2032,7 +2032,7 @@
         "known_limitations": "Synthetic data",
         "benchmarks_list": "Explainability Harness"
       },
-      "evaluation_timestamp": "2024-09-19T08:52:02.867Z"
+      "evaluation_timestamp": "2024-09-19T09:34:22.867Z"
     },
     {
       "evaluation_name": "LLMPerf",
@@ -2045,10 +2045,10 @@
         "unit": "score"
       },
       "score_details": {
-        "score": 0.8491876236048496,
+        "score": 0.8155597937100975,
         "details": {
-          "subtask_a": 0.8491876236048496,
-          "subtask_b": 0.8491876236048496
+          "subtask_a": 0.8031418406840253,
+          "subtask_b": 0.8333232665103197
         }
       },
       "factsheet": {
@@ -2072,7 +2072,7 @@
         "known_limitations": "Synthetic data",
         "benchmarks_list": "LLMPerf"
       },
-      "evaluation_timestamp": "2024-09-27T16:22:08.349Z"
+      "evaluation_timestamp": "2024-09-28T00:46:48.349Z"
     },
     {
       "evaluation_name": "CL-Benchmark",
@@ -2085,10 +2085,10 @@
         "unit": "rate"
       },
       "score_details": {
-        "score": 0.8175610971571686,
+        "score": 0.7851856777097447,
         "details": {
-          "subtask_a": 0.8175610971571686,
-          "subtask_b": 0.8175610971571686
+          "subtask_a": 0.7361043751638278,
+          "subtask_b": 0.8546712481697161
         }
       },
       "factsheet": {
@@ -2112,7 +2112,7 @@
         "known_limitations": "Synthetic data",
         "benchmarks_list": "CL-Benchmark"
       },
-      "evaluation_timestamp": "2024-09-28T08:21:49.501Z"
+      "evaluation_timestamp": "2024-09-29T01:49:09.501Z"
     },
     {
       "evaluation_name": "Meta-Dataset",
@@ -2125,10 +2125,10 @@
         "unit": "score"
       },
       "score_details": {
-        "score": 0.8215657909367083,
+        "score": 0.7890317856156147,
         "details": {
-          "subtask_a": 0.8215657909367083,
-          "subtask_b": 0.8215657909367083
+          "subtask_a": 0.7994042218913311,
+          "subtask_b": 0.8621542538606926
         }
       },
       "factsheet": {
@@ -2152,44 +2152,79 @@
         "known_limitations": "Synthetic data",
         "benchmarks_list": "Meta-Dataset"
       },
-      "evaluation_timestamp": "2024-09-19T09:55:42.254Z"
+      "evaluation_timestamp": "2024-09-19T15:15:08.254Z"
     }
   ],
   "detailed_evaluation_results_per_samples": [
     {
       "sample_id": "sample_0",
-      "input": "Test input question 0 for Claude 3.5 Sonnet...",
-      "ground_truth": "Expected answer 0",
-      "response": "Model generated response 0 which is mostly correct...",
-      "score": 0.85
+      "input": "Implement a function to check if a number is prime",
+      "ground_truth": "def is_prime(n):\n    if n < 2: return False\n    for i in range(2, int(n**0.5) + 1):\n        if n % i == 0: return False\n    return True",
+      "response": "def is_prime(num):\n    if num <= 1: return False\n    if num == 2: return True\n    if num % 2 == 0: return False\n    for i in range(3, int(num**0.5) + 1, 2):\n        if num % i == 0: return False\n    return True",
+      "score": 0.83
     },
     {
       "sample_id": "sample_1",
-      "input": "Test input question 1 for Claude 3.5 Sonnet...",
-      "ground_truth": "Expected answer 1",
-      "response": "Model generated response 1 which is mostly correct...",
-      "score": 0.85
+      "input": "Explain the concept of photosynthesis in simple terms.",
+      "ground_truth": "Photosynthesis is the process by which plants use sunlight, water, and carbon dioxide to create oxygen and energy in the form of sugar.",
+      "response": "It's the process where plants use light energy to make food from water and carbon dioxide, releasing oxygen as a byproduct.",
+      "score": 0.64
     },
     {
       "sample_id": "sample_2",
-      "input": "Test input question 2 for Claude 3.5 Sonnet...",
-      "ground_truth": "Expected answer 2",
-      "response": "Model generated response 2 which is mostly correct...",
-      "score": 0.85
+      "input": "What is the capital of France and what is its approximate population?",
+      "ground_truth": "Paris, with approximately 2.1 million people in the city proper",
+      "response": "Paris is the capital of France, with a population of around 2.2 million in the city proper.",
+      "score": 0.77
     },
     {
       "sample_id": "sample_3",
-      "input": "Test input question 3 for Claude 3.5 Sonnet...",
-      "ground_truth": "Expected answer 3",
-      "response": "Model generated response 3 which is mostly correct...",
-      "score": 0.85
+      "input": "Explain the concept of photosynthesis in simple terms.",
+      "ground_truth": "Photosynthesis is the process by which plants use sunlight, water, and carbon dioxide to create oxygen and energy in the form of sugar.",
+      "response": "It's the process where plants use light energy to make food from water and carbon dioxide, releasing oxygen as a byproduct.",
+      "score": 0.76
     },
     {
       "sample_id": "sample_4",
-      "input": "Test input question 4 for Claude 3.5 Sonnet...",
-      "ground_truth": "Expected answer 4",
-      "response": "Model generated response 4 which is mostly correct...",
-      "score": 0.85
+      "input": "Explain the concept of photosynthesis in simple terms.",
+      "ground_truth": "Photosynthesis is the process by which plants use sunlight, water, and carbon dioxide to create oxygen and energy in the form of sugar.",
+      "response": "Plants take in light, water, and carbon dioxide to produce sugars for energy and release oxygen.",
+      "score": 0.95
+    },
+    {
+      "sample_id": "sample_5",
+      "input": "All roses are flowers. Some flowers fade quickly. Can we conclude that some roses fade quickly?",
+      "ground_truth": "No, we cannot conclude that with certainty from the given premises.",
+      "response": "No, this conclusion doesn't necessarily follow from the premises",
+      "score": 0.74
+    },
+    {
+      "sample_id": "sample_6",
+      "input": "All roses are flowers. Some flowers fade quickly. Can we conclude that some roses fade quickly?",
+      "ground_truth": "No, we cannot conclude that with certainty from the given premises.",
+      "response": "No, the premises don't provide enough information to conclude this about roses specifically",
+      "score": 0.69
+    },
+    {
+      "sample_id": "sample_7",
+      "input": "Implement a function to check if a number is prime",
+      "ground_truth": "def is_prime(n):\n    if n < 2: return False\n    for i in range(2, int(n**0.5) + 1):\n        if n % i == 0: return False\n    return True",
+      "response": "def is_prime(n):\n    if n < 2: return False\n    for i in range(2, int(n**0.5) + 1):\n        if n % i == 0: return False\n    return True",
+      "score": 0.74
+    },
+    {
+      "sample_id": "sample_8",
+      "input": "Write a Python function to reverse a string",
+      "ground_truth": "def reverse_string(s):\n    return s[::-1]",
+      "response": "def reverse_string(text):\n    return ''.join(reversed(text))",
+      "score": 0.66
+    },
+    {
+      "sample_id": "sample_9",
+      "input": "What are the three branches of the US government?",
+      "ground_truth": "The three branches are: Legislative (Congress), Executive (President), and Judicial (Supreme Court and federal courts).",
+      "response": "There are three branches: Congress (makes laws), the President (enforces laws), and the courts (interpret laws).",
+      "score": 0.65
     }
   ]
 }

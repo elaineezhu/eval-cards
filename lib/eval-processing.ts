@@ -268,17 +268,38 @@ export function createEvaluationCard(
 export function getCategoryStats(
   summary: ModelEvaluationSummary
 ): {
-  categories: { category: CategoryType; count: number; avg_score: number }[]
+  categories: { category: CategoryType; count: number; avg_score: number; total_results: number }[]
 } {
-  const categories: { category: CategoryType; count: number; avg_score: number }[] = []
+  const categories: { category: CategoryType; count: number; avg_score: number; total_results: number }[] = []
   
   for (const category of summary.categories_covered) {
     const evals = summary.evaluations_by_category[category] || []
     const allScores: number[] = []
     
+    // Collect all scores from all results in this category
     for (const eval_ of evals) {
       for (const result of eval_.evaluation_results) {
-        allScores.push(result.score_details.score)
+        // Verify this result actually belongs to this category
+        let resultCategory: CategoryType | undefined;
+        
+        if (result.factsheet?.functional_props) {
+          const props = result.factsheet.functional_props.split(';').map(p => p.trim());
+          for (const prop of props) {
+            if (EVALUATION_CATEGORIES.includes(prop as CategoryType)) {
+              resultCategory = prop as CategoryType;
+              break;
+            }
+          }
+        }
+        
+        if (!resultCategory) {
+          resultCategory = inferCategoryFromBenchmark(result.evaluation_name)
+        }
+        
+        // Only include scores for results that actually belong to this category
+        if (resultCategory === category) {
+          allScores.push(result.score_details.score)
+        }
       }
     }
     
@@ -288,7 +309,8 @@ export function getCategoryStats(
     
     const stat = {
       category,
-      count: evals.length,
+      count: evals.length, // Number of evaluation files
+      total_results: allScores.length, // Number of actual benchmark results
       avg_score: avgScore,
     }
     

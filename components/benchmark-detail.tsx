@@ -37,13 +37,16 @@ export function BenchmarkDetail({ summary }: BenchmarkDetailProps) {
   const categoryScores = stats.categories.map(c => ({
     category: c.category,
     score: c.avg_score,
-    count: c.count
+    count: c.count,
+    total_results: c.total_results // Number of actual benchmark results in this category
   }));
   
   const bestCategory = [...categoryScores].sort((a, b) => b.score - a.score)[0];
   const worstCategory = [...categoryScores].sort((a, b) => a.score - b.score)[0];
   
-  const overallAvg = categoryScores.reduce((acc, curr) => acc + (curr.score * curr.count), 0) / summary.total_evaluations;
+  // Calculate weighted average across all benchmark results
+  const overallAvg = categoryScores.reduce((acc, curr) => acc + (curr.score * curr.total_results), 0) / 
+    categoryScores.reduce((acc, curr) => acc + curr.total_results, 0);
 
   const formatDate = (isoString: string) => {
     try {
@@ -230,10 +233,57 @@ export function BenchmarkDetail({ summary }: BenchmarkDetailProps) {
                 <Activity className="h-4 w-4 text-pink-600 dark:text-pink-400" />
               </div>
               <div>
-                <div className="text-sm text-muted-foreground mb-1">Completeness Score</div>
-                <div className="font-bold text-lg">
-                  {Math.round((stats.categories.length / EVALUATION_CATEGORIES.length) * 100)}%
-                </div>
+                <div className="text-sm text-muted-foreground mb-1">Categories Evaluated</div>
+                <Dialog>
+                  <DialogTrigger asChild>
+                    <Button variant="link" className="h-auto p-0 font-bold text-lg hover:underline">
+                      {stats.categories.length} / {EVALUATION_CATEGORIES.length}
+                    </Button>
+                  </DialogTrigger>
+                  <DialogContent className="max-w-2xl">
+                    <DialogHeader>
+                      <DialogTitle>Evaluation Category Coverage</DialogTitle>
+                      <DialogDescription>
+                        This system has been evaluated on {stats.categories.length} out of {EVALUATION_CATEGORIES.length} standard categories
+                      </DialogDescription>
+                    </DialogHeader>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
+                      <div>
+                        <h4 className="text-sm font-semibold mb-3 text-green-600 dark:text-green-400 flex items-center gap-2">
+                          <CheckCircle className="h-4 w-4" />
+                          Evaluated ({stats.categories.length})
+                        </h4>
+                        <div className="space-y-2">
+                          {stats.categories.map(c => (
+                            <div key={c.category} className="flex items-center gap-2 text-sm">
+                              <Badge variant="outline" className="bg-green-50 dark:bg-green-900/20 border-green-200 dark:border-green-800">
+                                {c.category.split('-').map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' ')}
+                              </Badge>
+                              <span className="text-muted-foreground text-xs">
+                                {c.total_results} result{c.total_results !== 1 ? 's' : ''}
+                              </span>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                      <div>
+                        <h4 className="text-sm font-semibold mb-3 text-muted-foreground flex items-center gap-2">
+                          <AlertTriangle className="h-4 w-4" />
+                          Not Yet Evaluated ({EVALUATION_CATEGORIES.length - stats.categories.length})
+                        </h4>
+                        <div className="space-y-2">
+                          {EVALUATION_CATEGORIES.filter(cat => !stats.categories.find(c => c.category === cat)).map(cat => (
+                            <div key={cat} className="flex items-center gap-2 text-sm">
+                              <Badge variant="outline" className="bg-muted/30 text-muted-foreground">
+                                {cat.split('-').map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' ')}
+                              </Badge>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    </div>
+                  </DialogContent>
+                </Dialog>
               </div>
             </div>
           </div>
@@ -338,6 +388,13 @@ export function BenchmarkDetail({ summary }: BenchmarkDetailProps) {
           
           if (categoryResults.length === 0) return null
 
+          // Sort results by score (descending by default)
+          const sortedResults = [...categoryResults].sort((a, b) => {
+            const scoreA = a.result.score_details.score
+            const scoreB = b.result.score_details.score
+            return scoreB - scoreA // Higher scores first
+          })
+
           return (
             <AccordionItem key={stat.category} value={stat.category} className="border rounded-lg px-4">
               <AccordionTrigger className="hover:no-underline py-4">
@@ -346,7 +403,7 @@ export function BenchmarkDetail({ summary }: BenchmarkDetailProps) {
                     {stat.category.replace(/-/g, ' ')}
                   </h2>
                   <Badge variant="secondary" className="text-sm">
-                    {categoryResults.length} Benchmarks
+                    {categoryResults.length} Result{categoryResults.length !== 1 ? 's' : ''}
                   </Badge>
                   <div className="text-sm text-muted-foreground font-normal">
                     Avg: {(stat.avg_score * 100).toFixed(1)}%
@@ -355,7 +412,7 @@ export function BenchmarkDetail({ summary }: BenchmarkDetailProps) {
               </AccordionTrigger>
               <AccordionContent className="pt-2 pb-6">
                 <div className="grid grid-cols-1 gap-4">
-                  {categoryResults.map((item, idx) => (
+                  {sortedResults.map((item, idx) => (
                     <BenchmarkResultCard 
                       key={`${item.evaluation.evaluation_id}-${idx}`}
                       evaluation={item.evaluation}
@@ -439,6 +496,7 @@ function SampleDataDialog({
                   <TableHead className="min-w-[300px]">Input</TableHead>
                   <TableHead className="min-w-[300px]">Model Response</TableHead>
                   <TableHead className="min-w-[300px]">Ground Truth</TableHead>
+                  <TableHead className="w-[100px] text-right">Score</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -461,6 +519,11 @@ function SampleDataDialog({
                       <TableCell className="align-top">
                         <div className="whitespace-pre-wrap text-xs text-green-600 dark:text-green-400 max-h-[200px] overflow-y-auto">
                           {sample.ground_truth}
+                        </div>
+                      </TableCell>
+                      <TableCell className="align-top text-right">
+                        <div className="font-semibold text-sm">
+                          {typeof sample.score === 'number' ? (sample.score * 100).toFixed(1) + '%' : sample.score || 'N/A'}
                         </div>
                       </TableCell>
                     </TableRow>
@@ -688,26 +751,43 @@ function BenchmarkResultCard({
                 <Progress value={normalized * 100} className="h-2 mb-4" />
                 
                 {result.score_details.details && Object.keys(result.score_details.details).length > 0 && (
-                  <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3 mt-4">
-                    {Object.entries(result.score_details.details).map(([key, value]) => {
-                      let valDisplay = typeof value === 'number' ? value.toFixed(2) : value;
-                      if (typeof value === 'number') {
-                          if (unit === 'accuracy' || !unit || unit === 'pass@1') {
-                              valDisplay = (value * 100).toFixed(1) + "%";
-                          } else {
-                              valDisplay = value.toFixed(2);
-                          }
-                      }
-                      
-                      return (
-                      <div key={key} className="bg-muted/30 p-3 rounded border">
-                        <div className="text-xs text-muted-foreground mb-1 truncate" title={key}>{key}</div>
-                        <div className="font-semibold text-lg">
-                          {valDisplay}
+                  <>
+                    <Separator className="my-4" />
+                    <div className="mb-2">
+                      <div className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">Detailed Breakdown</div>
+                      <div className="text-xs text-muted-foreground mt-1">Scores for individual subtasks or metrics</div>
+                    </div>
+                    <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3">
+                      {Object.entries(result.score_details.details).map(([key, value]) => {
+                        let valDisplay = typeof value === 'number' ? value.toFixed(2) : value;
+                        let normalized_subtask = 0;
+                        
+                        if (typeof value === 'number') {
+                            if (unit === 'accuracy' || !unit || unit === 'pass@1') {
+                                valDisplay = (value * 100).toFixed(1) + "%";
+                                normalized_subtask = value;
+                            } else {
+                                valDisplay = value.toFixed(2);
+                                normalized_subtask = (value - min_score) / (max_score - min_score);
+                            }
+                        }
+                        
+                        // Format the key nicely
+                        const formattedKey = key.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase());
+                        
+                        return (
+                        <div key={key} className="bg-muted/30 p-3 rounded border">
+                          <div className="text-xs text-muted-foreground mb-1 truncate" title={formattedKey}>{formattedKey}</div>
+                          <div className="font-semibold text-lg">
+                            {valDisplay}
+                          </div>
+                          {typeof value === 'number' && (
+                            <Progress value={normalized_subtask * 100} className="h-1 mt-2" />
+                          )}
                         </div>
-                      </div>
-                    )})}
-                  </div>
+                      )})}
+                    </div>
+                  </>
                 )}
               </div>
             </div>
