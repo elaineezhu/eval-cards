@@ -31,27 +31,20 @@ export function Navigation() {
       <div className="container mx-auto px-4 sm:px-6 py-4">
         <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
           {/* Logo and branding */}
-          <div className="flex items-center gap-4">
+          <div className="flex items-center gap-3">
             {/* Logo */}
             <Link href="/" className="flex-shrink-0">
               <img 
                 src="https://evalevalai.com/assets/img/logo-square.png" 
                 alt="EvalEval Logo" 
-                className="w-10 h-10 rounded-lg hover:scale-105 transition-transform"
+                className="w-8 h-8 rounded-md hover:opacity-80 transition-opacity"
               />
             </Link>
             
-            {/* App title and description */}
-            <div>
-              <Link href="/" className="block group">
-                <h1 className="text-xl sm:text-2xl font-bold font-heading text-foreground group-hover:text-primary transition-colors">
-                  AI Eval Dashboard
-                </h1>
-              </Link>
-              <p className="text-sm text-muted-foreground">
-                AI evaluation documentation platform
-              </p>
-            </div>
+            {/* App title */}
+            <Link href="/" className="font-bold text-lg tracking-tight hover:text-primary/80 transition-colors">
+              Eval Cards
+            </Link>
           </div>
 
           {/* Navigation and actions */}

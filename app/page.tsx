@@ -103,12 +103,11 @@ export default function HomePage() {
   return (
     <div className="min-h-screen bg-background">
       <Navigation />
+      <PageHeader
+        title="Explore Models"
+        description="Explore standardized reports across models and benchmarks. Transparent, comparable, and informative."
+      />
       <main className="container mx-auto px-4 py-8">
-        <PageHeader
-          title="Eval Cards Platform"
-          description="A central platform for informative, transparent, and comparable AI evaluations. Explore standardized reports across models and benchmarks."
-        />
-
         <Alert className="mb-8 border-amber-200 bg-amber-50 text-amber-900 dark:border-amber-900/50 dark:bg-amber-900/20 dark:text-amber-200">
           <Info className="h-4 w-4 text-amber-600 dark:text-amber-400" />
           <AlertTitle>Demo Environment</AlertTitle>

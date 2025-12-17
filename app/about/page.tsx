@@ -16,7 +16,7 @@ export default function AboutPage() {
       <Navigation />
       
       <PageHeader 
-        title="About Eval Cards"
+        title="About"
         description="Building a shared infrastructure for informative, transparent, and comparable AI evaluations."
       />
 
