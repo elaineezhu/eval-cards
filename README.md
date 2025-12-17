@@ -1,20 +1,26 @@
 ---
-title: AI Evaluation Dashboard
-emoji: 📊
+title: Eval Cards
+emoji: 📋
 colorFrom: blue
-colorTo: indigo
+colorTo: cyan
 sdk: docker
 pinned: false
 app_port: 3000
+short_description: Standardized evaluation cards for AI models and benchmarks
+tags:
+  - evaluation
+  - benchmarks
+  - ai-safety
+  - visualization
 ---
 
-# AI Evaluation Dashboard
+# Eval Cards
 
 This repository is a Next.js application for viewing and authoring AI evaluations. It provides a comprehensive platform for documenting and sharing AI system evaluations across multiple dimensions including capabilities and risks.
 
 ## Project Goals
 
-The AI Evaluation Dashboard aims to:
+The Eval Cards project aims to:
 - **Standardize AI evaluation reporting** across different AI systems and models
 - **Facilitate transparency** by providing detailed evaluation cards for AI systems
 - **Enable comparative analysis** of AI capabilities and risks
@@ -44,10 +50,10 @@ This ensures consistency with international AI governance standards and facilita
 
 ### Contributing Evaluation Data
 
-Evaluation data files are stored in `public/evaluations/` as JSON files. Each file represents a complete evaluation of an AI system and must conform to the schema defined in `schema/output-schema.json`.
+Evaluation data files are stored in `public/benchmarks/` as JSON files. Each file represents a complete evaluation of an AI system and must conform to the schema defined in `schema/output-schema.json`.
 
 To add a new evaluation:
-1. Create a new JSON file in `public/evaluations/`
+1. Create a new JSON file in `public/benchmarks/`
 2. Follow the structure defined in `schema/output-schema.json`
 3. Ensure all required fields are populated
 4. Validate against the schema before submission
