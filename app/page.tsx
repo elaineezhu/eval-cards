@@ -4,19 +4,17 @@ import { useState, useMemo, useEffect } from "react"
 import { Button } from "@/components/ui/button"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
-import { Filter, ArrowUpDown, Info } from "lucide-react"
+import { ArrowUpDown, Info } from "lucide-react"
 import { BenchmarkEvaluationCard, type BenchmarkEvaluationCardData } from "@/components/benchmark-evaluation-card"
 import { Navigation } from "@/components/navigation"
 import { PageHeader } from "@/components/page-header"
 import { processEvaluationsToCards } from "@/lib/eval-processing"
-import type { CategoryType } from "@/lib/benchmark-schema"
-import { EVALUATION_CATEGORIES } from "@/lib/benchmark-schema"
 
 export default function HomePage() {
   const [evaluations, setEvaluations] = useState<BenchmarkEvaluationCardData[]>([])
   const [loading, setLoading] = useState(true)
   const [sortBy, setSortBy] = useState<"date" | "name" | "benchmarks">("date")
-  const [filterCategory, setFilterCategory] = useState<"all" | CategoryType>("all")
+  const [filterProvider, setFilterProvider] = useState<"all" | string>("all")
 
   // Load evaluations on mount
   useEffect(() => {
@@ -44,19 +42,25 @@ export default function HomePage() {
     loadData()
   }, [])
 
+  // Get unique providers
+  const uniqueProviders = useMemo(() => {
+    const providers = new Set(evaluations.map(e => e.developer))
+    return Array.from(providers).sort()
+  }, [evaluations])
+
   // Filter evaluations
   const filteredEvaluations = useMemo(() => {
     let filtered = [...evaluations]
     
-    // Filter by specific category
-    if (filterCategory !== "all") {
+    // Filter by provider
+    if (filterProvider !== "all") {
       filtered = filtered.filter((eval_) => 
-        eval_.categories.includes(filterCategory)
+        eval_.developer === filterProvider
       )
     }
     
     return filtered
-  }, [evaluations, filterCategory])
+  }, [evaluations, filterProvider])
 
   // Sort evaluations
   const sortedEvaluations = useMemo(() => {
@@ -117,17 +121,17 @@ export default function HomePage() {
         <div className="flex flex-col sm:flex-row gap-4 mb-8">
           <div className="flex gap-2 flex-1">
             <Select 
-              value={filterCategory} 
-              onValueChange={(value) => setFilterCategory(value as any)}
+              value={filterProvider} 
+              onValueChange={(value) => setFilterProvider(value)}
             >
               <SelectTrigger className="w-[200px]">
-                <SelectValue placeholder="Category" />
+                <SelectValue placeholder="Provider" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="all">All Categories</SelectItem>
-                {Array.from(EVALUATION_CATEGORIES).map((cat) => (
-                  <SelectItem key={cat} value={cat}>
-                    {cat.split('-').map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' ')}
+                <SelectItem value="all">All Providers</SelectItem>
+                {uniqueProviders.map((provider) => (
+                  <SelectItem key={provider} value={provider}>
+                    {provider}
                   </SelectItem>
                 ))}
               </SelectContent>
@@ -174,7 +178,7 @@ export default function HomePage() {
               No evaluations found matching your filters
             </p>
             <Button onClick={() => {
-              setFilterCategory("all")
+              setFilterProvider("all")
             }}>
               Clear Filters
             </Button>
