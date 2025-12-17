@@ -16,7 +16,7 @@ export function Navigation() {
       href: "/",
       label: "Home",
       icon: Home,
-      isActive: pathname === "/" || pathname?.startsWith("/benchmark")
+      isActive: pathname === "/" || pathname?.startsWith("/evaluations")
     },
     {
       href: "/about",

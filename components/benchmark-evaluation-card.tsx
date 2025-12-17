@@ -85,7 +85,7 @@ export function BenchmarkEvaluationCard({ data, onDelete }: BenchmarkEvaluationC
       <div className="space-y-2">
         <div className="flex justify-between items-end">
           <span className="text-sm font-medium text-muted-foreground">Category Breakdown</span>
-          <span className="text-xs text-muted-foreground">({EVALUATION_CATEGORIES.length} categories, {totalBenchmarks} benchmarks)</span>
+          <span className="text-xs text-muted-foreground">({EVALUATION_CATEGORIES.length} categories, {totalBenchmarks} evaluations)</span>
         </div>
         <div className="flex h-3 w-full gap-0.5 rounded-full overflow-hidden bg-secondary/30">
           {EVALUATION_CATEGORIES.map((category, idx) => {
@@ -103,7 +103,7 @@ export function BenchmarkEvaluationCard({ data, onDelete }: BenchmarkEvaluationC
                   </TooltipTrigger>
                   <TooltipContent>
                     <p className="font-semibold">{getCategoryLabel(category)}</p>
-                    <p className="text-xs">{count} benchmarks</p>
+                    <p className="text-xs">{count} evaluations</p>
                   </TooltipContent>
                 </Tooltip>
               </TooltipProvider>
@@ -119,7 +119,7 @@ export function BenchmarkEvaluationCard({ data, onDelete }: BenchmarkEvaluationC
   return (
     <Card 
       className="hover:shadow-lg transition-shadow cursor-pointer group"
-      onClick={() => router.push(`/benchmark/${encodeURIComponent(data.id)}`)}
+      onClick={() => router.push(`/evaluations/${encodeURIComponent(data.id)}`)}
     >
       <CardHeader className="space-y-4 pb-2">
         <div className="flex items-start justify-between">
@@ -152,7 +152,7 @@ export function BenchmarkEvaluationCard({ data, onDelete }: BenchmarkEvaluationC
               </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end">
-              <DropdownMenuItem onClick={() => router.push(`/benchmark/${encodeURIComponent(data.id)}`)}>
+              <DropdownMenuItem onClick={() => router.push(`/evaluations/${encodeURIComponent(data.id)}`)}>
                 <Eye className="mr-2 h-4 w-4" />
                 View Details
               </DropdownMenuItem>
