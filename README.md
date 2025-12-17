@@ -2,7 +2,7 @@
 title: Eval Cards
 emoji: 📋
 colorFrom: blue
-colorTo: cyan
+colorTo: indigo
 sdk: docker
 pinned: false
 app_port: 3000
