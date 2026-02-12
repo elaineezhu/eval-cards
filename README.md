@@ -101,4 +101,4 @@ Visit `http://localhost:3000` to verify.
 2. Push this repository to the Space Git (or upload files through the UI). The Space will build the Docker image using the included `Dockerfile` and serve your app on port 3000.
 
 Notes:
-- If your build needs native dependencies (e.g. `sharp`), the Docker image may require extra apt packages; update the Dockerfile accordingly.
+- If your build needs native dependencies (e.g. `sharp`), the Docker image may require extra apt packages; update the Dockerfile accordingly. 
