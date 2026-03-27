@@ -6,11 +6,114 @@ import type {
   BenchmarkEvaluation,
   EvaluationCardData,
   CategoryType,
+  ModelInfo,
+  ModelVariantSummary,
+  SourceMetadata,
+  ScoreDetails,
+  MetricConfig,
+  EvaluationResult,
 } from './benchmark-schema'
 import type { ModelEvaluationSummary } from './benchmark-schema'
+import type { ModelSummaryCore } from './benchmark-schema'
 import { inferCategoryFromBenchmark, EVALUATION_CATEGORIES } from './benchmark-schema'
+import { getCanonicalModelIdentity, getModelFamilyRouteId } from './model-family'
 
 export type { ModelEvaluationSummary }
+
+const GENERIC_EVALUATION_NAMES = new Set([
+  "score",
+  "accuracy",
+  "mean win rate",
+  "exact match",
+  "f1",
+  "pass@1",
+])
+
+function slugify(value: string): string {
+  return value.toLowerCase().replace(/[^a-z0-9]+/g, "_").replace(/^_|_$/g, "")
+}
+
+function getBenchmarkName(
+  evaluation: BenchmarkEvaluation,
+  result?: EvaluationResult
+): string {
+  const resultSource = result?.source_data
+
+  if (resultSource && !Array.isArray(resultSource) && resultSource.dataset_name) {
+    return resultSource.dataset_name
+  }
+
+  if (evaluation.benchmark) {
+    return evaluation.benchmark
+  }
+
+  if (!Array.isArray(evaluation.source_data) && evaluation.source_data.dataset_name) {
+    return evaluation.source_data.dataset_name
+  }
+
+  return result?.evaluation_name ?? evaluation.evaluation_id
+}
+
+function getEvaluationDisplayName(
+  evaluation: BenchmarkEvaluation,
+  result: EvaluationResult
+): string {
+  const benchmarkName = getBenchmarkName(evaluation, result)
+  const metricName = result.evaluation_name.trim()
+
+  if (metricName === benchmarkName) {
+    return metricName
+  }
+
+  if (GENERIC_EVALUATION_NAMES.has(metricName.toLowerCase())) {
+    return `${benchmarkName} - ${metricName}`
+  }
+
+  return metricName
+}
+
+function getEvaluationSummaryId(
+  evaluation: BenchmarkEvaluation,
+  result: EvaluationResult
+): string {
+  return slugify(`${getBenchmarkName(evaluation, result)}__${result.evaluation_name}`)
+}
+
+// ── Eval-centric (per-benchmark) types ────────────────────────────────────────
+
+export interface ModelResultForBenchmark {
+  model_info: ModelInfo
+  score: number
+  score_details: ScoreDetails
+  evaluation_timestamp: string
+  source_metadata: SourceMetadata
+  source_data: BenchmarkEvaluation['source_data']
+  result: EvaluationResult
+}
+
+export interface BenchmarkEvalSummary {
+  evaluation_name: string
+  /** URL-safe slug derived from evaluation_name */
+  evaluation_id: string
+  category: CategoryType
+  metric_config: MetricConfig
+  factsheet: EvaluationResult['factsheet'] | undefined
+  model_results: ModelResultForBenchmark[]
+  models_count: number
+  /** Unique evaluator organisation names */
+  evaluator_names: string[]
+  source_types: SourceMetadata["source_type"][]
+  latest_source_name?: string
+  third_party_ratio: number
+  missing_generation_config_count: number
+  best_model: { name: string; score: number } | null
+  worst_model: { name: string; score: number } | null
+  avg_score: number
+  /** avg_score normalised to 0-1 using metric_config.min/max_score */
+  avg_score_norm: number
+}
+
+export type BenchmarkEvalListItem = Omit<BenchmarkEvalSummary, "model_results">
 
 /**
  * Group multiple evaluations by model
@@ -31,12 +134,28 @@ export function groupEvaluationsByModel(
   return grouped
 }
 
+export function groupEvaluationsByModelFamily(
+  evaluations: BenchmarkEvaluation[]
+): Record<string, BenchmarkEvaluation[]> {
+  const grouped: Record<string, BenchmarkEvaluation[]> = {}
+
+  for (const eval_ of evaluations) {
+    const familyId = getCanonicalModelIdentity(eval_.model_info).familyId
+    if (!grouped[familyId]) {
+      grouped[familyId] = []
+    }
+    grouped[familyId].push(eval_)
+  }
+
+  return grouped
+}
+
 /**
  * Create a model evaluation summary from grouped evaluations
  */
 export function createModelSummary(
   evaluations: BenchmarkEvaluation[]
-): ModelEvaluationSummary {
+): ModelSummaryCore {
   if (evaluations.length === 0) {
     throw new Error('No evaluations provided')
   }
@@ -115,6 +234,98 @@ export function createModelSummary(
   }
 }
 
+function pickRepresentativeModelInfo(evaluations: BenchmarkEvaluation[]): ModelInfo {
+  const sorted = [...evaluations].sort((a, b) => {
+    const aTimestamp = new Date(a.retrieved_timestamp).getTime() || Number(a.retrieved_timestamp) * 1000 || 0
+    const bTimestamp = new Date(b.retrieved_timestamp).getTime() || Number(b.retrieved_timestamp) * 1000 || 0
+    if (bTimestamp !== aTimestamp) {
+      return bTimestamp - aTimestamp
+    }
+
+    return b.evaluation_results.length - a.evaluation_results.length
+  })
+
+  return sorted[0].model_info
+}
+
+function sortVariants(variants: ModelVariantSummary[]) {
+  return [...variants].sort((a, b) => {
+    const aDate = a.version_date ? new Date(a.version_date).getTime() : Number.NEGATIVE_INFINITY
+    const bDate = b.version_date ? new Date(b.version_date).getTime() : Number.NEGATIVE_INFINITY
+
+    if (aDate !== bDate) {
+      return bDate - aDate
+    }
+
+    if (b.total_evaluations !== a.total_evaluations) {
+      return b.total_evaluations - a.total_evaluations
+    }
+
+    return a.variant_label.localeCompare(b.variant_label)
+  })
+}
+
+export function createModelFamilySummary(
+  evaluations: BenchmarkEvaluation[]
+): ModelEvaluationSummary {
+  if (evaluations.length === 0) {
+    throw new Error("No evaluations provided")
+  }
+
+  const familyIdentity = getCanonicalModelIdentity(evaluations[0].model_info)
+  const variantGroups = new Map<string, BenchmarkEvaluation[]>()
+
+  for (const evaluation of evaluations) {
+    const identity = getCanonicalModelIdentity(evaluation.model_info)
+    const existing = variantGroups.get(identity.variantKey) ?? []
+    existing.push(evaluation)
+    variantGroups.set(identity.variantKey, existing)
+  }
+
+  const variants = sortVariants(
+    Array.from(variantGroups.entries()).map(([variantKey, variantEvaluations]) => {
+      const representativeModel = pickRepresentativeModelInfo(variantEvaluations)
+      const identity = getCanonicalModelIdentity(representativeModel)
+      const summary = createModelSummary(variantEvaluations)
+
+      return {
+        ...summary,
+        variant_id: `${identity.familyId}::${variantKey}`,
+        variant_key: variantKey,
+        variant_label: identity.variantLabel,
+        variant_display_name: identity.variantDisplayName,
+        raw_model_ids: Array.from(new Set(variantEvaluations.map((item) => item.model_info.id))).sort((a, b) =>
+          a.localeCompare(b)
+        ),
+        family_id: identity.familyId,
+        family_name: identity.familyName,
+        version_date: identity.versionDate,
+        version_qualifier: identity.versionQualifier,
+      }
+    })
+  )
+
+  const familySummary = createModelSummary(evaluations)
+  const representativeVariant = variants[0] ?? familySummary
+
+  return {
+    ...familySummary,
+    model_info: {
+      ...representativeVariant.model_info,
+      id: familyIdentity.familyId,
+      name: familyIdentity.familyName,
+      model_version: undefined,
+    },
+    model_family_id: familyIdentity.familyId,
+    model_route_id: getModelFamilyRouteId(familyIdentity.familyId),
+    model_family_name: familyIdentity.familyName,
+    raw_model_ids: Array.from(new Set(evaluations.map((item) => item.model_info.id))).sort((a, b) =>
+      a.localeCompare(b)
+    ),
+    variants,
+  }
+}
+
 /**
  * Convert model summary to card display format
  */
@@ -131,22 +342,61 @@ export function createEvaluationCard(
   }> = []
   const sourceUrls = new Set<string>()
   const detailUrls = new Set<string>()
+  const evaluatorNames = new Set<string>()
+  const sourceTypes = new Set<SourceMetadata["source_type"]>()
+  const evalLibraries = new Map<string, { name: string; version?: string; fork?: string }>()
+  let missingGenerationConfigCount = 0
+  let thirdPartyEvalCount = 0
+  let latestSourceName: string | undefined
+  let latestTimestamp = Number.NEGATIVE_INFINITY
   
   // Collect all evaluations
   for (const evals of Object.values(summary.evaluations_by_category)) {
     for (const eval_ of evals) {
+      if (eval_.source_metadata.source_organization_name) {
+        evaluatorNames.add(eval_.source_metadata.source_organization_name)
+      }
+
+      sourceTypes.add(eval_.source_metadata.source_type)
+
+      if (eval_.source_metadata.evaluator_relationship === "third_party") {
+        thirdPartyEvalCount += 1
+      }
+
+      const numericTimestamp = Number(eval_.retrieved_timestamp)
+      const timestamp =
+        !Number.isNaN(numericTimestamp) && !eval_.retrieved_timestamp.includes("-")
+          ? numericTimestamp * 1000
+          : new Date(eval_.retrieved_timestamp).getTime()
+      if (Number.isFinite(timestamp) && timestamp >= latestTimestamp) {
+        latestTimestamp = timestamp
+        latestSourceName = eval_.source_metadata.source_name
+      }
+
+      if (eval_.eval_library?.name) {
+        const libraryKey = `${eval_.eval_library.name}@${eval_.eval_library.version ?? ""}`
+        evalLibraries.set(libraryKey, {
+          name: eval_.eval_library.name,
+          version: eval_.eval_library.version,
+          fork:
+            typeof eval_.eval_library.additional_details?.fork === "string"
+              ? eval_.eval_library.additional_details.fork
+              : undefined,
+        })
+      }
+
       // Handle source_data as either string[] or SourceData object
       if (Array.isArray(eval_.source_data)) {
         // source_data is string[] (URLs), extract benchmark names from evaluation_results
         for (const result of eval_.evaluation_results) {
-          benchmarksSet.add(result.evaluation_name)
+          benchmarksSet.add(getBenchmarkName(eval_, result))
         }
       } else {
         // Even if source_data is an object, we should try to extract individual benchmarks
         // from evaluation_results if available, as dataset_name might be a suite name.
         if (eval_.evaluation_results && eval_.evaluation_results.length > 0) {
            for (const result of eval_.evaluation_results) {
-             benchmarksSet.add(result.evaluation_name)
+             benchmarksSet.add(getBenchmarkName(eval_, result))
            }
         } else {
            benchmarksSet.add(eval_.source_data.dataset_name)
@@ -163,12 +413,16 @@ export function createEvaluationCard(
       }
       
       for (const result of eval_.evaluation_results) {
+        if (!result.generation_config) {
+          missingGenerationConfigCount += 1
+        }
+
         if (result.detailed_evaluation_results_url) {
           detailUrls.add(result.detailed_evaluation_results_url)
         }
         
         allScores.push({
-          benchmark: result.evaluation_name,
+          benchmark: getEvaluationDisplayName(eval_, result),
           score: result.score_details.score,
           metric: result.metric_config.evaluation_description || result.evaluation_name,
           unit: result.metric_config.unit
@@ -199,7 +453,7 @@ export function createEvaluationCard(
           // Only count if this result actually belongs to this category
           const resultCategory = inferCategoryFromBenchmark(result.evaluation_name)
           if (resultCategory === category) {
-            categoryBenchmarks.add(result.evaluation_name)
+            categoryBenchmarks.add(getBenchmarkName(eval_, result))
           }
         }
       } else {
@@ -223,9 +477,9 @@ export function createEvaluationCard(
            if (!resultCategory) {
              resultCategory = inferCategoryFromBenchmark(result.evaluation_name)
            }
-
+           
            if (resultCategory === category) {
-             categoryBenchmarks.add(result.evaluation_name)
+             categoryBenchmarks.add(getBenchmarkName(eval_, result))
            }
         }
       }
@@ -238,16 +492,46 @@ export function createEvaluationCard(
     .sort((a, b) => b.score - a.score)
     .slice(0, 5)
 
+  const paramsBillionsRaw = summary.model_info.additional_details?.params_billions
+  const paramsBillions =
+    typeof paramsBillionsRaw === "number"
+      ? paramsBillionsRaw
+      : typeof paramsBillionsRaw === "string"
+        ? Number.parseFloat(paramsBillionsRaw)
+        : null
+  const reproducibilityStatus =
+    missingGenerationConfigCount === 0
+      ? "complete"
+      : missingGenerationConfigCount === summary.total_evaluations
+        ? "missing"
+        : "partial"
+
   return {
-    id: summary.model_info.id,
-    model_name: summary.model_info.name,
+    id: summary.model_family_id,
+    route_id: summary.model_route_id,
+    model_name: summary.model_family_name,
     model_id: summary.model_info.id,
-    developer: summary.model_info.developer,
+    canonical_model_name: summary.model_family_name,
+    developer: summary.model_info.developer ?? "",
     evaluations_count: summary.total_evaluations,
     benchmarks_count: benchmarksSet.size,
+    variant_count: summary.variants.length,
     categories: summary.categories_covered,
     category_stats: categoryStats,
     latest_timestamp: summary.last_updated,
+    evaluator_count: evaluatorNames.size,
+    evaluator_names: Array.from(evaluatorNames).sort((a, b) => a.localeCompare(b)),
+    source_type_count: sourceTypes.size,
+    source_types: Array.from(sourceTypes).sort((a, b) => a.localeCompare(b)),
+    evidence_count: sourceUrls.size + detailUrls.size,
+    missing_generation_config_count: missingGenerationConfigCount,
+    third_party_eval_count: thirdPartyEvalCount,
+    independent_verification_ratio:
+      summary.total_evaluations > 0 ? thirdPartyEvalCount / summary.total_evaluations : 0,
+    reproducibility_status: reproducibilityStatus,
+    eval_libraries: Array.from(evalLibraries.values()).sort((a, b) => a.name.localeCompare(b.name)),
+    latest_source_name: latestSourceName,
+    params_billions: Number.isFinite(paramsBillions ?? NaN) ? paramsBillions : null,
     top_scores: topScores,
     source_urls: Array.from(sourceUrls),
     detail_urls: Array.from(detailUrls),
@@ -266,7 +550,7 @@ export function createEvaluationCard(
  * Get category stats for a model
  */
 export function getCategoryStats(
-  summary: ModelEvaluationSummary
+  summary: ModelSummaryCore
 ): {
   categories: { category: CategoryType; count: number; avg_score: number; total_results: number }[]
 } {
@@ -357,13 +641,13 @@ export async function processEvaluationsToCards(
   filePaths: string[]
 ): Promise<EvaluationCardData[]> {
   const evaluations = await loadEvaluations(filePaths)
-  const grouped = groupEvaluationsByModel(evaluations)
+  const grouped = groupEvaluationsByModelFamily(evaluations)
   
   const cards: EvaluationCardData[] = []
   
   for (const modelId in grouped) {
     const modelEvals = grouped[modelId]
-    const summary = createModelSummary(modelEvals)
+    const summary = createModelFamilySummary(modelEvals)
     const card = createEvaluationCard(summary)
     cards.push(card)
   }
@@ -423,4 +707,141 @@ export function getBenchmarkDisplayName(name: string | undefined | null): string
   }
   
   return name
+}
+
+// ── Eval-centric grouping ─────────────────────────────────────────────────────
+
+/**
+ * Group individual benchmark results across all model files, keyed by
+ * evaluation_name.  Each entry describes one benchmark and which models ran it.
+ */
+export function groupEvaluationsByBenchmark(
+  evaluations: BenchmarkEvaluation[]
+): Record<string, BenchmarkEvalSummary> {
+  const summaries: Record<string, BenchmarkEvalSummary> = {}
+
+  for (const eval_ of evaluations) {
+    for (const result of eval_.evaluation_results) {
+      const name = result.evaluation_name
+      const displayName = getEvaluationDisplayName(eval_, result)
+      const evalId = getEvaluationSummaryId(eval_, result)
+
+      if (!summaries[evalId]) {
+        // Determine category from factsheet first, then infer
+        let category: CategoryType | undefined
+        if (result.factsheet?.functional_props) {
+          const props = result.factsheet.functional_props.split(';').map(p => p.trim())
+          for (const prop of props) {
+            if (EVALUATION_CATEGORIES.includes(prop as CategoryType)) {
+              category = prop as CategoryType
+              break
+            }
+          }
+        }
+        if (!category) category = inferCategoryFromBenchmark(displayName)
+
+        summaries[evalId] = {
+          evaluation_name: displayName,
+          evaluation_id: evalId,
+          category,
+          metric_config: result.metric_config,
+          factsheet: result.factsheet,
+          model_results: [],
+          models_count: 0,
+          evaluator_names: [],
+          source_types: [],
+          latest_source_name: undefined,
+          third_party_ratio: 0,
+          missing_generation_config_count: 0,
+          best_model: null,
+          worst_model: null,
+          avg_score: 0,
+          avg_score_norm: 0,
+        }
+      }
+
+      summaries[evalId].model_results.push({
+        model_info: eval_.model_info,
+        score: result.score_details.score,
+        score_details: result.score_details,
+        evaluation_timestamp: result.evaluation_timestamp,
+        source_metadata: eval_.source_metadata,
+        source_data: result.source_data ?? eval_.source_data,
+        result,
+      })
+
+      const orgName = eval_.source_metadata.source_organization_name
+      if (!summaries[evalId].evaluator_names.includes(orgName)) {
+        summaries[evalId].evaluator_names.push(orgName)
+      }
+    }
+  }
+
+  // Finalise each summary
+  for (const summary of Object.values(summaries)) {
+    summary.models_count = summary.model_results.length
+    const scores = summary.model_results.map(m => m.score)
+    summary.avg_score = scores.reduce((a, b) => a + b, 0) / scores.length
+    summary.source_types = Array.from(
+      new Set(summary.model_results.map((result) => result.source_metadata.source_type))
+    ).sort((a, b) => a.localeCompare(b))
+    summary.third_party_ratio =
+      summary.model_results.filter((result) => result.source_metadata.evaluator_relationship === "third_party").length /
+      summary.model_results.length
+    summary.missing_generation_config_count = summary.model_results.filter(
+      (result) => !result.result.generation_config
+    ).length
+
+    let latestTimestamp = Number.NEGATIVE_INFINITY
+    for (const result of summary.model_results) {
+      const numericTimestamp = Number(result.evaluation_timestamp)
+      const timestamp =
+        !Number.isNaN(numericTimestamp) && !result.evaluation_timestamp.includes("-")
+          ? numericTimestamp * 1000
+          : new Date(result.evaluation_timestamp).getTime()
+      if (Number.isFinite(timestamp) && timestamp >= latestTimestamp) {
+        latestTimestamp = timestamp
+        summary.latest_source_name = result.source_metadata.source_name
+      }
+    }
+
+    const maxScore = summary.metric_config.max_score ?? 1
+    const minScore = summary.metric_config.min_score ?? 0
+    const range = maxScore - minScore
+    summary.avg_score_norm = range > 0 ? (summary.avg_score - minScore) / range : 0
+
+    const lowerIsBetter = summary.metric_config.lower_is_better
+    const sorted = [...summary.model_results].sort((a, b) =>
+      lowerIsBetter ? a.score - b.score : b.score - a.score
+    )
+
+    if (sorted.length > 0) {
+      summary.best_model = { name: sorted[0].model_info.name, score: sorted[0].score }
+      summary.worst_model = {
+        name: sorted[sorted.length - 1].model_info.name,
+        score: sorted[sorted.length - 1].score,
+      }
+    }
+  }
+
+  return summaries
+}
+
+/**
+ * Load files and return a flat array of BenchmarkEvalSummary objects,
+ * one per unique evaluation name across all models.
+ */
+export async function processEvaluationsToBenchmarkSummaries(
+  filePaths: string[]
+): Promise<BenchmarkEvalSummary[]> {
+  const evaluations = await loadEvaluations(filePaths)
+  const grouped = groupEvaluationsByBenchmark(evaluations)
+  return Object.values(grouped)
+}
+
+export function toBenchmarkEvalListItem(
+  summary: BenchmarkEvalSummary
+): BenchmarkEvalListItem {
+  const { model_results: _modelResults, ...listItem } = summary
+  return listItem
 }

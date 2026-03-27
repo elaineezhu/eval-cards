@@ -7,21 +7,32 @@ export interface BenchmarkEvaluation {
   schema_version: string
   evaluation_id: string
   retrieved_timestamp: string
+  benchmark?: string
   
   source_data: string[] | SourceData
   source_metadata: SourceMetadata
+  eval_library?: EvalLibrary
   model_info: ModelInfo
   evaluation_results: EvaluationResult[]
   detailed_evaluation_results_per_samples?: SampleResult[]
 }
 
+export interface EvalLibrary {
+  name: string
+  version?: string
+  additional_details?: Record<string, any>
+}
+
 export interface SourceData {
   dataset_name: string
+  source_type?: string
   hf_repo?: string
   hf_split?: string
-  samples_number: number
+  samples_number?: number
+  url?: string[]
   dataset_url?: string
   dataset_version?: string
+  [key: string]: any
 }
 
 export interface SourceMetadata {
@@ -48,7 +59,7 @@ export interface ModelInfo {
   additional_details?: {
     precision?: string
     architecture?: string
-    params_billions?: number
+    params_billions?: number | string
     [key: string]: any
   }
   modalities?: {
@@ -60,6 +71,7 @@ export interface ModelInfo {
 export interface EvaluationResult {
   evaluation_name: string
   evaluation_timestamp: string
+  source_data?: string[] | SourceData
   metric_config: MetricConfig
   score_details: ScoreDetails
   detailed_evaluation_results_url?: string
@@ -220,7 +232,7 @@ export function inferCategoryFromBenchmark(benchmarkName: string): CategoryType 
 /**
  * Aggregate evaluations by model
  */
-export interface ModelEvaluationSummary {
+export interface ModelSummaryCore {
   model_info: ModelInfo
   evaluations_by_category: Record<CategoryType, BenchmarkEvaluation[]>
   total_evaluations: number
@@ -228,19 +240,58 @@ export interface ModelEvaluationSummary {
   categories_covered: CategoryType[]
 }
 
+export interface ModelVariantSummary extends ModelSummaryCore {
+  variant_id: string
+  variant_key: string
+  variant_label: string
+  variant_display_name: string
+  raw_model_ids: string[]
+  family_id: string
+  family_name: string
+  version_date?: string
+  version_qualifier?: string
+}
+
+export interface ModelEvaluationSummary extends ModelSummaryCore {
+  model_family_id: string
+  model_route_id: string
+  model_family_name: string
+  raw_model_ids: string[]
+  variants: ModelVariantSummary[]
+}
+
 /**
  * Display-friendly format for the UI
  */
 export interface EvaluationCardData {
   id: string
+  route_id: string
   model_name: string
   model_id: string
+  canonical_model_name: string
   developer: string
   evaluations_count: number
   benchmarks_count: number
+  variant_count: number
   categories: CategoryType[]
   category_stats: Record<CategoryType, number>
   latest_timestamp: string
+  evaluator_count: number
+  evaluator_names: string[]
+  source_type_count: number
+  source_types: Array<SourceMetadata["source_type"]>
+  evidence_count: number
+  missing_generation_config_count: number
+  third_party_eval_count: number
+  independent_verification_ratio: number
+  reproducibility_status: "complete" | "partial" | "missing"
+  eval_libraries: Array<{
+    name: string
+    version?: string
+    fork?: string
+  }>
+  latest_source_name?: string
+  params_billions?: number | null
   
   // Quick stats
   top_scores: Array<{

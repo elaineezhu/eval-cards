@@ -1,235 +1,273 @@
-"use client"
-
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { Badge } from "@/components/ui/badge"
-import { Separator } from "@/components/ui/separator"
-import { Button } from "@/components/ui/button"
 import Link from "next/link"
-import { ExternalLink, BarChart3, FileJson, Search, Layout, FileText, Database, Users, ArrowRight } from "lucide-react"
+import {
+  ArrowRight,
+  BadgeCheck,
+  BookOpenText,
+  Database,
+  FileCode,
+  FlaskConical,
+  LibraryBig,
+  Scale,
+  Search,
+  ShieldAlert,
+} from "lucide-react"
+
 import { Navigation } from "@/components/navigation"
 import { PageHeader } from "@/components/page-header"
-import { EVALUATION_CATEGORIES } from "@/lib/benchmark-schema"
+import { Badge } from "@/components/ui/badge"
+import { Button } from "@/components/ui/button"
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 
 export default function AboutPage() {
   return (
     <div className="min-h-screen bg-background">
       <Navigation />
-      
-      <PageHeader 
+
+      <PageHeader
+        eyebrow="About"
         title="About"
-        description="Building a shared infrastructure for informative, transparent, and comparable AI evaluations."
+        description="A benchmark-first interface for reading AI evaluation evidence with separate researcher and policy lenses."
+        metaItems={[
+          { label: "Modes", value: "Research + Policy" },
+          { label: "Source", value: "Structured JSON" },
+        ]}
       />
 
-      <div className="container mx-auto px-4 sm:px-6 py-6 max-w-4xl">
+      <main className="container mx-auto max-w-5xl px-4 py-8 sm:px-6">
         <div className="grid gap-8">
-          
-          {/* Overview Section */}
-          <section className="space-y-4">
-            <h2 className="text-2xl font-bold tracking-tight">Overview</h2>
-            <Card>
-              <CardContent className="pt-6 space-y-4">
-                <p className="text-muted-foreground leading-relaxed">
-                  Evaluations are the backbone of progress in AI, yet the ways they are documented and shared have not kept pace with the field’s growth. 
-                  Today, evaluations are produced by a growing mix of first- and third-party actors, using diverse methods, formats, and assumptions. 
-                  As a result, it is increasingly difficult to understand what evaluations exist, how they are conducted, or what they ultimately tell us about an AI model or system.
+          <section className="grid gap-6 lg:grid-cols-[1.1fr_0.9fr]">
+            <Card className="overflow-hidden border-border/70">
+              <CardHeader className="border-b bg-gradient-to-br from-muted/35 via-background to-background pb-4">
+                <div className="flex items-center gap-2">
+                  <LibraryBig className="h-5 w-5 text-primary" />
+                  <CardTitle className="text-xl">What This Demo Is</CardTitle>
+                </div>
+              </CardHeader>
+              <CardContent className="space-y-4 pt-6 text-sm leading-7 text-muted-foreground">
+                <p>
+                  Eval Cards is a structured interface for browsing reported AI evaluation results. Instead of treating
+                  evaluations as scattered tables, blog posts, and benchmark screenshots, it presents them as a
+                  comparable evidence layer around models and benchmarks.
                 </p>
-                <p className="text-muted-foreground leading-relaxed">
-                  We envision a world in which AI evaluations are informative, transparent, and comparable by default. 
-                  In this world, developers, researchers, policymakers, and downstream users can quickly understand how an AI system has been evaluated.
+                <p>
+                  The current demo is benchmark-first. It uses model JSON files as the source of truth, derives model
+                  and evaluation views from those files, and highlights reporting provenance, benchmark scope, setup
+                  differences, and reproducibility gaps directly in the UI.
                 </p>
-                
-                <div className="mt-6 bg-muted/30 p-6 rounded-lg border">
-                  <h3 className="font-semibold mb-4 flex items-center gap-2">
-                    <Layout className="h-5 w-5 text-primary" />
-                    The Eval Cards Proposal
-                  </h3>
-                  <div className="grid gap-4 md:grid-cols-3">
-                    <div className="space-y-2">
-                      <div className="font-medium text-sm flex items-center gap-2">
-                        <FileText className="h-4 w-4 text-blue-500" />
-                        Design Information
-                      </div>
-                      <p className="text-xs text-muted-foreground">
-                        Documenting what an evaluation measures and how its results should be interpreted, covering task definition and validity considerations.
-                      </p>
-                    </div>
-                    <div className="space-y-2">
-                      <div className="font-medium text-sm flex items-center gap-2">
-                        <Database className="h-4 w-4 text-green-500" />
-                        EEE Schema
-                      </div>
-                      <p className="text-xs text-muted-foreground">
-                        The "Every Eval Ever" standardized reporting schema for inference- and execution-level details (temperature, tokens, etc.).
-                      </p>
-                    </div>
-                    <div className="space-y-2">
-                      <div className="font-medium text-sm flex items-center gap-2">
-                        <Layout className="h-4 w-4 text-purple-500" />
-                        Central Platform
-                      </div>
-                      <p className="text-xs text-muted-foreground">
-                        A shared repository linking design info with run data, allowing exploration by model or evaluation.
-                      </p>
-                    </div>
-                  </div>
+                <p>
+                  The goal is not just to show scores. It is to help readers understand who reported them, what was
+                  tested, whether comparisons are fair, and where the evidence is thin.
+                </p>
+              </CardContent>
+            </Card>
+
+            <Card className="overflow-hidden border-border/70">
+              <CardHeader className="border-b bg-muted/20 pb-4">
+                <div className="flex items-center gap-2">
+                  <Search className="h-5 w-5 text-primary" />
+                  <CardTitle className="text-xl">What You Can Explore</CardTitle>
+                </div>
+              </CardHeader>
+              <CardContent className="pt-6">
+                <div className="grid gap-3">
+                  <SurfaceNote
+                    icon={<Database className="h-4 w-4 text-sky-600" />}
+                    title="Model snapshots"
+                    body="See benchmark breadth, reporting sources, top signals, and accountability context for a given model."
+                  />
+                  <SurfaceNote
+                    icon={<BookOpenText className="h-4 w-4 text-rose-600" />}
+                    title="Evaluation leaderboards"
+                    body="See which models were reported on a benchmark, how they rank, and what methodological or reporting context is attached."
+                  />
+                  <SurfaceNote
+                    icon={<FileCode className="h-4 w-4 text-amber-600" />}
+                    title="Benchmark detail"
+                    body="Compare setup changes, subtasks, and score spread within a single model’s reported benchmark results."
+                  />
                 </div>
               </CardContent>
             </Card>
           </section>
 
-          {/* Motivation & Why Eval Cards */}
-          <div className="grid md:grid-cols-2 gap-6">
-            <section className="space-y-4">
-              <h2 className="text-xl font-bold tracking-tight">Motivation</h2>
-              <Card className="h-full">
-                <CardContent className="pt-6">
-                  <p className="text-sm text-muted-foreground leading-relaxed">
-                    Evaluations come in a variety of forms and formats depending on the organization conducting them. 
-                    Today, the lack of standardization across evaluation design information and evaluation run metadata limits the impact of evaluations because they are not readily comparable or available.
-                  </p>
-                  <p className="text-sm text-muted-foreground leading-relaxed mt-4">
-                    Moreover, they remain scattered across numerous repos, sites, tables, and papers, making it difficult to grasp what evaluations of a given AI system have been conducted.
-                  </p>
-                </CardContent>
-              </Card>
-            </section>
-
-            <section className="space-y-4">
-              <h2 className="text-xl font-bold tracking-tight">Why Eval Cards?</h2>
-              <Card className="h-full">
-                <CardContent className="pt-6">
-                  <p className="text-sm text-muted-foreground leading-relaxed">
-                    Just as model cards have catalyzed common documentation practices for AI systems, Eval Cards aim to establish a norm for structured reporting of AI evaluations themselves.
-                  </p>
-                  <p className="text-sm text-muted-foreground leading-relaxed mt-4">
-                    By standardizing how evaluation design information and run-level metadata are reported, Eval Cards make apples-to-apples comparison possible and reduce duplicated infrastructure work for evaluation research.
-                  </p>
-                </CardContent>
-              </Card>
-            </section>
-          </div>
-
-          {/* Current State */}
-          <section className="space-y-4">
-            <h2 className="text-2xl font-bold tracking-tight">Current State</h2>
-            <Card>
-              <CardContent className="pt-6 space-y-4">
-                <p className="text-muted-foreground">
-                  Eval Cards are actively under development by the EvalEval coalition. We have completed the following milestones:
-                </p>
-                <div className="grid gap-3 sm:grid-cols-2 mt-4">
-                  <div className="flex items-start gap-3 p-3 bg-secondary/20 rounded-lg">
-                    <div className="w-2 h-2 bg-green-500 rounded-full mt-2 flex-shrink-0" />
-                    <span className="text-sm">Developed a draft version of the EEE schema</span>
-                  </div>
-                  <div className="flex items-start gap-3 p-3 bg-secondary/20 rounded-lg">
-                    <div className="w-2 h-2 bg-green-500 rounded-full mt-2 flex-shrink-0" />
-                    <span className="text-sm">Designed a GUI mockup for the central platform</span>
-                  </div>
-                  <div className="flex items-start gap-3 p-3 bg-secondary/20 rounded-lg">
-                    <div className="w-2 h-2 bg-green-500 rounded-full mt-2 flex-shrink-0" />
-                    <span className="text-sm">Designed in-platform explanatory tooltips for design details</span>
-                  </div>
-                  <div className="flex items-start gap-3 p-3 bg-secondary/20 rounded-lg">
-                    <div className="w-2 h-2 bg-green-500 rounded-full mt-2 flex-shrink-0" />
-                    <span className="text-sm">Integrated with Eval Factsheets repository</span>
-                  </div>
+          <section className="grid gap-4 md:grid-cols-2">
+            <Card className="border-border/70">
+              <CardHeader className="pb-3">
+                <div className="flex items-center gap-2">
+                  <FlaskConical className="h-5 w-5 text-sky-600" />
+                  <CardTitle className="text-lg">Research Mode</CardTitle>
                 </div>
-                <div className="mt-4 p-4 bg-blue-50 dark:bg-blue-900/20 text-blue-800 dark:text-blue-200 rounded-md text-sm flex items-center gap-3">
-                  <InfoIcon className="h-5 w-5 flex-shrink-0" />
-                  We are currently soliciting community feedback on all components through mid-January 2026.
+              </CardHeader>
+              <CardContent className="space-y-3 text-sm text-muted-foreground">
+                <p>
+                  Research mode foregrounds comparability, benchmark setup, eval libraries, generation config, and
+                  score behavior.
+                </p>
+                <div className="flex flex-wrap gap-2">
+                  <Badge variant="outline">Methodology first</Badge>
+                  <Badge variant="outline">Config-aware comparisons</Badge>
+                  <Badge variant="outline">Sample and metric detail</Badge>
+                </div>
+              </CardContent>
+            </Card>
+
+            <Card className="border-border/70">
+              <CardHeader className="pb-3">
+                <div className="flex items-center gap-2">
+                  <Scale className="h-5 w-5 text-amber-600" />
+                  <CardTitle className="text-lg">Policy Mode</CardTitle>
+                </div>
+              </CardHeader>
+              <CardContent className="space-y-3 text-sm text-muted-foreground">
+                <p>
+                  Policy mode translates the same evidence into plain-language interpretation, evaluator independence,
+                  caveats, and comparability warnings.
+                </p>
+                <div className="flex flex-wrap gap-2">
+                  <Badge variant="outline">Plain-language summaries</Badge>
+                  <Badge variant="outline">Accountability cues</Badge>
+                  <Badge variant="outline">Visible limitations</Badge>
                 </div>
               </CardContent>
             </Card>
           </section>
 
-          {/* Next Steps */}
-          <section className="space-y-4">
-            <h2 className="text-2xl font-bold tracking-tight">Next Steps</h2>
-            <Card>
-              <CardContent className="pt-6 space-y-4">
-                <div className="flex items-center gap-4 mb-4">
-                  <Badge className="text-base px-4 py-1">Release: February 2026</Badge>
-                </div>
-                <p className="text-muted-foreground">
-                  In the lead-up to this release, we are:
-                </p>
-                <ul className="space-y-3 text-sm text-muted-foreground list-disc pl-5">
-                  <li>
-                    Actively engaging with model developers, independent evaluation organizations, and research groups to solicit feedback and encourage early adoption.
-                  </li>
-                  <li>
-                    Continuing to develop the Eval Cards platform as a central, publicly accessible repository where evaluations can be submitted, discovered, and compared.
-                  </li>
-                </ul>
-                <p className="text-sm text-muted-foreground mt-4">
-                  Following the initial release, we will maintain and evolve the Eval Cards format in consultation with the research and practitioner communities.
-                </p>
+          <section className="grid gap-4 lg:grid-cols-3">
+            <InfoCard
+              icon={<BadgeCheck className="h-5 w-5 text-emerald-600" />}
+              title="What Counts As Stronger Evidence"
+              body="Independent reporting, linked sources, benchmark breadth, and complete generation settings all make a score easier to trust and compare."
+            />
+            <InfoCard
+              icon={<ShieldAlert className="h-5 w-5 text-amber-600" />}
+              title="What To Treat Carefully"
+              body="Missing generation config, mixed reporting sources, setup-sensitive benchmarks, and large model-size differences can all weaken apples-to-apples comparison."
+            />
+            <InfoCard
+              icon={<Database className="h-5 w-5 text-sky-600" />}
+              title="Current Data Model"
+              body="The app derives its views from JSON files under the top-level data directory. Model-level and evaluation-level summaries are computed from that reporting layer."
+            />
+          </section>
+
+          <section>
+            <Card className="border-border/70">
+              <CardHeader className="border-b bg-muted/20 pb-4">
+                <CardTitle className="text-xl">Reading This Interface Responsibly</CardTitle>
+              </CardHeader>
+              <CardContent className="grid gap-4 pt-6 md:grid-cols-2">
+                <GuidanceBlock
+                  title="This interface helps you ask:"
+                  items={[
+                    "What benchmarks were actually reported for this model?",
+                    "Who reported those results and how independent were they?",
+                    "Are score differences likely to reflect setup changes rather than capability?",
+                    "Which benchmarks have broader support versus thin evidence?",
+                  ]}
+                />
+                <GuidanceBlock
+                  title="This interface should not imply:"
+                  items={[
+                    "That a single score is a complete picture of a model.",
+                    "That all reported results are directly comparable.",
+                    "That missing methodology can be ignored if the numbers look strong.",
+                    "That benchmark coverage is the same thing as deployment readiness.",
+                  ]}
+                />
               </CardContent>
             </Card>
           </section>
 
-          {/* Coalition */}
-          <section className="space-y-4">
-            <h2 className="text-2xl font-bold tracking-tight">The EvalEval Coalition</h2>
-            <Card className="bg-primary/5 border-primary/20">
-              <CardContent className="pt-6 flex flex-col sm:flex-row items-center gap-6">
-                <div className="p-4 bg-background rounded-full border shadow-sm">
-                  <Users className="h-8 w-8 text-primary" />
-                </div>
-                <div className="space-y-2 text-center sm:text-left">
-                  <h3 className="font-semibold text-lg">A Global Research Community</h3>
-                  <p className="text-muted-foreground">
-                    We are a community of 400+ researchers and practitioners developing rigorous AI evaluation methods and the infrastructure needed to deploy them at scale for real-world impact.
-                  </p>
-                </div>
-              </CardContent>
-            </Card>
-          </section>
+          <section className="flex flex-col gap-4 rounded-[1.75rem] border border-border/70 bg-gradient-to-br from-muted/30 via-background to-background p-6 sm:flex-row sm:items-center sm:justify-between">
+            <div className="space-y-2">
+              <div className="text-lg font-semibold">Explore the evidence layer</div>
+              <p className="max-w-2xl text-sm text-muted-foreground">
+                Start from models if you want breadth and reporting context. Start from evaluations if you want a
+                benchmark-centric view of model performance and methodology.
+              </p>
+            </div>
 
-          <Separator />
-
-          <div className="text-center space-y-4">
-            <h3 className="text-lg font-semibold">Get Involved</h3>
-            <p className="text-muted-foreground">
-              Groups interested in collaborating with us on Eval Cards are invited to submit an expression of interest.
-            </p>
-            <div className="flex justify-center gap-4">
-              <Button variant="outline" className="gap-2">
-                Contact Us
-                <ExternalLink className="h-4 w-4" />
-              </Button>
+            <div className="flex flex-wrap gap-3">
               <Link href="/">
                 <Button className="gap-2">
-                  Explore the Platform
+                  Explore Models
+                  <ArrowRight className="h-4 w-4" />
+                </Button>
+              </Link>
+              <Link href="/evals">
+                <Button variant="outline" className="gap-2">
+                  Explore Evaluations
                   <ArrowRight className="h-4 w-4" />
                 </Button>
               </Link>
             </div>
-          </div>
+          </section>
         </div>
-      </div>
+      </main>
     </div>
   )
 }
 
-function InfoIcon(props: any) {
+function SurfaceNote({
+  icon,
+  title,
+  body,
+}: {
+  icon: React.ReactNode
+  title: string
+  body: string
+}) {
   return (
-    <svg
-      {...props}
-      xmlns="http://www.w3.org/2000/svg"
-      width="24"
-      height="24"
-      viewBox="0 0 24 24"
-      fill="none"
-      stroke="currentColor"
-      strokeWidth="2"
-      strokeLinecap="round"
-      strokeLinejoin="round"
-    >
-      <circle cx="12" cy="12" r="10" />
-      <path d="M12 16v-4" />
-      <path d="M12 8h.01" />
-    </svg>
+    <div className="rounded-2xl border bg-muted/10 p-4">
+      <div className="mb-2 flex items-center gap-2">
+        {icon}
+        <div className="font-medium">{title}</div>
+      </div>
+      <div className="text-sm leading-6 text-muted-foreground">{body}</div>
+    </div>
+  )
+}
+
+function InfoCard({
+  icon,
+  title,
+  body,
+}: {
+  icon: React.ReactNode
+  title: string
+  body: string
+}) {
+  return (
+    <Card className="border-border/70">
+      <CardContent className="space-y-3 pt-6">
+        <div className="flex items-center gap-2">
+          {icon}
+          <div className="font-semibold">{title}</div>
+        </div>
+        <p className="text-sm leading-6 text-muted-foreground">{body}</p>
+      </CardContent>
+    </Card>
+  )
+}
+
+function GuidanceBlock({
+  title,
+  items,
+}: {
+  title: string
+  items: string[]
+}) {
+  return (
+    <div className="space-y-3">
+      <div className="text-sm font-semibold">{title}</div>
+      <div className="space-y-2">
+        {items.map((item) => (
+          <div key={item} className="flex items-start gap-3 rounded-xl bg-muted/10 px-3 py-3">
+            <div className="mt-1 h-1.5 w-1.5 rounded-full bg-foreground/60" />
+            <div className="text-sm leading-6 text-muted-foreground">{item}</div>
+          </div>
+        ))}
+      </div>
+    </div>
   )
 }

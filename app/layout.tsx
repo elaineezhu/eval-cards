@@ -1,6 +1,7 @@
 import type React from "react"
 import type { Metadata } from "next"
 import "./globals.css"
+import { AudienceModeProvider } from "@/components/audience-mode-provider"
 import { ThemeProvider } from "@/components/theme-provider"
 
 export const metadata: Metadata = {
@@ -18,7 +19,9 @@ export default function RootLayout({
     <html lang="en" className="antialiased" suppressHydrationWarning>
       <body className="font-sans">
         <ThemeProvider attribute="class" defaultTheme="system" enableSystem disableTransitionOnChange>
-          {children}
+          <AudienceModeProvider>
+            {children}
+          </AudienceModeProvider>
         </ThemeProvider>
       </body>
     </html>

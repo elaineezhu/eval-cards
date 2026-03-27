@@ -1,7 +1,8 @@
 "use client"
 
+import { useAudienceMode } from "@/components/audience-mode-provider"
 import { Button } from "@/components/ui/button"
-import { Moon, Sun, Home, ArrowUpDown, Info, BarChart3 } from "lucide-react"
+import { FlaskConical, Moon, Scale, Sun, Home, Info, BarChart3, LayoutGrid } from "lucide-react"
 import { useTheme } from "next-themes"
 import Link from "next/link"
 import { usePathname } from "next/navigation"
@@ -9,6 +10,7 @@ import { cn } from "@/lib/utils"
 
 export function Navigation() {
   const { theme, setTheme } = useTheme()
+  const { mode, setMode } = useAudienceMode()
   const pathname = usePathname()
 
   const navItems = [
@@ -16,7 +18,19 @@ export function Navigation() {
       href: "/",
       label: "Home",
       icon: Home,
-      isActive: pathname === "/" || pathname?.startsWith("/evaluations")
+      isActive: pathname === "/"
+    },
+    {
+      href: "/models",
+      label: "Models",
+      icon: LayoutGrid,
+      isActive: pathname === "/models" || pathname === "/benchmarks" || pathname?.startsWith("/evaluations")
+    },
+    {
+      href: "/evals",
+      label: "Evaluations",
+      icon: BarChart3,
+      isActive: pathname === "/evals" || pathname?.startsWith("/evals/")
     },
     {
       href: "/about",
@@ -27,29 +41,24 @@ export function Navigation() {
   ]
 
   return (
-    <header className="border-b bg-card">
-      <div className="container mx-auto px-4 sm:px-6 py-4">
-        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
-          {/* Logo and branding */}
+    <header className="motion-academic-enter-soft border-b bg-card">
+      <div className="container mx-auto px-4 py-4 sm:px-6">
+        <div className="flex flex-col items-start justify-between gap-3 sm:flex-row sm:items-center">
           <div className="flex items-center gap-3">
-            {/* Logo */}
             <Link href="/" className="flex-shrink-0">
               <img 
                 src="https://evalevalai.com/assets/img/logo-square.png" 
                 alt="EvalEval Logo" 
-                className="w-8 h-8 rounded-md hover:opacity-80 transition-opacity"
+                className="motion-academic-button h-8 w-8 rounded-md hover:opacity-80 transition-opacity"
               />
             </Link>
-            
-            {/* App title */}
-            <Link href="/" className="font-bold text-lg tracking-tight hover:text-primary/80 transition-colors">
-              Eval Cards
+
+            <Link href="/" className="motion-academic-button font-bold text-lg tracking-tight hover:text-primary/80 transition-colors">
+                Eval Cards
             </Link>
           </div>
 
-          {/* Navigation and actions */}
           <div className="flex items-center gap-2 sm:gap-3">
-            {/* Navigation links */}
             <nav className="flex items-center gap-1">
               {navItems.map((item) => (
                 <Link key={item.href} href={item.href}>
@@ -57,7 +66,7 @@ export function Navigation() {
                     variant={item.isActive ? "default" : "ghost"}
                     size="sm"
                     className={cn(
-                      "gap-2",
+                      "motion-academic-button gap-2",
                       item.isActive && "bg-primary text-primary-foreground"
                     )}
                   >
@@ -68,15 +77,42 @@ export function Navigation() {
               ))}
             </nav>
 
-            {/* Separator */}
-            <div className="w-px h-6 bg-border" />
+            <div className="h-6 w-px bg-border" />
 
-            {/* Theme toggle */}
+            <div className="inline-flex rounded-full border bg-muted/20 p-1">
+              <button
+                type="button"
+                onClick={() => setMode("research")}
+                className={cn(
+                  "motion-academic-button inline-flex items-center gap-1.5 rounded-full px-3 py-1.5 text-xs font-medium transition-colors sm:text-sm",
+                  mode === "research"
+                    ? "bg-background text-foreground shadow-sm"
+                    : "text-muted-foreground hover:text-foreground"
+                )}
+              >
+                <FlaskConical className="h-3.5 w-3.5" />
+                <span className="hidden sm:inline">Research</span>
+              </button>
+              <button
+                type="button"
+                onClick={() => setMode("policy")}
+                className={cn(
+                  "motion-academic-button inline-flex items-center gap-1.5 rounded-full px-3 py-1.5 text-xs font-medium transition-colors sm:text-sm",
+                  mode === "policy"
+                    ? "bg-background text-foreground shadow-sm"
+                    : "text-muted-foreground hover:text-foreground"
+                )}
+              >
+                <Scale className="h-3.5 w-3.5" />
+                <span className="hidden sm:inline">Policy</span>
+              </button>
+            </div>
+
             <Button
               variant="ghost"
               size="sm"
               onClick={() => setTheme(theme === "dark" ? "light" : "dark")}
-              className="h-9 w-9 p-0"
+              className="motion-academic-button h-9 w-9 p-0"
             >
               <Sun className="h-4 w-4 rotate-0 scale-100 transition-all dark:-rotate-90 dark:scale-0" />
               <Moon className="absolute h-4 w-4 rotate-90 scale-0 transition-all dark:rotate-0 dark:scale-100" />
