@@ -1,0 +1,33 @@
+{
+  "developer": "ZHLiu627",
+  "models": [
+    {
+      "id": "ZHLiu627/zephyr-7b-gemma-dpo-avg",
+      "name": "zephyr-7b-gemma-dpo-avg",
+      "developer": "ZHLiu627",
+      "evaluator_relationship": null,
+      "benchmark_scores": {
+        "hfopenllm_v2/IFEval": 0.309,
+        "hfopenllm_v2/BBH": 0.4149,
+        "hfopenllm_v2/MATH Level 5": 0.0453,
+        "hfopenllm_v2/GPQA": 0.2785,
+        "hfopenllm_v2/MUSR": 0.4107,
+        "hfopenllm_v2/MMLU-PRO": 0.2851
+      }
+    },
+    {
+      "id": "ZHLiu627/zephyr-7b-gemma-rpo-avg",
+      "name": "zephyr-7b-gemma-rpo-avg",
+      "developer": "ZHLiu627",
+      "evaluator_relationship": null,
+      "benchmark_scores": {
+        "hfopenllm_v2/IFEval": 0.3006,
+        "hfopenllm_v2/BBH": 0.4183,
+        "hfopenllm_v2/MATH Level 5": 0.0498,
+        "hfopenllm_v2/GPQA": 0.2768,
+        "hfopenllm_v2/MUSR": 0.4081,
+        "hfopenllm_v2/MMLU-PRO": 0.2831
+      }
+    }
+  ]
+}

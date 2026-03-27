@@ -1,0 +1,23 @@
+{
+  "developer": "infly",
+  "models": [
+    {
+      "id": "infly/INF-ORM-Llama3.1-70B",
+      "name": "infly/INF-ORM-Llama3.1-70B",
+      "developer": "infly",
+      "evaluator_relationship": null,
+      "benchmark_scores": {
+        "reward-bench/Score": 0.9511,
+        "reward-bench/Factuality": 0.7411,
+        "reward-bench/Precise IF": 0.4188,
+        "reward-bench/Math": 0.6995,
+        "reward-bench/Safety": 0.9365,
+        "reward-bench/Focus": 0.903,
+        "reward-bench/Ties": 0.8622,
+        "reward-bench/Chat": 0.9665,
+        "reward-bench/Chat Hard": 0.9101,
+        "reward-bench/Reasoning": 0.9912
+      }
+    }
+  ]
+}

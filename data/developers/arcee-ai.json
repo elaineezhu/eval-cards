@@ -1,0 +1,159 @@
+{
+  "developer": "arcee-ai",
+  "models": [
+    {
+      "id": "arcee-ai/Arcee-Blitz",
+      "name": "Arcee-Blitz",
+      "developer": "arcee-ai",
+      "evaluator_relationship": null,
+      "benchmark_scores": {
+        "hfopenllm_v2/IFEval": 0.5543,
+        "hfopenllm_v2/BBH": 0.6607,
+        "hfopenllm_v2/MATH Level 5": 0.3482,
+        "hfopenllm_v2/GPQA": 0.3851,
+        "hfopenllm_v2/MUSR": 0.5047,
+        "hfopenllm_v2/MMLU-PRO": 0.6154
+      }
+    },
+    {
+      "id": "arcee-ai/Arcee-Maestro-7B-Preview",
+      "name": "Arcee-Maestro-7B-Preview",
+      "developer": "arcee-ai",
+      "evaluator_relationship": null,
+      "benchmark_scores": {
+        "hfopenllm_v2/IFEval": 0.275,
+        "hfopenllm_v2/BBH": 0.4648,
+        "hfopenllm_v2/MATH Level 5": 0.4992,
+        "hfopenllm_v2/GPQA": 0.3322,
+        "hfopenllm_v2/MUSR": 0.3885,
+        "hfopenllm_v2/MMLU-PRO": 0.3039
+      }
+    },
+    {
+      "id": "arcee-ai/Arcee-Nova",
+      "name": "Arcee-Nova",
+      "developer": "arcee-ai",
+      "evaluator_relationship": null,
+      "benchmark_scores": {
+        "hfopenllm_v2/IFEval": 0.7907,
+        "hfopenllm_v2/BBH": 0.6942,
+        "hfopenllm_v2/MATH Level 5": 0.4381,
+        "hfopenllm_v2/GPQA": 0.3851,
+        "hfopenllm_v2/MUSR": 0.4562,
+        "hfopenllm_v2/MMLU-PRO": 0.5452
+      }
+    },
+    {
+      "id": "arcee-ai/Arcee-Spark",
+      "name": "Arcee-Spark",
+      "developer": "arcee-ai",
+      "evaluator_relationship": null,
+      "benchmark_scores": {
+        "hfopenllm_v2/IFEval": 0.5621,
+        "hfopenllm_v2/BBH": 0.5489,
+        "hfopenllm_v2/MATH Level 5": 0.2953,
+        "hfopenllm_v2/GPQA": 0.307,
+        "hfopenllm_v2/MUSR": 0.4021,
+        "hfopenllm_v2/MMLU-PRO": 0.3822
+      }
+    },
+    {
+      "id": "arcee-ai/Llama-3.1-SuperNova-Lite",
+      "name": "Llama-3.1-SuperNova-Lite",
+      "developer": "arcee-ai",
+      "evaluator_relationship": null,
+      "benchmark_scores": {
+        "hfopenllm_v2/IFEval": 0.8017,
+        "hfopenllm_v2/BBH": 0.5152,
+        "hfopenllm_v2/MATH Level 5": 0.1828,
+        "hfopenllm_v2/GPQA": 0.3062,
+        "hfopenllm_v2/MUSR": 0.4163,
+        "hfopenllm_v2/MMLU-PRO": 0.3877
+      }
+    },
+    {
+      "id": "arcee-ai/Llama-Spark",
+      "name": "Llama-Spark",
+      "developer": "arcee-ai",
+      "evaluator_relationship": null,
+      "benchmark_scores": {
+        "hfopenllm_v2/IFEval": 0.7911,
+        "hfopenllm_v2/BBH": 0.5054,
+        "hfopenllm_v2/MATH Level 5": 0.139,
+        "hfopenllm_v2/GPQA": 0.2995,
+        "hfopenllm_v2/MUSR": 0.3593,
+        "hfopenllm_v2/MMLU-PRO": 0.3721
+      }
+    },
+    {
+      "id": "arcee-ai/SuperNova-Medius",
+      "name": "SuperNova-Medius",
+      "developer": "arcee-ai",
+      "evaluator_relationship": null,
+      "benchmark_scores": {
+        "hfopenllm_v2/IFEval": 0.7184,
+        "hfopenllm_v2/BBH": 0.6377,
+        "hfopenllm_v2/MATH Level 5": 0.469,
+        "hfopenllm_v2/GPQA": 0.3331,
+        "hfopenllm_v2/MUSR": 0.4233,
+        "hfopenllm_v2/MMLU-PRO": 0.5035
+      }
+    },
+    {
+      "id": "arcee-ai/Virtuoso-Lite",
+      "name": "Virtuoso-Lite",
+      "developer": "arcee-ai",
+      "evaluator_relationship": null,
+      "benchmark_scores": {
+        "hfopenllm_v2/IFEval": 0.81,
+        "hfopenllm_v2/BBH": 0.6099,
+        "hfopenllm_v2/MATH Level 5": 0.253,
+        "hfopenllm_v2/GPQA": 0.344,
+        "hfopenllm_v2/MUSR": 0.4595,
+        "hfopenllm_v2/MMLU-PRO": 0.4441
+      }
+    },
+    {
+      "id": "arcee-ai/Virtuoso-Small",
+      "name": "Virtuoso-Small",
+      "developer": "arcee-ai",
+      "evaluator_relationship": null,
+      "benchmark_scores": {
+        "hfopenllm_v2/IFEval": 0.7935,
+        "hfopenllm_v2/BBH": 0.6518,
+        "hfopenllm_v2/MATH Level 5": 0.4094,
+        "hfopenllm_v2/GPQA": 0.3364,
+        "hfopenllm_v2/MUSR": 0.4339,
+        "hfopenllm_v2/MMLU-PRO": 0.5191
+      }
+    },
+    {
+      "id": "arcee-ai/Virtuoso-Small-v2",
+      "name": "Virtuoso-Small-v2",
+      "developer": "arcee-ai",
+      "evaluator_relationship": null,
+      "benchmark_scores": {
+        "hfopenllm_v2/IFEval": 0.8273,
+        "hfopenllm_v2/BBH": 0.6554,
+        "hfopenllm_v2/MATH Level 5": 0.466,
+        "hfopenllm_v2/GPQA": 0.3532,
+        "hfopenllm_v2/MUSR": 0.4313,
+        "hfopenllm_v2/MMLU-PRO": 0.5188
+      }
+    },
+    {
+      "id": "arcee-ai/raspberry-3B",
+      "name": "raspberry-3B",
+      "developer": "arcee-ai",
+      "evaluator_relationship": null,
+      "benchmark_scores": {
+        "hfopenllm_v2/IFEval": 0.3154,
+        "hfopenllm_v2/BBH": 0.4269,
+        "hfopenllm_v2/MATH Level 5": 0.1035,
+        "hfopenllm_v2/GPQA": 0.2777,
+        "hfopenllm_v2/MUSR": 0.4123,
+        "hfopenllm_v2/MMLU-PRO": 0.2854
+      }
+    }
+  ]
+}

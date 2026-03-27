@@ -1,0 +1,47 @@
+{
+  "developer": "fluently-lm",
+  "models": [
+    {
+      "id": "fluently-lm/FluentlyLM-Prinum",
+      "name": "FluentlyLM-Prinum",
+      "developer": "fluently-lm",
+      "evaluator_relationship": null,
+      "benchmark_scores": {
+        "hfopenllm_v2/IFEval": 0.809,
+        "hfopenllm_v2/BBH": 0.7144,
+        "hfopenllm_v2/MATH Level 5": 0.54,
+        "hfopenllm_v2/GPQA": 0.3867,
+        "hfopenllm_v2/MUSR": 0.4471,
+        "hfopenllm_v2/MMLU-PRO": 0.5808
+      }
+    },
+    {
+      "id": "fluently-lm/Llama-TI-8B",
+      "name": "Llama-TI-8B",
+      "developer": "fluently-lm",
+      "evaluator_relationship": null,
+      "benchmark_scores": {
+        "hfopenllm_v2/IFEval": 0.288,
+        "hfopenllm_v2/BBH": 0.5201,
+        "hfopenllm_v2/MATH Level 5": 0.1964,
+        "hfopenllm_v2/GPQA": 0.2961,
+        "hfopenllm_v2/MUSR": 0.4103,
+        "hfopenllm_v2/MMLU-PRO": 0.344
+      }
+    },
+    {
+      "id": "fluently-lm/Llama-TI-8B-Instruct",
+      "name": "Llama-TI-8B-Instruct",
+      "developer": "fluently-lm",
+      "evaluator_relationship": null,
+      "benchmark_scores": {
+        "hfopenllm_v2/IFEval": 0.7716,
+        "hfopenllm_v2/BBH": 0.5252,
+        "hfopenllm_v2/MATH Level 5": 0.2304,
+        "hfopenllm_v2/GPQA": 0.2953,
+        "hfopenllm_v2/MUSR": 0.3813,
+        "hfopenllm_v2/MMLU-PRO": 0.3726
+      }
+    }
+  ]
+}

@@ -1,0 +1,150 @@
+{
+  "developer": "unknown",
+  "models": [
+    {
+      "id": "Anthropic-LM-v4-s3-52B",
+      "name": "Anthropic-LM v4-s3 52B",
+      "developer": "unknown",
+      "evaluator_relationship": null,
+      "benchmark_scores": {
+        "helm_classic/Mean win rate": 0.78,
+        "helm_classic/MMLU": 0.481,
+        "helm_classic/BoolQ": 0.815,
+        "helm_classic/NarrativeQA": 0.728,
+        "helm_classic/NaturalQuestions (open-book)": 0.686,
+        "helm_classic/QuAC": 0.431,
+        "helm_classic/HellaSwag": 0.807,
+        "helm_classic/OpenbookQA": 0.558,
+        "helm_classic/TruthfulQA": 0.368,
+        "helm_classic/MS MARCO (TREC)": -1.0,
+        "helm_classic/CNN/DailyMail": 0.154,
+        "helm_classic/XSUM": 0.134,
+        "helm_classic/IMDB": 0.934,
+        "helm_classic/CivilComments": 0.61,
+        "helm_classic/RAFT": 0.699
+      }
+    },
+    {
+      "id": "Cohere March 2024",
+      "name": "Cohere March 2024",
+      "developer": "unknown",
+      "evaluator_relationship": null,
+      "benchmark_scores": {
+        "reward-bench/Score": 0.8511,
+        "reward-bench/Chat": 0.9469,
+        "reward-bench/Chat Hard": 0.6513,
+        "reward-bench/Safety": 0.877,
+        "reward-bench/Reasoning": 0.9817,
+        "reward-bench/Prior Sets (0.5 weight)": 0.7458
+      }
+    },
+    {
+      "id": "Cohere May 2024",
+      "name": "Cohere May 2024",
+      "developer": "unknown",
+      "evaluator_relationship": null,
+      "benchmark_scores": {
+        "reward-bench/Score": 0.8816,
+        "reward-bench/Chat": 0.9637,
+        "reward-bench/Chat Hard": 0.7127,
+        "reward-bench/Safety": 0.923,
+        "reward-bench/Reasoning": 0.9768,
+        "reward-bench/Prior Sets (0.5 weight)": 0.782
+      }
+    },
+    {
+      "id": "gemini-1.5-flash-8b",
+      "name": "gemini-1.5-flash-8b",
+      "developer": "unknown",
+      "evaluator_relationship": null,
+      "benchmark_scores": {
+        "reward-bench/Score": 0.7601,
+        "reward-bench/Chat": 0.9441,
+        "reward-bench/Chat Hard": 0.5987,
+        "reward-bench/Safety": 0.7399,
+        "reward-bench/Reasoning": 0.7575
+      }
+    },
+    {
+      "id": "unknown/aya-expanse-32b",
+      "name": "aya-expanse-32b",
+      "developer": "unknown",
+      "evaluator_relationship": null,
+      "benchmark_scores": {
+        "global-mmlu-lite/Global MMLU Lite": 0.7353,
+        "global-mmlu-lite/Culturally Sensitive": 0.6891,
+        "global-mmlu-lite/Culturally Agnostic": 0.7815,
+        "global-mmlu-lite/Arabic": 0.7425,
+        "global-mmlu-lite/English": 0.7544,
+        "global-mmlu-lite/Bengali": 0.7343,
+        "global-mmlu-lite/German": 0.7425,
+        "global-mmlu-lite/French": 0.7325,
+        "global-mmlu-lite/Hindi": 0.7375,
+        "global-mmlu-lite/Indonesian": 0.7594,
+        "global-mmlu-lite/Italian": 0.7305,
+        "global-mmlu-lite/Japanese": 0.7419,
+        "global-mmlu-lite/Korean": 0.7525,
+        "global-mmlu-lite/Portuguese": 0.7544,
+        "global-mmlu-lite/Spanish": 0.7362,
+        "global-mmlu-lite/Swahili": 0.7071,
+        "global-mmlu-lite/Yoruba": 0.6942,
+        "global-mmlu-lite/Chinese": 0.743,
+        "global-mmlu-lite/Burmese": 0.7025
+      }
+    },
+    {
+      "id": "unknown/granite-4.0-h-small",
+      "name": "granite-4.0-h-small",
+      "developer": "unknown",
+      "evaluator_relationship": null,
+      "benchmark_scores": {
+        "global-mmlu-lite/Global MMLU Lite": 0.7503,
+        "global-mmlu-lite/Culturally Sensitive": 0.7182,
+        "global-mmlu-lite/Culturally Agnostic": 0.7826,
+        "global-mmlu-lite/Arabic": 0.7613,
+        "global-mmlu-lite/English": 0.77,
+        "global-mmlu-lite/Bengali": 0.7613,
+        "global-mmlu-lite/German": 0.755,
+        "global-mmlu-lite/French": 0.7594,
+        "global-mmlu-lite/Hindi": 0.7575,
+        "global-mmlu-lite/Indonesian": 0.7614,
+        "global-mmlu-lite/Italian": 0.7525,
+        "global-mmlu-lite/Japanese": 0.7406,
+        "global-mmlu-lite/Korean": 0.7525,
+        "global-mmlu-lite/Portuguese": 0.757,
+        "global-mmlu-lite/Spanish": 0.7638,
+        "global-mmlu-lite/Swahili": 0.7318,
+        "global-mmlu-lite/Yoruba": 0.6921,
+        "global-mmlu-lite/Chinese": 0.7475,
+        "global-mmlu-lite/Burmese": 0.7419
+      }
+    },
+    {
+      "id": "unknown/o4-mini-2025-04-16",
+      "name": "o4-mini-2025-04-16",
+      "developer": "unknown",
+      "evaluator_relationship": null,
+      "benchmark_scores": {
+        "global-mmlu-lite/Global MMLU Lite": 0.8705,
+        "global-mmlu-lite/Culturally Sensitive": 0.8503,
+        "global-mmlu-lite/Culturally Agnostic": 0.8906,
+        "global-mmlu-lite/Arabic": 0.865,
+        "global-mmlu-lite/English": 0.8675,
+        "global-mmlu-lite/Bengali": 0.8875,
+        "global-mmlu-lite/German": 0.8775,
+        "global-mmlu-lite/French": 0.87,
+        "global-mmlu-lite/Hindi": 0.87,
+        "global-mmlu-lite/Indonesian": 0.8675,
+        "global-mmlu-lite/Italian": 0.855,
+        "global-mmlu-lite/Japanese": 0.885,
+        "global-mmlu-lite/Korean": 0.88,
+        "global-mmlu-lite/Portuguese": 0.88,
+        "global-mmlu-lite/Spanish": 0.855,
+        "global-mmlu-lite/Swahili": 0.8525,
+        "global-mmlu-lite/Yoruba": 0.8525,
+        "global-mmlu-lite/Chinese": 0.89,
+        "global-mmlu-lite/Burmese": 0.8725
+      }
+    }
+  ]
+}

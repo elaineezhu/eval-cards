@@ -1,0 +1,33 @@
+{
+  "developer": "Sorawiz",
+  "models": [
+    {
+      "id": "Sorawiz/Gemma-9B-Base",
+      "name": "Gemma-9B-Base",
+      "developer": "Sorawiz",
+      "evaluator_relationship": null,
+      "benchmark_scores": {
+        "hfopenllm_v2/IFEval": 0.1667,
+        "hfopenllm_v2/BBH": 0.593,
+        "hfopenllm_v2/MATH Level 5": 0.0982,
+        "hfopenllm_v2/GPQA": 0.3398,
+        "hfopenllm_v2/MUSR": 0.4045,
+        "hfopenllm_v2/MMLU-PRO": 0.4235
+      }
+    },
+    {
+      "id": "Sorawiz/Gemma-Creative-9B-Base",
+      "name": "Gemma-Creative-9B-Base",
+      "developer": "Sorawiz",
+      "evaluator_relationship": null,
+      "benchmark_scores": {
+        "hfopenllm_v2/IFEval": 0.1515,
+        "hfopenllm_v2/BBH": 0.5459,
+        "hfopenllm_v2/MATH Level 5": 0.0778,
+        "hfopenllm_v2/GPQA": 0.3297,
+        "hfopenllm_v2/MUSR": 0.4019,
+        "hfopenllm_v2/MMLU-PRO": 0.4008
+      }
+    }
+  ]
+}

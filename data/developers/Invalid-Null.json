@@ -1,0 +1,33 @@
+{
+  "developer": "Invalid-Null",
+  "models": [
+    {
+      "id": "Invalid-Null/PeiYangMe-0.5",
+      "name": "PeiYangMe-0.5",
+      "developer": "Invalid-Null",
+      "evaluator_relationship": null,
+      "benchmark_scores": {
+        "hfopenllm_v2/IFEval": 0.1409,
+        "hfopenllm_v2/BBH": 0.2791,
+        "hfopenllm_v2/MATH Level 5": 0.0,
+        "hfopenllm_v2/GPQA": 0.2441,
+        "hfopenllm_v2/MUSR": 0.3738,
+        "hfopenllm_v2/MMLU-PRO": 0.1109
+      }
+    },
+    {
+      "id": "Invalid-Null/PeiYangMe-0.7",
+      "name": "PeiYangMe-0.7",
+      "developer": "Invalid-Null",
+      "evaluator_relationship": null,
+      "benchmark_scores": {
+        "hfopenllm_v2/IFEval": 0.1491,
+        "hfopenllm_v2/BBH": 0.3028,
+        "hfopenllm_v2/MATH Level 5": 0.0113,
+        "hfopenllm_v2/GPQA": 0.2332,
+        "hfopenllm_v2/MUSR": 0.3857,
+        "hfopenllm_v2/MMLU-PRO": 0.1101
+      }
+    }
+  ]
+}

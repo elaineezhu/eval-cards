@@ -1,0 +1,75 @@
+{
+  "developer": "MultivexAI",
+  "models": [
+    {
+      "id": "MultivexAI/Gladiator-Mini-Exp-1211-3B",
+      "name": "Gladiator-Mini-Exp-1211-3B",
+      "developer": "MultivexAI",
+      "evaluator_relationship": null,
+      "benchmark_scores": {
+        "hfopenllm_v2/IFEval": 0.6876,
+        "hfopenllm_v2/BBH": 0.4484,
+        "hfopenllm_v2/MATH Level 5": 0.1375,
+        "hfopenllm_v2/GPQA": 0.2727,
+        "hfopenllm_v2/MUSR": 0.326,
+        "hfopenllm_v2/MMLU-PRO": 0.3152
+      }
+    },
+    {
+      "id": "MultivexAI/Gladiator-Mini-Exp-1221-3B-Instruct",
+      "name": "Gladiator-Mini-Exp-1221-3B-Instruct",
+      "developer": "MultivexAI",
+      "evaluator_relationship": null,
+      "benchmark_scores": {
+        "hfopenllm_v2/IFEval": 0.6079,
+        "hfopenllm_v2/BBH": 0.437,
+        "hfopenllm_v2/MATH Level 5": 0.1352,
+        "hfopenllm_v2/GPQA": 0.2634,
+        "hfopenllm_v2/MUSR": 0.3115,
+        "hfopenllm_v2/MMLU-PRO": 0.3049
+      }
+    },
+    {
+      "id": "MultivexAI/Gladiator-Mini-Exp-1221-3B-Instruct-V2",
+      "name": "Gladiator-Mini-Exp-1221-3B-Instruct-V2",
+      "developer": "MultivexAI",
+      "evaluator_relationship": null,
+      "benchmark_scores": {
+        "hfopenllm_v2/IFEval": 0.6215,
+        "hfopenllm_v2/BBH": 0.4389,
+        "hfopenllm_v2/MATH Level 5": 0.1412,
+        "hfopenllm_v2/GPQA": 0.2634,
+        "hfopenllm_v2/MUSR": 0.3008,
+        "hfopenllm_v2/MMLU-PRO": 0.3025
+      }
+    },
+    {
+      "id": "MultivexAI/Gladiator-Mini-Exp-1222-3B-Instruct",
+      "name": "Gladiator-Mini-Exp-1222-3B-Instruct",
+      "developer": "MultivexAI",
+      "evaluator_relationship": null,
+      "benchmark_scores": {
+        "hfopenllm_v2/IFEval": 0.6163,
+        "hfopenllm_v2/BBH": 0.4373,
+        "hfopenllm_v2/MATH Level 5": 0.1412,
+        "hfopenllm_v2/GPQA": 0.2634,
+        "hfopenllm_v2/MUSR": 0.3128,
+        "hfopenllm_v2/MMLU-PRO": 0.3017
+      }
+    },
+    {
+      "id": "MultivexAI/Phi-3.5-Mini-Instruct-MultiVex-v0.25-GGUF",
+      "name": "Phi-3.5-Mini-Instruct-MultiVex-v0.25-GGUF",
+      "developer": "MultivexAI",
+      "evaluator_relationship": null,
+      "benchmark_scores": {
+        "hfopenllm_v2/IFEval": 0.144,
+        "hfopenllm_v2/BBH": 0.2908,
+        "hfopenllm_v2/MATH Level 5": 0.006,
+        "hfopenllm_v2/GPQA": 0.255,
+        "hfopenllm_v2/MUSR": 0.3642,
+        "hfopenllm_v2/MMLU-PRO": 0.1109
+      }
+    }
+  ]
+}

@@ -1,0 +1,33 @@
+{
+  "developer": "saltlux",
+  "models": [
+    {
+      "id": "saltlux/luxia-21.4b-alignment-v1.0",
+      "name": "luxia-21.4b-alignment-v1.0",
+      "developer": "saltlux",
+      "evaluator_relationship": null,
+      "benchmark_scores": {
+        "hfopenllm_v2/IFEval": 0.3693,
+        "hfopenllm_v2/BBH": 0.6373,
+        "hfopenllm_v2/MATH Level 5": 0.0974,
+        "hfopenllm_v2/GPQA": 0.3012,
+        "hfopenllm_v2/MUSR": 0.4328,
+        "hfopenllm_v2/MMLU-PRO": 0.3403
+      }
+    },
+    {
+      "id": "saltlux/luxia-21.4b-alignment-v1.2",
+      "name": "luxia-21.4b-alignment-v1.2",
+      "developer": "saltlux",
+      "evaluator_relationship": null,
+      "benchmark_scores": {
+        "hfopenllm_v2/IFEval": 0.4115,
+        "hfopenllm_v2/BBH": 0.6371,
+        "hfopenllm_v2/MATH Level 5": 0.0846,
+        "hfopenllm_v2/GPQA": 0.3079,
+        "hfopenllm_v2/MUSR": 0.4459,
+        "hfopenllm_v2/MMLU-PRO": 0.3473
+      }
+    }
+  ]
+}

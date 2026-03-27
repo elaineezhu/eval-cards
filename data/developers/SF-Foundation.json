@@ -1,0 +1,31 @@
+{
+  "developer": "SF-Foundation",
+  "models": [
+    {
+      "id": "SF-Foundation/TextEval-Llama3.1-70B",
+      "name": "SF-Foundation/TextEval-Llama3.1-70B",
+      "developer": "SF-Foundation",
+      "evaluator_relationship": null,
+      "benchmark_scores": {
+        "reward-bench/Score": 0.9348,
+        "reward-bench/Chat": 0.9413,
+        "reward-bench/Chat Hard": 0.9013,
+        "reward-bench/Safety": 0.9324,
+        "reward-bench/Reasoning": 0.9641
+      }
+    },
+    {
+      "id": "SF-Foundation/TextEval-OffsetBias-12B",
+      "name": "SF-Foundation/TextEval-OffsetBias-12B",
+      "developer": "SF-Foundation",
+      "evaluator_relationship": null,
+      "benchmark_scores": {
+        "reward-bench/Score": 0.9105,
+        "reward-bench/Chat": 0.919,
+        "reward-bench/Chat Hard": 0.8662,
+        "reward-bench/Safety": 0.9203,
+        "reward-bench/Reasoning": 0.9365
+      }
+    }
+  ]
+}

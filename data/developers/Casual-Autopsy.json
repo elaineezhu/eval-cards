@@ -1,0 +1,19 @@
+{
+  "developer": "Casual-Autopsy",
+  "models": [
+    {
+      "id": "Casual-Autopsy/L3-Umbral-Mind-RP-v2.0-8B",
+      "name": "L3-Umbral-Mind-RP-v2.0-8B",
+      "developer": "Casual-Autopsy",
+      "evaluator_relationship": null,
+      "benchmark_scores": {
+        "hfopenllm_v2/IFEval": 0.7123,
+        "hfopenllm_v2/BBH": 0.5262,
+        "hfopenllm_v2/MATH Level 5": 0.1095,
+        "hfopenllm_v2/GPQA": 0.2869,
+        "hfopenllm_v2/MUSR": 0.3687,
+        "hfopenllm_v2/MMLU-PRO": 0.3723
+      }
+    }
+  ]
+}

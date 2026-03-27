@@ -1,0 +1,19 @@
+{
+  "developer": "Shreyash2010",
+  "models": [
+    {
+      "id": "Shreyash2010/Uma-4x4B-Instruct-v0.1",
+      "name": "Uma-4x4B-Instruct-v0.1",
+      "developer": "Shreyash2010",
+      "evaluator_relationship": null,
+      "benchmark_scores": {
+        "hfopenllm_v2/IFEval": 0.5517,
+        "hfopenllm_v2/BBH": 0.5512,
+        "hfopenllm_v2/MATH Level 5": 0.1775,
+        "hfopenllm_v2/GPQA": 0.3347,
+        "hfopenllm_v2/MUSR": 0.4441,
+        "hfopenllm_v2/MMLU-PRO": 0.387
+      }
+    }
+  ]
+}

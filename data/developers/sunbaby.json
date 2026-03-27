@@ -1,0 +1,19 @@
+{
+  "developer": "sunbaby",
+  "models": [
+    {
+      "id": "sunbaby/BrainCog-8B-0.1-Instruct",
+      "name": "BrainCog-8B-0.1-Instruct",
+      "developer": "sunbaby",
+      "evaluator_relationship": null,
+      "benchmark_scores": {
+        "hfopenllm_v2/IFEval": 0.4253,
+        "hfopenllm_v2/BBH": 0.4618,
+        "hfopenllm_v2/MATH Level 5": 0.0967,
+        "hfopenllm_v2/GPQA": 0.3012,
+        "hfopenllm_v2/MUSR": 0.3656,
+        "hfopenllm_v2/MMLU-PRO": 0.2858
+      }
+    }
+  ]
+}

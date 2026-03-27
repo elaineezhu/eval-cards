@@ -1,0 +1,531 @@
+{
+  "model_info": {
+    "name": "Gemini 3 Pro",
+    "id": "google/gemini-3-pro",
+    "developer": "Google",
+    "additional_details": {
+      "agent_name": "SageAgent",
+      "agent_organization": "OpenSage"
+    }
+  },
+  "evaluations": [
+    {
+      "evaluation_id": "terminal-bench-2.0/letta-code__gemini-3-pro/1773776901.772108",
+      "retrieved_timestamp": "1773776901.772108",
+      "source_metadata": {
+        "source_name": "Terminal-Bench 2.0",
+        "source_type": "documentation",
+        "source_organization_name": "Terminal-Bench",
+        "source_organization_url": "https://www.tbench.ai",
+        "evaluator_relationship": "third_party"
+      },
+      "eval_library": {
+        "name": "harbor",
+        "version": "unknown"
+      },
+      "benchmark": "terminal-bench-2.0",
+      "evaluation_results": [
+        {
+          "evaluation_name": "terminal-bench-2.0",
+          "source_data": {
+            "dataset_name": "terminal-bench-2.0",
+            "source_type": "url",
+            "url": [
+              "https://www.tbench.ai/leaderboard/terminal-bench/2.0"
+            ]
+          },
+          "evaluation_timestamp": "2025-12-17",
+          "metric_config": {
+            "evaluation_description": "Task resolution accuracy across 87 terminal tasks with 5 trials each",
+            "lower_is_better": false,
+            "score_type": "continuous",
+            "min_score": 0.0,
+            "max_score": 100.0
+          },
+          "score_details": {
+            "score": 56.0,
+            "uncertainty": {
+              "standard_error": {
+                "value": 3.0
+              },
+              "num_samples": 435
+            }
+          },
+          "generation_config": {
+            "generation_args": {
+              "execution_command": "harbor run -d terminal-bench@2.0 -a \"Letta Code\" -m \"Gemini 3 Pro\" -k 5",
+              "agentic_eval_config": {
+                "available_tools": [
+                  {
+                    "name": "terminal",
+                    "description": "Full terminal/shell access"
+                  }
+                ]
+              },
+              "max_attempts": 1
+            }
+          }
+        }
+      ],
+      "detailed_evaluation_results": null,
+      "generation_config": {
+        "generation_args": {
+          "execution_command": "harbor run -d terminal-bench@2.0 -a \"Letta Code\" -m \"Gemini 3 Pro\" -k 5",
+          "agentic_eval_config": {
+            "available_tools": [
+              {
+                "name": "terminal",
+                "description": "Full terminal/shell access"
+              }
+            ]
+          },
+          "max_attempts": 1
+        }
+      }
+    },
+    {
+      "evaluation_id": "terminal-bench-2.0/terminus-2__gemini-3-pro/1773776901.772108",
+      "retrieved_timestamp": "1773776901.772108",
+      "source_metadata": {
+        "source_name": "Terminal-Bench 2.0",
+        "source_type": "documentation",
+        "source_organization_name": "Terminal-Bench",
+        "source_organization_url": "https://www.tbench.ai",
+        "evaluator_relationship": "third_party"
+      },
+      "eval_library": {
+        "name": "harbor",
+        "version": "unknown"
+      },
+      "benchmark": "terminal-bench-2.0",
+      "evaluation_results": [
+        {
+          "evaluation_name": "terminal-bench-2.0",
+          "source_data": {
+            "dataset_name": "terminal-bench-2.0",
+            "source_type": "url",
+            "url": [
+              "https://www.tbench.ai/leaderboard/terminal-bench/2.0"
+            ]
+          },
+          "evaluation_timestamp": "2025-11-21",
+          "metric_config": {
+            "evaluation_description": "Task resolution accuracy across 87 terminal tasks with 5 trials each",
+            "lower_is_better": false,
+            "score_type": "continuous",
+            "min_score": 0.0,
+            "max_score": 100.0
+          },
+          "score_details": {
+            "score": 56.9,
+            "uncertainty": {
+              "standard_error": {
+                "value": 2.5
+              },
+              "num_samples": 435
+            }
+          },
+          "generation_config": {
+            "generation_args": {
+              "execution_command": "harbor run -d terminal-bench@2.0 -a \"Terminus 2\" -m \"Gemini 3 Pro\" -k 5",
+              "agentic_eval_config": {
+                "available_tools": [
+                  {
+                    "name": "terminal",
+                    "description": "Full terminal/shell access"
+                  }
+                ]
+              },
+              "max_attempts": 1
+            }
+          }
+        }
+      ],
+      "detailed_evaluation_results": null,
+      "generation_config": {
+        "generation_args": {
+          "execution_command": "harbor run -d terminal-bench@2.0 -a \"Terminus 2\" -m \"Gemini 3 Pro\" -k 5",
+          "agentic_eval_config": {
+            "available_tools": [
+              {
+                "name": "terminal",
+                "description": "Full terminal/shell access"
+              }
+            ]
+          },
+          "max_attempts": 1
+        }
+      }
+    },
+    {
+      "evaluation_id": "terminal-bench-2.0/ante__gemini-3-pro/1773776901.772108",
+      "retrieved_timestamp": "1773776901.772108",
+      "source_metadata": {
+        "source_name": "Terminal-Bench 2.0",
+        "source_type": "documentation",
+        "source_organization_name": "Terminal-Bench",
+        "source_organization_url": "https://www.tbench.ai",
+        "evaluator_relationship": "third_party"
+      },
+      "eval_library": {
+        "name": "harbor",
+        "version": "unknown"
+      },
+      "benchmark": "terminal-bench-2.0",
+      "evaluation_results": [
+        {
+          "evaluation_name": "terminal-bench-2.0",
+          "source_data": {
+            "dataset_name": "terminal-bench-2.0",
+            "source_type": "url",
+            "url": [
+              "https://www.tbench.ai/leaderboard/terminal-bench/2.0"
+            ]
+          },
+          "evaluation_timestamp": "2026-01-06",
+          "metric_config": {
+            "evaluation_description": "Task resolution accuracy across 87 terminal tasks with 5 trials each",
+            "lower_is_better": false,
+            "score_type": "continuous",
+            "min_score": 0.0,
+            "max_score": 100.0
+          },
+          "score_details": {
+            "score": 69.4,
+            "uncertainty": {
+              "standard_error": {
+                "value": 2.1
+              },
+              "num_samples": 435
+            }
+          },
+          "generation_config": {
+            "generation_args": {
+              "execution_command": "harbor run -d terminal-bench@2.0 -a \"Ante\" -m \"Gemini 3 Pro\" -k 5",
+              "agentic_eval_config": {
+                "available_tools": [
+                  {
+                    "name": "terminal",
+                    "description": "Full terminal/shell access"
+                  }
+                ]
+              },
+              "max_attempts": 1
+            }
+          }
+        }
+      ],
+      "detailed_evaluation_results": null,
+      "generation_config": {
+        "generation_args": {
+          "execution_command": "harbor run -d terminal-bench@2.0 -a \"Ante\" -m \"Gemini 3 Pro\" -k 5",
+          "agentic_eval_config": {
+            "available_tools": [
+              {
+                "name": "terminal",
+                "description": "Full terminal/shell access"
+              }
+            ]
+          },
+          "max_attempts": 1
+        }
+      }
+    },
+    {
+      "evaluation_id": "terminal-bench-2.0/codebrain-1__gemini-3-pro/1773776901.772108",
+      "retrieved_timestamp": "1773776901.772108",
+      "source_metadata": {
+        "source_name": "Terminal-Bench 2.0",
+        "source_type": "documentation",
+        "source_organization_name": "Terminal-Bench",
+        "source_organization_url": "https://www.tbench.ai",
+        "evaluator_relationship": "third_party"
+      },
+      "eval_library": {
+        "name": "harbor",
+        "version": "unknown"
+      },
+      "benchmark": "terminal-bench-2.0",
+      "evaluation_results": [
+        {
+          "evaluation_name": "terminal-bench-2.0",
+          "source_data": {
+            "dataset_name": "terminal-bench-2.0",
+            "source_type": "url",
+            "url": [
+              "https://www.tbench.ai/leaderboard/terminal-bench/2.0"
+            ]
+          },
+          "evaluation_timestamp": "2026-02-05",
+          "metric_config": {
+            "evaluation_description": "Task resolution accuracy across 87 terminal tasks with 5 trials each",
+            "lower_is_better": false,
+            "score_type": "continuous",
+            "min_score": 0.0,
+            "max_score": 100.0
+          },
+          "score_details": {
+            "score": 62.2,
+            "uncertainty": {
+              "standard_error": {
+                "value": 2.6
+              },
+              "num_samples": 435
+            }
+          },
+          "generation_config": {
+            "generation_args": {
+              "execution_command": "harbor run -d terminal-bench@2.0 -a \"CodeBrain-1\" -m \"Gemini 3 Pro\" -k 5",
+              "agentic_eval_config": {
+                "available_tools": [
+                  {
+                    "name": "terminal",
+                    "description": "Full terminal/shell access"
+                  }
+                ]
+              },
+              "max_attempts": 1
+            }
+          }
+        }
+      ],
+      "detailed_evaluation_results": null,
+      "generation_config": {
+        "generation_args": {
+          "execution_command": "harbor run -d terminal-bench@2.0 -a \"CodeBrain-1\" -m \"Gemini 3 Pro\" -k 5",
+          "agentic_eval_config": {
+            "available_tools": [
+              {
+                "name": "terminal",
+                "description": "Full terminal/shell access"
+              }
+            ]
+          },
+          "max_attempts": 1
+        }
+      }
+    },
+    {
+      "evaluation_id": "terminal-bench-2.0/ii-agent__gemini-3-pro/1773776901.772108",
+      "retrieved_timestamp": "1773776901.772108",
+      "source_metadata": {
+        "source_name": "Terminal-Bench 2.0",
+        "source_type": "documentation",
+        "source_organization_name": "Terminal-Bench",
+        "source_organization_url": "https://www.tbench.ai",
+        "evaluator_relationship": "third_party"
+      },
+      "eval_library": {
+        "name": "harbor",
+        "version": "unknown"
+      },
+      "benchmark": "terminal-bench-2.0",
+      "evaluation_results": [
+        {
+          "evaluation_name": "terminal-bench-2.0",
+          "source_data": {
+            "dataset_name": "terminal-bench-2.0",
+            "source_type": "url",
+            "url": [
+              "https://www.tbench.ai/leaderboard/terminal-bench/2.0"
+            ]
+          },
+          "evaluation_timestamp": "2025-12-23",
+          "metric_config": {
+            "evaluation_description": "Task resolution accuracy across 87 terminal tasks with 5 trials each",
+            "lower_is_better": false,
+            "score_type": "continuous",
+            "min_score": 0.0,
+            "max_score": 100.0
+          },
+          "score_details": {
+            "score": 61.8,
+            "uncertainty": {
+              "standard_error": {
+                "value": 2.8
+              },
+              "num_samples": 435
+            }
+          },
+          "generation_config": {
+            "generation_args": {
+              "execution_command": "harbor run -d terminal-bench@2.0 -a \"II-Agent\" -m \"Gemini 3 Pro\" -k 5",
+              "agentic_eval_config": {
+                "available_tools": [
+                  {
+                    "name": "terminal",
+                    "description": "Full terminal/shell access"
+                  }
+                ]
+              },
+              "max_attempts": 1
+            }
+          }
+        }
+      ],
+      "detailed_evaluation_results": null,
+      "generation_config": {
+        "generation_args": {
+          "execution_command": "harbor run -d terminal-bench@2.0 -a \"II-Agent\" -m \"Gemini 3 Pro\" -k 5",
+          "agentic_eval_config": {
+            "available_tools": [
+              {
+                "name": "terminal",
+                "description": "Full terminal/shell access"
+              }
+            ]
+          },
+          "max_attempts": 1
+        }
+      }
+    },
+    {
+      "evaluation_id": "terminal-bench-2.0/droid__gemini-3-pro/1773776901.772108",
+      "retrieved_timestamp": "1773776901.772108",
+      "source_metadata": {
+        "source_name": "Terminal-Bench 2.0",
+        "source_type": "documentation",
+        "source_organization_name": "Terminal-Bench",
+        "source_organization_url": "https://www.tbench.ai",
+        "evaluator_relationship": "third_party"
+      },
+      "eval_library": {
+        "name": "harbor",
+        "version": "unknown"
+      },
+      "benchmark": "terminal-bench-2.0",
+      "evaluation_results": [
+        {
+          "evaluation_name": "terminal-bench-2.0",
+          "source_data": {
+            "dataset_name": "terminal-bench-2.0",
+            "source_type": "url",
+            "url": [
+              "https://www.tbench.ai/leaderboard/terminal-bench/2.0"
+            ]
+          },
+          "evaluation_timestamp": "2025-12-24",
+          "metric_config": {
+            "evaluation_description": "Task resolution accuracy across 87 terminal tasks with 5 trials each",
+            "lower_is_better": false,
+            "score_type": "continuous",
+            "min_score": 0.0,
+            "max_score": 100.0
+          },
+          "score_details": {
+            "score": 61.1,
+            "uncertainty": {
+              "standard_error": {
+                "value": 2.8
+              },
+              "num_samples": 435
+            }
+          },
+          "generation_config": {
+            "generation_args": {
+              "execution_command": "harbor run -d terminal-bench@2.0 -a \"Droid\" -m \"Gemini 3 Pro\" -k 5",
+              "agentic_eval_config": {
+                "available_tools": [
+                  {
+                    "name": "terminal",
+                    "description": "Full terminal/shell access"
+                  }
+                ]
+              },
+              "max_attempts": 1
+            }
+          }
+        }
+      ],
+      "detailed_evaluation_results": null,
+      "generation_config": {
+        "generation_args": {
+          "execution_command": "harbor run -d terminal-bench@2.0 -a \"Droid\" -m \"Gemini 3 Pro\" -k 5",
+          "agentic_eval_config": {
+            "available_tools": [
+              {
+                "name": "terminal",
+                "description": "Full terminal/shell access"
+              }
+            ]
+          },
+          "max_attempts": 1
+        }
+      }
+    },
+    {
+      "evaluation_id": "terminal-bench-2.0/sageagent__gemini-3-pro/1773776901.772108",
+      "retrieved_timestamp": "1773776901.772108",
+      "source_metadata": {
+        "source_name": "Terminal-Bench 2.0",
+        "source_type": "documentation",
+        "source_organization_name": "Terminal-Bench",
+        "source_organization_url": "https://www.tbench.ai",
+        "evaluator_relationship": "third_party"
+      },
+      "eval_library": {
+        "name": "harbor",
+        "version": "unknown"
+      },
+      "benchmark": "terminal-bench-2.0",
+      "evaluation_results": [
+        {
+          "evaluation_name": "terminal-bench-2.0",
+          "source_data": {
+            "dataset_name": "terminal-bench-2.0",
+            "source_type": "url",
+            "url": [
+              "https://www.tbench.ai/leaderboard/terminal-bench/2.0"
+            ]
+          },
+          "evaluation_timestamp": "2026-02-23",
+          "metric_config": {
+            "evaluation_description": "Task resolution accuracy across 87 terminal tasks with 5 trials each",
+            "lower_is_better": false,
+            "score_type": "continuous",
+            "min_score": 0.0,
+            "max_score": 100.0
+          },
+          "score_details": {
+            "score": 65.2,
+            "uncertainty": {
+              "standard_error": {
+                "value": 2.1
+              },
+              "num_samples": 435
+            }
+          },
+          "generation_config": {
+            "generation_args": {
+              "execution_command": "harbor run -d terminal-bench@2.0 -a \"SageAgent\" -m \"Gemini 3 Pro\" -k 5",
+              "agentic_eval_config": {
+                "available_tools": [
+                  {
+                    "name": "terminal",
+                    "description": "Full terminal/shell access"
+                  }
+                ]
+              },
+              "max_attempts": 1
+            }
+          }
+        }
+      ],
+      "detailed_evaluation_results": null,
+      "generation_config": {
+        "generation_args": {
+          "execution_command": "harbor run -d terminal-bench@2.0 -a \"SageAgent\" -m \"Gemini 3 Pro\" -k 5",
+          "agentic_eval_config": {
+            "available_tools": [
+              {
+                "name": "terminal",
+                "description": "Full terminal/shell access"
+              }
+            ]
+          },
+          "max_attempts": 1
+        }
+      }
+    }
+  ]
+}

@@ -1,0 +1,133 @@
+{
+  "model_info": {
+    "name": "GPT 5.2 Pro",
+    "developer": "openai",
+    "id": "openai/GPT 5.2 Pro",
+    "inference_platform": "unknown"
+  },
+  "evaluations": [
+    {
+      "evaluation_id": "apex-v1/openai_gpt-5.2-pro/1773260200",
+      "retrieved_timestamp": "1773260200",
+      "source_metadata": {
+        "source_name": "Mercor APEX-v1 Leaderboard",
+        "source_type": "evaluation_run",
+        "source_organization_name": "Mercor",
+        "source_organization_url": "https://www.mercor.com",
+        "evaluator_relationship": "first_party"
+      },
+      "eval_library": {
+        "name": "archipelago",
+        "version": "1.0.0"
+      },
+      "benchmark": "apex-v1",
+      "evaluation_results": [
+        {
+          "evaluation_name": "Overall Score",
+          "source_data": {
+            "dataset_name": "apex-v1",
+            "source_type": "hf_dataset",
+            "hf_repo": "Mercor/APEX-v1"
+          },
+          "metric_config": {
+            "evaluation_description": "Overall APEX-v1 mean score across all jobs.",
+            "lower_is_better": false,
+            "score_type": "continuous",
+            "min_score": 0,
+            "max_score": 1
+          },
+          "score_details": {
+            "score": 0.668,
+            "uncertainty": {
+              "confidence_interval": {
+                "lower": -0.026,
+                "upper": 0.026,
+                "method": "bootstrap"
+              }
+            }
+          },
+          "generation_config": {
+            "additional_details": {
+              "run_setting": "High"
+            }
+          }
+        },
+        {
+          "evaluation_name": "Consulting Score",
+          "source_data": {
+            "dataset_name": "apex-v1",
+            "source_type": "hf_dataset",
+            "hf_repo": "Mercor/APEX-v1"
+          },
+          "metric_config": {
+            "evaluation_description": "Management consulting score.",
+            "lower_is_better": false,
+            "score_type": "continuous",
+            "min_score": 0,
+            "max_score": 1
+          },
+          "score_details": {
+            "score": 0.64
+          },
+          "generation_config": {
+            "additional_details": {
+              "run_setting": "High"
+            }
+          }
+        },
+        {
+          "evaluation_name": "Medicine (MD) Score",
+          "source_data": {
+            "dataset_name": "apex-v1",
+            "source_type": "hf_dataset",
+            "hf_repo": "Mercor/APEX-v1"
+          },
+          "metric_config": {
+            "evaluation_description": "Primary care physician (MD) score.",
+            "lower_is_better": false,
+            "score_type": "continuous",
+            "min_score": 0,
+            "max_score": 1
+          },
+          "score_details": {
+            "score": 0.65
+          },
+          "generation_config": {
+            "additional_details": {
+              "run_setting": "High"
+            }
+          }
+        },
+        {
+          "evaluation_name": "Investment Banking Score",
+          "source_data": {
+            "dataset_name": "apex-v1",
+            "source_type": "hf_dataset",
+            "hf_repo": "Mercor/APEX-v1"
+          },
+          "metric_config": {
+            "evaluation_description": "Investment banking associate score.",
+            "lower_is_better": false,
+            "score_type": "continuous",
+            "min_score": 0,
+            "max_score": 1
+          },
+          "score_details": {
+            "score": 0.64
+          },
+          "generation_config": {
+            "additional_details": {
+              "run_setting": "High"
+            }
+          }
+        }
+      ],
+      "detailed_evaluation_results": null,
+      "generation_config": {
+        "additional_details": {
+          "run_setting": "High"
+        }
+      }
+    }
+  ]
+}

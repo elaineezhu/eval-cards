@@ -1,0 +1,19 @@
+{
+  "developer": "UKzExecution",
+  "models": [
+    {
+      "id": "UKzExecution/LlamaExecutor-8B-3.0.5",
+      "name": "LlamaExecutor-8B-3.0.5",
+      "developer": "UKzExecution",
+      "evaluator_relationship": null,
+      "benchmark_scores": {
+        "hfopenllm_v2/IFEval": 0.7403,
+        "hfopenllm_v2/BBH": 0.5006,
+        "hfopenllm_v2/MATH Level 5": 0.102,
+        "hfopenllm_v2/GPQA": 0.2559,
+        "hfopenllm_v2/MUSR": 0.3754,
+        "hfopenllm_v2/MMLU-PRO": 0.3625
+      }
+    }
+  ]
+}

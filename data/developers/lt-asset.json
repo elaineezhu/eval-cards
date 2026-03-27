@@ -1,0 +1,19 @@
+{
+  "developer": "lt-asset",
+  "models": [
+    {
+      "id": "lt-asset/nova-1.3b",
+      "name": "nova-1.3b",
+      "developer": "lt-asset",
+      "evaluator_relationship": null,
+      "benchmark_scores": {
+        "hfopenllm_v2/IFEval": 0.1214,
+        "hfopenllm_v2/BBH": 0.317,
+        "hfopenllm_v2/MATH Level 5": 0.0121,
+        "hfopenllm_v2/GPQA": 0.2492,
+        "hfopenllm_v2/MUSR": 0.3698,
+        "hfopenllm_v2/MMLU-PRO": 0.1142
+      }
+    }
+  ]
+}

@@ -1,0 +1,19 @@
+{
+  "developer": "viettelsecurity-ai",
+  "models": [
+    {
+      "id": "viettelsecurity-ai/security-llama3.2-3b",
+      "name": "security-llama3.2-3b",
+      "developer": "viettelsecurity-ai",
+      "evaluator_relationship": null,
+      "benchmark_scores": {
+        "hfopenllm_v2/IFEval": 0.5909,
+        "hfopenllm_v2/BBH": 0.4401,
+        "hfopenllm_v2/MATH Level 5": 0.1261,
+        "hfopenllm_v2/GPQA": 0.2743,
+        "hfopenllm_v2/MUSR": 0.3379,
+        "hfopenllm_v2/MMLU-PRO": 0.2837
+      }
+    }
+  ]
+}

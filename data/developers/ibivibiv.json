@@ -1,0 +1,33 @@
+{
+  "developer": "ibivibiv",
+  "models": [
+    {
+      "id": "ibivibiv/colossus_120b",
+      "name": "colossus_120b",
+      "developer": "ibivibiv",
+      "evaluator_relationship": null,
+      "benchmark_scores": {
+        "hfopenllm_v2/IFEval": 0.4276,
+        "hfopenllm_v2/BBH": 0.6061,
+        "hfopenllm_v2/MATH Level 5": 0.0566,
+        "hfopenllm_v2/GPQA": 0.3087,
+        "hfopenllm_v2/MUSR": 0.4733,
+        "hfopenllm_v2/MMLU-PRO": 0.3961
+      }
+    },
+    {
+      "id": "ibivibiv/multimaster-7b-v6",
+      "name": "multimaster-7b-v6",
+      "developer": "ibivibiv",
+      "evaluator_relationship": null,
+      "benchmark_scores": {
+        "hfopenllm_v2/IFEval": 0.4473,
+        "hfopenllm_v2/BBH": 0.5194,
+        "hfopenllm_v2/MATH Level 5": 0.0559,
+        "hfopenllm_v2/GPQA": 0.3037,
+        "hfopenllm_v2/MUSR": 0.4396,
+        "hfopenllm_v2/MMLU-PRO": 0.3095
+      }
+    }
+  ]
+}

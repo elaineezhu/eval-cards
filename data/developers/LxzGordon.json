@@ -1,0 +1,36 @@
+{
+  "developer": "LxzGordon",
+  "models": [
+    {
+      "id": "LxzGordon/URM-LLaMa-3-8B",
+      "name": "LxzGordon/URM-LLaMa-3-8B",
+      "developer": "LxzGordon",
+      "evaluator_relationship": null,
+      "benchmark_scores": {
+        "reward-bench/Score": 0.8991,
+        "reward-bench/Chat": 0.9693,
+        "reward-bench/Chat Hard": 0.7873,
+        "reward-bench/Safety": 0.8824,
+        "reward-bench/Reasoning": 0.9574
+      }
+    },
+    {
+      "id": "LxzGordon/URM-LLaMa-3.1-8B",
+      "name": "LxzGordon/URM-LLaMa-3.1-8B",
+      "developer": "LxzGordon",
+      "evaluator_relationship": null,
+      "benchmark_scores": {
+        "reward-bench/Score": 0.7394,
+        "reward-bench/Chat": 0.9553,
+        "reward-bench/Chat Hard": 0.8816,
+        "reward-bench/Safety": 0.9178,
+        "reward-bench/Reasoning": 0.9698,
+        "reward-bench/Factuality": 0.6884,
+        "reward-bench/Precise IF": 0.45,
+        "reward-bench/Math": 0.6393,
+        "reward-bench/Focus": 0.9758,
+        "reward-bench/Ties": 0.7653
+      }
+    }
+  ]
+}

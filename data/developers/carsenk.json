@@ -1,0 +1,33 @@
+{
+  "developer": "carsenk",
+  "models": [
+    {
+      "id": "carsenk/flippa-v6",
+      "name": "flippa-v6",
+      "developer": "carsenk",
+      "evaluator_relationship": null,
+      "benchmark_scores": {
+        "hfopenllm_v2/IFEval": 0.3439,
+        "hfopenllm_v2/BBH": 0.5047,
+        "hfopenllm_v2/MATH Level 5": 0.1405,
+        "hfopenllm_v2/GPQA": 0.2928,
+        "hfopenllm_v2/MUSR": 0.4089,
+        "hfopenllm_v2/MMLU-PRO": 0.3668
+      }
+    },
+    {
+      "id": "carsenk/phi3.5_mini_exp_825_uncensored",
+      "name": "phi3.5_mini_exp_825_uncensored",
+      "developer": "carsenk",
+      "evaluator_relationship": null,
+      "benchmark_scores": {
+        "hfopenllm_v2/IFEval": 0.1364,
+        "hfopenllm_v2/BBH": 0.2965,
+        "hfopenllm_v2/MATH Level 5": 0.0106,
+        "hfopenllm_v2/GPQA": 0.2492,
+        "hfopenllm_v2/MUSR": 0.3644,
+        "hfopenllm_v2/MMLU-PRO": 0.1175
+      }
+    }
+  ]
+}

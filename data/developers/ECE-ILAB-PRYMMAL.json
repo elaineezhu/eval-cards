@@ -1,0 +1,19 @@
+{
+  "developer": "ECE-ILAB-PRYMMAL",
+  "models": [
+    {
+      "id": "ECE-ILAB-PRYMMAL/ILAB-Merging-3B-V2",
+      "name": "ILAB-Merging-3B-V2",
+      "developer": "ECE-ILAB-PRYMMAL",
+      "evaluator_relationship": null,
+      "benchmark_scores": {
+        "hfopenllm_v2/IFEval": 0.4029,
+        "hfopenllm_v2/BBH": 0.5402,
+        "hfopenllm_v2/MATH Level 5": 0.1518,
+        "hfopenllm_v2/GPQA": 0.3054,
+        "hfopenllm_v2/MUSR": 0.4332,
+        "hfopenllm_v2/MMLU-PRO": 0.3861
+      }
+    }
+  ]
+}

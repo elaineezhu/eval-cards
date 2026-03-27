@@ -1,0 +1,109 @@
+{
+  "model_info": {
+    "name": "Applied Compute: Small",
+    "developer": "applied-compute",
+    "id": "applied-compute/Applied Compute: Small",
+    "inference_platform": "unknown"
+  },
+  "evaluations": [
+    {
+      "evaluation_id": "apex-agents/applied-compute_applied-compute-small/1773260200",
+      "retrieved_timestamp": "1773260200",
+      "source_metadata": {
+        "source_name": "Mercor APEX-Agents Leaderboard",
+        "source_type": "evaluation_run",
+        "source_organization_name": "Mercor",
+        "source_organization_url": "https://www.mercor.com",
+        "evaluator_relationship": "first_party"
+      },
+      "eval_library": {
+        "name": "archipelago",
+        "version": "1.0.0"
+      },
+      "benchmark": "apex-agents",
+      "evaluation_results": [
+        {
+          "evaluation_name": "Overall Pass@1",
+          "source_data": {
+            "dataset_name": "apex-agents",
+            "source_type": "hf_dataset",
+            "hf_repo": "mercor/apex-agents"
+          },
+          "metric_config": {
+            "evaluation_description": "Overall Pass@1 across 480 long-horizon professional-services tasks.",
+            "lower_is_better": false,
+            "score_type": "continuous",
+            "min_score": 0,
+            "max_score": 1
+          },
+          "score_details": {
+            "score": 0.23,
+            "uncertainty": {
+              "confidence_interval": {
+                "lower": -0.031,
+                "upper": 0.031,
+                "method": "bootstrap"
+              }
+            }
+          }
+        },
+        {
+          "evaluation_name": "Overall Mean Score",
+          "source_data": {
+            "dataset_name": "apex-agents",
+            "source_type": "hf_dataset",
+            "hf_repo": "mercor/apex-agents"
+          },
+          "metric_config": {
+            "evaluation_description": "Overall mean rubric score.",
+            "lower_is_better": false,
+            "score_type": "continuous",
+            "min_score": 0,
+            "max_score": 1
+          },
+          "score_details": {
+            "score": 0.401
+          }
+        },
+        {
+          "evaluation_name": "Corporate Law Pass@1",
+          "source_data": {
+            "dataset_name": "apex-agents",
+            "source_type": "hf_dataset",
+            "hf_repo": "mercor/apex-agents"
+          },
+          "metric_config": {
+            "evaluation_description": "Corporate law world Pass@1.",
+            "lower_is_better": false,
+            "score_type": "continuous",
+            "min_score": 0,
+            "max_score": 1
+          },
+          "score_details": {
+            "score": 0.266
+          }
+        },
+        {
+          "evaluation_name": "Corporate Lawyer Mean Score",
+          "source_data": {
+            "dataset_name": "apex-agents",
+            "source_type": "hf_dataset",
+            "hf_repo": "mercor/apex-agents"
+          },
+          "metric_config": {
+            "evaluation_description": "Corporate lawyer world mean score.",
+            "lower_is_better": false,
+            "score_type": "continuous",
+            "min_score": 0,
+            "max_score": 1
+          },
+          "score_details": {
+            "score": 0.548
+          }
+        }
+      ],
+      "detailed_evaluation_results": null,
+      "generation_config": null
+    }
+  ]
+}

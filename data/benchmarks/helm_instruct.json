@@ -1,0 +1,60 @@
+{
+  "models": [
+    {
+      "model_id": "anthropic/claude-v1.3",
+      "name": "Anthropic Claude v1.3",
+      "developer": "anthropic",
+      "scores": {
+        "Mean win rate": 0.611,
+        "Anthropic RLHF dataset": 4.965,
+        "Best ChatGPT Prompts": 4.995,
+        "Koala test dataset": 4.981,
+        "Open Assistant": 4.975,
+        "Self Instruct": 4.992,
+        "Vicuna": 4.989
+      }
+    },
+    {
+      "model_id": "cohere/command-xlarge-beta",
+      "name": "Cohere Command beta 52.4B",
+      "developer": "cohere",
+      "scores": {
+        "Mean win rate": 0.089,
+        "Anthropic RLHF dataset": 4.214,
+        "Best ChatGPT Prompts": 4.988,
+        "Koala test dataset": 4.969,
+        "Open Assistant": 4.967,
+        "Self Instruct": 4.971,
+        "Vicuna": 4.995
+      }
+    },
+    {
+      "model_id": "openai/gpt-3.5-turbo-0613",
+      "name": "GPT-3.5 Turbo 0613",
+      "developer": "openai",
+      "scores": {
+        "Mean win rate": 0.689,
+        "Anthropic RLHF dataset": 4.964,
+        "Best ChatGPT Prompts": 4.986,
+        "Koala test dataset": 4.987,
+        "Open Assistant": 4.987,
+        "Self Instruct": 4.99,
+        "Vicuna": 4.992
+      }
+    },
+    {
+      "model_id": "openai/gpt-4-0314",
+      "name": "GPT-4 0314",
+      "developer": "openai",
+      "scores": {
+        "Mean win rate": 0.611,
+        "Anthropic RLHF dataset": 4.934,
+        "Best ChatGPT Prompts": 4.973,
+        "Koala test dataset": 4.966,
+        "Open Assistant": 4.986,
+        "Self Instruct": 4.976,
+        "Vicuna": 4.995
+      }
+    }
+  ]
+}

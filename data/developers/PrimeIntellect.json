@@ -1,0 +1,33 @@
+{
+  "developer": "PrimeIntellect",
+  "models": [
+    {
+      "id": "PrimeIntellect/INTELLECT-1",
+      "name": "INTELLECT-1",
+      "developer": "PrimeIntellect",
+      "evaluator_relationship": null,
+      "benchmark_scores": {
+        "hfopenllm_v2/IFEval": 0.1757,
+        "hfopenllm_v2/BBH": 0.276,
+        "hfopenllm_v2/MATH Level 5": 0.0,
+        "hfopenllm_v2/GPQA": 0.2534,
+        "hfopenllm_v2/MUSR": 0.3339,
+        "hfopenllm_v2/MMLU-PRO": 0.1123
+      }
+    },
+    {
+      "id": "PrimeIntellect/INTELLECT-1-Instruct",
+      "name": "INTELLECT-1-Instruct",
+      "developer": "PrimeIntellect",
+      "evaluator_relationship": null,
+      "benchmark_scores": {
+        "hfopenllm_v2/IFEval": 0.0,
+        "hfopenllm_v2/BBH": 0.287,
+        "hfopenllm_v2/MATH Level 5": 0.0227,
+        "hfopenllm_v2/GPQA": 0.2483,
+        "hfopenllm_v2/MUSR": 0.3577,
+        "hfopenllm_v2/MMLU-PRO": 0.1064
+      }
+    }
+  ]
+}

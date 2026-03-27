@@ -1,0 +1,19 @@
+{
+  "developer": "wzhouad",
+  "models": [
+    {
+      "id": "wzhouad/gemma-2-9b-it-WPO-HB",
+      "name": "gemma-2-9b-it-WPO-HB",
+      "developer": "wzhouad",
+      "evaluator_relationship": null,
+      "benchmark_scores": {
+        "hfopenllm_v2/IFEval": 0.5437,
+        "hfopenllm_v2/BBH": 0.5629,
+        "hfopenllm_v2/MATH Level 5": 0.1533,
+        "hfopenllm_v2/GPQA": 0.3498,
+        "hfopenllm_v2/MUSR": 0.3675,
+        "hfopenllm_v2/MMLU-PRO": 0.336
+      }
+    }
+  ]
+}

@@ -1,0 +1,33 @@
+{
+  "developer": "cat-searcher",
+  "models": [
+    {
+      "id": "cat-searcher/gemma-2-9b-it-sppo-iter-1",
+      "name": "gemma-2-9b-it-sppo-iter-1",
+      "developer": "cat-searcher",
+      "evaluator_relationship": null,
+      "benchmark_scores": {
+        "hfopenllm_v2/IFEval": 0.3015,
+        "hfopenllm_v2/BBH": 0.5972,
+        "hfopenllm_v2/MATH Level 5": 0.0831,
+        "hfopenllm_v2/GPQA": 0.3448,
+        "hfopenllm_v2/MUSR": 0.3927,
+        "hfopenllm_v2/MMLU-PRO": 0.3854
+      }
+    },
+    {
+      "id": "cat-searcher/gemma-2-9b-it-sppo-iter-1-evol-1",
+      "name": "gemma-2-9b-it-sppo-iter-1-evol-1",
+      "developer": "cat-searcher",
+      "evaluator_relationship": null,
+      "benchmark_scores": {
+        "hfopenllm_v2/IFEval": 0.2942,
+        "hfopenllm_v2/BBH": 0.5939,
+        "hfopenllm_v2/MATH Level 5": 0.0853,
+        "hfopenllm_v2/GPQA": 0.3406,
+        "hfopenllm_v2/MUSR": 0.3926,
+        "hfopenllm_v2/MMLU-PRO": 0.38
+      }
+    }
+  ]
+}

@@ -1,0 +1,149 @@
+{
+  "developer": "stabilityai",
+  "models": [
+    {
+      "id": "stabilityai/StableBeluga2",
+      "name": "StableBeluga2",
+      "developer": "stabilityai",
+      "evaluator_relationship": null,
+      "benchmark_scores": {
+        "hfopenllm_v2/IFEval": 0.3787,
+        "hfopenllm_v2/BBH": 0.5824,
+        "hfopenllm_v2/MATH Level 5": 0.0438,
+        "hfopenllm_v2/GPQA": 0.3163,
+        "hfopenllm_v2/MUSR": 0.473,
+        "hfopenllm_v2/MMLU-PRO": 0.3326
+      }
+    },
+    {
+      "id": "stabilityai/stable-code-instruct-3b",
+      "name": "stabilityai/stable-code-instruct-3b",
+      "developer": "stabilityai",
+      "evaluator_relationship": null,
+      "benchmark_scores": {
+        "reward-bench/Score": 0.6216,
+        "reward-bench/Chat": 0.5782,
+        "reward-bench/Chat Hard": 0.5855,
+        "reward-bench/Safety": 0.6554,
+        "reward-bench/Reasoning": 0.7528,
+        "reward-bench/Prior Sets (0.5 weight)": 0.4506
+      }
+    },
+    {
+      "id": "stabilityai/stablelm-2-12b",
+      "name": "stablelm-2-12b",
+      "developer": "stabilityai",
+      "evaluator_relationship": null,
+      "benchmark_scores": {
+        "hfopenllm_v2/IFEval": 0.1569,
+        "hfopenllm_v2/BBH": 0.4509,
+        "hfopenllm_v2/MATH Level 5": 0.0431,
+        "hfopenllm_v2/GPQA": 0.2785,
+        "hfopenllm_v2/MUSR": 0.4479,
+        "hfopenllm_v2/MMLU-PRO": 0.3072
+      }
+    },
+    {
+      "id": "stabilityai/stablelm-2-12b-chat",
+      "name": "stablelm-2-12b-chat",
+      "developer": "stabilityai",
+      "evaluator_relationship": null,
+      "benchmark_scores": {
+        "hfopenllm_v2/IFEval": 0.4082,
+        "hfopenllm_v2/BBH": 0.4672,
+        "hfopenllm_v2/MATH Level 5": 0.0536,
+        "hfopenllm_v2/GPQA": 0.2668,
+        "hfopenllm_v2/MUSR": 0.3914,
+        "hfopenllm_v2/MMLU-PRO": 0.2734,
+        "reward-bench/Score": 0.7642,
+        "reward-bench/Chat": 0.9665,
+        "reward-bench/Chat Hard": 0.5548,
+        "reward-bench/Safety": 0.7811,
+        "reward-bench/Reasoning": 0.8945,
+        "reward-bench/Prior Sets (0.5 weight)": 0.4839
+      }
+    },
+    {
+      "id": "stabilityai/stablelm-2-1_6b",
+      "name": "stablelm-2-1_6b",
+      "developer": "stabilityai",
+      "evaluator_relationship": null,
+      "benchmark_scores": {
+        "hfopenllm_v2/IFEval": 0.1157,
+        "hfopenllm_v2/BBH": 0.3385,
+        "hfopenllm_v2/MATH Level 5": 0.0076,
+        "hfopenllm_v2/GPQA": 0.2483,
+        "hfopenllm_v2/MUSR": 0.3882,
+        "hfopenllm_v2/MMLU-PRO": 0.1464
+      }
+    },
+    {
+      "id": "stabilityai/stablelm-2-1_6b-chat",
+      "name": "stablelm-2-1_6b-chat",
+      "developer": "stabilityai",
+      "evaluator_relationship": null,
+      "benchmark_scores": {
+        "hfopenllm_v2/IFEval": 0.306,
+        "hfopenllm_v2/BBH": 0.339,
+        "hfopenllm_v2/MATH Level 5": 0.0249,
+        "hfopenllm_v2/GPQA": 0.2475,
+        "hfopenllm_v2/MUSR": 0.358,
+        "hfopenllm_v2/MMLU-PRO": 0.1622
+      }
+    },
+    {
+      "id": "stabilityai/stablelm-2-zephyr-1_6b",
+      "name": "stablelm-2-zephyr-1_6b",
+      "developer": "stabilityai",
+      "evaluator_relationship": null,
+      "benchmark_scores": {
+        "hfopenllm_v2/IFEval": 0.3279,
+        "hfopenllm_v2/BBH": 0.3352,
+        "hfopenllm_v2/MATH Level 5": 0.0332,
+        "hfopenllm_v2/GPQA": 0.2433,
+        "hfopenllm_v2/MUSR": 0.3511,
+        "hfopenllm_v2/MMLU-PRO": 0.1714,
+        "reward-bench/Score": 0.6574,
+        "reward-bench/Chat": 0.9665,
+        "reward-bench/Chat Hard": 0.4671,
+        "reward-bench/Safety": 0.6027,
+        "reward-bench/Reasoning": 0.6784,
+        "reward-bench/Prior Sets (0.5 weight)": 0.4868
+      }
+    },
+    {
+      "id": "stabilityai/stablelm-3b-4e1t",
+      "name": "stablelm-3b-4e1t",
+      "developer": "stabilityai",
+      "evaluator_relationship": null,
+      "benchmark_scores": {
+        "hfopenllm_v2/IFEval": 0.2203,
+        "hfopenllm_v2/BBH": 0.3504,
+        "hfopenllm_v2/MATH Level 5": 0.0106,
+        "hfopenllm_v2/GPQA": 0.2374,
+        "hfopenllm_v2/MUSR": 0.3778,
+        "hfopenllm_v2/MMLU-PRO": 0.1669
+      }
+    },
+    {
+      "id": "stabilityai/stablelm-zephyr-3b",
+      "name": "stablelm-zephyr-3b",
+      "developer": "stabilityai",
+      "evaluator_relationship": null,
+      "benchmark_scores": {
+        "hfopenllm_v2/IFEval": 0.3683,
+        "hfopenllm_v2/BBH": 0.3866,
+        "hfopenllm_v2/MATH Level 5": 0.0431,
+        "hfopenllm_v2/GPQA": 0.2391,
+        "hfopenllm_v2/MUSR": 0.4183,
+        "hfopenllm_v2/MMLU-PRO": 0.1768,
+        "reward-bench/Score": 0.7146,
+        "reward-bench/Chat": 0.8631,
+        "reward-bench/Chat Hard": 0.6009,
+        "reward-bench/Safety": 0.7405,
+        "reward-bench/Reasoning": 0.7573,
+        "reward-bench/Prior Sets (0.5 weight)": 0.5075
+      }
+    }
+  ]
+}

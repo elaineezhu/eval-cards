@@ -1,0 +1,19 @@
+{
+  "developer": "khulaifi95",
+  "models": [
+    {
+      "id": "khulaifi95/Llama-3.1-8B-Reason-Blend-888k",
+      "name": "Llama-3.1-8B-Reason-Blend-888k",
+      "developer": "khulaifi95",
+      "evaluator_relationship": null,
+      "benchmark_scores": {
+        "hfopenllm_v2/IFEval": 0.5832,
+        "hfopenllm_v2/BBH": 0.479,
+        "hfopenllm_v2/MATH Level 5": 0.1156,
+        "hfopenllm_v2/GPQA": 0.2794,
+        "hfopenllm_v2/MUSR": 0.3379,
+        "hfopenllm_v2/MMLU-PRO": 0.31
+      }
+    }
+  ]
+}

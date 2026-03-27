@@ -1,0 +1,455 @@
+{
+  "model_info": {
+    "name": "GPT 5",
+    "developer": "openai",
+    "id": "openai/GPT 5",
+    "inference_platform": "unknown"
+  },
+  "evaluations": [
+    {
+      "evaluation_id": "ace/openai_gpt-5/1773260200",
+      "retrieved_timestamp": "1773260200",
+      "source_metadata": {
+        "source_name": "Mercor ACE Leaderboard",
+        "source_type": "evaluation_run",
+        "source_organization_name": "Mercor",
+        "source_organization_url": "https://www.mercor.com",
+        "evaluator_relationship": "first_party"
+      },
+      "eval_library": {
+        "name": "archipelago",
+        "version": "1.0.0"
+      },
+      "benchmark": "ace",
+      "evaluation_results": [
+        {
+          "evaluation_name": "Overall Score",
+          "source_data": {
+            "dataset_name": "ace",
+            "source_type": "hf_dataset",
+            "hf_repo": "Mercor/ACE"
+          },
+          "metric_config": {
+            "evaluation_description": "Overall ACE score across all consumer-task domains.",
+            "lower_is_better": false,
+            "score_type": "continuous",
+            "min_score": 0,
+            "max_score": 1
+          },
+          "score_details": {
+            "score": 0.561,
+            "uncertainty": {
+              "confidence_interval": {
+                "lower": -0.033,
+                "upper": 0.033,
+                "method": "bootstrap"
+              }
+            }
+          },
+          "generation_config": {
+            "additional_details": {
+              "run_setting": "High"
+            }
+          }
+        },
+        {
+          "evaluation_name": "DIY Score",
+          "source_data": {
+            "dataset_name": "ace",
+            "source_type": "hf_dataset",
+            "hf_repo": "Mercor/ACE"
+          },
+          "metric_config": {
+            "evaluation_description": "DIY domain score.",
+            "lower_is_better": false,
+            "score_type": "continuous",
+            "min_score": 0,
+            "max_score": 1
+          },
+          "score_details": {
+            "score": 0.55
+          },
+          "generation_config": {
+            "additional_details": {
+              "run_setting": "High"
+            }
+          }
+        },
+        {
+          "evaluation_name": "Food Score",
+          "source_data": {
+            "dataset_name": "ace",
+            "source_type": "hf_dataset",
+            "hf_repo": "Mercor/ACE"
+          },
+          "metric_config": {
+            "evaluation_description": "Food domain score.",
+            "lower_is_better": false,
+            "score_type": "continuous",
+            "min_score": 0,
+            "max_score": 1
+          },
+          "score_details": {
+            "score": 0.7
+          },
+          "generation_config": {
+            "additional_details": {
+              "run_setting": "High"
+            }
+          }
+        },
+        {
+          "evaluation_name": "Gaming Score",
+          "source_data": {
+            "dataset_name": "ace",
+            "source_type": "hf_dataset",
+            "hf_repo": "Mercor/ACE"
+          },
+          "metric_config": {
+            "evaluation_description": "Gaming domain score.",
+            "lower_is_better": false,
+            "score_type": "continuous",
+            "min_score": 0,
+            "max_score": 1
+          },
+          "score_details": {
+            "score": 0.575
+          },
+          "generation_config": {
+            "additional_details": {
+              "run_setting": "High"
+            }
+          }
+        }
+      ],
+      "detailed_evaluation_results": null,
+      "generation_config": {
+        "additional_details": {
+          "run_setting": "High"
+        }
+      }
+    },
+    {
+      "evaluation_id": "apex-agents/openai_gpt-5/1773260200",
+      "retrieved_timestamp": "1773260200",
+      "source_metadata": {
+        "source_name": "Mercor APEX-Agents Leaderboard",
+        "source_type": "evaluation_run",
+        "source_organization_name": "Mercor",
+        "source_organization_url": "https://www.mercor.com",
+        "evaluator_relationship": "first_party"
+      },
+      "eval_library": {
+        "name": "archipelago",
+        "version": "1.0.0"
+      },
+      "benchmark": "apex-agents",
+      "evaluation_results": [
+        {
+          "evaluation_name": "Overall Pass@1",
+          "source_data": {
+            "dataset_name": "apex-agents",
+            "source_type": "hf_dataset",
+            "hf_repo": "mercor/apex-agents"
+          },
+          "metric_config": {
+            "evaluation_description": "Overall Pass@1 (dataset card / paper snapshot).",
+            "lower_is_better": false,
+            "score_type": "continuous",
+            "min_score": 0,
+            "max_score": 1
+          },
+          "score_details": {
+            "score": 0.183,
+            "uncertainty": {
+              "confidence_interval": {
+                "lower": -0.029,
+                "upper": 0.03,
+                "method": "bootstrap"
+              }
+            }
+          },
+          "generation_config": {
+            "additional_details": {
+              "run_setting": "High"
+            }
+          }
+        },
+        {
+          "evaluation_name": "Overall Pass@8",
+          "source_data": {
+            "dataset_name": "apex-agents",
+            "source_type": "hf_dataset",
+            "hf_repo": "mercor/apex-agents"
+          },
+          "metric_config": {
+            "evaluation_description": "Overall Pass@8 (dataset card / paper snapshot).",
+            "lower_is_better": false,
+            "score_type": "continuous",
+            "min_score": 0,
+            "max_score": 1
+          },
+          "score_details": {
+            "score": 0.31,
+            "uncertainty": {
+              "confidence_interval": {
+                "lower": -0.041,
+                "upper": 0.044,
+                "method": "bootstrap"
+              }
+            }
+          },
+          "generation_config": {
+            "additional_details": {
+              "run_setting": "High"
+            }
+          }
+        },
+        {
+          "evaluation_name": "Overall Mean Score",
+          "source_data": {
+            "dataset_name": "apex-agents",
+            "source_type": "hf_dataset",
+            "hf_repo": "mercor/apex-agents"
+          },
+          "metric_config": {
+            "evaluation_description": "Overall mean rubric score.",
+            "lower_is_better": false,
+            "score_type": "continuous",
+            "min_score": 0,
+            "max_score": 1
+          },
+          "score_details": {
+            "score": 0.329
+          },
+          "generation_config": {
+            "additional_details": {
+              "run_setting": "High"
+            }
+          }
+        },
+        {
+          "evaluation_name": "Investment Banking Pass@1",
+          "source_data": {
+            "dataset_name": "apex-agents",
+            "source_type": "hf_dataset",
+            "hf_repo": "mercor/apex-agents"
+          },
+          "metric_config": {
+            "evaluation_description": "Investment banking world Pass@1.",
+            "lower_is_better": false,
+            "score_type": "continuous",
+            "min_score": 0,
+            "max_score": 1
+          },
+          "score_details": {
+            "score": 0.273
+          },
+          "generation_config": {
+            "additional_details": {
+              "run_setting": "High"
+            }
+          }
+        },
+        {
+          "evaluation_name": "Management Consulting Pass@1",
+          "source_data": {
+            "dataset_name": "apex-agents",
+            "source_type": "hf_dataset",
+            "hf_repo": "mercor/apex-agents"
+          },
+          "metric_config": {
+            "evaluation_description": "Management consulting world Pass@1.",
+            "lower_is_better": false,
+            "score_type": "continuous",
+            "min_score": 0,
+            "max_score": 1
+          },
+          "score_details": {
+            "score": 0.123
+          },
+          "generation_config": {
+            "additional_details": {
+              "run_setting": "High"
+            }
+          }
+        },
+        {
+          "evaluation_name": "Corporate Law Pass@1",
+          "source_data": {
+            "dataset_name": "apex-agents",
+            "source_type": "hf_dataset",
+            "hf_repo": "mercor/apex-agents"
+          },
+          "metric_config": {
+            "evaluation_description": "Corporate law world Pass@1.",
+            "lower_is_better": false,
+            "score_type": "continuous",
+            "min_score": 0,
+            "max_score": 1
+          },
+          "score_details": {
+            "score": 0.153
+          },
+          "generation_config": {
+            "additional_details": {
+              "run_setting": "High"
+            }
+          }
+        },
+        {
+          "evaluation_name": "Corporate Lawyer Mean Score",
+          "source_data": {
+            "dataset_name": "apex-agents",
+            "source_type": "hf_dataset",
+            "hf_repo": "mercor/apex-agents"
+          },
+          "metric_config": {
+            "evaluation_description": "Corporate lawyer world mean score.",
+            "lower_is_better": false,
+            "score_type": "continuous",
+            "min_score": 0,
+            "max_score": 1
+          },
+          "score_details": {
+            "score": 0.382
+          },
+          "generation_config": {
+            "additional_details": {
+              "run_setting": "High"
+            }
+          }
+        }
+      ],
+      "detailed_evaluation_results": null,
+      "generation_config": {
+        "additional_details": {
+          "run_setting": "High"
+        }
+      }
+    },
+    {
+      "evaluation_id": "apex-v1/openai_gpt-5/1773260200",
+      "retrieved_timestamp": "1773260200",
+      "source_metadata": {
+        "source_name": "Mercor APEX-v1 Leaderboard",
+        "source_type": "evaluation_run",
+        "source_organization_name": "Mercor",
+        "source_organization_url": "https://www.mercor.com",
+        "evaluator_relationship": "first_party"
+      },
+      "eval_library": {
+        "name": "archipelago",
+        "version": "1.0.0"
+      },
+      "benchmark": "apex-v1",
+      "evaluation_results": [
+        {
+          "evaluation_name": "Overall Score",
+          "source_data": {
+            "dataset_name": "apex-v1",
+            "source_type": "hf_dataset",
+            "hf_repo": "Mercor/APEX-v1"
+          },
+          "metric_config": {
+            "evaluation_description": "Overall APEX-v1 mean score across all jobs.",
+            "lower_is_better": false,
+            "score_type": "continuous",
+            "min_score": 0,
+            "max_score": 1
+          },
+          "score_details": {
+            "score": 0.67,
+            "uncertainty": {
+              "confidence_interval": {
+                "lower": -0.024,
+                "upper": 0.024,
+                "method": "bootstrap"
+              }
+            }
+          },
+          "generation_config": {
+            "additional_details": {
+              "run_setting": "High"
+            }
+          }
+        },
+        {
+          "evaluation_name": "Big Law Score",
+          "source_data": {
+            "dataset_name": "apex-v1",
+            "source_type": "hf_dataset",
+            "hf_repo": "Mercor/APEX-v1"
+          },
+          "metric_config": {
+            "evaluation_description": "Big law associate score.",
+            "lower_is_better": false,
+            "score_type": "continuous",
+            "min_score": 0,
+            "max_score": 1
+          },
+          "score_details": {
+            "score": 0.78
+          },
+          "generation_config": {
+            "additional_details": {
+              "run_setting": "High"
+            }
+          }
+        },
+        {
+          "evaluation_name": "Medicine (MD) Score",
+          "source_data": {
+            "dataset_name": "apex-v1",
+            "source_type": "hf_dataset",
+            "hf_repo": "Mercor/APEX-v1"
+          },
+          "metric_config": {
+            "evaluation_description": "Primary care physician (MD) score.",
+            "lower_is_better": false,
+            "score_type": "continuous",
+            "min_score": 0,
+            "max_score": 1
+          },
+          "score_details": {
+            "score": 0.66
+          },
+          "generation_config": {
+            "additional_details": {
+              "run_setting": "High"
+            }
+          }
+        },
+        {
+          "evaluation_name": "Investment Banking Score",
+          "source_data": {
+            "dataset_name": "apex-v1",
+            "source_type": "hf_dataset",
+            "hf_repo": "Mercor/APEX-v1"
+          },
+          "metric_config": {
+            "evaluation_description": "Investment banking associate score.",
+            "lower_is_better": false,
+            "score_type": "continuous",
+            "min_score": 0,
+            "max_score": 1
+          },
+          "score_details": {
+            "score": 0.61
+          },
+          "generation_config": {
+            "additional_details": {
+              "run_setting": "High"
+            }
+          }
+        }
+      ],
+      "detailed_evaluation_results": null,
+      "generation_config": {
+        "additional_details": {
+          "run_setting": "High"
+        }
+      }
+    }
+  ]
+}

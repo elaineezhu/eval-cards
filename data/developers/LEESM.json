@@ -1,0 +1,61 @@
+{
+  "developer": "LEESM",
+  "models": [
+    {
+      "id": "LEESM/llama-2-7b-hf-lora-oki100p",
+      "name": "llama-2-7b-hf-lora-oki100p",
+      "developer": "LEESM",
+      "evaluator_relationship": null,
+      "benchmark_scores": {
+        "hfopenllm_v2/IFEval": 0.2513,
+        "hfopenllm_v2/BBH": 0.3492,
+        "hfopenllm_v2/MATH Level 5": 0.0166,
+        "hfopenllm_v2/GPQA": 0.2693,
+        "hfopenllm_v2/MUSR": 0.3687,
+        "hfopenllm_v2/MMLU-PRO": 0.1856
+      }
+    },
+    {
+      "id": "LEESM/llama-2-7b-hf-lora-oki10p",
+      "name": "llama-2-7b-hf-lora-oki10p",
+      "developer": "LEESM",
+      "evaluator_relationship": null,
+      "benchmark_scores": {
+        "hfopenllm_v2/IFEval": 0.227,
+        "hfopenllm_v2/BBH": 0.3531,
+        "hfopenllm_v2/MATH Level 5": 0.0166,
+        "hfopenllm_v2/GPQA": 0.2542,
+        "hfopenllm_v2/MUSR": 0.3475,
+        "hfopenllm_v2/MMLU-PRO": 0.1679
+      }
+    },
+    {
+      "id": "LEESM/llama-3-8b-bnb-4b-kowiki231101",
+      "name": "llama-3-8b-bnb-4b-kowiki231101",
+      "developer": "LEESM",
+      "evaluator_relationship": null,
+      "benchmark_scores": {
+        "hfopenllm_v2/IFEval": 0.1685,
+        "hfopenllm_v2/BBH": 0.4131,
+        "hfopenllm_v2/MATH Level 5": 0.0136,
+        "hfopenllm_v2/GPQA": 0.271,
+        "hfopenllm_v2/MUSR": 0.3551,
+        "hfopenllm_v2/MMLU-PRO": 0.2425
+      }
+    },
+    {
+      "id": "LEESM/llama-3-Korean-Bllossom-8B-trexlab-oki10p",
+      "name": "llama-3-Korean-Bllossom-8B-trexlab-oki10p",
+      "developer": "LEESM",
+      "evaluator_relationship": null,
+      "benchmark_scores": {
+        "hfopenllm_v2/IFEval": 0.2137,
+        "hfopenllm_v2/BBH": 0.4343,
+        "hfopenllm_v2/MATH Level 5": 0.0468,
+        "hfopenllm_v2/GPQA": 0.2752,
+        "hfopenllm_v2/MUSR": 0.3869,
+        "hfopenllm_v2/MMLU-PRO": 0.3177
+      }
+    }
+  ]
+}

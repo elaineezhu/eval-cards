@@ -1,0 +1,131 @@
+{
+  "developer": "khoantap",
+  "models": [
+    {
+      "id": "khoantap/cheap-moe-merge",
+      "name": "cheap-moe-merge",
+      "developer": "khoantap",
+      "evaluator_relationship": null,
+      "benchmark_scores": {
+        "hfopenllm_v2/IFEval": 0.4557,
+        "hfopenllm_v2/BBH": 0.5131,
+        "hfopenllm_v2/MATH Level 5": 0.0921,
+        "hfopenllm_v2/GPQA": 0.2953,
+        "hfopenllm_v2/MUSR": 0.4103,
+        "hfopenllm_v2/MMLU-PRO": 0.3339
+      }
+    },
+    {
+      "id": "khoantap/llama-3-8b-stock-merge",
+      "name": "llama-3-8b-stock-merge",
+      "developer": "khoantap",
+      "evaluator_relationship": null,
+      "benchmark_scores": {
+        "hfopenllm_v2/IFEval": 0.4812,
+        "hfopenllm_v2/BBH": 0.5162,
+        "hfopenllm_v2/MATH Level 5": 0.1616,
+        "hfopenllm_v2/GPQA": 0.318,
+        "hfopenllm_v2/MUSR": 0.3946,
+        "hfopenllm_v2/MMLU-PRO": 0.38
+      }
+    },
+    {
+      "id": "khoantap/llama-breadcrumbs-ties-merge",
+      "name": "llama-breadcrumbs-ties-merge",
+      "developer": "khoantap",
+      "evaluator_relationship": null,
+      "benchmark_scores": {
+        "hfopenllm_v2/IFEval": 0.2205,
+        "hfopenllm_v2/BBH": 0.5416,
+        "hfopenllm_v2/MATH Level 5": 0.1125,
+        "hfopenllm_v2/GPQA": 0.2659,
+        "hfopenllm_v2/MUSR": 0.4434,
+        "hfopenllm_v2/MMLU-PRO": 0.3172
+      }
+    },
+    {
+      "id": "khoantap/llama-evolve-ties-best-merge",
+      "name": "llama-evolve-ties-best-merge",
+      "developer": "khoantap",
+      "evaluator_relationship": null,
+      "benchmark_scores": {
+        "hfopenllm_v2/IFEval": 0.6744,
+        "hfopenllm_v2/BBH": 0.5414,
+        "hfopenllm_v2/MATH Level 5": 0.1563,
+        "hfopenllm_v2/GPQA": 0.3171,
+        "hfopenllm_v2/MUSR": 0.3946,
+        "hfopenllm_v2/MMLU-PRO": 0.386
+      }
+    },
+    {
+      "id": "khoantap/llama-linear-0.5-0.5-1-merge",
+      "name": "llama-linear-0.5-0.5-1-merge",
+      "developer": "khoantap",
+      "evaluator_relationship": null,
+      "benchmark_scores": {
+        "hfopenllm_v2/IFEval": 0.4812,
+        "hfopenllm_v2/BBH": 0.5643,
+        "hfopenllm_v2/MATH Level 5": 0.2054,
+        "hfopenllm_v2/GPQA": 0.307,
+        "hfopenllm_v2/MUSR": 0.4143,
+        "hfopenllm_v2/MMLU-PRO": 0.3833
+      }
+    },
+    {
+      "id": "khoantap/llama-linear-0.5-1-0.5-merge",
+      "name": "llama-linear-0.5-1-0.5-merge",
+      "developer": "khoantap",
+      "evaluator_relationship": null,
+      "benchmark_scores": {
+        "hfopenllm_v2/IFEval": 0.5032,
+        "hfopenllm_v2/BBH": 0.5951,
+        "hfopenllm_v2/MATH Level 5": 0.148,
+        "hfopenllm_v2/GPQA": 0.2936,
+        "hfopenllm_v2/MUSR": 0.4172,
+        "hfopenllm_v2/MMLU-PRO": 0.369
+      }
+    },
+    {
+      "id": "khoantap/llama-linear-1-0.5-0.5-merge",
+      "name": "llama-linear-1-0.5-0.5-merge",
+      "developer": "khoantap",
+      "evaluator_relationship": null,
+      "benchmark_scores": {
+        "hfopenllm_v2/IFEval": 0.4515,
+        "hfopenllm_v2/BBH": 0.5526,
+        "hfopenllm_v2/MATH Level 5": 0.2477,
+        "hfopenllm_v2/GPQA": 0.2928,
+        "hfopenllm_v2/MUSR": 0.4118,
+        "hfopenllm_v2/MMLU-PRO": 0.3635
+      }
+    },
+    {
+      "id": "khoantap/llama-slerp-merge",
+      "name": "llama-slerp-merge",
+      "developer": "khoantap",
+      "evaluator_relationship": null,
+      "benchmark_scores": {
+        "hfopenllm_v2/IFEval": 0.498,
+        "hfopenllm_v2/BBH": 0.5783,
+        "hfopenllm_v2/MATH Level 5": 0.0831,
+        "hfopenllm_v2/GPQA": 0.3029,
+        "hfopenllm_v2/MUSR": 0.4053,
+        "hfopenllm_v2/MMLU-PRO": 0.3678
+      }
+    },
+    {
+      "id": "khoantap/moe-out-merge",
+      "name": "moe-out-merge",
+      "developer": "khoantap",
+      "evaluator_relationship": null,
+      "benchmark_scores": {
+        "hfopenllm_v2/IFEval": 0.4505,
+        "hfopenllm_v2/BBH": 0.5151,
+        "hfopenllm_v2/MATH Level 5": 0.0929,
+        "hfopenllm_v2/GPQA": 0.2886,
+        "hfopenllm_v2/MUSR": 0.4063,
+        "hfopenllm_v2/MMLU-PRO": 0.3348
+      }
+    }
+  ]
+}

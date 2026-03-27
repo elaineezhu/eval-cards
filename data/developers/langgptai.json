@@ -1,0 +1,33 @@
+{
+  "developer": "langgptai",
+  "models": [
+    {
+      "id": "langgptai/Qwen-las-v0.1",
+      "name": "Qwen-las-v0.1",
+      "developer": "langgptai",
+      "evaluator_relationship": null,
+      "benchmark_scores": {
+        "hfopenllm_v2/IFEval": 0.3301,
+        "hfopenllm_v2/BBH": 0.3893,
+        "hfopenllm_v2/MATH Level 5": 0.037,
+        "hfopenllm_v2/GPQA": 0.2466,
+        "hfopenllm_v2/MUSR": 0.3701,
+        "hfopenllm_v2/MMLU-PRO": 0.2325
+      }
+    },
+    {
+      "id": "langgptai/qwen1.5-7b-chat-sa-v0.1",
+      "name": "qwen1.5-7b-chat-sa-v0.1",
+      "developer": "langgptai",
+      "evaluator_relationship": null,
+      "benchmark_scores": {
+        "hfopenllm_v2/IFEval": 0.4268,
+        "hfopenllm_v2/BBH": 0.4325,
+        "hfopenllm_v2/MATH Level 5": 0.0302,
+        "hfopenllm_v2/GPQA": 0.3121,
+        "hfopenllm_v2/MUSR": 0.3551,
+        "hfopenllm_v2/MMLU-PRO": 0.2993
+      }
+    }
+  ]
+}

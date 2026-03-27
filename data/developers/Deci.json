@@ -1,0 +1,33 @@
+{
+  "developer": "Deci",
+  "models": [
+    {
+      "id": "Deci/DeciLM-7B",
+      "name": "DeciLM-7B",
+      "developer": "Deci",
+      "evaluator_relationship": null,
+      "benchmark_scores": {
+        "hfopenllm_v2/IFEval": 0.2813,
+        "hfopenllm_v2/BBH": 0.4423,
+        "hfopenllm_v2/MATH Level 5": 0.0287,
+        "hfopenllm_v2/GPQA": 0.2953,
+        "hfopenllm_v2/MUSR": 0.4359,
+        "hfopenllm_v2/MMLU-PRO": 0.2692
+      }
+    },
+    {
+      "id": "Deci/DeciLM-7B-instruct",
+      "name": "DeciLM-7B-instruct",
+      "developer": "Deci",
+      "evaluator_relationship": null,
+      "benchmark_scores": {
+        "hfopenllm_v2/IFEval": 0.488,
+        "hfopenllm_v2/BBH": 0.459,
+        "hfopenllm_v2/MATH Level 5": 0.0302,
+        "hfopenllm_v2/GPQA": 0.2894,
+        "hfopenllm_v2/MUSR": 0.3884,
+        "hfopenllm_v2/MMLU-PRO": 0.2608
+      }
+    }
+  ]
+}

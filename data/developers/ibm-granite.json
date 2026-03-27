@@ -1,0 +1,285 @@
+{
+  "developer": "ibm-granite",
+  "models": [
+    {
+      "id": "ibm-granite/granite-3.0-1b-a400m-base",
+      "name": "granite-3.0-1b-a400m-base",
+      "developer": "ibm-granite",
+      "evaluator_relationship": null,
+      "benchmark_scores": {
+        "hfopenllm_v2/IFEval": 0.2404,
+        "hfopenllm_v2/BBH": 0.3221,
+        "hfopenllm_v2/MATH Level 5": 0.0264,
+        "hfopenllm_v2/GPQA": 0.2475,
+        "hfopenllm_v2/MUSR": 0.3367,
+        "hfopenllm_v2/MMLU-PRO": 0.1152
+      }
+    },
+    {
+      "id": "ibm-granite/granite-3.0-1b-a400m-instruct",
+      "name": "granite-3.0-1b-a400m-instruct",
+      "developer": "ibm-granite",
+      "evaluator_relationship": null,
+      "benchmark_scores": {
+        "hfopenllm_v2/IFEval": 0.3332,
+        "hfopenllm_v2/BBH": 0.3224,
+        "hfopenllm_v2/MATH Level 5": 0.0279,
+        "hfopenllm_v2/GPQA": 0.2609,
+        "hfopenllm_v2/MUSR": 0.3623,
+        "hfopenllm_v2/MMLU-PRO": 0.1244
+      }
+    },
+    {
+      "id": "ibm-granite/granite-3.0-2b-base",
+      "name": "granite-3.0-2b-base",
+      "developer": "ibm-granite",
+      "evaluator_relationship": null,
+      "benchmark_scores": {
+        "hfopenllm_v2/IFEval": 0.3874,
+        "hfopenllm_v2/BBH": 0.4047,
+        "hfopenllm_v2/MATH Level 5": 0.0544,
+        "hfopenllm_v2/GPQA": 0.2802,
+        "hfopenllm_v2/MUSR": 0.3434,
+        "hfopenllm_v2/MMLU-PRO": 0.2381
+      }
+    },
+    {
+      "id": "ibm-granite/granite-3.0-2b-instruct",
+      "name": "granite-3.0-2b-instruct",
+      "developer": "ibm-granite",
+      "evaluator_relationship": null,
+      "benchmark_scores": {
+        "hfopenllm_v2/IFEval": 0.514,
+        "hfopenllm_v2/BBH": 0.4412,
+        "hfopenllm_v2/MATH Level 5": 0.0921,
+        "hfopenllm_v2/GPQA": 0.2995,
+        "hfopenllm_v2/MUSR": 0.3515,
+        "hfopenllm_v2/MMLU-PRO": 0.2814
+      }
+    },
+    {
+      "id": "ibm-granite/granite-3.0-3b-a800m-base",
+      "name": "granite-3.0-3b-a800m-base",
+      "developer": "ibm-granite",
+      "evaluator_relationship": null,
+      "benchmark_scores": {
+        "hfopenllm_v2/IFEval": 0.2732,
+        "hfopenllm_v2/BBH": 0.3667,
+        "hfopenllm_v2/MATH Level 5": 0.0483,
+        "hfopenllm_v2/GPQA": 0.2517,
+        "hfopenllm_v2/MUSR": 0.342,
+        "hfopenllm_v2/MMLU-PRO": 0.1891
+      }
+    },
+    {
+      "id": "ibm-granite/granite-3.0-3b-a800m-instruct",
+      "name": "granite-3.0-3b-a800m-instruct",
+      "developer": "ibm-granite",
+      "evaluator_relationship": null,
+      "benchmark_scores": {
+        "hfopenllm_v2/IFEval": 0.4298,
+        "hfopenllm_v2/BBH": 0.3753,
+        "hfopenllm_v2/MATH Level 5": 0.0702,
+        "hfopenllm_v2/GPQA": 0.281,
+        "hfopenllm_v2/MUSR": 0.3487,
+        "hfopenllm_v2/MMLU-PRO": 0.2152
+      }
+    },
+    {
+      "id": "ibm-granite/granite-3.0-8b-base",
+      "name": "granite-3.0-8b-base",
+      "developer": "ibm-granite",
+      "evaluator_relationship": null,
+      "benchmark_scores": {
+        "hfopenllm_v2/IFEval": 0.4583,
+        "hfopenllm_v2/BBH": 0.4944,
+        "hfopenllm_v2/MATH Level 5": 0.1012,
+        "hfopenllm_v2/GPQA": 0.3255,
+        "hfopenllm_v2/MUSR": 0.4081,
+        "hfopenllm_v2/MMLU-PRO": 0.3313
+      }
+    },
+    {
+      "id": "ibm-granite/granite-3.0-8b-instruct",
+      "name": "granite-3.0-8b-instruct",
+      "developer": "ibm-granite",
+      "evaluator_relationship": null,
+      "benchmark_scores": {
+        "hfopenllm_v2/IFEval": 0.531,
+        "hfopenllm_v2/BBH": 0.5192,
+        "hfopenllm_v2/MATH Level 5": 0.142,
+        "hfopenllm_v2/GPQA": 0.3322,
+        "hfopenllm_v2/MUSR": 0.3901,
+        "hfopenllm_v2/MMLU-PRO": 0.3457
+      }
+    },
+    {
+      "id": "ibm-granite/granite-3.1-1b-a400m-base",
+      "name": "granite-3.1-1b-a400m-base",
+      "developer": "ibm-granite",
+      "evaluator_relationship": null,
+      "benchmark_scores": {
+        "hfopenllm_v2/IFEval": 0.2519,
+        "hfopenllm_v2/BBH": 0.3299,
+        "hfopenllm_v2/MATH Level 5": 0.0272,
+        "hfopenllm_v2/GPQA": 0.2517,
+        "hfopenllm_v2/MUSR": 0.3501,
+        "hfopenllm_v2/MMLU-PRO": 0.1139
+      }
+    },
+    {
+      "id": "ibm-granite/granite-3.1-1b-a400m-instruct",
+      "name": "granite-3.1-1b-a400m-instruct",
+      "developer": "ibm-granite",
+      "evaluator_relationship": null,
+      "benchmark_scores": {
+        "hfopenllm_v2/IFEval": 0.4686,
+        "hfopenllm_v2/BBH": 0.328,
+        "hfopenllm_v2/MATH Level 5": 0.0453,
+        "hfopenllm_v2/GPQA": 0.2399,
+        "hfopenllm_v2/MUSR": 0.3302,
+        "hfopenllm_v2/MMLU-PRO": 0.1217
+      }
+    },
+    {
+      "id": "ibm-granite/granite-3.1-2b-base",
+      "name": "granite-3.1-2b-base",
+      "developer": "ibm-granite",
+      "evaluator_relationship": null,
+      "benchmark_scores": {
+        "hfopenllm_v2/IFEval": 0.3522,
+        "hfopenllm_v2/BBH": 0.4047,
+        "hfopenllm_v2/MATH Level 5": 0.0566,
+        "hfopenllm_v2/GPQA": 0.2777,
+        "hfopenllm_v2/MUSR": 0.3486,
+        "hfopenllm_v2/MMLU-PRO": 0.2251
+      }
+    },
+    {
+      "id": "ibm-granite/granite-3.1-2b-instruct",
+      "name": "granite-3.1-2b-instruct",
+      "developer": "ibm-granite",
+      "evaluator_relationship": null,
+      "benchmark_scores": {
+        "hfopenllm_v2/IFEval": 0.6286,
+        "hfopenllm_v2/BBH": 0.4409,
+        "hfopenllm_v2/MATH Level 5": 0.1526,
+        "hfopenllm_v2/GPQA": 0.2894,
+        "hfopenllm_v2/MUSR": 0.3605,
+        "hfopenllm_v2/MMLU-PRO": 0.2819
+      }
+    },
+    {
+      "id": "ibm-granite/granite-3.1-3b-a800m-base",
+      "name": "granite-3.1-3b-a800m-base",
+      "developer": "ibm-granite",
+      "evaluator_relationship": null,
+      "benchmark_scores": {
+        "hfopenllm_v2/IFEval": 0.2996,
+        "hfopenllm_v2/BBH": 0.3628,
+        "hfopenllm_v2/MATH Level 5": 0.0453,
+        "hfopenllm_v2/GPQA": 0.2777,
+        "hfopenllm_v2/MUSR": 0.3275,
+        "hfopenllm_v2/MMLU-PRO": 0.1793
+      }
+    },
+    {
+      "id": "ibm-granite/granite-3.1-3b-a800m-instruct",
+      "name": "granite-3.1-3b-a800m-instruct",
+      "developer": "ibm-granite",
+      "evaluator_relationship": null,
+      "benchmark_scores": {
+        "hfopenllm_v2/IFEval": 0.5516,
+        "hfopenllm_v2/BBH": 0.4009,
+        "hfopenllm_v2/MATH Level 5": 0.114,
+        "hfopenllm_v2/GPQA": 0.2886,
+        "hfopenllm_v2/MUSR": 0.3486,
+        "hfopenllm_v2/MMLU-PRO": 0.2148
+      }
+    },
+    {
+      "id": "ibm-granite/granite-3.1-8b-base",
+      "name": "granite-3.1-8b-base",
+      "developer": "ibm-granite",
+      "evaluator_relationship": null,
+      "benchmark_scores": {
+        "hfopenllm_v2/IFEval": 0.4221,
+        "hfopenllm_v2/BBH": 0.4777,
+        "hfopenllm_v2/MATH Level 5": 0.0944,
+        "hfopenllm_v2/GPQA": 0.3213,
+        "hfopenllm_v2/MUSR": 0.3922,
+        "hfopenllm_v2/MMLU-PRO": 0.3232
+      }
+    },
+    {
+      "id": "ibm-granite/granite-3.1-8b-instruct",
+      "name": "granite-3.1-8b-instruct",
+      "developer": "ibm-granite",
+      "evaluator_relationship": null,
+      "benchmark_scores": {
+        "hfopenllm_v2/IFEval": 0.7208,
+        "hfopenllm_v2/BBH": 0.5364,
+        "hfopenllm_v2/MATH Level 5": 0.2198,
+        "hfopenllm_v2/GPQA": 0.3121,
+        "hfopenllm_v2/MUSR": 0.4707,
+        "hfopenllm_v2/MMLU-PRO": 0.3537
+      }
+    },
+    {
+      "id": "ibm-granite/granite-3.2-2b-instruct",
+      "name": "granite-3.2-2b-instruct",
+      "developer": "ibm-granite",
+      "evaluator_relationship": null,
+      "benchmark_scores": {
+        "hfopenllm_v2/IFEval": 0.6152,
+        "hfopenllm_v2/BBH": 0.4387,
+        "hfopenllm_v2/MATH Level 5": 0.1443,
+        "hfopenllm_v2/GPQA": 0.2903,
+        "hfopenllm_v2/MUSR": 0.3646,
+        "hfopenllm_v2/MMLU-PRO": 0.2783
+      }
+    },
+    {
+      "id": "ibm-granite/granite-3.2-8b-instruct",
+      "name": "granite-3.2-8b-instruct",
+      "developer": "ibm-granite",
+      "evaluator_relationship": null,
+      "benchmark_scores": {
+        "hfopenllm_v2/IFEval": 0.7275,
+        "hfopenllm_v2/BBH": 0.5402,
+        "hfopenllm_v2/MATH Level 5": 0.2379,
+        "hfopenllm_v2/GPQA": 0.3154,
+        "hfopenllm_v2/MUSR": 0.4562,
+        "hfopenllm_v2/MMLU-PRO": 0.3512
+      }
+    },
+    {
+      "id": "ibm-granite/granite-7b-base",
+      "name": "granite-7b-base",
+      "developer": "ibm-granite",
+      "evaluator_relationship": null,
+      "benchmark_scores": {
+        "hfopenllm_v2/IFEval": 0.2414,
+        "hfopenllm_v2/BBH": 0.348,
+        "hfopenllm_v2/MATH Level 5": 0.0159,
+        "hfopenllm_v2/GPQA": 0.2458,
+        "hfopenllm_v2/MUSR": 0.3555,
+        "hfopenllm_v2/MMLU-PRO": 0.1834
+      }
+    },
+    {
+      "id": "ibm-granite/granite-7b-instruct",
+      "name": "granite-7b-instruct",
+      "developer": "ibm-granite",
+      "evaluator_relationship": null,
+      "benchmark_scores": {
+        "hfopenllm_v2/IFEval": 0.2972,
+        "hfopenllm_v2/BBH": 0.3723,
+        "hfopenllm_v2/MATH Level 5": 0.0204,
+        "hfopenllm_v2/GPQA": 0.2852,
+        "hfopenllm_v2/MUSR": 0.402,
+        "hfopenllm_v2/MMLU-PRO": 0.2286
+      }
+    }
+  ]
+}

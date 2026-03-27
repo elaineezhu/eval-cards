@@ -1,0 +1,33 @@
+{
+  "developer": "EnnoAi",
+  "models": [
+    {
+      "id": "EnnoAi/EnnoAi-7B-French-Instruct-202502",
+      "name": "EnnoAi-7B-French-Instruct-202502",
+      "developer": "EnnoAi",
+      "evaluator_relationship": null,
+      "benchmark_scores": {
+        "hfopenllm_v2/IFEval": 0.5564,
+        "hfopenllm_v2/BBH": 0.5575,
+        "hfopenllm_v2/MATH Level 5": 0.3724,
+        "hfopenllm_v2/GPQA": 0.2953,
+        "hfopenllm_v2/MUSR": 0.46,
+        "hfopenllm_v2/MMLU-PRO": 0.4013
+      }
+    },
+    {
+      "id": "EnnoAi/EnnoAi-Pro-Llama-3.1-8B-v1.0",
+      "name": "EnnoAi-Pro-Llama-3.1-8B-v1.0",
+      "developer": "EnnoAi",
+      "evaluator_relationship": null,
+      "benchmark_scores": {
+        "hfopenllm_v2/IFEval": 0.4704,
+        "hfopenllm_v2/BBH": 0.416,
+        "hfopenllm_v2/MATH Level 5": 0.0378,
+        "hfopenllm_v2/GPQA": 0.2659,
+        "hfopenllm_v2/MUSR": 0.3832,
+        "hfopenllm_v2/MMLU-PRO": 0.2596
+      }
+    }
+  ]
+}

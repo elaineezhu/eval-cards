@@ -1,0 +1,103 @@
+{
+  "developer": "Delta-Vector",
+  "models": [
+    {
+      "id": "Delta-Vector/Baldur-8B",
+      "name": "Baldur-8B",
+      "developer": "Delta-Vector",
+      "evaluator_relationship": null,
+      "benchmark_scores": {
+        "hfopenllm_v2/IFEval": 0.4782,
+        "hfopenllm_v2/BBH": 0.5306,
+        "hfopenllm_v2/MATH Level 5": 0.1435,
+        "hfopenllm_v2/GPQA": 0.302,
+        "hfopenllm_v2/MUSR": 0.4372,
+        "hfopenllm_v2/MMLU-PRO": 0.3654
+      }
+    },
+    {
+      "id": "Delta-Vector/Control-8B",
+      "name": "Control-8B",
+      "developer": "Delta-Vector",
+      "evaluator_relationship": null,
+      "benchmark_scores": {
+        "hfopenllm_v2/IFEval": 0.549,
+        "hfopenllm_v2/BBH": 0.5041,
+        "hfopenllm_v2/MATH Level 5": 0.139,
+        "hfopenllm_v2/GPQA": 0.3163,
+        "hfopenllm_v2/MUSR": 0.4355,
+        "hfopenllm_v2/MMLU-PRO": 0.3732
+      }
+    },
+    {
+      "id": "Delta-Vector/Control-8B-V1.1",
+      "name": "Control-8B-V1.1",
+      "developer": "Delta-Vector",
+      "evaluator_relationship": null,
+      "benchmark_scores": {
+        "hfopenllm_v2/IFEval": 0.5697,
+        "hfopenllm_v2/BBH": 0.4993,
+        "hfopenllm_v2/MATH Level 5": 0.1276,
+        "hfopenllm_v2/GPQA": 0.307,
+        "hfopenllm_v2/MUSR": 0.4237,
+        "hfopenllm_v2/MMLU-PRO": 0.3745
+      }
+    },
+    {
+      "id": "Delta-Vector/Darkens-8B",
+      "name": "Darkens-8B",
+      "developer": "Delta-Vector",
+      "evaluator_relationship": null,
+      "benchmark_scores": {
+        "hfopenllm_v2/IFEval": 0.2548,
+        "hfopenllm_v2/BBH": 0.5251,
+        "hfopenllm_v2/MATH Level 5": 0.0589,
+        "hfopenllm_v2/GPQA": 0.3247,
+        "hfopenllm_v2/MUSR": 0.4106,
+        "hfopenllm_v2/MMLU-PRO": 0.3736
+      }
+    },
+    {
+      "id": "Delta-Vector/Henbane-7b-attempt2",
+      "name": "Henbane-7b-attempt2",
+      "developer": "Delta-Vector",
+      "evaluator_relationship": null,
+      "benchmark_scores": {
+        "hfopenllm_v2/IFEval": 0.4157,
+        "hfopenllm_v2/BBH": 0.5061,
+        "hfopenllm_v2/MATH Level 5": 0.2273,
+        "hfopenllm_v2/GPQA": 0.2903,
+        "hfopenllm_v2/MUSR": 0.3973,
+        "hfopenllm_v2/MMLU-PRO": 0.4028
+      }
+    },
+    {
+      "id": "Delta-Vector/Odin-9B",
+      "name": "Odin-9B",
+      "developer": "Delta-Vector",
+      "evaluator_relationship": null,
+      "benchmark_scores": {
+        "hfopenllm_v2/IFEval": 0.3692,
+        "hfopenllm_v2/BBH": 0.544,
+        "hfopenllm_v2/MATH Level 5": 0.145,
+        "hfopenllm_v2/GPQA": 0.3414,
+        "hfopenllm_v2/MUSR": 0.4648,
+        "hfopenllm_v2/MMLU-PRO": 0.4047
+      }
+    },
+    {
+      "id": "Delta-Vector/Tor-8B",
+      "name": "Tor-8B",
+      "developer": "Delta-Vector",
+      "evaluator_relationship": null,
+      "benchmark_scores": {
+        "hfopenllm_v2/IFEval": 0.2382,
+        "hfopenllm_v2/BBH": 0.5209,
+        "hfopenllm_v2/MATH Level 5": 0.0589,
+        "hfopenllm_v2/GPQA": 0.3238,
+        "hfopenllm_v2/MUSR": 0.4092,
+        "hfopenllm_v2/MMLU-PRO": 0.373
+      }
+    }
+  ]
+}

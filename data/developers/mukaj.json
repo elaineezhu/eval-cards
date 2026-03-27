@@ -1,0 +1,19 @@
+{
+  "developer": "mukaj",
+  "models": [
+    {
+      "id": "mukaj/Llama-3.1-Hawkish-8B",
+      "name": "Llama-3.1-Hawkish-8B",
+      "developer": "mukaj",
+      "evaluator_relationship": null,
+      "benchmark_scores": {
+        "hfopenllm_v2/IFEval": 0.672,
+        "hfopenllm_v2/BBH": 0.4884,
+        "hfopenllm_v2/MATH Level 5": 0.2432,
+        "hfopenllm_v2/GPQA": 0.2903,
+        "hfopenllm_v2/MUSR": 0.3967,
+        "hfopenllm_v2/MMLU-PRO": 0.3331
+      }
+    }
+  ]
+}

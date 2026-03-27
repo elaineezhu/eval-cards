@@ -1,0 +1,16 @@
+{
+  "developer": "Kuaishou",
+  "models": [
+    {
+      "id": "kuaishou/kwaipilot-40b-0604",
+      "name": "kwaipilot-40b-0604",
+      "developer": "Kuaishou",
+      "evaluator_relationship": null,
+      "benchmark_scores": {
+        "livecodebenchpro/Hard Problems": 0.0,
+        "livecodebenchpro/Medium Problems": 0.07042253521126761,
+        "livecodebenchpro/Easy Problems": 0.056338028169014086
+      }
+    }
+  ]
+}

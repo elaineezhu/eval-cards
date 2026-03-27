@@ -1,0 +1,19 @@
+{
+  "developer": "hongbai12",
+  "models": [
+    {
+      "id": "hongbai12/li-0.4-pre",
+      "name": "li-0.4-pre",
+      "developer": "hongbai12",
+      "evaluator_relationship": null,
+      "benchmark_scores": {
+        "hfopenllm_v2/IFEval": 0.52,
+        "hfopenllm_v2/BBH": 0.6298,
+        "hfopenllm_v2/MATH Level 5": 0.4924,
+        "hfopenllm_v2/GPQA": 0.323,
+        "hfopenllm_v2/MUSR": 0.4513,
+        "hfopenllm_v2/MMLU-PRO": 0.5015
+      }
+    }
+  ]
+}

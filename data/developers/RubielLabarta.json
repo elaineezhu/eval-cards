@@ -1,0 +1,19 @@
+{
+  "developer": "RubielLabarta",
+  "models": [
+    {
+      "id": "RubielLabarta/LogoS-7Bx2-MoE-13B-v0.2",
+      "name": "LogoS-7Bx2-MoE-13B-v0.2",
+      "developer": "RubielLabarta",
+      "evaluator_relationship": null,
+      "benchmark_scores": {
+        "hfopenllm_v2/IFEval": 0.4379,
+        "hfopenllm_v2/BBH": 0.5207,
+        "hfopenllm_v2/MATH Level 5": 0.0574,
+        "hfopenllm_v2/GPQA": 0.2777,
+        "hfopenllm_v2/MUSR": 0.4226,
+        "hfopenllm_v2/MMLU-PRO": 0.3088
+      }
+    }
+  ]
+}

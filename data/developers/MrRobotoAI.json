@@ -1,0 +1,33 @@
+{
+  "developer": "MrRobotoAI",
+  "models": [
+    {
+      "id": "MrRobotoAI/MrRoboto-ProLong-8b-v4i",
+      "name": "MrRoboto-ProLong-8b-v4i",
+      "developer": "MrRobotoAI",
+      "evaluator_relationship": null,
+      "benchmark_scores": {
+        "hfopenllm_v2/IFEval": 0.3835,
+        "hfopenllm_v2/BBH": 0.4585,
+        "hfopenllm_v2/MATH Level 5": 0.0551,
+        "hfopenllm_v2/GPQA": 0.2894,
+        "hfopenllm_v2/MUSR": 0.4014,
+        "hfopenllm_v2/MMLU-PRO": 0.3068
+      }
+    },
+    {
+      "id": "MrRobotoAI/MrRoboto-ProLongBASE-pt8-unaligned-8b",
+      "name": "MrRoboto-ProLongBASE-pt8-unaligned-8b",
+      "developer": "MrRobotoAI",
+      "evaluator_relationship": null,
+      "benchmark_scores": {
+        "hfopenllm_v2/IFEval": 0.3475,
+        "hfopenllm_v2/BBH": 0.4515,
+        "hfopenllm_v2/MATH Level 5": 0.0423,
+        "hfopenllm_v2/GPQA": 0.281,
+        "hfopenllm_v2/MUSR": 0.4279,
+        "hfopenllm_v2/MMLU-PRO": 0.2566
+      }
+    }
+  ]
+}

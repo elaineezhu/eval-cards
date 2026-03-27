@@ -1,0 +1,19 @@
+{
+  "developer": "ozone-research",
+  "models": [
+    {
+      "id": "ozone-research/Chirp-01",
+      "name": "Chirp-01",
+      "developer": "ozone-research",
+      "evaluator_relationship": null,
+      "benchmark_scores": {
+        "hfopenllm_v2/IFEval": 0.6348,
+        "hfopenllm_v2/BBH": 0.465,
+        "hfopenllm_v2/MATH Level 5": 0.3467,
+        "hfopenllm_v2/GPQA": 0.2718,
+        "hfopenllm_v2/MUSR": 0.4487,
+        "hfopenllm_v2/MMLU-PRO": 0.3508
+      }
+    }
+  ]
+}

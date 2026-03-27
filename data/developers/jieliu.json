@@ -1,0 +1,19 @@
+{
+  "developer": "jieliu",
+  "models": [
+    {
+      "id": "jieliu/Storm-7B",
+      "name": "Storm-7B",
+      "developer": "jieliu",
+      "evaluator_relationship": null,
+      "benchmark_scores": {
+        "hfopenllm_v2/IFEval": 0.3424,
+        "hfopenllm_v2/BBH": 0.5187,
+        "hfopenllm_v2/MATH Level 5": 0.0612,
+        "hfopenllm_v2/GPQA": 0.3079,
+        "hfopenllm_v2/MUSR": 0.4429,
+        "hfopenllm_v2/MMLU-PRO": 0.3119
+      }
+    }
+  ]
+}

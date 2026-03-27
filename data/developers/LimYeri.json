@@ -1,0 +1,75 @@
+{
+  "developer": "LimYeri",
+  "models": [
+    {
+      "id": "LimYeri/CodeMind-Llama3-8B-unsloth_v2-merged",
+      "name": "CodeMind-Llama3-8B-unsloth_v2-merged",
+      "developer": "LimYeri",
+      "evaluator_relationship": null,
+      "benchmark_scores": {
+        "hfopenllm_v2/IFEval": 0.6946,
+        "hfopenllm_v2/BBH": 0.486,
+        "hfopenllm_v2/MATH Level 5": 0.0665,
+        "hfopenllm_v2/GPQA": 0.2651,
+        "hfopenllm_v2/MUSR": 0.3316,
+        "hfopenllm_v2/MMLU-PRO": 0.3506
+      }
+    },
+    {
+      "id": "LimYeri/CodeMind-Llama3-8B-unsloth_v3-merged",
+      "name": "CodeMind-Llama3-8B-unsloth_v3-merged",
+      "developer": "LimYeri",
+      "evaluator_relationship": null,
+      "benchmark_scores": {
+        "hfopenllm_v2/IFEval": 0.6763,
+        "hfopenllm_v2/BBH": 0.4908,
+        "hfopenllm_v2/MATH Level 5": 0.068,
+        "hfopenllm_v2/GPQA": 0.2584,
+        "hfopenllm_v2/MUSR": 0.3356,
+        "hfopenllm_v2/MMLU-PRO": 0.3496
+      }
+    },
+    {
+      "id": "LimYeri/CodeMind-Llama3-8B-unsloth_v4-one-DPO-merged",
+      "name": "CodeMind-Llama3-8B-unsloth_v4-one-DPO-merged",
+      "developer": "LimYeri",
+      "evaluator_relationship": null,
+      "benchmark_scores": {
+        "hfopenllm_v2/IFEval": 0.6492,
+        "hfopenllm_v2/BBH": 0.4853,
+        "hfopenllm_v2/MATH Level 5": 0.068,
+        "hfopenllm_v2/GPQA": 0.2685,
+        "hfopenllm_v2/MUSR": 0.3608,
+        "hfopenllm_v2/MMLU-PRO": 0.3354
+      }
+    },
+    {
+      "id": "LimYeri/CodeMind-Llama3-8B-unsloth_v4-one-merged",
+      "name": "CodeMind-Llama3-8B-unsloth_v4-one-merged",
+      "developer": "LimYeri",
+      "evaluator_relationship": null,
+      "benchmark_scores": {
+        "hfopenllm_v2/IFEval": 0.3211,
+        "hfopenllm_v2/BBH": 0.4739,
+        "hfopenllm_v2/MATH Level 5": 0.0551,
+        "hfopenllm_v2/GPQA": 0.3096,
+        "hfopenllm_v2/MUSR": 0.4069,
+        "hfopenllm_v2/MMLU-PRO": 0.3353
+      }
+    },
+    {
+      "id": "LimYeri/CodeMind-Llama3.1-8B-unsloth-merged",
+      "name": "CodeMind-Llama3.1-8B-unsloth-merged",
+      "developer": "LimYeri",
+      "evaluator_relationship": null,
+      "benchmark_scores": {
+        "hfopenllm_v2/IFEval": 0.649,
+        "hfopenllm_v2/BBH": 0.4695,
+        "hfopenllm_v2/MATH Level 5": 0.1088,
+        "hfopenllm_v2/GPQA": 0.2643,
+        "hfopenllm_v2/MUSR": 0.3752,
+        "hfopenllm_v2/MMLU-PRO": 0.334
+      }
+    }
+  ]
+}

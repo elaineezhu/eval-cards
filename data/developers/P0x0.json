@@ -1,0 +1,19 @@
+{
+  "developer": "P0x0",
+  "models": [
+    {
+      "id": "P0x0/Astra-v1-12B",
+      "name": "Astra-v1-12B",
+      "developer": "P0x0",
+      "evaluator_relationship": null,
+      "benchmark_scores": {
+        "hfopenllm_v2/IFEval": 0.2806,
+        "hfopenllm_v2/BBH": 0.5215,
+        "hfopenllm_v2/MATH Level 5": 0.1133,
+        "hfopenllm_v2/GPQA": 0.3138,
+        "hfopenllm_v2/MUSR": 0.4052,
+        "hfopenllm_v2/MMLU-PRO": 0.3461
+      }
+    }
+  ]
+}

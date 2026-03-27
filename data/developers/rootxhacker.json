@@ -1,0 +1,47 @@
+{
+  "developer": "rootxhacker",
+  "models": [
+    {
+      "id": "rootxhacker/Apollo-70B",
+      "name": "Apollo-70B",
+      "developer": "rootxhacker",
+      "evaluator_relationship": null,
+      "benchmark_scores": {
+        "hfopenllm_v2/IFEval": 0.5099,
+        "hfopenllm_v2/BBH": 0.6804,
+        "hfopenllm_v2/MATH Level 5": 0.5612,
+        "hfopenllm_v2/GPQA": 0.4572,
+        "hfopenllm_v2/MUSR": 0.4948,
+        "hfopenllm_v2/MMLU-PRO": 0.5279
+      }
+    },
+    {
+      "id": "rootxhacker/Apollo_v2-32B",
+      "name": "Apollo_v2-32B",
+      "developer": "rootxhacker",
+      "evaluator_relationship": null,
+      "benchmark_scores": {
+        "hfopenllm_v2/IFEval": 0.428,
+        "hfopenllm_v2/BBH": 0.7072,
+        "hfopenllm_v2/MATH Level 5": 0.4275,
+        "hfopenllm_v2/GPQA": 0.3784,
+        "hfopenllm_v2/MUSR": 0.4994,
+        "hfopenllm_v2/MMLU-PRO": 0.5869
+      }
+    },
+    {
+      "id": "rootxhacker/apollo-7B",
+      "name": "apollo-7B",
+      "developer": "rootxhacker",
+      "evaluator_relationship": null,
+      "benchmark_scores": {
+        "hfopenllm_v2/IFEval": 0.2953,
+        "hfopenllm_v2/BBH": 0.3636,
+        "hfopenllm_v2/MATH Level 5": 0.0257,
+        "hfopenllm_v2/GPQA": 0.2785,
+        "hfopenllm_v2/MUSR": 0.4131,
+        "hfopenllm_v2/MMLU-PRO": 0.1748
+      }
+    }
+  ]
+}

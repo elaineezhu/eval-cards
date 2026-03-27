@@ -1,0 +1,33 @@
+{
+  "developer": "saishf",
+  "models": [
+    {
+      "id": "saishf/Fimbulvetr-Kuro-Lotus-10.7B",
+      "name": "Fimbulvetr-Kuro-Lotus-10.7B",
+      "developer": "saishf",
+      "evaluator_relationship": null,
+      "benchmark_scores": {
+        "hfopenllm_v2/IFEval": 0.4939,
+        "hfopenllm_v2/BBH": 0.4342,
+        "hfopenllm_v2/MATH Level 5": 0.0536,
+        "hfopenllm_v2/GPQA": 0.3012,
+        "hfopenllm_v2/MUSR": 0.4445,
+        "hfopenllm_v2/MMLU-PRO": 0.3389
+      }
+    },
+    {
+      "id": "saishf/Neural-SOVLish-Devil-8B-L3",
+      "name": "Neural-SOVLish-Devil-8B-L3",
+      "developer": "saishf",
+      "evaluator_relationship": null,
+      "benchmark_scores": {
+        "hfopenllm_v2/IFEval": 0.4199,
+        "hfopenllm_v2/BBH": 0.5142,
+        "hfopenllm_v2/MATH Level 5": 0.0891,
+        "hfopenllm_v2/GPQA": 0.3079,
+        "hfopenllm_v2/MUSR": 0.411,
+        "hfopenllm_v2/MMLU-PRO": 0.3807
+      }
+    }
+  ]
+}

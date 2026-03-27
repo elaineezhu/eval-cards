@@ -1,0 +1,33 @@
+{
+  "developer": "ngxson",
+  "models": [
+    {
+      "id": "ngxson/MiniThinky-1B-Llama-3.2",
+      "name": "MiniThinky-1B-Llama-3.2",
+      "developer": "ngxson",
+      "evaluator_relationship": null,
+      "benchmark_scores": {
+        "hfopenllm_v2/IFEval": 0.2771,
+        "hfopenllm_v2/BBH": 0.3142,
+        "hfopenllm_v2/MATH Level 5": 0.0574,
+        "hfopenllm_v2/GPQA": 0.2391,
+        "hfopenllm_v2/MUSR": 0.3434,
+        "hfopenllm_v2/MMLU-PRO": 0.1147
+      }
+    },
+    {
+      "id": "ngxson/MiniThinky-v2-1B-Llama-3.2",
+      "name": "MiniThinky-v2-1B-Llama-3.2",
+      "developer": "ngxson",
+      "evaluator_relationship": null,
+      "benchmark_scores": {
+        "hfopenllm_v2/IFEval": 0.2963,
+        "hfopenllm_v2/BBH": 0.3205,
+        "hfopenllm_v2/MATH Level 5": 0.0287,
+        "hfopenllm_v2/GPQA": 0.2399,
+        "hfopenllm_v2/MUSR": 0.3356,
+        "hfopenllm_v2/MMLU-PRO": 0.1116
+      }
+    }
+  ]
+}

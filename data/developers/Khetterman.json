@@ -1,0 +1,33 @@
+{
+  "developer": "Khetterman",
+  "models": [
+    {
+      "id": "Khetterman/DarkAtom-12B-v3",
+      "name": "DarkAtom-12B-v3",
+      "developer": "Khetterman",
+      "evaluator_relationship": null,
+      "benchmark_scores": {
+        "hfopenllm_v2/IFEval": 0.6173,
+        "hfopenllm_v2/BBH": 0.5154,
+        "hfopenllm_v2/MATH Level 5": 0.111,
+        "hfopenllm_v2/GPQA": 0.2978,
+        "hfopenllm_v2/MUSR": 0.4468,
+        "hfopenllm_v2/MMLU-PRO": 0.3546
+      }
+    },
+    {
+      "id": "Khetterman/Kosmos-8B-v1",
+      "name": "Kosmos-8B-v1",
+      "developer": "Khetterman",
+      "evaluator_relationship": null,
+      "benchmark_scores": {
+        "hfopenllm_v2/IFEval": 0.4129,
+        "hfopenllm_v2/BBH": 0.5234,
+        "hfopenllm_v2/MATH Level 5": 0.0989,
+        "hfopenllm_v2/GPQA": 0.2987,
+        "hfopenllm_v2/MUSR": 0.3919,
+        "hfopenllm_v2/MMLU-PRO": 0.3669
+      }
+    }
+  ]
+}

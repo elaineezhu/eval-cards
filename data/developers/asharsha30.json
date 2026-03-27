@@ -1,0 +1,19 @@
+{
+  "developer": "asharsha30",
+  "models": [
+    {
+      "id": "asharsha30/LLAMA_Harsha_8_B_ORDP_10k",
+      "name": "LLAMA_Harsha_8_B_ORDP_10k",
+      "developer": "asharsha30",
+      "evaluator_relationship": null,
+      "benchmark_scores": {
+        "hfopenllm_v2/IFEval": 0.3464,
+        "hfopenllm_v2/BBH": 0.4669,
+        "hfopenllm_v2/MATH Level 5": 0.0665,
+        "hfopenllm_v2/GPQA": 0.2735,
+        "hfopenllm_v2/MUSR": 0.3697,
+        "hfopenllm_v2/MMLU-PRO": 0.281
+      }
+    }
+  ]
+}

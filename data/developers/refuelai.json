@@ -1,0 +1,19 @@
+{
+  "developer": "refuelai",
+  "models": [
+    {
+      "id": "refuelai/Llama-3-Refueled",
+      "name": "Llama-3-Refueled",
+      "developer": "refuelai",
+      "evaluator_relationship": null,
+      "benchmark_scores": {
+        "hfopenllm_v2/IFEval": 0.462,
+        "hfopenllm_v2/BBH": 0.5871,
+        "hfopenllm_v2/MATH Level 5": 0.0665,
+        "hfopenllm_v2/GPQA": 0.2995,
+        "hfopenllm_v2/MUSR": 0.4454,
+        "hfopenllm_v2/MMLU-PRO": 0.3095
+      }
+    }
+  ]
+}

@@ -1,0 +1,19 @@
+{
+  "developer": "YoungPanda",
+  "models": [
+    {
+      "id": "YoungPanda/qwenqwen",
+      "name": "qwenqwen",
+      "developer": "YoungPanda",
+      "evaluator_relationship": null,
+      "benchmark_scores": {
+        "hfopenllm_v2/IFEval": 0.1264,
+        "hfopenllm_v2/BBH": 0.3379,
+        "hfopenllm_v2/MATH Level 5": 0.0355,
+        "hfopenllm_v2/GPQA": 0.25,
+        "hfopenllm_v2/MUSR": 0.3434,
+        "hfopenllm_v2/MMLU-PRO": 0.1168
+      }
+    }
+  ]
+}

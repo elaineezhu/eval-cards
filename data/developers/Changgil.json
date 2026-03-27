@@ -1,0 +1,33 @@
+{
+  "developer": "Changgil",
+  "models": [
+    {
+      "id": "Changgil/K2S3-14b-v0.2",
+      "name": "K2S3-14b-v0.2",
+      "developer": "Changgil",
+      "evaluator_relationship": null,
+      "benchmark_scores": {
+        "hfopenllm_v2/IFEval": 0.3243,
+        "hfopenllm_v2/BBH": 0.4613,
+        "hfopenllm_v2/MATH Level 5": 0.0574,
+        "hfopenllm_v2/GPQA": 0.281,
+        "hfopenllm_v2/MUSR": 0.3923,
+        "hfopenllm_v2/MMLU-PRO": 0.2644
+      }
+    },
+    {
+      "id": "Changgil/K2S3-v0.1",
+      "name": "K2S3-v0.1",
+      "developer": "Changgil",
+      "evaluator_relationship": null,
+      "benchmark_scores": {
+        "hfopenllm_v2/IFEval": 0.3277,
+        "hfopenllm_v2/BBH": 0.4655,
+        "hfopenllm_v2/MATH Level 5": 0.0461,
+        "hfopenllm_v2/GPQA": 0.2643,
+        "hfopenllm_v2/MUSR": 0.4014,
+        "hfopenllm_v2/MMLU-PRO": 0.2562
+      }
+    }
+  ]
+}

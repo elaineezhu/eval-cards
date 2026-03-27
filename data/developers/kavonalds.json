@@ -1,0 +1,47 @@
+{
+  "developer": "kavonalds",
+  "models": [
+    {
+      "id": "kavonalds/BunderMaxx-0710",
+      "name": "BunderMaxx-0710",
+      "developer": "kavonalds",
+      "evaluator_relationship": null,
+      "benchmark_scores": {
+        "hfopenllm_v2/IFEval": 0.2701,
+        "hfopenllm_v2/BBH": 0.5566,
+        "hfopenllm_v2/MATH Level 5": 0.068,
+        "hfopenllm_v2/GPQA": 0.2802,
+        "hfopenllm_v2/MUSR": 0.3682,
+        "hfopenllm_v2/MMLU-PRO": 0.1449
+      }
+    },
+    {
+      "id": "kavonalds/BunderMaxx-1010",
+      "name": "BunderMaxx-1010",
+      "developer": "kavonalds",
+      "evaluator_relationship": null,
+      "benchmark_scores": {
+        "hfopenllm_v2/IFEval": 0.2981,
+        "hfopenllm_v2/BBH": 0.702,
+        "hfopenllm_v2/MATH Level 5": 0.105,
+        "hfopenllm_v2/GPQA": 0.2609,
+        "hfopenllm_v2/MUSR": 0.3484,
+        "hfopenllm_v2/MMLU-PRO": 0.1224
+      }
+    },
+    {
+      "id": "kavonalds/Lancer-1-1b-Instruct",
+      "name": "Lancer-1-1b-Instruct",
+      "developer": "kavonalds",
+      "evaluator_relationship": null,
+      "benchmark_scores": {
+        "hfopenllm_v2/IFEval": 0.5546,
+        "hfopenllm_v2/BBH": 0.3253,
+        "hfopenllm_v2/MATH Level 5": 0.0393,
+        "hfopenllm_v2/GPQA": 0.2617,
+        "hfopenllm_v2/MUSR": 0.3144,
+        "hfopenllm_v2/MMLU-PRO": 0.1568
+      }
+    }
+  ]
+}

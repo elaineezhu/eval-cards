@@ -1,0 +1,23 @@
+{
+  "developer": "zhipu",
+  "models": [
+    {
+      "id": "zhipu/GLM 4.6",
+      "name": "GLM 4.6",
+      "developer": "zhipu",
+      "evaluator_relationship": null,
+      "benchmark_scores": {
+        "apex-agents/Corporate Lawyer Mean Score": 0.196
+      }
+    },
+    {
+      "id": "zhipu/GLM 4.7",
+      "name": "GLM 4.7",
+      "developer": "zhipu",
+      "evaluator_relationship": null,
+      "benchmark_scores": {
+        "apex-agents/Corporate Lawyer Mean Score": 0.147
+      }
+    }
+  ]
+}

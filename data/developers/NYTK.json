@@ -1,0 +1,33 @@
+{
+  "developer": "NYTK",
+  "models": [
+    {
+      "id": "NYTK/PULI-GPTrio",
+      "name": "PULI-GPTrio",
+      "developer": "NYTK",
+      "evaluator_relationship": null,
+      "benchmark_scores": {
+        "hfopenllm_v2/IFEval": 0.218,
+        "hfopenllm_v2/BBH": 0.306,
+        "hfopenllm_v2/MATH Level 5": 0.0121,
+        "hfopenllm_v2/GPQA": 0.2659,
+        "hfopenllm_v2/MUSR": 0.3819,
+        "hfopenllm_v2/MMLU-PRO": 0.1137
+      }
+    },
+    {
+      "id": "NYTK/PULI-LlumiX-32K",
+      "name": "PULI-LlumiX-32K",
+      "developer": "NYTK",
+      "evaluator_relationship": null,
+      "benchmark_scores": {
+        "hfopenllm_v2/IFEval": 0.17,
+        "hfopenllm_v2/BBH": 0.3189,
+        "hfopenllm_v2/MATH Level 5": 0.0128,
+        "hfopenllm_v2/GPQA": 0.2534,
+        "hfopenllm_v2/MUSR": 0.3964,
+        "hfopenllm_v2/MMLU-PRO": 0.1681
+      }
+    }
+  ]
+}

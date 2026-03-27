@@ -1,0 +1,19 @@
+{
+  "developer": "kevin009",
+  "models": [
+    {
+      "id": "kevin009/llamaRAGdrama",
+      "name": "llamaRAGdrama",
+      "developer": "kevin009",
+      "evaluator_relationship": null,
+      "benchmark_scores": {
+        "hfopenllm_v2/IFEval": 0.2598,
+        "hfopenllm_v2/BBH": 0.4007,
+        "hfopenllm_v2/MATH Level 5": 0.0431,
+        "hfopenllm_v2/GPQA": 0.2643,
+        "hfopenllm_v2/MUSR": 0.4316,
+        "hfopenllm_v2/MMLU-PRO": 0.2724
+      }
+    }
+  ]
+}

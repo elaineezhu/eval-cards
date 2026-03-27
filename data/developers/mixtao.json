@@ -1,0 +1,19 @@
+{
+  "developer": "mixtao",
+  "models": [
+    {
+      "id": "mixtao/MixTAO-7Bx2-MoE-v8.1",
+      "name": "MixTAO-7Bx2-MoE-v8.1",
+      "developer": "mixtao",
+      "evaluator_relationship": null,
+      "benchmark_scores": {
+        "hfopenllm_v2/IFEval": 0.4162,
+        "hfopenllm_v2/BBH": 0.5189,
+        "hfopenllm_v2/MATH Level 5": 0.0906,
+        "hfopenllm_v2/GPQA": 0.2844,
+        "hfopenllm_v2/MUSR": 0.4463,
+        "hfopenllm_v2/MMLU-PRO": 0.3123
+      }
+    }
+  ]
+}

@@ -1,0 +1,19 @@
+{
+  "developer": "OliveiraJLT",
+  "models": [
+    {
+      "id": "OliveiraJLT/Sagui-7B-Instruct-v0.1",
+      "name": "Sagui-7B-Instruct-v0.1",
+      "developer": "OliveiraJLT",
+      "evaluator_relationship": null,
+      "benchmark_scores": {
+        "hfopenllm_v2/IFEval": 0.2892,
+        "hfopenllm_v2/BBH": 0.3111,
+        "hfopenllm_v2/MATH Level 5": 0.0151,
+        "hfopenllm_v2/GPQA": 0.2424,
+        "hfopenllm_v2/MUSR": 0.4191,
+        "hfopenllm_v2/MMLU-PRO": 0.1485
+      }
+    }
+  ]
+}

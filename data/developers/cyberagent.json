@@ -1,0 +1,19 @@
+{
+  "developer": "cyberagent",
+  "models": [
+    {
+      "id": "cyberagent/calm3-22b-chat",
+      "name": "calm3-22b-chat",
+      "developer": "cyberagent",
+      "evaluator_relationship": null,
+      "benchmark_scores": {
+        "hfopenllm_v2/IFEval": 0.5091,
+        "hfopenllm_v2/BBH": 0.4992,
+        "hfopenllm_v2/MATH Level 5": 0.0695,
+        "hfopenllm_v2/GPQA": 0.2768,
+        "hfopenllm_v2/MUSR": 0.4553,
+        "hfopenllm_v2/MMLU-PRO": 0.295
+      }
+    }
+  ]
+}

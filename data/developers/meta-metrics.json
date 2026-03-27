@@ -1,0 +1,18 @@
+{
+  "developer": "meta-metrics",
+  "models": [
+    {
+      "id": "meta-metrics/MetaMetrics-RM-v1.0",
+      "name": "meta-metrics/MetaMetrics-RM-v1.0",
+      "developer": "meta-metrics",
+      "evaluator_relationship": null,
+      "benchmark_scores": {
+        "reward-bench/Score": 0.9342,
+        "reward-bench/Chat": 0.9832,
+        "reward-bench/Chat Hard": 0.864,
+        "reward-bench/Safety": 0.9081,
+        "reward-bench/Reasoning": 0.9816
+      }
+    }
+  ]
+}

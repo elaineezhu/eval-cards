@@ -1,0 +1,173 @@
+{
+  "developer": "SkyOrbis",
+  "models": [
+    {
+      "id": "SkyOrbis/SKY-Ko-Llama3.1-8B-lora",
+      "name": "SKY-Ko-Llama3.1-8B-lora",
+      "developer": "SkyOrbis",
+      "evaluator_relationship": null,
+      "benchmark_scores": {
+        "hfopenllm_v2/IFEval": 0.5058,
+        "hfopenllm_v2/BBH": 0.5088,
+        "hfopenllm_v2/MATH Level 5": 0.1548,
+        "hfopenllm_v2/GPQA": 0.3213,
+        "hfopenllm_v2/MUSR": 0.3998,
+        "hfopenllm_v2/MMLU-PRO": 0.3777
+      }
+    },
+    {
+      "id": "SkyOrbis/SKY-Ko-Llama3.1-8B-lora-epoch1",
+      "name": "SKY-Ko-Llama3.1-8B-lora-epoch1",
+      "developer": "SkyOrbis",
+      "evaluator_relationship": null,
+      "benchmark_scores": {
+        "hfopenllm_v2/IFEval": 0.5058,
+        "hfopenllm_v2/BBH": 0.5088,
+        "hfopenllm_v2/MATH Level 5": 0.1548,
+        "hfopenllm_v2/GPQA": 0.3213,
+        "hfopenllm_v2/MUSR": 0.3998,
+        "hfopenllm_v2/MMLU-PRO": 0.3777
+      }
+    },
+    {
+      "id": "SkyOrbis/SKY-Ko-Llama3.2-1B-lora-epoch3",
+      "name": "SKY-Ko-Llama3.2-1B-lora-epoch3",
+      "developer": "SkyOrbis",
+      "evaluator_relationship": null,
+      "benchmark_scores": {
+        "hfopenllm_v2/IFEval": 0.3247,
+        "hfopenllm_v2/BBH": 0.3167,
+        "hfopenllm_v2/MATH Level 5": 0.0272,
+        "hfopenllm_v2/GPQA": 0.2517,
+        "hfopenllm_v2/MUSR": 0.3382,
+        "hfopenllm_v2/MMLU-PRO": 0.1279
+      }
+    },
+    {
+      "id": "SkyOrbis/SKY-Ko-Llama3.2-1B-lora-epoch5",
+      "name": "SKY-Ko-Llama3.2-1B-lora-epoch5",
+      "developer": "SkyOrbis",
+      "evaluator_relationship": null,
+      "benchmark_scores": {
+        "hfopenllm_v2/IFEval": 0.436,
+        "hfopenllm_v2/BBH": 0.3406,
+        "hfopenllm_v2/MATH Level 5": 0.0521,
+        "hfopenllm_v2/GPQA": 0.2592,
+        "hfopenllm_v2/MUSR": 0.3471,
+        "hfopenllm_v2/MMLU-PRO": 0.1946
+      }
+    },
+    {
+      "id": "SkyOrbis/SKY-Ko-Llama3.2-1B-lora-v2-epoch3",
+      "name": "SKY-Ko-Llama3.2-1B-lora-v2-epoch3",
+      "developer": "SkyOrbis",
+      "evaluator_relationship": null,
+      "benchmark_scores": {
+        "hfopenllm_v2/IFEval": 0.436,
+        "hfopenllm_v2/BBH": 0.3406,
+        "hfopenllm_v2/MATH Level 5": 0.0521,
+        "hfopenllm_v2/GPQA": 0.2592,
+        "hfopenllm_v2/MUSR": 0.3471,
+        "hfopenllm_v2/MMLU-PRO": 0.1946
+      }
+    },
+    {
+      "id": "SkyOrbis/SKY-Ko-Llama3.2-1B-lora-v2-epoch5",
+      "name": "SKY-Ko-Llama3.2-1B-lora-v2-epoch5",
+      "developer": "SkyOrbis",
+      "evaluator_relationship": null,
+      "benchmark_scores": {
+        "hfopenllm_v2/IFEval": 0.4247,
+        "hfopenllm_v2/BBH": 0.3397,
+        "hfopenllm_v2/MATH Level 5": 0.0506,
+        "hfopenllm_v2/GPQA": 0.2542,
+        "hfopenllm_v2/MUSR": 0.3458,
+        "hfopenllm_v2/MMLU-PRO": 0.1946
+      }
+    },
+    {
+      "id": "SkyOrbis/SKY-Ko-Llama3.2-3B-lora-epoch1",
+      "name": "SKY-Ko-Llama3.2-3B-lora-epoch1",
+      "developer": "SkyOrbis",
+      "evaluator_relationship": null,
+      "benchmark_scores": {
+        "hfopenllm_v2/IFEval": 0.5331,
+        "hfopenllm_v2/BBH": 0.44,
+        "hfopenllm_v2/MATH Level 5": 0.1458,
+        "hfopenllm_v2/GPQA": 0.2919,
+        "hfopenllm_v2/MUSR": 0.3522,
+        "hfopenllm_v2/MMLU-PRO": 0.3004
+      }
+    },
+    {
+      "id": "SkyOrbis/SKY-Ko-Llama3.2-3B-lora-epoch2",
+      "name": "SKY-Ko-Llama3.2-3B-lora-epoch2",
+      "developer": "SkyOrbis",
+      "evaluator_relationship": null,
+      "benchmark_scores": {
+        "hfopenllm_v2/IFEval": 0.5331,
+        "hfopenllm_v2/BBH": 0.44,
+        "hfopenllm_v2/MATH Level 5": 0.1458,
+        "hfopenllm_v2/GPQA": 0.2919,
+        "hfopenllm_v2/MUSR": 0.3522,
+        "hfopenllm_v2/MMLU-PRO": 0.3004
+      }
+    },
+    {
+      "id": "SkyOrbis/SKY-Ko-Llama3.2-3B-lora-epoch3",
+      "name": "SKY-Ko-Llama3.2-3B-lora-epoch3",
+      "developer": "SkyOrbis",
+      "evaluator_relationship": null,
+      "benchmark_scores": {
+        "hfopenllm_v2/IFEval": 0.5331,
+        "hfopenllm_v2/BBH": 0.44,
+        "hfopenllm_v2/MATH Level 5": 0.1458,
+        "hfopenllm_v2/GPQA": 0.2919,
+        "hfopenllm_v2/MUSR": 0.3522,
+        "hfopenllm_v2/MMLU-PRO": 0.3004
+      }
+    },
+    {
+      "id": "SkyOrbis/SKY-Ko-Qwen2.5-3B-Instruct",
+      "name": "SKY-Ko-Qwen2.5-3B-Instruct",
+      "developer": "SkyOrbis",
+      "evaluator_relationship": null,
+      "benchmark_scores": {
+        "hfopenllm_v2/IFEval": 0.3534,
+        "hfopenllm_v2/BBH": 0.4265,
+        "hfopenllm_v2/MATH Level 5": 0.0695,
+        "hfopenllm_v2/GPQA": 0.2794,
+        "hfopenllm_v2/MUSR": 0.4024,
+        "hfopenllm_v2/MMLU-PRO": 0.2812
+      }
+    },
+    {
+      "id": "SkyOrbis/SKY-Ko-Qwen2.5-7B-Instruct-SFT-step-15000",
+      "name": "SKY-Ko-Qwen2.5-7B-Instruct-SFT-step-15000",
+      "developer": "SkyOrbis",
+      "evaluator_relationship": null,
+      "benchmark_scores": {
+        "hfopenllm_v2/IFEval": 0.3819,
+        "hfopenllm_v2/BBH": 0.5078,
+        "hfopenllm_v2/MATH Level 5": 0.1866,
+        "hfopenllm_v2/GPQA": 0.3272,
+        "hfopenllm_v2/MUSR": 0.4436,
+        "hfopenllm_v2/MMLU-PRO": 0.3914
+      }
+    },
+    {
+      "id": "SkyOrbis/SKY-Ko-Qwen2.5-7B-Instruct-SFT-step-5000",
+      "name": "SKY-Ko-Qwen2.5-7B-Instruct-SFT-step-5000",
+      "developer": "SkyOrbis",
+      "evaluator_relationship": null,
+      "benchmark_scores": {
+        "hfopenllm_v2/IFEval": 0.3812,
+        "hfopenllm_v2/BBH": 0.539,
+        "hfopenllm_v2/MATH Level 5": 0.21,
+        "hfopenllm_v2/GPQA": 0.3029,
+        "hfopenllm_v2/MUSR": 0.4238,
+        "hfopenllm_v2/MMLU-PRO": 0.4238
+      }
+    }
+  ]
+}

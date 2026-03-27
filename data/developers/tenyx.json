@@ -1,0 +1,19 @@
+{
+  "developer": "tenyx",
+  "models": [
+    {
+      "id": "tenyx/Llama3-TenyxChat-70B",
+      "name": "Llama3-TenyxChat-70B",
+      "developer": "tenyx",
+      "evaluator_relationship": null,
+      "benchmark_scores": {
+        "hfopenllm_v2/IFEval": 0.8087,
+        "hfopenllm_v2/BBH": 0.6511,
+        "hfopenllm_v2/MATH Level 5": 0.2356,
+        "hfopenllm_v2/GPQA": 0.3012,
+        "hfopenllm_v2/MUSR": 0.426,
+        "hfopenllm_v2/MMLU-PRO": 0.521
+      }
+    }
+  ]
+}

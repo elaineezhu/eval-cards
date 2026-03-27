@@ -1,0 +1,33 @@
+{
+  "developer": "SenseLLM",
+  "models": [
+    {
+      "id": "SenseLLM/ReflectionCoder-CL-34B",
+      "name": "ReflectionCoder-CL-34B",
+      "developer": "SenseLLM",
+      "evaluator_relationship": null,
+      "benchmark_scores": {
+        "hfopenllm_v2/IFEval": 0.4008,
+        "hfopenllm_v2/BBH": 0.3953,
+        "hfopenllm_v2/MATH Level 5": 0.0332,
+        "hfopenllm_v2/GPQA": 0.2508,
+        "hfopenllm_v2/MUSR": 0.4155,
+        "hfopenllm_v2/MMLU-PRO": 0.1424
+      }
+    },
+    {
+      "id": "SenseLLM/ReflectionCoder-DS-33B",
+      "name": "ReflectionCoder-DS-33B",
+      "developer": "SenseLLM",
+      "evaluator_relationship": null,
+      "benchmark_scores": {
+        "hfopenllm_v2/IFEval": 0.3787,
+        "hfopenllm_v2/BBH": 0.3449,
+        "hfopenllm_v2/MATH Level 5": 0.0302,
+        "hfopenllm_v2/GPQA": 0.2743,
+        "hfopenllm_v2/MUSR": 0.3343,
+        "hfopenllm_v2/MMLU-PRO": 0.1202
+      }
+    }
+  ]
+}

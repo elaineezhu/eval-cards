@@ -1,0 +1,33 @@
+{
+  "developer": "baconnier",
+  "models": [
+    {
+      "id": "baconnier/Napoleon_24B_V0.0",
+      "name": "Napoleon_24B_V0.0",
+      "developer": "baconnier",
+      "evaluator_relationship": null,
+      "benchmark_scores": {
+        "hfopenllm_v2/IFEval": 0.1801,
+        "hfopenllm_v2/BBH": 0.6367,
+        "hfopenllm_v2/MATH Level 5": 0.2273,
+        "hfopenllm_v2/GPQA": 0.3792,
+        "hfopenllm_v2/MUSR": 0.442,
+        "hfopenllm_v2/MMLU-PRO": 0.504
+      }
+    },
+    {
+      "id": "baconnier/Napoleon_24B_V0.2",
+      "name": "Napoleon_24B_V0.2",
+      "developer": "baconnier",
+      "evaluator_relationship": null,
+      "benchmark_scores": {
+        "hfopenllm_v2/IFEval": 0.2527,
+        "hfopenllm_v2/BBH": 0.5911,
+        "hfopenllm_v2/MATH Level 5": 0.1435,
+        "hfopenllm_v2/GPQA": 0.3381,
+        "hfopenllm_v2/MUSR": 0.446,
+        "hfopenllm_v2/MMLU-PRO": 0.4357
+      }
+    }
+  ]
+}

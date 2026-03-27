@@ -1,0 +1,47 @@
+{
+  "developer": "NLPark",
+  "models": [
+    {
+      "id": "NLPark/AnFeng_v3.1-Avocet",
+      "name": "AnFeng_v3.1-Avocet",
+      "developer": "NLPark",
+      "evaluator_relationship": null,
+      "benchmark_scores": {
+        "hfopenllm_v2/IFEval": 0.5096,
+        "hfopenllm_v2/BBH": 0.5829,
+        "hfopenllm_v2/MATH Level 5": 0.1594,
+        "hfopenllm_v2/GPQA": 0.3247,
+        "hfopenllm_v2/MUSR": 0.4476,
+        "hfopenllm_v2/MMLU-PRO": 0.4438
+      }
+    },
+    {
+      "id": "NLPark/B-and-W_Flycatcher-3AD1E",
+      "name": "B-and-W_Flycatcher-3AD1E",
+      "developer": "NLPark",
+      "evaluator_relationship": null,
+      "benchmark_scores": {
+        "hfopenllm_v2/IFEval": 0.4908,
+        "hfopenllm_v2/BBH": 0.6065,
+        "hfopenllm_v2/MATH Level 5": 0.2379,
+        "hfopenllm_v2/GPQA": 0.3305,
+        "hfopenllm_v2/MUSR": 0.4423,
+        "hfopenllm_v2/MMLU-PRO": 0.4741
+      }
+    },
+    {
+      "id": "NLPark/Shi-Ci-Robin-Test_3AD80",
+      "name": "Shi-Ci-Robin-Test_3AD80",
+      "developer": "NLPark",
+      "evaluator_relationship": null,
+      "benchmark_scores": {
+        "hfopenllm_v2/IFEval": 0.7227,
+        "hfopenllm_v2/BBH": 0.6705,
+        "hfopenllm_v2/MATH Level 5": 0.3157,
+        "hfopenllm_v2/GPQA": 0.3599,
+        "hfopenllm_v2/MUSR": 0.4696,
+        "hfopenllm_v2/MMLU-PRO": 0.5121
+      }
+    }
+  ]
+}

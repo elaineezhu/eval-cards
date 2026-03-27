@@ -1,0 +1,48 @@
+{
+  "model_info": {
+    "name": "Minimax-2.5",
+    "developer": "minimax",
+    "id": "minimax/Minimax-2.5",
+    "inference_platform": "unknown"
+  },
+  "evaluations": [
+    {
+      "evaluation_id": "apex-agents/minimax_minimax-2.5/1773260200",
+      "retrieved_timestamp": "1773260200",
+      "source_metadata": {
+        "source_name": "Mercor APEX-Agents Leaderboard",
+        "source_type": "evaluation_run",
+        "source_organization_name": "Mercor",
+        "source_organization_url": "https://www.mercor.com",
+        "evaluator_relationship": "first_party"
+      },
+      "eval_library": {
+        "name": "archipelago",
+        "version": "1.0.0"
+      },
+      "benchmark": "apex-agents",
+      "evaluation_results": [
+        {
+          "evaluation_name": "Corporate Lawyer Mean Score",
+          "source_data": {
+            "dataset_name": "apex-agents",
+            "source_type": "hf_dataset",
+            "hf_repo": "mercor/apex-agents"
+          },
+          "metric_config": {
+            "evaluation_description": "Corporate lawyer world mean score.",
+            "lower_is_better": false,
+            "score_type": "continuous",
+            "min_score": 0,
+            "max_score": 1
+          },
+          "score_details": {
+            "score": 0.339
+          }
+        }
+      ],
+      "detailed_evaluation_results": null,
+      "generation_config": null
+    }
+  ]
+}

@@ -1,0 +1,47 @@
+{
+  "developer": "HPAI-BSC",
+  "models": [
+    {
+      "id": "HPAI-BSC/Llama3-Aloe-8B-Alpha",
+      "name": "Llama3-Aloe-8B-Alpha",
+      "developer": "HPAI-BSC",
+      "evaluator_relationship": null,
+      "benchmark_scores": {
+        "hfopenllm_v2/IFEval": 0.5081,
+        "hfopenllm_v2/BBH": 0.4831,
+        "hfopenllm_v2/MATH Level 5": 0.0612,
+        "hfopenllm_v2/GPQA": 0.2945,
+        "hfopenllm_v2/MUSR": 0.3673,
+        "hfopenllm_v2/MMLU-PRO": 0.3295
+      }
+    },
+    {
+      "id": "HPAI-BSC/Llama3.1-Aloe-Beta-8B",
+      "name": "Llama3.1-Aloe-Beta-8B",
+      "developer": "HPAI-BSC",
+      "evaluator_relationship": null,
+      "benchmark_scores": {
+        "hfopenllm_v2/IFEval": 0.7253,
+        "hfopenllm_v2/BBH": 0.5093,
+        "hfopenllm_v2/MATH Level 5": 0.1828,
+        "hfopenllm_v2/GPQA": 0.2685,
+        "hfopenllm_v2/MUSR": 0.3835,
+        "hfopenllm_v2/MMLU-PRO": 0.358
+      }
+    },
+    {
+      "id": "HPAI-BSC/Qwen2.5-Aloe-Beta-7B",
+      "name": "Qwen2.5-Aloe-Beta-7B",
+      "developer": "HPAI-BSC",
+      "evaluator_relationship": null,
+      "benchmark_scores": {
+        "hfopenllm_v2/IFEval": 0.4554,
+        "hfopenllm_v2/BBH": 0.5049,
+        "hfopenllm_v2/MATH Level 5": 0.3542,
+        "hfopenllm_v2/GPQA": 0.2911,
+        "hfopenllm_v2/MUSR": 0.426,
+        "hfopenllm_v2/MMLU-PRO": 0.4354
+      }
+    }
+  ]
+}

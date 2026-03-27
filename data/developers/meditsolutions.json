@@ -1,0 +1,173 @@
+{
+  "developer": "meditsolutions",
+  "models": [
+    {
+      "id": "meditsolutions/Llama-3.1-MedIT-SUN-8B",
+      "name": "Llama-3.1-MedIT-SUN-8B",
+      "developer": "meditsolutions",
+      "evaluator_relationship": null,
+      "benchmark_scores": {
+        "hfopenllm_v2/IFEval": 0.7837,
+        "hfopenllm_v2/BBH": 0.5187,
+        "hfopenllm_v2/MATH Level 5": 0.2092,
+        "hfopenllm_v2/GPQA": 0.3087,
+        "hfopenllm_v2/MUSR": 0.4056,
+        "hfopenllm_v2/MMLU-PRO": 0.3916
+      }
+    },
+    {
+      "id": "meditsolutions/Llama-3.2-SUN-1B-Instruct",
+      "name": "Llama-3.2-SUN-1B-Instruct",
+      "developer": "meditsolutions",
+      "evaluator_relationship": null,
+      "benchmark_scores": {
+        "hfopenllm_v2/IFEval": 0.6413,
+        "hfopenllm_v2/BBH": 0.3474,
+        "hfopenllm_v2/MATH Level 5": 0.071,
+        "hfopenllm_v2/GPQA": 0.2424,
+        "hfopenllm_v2/MUSR": 0.3514,
+        "hfopenllm_v2/MMLU-PRO": 0.1781
+      }
+    },
+    {
+      "id": "meditsolutions/Llama-3.2-SUN-1B-chat",
+      "name": "Llama-3.2-SUN-1B-chat",
+      "developer": "meditsolutions",
+      "evaluator_relationship": null,
+      "benchmark_scores": {
+        "hfopenllm_v2/IFEval": 0.5482,
+        "hfopenllm_v2/BBH": 0.3514,
+        "hfopenllm_v2/MATH Level 5": 0.0642,
+        "hfopenllm_v2/GPQA": 0.2617,
+        "hfopenllm_v2/MUSR": 0.3249,
+        "hfopenllm_v2/MMLU-PRO": 0.1838
+      }
+    },
+    {
+      "id": "meditsolutions/Llama-3.2-SUN-2.4B-checkpoint-26000",
+      "name": "Llama-3.2-SUN-2.4B-checkpoint-26000",
+      "developer": "meditsolutions",
+      "evaluator_relationship": null,
+      "benchmark_scores": {
+        "hfopenllm_v2/IFEval": 0.2814,
+        "hfopenllm_v2/BBH": 0.3018,
+        "hfopenllm_v2/MATH Level 5": 0.0181,
+        "hfopenllm_v2/GPQA": 0.2777,
+        "hfopenllm_v2/MUSR": 0.4103,
+        "hfopenllm_v2/MMLU-PRO": 0.1345
+      }
+    },
+    {
+      "id": "meditsolutions/Llama-3.2-SUN-2.4B-checkpoint-34800",
+      "name": "Llama-3.2-SUN-2.4B-checkpoint-34800",
+      "developer": "meditsolutions",
+      "evaluator_relationship": null,
+      "benchmark_scores": {
+        "hfopenllm_v2/IFEval": 0.2501,
+        "hfopenllm_v2/BBH": 0.3161,
+        "hfopenllm_v2/MATH Level 5": 0.0106,
+        "hfopenllm_v2/GPQA": 0.2861,
+        "hfopenllm_v2/MUSR": 0.4022,
+        "hfopenllm_v2/MMLU-PRO": 0.1357
+      }
+    },
+    {
+      "id": "meditsolutions/Llama-3.2-SUN-2.4B-v1.0.0",
+      "name": "Llama-3.2-SUN-2.4B-v1.0.0",
+      "developer": "meditsolutions",
+      "evaluator_relationship": null,
+      "benchmark_scores": {
+        "hfopenllm_v2/IFEval": 0.5637,
+        "hfopenllm_v2/BBH": 0.3391,
+        "hfopenllm_v2/MATH Level 5": 0.0627,
+        "hfopenllm_v2/GPQA": 0.2576,
+        "hfopenllm_v2/MUSR": 0.3209,
+        "hfopenllm_v2/MMLU-PRO": 0.1543
+      }
+    },
+    {
+      "id": "meditsolutions/Llama-3.2-SUN-2.5B-chat",
+      "name": "Llama-3.2-SUN-2.5B-chat",
+      "developer": "meditsolutions",
+      "evaluator_relationship": null,
+      "benchmark_scores": {
+        "hfopenllm_v2/IFEval": 0.5604,
+        "hfopenllm_v2/BBH": 0.3575,
+        "hfopenllm_v2/MATH Level 5": 0.071,
+        "hfopenllm_v2/GPQA": 0.2592,
+        "hfopenllm_v2/MUSR": 0.3155,
+        "hfopenllm_v2/MMLU-PRO": 0.1813
+      }
+    },
+    {
+      "id": "meditsolutions/Llama-3.2-SUN-HDIC-1B-Instruct",
+      "name": "Llama-3.2-SUN-HDIC-1B-Instruct",
+      "developer": "meditsolutions",
+      "evaluator_relationship": null,
+      "benchmark_scores": {
+        "hfopenllm_v2/IFEval": 0.6827,
+        "hfopenllm_v2/BBH": 0.3508,
+        "hfopenllm_v2/MATH Level 5": 0.0619,
+        "hfopenllm_v2/GPQA": 0.2366,
+        "hfopenllm_v2/MUSR": 0.3594,
+        "hfopenllm_v2/MMLU-PRO": 0.1687
+      }
+    },
+    {
+      "id": "meditsolutions/MSH-Lite-7B-v1-Bielik-v2.3-Instruct-Llama-Prune",
+      "name": "MSH-Lite-7B-v1-Bielik-v2.3-Instruct-Llama-Prune",
+      "developer": "meditsolutions",
+      "evaluator_relationship": null,
+      "benchmark_scores": {
+        "hfopenllm_v2/IFEval": 0.3655,
+        "hfopenllm_v2/BBH": 0.4035,
+        "hfopenllm_v2/MATH Level 5": 0.0264,
+        "hfopenllm_v2/GPQA": 0.3029,
+        "hfopenllm_v2/MUSR": 0.4253,
+        "hfopenllm_v2/MMLU-PRO": 0.219
+      }
+    },
+    {
+      "id": "meditsolutions/MSH-v1-Bielik-v2.3-Instruct-MedIT-merge",
+      "name": "MSH-v1-Bielik-v2.3-Instruct-MedIT-merge",
+      "developer": "meditsolutions",
+      "evaluator_relationship": null,
+      "benchmark_scores": {
+        "hfopenllm_v2/IFEval": 0.5814,
+        "hfopenllm_v2/BBH": 0.5672,
+        "hfopenllm_v2/MATH Level 5": 0.2077,
+        "hfopenllm_v2/GPQA": 0.3456,
+        "hfopenllm_v2/MUSR": 0.4385,
+        "hfopenllm_v2/MMLU-PRO": 0.35
+      }
+    },
+    {
+      "id": "meditsolutions/MedIT-Mesh-3B-Instruct",
+      "name": "MedIT-Mesh-3B-Instruct",
+      "developer": "meditsolutions",
+      "evaluator_relationship": null,
+      "benchmark_scores": {
+        "hfopenllm_v2/IFEval": 0.5814,
+        "hfopenllm_v2/BBH": 0.5576,
+        "hfopenllm_v2/MATH Level 5": 0.2032,
+        "hfopenllm_v2/GPQA": 0.3238,
+        "hfopenllm_v2/MUSR": 0.4048,
+        "hfopenllm_v2/MMLU-PRO": 0.4012
+      }
+    },
+    {
+      "id": "meditsolutions/SmolLM2-MedIT-Upscale-2B",
+      "name": "SmolLM2-MedIT-Upscale-2B",
+      "developer": "meditsolutions",
+      "evaluator_relationship": null,
+      "benchmark_scores": {
+        "hfopenllm_v2/IFEval": 0.6429,
+        "hfopenllm_v2/BBH": 0.3551,
+        "hfopenllm_v2/MATH Level 5": 0.0559,
+        "hfopenllm_v2/GPQA": 0.2643,
+        "hfopenllm_v2/MUSR": 0.3314,
+        "hfopenllm_v2/MMLU-PRO": 0.1971
+      }
+    }
+  ]
+}

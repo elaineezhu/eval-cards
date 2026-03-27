@@ -1,0 +1,33 @@
+{
+  "developer": "Sourjayon",
+  "models": [
+    {
+      "id": "Sourjayon/DeepSeek-R1-8b-Sify",
+      "name": "DeepSeek-R1-8b-Sify",
+      "developer": "Sourjayon",
+      "evaluator_relationship": null,
+      "benchmark_scores": {
+        "hfopenllm_v2/IFEval": 0.3679,
+        "hfopenllm_v2/BBH": 0.3379,
+        "hfopenllm_v2/MATH Level 5": 0.2447,
+        "hfopenllm_v2/GPQA": 0.2525,
+        "hfopenllm_v2/MUSR": 0.3303,
+        "hfopenllm_v2/MMLU-PRO": 0.1981
+      }
+    },
+    {
+      "id": "Sourjayon/DeepSeek-R1-ForumNXT",
+      "name": "DeepSeek-R1-ForumNXT",
+      "developer": "Sourjayon",
+      "evaluator_relationship": null,
+      "benchmark_scores": {
+        "hfopenllm_v2/IFEval": 0.2603,
+        "hfopenllm_v2/BBH": 0.331,
+        "hfopenllm_v2/MATH Level 5": 0.2576,
+        "hfopenllm_v2/GPQA": 0.2743,
+        "hfopenllm_v2/MUSR": 0.3392,
+        "hfopenllm_v2/MMLU-PRO": 0.1648
+      }
+    }
+  ]
+}

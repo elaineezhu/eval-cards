@@ -1,0 +1,19 @@
+{
+  "developer": "Unbabel",
+  "models": [
+    {
+      "id": "Unbabel/TowerInstruct-Mistral-7B-v0.2",
+      "name": "TowerInstruct-Mistral-7B-v0.2",
+      "developer": "Unbabel",
+      "evaluator_relationship": null,
+      "benchmark_scores": {
+        "hfopenllm_v2/IFEval": 0.2843,
+        "hfopenllm_v2/BBH": 0.3882,
+        "hfopenllm_v2/MATH Level 5": 0.0204,
+        "hfopenllm_v2/GPQA": 0.2475,
+        "hfopenllm_v2/MUSR": 0.4522,
+        "hfopenllm_v2/MMLU-PRO": 0.1968
+      }
+    }
+  ]
+}

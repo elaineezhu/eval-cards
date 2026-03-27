@@ -1,0 +1,227 @@
+{
+  "model_info": {
+    "name": "GPT 5.1",
+    "developer": "openai",
+    "id": "openai/GPT 5.1",
+    "inference_platform": "unknown"
+  },
+  "evaluations": [
+    {
+      "evaluation_id": "ace/openai_gpt-5.1/1773260200",
+      "retrieved_timestamp": "1773260200",
+      "source_metadata": {
+        "source_name": "Mercor ACE Leaderboard",
+        "source_type": "evaluation_run",
+        "source_organization_name": "Mercor",
+        "source_organization_url": "https://www.mercor.com",
+        "evaluator_relationship": "first_party"
+      },
+      "eval_library": {
+        "name": "archipelago",
+        "version": "1.0.0"
+      },
+      "benchmark": "ace",
+      "evaluation_results": [
+        {
+          "evaluation_name": "Overall Score",
+          "source_data": {
+            "dataset_name": "ace",
+            "source_type": "hf_dataset",
+            "hf_repo": "Mercor/ACE"
+          },
+          "metric_config": {
+            "evaluation_description": "Overall ACE score across all consumer-task domains.",
+            "lower_is_better": false,
+            "score_type": "continuous",
+            "min_score": 0,
+            "max_score": 1
+          },
+          "score_details": {
+            "score": 0.551,
+            "uncertainty": {
+              "confidence_interval": {
+                "lower": -0.032,
+                "upper": 0.032,
+                "method": "bootstrap"
+              }
+            }
+          },
+          "generation_config": {
+            "additional_details": {
+              "run_setting": "High"
+            }
+          }
+        },
+        {
+          "evaluation_name": "DIY Score",
+          "source_data": {
+            "dataset_name": "ace",
+            "source_type": "hf_dataset",
+            "hf_repo": "Mercor/ACE"
+          },
+          "metric_config": {
+            "evaluation_description": "DIY domain score.",
+            "lower_is_better": false,
+            "score_type": "continuous",
+            "min_score": 0,
+            "max_score": 1
+          },
+          "score_details": {
+            "score": 0.56
+          },
+          "generation_config": {
+            "additional_details": {
+              "run_setting": "High"
+            }
+          }
+        },
+        {
+          "evaluation_name": "Gaming Score",
+          "source_data": {
+            "dataset_name": "ace",
+            "source_type": "hf_dataset",
+            "hf_repo": "Mercor/ACE"
+          },
+          "metric_config": {
+            "evaluation_description": "Gaming domain score.",
+            "lower_is_better": false,
+            "score_type": "continuous",
+            "min_score": 0,
+            "max_score": 1
+          },
+          "score_details": {
+            "score": 0.61
+          },
+          "generation_config": {
+            "additional_details": {
+              "run_setting": "High"
+            }
+          }
+        },
+        {
+          "evaluation_name": "Shopping Score",
+          "source_data": {
+            "dataset_name": "ace",
+            "source_type": "hf_dataset",
+            "hf_repo": "Mercor/ACE"
+          },
+          "metric_config": {
+            "evaluation_description": "Shopping domain score.",
+            "lower_is_better": false,
+            "score_type": "continuous",
+            "min_score": 0,
+            "max_score": 1
+          },
+          "score_details": {
+            "score": 0.45
+          },
+          "generation_config": {
+            "additional_details": {
+              "run_setting": "High"
+            }
+          }
+        }
+      ],
+      "detailed_evaluation_results": null,
+      "generation_config": {
+        "additional_details": {
+          "run_setting": "High"
+        }
+      }
+    },
+    {
+      "evaluation_id": "apex-agents/openai_gpt-5.1/1773260200",
+      "retrieved_timestamp": "1773260200",
+      "source_metadata": {
+        "source_name": "Mercor APEX-Agents Leaderboard",
+        "source_type": "evaluation_run",
+        "source_organization_name": "Mercor",
+        "source_organization_url": "https://www.mercor.com",
+        "evaluator_relationship": "first_party"
+      },
+      "eval_library": {
+        "name": "archipelago",
+        "version": "1.0.0"
+      },
+      "benchmark": "apex-agents",
+      "evaluation_results": [
+        {
+          "evaluation_name": "Corporate Lawyer Mean Score",
+          "source_data": {
+            "dataset_name": "apex-agents",
+            "source_type": "hf_dataset",
+            "hf_repo": "mercor/apex-agents"
+          },
+          "metric_config": {
+            "evaluation_description": "Corporate lawyer world mean score.",
+            "lower_is_better": false,
+            "score_type": "continuous",
+            "min_score": 0,
+            "max_score": 1
+          },
+          "score_details": {
+            "score": 0.376
+          },
+          "generation_config": {
+            "additional_details": {
+              "run_setting": "High"
+            }
+          }
+        }
+      ],
+      "detailed_evaluation_results": null,
+      "generation_config": {
+        "additional_details": {
+          "run_setting": "High"
+        }
+      }
+    },
+    {
+      "evaluation_id": "apex-v1/openai_gpt-5.1/1773260200",
+      "retrieved_timestamp": "1773260200",
+      "source_metadata": {
+        "source_name": "Mercor APEX-v1 Leaderboard",
+        "source_type": "evaluation_run",
+        "source_organization_name": "Mercor",
+        "source_organization_url": "https://www.mercor.com",
+        "evaluator_relationship": "first_party"
+      },
+      "eval_library": {
+        "name": "archipelago",
+        "version": "1.0.0"
+      },
+      "benchmark": "apex-v1",
+      "evaluation_results": [
+        {
+          "evaluation_name": "Big Law Score",
+          "source_data": {
+            "dataset_name": "apex-v1",
+            "source_type": "hf_dataset",
+            "hf_repo": "Mercor/APEX-v1"
+          },
+          "metric_config": {
+            "evaluation_description": "Big law associate score.",
+            "lower_is_better": false,
+            "score_type": "continuous",
+            "min_score": 0,
+            "max_score": 1
+          },
+          "score_details": {
+            "score": 0.77
+          },
+          "generation_config": {
+            "additional_details": {
+              "run_setting": "High"
+            }
+          }
+        }
+      ],
+      "detailed_evaluation_results": null,
+      "generation_config": {
+        "additional_details": {
+          "run_setting": "High"
+        }
+      }
+    }
+  ]
+}

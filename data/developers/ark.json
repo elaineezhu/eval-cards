@@ -1,0 +1,16 @@
+{
+  "developer": "ark",
+  "models": [
+    {
+      "id": "ark/ep-20250603132404-cgpjm",
+      "name": "ep-20250603132404-cgpjm",
+      "developer": "ark",
+      "evaluator_relationship": null,
+      "benchmark_scores": {
+        "livecodebenchpro/Hard Problems": 0.0,
+        "livecodebenchpro/Medium Problems": 0.0141,
+        "livecodebenchpro/Easy Problems": 0.507
+      }
+    }
+  ]
+}

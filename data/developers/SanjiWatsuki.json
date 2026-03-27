@@ -1,0 +1,33 @@
+{
+  "developer": "SanjiWatsuki",
+  "models": [
+    {
+      "id": "SanjiWatsuki/Kunoichi-DPO-v2-7B",
+      "name": "Kunoichi-DPO-v2-7B",
+      "developer": "SanjiWatsuki",
+      "evaluator_relationship": null,
+      "benchmark_scores": {
+        "hfopenllm_v2/IFEval": 0.5431,
+        "hfopenllm_v2/BBH": 0.4416,
+        "hfopenllm_v2/MATH Level 5": 0.0763,
+        "hfopenllm_v2/GPQA": 0.2961,
+        "hfopenllm_v2/MUSR": 0.4188,
+        "hfopenllm_v2/MMLU-PRO": 0.3107
+      }
+    },
+    {
+      "id": "SanjiWatsuki/Silicon-Maid-7B",
+      "name": "Silicon-Maid-7B",
+      "developer": "SanjiWatsuki",
+      "evaluator_relationship": null,
+      "benchmark_scores": {
+        "hfopenllm_v2/IFEval": 0.5368,
+        "hfopenllm_v2/BBH": 0.4128,
+        "hfopenllm_v2/MATH Level 5": 0.065,
+        "hfopenllm_v2/GPQA": 0.2903,
+        "hfopenllm_v2/MUSR": 0.4188,
+        "hfopenllm_v2/MMLU-PRO": 0.3083
+      }
+    }
+  ]
+}

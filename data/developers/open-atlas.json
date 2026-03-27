@@ -1,0 +1,33 @@
+{
+  "developer": "open-atlas",
+  "models": [
+    {
+      "id": "open-atlas/Atlas-Flash-1.5B-Preview",
+      "name": "Atlas-Flash-1.5B-Preview",
+      "developer": "open-atlas",
+      "evaluator_relationship": null,
+      "benchmark_scores": {
+        "hfopenllm_v2/IFEval": 0.327,
+        "hfopenllm_v2/BBH": 0.3215,
+        "hfopenllm_v2/MATH Level 5": 0.2213,
+        "hfopenllm_v2/GPQA": 0.2525,
+        "hfopenllm_v2/MUSR": 0.3488,
+        "hfopenllm_v2/MMLU-PRO": 0.1374
+      }
+    },
+    {
+      "id": "open-atlas/Atlas-Flash-7B-Preview",
+      "name": "Atlas-Flash-7B-Preview",
+      "developer": "open-atlas",
+      "evaluator_relationship": null,
+      "benchmark_scores": {
+        "hfopenllm_v2/IFEval": 0.3908,
+        "hfopenllm_v2/BBH": 0.3542,
+        "hfopenllm_v2/MATH Level 5": 0.2576,
+        "hfopenllm_v2/GPQA": 0.2886,
+        "hfopenllm_v2/MUSR": 0.3836,
+        "hfopenllm_v2/MMLU-PRO": 0.2784
+      }
+    }
+  ]
+}

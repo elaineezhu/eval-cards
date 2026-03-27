@@ -1,0 +1,19 @@
+{
+  "developer": "stupidity-ai",
+  "models": [
+    {
+      "id": "stupidity-ai/Llama-3-8B-Instruct-MultiMoose",
+      "name": "Llama-3-8B-Instruct-MultiMoose",
+      "developer": "stupidity-ai",
+      "evaluator_relationship": null,
+      "benchmark_scores": {
+        "hfopenllm_v2/IFEval": 0.2318,
+        "hfopenllm_v2/BBH": 0.2823,
+        "hfopenllm_v2/MATH Level 5": 0.0,
+        "hfopenllm_v2/GPQA": 0.2534,
+        "hfopenllm_v2/MUSR": 0.3485,
+        "hfopenllm_v2/MMLU-PRO": 0.1094
+      }
+    }
+  ]
+}

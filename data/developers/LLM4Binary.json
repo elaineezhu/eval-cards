@@ -1,0 +1,19 @@
+{
+  "developer": "LLM4Binary",
+  "models": [
+    {
+      "id": "LLM4Binary/llm4decompile-1.3b-v2",
+      "name": "llm4decompile-1.3b-v2",
+      "developer": "LLM4Binary",
+      "evaluator_relationship": null,
+      "benchmark_scores": {
+        "hfopenllm_v2/IFEval": 0.2268,
+        "hfopenllm_v2/BBH": 0.3272,
+        "hfopenllm_v2/MATH Level 5": 0.0128,
+        "hfopenllm_v2/GPQA": 0.2357,
+        "hfopenllm_v2/MUSR": 0.4072,
+        "hfopenllm_v2/MMLU-PRO": 0.1209
+      }
+    }
+  ]
+}

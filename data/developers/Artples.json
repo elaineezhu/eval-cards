@@ -1,0 +1,33 @@
+{
+  "developer": "Artples",
+  "models": [
+    {
+      "id": "Artples/L-MChat-7b",
+      "name": "L-MChat-7b",
+      "developer": "Artples",
+      "evaluator_relationship": null,
+      "benchmark_scores": {
+        "hfopenllm_v2/IFEval": 0.5297,
+        "hfopenllm_v2/BBH": 0.46,
+        "hfopenllm_v2/MATH Level 5": 0.0921,
+        "hfopenllm_v2/GPQA": 0.3054,
+        "hfopenllm_v2/MUSR": 0.4029,
+        "hfopenllm_v2/MMLU-PRO": 0.3299
+      }
+    },
+    {
+      "id": "Artples/L-MChat-Small",
+      "name": "L-MChat-Small",
+      "developer": "Artples",
+      "evaluator_relationship": null,
+      "benchmark_scores": {
+        "hfopenllm_v2/IFEval": 0.3287,
+        "hfopenllm_v2/BBH": 0.4823,
+        "hfopenllm_v2/MATH Level 5": 0.0378,
+        "hfopenllm_v2/GPQA": 0.2676,
+        "hfopenllm_v2/MUSR": 0.3696,
+        "hfopenllm_v2/MMLU-PRO": 0.2464
+      }
+    }
+  ]
+}

@@ -1,0 +1,215 @@
+{
+  "model_info": {
+    "name": "Grok 4",
+    "developer": "xai",
+    "id": "xai/Grok 4",
+    "inference_platform": "unknown"
+  },
+  "evaluations": [
+    {
+      "evaluation_id": "apex-agents/xai_grok-4/1773260200",
+      "retrieved_timestamp": "1773260200",
+      "source_metadata": {
+        "source_name": "Mercor APEX-Agents Leaderboard",
+        "source_type": "evaluation_run",
+        "source_organization_name": "Mercor",
+        "source_organization_url": "https://www.mercor.com",
+        "evaluator_relationship": "first_party"
+      },
+      "eval_library": {
+        "name": "archipelago",
+        "version": "1.0.0"
+      },
+      "benchmark": "apex-agents",
+      "evaluation_results": [
+        {
+          "evaluation_name": "Overall Pass@1",
+          "source_data": {
+            "dataset_name": "apex-agents",
+            "source_type": "hf_dataset",
+            "hf_repo": "mercor/apex-agents"
+          },
+          "metric_config": {
+            "evaluation_description": "Overall Pass@1 (dataset card / paper snapshot).",
+            "lower_is_better": false,
+            "score_type": "continuous",
+            "min_score": 0,
+            "max_score": 1
+          },
+          "score_details": {
+            "score": 0.152,
+            "uncertainty": {
+              "confidence_interval": {
+                "lower": -0.024,
+                "upper": 0.025,
+                "method": "bootstrap"
+              }
+            }
+          }
+        },
+        {
+          "evaluation_name": "Overall Pass@8",
+          "source_data": {
+            "dataset_name": "apex-agents",
+            "source_type": "hf_dataset",
+            "hf_repo": "mercor/apex-agents"
+          },
+          "metric_config": {
+            "evaluation_description": "Overall Pass@8 (dataset card / paper snapshot).",
+            "lower_is_better": false,
+            "score_type": "continuous",
+            "min_score": 0,
+            "max_score": 1
+          },
+          "score_details": {
+            "score": 0.329,
+            "uncertainty": {
+              "confidence_interval": {
+                "lower": -0.042,
+                "upper": 0.044,
+                "method": "bootstrap"
+              }
+            }
+          }
+        },
+        {
+          "evaluation_name": "Overall Mean Score",
+          "source_data": {
+            "dataset_name": "apex-agents",
+            "source_type": "hf_dataset",
+            "hf_repo": "mercor/apex-agents"
+          },
+          "metric_config": {
+            "evaluation_description": "Overall mean rubric score.",
+            "lower_is_better": false,
+            "score_type": "continuous",
+            "min_score": 0,
+            "max_score": 1
+          },
+          "score_details": {
+            "score": 0.303
+          }
+        },
+        {
+          "evaluation_name": "Investment Banking Pass@1",
+          "source_data": {
+            "dataset_name": "apex-agents",
+            "source_type": "hf_dataset",
+            "hf_repo": "mercor/apex-agents"
+          },
+          "metric_config": {
+            "evaluation_description": "Investment banking world Pass@1.",
+            "lower_is_better": false,
+            "score_type": "continuous",
+            "min_score": 0,
+            "max_score": 1
+          },
+          "score_details": {
+            "score": 0.17
+          }
+        },
+        {
+          "evaluation_name": "Management Consulting Pass@1",
+          "source_data": {
+            "dataset_name": "apex-agents",
+            "source_type": "hf_dataset",
+            "hf_repo": "mercor/apex-agents"
+          },
+          "metric_config": {
+            "evaluation_description": "Management consulting world Pass@1.",
+            "lower_is_better": false,
+            "score_type": "continuous",
+            "min_score": 0,
+            "max_score": 1
+          },
+          "score_details": {
+            "score": 0.12
+          }
+        },
+        {
+          "evaluation_name": "Corporate Law Pass@1",
+          "source_data": {
+            "dataset_name": "apex-agents",
+            "source_type": "hf_dataset",
+            "hf_repo": "mercor/apex-agents"
+          },
+          "metric_config": {
+            "evaluation_description": "Corporate law world Pass@1.",
+            "lower_is_better": false,
+            "score_type": "continuous",
+            "min_score": 0,
+            "max_score": 1
+          },
+          "score_details": {
+            "score": 0.165
+          }
+        },
+        {
+          "evaluation_name": "Corporate Lawyer Mean Score",
+          "source_data": {
+            "dataset_name": "apex-agents",
+            "source_type": "hf_dataset",
+            "hf_repo": "mercor/apex-agents"
+          },
+          "metric_config": {
+            "evaluation_description": "Corporate lawyer world mean score.",
+            "lower_is_better": false,
+            "score_type": "continuous",
+            "min_score": 0,
+            "max_score": 1
+          },
+          "score_details": {
+            "score": 0.41
+          }
+        }
+      ],
+      "detailed_evaluation_results": null,
+      "generation_config": null
+    },
+    {
+      "evaluation_id": "apex-v1/xai_grok-4/1773260200",
+      "retrieved_timestamp": "1773260200",
+      "source_metadata": {
+        "source_name": "Mercor APEX-v1 Leaderboard",
+        "source_type": "evaluation_run",
+        "source_organization_name": "Mercor",
+        "source_organization_url": "https://www.mercor.com",
+        "evaluator_relationship": "first_party"
+      },
+      "eval_library": {
+        "name": "archipelago",
+        "version": "1.0.0"
+      },
+      "benchmark": "apex-v1",
+      "evaluation_results": [
+        {
+          "evaluation_name": "Overall Score",
+          "source_data": {
+            "dataset_name": "apex-v1",
+            "source_type": "hf_dataset",
+            "hf_repo": "Mercor/APEX-v1"
+          },
+          "metric_config": {
+            "evaluation_description": "Overall APEX-v1 mean score across all jobs.",
+            "lower_is_better": false,
+            "score_type": "continuous",
+            "min_score": 0,
+            "max_score": 1
+          },
+          "score_details": {
+            "score": 0.635,
+            "uncertainty": {
+              "confidence_interval": {
+                "lower": -0.025,
+                "upper": 0.025,
+                "method": "bootstrap"
+              }
+            }
+          }
+        }
+      ],
+      "detailed_evaluation_results": null,
+      "generation_config": null
+    }
+  ]
+}

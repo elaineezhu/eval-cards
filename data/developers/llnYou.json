@@ -1,0 +1,75 @@
+{
+  "developer": "llnYou",
+  "models": [
+    {
+      "id": "llnYou/ECE-PRYMMAL-YL-1B-SLERP-V5",
+      "name": "ECE-PRYMMAL-YL-1B-SLERP-V5",
+      "developer": "llnYou",
+      "evaluator_relationship": null,
+      "benchmark_scores": {
+        "hfopenllm_v2/IFEval": 0.3313,
+        "hfopenllm_v2/BBH": 0.4233,
+        "hfopenllm_v2/MATH Level 5": 0.111,
+        "hfopenllm_v2/GPQA": 0.2861,
+        "hfopenllm_v2/MUSR": 0.3868,
+        "hfopenllm_v2/MMLU-PRO": 0.2931
+      }
+    },
+    {
+      "id": "llnYou/ECE-PRYMMAL-YL-1B-SLERP-V6",
+      "name": "ECE-PRYMMAL-YL-1B-SLERP-V6",
+      "developer": "llnYou",
+      "evaluator_relationship": null,
+      "benchmark_scores": {
+        "hfopenllm_v2/IFEval": 0.1388,
+        "hfopenllm_v2/BBH": 0.3944,
+        "hfopenllm_v2/MATH Level 5": 0.0023,
+        "hfopenllm_v2/GPQA": 0.2903,
+        "hfopenllm_v2/MUSR": 0.3928,
+        "hfopenllm_v2/MMLU-PRO": 0.235
+      }
+    },
+    {
+      "id": "llnYou/ECE-PRYMMAL-YL-3B-SLERP-V1",
+      "name": "ECE-PRYMMAL-YL-3B-SLERP-V1",
+      "developer": "llnYou",
+      "evaluator_relationship": null,
+      "benchmark_scores": {
+        "hfopenllm_v2/IFEval": 0.2346,
+        "hfopenllm_v2/BBH": 0.4018,
+        "hfopenllm_v2/MATH Level 5": 0.0091,
+        "hfopenllm_v2/GPQA": 0.2936,
+        "hfopenllm_v2/MUSR": 0.3364,
+        "hfopenllm_v2/MMLU-PRO": 0.285
+      }
+    },
+    {
+      "id": "llnYou/ECE-PRYMMAL-YL-3B-SLERP-V2",
+      "name": "ECE-PRYMMAL-YL-3B-SLERP-V2",
+      "developer": "llnYou",
+      "evaluator_relationship": null,
+      "benchmark_scores": {
+        "hfopenllm_v2/IFEval": 0.2309,
+        "hfopenllm_v2/BBH": 0.399,
+        "hfopenllm_v2/MATH Level 5": 0.0128,
+        "hfopenllm_v2/GPQA": 0.2768,
+        "hfopenllm_v2/MUSR": 0.3588,
+        "hfopenllm_v2/MMLU-PRO": 0.29
+      }
+    },
+    {
+      "id": "llnYou/ECE-PRYMMAL-YL-3B-SLERP-V3",
+      "name": "ECE-PRYMMAL-YL-3B-SLERP-V3",
+      "developer": "llnYou",
+      "evaluator_relationship": null,
+      "benchmark_scores": {
+        "hfopenllm_v2/IFEval": 0.3581,
+        "hfopenllm_v2/BBH": 0.5473,
+        "hfopenllm_v2/MATH Level 5": 0.1299,
+        "hfopenllm_v2/GPQA": 0.3045,
+        "hfopenllm_v2/MUSR": 0.4361,
+        "hfopenllm_v2/MMLU-PRO": 0.4043
+      }
+    }
+  ]
+}

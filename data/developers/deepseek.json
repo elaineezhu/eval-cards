@@ -1,0 +1,59 @@
+{
+  "developer": "deepseek",
+  "models": [
+    {
+      "id": "deepseek/deepseek-r1-0528",
+      "name": "deepseek-r1-0528",
+      "developer": "deepseek",
+      "evaluator_relationship": null,
+      "benchmark_scores": {
+        "global-mmlu-lite/Global MMLU Lite": 0.6744,
+        "global-mmlu-lite/Culturally Sensitive": 0.6672,
+        "global-mmlu-lite/Culturally Agnostic": 0.6816,
+        "global-mmlu-lite/Arabic": 0.6825,
+        "global-mmlu-lite/English": 0.715,
+        "global-mmlu-lite/Bengali": 0.655,
+        "global-mmlu-lite/German": 0.6375,
+        "global-mmlu-lite/French": 0.6925,
+        "global-mmlu-lite/Hindi": 0.6475,
+        "global-mmlu-lite/Indonesian": 0.655,
+        "global-mmlu-lite/Italian": 0.6775,
+        "global-mmlu-lite/Japanese": 0.7725,
+        "global-mmlu-lite/Korean": 0.6575,
+        "global-mmlu-lite/Portuguese": 0.635,
+        "global-mmlu-lite/Spanish": 0.7175,
+        "global-mmlu-lite/Swahili": 0.6775,
+        "global-mmlu-lite/Yoruba": 0.77,
+        "global-mmlu-lite/Chinese": 0.5075,
+        "global-mmlu-lite/Burmese": 0.69
+      }
+    },
+    {
+      "id": "deepseek/deepseek-v3.1",
+      "name": "deepseek-v3.1",
+      "developer": "deepseek",
+      "evaluator_relationship": null,
+      "benchmark_scores": {
+        "global-mmlu-lite/Global MMLU Lite": 0.8044,
+        "global-mmlu-lite/Culturally Sensitive": 0.7793,
+        "global-mmlu-lite/Culturally Agnostic": 0.8295,
+        "global-mmlu-lite/Arabic": 0.805,
+        "global-mmlu-lite/English": 0.825,
+        "global-mmlu-lite/Bengali": 0.8157,
+        "global-mmlu-lite/German": 0.7925,
+        "global-mmlu-lite/French": 0.8175,
+        "global-mmlu-lite/Hindi": 0.7569,
+        "global-mmlu-lite/Indonesian": 0.7764,
+        "global-mmlu-lite/Italian": 0.8075,
+        "global-mmlu-lite/Japanese": 0.8312,
+        "global-mmlu-lite/Korean": 0.8125,
+        "global-mmlu-lite/Portuguese": 0.8246,
+        "global-mmlu-lite/Spanish": 0.8125,
+        "global-mmlu-lite/Swahili": 0.801,
+        "global-mmlu-lite/Yoruba": 0.7831,
+        "global-mmlu-lite/Chinese": 0.8161,
+        "global-mmlu-lite/Burmese": 0.7925
+      }
+    }
+  ]
+}

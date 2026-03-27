@@ -1,0 +1,19 @@
+{
+  "developer": "NyxKrage",
+  "models": [
+    {
+      "id": "NyxKrage/Microsoft_Phi-4",
+      "name": "Microsoft_Phi-4",
+      "developer": "NyxKrage",
+      "evaluator_relationship": null,
+      "benchmark_scores": {
+        "hfopenllm_v2/IFEval": 0.0585,
+        "hfopenllm_v2/BBH": 0.6691,
+        "hfopenllm_v2/MATH Level 5": 0.2991,
+        "hfopenllm_v2/GPQA": 0.406,
+        "hfopenllm_v2/MUSR": 0.5034,
+        "hfopenllm_v2/MMLU-PRO": 0.5287
+      }
+    }
+  ]
+}
