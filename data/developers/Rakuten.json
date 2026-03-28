@@ -1,0 +1,47 @@
+{
+  "developer": "Rakuten",
+  "models": [
+    {
+      "id": "Rakuten/RakutenAI-2.0-mini-instruct",
+      "name": "RakutenAI-2.0-mini-instruct",
+      "developer": "Rakuten",
+      "evaluator_relationship": null,
+      "benchmark_scores": {
+        "hfopenllm_v2/IFEval": 0.6794,
+        "hfopenllm_v2/BBH": 0.2867,
+        "hfopenllm_v2/MATH Level 5": 0.0521,
+        "hfopenllm_v2/GPQA": 0.2668,
+        "hfopenllm_v2/MUSR": 0.3249,
+        "hfopenllm_v2/MMLU-PRO": 0.1118
+      }
+    },
+    {
+      "id": "Rakuten/RakutenAI-7B",
+      "name": "RakutenAI-7B",
+      "developer": "Rakuten",
+      "evaluator_relationship": null,
+      "benchmark_scores": {
+        "hfopenllm_v2/IFEval": 0.1556,
+        "hfopenllm_v2/BBH": 0.4315,
+        "hfopenllm_v2/MATH Level 5": 0.0196,
+        "hfopenllm_v2/GPQA": 0.2894,
+        "hfopenllm_v2/MUSR": 0.3738,
+        "hfopenllm_v2/MMLU-PRO": 0.2877
+      }
+    },
+    {
+      "id": "Rakuten/RakutenAI-7B-chat",
+      "name": "RakutenAI-7B-chat",
+      "developer": "Rakuten",
+      "evaluator_relationship": null,
+      "benchmark_scores": {
+        "hfopenllm_v2/IFEval": 0.2686,
+        "hfopenllm_v2/BBH": 0.4316,
+        "hfopenllm_v2/MATH Level 5": 0.0295,
+        "hfopenllm_v2/GPQA": 0.2567,
+        "hfopenllm_v2/MUSR": 0.379,
+        "hfopenllm_v2/MMLU-PRO": 0.2798
+      }
+    }
+  ]
+}

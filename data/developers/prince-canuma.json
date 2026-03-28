@@ -1,0 +1,19 @@
+{
+  "developer": "prince-canuma",
+  "models": [
+    {
+      "id": "prince-canuma/Ministral-8B-Instruct-2410-HF",
+      "name": "Ministral-8B-Instruct-2410-HF",
+      "developer": "prince-canuma",
+      "evaluator_relationship": null,
+      "benchmark_scores": {
+        "hfopenllm_v2/IFEval": 0.5912,
+        "hfopenllm_v2/BBH": 0.4586,
+        "hfopenllm_v2/MATH Level 5": 0.1918,
+        "hfopenllm_v2/GPQA": 0.281,
+        "hfopenllm_v2/MUSR": 0.4138,
+        "hfopenllm_v2/MMLU-PRO": 0.3298
+      }
+    }
+  ]
+}

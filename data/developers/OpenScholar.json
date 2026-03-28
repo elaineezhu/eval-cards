@@ -1,0 +1,19 @@
+{
+  "developer": "OpenScholar",
+  "models": [
+    {
+      "id": "OpenScholar/Llama-3.1_OpenScholar-8B",
+      "name": "Llama-3.1_OpenScholar-8B",
+      "developer": "OpenScholar",
+      "evaluator_relationship": null,
+      "benchmark_scores": {
+        "hfopenllm_v2/IFEval": 0.6064,
+        "hfopenllm_v2/BBH": 0.5208,
+        "hfopenllm_v2/MATH Level 5": 0.1654,
+        "hfopenllm_v2/GPQA": 0.2819,
+        "hfopenllm_v2/MUSR": 0.4275,
+        "hfopenllm_v2/MMLU-PRO": 0.3708
+      }
+    }
+  ]
+}

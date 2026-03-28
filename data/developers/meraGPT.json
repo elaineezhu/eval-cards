@@ -1,0 +1,19 @@
+{
+  "developer": "meraGPT",
+  "models": [
+    {
+      "id": "meraGPT/mera-mix-4x7B",
+      "name": "mera-mix-4x7B",
+      "developer": "meraGPT",
+      "evaluator_relationship": null,
+      "benchmark_scores": {
+        "hfopenllm_v2/IFEval": 0.4832,
+        "hfopenllm_v2/BBH": 0.4019,
+        "hfopenllm_v2/MATH Level 5": 0.0536,
+        "hfopenllm_v2/GPQA": 0.3045,
+        "hfopenllm_v2/MUSR": 0.4057,
+        "hfopenllm_v2/MMLU-PRO": 0.2748
+      }
+    }
+  ]
+}

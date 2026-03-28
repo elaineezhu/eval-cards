@@ -1,0 +1,4403 @@
+{
+  "models": [
+    {
+      "model_id": "0-hero/Matter-0.1-7B-DPO-preview",
+      "name": "0-hero/Matter-0.1-7B-DPO-preview",
+      "developer": "0-hero",
+      "scores": {
+        "Score": 0.7247,
+        "Chat": 0.8939,
+        "Chat Hard": 0.5768,
+        "Safety": 0.6378,
+        "Reasoning": 0.8854,
+        "Prior Sets (0.5 weight)": 0.5348
+      }
+    },
+    {
+      "model_id": "0-hero/Matter-0.1-7B-boost-DPO-preview",
+      "name": "0-hero/Matter-0.1-7B-boost-DPO-preview",
+      "developer": "0-hero",
+      "scores": {
+        "Score": 0.7448,
+        "Chat": 0.9106,
+        "Chat Hard": 0.6096,
+        "Safety": 0.7135,
+        "Reasoning": 0.8395,
+        "Prior Sets (0.5 weight)": 0.5566
+      }
+    },
+    {
+      "model_id": "Ahjeong/MMPO_Gemma_7b",
+      "name": "Ahjeong/MMPO_Gemma_7b",
+      "developer": "Ahjeong",
+      "scores": {
+        "Score": 0.7587,
+        "Chat": 0.9693,
+        "Chat Hard": 0.614,
+        "Safety": 0.7135,
+        "Reasoning": 0.7756,
+        "Prior Sets (0.5 weight)": 0.6831
+      }
+    },
+    {
+      "model_id": "Ahjeong/MMPO_Gemma_7b_gamma1.1_epoch3",
+      "name": "Ahjeong/MMPO_Gemma_7b_gamma1.1_epoch3",
+      "developer": "Ahjeong",
+      "scores": {
+        "Score": 0.7652,
+        "Chat": 0.9721,
+        "Chat Hard": 0.6338,
+        "Safety": 0.7635,
+        "Reasoning": 0.7284,
+        "Prior Sets (0.5 weight)": 0.6913
+      }
+    },
+    {
+      "model_id": "Anthropic/claude-3-5-sonnet-20240620",
+      "name": "Anthropic/claude-3-5-sonnet-20240620",
+      "developer": "Anthropic",
+      "scores": {
+        "Score": 0.8417,
+        "Chat": 0.9637,
+        "Chat Hard": 0.7401,
+        "Safety": 0.8162,
+        "Reasoning": 0.8469
+      }
+    },
+    {
+      "model_id": "Anthropic/claude-3-haiku-20240307",
+      "name": "Anthropic/claude-3-haiku-20240307",
+      "developer": "Anthropic",
+      "scores": {
+        "Score": 0.7289,
+        "Chat": 0.9274,
+        "Chat Hard": 0.5197,
+        "Safety": 0.7953,
+        "Reasoning": 0.706,
+        "Prior Sets (0.5 weight)": 0.6635
+      }
+    },
+    {
+      "model_id": "Anthropic/claude-3-opus-20240229",
+      "name": "Anthropic/claude-3-opus-20240229",
+      "developer": "Anthropic",
+      "scores": {
+        "Score": 0.8008,
+        "Chat": 0.9469,
+        "Chat Hard": 0.6031,
+        "Safety": 0.8662,
+        "Reasoning": 0.7868
+      }
+    },
+    {
+      "model_id": "Anthropic/claude-3-sonnet-20240229",
+      "name": "Anthropic/claude-3-sonnet-20240229",
+      "developer": "Anthropic",
+      "scores": {
+        "Score": 0.7458,
+        "Chat": 0.9344,
+        "Chat Hard": 0.5658,
+        "Safety": 0.8169,
+        "Reasoning": 0.6907,
+        "Prior Sets (0.5 weight)": 0.6963
+      }
+    },
+    {
+      "model_id": "AtlaAI/Selene-1",
+      "name": "AtlaAI/Selene-1",
+      "developer": "AtlaAI",
+      "scores": {
+        "Score": 0.9241,
+        "Chat": 0.9777,
+        "Chat Hard": 0.8399,
+        "Safety": 0.9216,
+        "Reasoning": 0.9572
+      }
+    },
+    {
+      "model_id": "AtlaAI/Selene-1-Mini-Llama-3.1-8B",
+      "name": "AtlaAI/Selene-1-Mini-Llama-3.1-8B",
+      "developer": "AtlaAI",
+      "scores": {
+        "Score": 0.8913,
+        "Chat": 0.9358,
+        "Chat Hard": 0.7939,
+        "Safety": 0.8926,
+        "Reasoning": 0.9429
+      }
+    },
+    {
+      "model_id": "CIR-AMS/BTRM_Qwen2_7b_0613",
+      "name": "CIR-AMS/BTRM_Qwen2_7b_0613",
+      "developer": "CIR-AMS",
+      "scores": {
+        "Score": 0.8172,
+        "Chat": 0.9749,
+        "Chat Hard": 0.5724,
+        "Safety": 0.9014,
+        "Reasoning": 0.8775,
+        "Prior Sets (0.5 weight)": 0.7029
+      }
+    },
+    {
+      "model_id": "Cohere March 2024",
+      "name": "Cohere March 2024",
+      "developer": "unknown",
+      "scores": {
+        "Score": 0.8511,
+        "Chat": 0.9469,
+        "Chat Hard": 0.6513,
+        "Safety": 0.877,
+        "Reasoning": 0.9817,
+        "Prior Sets (0.5 weight)": 0.7458
+      }
+    },
+    {
+      "model_id": "Cohere May 2024",
+      "name": "Cohere May 2024",
+      "developer": "unknown",
+      "scores": {
+        "Score": 0.8816,
+        "Chat": 0.9637,
+        "Chat Hard": 0.7127,
+        "Safety": 0.923,
+        "Reasoning": 0.9768,
+        "Prior Sets (0.5 weight)": 0.782
+      }
+    },
+    {
+      "model_id": "CohereForAI/c4ai-command-r-plus",
+      "name": "c4ai-command-r-plus",
+      "developer": "CohereForAI",
+      "scores": {
+        "Score": 0.7057,
+        "Chat": 0.9511,
+        "Chat Hard": 0.5757,
+        "Safety": 0.5986,
+        "Reasoning": 0.704,
+        "Prior Sets (0.5 weight)": 0.6924
+      }
+    },
+    {
+      "model_id": "ContextualAI/LMUnit-llama3.1-70b",
+      "name": "ContextualAI/LMUnit-llama3.1-70b",
+      "developer": "ContextualAI",
+      "scores": {
+        "Score": 0.8054,
+        "Factuality": 0.8463,
+        "Precise IF": 0.4875,
+        "Math": 0.7158,
+        "Safety": 0.9067,
+        "Focus": 0.9697,
+        "Ties": 0.9063
+      }
+    },
+    {
+      "model_id": "ContextualAI/LMUnit-qwen2.5-72b",
+      "name": "ContextualAI/LMUnit-qwen2.5-72b",
+      "developer": "ContextualAI",
+      "scores": {
+        "Score": 0.8208,
+        "Factuality": 0.8716,
+        "Precise IF": 0.5437,
+        "Math": 0.7268,
+        "Safety": 0.9133,
+        "Focus": 0.9677,
+        "Ties": 0.9014
+      }
+    },
+    {
+      "model_id": "ContextualAI/archangel_sft-dpo_llama13b",
+      "name": "ContextualAI/archangel_sft-dpo_llama13b",
+      "developer": "ContextualAI",
+      "scores": {
+        "Score": 0.54,
+        "Chat": 0.7123,
+        "Chat Hard": 0.4298,
+        "Safety": 0.5649,
+        "Reasoning": 0.4401,
+        "Prior Sets (0.5 weight)": 0.5656
+      }
+    },
+    {
+      "model_id": "ContextualAI/archangel_sft-dpo_llama30b",
+      "name": "ContextualAI/archangel_sft-dpo_llama30b",
+      "developer": "ContextualAI",
+      "scores": {
+        "Score": 0.5618,
+        "Chat": 0.6927,
+        "Chat Hard": 0.4474,
+        "Safety": 0.6284,
+        "Reasoning": 0.4745,
+        "Prior Sets (0.5 weight)": 0.5705
+      }
+    },
+    {
+      "model_id": "ContextualAI/archangel_sft-dpo_llama7b",
+      "name": "ContextualAI/archangel_sft-dpo_llama7b",
+      "developer": "ContextualAI",
+      "scores": {
+        "Score": 0.5304,
+        "Chat": 0.5782,
+        "Chat Hard": 0.4452,
+        "Safety": 0.5203,
+        "Reasoning": 0.5658,
+        "Prior Sets (0.5 weight)": 0.5544
+      }
+    },
+    {
+      "model_id": "ContextualAI/archangel_sft-dpo_pythia1-4b",
+      "name": "ContextualAI/archangel_sft-dpo_pythia1-4b",
+      "developer": "ContextualAI",
+      "scores": {
+        "Score": 0.5233,
+        "Chat": 0.6397,
+        "Chat Hard": 0.3728,
+        "Safety": 0.5041,
+        "Reasoning": 0.5672,
+        "Prior Sets (0.5 weight)": 0.5427
+      }
+    },
+    {
+      "model_id": "ContextualAI/archangel_sft-dpo_pythia12-0b",
+      "name": "ContextualAI/archangel_sft-dpo_pythia12-0b",
+      "developer": "ContextualAI",
+      "scores": {
+        "Score": 0.5009,
+        "Chat": 0.6676,
+        "Chat Hard": 0.364,
+        "Safety": 0.5432,
+        "Reasoning": 0.4139,
+        "Prior Sets (0.5 weight)": 0.5303
+      }
+    },
+    {
+      "model_id": "ContextualAI/archangel_sft-dpo_pythia2-8b",
+      "name": "ContextualAI/archangel_sft-dpo_pythia2-8b",
+      "developer": "ContextualAI",
+      "scores": {
+        "Score": 0.5286,
+        "Chat": 0.8073,
+        "Chat Hard": 0.3355,
+        "Safety": 0.4473,
+        "Reasoning": 0.5135,
+        "Prior Sets (0.5 weight)": 0.5501
+      }
+    },
+    {
+      "model_id": "ContextualAI/archangel_sft-dpo_pythia6-9b",
+      "name": "ContextualAI/archangel_sft-dpo_pythia6-9b",
+      "developer": "ContextualAI",
+      "scores": {
+        "Score": 0.5263,
+        "Chat": 0.7486,
+        "Chat Hard": 0.3421,
+        "Safety": 0.5176,
+        "Reasoning": 0.4847,
+        "Prior Sets (0.5 weight)": 0.551
+      }
+    },
+    {
+      "model_id": "ContextualAI/archangel_sft-kto_llama13b",
+      "name": "ContextualAI/archangel_sft-kto_llama13b",
+      "developer": "ContextualAI",
+      "scores": {
+        "Score": 0.5952,
+        "Chat": 0.8408,
+        "Chat Hard": 0.3772,
+        "Safety": 0.4649,
+        "Reasoning": 0.7077,
+        "Prior Sets (0.5 weight)": 0.576
+      }
+    },
+    {
+      "model_id": "ContextualAI/archangel_sft-kto_llama30b",
+      "name": "ContextualAI/archangel_sft-kto_llama30b",
+      "developer": "ContextualAI",
+      "scores": {
+        "Score": 0.5901,
+        "Chat": 0.8436,
+        "Chat Hard": 0.4057,
+        "Safety": 0.6054,
+        "Reasoning": 0.5075,
+        "Prior Sets (0.5 weight)": 0.5862
+      }
+    },
+    {
+      "model_id": "ContextualAI/archangel_sft-kto_llama7b",
+      "name": "ContextualAI/archangel_sft-kto_llama7b",
+      "developer": "ContextualAI",
+      "scores": {
+        "Score": 0.5388,
+        "Chat": 0.5587,
+        "Chat Hard": 0.4364,
+        "Safety": 0.4568,
+        "Reasoning": 0.6941,
+        "Prior Sets (0.5 weight)": 0.5575
+      }
+    },
+    {
+      "model_id": "ContextualAI/archangel_sft-kto_pythia1-4b",
+      "name": "ContextualAI/archangel_sft-kto_pythia1-4b",
+      "developer": "ContextualAI",
+      "scores": {
+        "Score": 0.5581,
+        "Chat": 0.6844,
+        "Chat Hard": 0.3794,
+        "Safety": 0.5257,
+        "Reasoning": 0.6447,
+        "Prior Sets (0.5 weight)": 0.5546
+      }
+    },
+    {
+      "model_id": "ContextualAI/archangel_sft-kto_pythia12-0b",
+      "name": "ContextualAI/archangel_sft-kto_pythia12-0b",
+      "developer": "ContextualAI",
+      "scores": {
+        "Score": 0.5053,
+        "Chat": 0.7486,
+        "Chat Hard": 0.3618,
+        "Safety": 0.4757,
+        "Reasoning": 0.4127,
+        "Prior Sets (0.5 weight)": 0.55
+      }
+    },
+    {
+      "model_id": "ContextualAI/archangel_sft-kto_pythia2-8b",
+      "name": "ContextualAI/archangel_sft-kto_pythia2-8b",
+      "developer": "ContextualAI",
+      "scores": {
+        "Score": 0.5497,
+        "Chat": 0.757,
+        "Chat Hard": 0.3421,
+        "Safety": 0.4743,
+        "Reasoning": 0.6216,
+        "Prior Sets (0.5 weight)": 0.557
+      }
+    },
+    {
+      "model_id": "ContextualAI/archangel_sft-kto_pythia6-9b",
+      "name": "ContextualAI/archangel_sft-kto_pythia6-9b",
+      "developer": "ContextualAI",
+      "scores": {
+        "Score": 0.5561,
+        "Chat": 0.7765,
+        "Chat Hard": 0.3618,
+        "Safety": 0.5365,
+        "Reasoning": 0.5415,
+        "Prior Sets (0.5 weight)": 0.5723
+      }
+    },
+    {
+      "model_id": "Databricks-Mosaic-Research/PGRM",
+      "name": "Databricks-Mosaic-Research/PGRM",
+      "developer": "Databricks-Mosaic-Research",
+      "scores": {
+        "Score": 0.8002,
+        "Factuality": 0.7937,
+        "Precise IF": 0.5062,
+        "Math": 0.7404,
+        "Safety": 0.9289,
+        "Focus": 0.9424,
+        "Ties": 0.8893
+      }
+    },
+    {
+      "model_id": "HFXM/RAMO-Llama3.1-8B",
+      "name": "HFXM/RAMO-Llama3.1-8B",
+      "developer": "HFXM",
+      "scores": {
+        "Score": 0.6917,
+        "Factuality": 0.6547,
+        "Precise IF": 0.375,
+        "Math": 0.5628,
+        "Safety": 0.9756,
+        "Focus": 0.9071,
+        "Ties": 0.6752
+      }
+    },
+    {
+      "model_id": "HuggingFaceH4/starchat2-15b-v0.1",
+      "name": "HuggingFaceH4/starchat2-15b-v0.1",
+      "developer": "HuggingFaceH4",
+      "scores": {
+        "Score": 0.7322,
+        "Chat": 0.9385,
+        "Chat Hard": 0.5548,
+        "Safety": 0.7095,
+        "Reasoning": 0.8159,
+        "Prior Sets (0.5 weight)": 0.5525
+      }
+    },
+    {
+      "model_id": "HuggingFaceH4/zephyr-7b-alpha",
+      "name": "zephyr-7b-alpha",
+      "developer": "HuggingFaceH4",
+      "scores": {
+        "Score": 0.7392,
+        "Chat": 0.9162,
+        "Chat Hard": 0.625,
+        "Safety": 0.7662,
+        "Reasoning": 0.7514,
+        "Prior Sets (0.5 weight)": 0.5353
+      }
+    },
+    {
+      "model_id": "HuggingFaceH4/zephyr-7b-beta",
+      "name": "zephyr-7b-beta",
+      "developer": "HuggingFaceH4",
+      "scores": {
+        "Score": 0.7281,
+        "Chat": 0.9525,
+        "Chat Hard": 0.6272,
+        "Safety": 0.6568,
+        "Reasoning": 0.7789,
+        "Prior Sets (0.5 weight)": 0.5216
+      }
+    },
+    {
+      "model_id": "HuggingFaceH4/zephyr-7b-gemma-v0.1",
+      "name": "zephyr-7b-gemma-v0.1",
+      "developer": "HuggingFaceH4",
+      "scores": {
+        "Score": 0.6758,
+        "Chat": 0.9581,
+        "Chat Hard": 0.4956,
+        "Safety": 0.5824,
+        "Reasoning": 0.7463,
+        "Prior Sets (0.5 weight)": 0.5171
+      }
+    },
+    {
+      "model_id": "IDEA-CCNL/Ziya-LLaMA-7B-Reward",
+      "name": "IDEA-CCNL/Ziya-LLaMA-7B-Reward",
+      "developer": "IDEA-CCNL",
+      "scores": {
+        "Score": 0.6378,
+        "Chat": 0.8687,
+        "Chat Hard": 0.4605,
+        "Safety": 0.6405,
+        "Reasoning": 0.5775,
+        "Prior Sets (0.5 weight)": 0.6461
+      }
+    },
+    {
+      "model_id": "LxzGordon/URM-LLaMa-3-8B",
+      "name": "LxzGordon/URM-LLaMa-3-8B",
+      "developer": "LxzGordon",
+      "scores": {
+        "Score": 0.8991,
+        "Chat": 0.9693,
+        "Chat Hard": 0.7873,
+        "Safety": 0.8824,
+        "Reasoning": 0.9574
+      }
+    },
+    {
+      "model_id": "LxzGordon/URM-LLaMa-3.1-8B",
+      "name": "LxzGordon/URM-LLaMa-3.1-8B",
+      "developer": "LxzGordon",
+      "scores": {
+        "Score": 0.9294,
+        "Chat": 0.9553,
+        "Chat Hard": 0.8816,
+        "Safety": 0.9108,
+        "Reasoning": 0.9698
+      }
+    },
+    {
+      "model_id": "NCSOFT/Llama-3-OffsetBias-8B",
+      "name": "NCSOFT/Llama-3-OffsetBias-8B",
+      "developer": "NCSOFT",
+      "scores": {
+        "Score": 0.8397,
+        "Chat": 0.9246,
+        "Chat Hard": 0.8026,
+        "Safety": 0.8676,
+        "Reasoning": 0.7639
+      }
+    },
+    {
+      "model_id": "NCSOFT/Llama-3-OffsetBias-RM-8B",
+      "name": "NCSOFT/Llama-3-OffsetBias-RM-8B",
+      "developer": "NCSOFT",
+      "scores": {
+        "Score": 0.8942,
+        "Chat": 0.9721,
+        "Chat Hard": 0.818,
+        "Safety": 0.8676,
+        "Reasoning": 0.9192
+      }
+    },
+    {
+      "model_id": "Nexusflow/Starling-RM-34B",
+      "name": "Nexusflow/Starling-RM-34B",
+      "developer": "Nexusflow",
+      "scores": {
+        "Score": 0.8133,
+        "Chat": 0.9693,
+        "Chat Hard": 0.5724,
+        "Safety": 0.877,
+        "Reasoning": 0.8845,
+        "Prior Sets (0.5 weight)": 0.7137
+      }
+    },
+    {
+      "model_id": "NousResearch/Hermes-3-Llama-3.1-70B",
+      "name": "Hermes-3-Llama-3.1-70B",
+      "developer": "NousResearch",
+      "scores": {
+        "Score": 0.7847,
+        "Chat": 0.9623,
+        "Chat Hard": 0.5669,
+        "Safety": 0.823,
+        "Reasoning": 0.7867
+      }
+    },
+    {
+      "model_id": "NousResearch/Nous-Hermes-2-Mistral-7B-DPO",
+      "name": "Nous-Hermes-2-Mistral-7B-DPO",
+      "developer": "NousResearch",
+      "scores": {
+        "Score": 0.7481,
+        "Chat": 0.9218,
+        "Chat Hard": 0.6053,
+        "Safety": 0.8243,
+        "Reasoning": 0.7375,
+        "Prior Sets (0.5 weight)": 0.555
+      }
+    },
+    {
+      "model_id": "NousResearch/Nous-Hermes-2-Mixtral-8x7B-DPO",
+      "name": "Nous-Hermes-2-Mixtral-8x7B-DPO",
+      "developer": "NousResearch",
+      "scores": {
+        "Score": 0.7138,
+        "Chat": 0.9162,
+        "Chat Hard": 0.6053,
+        "Safety": 0.8149,
+        "Reasoning": 0.6126,
+        "Prior Sets (0.5 weight)": 0.5266
+      }
+    },
+    {
+      "model_id": "OpenAssistant/oasst-rm-2-pythia-6.9b-epoch-1",
+      "name": "OpenAssistant/oasst-rm-2-pythia-6.9b-epoch-1",
+      "developer": "OpenAssistant",
+      "scores": {
+        "Score": 0.2653,
+        "Factuality": 0.3979,
+        "Precise IF": 0.2875,
+        "Math": 0.377,
+        "Safety": 0.3289,
+        "Focus": 0.1535,
+        "Ties": 0.047
+      }
+    },
+    {
+      "model_id": "OpenAssistant/oasst-rm-2.1-pythia-1.4b-epoch-2.5",
+      "name": "OpenAssistant/oasst-rm-2.1-pythia-1.4b-epoch-2.5",
+      "developer": "OpenAssistant",
+      "scores": {
+        "Score": 0.6901,
+        "Chat": 0.8855,
+        "Chat Hard": 0.4868,
+        "Safety": 0.6311,
+        "Reasoning": 0.7752,
+        "Prior Sets (0.5 weight)": 0.6533
+      }
+    },
+    {
+      "model_id": "OpenAssistant/reward-model-deberta-v3-large-v2",
+      "name": "OpenAssistant/reward-model-deberta-v3-large-v2",
+      "developer": "OpenAssistant",
+      "scores": {
+        "Score": 0.32,
+        "Factuality": 0.3853,
+        "Precise IF": 0.2687,
+        "Math": 0.5027,
+        "Safety": 0.3667,
+        "Focus": 0.2768,
+        "Ties": 0.12
+      }
+    },
+    {
+      "model_id": "PKU-Alignment/beaver-7b-v1.0-cost",
+      "name": "PKU-Alignment/beaver-7b-v1.0-cost",
+      "developer": "PKU-Alignment",
+      "scores": {
+        "Score": 0.5798,
+        "Chat": 0.6173,
+        "Chat Hard": 0.4232,
+        "Safety": 0.7351,
+        "Reasoning": 0.5482,
+        "Prior Sets (0.5 weight)": 0.57
+      }
+    },
+    {
+      "model_id": "PKU-Alignment/beaver-7b-v1.0-reward",
+      "name": "PKU-Alignment/beaver-7b-v1.0-reward",
+      "developer": "PKU-Alignment",
+      "scores": {
+        "Score": 0.1606,
+        "Factuality": 0.2105,
+        "Precise IF": 0.2938,
+        "Math": 0.2623,
+        "Safety": 0.1422,
+        "Focus": 0.0646,
+        "Ties": -0.01
+      }
+    },
+    {
+      "model_id": "PKU-Alignment/beaver-7b-v2.0-cost",
+      "name": "PKU-Alignment/beaver-7b-v2.0-cost",
+      "developer": "PKU-Alignment",
+      "scores": {
+        "Score": 0.3326,
+        "Factuality": 0.3789,
+        "Precise IF": 0.275,
+        "Math": 0.3333,
+        "Safety": 0.7356,
+        "Focus": 0.2828,
+        "Ties": -0.01
+      }
+    },
+    {
+      "model_id": "PKU-Alignment/beaver-7b-v2.0-reward",
+      "name": "PKU-Alignment/beaver-7b-v2.0-reward",
+      "developer": "PKU-Alignment",
+      "scores": {
+        "Score": 0.2544,
+        "Factuality": 0.2168,
+        "Precise IF": 0.2562,
+        "Math": 0.3825,
+        "Safety": 0.3156,
+        "Focus": 0.2606,
+        "Ties": 0.0944
+      }
+    },
+    {
+      "model_id": "PoLL/gpt-3.5-turbo-0125_claude-3-sonnet-2024022...",
+      "name": "PoLL/gpt-3.5-turbo-0125_claude-3-sonnet-2024022...",
+      "developer": "PoLL",
+      "scores": {
+        "Score": 0.7578,
+        "Chat": 0.9525,
+        "Chat Hard": 0.5406,
+        "Safety": 0.8034,
+        "Reasoning": 0.7346
+      }
+    },
+    {
+      "model_id": "Qwen/Qwen1.5-0.5B-Chat",
+      "name": "Qwen1.5-0.5B-Chat",
+      "developer": "Qwen",
+      "scores": {
+        "Score": 0.5298,
+        "Chat": 0.3547,
+        "Chat Hard": 0.6294,
+        "Safety": 0.5703,
+        "Reasoning": 0.5984,
+        "Prior Sets (0.5 weight)": 0.4629
+      }
+    },
+    {
+      "model_id": "Qwen/Qwen1.5-1.8B-Chat",
+      "name": "Qwen1.5-1.8B-Chat",
+      "developer": "Qwen",
+      "scores": {
+        "Score": 0.589,
+        "Chat": 0.5615,
+        "Chat Hard": 0.6031,
+        "Safety": 0.4838,
+        "Reasoning": 0.7793,
+        "Prior Sets (0.5 weight)": 0.4453
+      }
+    },
+    {
+      "model_id": "Qwen/Qwen1.5-14B-Chat",
+      "name": "Qwen1.5-14B-Chat",
+      "developer": "Qwen",
+      "scores": {
+        "Score": 0.6864,
+        "Chat": 0.5726,
+        "Chat Hard": 0.7018,
+        "Safety": 0.7122,
+        "Reasoning": 0.8961,
+        "Prior Sets (0.5 weight)": 0.4123
+      }
+    },
+    {
+      "model_id": "Qwen/Qwen1.5-4B-Chat",
+      "name": "Qwen1.5-4B-Chat",
+      "developer": "Qwen",
+      "scores": {
+        "Score": 0.5477,
+        "Chat": 0.3883,
+        "Chat Hard": 0.6272,
+        "Safety": 0.5568,
+        "Reasoning": 0.6689,
+        "Prior Sets (0.5 weight)": 0.447
+      }
+    },
+    {
+      "model_id": "Qwen/Qwen1.5-72B-Chat",
+      "name": "Qwen/Qwen1.5-72B-Chat",
+      "developer": "Qwen",
+      "scores": {
+        "Score": 0.6723,
+        "Chat": 0.6229,
+        "Chat Hard": 0.6601,
+        "Safety": 0.6757,
+        "Reasoning": 0.8554,
+        "Prior Sets (0.5 weight)": 0.4226
+      }
+    },
+    {
+      "model_id": "Qwen/Qwen1.5-7B-Chat",
+      "name": "Qwen1.5-7B-Chat",
+      "developer": "Qwen",
+      "scores": {
+        "Score": 0.675,
+        "Chat": 0.5363,
+        "Chat Hard": 0.6908,
+        "Safety": 0.6919,
+        "Reasoning": 0.9041,
+        "Prior Sets (0.5 weight)": 0.4288
+      }
+    },
+    {
+      "model_id": "Qwen/Qwen1.5-MoE-A2.7B-Chat",
+      "name": "Qwen1.5-MoE-A2.7B-Chat",
+      "developer": "Qwen",
+      "scores": {
+        "Score": 0.6644,
+        "Chat": 0.7291,
+        "Chat Hard": 0.6316,
+        "Safety": 0.6284,
+        "Reasoning": 0.774,
+        "Prior Sets (0.5 weight)": 0.4536
+      }
+    },
+    {
+      "model_id": "Qwen/WorldPM-72B",
+      "name": "Qwen/WorldPM-72B",
+      "developer": "Qwen",
+      "scores": {
+        "Score": 0.6333,
+        "Factuality": 0.7074,
+        "Precise IF": 0.3125,
+        "Math": 0.6557,
+        "Safety": 0.8533,
+        "Focus": 0.9172,
+        "Ties": 0.3535
+      }
+    },
+    {
+      "model_id": "R-I-S-E/RISE-Judge-Qwen2.5-32B",
+      "name": "R-I-S-E/RISE-Judge-Qwen2.5-32B",
+      "developer": "R-I-S-E",
+      "scores": {
+        "Score": 0.9266,
+        "Chat": 0.9665,
+        "Chat Hard": 0.8333,
+        "Safety": 0.9189,
+        "Reasoning": 0.9877
+      }
+    },
+    {
+      "model_id": "R-I-S-E/RISE-Judge-Qwen2.5-7B",
+      "name": "R-I-S-E/RISE-Judge-Qwen2.5-7B",
+      "developer": "R-I-S-E",
+      "scores": {
+        "Score": 0.8819,
+        "Chat": 0.9218,
+        "Chat Hard": 0.7654,
+        "Safety": 0.8797,
+        "Reasoning": 0.9608
+      }
+    },
+    {
+      "model_id": "RLHFlow/ArmoRM-Llama3-8B-v0.1",
+      "name": "ArmoRM-Llama3-8B-v0.1",
+      "developer": "RLHFlow",
+      "scores": {
+        "Score": 0.6646,
+        "Factuality": 0.6568,
+        "Precise IF": 0.4188,
+        "Math": 0.6612,
+        "Safety": 0.8222,
+        "Focus": 0.7657,
+        "Ties": 0.6629
+      }
+    },
+    {
+      "model_id": "RLHFlow/LLaMA3-iterative-DPO-final",
+      "name": "LLaMA3-iterative-DPO-final",
+      "developer": "RLHFlow",
+      "scores": {
+        "Score": 0.6783,
+        "Chat": 0.838,
+        "Chat Hard": 0.5921,
+        "Safety": 0.7865,
+        "Reasoning": 0.6161,
+        "Prior Sets (0.5 weight)": 0.4392
+      }
+    },
+    {
+      "model_id": "RLHFlow/RewardModel-Mistral-7B-for-DPA-v1",
+      "name": "RLHFlow/RewardModel-Mistral-7B-for-DPA-v1",
+      "developer": "RLHFlow",
+      "scores": {
+        "Score": 0.6633,
+        "Chat": 0.8799,
+        "Chat Hard": 0.4978,
+        "Safety": 0.7068,
+        "Reasoning": 0.5971,
+        "Prior Sets (0.5 weight)": 0.6068
+      }
+    },
+    {
+      "model_id": "RLHFlow/pair-preference-model-LLaMA3-8B",
+      "name": "RLHFlow/pair-preference-model-LLaMA3-8B",
+      "developer": "RLHFlow",
+      "scores": {
+        "Score": 0.8575,
+        "Chat": 0.9832,
+        "Chat Hard": 0.6579,
+        "Safety": 0.8973,
+        "Reasoning": 0.9473,
+        "Prior Sets (0.5 weight)": 0.7458
+      }
+    },
+    {
+      "model_id": "Ray2333/GRM-Gemma-2B-rewardmodel-ft",
+      "name": "Ray2333/GRM-Gemma-2B-rewardmodel-ft",
+      "developer": "Ray2333",
+      "scores": {
+        "Score": 0.8447,
+        "Chat": 0.8939,
+        "Chat Hard": 0.7522,
+        "Safety": 0.8446,
+        "Reasoning": 0.8881
+      }
+    },
+    {
+      "model_id": "Ray2333/GRM-Gemma-2B-sftreg",
+      "name": "Ray2333/GRM-Gemma-2B-sftreg",
+      "developer": "Ray2333",
+      "scores": {
+        "Score": 0.7451,
+        "Chat": 0.9553,
+        "Chat Hard": 0.4868,
+        "Safety": 0.7932,
+        "Reasoning": 0.7684,
+        "Prior Sets (0.5 weight)": 0.6983
+      }
+    },
+    {
+      "model_id": "Ray2333/GRM-Llama3-8B-rewardmodel-ft",
+      "name": "Ray2333/GRM-Llama3-8B-rewardmodel-ft",
+      "developer": "Ray2333",
+      "scores": {
+        "Score": 0.9154,
+        "Chat": 0.9553,
+        "Chat Hard": 0.8618,
+        "Safety": 0.9081,
+        "Reasoning": 0.9362
+      }
+    },
+    {
+      "model_id": "Ray2333/GRM-gemma2-2B-rewardmodel-ft",
+      "name": "Ray2333/GRM-gemma2-2B-rewardmodel-ft",
+      "developer": "Ray2333",
+      "scores": {
+        "Score": 0.8839,
+        "Chat": 0.9302,
+        "Chat Hard": 0.7719,
+        "Safety": 0.9216,
+        "Reasoning": 0.912
+      }
+    },
+    {
+      "model_id": "Ray2333/GRM-llama3-8B-distill",
+      "name": "Ray2333/GRM-llama3-8B-distill",
+      "developer": "Ray2333",
+      "scores": {
+        "Score": 0.589,
+        "Factuality": 0.5874,
+        "Precise IF": 0.3875,
+        "Math": 0.5902,
+        "Safety": 0.7222,
+        "Focus": 0.6727,
+        "Ties": 0.5743
+      }
+    },
+    {
+      "model_id": "Ray2333/GRM-llama3-8B-sftreg",
+      "name": "Ray2333/GRM-llama3-8B-sftreg",
+      "developer": "Ray2333",
+      "scores": {
+        "Score": 0.6089,
+        "Factuality": 0.6189,
+        "Precise IF": 0.3875,
+        "Math": 0.5792,
+        "Safety": 0.7867,
+        "Focus": 0.6828,
+        "Ties": 0.5981
+      }
+    },
+    {
+      "model_id": "Ray2333/GRM-llama3.2-3B-rewardmodel-ft",
+      "name": "Ray2333/GRM-llama3.2-3B-rewardmodel-ft",
+      "developer": "Ray2333",
+      "scores": {
+        "Score": 0.9092,
+        "Chat": 0.9162,
+        "Chat Hard": 0.8487,
+        "Safety": 0.927,
+        "Reasoning": 0.945
+      }
+    },
+    {
+      "model_id": "Ray2333/Gemma-2B-rewardmodel-baseline",
+      "name": "Ray2333/Gemma-2B-rewardmodel-baseline",
+      "developer": "Ray2333",
+      "scores": {
+        "Score": 0.729,
+        "Chat": 0.9413,
+        "Chat Hard": 0.4693,
+        "Safety": 0.7865,
+        "Reasoning": 0.7384,
+        "Prior Sets (0.5 weight)": 0.6897
+      }
+    },
+    {
+      "model_id": "Ray2333/Gemma-2B-rewardmodel-ft",
+      "name": "Ray2333/Gemma-2B-rewardmodel-ft",
+      "developer": "Ray2333",
+      "scores": {
+        "Score": 0.8048,
+        "Chat": 0.7793,
+        "Chat Hard": 0.7478,
+        "Safety": 0.8527,
+        "Reasoning": 0.8393
+      }
+    },
+    {
+      "model_id": "Ray2333/reward-model-Mistral-7B-instruct-Unifie...",
+      "name": "Ray2333/reward-model-Mistral-7B-instruct-Unifie...",
+      "developer": "Ray2333",
+      "scores": {
+        "Score": 0.7661,
+        "Chat": 0.9777,
+        "Chat Hard": 0.5066,
+        "Safety": 0.8527,
+        "Reasoning": 0.7389,
+        "Prior Sets (0.5 weight)": 0.7434
+      }
+    },
+    {
+      "model_id": "SF-Foundation/TextEval-Llama3.1-70B",
+      "name": "SF-Foundation/TextEval-Llama3.1-70B",
+      "developer": "SF-Foundation",
+      "scores": {
+        "Score": 0.9348,
+        "Chat": 0.9413,
+        "Chat Hard": 0.9013,
+        "Safety": 0.9324,
+        "Reasoning": 0.9641
+      }
+    },
+    {
+      "model_id": "SF-Foundation/TextEval-OffsetBias-12B",
+      "name": "SF-Foundation/TextEval-OffsetBias-12B",
+      "developer": "SF-Foundation",
+      "scores": {
+        "Score": 0.9105,
+        "Chat": 0.919,
+        "Chat Hard": 0.8662,
+        "Safety": 0.9203,
+        "Reasoning": 0.9365
+      }
+    },
+    {
+      "model_id": "Salesforce/SFR-LLaMa-3.1-70B-Judge-r",
+      "name": "Salesforce/SFR-LLaMa-3.1-70B-Judge-r",
+      "developer": "Salesforce",
+      "scores": {
+        "Score": 0.9272,
+        "Chat": 0.9693,
+        "Chat Hard": 0.8476,
+        "Safety": 0.9162,
+        "Reasoning": 0.9757
+      }
+    },
+    {
+      "model_id": "Salesforce/SFR-LLaMa-3.1-8B-Judge-r",
+      "name": "Salesforce/SFR-LLaMa-3.1-8B-Judge-r",
+      "developer": "Salesforce",
+      "scores": {
+        "Score": 0.8865,
+        "Chat": 0.9553,
+        "Chat Hard": 0.7774,
+        "Safety": 0.8622,
+        "Reasoning": 0.9513
+      }
+    },
+    {
+      "model_id": "Salesforce/SFR-nemo-12B-Judge-r",
+      "name": "Salesforce/SFR-nemo-12B-Judge-r",
+      "developer": "Salesforce",
+      "scores": {
+        "Score": 0.9027,
+        "Chat": 0.9721,
+        "Chat Hard": 0.8224,
+        "Safety": 0.8649,
+        "Reasoning": 0.9513
+      }
+    },
+    {
+      "model_id": "Schrieffer/Llama-SARM-4B",
+      "name": "Schrieffer/Llama-SARM-4B",
+      "developer": "Schrieffer",
+      "scores": {
+        "Score": 0.7379,
+        "Factuality": 0.6874,
+        "Precise IF": 0.4281,
+        "Math": 0.6448,
+        "Safety": 0.9178,
+        "Focus": 0.9556,
+        "Ties": 0.7939
+      }
+    },
+    {
+      "model_id": "ShikaiChen/LDL-Reward-Gemma-2-27B-v0.1",
+      "name": "ShikaiChen/LDL-Reward-Gemma-2-27B-v0.1",
+      "developer": "ShikaiChen",
+      "scores": {
+        "Score": 0.7249,
+        "Factuality": 0.7558,
+        "Precise IF": 0.35,
+        "Math": 0.6448,
+        "Safety": 0.9222,
+        "Focus": 0.9131,
+        "Ties": 0.7633
+      }
+    },
+    {
+      "model_id": "Skywork/Skywork-Critic-Llama-3.1-70B",
+      "name": "Skywork/Skywork-Critic-Llama-3.1-70B",
+      "developer": "Skywork",
+      "scores": {
+        "Score": 0.9331,
+        "Chat": 0.9665,
+        "Chat Hard": 0.8794,
+        "Safety": 0.9311,
+        "Reasoning": 0.9554
+      }
+    },
+    {
+      "model_id": "Skywork/Skywork-Critic-Llama-3.1-8B",
+      "name": "Skywork/Skywork-Critic-Llama-3.1-8B",
+      "developer": "Skywork",
+      "scores": {
+        "Score": 0.8896,
+        "Chat": 0.9358,
+        "Chat Hard": 0.8136,
+        "Safety": 0.9108,
+        "Reasoning": 0.898
+      }
+    },
+    {
+      "model_id": "Skywork/Skywork-Reward-Gemma-2-27B",
+      "name": "Skywork/Skywork-Reward-Gemma-2-27B",
+      "developer": "Skywork",
+      "scores": {
+        "Score": 0.7576,
+        "Factuality": 0.7368,
+        "Precise IF": 0.4031,
+        "Math": 0.7049,
+        "Safety": 0.9422,
+        "Focus": 0.9323,
+        "Ties": 0.8261
+      }
+    },
+    {
+      "model_id": "Skywork/Skywork-Reward-Gemma-2-27B-v0.2",
+      "name": "Skywork-Reward-Gemma-2-27B-v0.2",
+      "developer": "Skywork",
+      "scores": {
+        "Score": 0.9426,
+        "Chat": 0.9609,
+        "Chat Hard": 0.8991,
+        "Safety": 0.9297,
+        "Reasoning": 0.9807
+      }
+    },
+    {
+      "model_id": "Skywork/Skywork-Reward-Llama-3.1-8B",
+      "name": "Skywork/Skywork-Reward-Llama-3.1-8B",
+      "developer": "Skywork",
+      "scores": {
+        "Score": 0.7314,
+        "Factuality": 0.6989,
+        "Precise IF": 0.425,
+        "Math": 0.6284,
+        "Safety": 0.9333,
+        "Focus": 0.9616,
+        "Ties": 0.741
+      }
+    },
+    {
+      "model_id": "Skywork/Skywork-Reward-Llama-3.1-8B-v0.2",
+      "name": "Skywork/Skywork-Reward-Llama-3.1-8B-v0.2",
+      "developer": "Skywork",
+      "scores": {
+        "Score": 0.9313,
+        "Chat": 0.9469,
+        "Chat Hard": 0.8838,
+        "Safety": 0.927,
+        "Reasoning": 0.9675
+      }
+    },
+    {
+      "model_id": "Skywork/Skywork-Reward-V2-Llama-3.1-8B",
+      "name": "Skywork/Skywork-Reward-V2-Llama-3.1-8B",
+      "developer": "Skywork",
+      "scores": {
+        "Score": 0.8413,
+        "Factuality": 0.8463,
+        "Precise IF": 0.6625,
+        "Math": 0.776,
+        "Safety": 0.9667,
+        "Focus": 0.9838,
+        "Ties": 0.8124
+      }
+    },
+    {
+      "model_id": "Skywork/Skywork-Reward-V2-Llama-3.2-1B",
+      "name": "Skywork/Skywork-Reward-V2-Llama-3.2-1B",
+      "developer": "Skywork",
+      "scores": {
+        "Score": 0.6438,
+        "Factuality": 0.6084,
+        "Precise IF": 0.4562,
+        "Math": 0.6011,
+        "Safety": 0.8733,
+        "Focus": 0.8929,
+        "Ties": 0.4306
+      }
+    },
+    {
+      "model_id": "Skywork/Skywork-Reward-V2-Llama-3.2-3B",
+      "name": "Skywork/Skywork-Reward-V2-Llama-3.2-3B",
+      "developer": "Skywork",
+      "scores": {
+        "Score": 0.7466,
+        "Factuality": 0.7621,
+        "Precise IF": 0.4562,
+        "Math": 0.694,
+        "Safety": 0.9311,
+        "Focus": 0.9596,
+        "Ties": 0.6768
+      }
+    },
+    {
+      "model_id": "Skywork/Skywork-Reward-V2-Qwen3-0.6B",
+      "name": "Skywork/Skywork-Reward-V2-Qwen3-0.6B",
+      "developer": "Skywork",
+      "scores": {
+        "Score": 0.6125,
+        "Factuality": 0.58,
+        "Precise IF": 0.4,
+        "Math": 0.7158,
+        "Safety": 0.8444,
+        "Focus": 0.7949,
+        "Ties": 0.3397
+      }
+    },
+    {
+      "model_id": "Skywork/Skywork-Reward-V2-Qwen3-1.7B",
+      "name": "Skywork/Skywork-Reward-V2-Qwen3-1.7B",
+      "developer": "Skywork",
+      "scores": {
+        "Score": 0.6818,
+        "Factuality": 0.6568,
+        "Precise IF": 0.4437,
+        "Math": 0.7268,
+        "Safety": 0.8911,
+        "Focus": 0.8848,
+        "Ties": 0.4872
+      }
+    },
+    {
+      "model_id": "Skywork/Skywork-Reward-V2-Qwen3-4B",
+      "name": "Skywork/Skywork-Reward-V2-Qwen3-4B",
+      "developer": "Skywork",
+      "scores": {
+        "Score": 0.7551,
+        "Factuality": 0.7737,
+        "Precise IF": 0.4625,
+        "Math": 0.7322,
+        "Safety": 0.9222,
+        "Focus": 0.9657,
+        "Ties": 0.6743
+      }
+    },
+    {
+      "model_id": "Skywork/Skywork-Reward-V2-Qwen3-8B",
+      "name": "Skywork/Skywork-Reward-V2-Qwen3-8B",
+      "developer": "Skywork",
+      "scores": {
+        "Score": 0.7837,
+        "Factuality": 0.7989,
+        "Precise IF": 0.5,
+        "Math": 0.7705,
+        "Safety": 0.94,
+        "Focus": 0.9636,
+        "Ties": 0.7294
+      }
+    },
+    {
+      "model_id": "Skywork/Skywork-VL-Reward-7B",
+      "name": "Skywork/Skywork-VL-Reward-7B",
+      "developer": "Skywork",
+      "scores": {
+        "Score": 0.9007,
+        "Chat": 0.8994,
+        "Chat Hard": 0.875,
+        "Safety": 0.9108,
+        "Reasoning": 0.9176
+      }
+    },
+    {
+      "model_id": "SultanR/SmolTulu-1.7b-RM",
+      "name": "SultanR/SmolTulu-1.7b-RM",
+      "developer": "SultanR",
+      "scores": {
+        "Score": 0.5094,
+        "Chat": 0.743,
+        "Chat Hard": 0.4408,
+        "Safety": 0.5716,
+        "Reasoning": 0.2821
+      }
+    },
+    {
+      "model_id": "ZiyiYe/Con-J-Qwen2-7B",
+      "name": "ZiyiYe/Con-J-Qwen2-7B",
+      "developer": "ZiyiYe",
+      "scores": {
+        "Score": 0.8712,
+        "Chat": 0.919,
+        "Chat Hard": 0.8026,
+        "Safety": 0.8824,
+        "Reasoning": 0.8808
+      }
+    },
+    {
+      "model_id": "ai2/llama-2-chat-7b-nectar-3.8m.json",
+      "name": "ai2/llama-2-chat-7b-nectar-3.8m.json",
+      "developer": "ai2",
+      "scores": {
+        "Score": 0.5843,
+        "Chat": 0.8631,
+        "Chat Hard": 0.2654,
+        "Safety": 0.6243
+      }
+    },
+    {
+      "model_id": "ai2/llama-2-chat-nectar-180k.json",
+      "name": "ai2/llama-2-chat-nectar-180k.json",
+      "developer": "ai2",
+      "scores": {
+        "Score": 0.5235,
+        "Chat": 0.8827,
+        "Chat Hard": 0.2851,
+        "Safety": 0.4027
+      }
+    },
+    {
+      "model_id": "ai2/llama-2-chat-ultrafeedback-60k.jsonl",
+      "name": "ai2/llama-2-chat-ultrafeedback-60k.jsonl",
+      "developer": "ai2",
+      "scores": {
+        "Score": 0.644,
+        "Chat": 0.9441,
+        "Chat Hard": 0.4539,
+        "Safety": 0.5338
+      }
+    },
+    {
+      "model_id": "ai2/tulu-2-7b-rm-v0-nectar-binarized-3.8m-check...",
+      "name": "ai2/tulu-2-7b-rm-v0-nectar-binarized-3.8m-check...",
+      "developer": "ai2",
+      "scores": {
+        "Score": 0.7008,
+        "Chat": 0.9385,
+        "Chat Hard": 0.3882,
+        "Safety": 0.7757
+      }
+    },
+    {
+      "model_id": "ai2/tulu-2-7b-rm-v0-nectar-binarized-700k.json",
+      "name": "ai2/tulu-2-7b-rm-v0-nectar-binarized-700k.json",
+      "developer": "ai2",
+      "scores": {
+        "Score": 0.7127,
+        "Chat": 0.9358,
+        "Chat Hard": 0.4079,
+        "Safety": 0.7946
+      }
+    },
+    {
+      "model_id": "ai2/tulu-2-7b-rm-v0-nectar-binarized.json",
+      "name": "ai2/tulu-2-7b-rm-v0-nectar-binarized.json",
+      "developer": "ai2",
+      "scores": {
+        "Score": 0.6756,
+        "Chat": 0.9134,
+        "Chat Hard": 0.3904,
+        "Safety": 0.723
+      }
+    },
+    {
+      "model_id": "ai2/tulu-2-7b-rm-v0.json",
+      "name": "ai2/tulu-2-7b-rm-v0.json",
+      "developer": "ai2",
+      "scores": {
+        "Score": 0.6655,
+        "Chat": 0.933,
+        "Chat Hard": 0.4539,
+        "Safety": 0.6095
+      }
+    },
+    {
+      "model_id": "allenai/Llama-3.1-70B-Instruct-RM-RB2",
+      "name": "allenai/Llama-3.1-70B-Instruct-RM-RB2",
+      "developer": "allenai",
+      "scores": {
+        "Score": 0.9021,
+        "Chat": 0.9665,
+        "Chat Hard": 0.8355,
+        "Safety": 0.9095,
+        "Reasoning": 0.8969,
+        "Prior Sets (0.5 weight)": 0.0
+      }
+    },
+    {
+      "model_id": "allenai/Llama-3.1-8B-Base-RM-RB2",
+      "name": "allenai/Llama-3.1-8B-Base-RM-RB2",
+      "developer": "allenai",
+      "scores": {
+        "Score": 0.649,
+        "Factuality": 0.72,
+        "Precise IF": 0.3625,
+        "Math": 0.612,
+        "Safety": 0.8267,
+        "Focus": 0.8323,
+        "Ties": 0.5406
+      }
+    },
+    {
+      "model_id": "allenai/Llama-3.1-8B-Instruct-RM-RB2",
+      "name": "allenai/Llama-3.1-8B-Instruct-RM-RB2",
+      "developer": "allenai",
+      "scores": {
+        "Score": 0.7285,
+        "Factuality": 0.7432,
+        "Precise IF": 0.4437,
+        "Math": 0.6175,
+        "Safety": 0.8956,
+        "Focus": 0.9071,
+        "Ties": 0.7638
+      }
+    },
+    {
+      "model_id": "allenai/Llama-3.1-Tulu-3-70B-SFT-RM-RB2",
+      "name": "allenai/Llama-3.1-Tulu-3-70B-SFT-RM-RB2",
+      "developer": "allenai",
+      "scores": {
+        "Score": 0.722,
+        "Factuality": 0.8084,
+        "Precise IF": 0.3688,
+        "Math": 0.6776,
+        "Safety": 0.8689,
+        "Focus": 0.7778,
+        "Ties": 0.8308
+      }
+    },
+    {
+      "model_id": "allenai/Llama-3.1-Tulu-3-8B-DPO-RM-RB2",
+      "name": "allenai/Llama-3.1-Tulu-3-8B-DPO-RM-RB2",
+      "developer": "allenai",
+      "scores": {
+        "Score": 0.687,
+        "Factuality": 0.7516,
+        "Precise IF": 0.3875,
+        "Math": 0.6284,
+        "Safety": 0.86,
+        "Focus": 0.8545,
+        "Ties": 0.6397
+      }
+    },
+    {
+      "model_id": "allenai/Llama-3.1-Tulu-3-8B-RL-RM-RB2",
+      "name": "allenai/Llama-3.1-Tulu-3-8B-RL-RM-RB2",
+      "developer": "allenai",
+      "scores": {
+        "Score": 0.8369,
+        "Chat": 0.9469,
+        "Chat Hard": 0.7588,
+        "Safety": 0.8703,
+        "Reasoning": 0.7715,
+        "Prior Sets (0.5 weight)": 0.0
+      }
+    },
+    {
+      "model_id": "allenai/Llama-3.1-Tulu-3-8B-RM",
+      "name": "Llama-3.1-Tulu-3-8B-RM",
+      "developer": "allenai",
+      "scores": {
+        "Score": 0.59,
+        "Factuality": 0.7453,
+        "Precise IF": 0.3469,
+        "Math": 0.6448,
+        "Safety": 0.7422,
+        "Focus": 0.5364,
+        "Ties": 0.5243
+      }
+    },
+    {
+      "model_id": "allenai/Llama-3.1-Tulu-3-8B-SFT-RM-RB2",
+      "name": "allenai/Llama-3.1-Tulu-3-8B-SFT-RM-RB2",
+      "developer": "allenai",
+      "scores": {
+        "Score": 0.8551,
+        "Chat": 0.9497,
+        "Chat Hard": 0.7917,
+        "Safety": 0.8784,
+        "Reasoning": 0.8005,
+        "Prior Sets (0.5 weight)": 0.0
+      }
+    },
+    {
+      "model_id": "allenai/OLMo-7B-Instruct",
+      "name": "allenai/OLMo-7B-Instruct",
+      "developer": "allenai",
+      "scores": {
+        "Score": 0.6727,
+        "Chat": 0.8966,
+        "Chat Hard": 0.5066,
+        "Safety": 0.6486,
+        "Reasoning": 0.7168,
+        "Prior Sets (0.5 weight)": 0.5173
+      }
+    },
+    {
+      "model_id": "allenai/llama-3-tulu-2-70b-uf-mean-rm",
+      "name": "allenai/llama-3-tulu-2-70b-uf-mean-rm",
+      "developer": "allenai",
+      "scores": {
+        "Score": 0.7019,
+        "Chat": 0.8631,
+        "Chat Hard": 0.5614,
+        "Safety": 0.6095,
+        "Reasoning": 0.8268,
+        "Prior Sets (0.5 weight)": 0.5957
+      }
+    },
+    {
+      "model_id": "allenai/llama-3-tulu-2-8b-uf-mean-rm",
+      "name": "allenai/llama-3-tulu-2-8b-uf-mean-rm",
+      "developer": "allenai",
+      "scores": {
+        "Score": 0.7342,
+        "Chat": 0.9525,
+        "Chat Hard": 0.5921,
+        "Safety": 0.6162,
+        "Reasoning": 0.8212,
+        "Prior Sets (0.5 weight)": 0.6434
+      }
+    },
+    {
+      "model_id": "allenai/llama-3-tulu-2-dpo-70b",
+      "name": "allenai/llama-3-tulu-2-dpo-70b",
+      "developer": "allenai",
+      "scores": {
+        "Score": 0.7496,
+        "Chat": 0.9637,
+        "Chat Hard": 0.5746,
+        "Safety": 0.7486,
+        "Reasoning": 0.802,
+        "Prior Sets (0.5 weight)": 0.5687
+      }
+    },
+    {
+      "model_id": "allenai/llama-3-tulu-2-dpo-8b",
+      "name": "allenai/llama-3-tulu-2-dpo-8b",
+      "developer": "allenai",
+      "scores": {
+        "Score": 0.7275,
+        "Chat": 0.9525,
+        "Chat Hard": 0.5351,
+        "Safety": 0.6649,
+        "Reasoning": 0.8663,
+        "Prior Sets (0.5 weight)": 0.5097
+      }
+    },
+    {
+      "model_id": "allenai/open_instruct_dev-reward_modeling__1__1739590997",
+      "name": "allenai/open_instruct_dev-reward_modeling__1__1739590997",
+      "developer": "allenai",
+      "scores": {
+        "Score": 0.6004,
+        "Factuality": 0.7032,
+        "Precise IF": 0.375,
+        "Math": 0.623,
+        "Safety": 0.7867,
+        "Focus": 0.598,
+        "Ties": 0.5165
+      }
+    },
+    {
+      "model_id": "allenai/open_instruct_dev-reward_modeling__1__1739871066",
+      "name": "allenai/open_instruct_dev-reward_modeling__1__1739871066",
+      "developer": "allenai",
+      "scores": {
+        "Score": 0.6012,
+        "Factuality": 0.6989,
+        "Precise IF": 0.425,
+        "Math": 0.6284,
+        "Safety": 0.7978,
+        "Focus": 0.604,
+        "Ties": 0.4527
+      }
+    },
+    {
+      "model_id": "allenai/open_instruct_dev-reward_modeling__1__1739925892",
+      "name": "allenai/open_instruct_dev-reward_modeling__1__1739925892",
+      "developer": "allenai",
+      "scores": {
+        "Score": 0.6345,
+        "Factuality": 0.7432,
+        "Precise IF": 0.3563,
+        "Math": 0.623,
+        "Safety": 0.8111,
+        "Focus": 0.7131,
+        "Ties": 0.5606
+      }
+    },
+    {
+      "model_id": "allenai/open_instruct_dev-reward_modeling__1__1739943850",
+      "name": "allenai/open_instruct_dev-reward_modeling__1__1739943850",
+      "developer": "allenai",
+      "scores": {
+        "Score": 0.4978,
+        "Factuality": 0.5726,
+        "Precise IF": 0.3125,
+        "Math": 0.5191,
+        "Safety": 0.6489,
+        "Focus": 0.6222,
+        "Ties": 0.3114
+      }
+    },
+    {
+      "model_id": "allenai/open_instruct_dev-reward_modeling__1__1739943881",
+      "name": "allenai/open_instruct_dev-reward_modeling__1__1739943881",
+      "developer": "allenai",
+      "scores": {
+        "Score": 0.5998,
+        "Factuality": 0.7032,
+        "Precise IF": 0.3187,
+        "Math": 0.5792,
+        "Safety": 0.8222,
+        "Focus": 0.6727,
+        "Ties": 0.5025
+      }
+    },
+    {
+      "model_id": "allenai/open_instruct_dev-reward_modeling__1__1739943972",
+      "name": "allenai/open_instruct_dev-reward_modeling__1__1739943972",
+      "developer": "allenai",
+      "scores": {
+        "Score": 0.5289,
+        "Factuality": 0.6168,
+        "Precise IF": 0.375,
+        "Math": 0.5738,
+        "Safety": 0.6844,
+        "Focus": 0.5657,
+        "Ties": 0.3577
+      }
+    },
+    {
+      "model_id": "allenai/open_instruct_dev-reward_modeling__1__1739957701",
+      "name": "allenai/open_instruct_dev-reward_modeling__1__1739957701",
+      "developer": "allenai",
+      "scores": {
+        "Score": 0.6194,
+        "Factuality": 0.6779,
+        "Precise IF": 0.3563,
+        "Math": 0.6011,
+        "Safety": 0.8022,
+        "Focus": 0.697,
+        "Ties": 0.5822
+      }
+    },
+    {
+      "model_id": "allenai/open_instruct_dev-reward_modeling__1__1739971507",
+      "name": "allenai/open_instruct_dev-reward_modeling__1__1739971507",
+      "developer": "allenai",
+      "scores": {
+        "Score": 0.5717,
+        "Factuality": 0.68,
+        "Precise IF": 0.375,
+        "Math": 0.6066,
+        "Safety": 0.7667,
+        "Focus": 0.5475,
+        "Ties": 0.4545
+      }
+    },
+    {
+      "model_id": "allenai/open_instruct_dev-reward_modeling__1__1739971529",
+      "name": "allenai/open_instruct_dev-reward_modeling__1__1739971529",
+      "developer": "allenai",
+      "scores": {
+        "Score": 0.5564,
+        "Factuality": 0.6568,
+        "Precise IF": 0.3563,
+        "Math": 0.5956,
+        "Safety": 0.7533,
+        "Focus": 0.5737,
+        "Ties": 0.4027
+      }
+    },
+    {
+      "model_id": "allenai/open_instruct_dev-reward_modeling__1__1739998765",
+      "name": "allenai/open_instruct_dev-reward_modeling__1__1739998765",
+      "developer": "allenai",
+      "scores": {
+        "Score": 0.6008,
+        "Factuality": 0.7095,
+        "Precise IF": 0.4125,
+        "Math": 0.6066,
+        "Safety": 0.8022,
+        "Focus": 0.5859,
+        "Ties": 0.4883
+      }
+    },
+    {
+      "model_id": "allenai/open_instruct_dev-reward_modeling__1__1740005072",
+      "name": "allenai/open_instruct_dev-reward_modeling__1__1740005072",
+      "developer": "allenai",
+      "scores": {
+        "Score": 0.6097,
+        "Factuality": 0.7137,
+        "Precise IF": 0.3937,
+        "Math": 0.6339,
+        "Safety": 0.7778,
+        "Focus": 0.6343,
+        "Ties": 0.5047
+      }
+    },
+    {
+      "model_id": "allenai/open_instruct_dev-reward_modeling__1__1740129284",
+      "name": "allenai/open_instruct_dev-reward_modeling__1__1740129284",
+      "developer": "allenai",
+      "scores": {
+        "Score": 0.6129,
+        "Factuality": 0.7116,
+        "Precise IF": 0.4437,
+        "Math": 0.6448,
+        "Safety": 0.8022,
+        "Focus": 0.6101,
+        "Ties": 0.4652
+      }
+    },
+    {
+      "model_id": "allenai/open_instruct_dev-reward_modeling__1__1741286813",
+      "name": "allenai/open_instruct_dev-reward_modeling__1__1741286813",
+      "developer": "allenai",
+      "scores": {
+        "Score": 0.6557,
+        "Factuality": 0.6295,
+        "Precise IF": 0.4188,
+        "Math": 0.612,
+        "Safety": 0.9111,
+        "Focus": 0.8263,
+        "Ties": 0.5365
+      }
+    },
+    {
+      "model_id": "allenai/open_instruct_dev-reward_modeling__1__1741287363",
+      "name": "allenai/open_instruct_dev-reward_modeling__1__1741287363",
+      "developer": "allenai",
+      "scores": {
+        "Score": 0.6672,
+        "Factuality": 0.6295,
+        "Precise IF": 0.375,
+        "Math": 0.6066,
+        "Safety": 0.88,
+        "Focus": 0.9374,
+        "Ties": 0.5748
+      }
+    },
+    {
+      "model_id": "allenai/open_instruct_dev-reward_modeling__1__1741292911",
+      "name": "allenai/open_instruct_dev-reward_modeling__1__1741292911",
+      "developer": "allenai",
+      "scores": {
+        "Score": 0.6607,
+        "Factuality": 0.6589,
+        "Precise IF": 0.4,
+        "Math": 0.6066,
+        "Safety": 0.9089,
+        "Focus": 0.8869,
+        "Ties": 0.5028
+      }
+    },
+    {
+      "model_id": "allenai/open_instruct_dev-reward_modeling__1__1742338142",
+      "name": "allenai/open_instruct_dev-reward_modeling__1__1742338142",
+      "developer": "allenai",
+      "scores": {
+        "Score": 0.6344,
+        "Factuality": 0.7326,
+        "Precise IF": 0.3812,
+        "Math": 0.7049,
+        "Safety": 0.88,
+        "Focus": 0.6323,
+        "Ties": 0.475
+      }
+    },
+    {
+      "model_id": "allenai/open_instruct_dev-reward_modeling__1__1742519610",
+      "name": "allenai/open_instruct_dev-reward_modeling__1__1742519610",
+      "developer": "allenai",
+      "scores": {
+        "Score": 0.6361,
+        "Factuality": 0.7074,
+        "Precise IF": 0.3812,
+        "Math": 0.6721,
+        "Safety": 0.82,
+        "Focus": 0.6444,
+        "Ties": 0.5915
+      }
+    },
+    {
+      "model_id": "allenai/open_instruct_dev-reward_modeling__1__1742519628",
+      "name": "allenai/open_instruct_dev-reward_modeling__1__1742519628",
+      "developer": "allenai",
+      "scores": {
+        "Score": 0.5609,
+        "Factuality": 0.5179,
+        "Precise IF": 0.3563,
+        "Math": 0.623,
+        "Safety": 0.8356,
+        "Focus": 0.5071,
+        "Ties": 0.5254
+      }
+    },
+    {
+      "model_id": "allenai/open_instruct_dev-rm_1e-6_1_100pctflipped__1__1744241455",
+      "name": "allenai/open_instruct_dev-rm_1e-6_1_100pctflipped__1__1744241455",
+      "developer": "allenai",
+      "scores": {
+        "Score": 0.0576,
+        "Factuality": 0.04,
+        "Precise IF": 0.1313,
+        "Math": 0.0546,
+        "Safety": 0.0489,
+        "Focus": 0.0808,
+        "Ties": -0.01
+      }
+    },
+    {
+      "model_id": "allenai/open_instruct_dev-rm_1e-6_1_10pctflipped__1__1743295511",
+      "name": "allenai/open_instruct_dev-rm_1e-6_1_10pctflipped__1__1743295511",
+      "developer": "allenai",
+      "scores": {
+        "Score": 0.5499,
+        "Factuality": 0.6821,
+        "Precise IF": 0.3937,
+        "Math": 0.5956,
+        "Safety": 0.7356,
+        "Focus": 0.5212,
+        "Ties": 0.3711
+      }
+    },
+    {
+      "model_id": "allenai/open_instruct_dev-rm_1e-6_1_20pctflipped__1__1743295406",
+      "name": "allenai/open_instruct_dev-rm_1e-6_1_20pctflipped__1__1743295406",
+      "developer": "allenai",
+      "scores": {
+        "Score": 0.5054,
+        "Factuality": 0.6358,
+        "Precise IF": 0.3688,
+        "Math": 0.6066,
+        "Safety": 0.6867,
+        "Focus": 0.4424,
+        "Ties": 0.2922
+      }
+    },
+    {
+      "model_id": "allenai/open_instruct_dev-rm_1e-6_1_30pctflipped__1__1743325136",
+      "name": "allenai/open_instruct_dev-rm_1e-6_1_30pctflipped__1__1743325136",
+      "developer": "allenai",
+      "scores": {
+        "Score": 0.478,
+        "Factuality": 0.6442,
+        "Precise IF": 0.3563,
+        "Math": 0.612,
+        "Safety": 0.6356,
+        "Focus": 0.2707,
+        "Ties": 0.3496
+      }
+    },
+    {
+      "model_id": "allenai/open_instruct_dev-rm_1e-6_1_50pctflipped__1__1744241398",
+      "name": "allenai/open_instruct_dev-rm_1e-6_1_50pctflipped__1__1744241398",
+      "developer": "allenai",
+      "scores": {
+        "Score": 0.219,
+        "Factuality": 0.2484,
+        "Precise IF": 0.2812,
+        "Math": 0.2623,
+        "Safety": 0.3422,
+        "Focus": 0.1717,
+        "Ties": 0.008
+      }
+    },
+    {
+      "model_id": "allenai/open_instruct_dev-rm_1e-6_1_5pctflipped__1__1743444535",
+      "name": "allenai/open_instruct_dev-rm_1e-6_1_5pctflipped__1__1743444535",
+      "developer": "allenai",
+      "scores": {
+        "Score": 0.5625,
+        "Factuality": 0.6821,
+        "Precise IF": 0.4062,
+        "Math": 0.6011,
+        "Safety": 0.7511,
+        "Focus": 0.5313,
+        "Ties": 0.403
+      }
+    },
+    {
+      "model_id": "allenai/open_instruct_dev-rm_1e-6_1_dpo__1__1743550054",
+      "name": "allenai/open_instruct_dev-rm_1e-6_1_dpo__1__1743550054",
+      "developer": "allenai",
+      "scores": {
+        "Score": 0.5759,
+        "Factuality": 0.7074,
+        "Precise IF": 0.375,
+        "Math": 0.623,
+        "Safety": 0.7578,
+        "Focus": 0.5333,
+        "Ties": 0.459
+      }
+    },
+    {
+      "model_id": "allenai/open_instruct_dev-rm_1e-6_1_dpo_skyworks__1__1744530271",
+      "name": "allenai/open_instruct_dev-rm_1e-6_1_dpo_skyworks__1__1744530271",
+      "developer": "allenai",
+      "scores": {
+        "Score": 0.6057,
+        "Factuality": 0.5053,
+        "Precise IF": 0.375,
+        "Math": 0.5902,
+        "Safety": 0.8422,
+        "Focus": 0.7798,
+        "Ties": 0.5419
+      }
+    },
+    {
+      "model_id": "allenai/open_instruct_dev-rm_1e-6_1_dpo_skyworkstulufull__1__1743550181",
+      "name": "allenai/open_instruct_dev-rm_1e-6_1_dpo_skyworkstulufull__1__1743550181",
+      "developer": "allenai",
+      "scores": {
+        "Score": 0.6535,
+        "Factuality": 0.7137,
+        "Precise IF": 0.3812,
+        "Math": 0.6175,
+        "Safety": 0.8244,
+        "Focus": 0.7737,
+        "Ties": 0.6101
+      }
+    },
+    {
+      "model_id": "allenai/open_instruct_dev-rm_1e-6_1_rl__1__1743551221",
+      "name": "allenai/open_instruct_dev-rm_1e-6_1_rl__1__1743551221",
+      "developer": "allenai",
+      "scores": {
+        "Score": 0.5799,
+        "Factuality": 0.7116,
+        "Precise IF": 0.3812,
+        "Math": 0.6284,
+        "Safety": 0.76,
+        "Focus": 0.5374,
+        "Ties": 0.461
+      }
+    },
+    {
+      "model_id": "allenai/open_instruct_dev-rm_1e-6_1_rl_skyworks__1__1744530262",
+      "name": "allenai/open_instruct_dev-rm_1e-6_1_rl_skyworks__1__1744530262",
+      "developer": "allenai",
+      "scores": {
+        "Score": 0.5903,
+        "Factuality": 0.4863,
+        "Precise IF": 0.3625,
+        "Math": 0.5738,
+        "Safety": 0.8489,
+        "Focus": 0.7778,
+        "Ties": 0.4926
+      }
+    },
+    {
+      "model_id": "allenai/open_instruct_dev-rm_1e-6_1_rl_skyworkstulufull__1__1743551523",
+      "name": "allenai/open_instruct_dev-rm_1e-6_1_rl_skyworkstulufull__1__1743551523",
+      "developer": "allenai",
+      "scores": {
+        "Score": 0.6483,
+        "Factuality": 0.7074,
+        "Precise IF": 0.3625,
+        "Math": 0.6175,
+        "Safety": 0.8222,
+        "Focus": 0.7758,
+        "Ties": 0.6044
+      }
+    },
+    {
+      "model_id": "allenai/open_instruct_dev-rm_1e-6_1_skyworkstulumix__1__1743205750",
+      "name": "allenai/open_instruct_dev-rm_1e-6_1_skyworkstulumix__1__1743205750",
+      "developer": "allenai",
+      "scores": {
+        "Score": 0.5157,
+        "Factuality": 0.6084,
+        "Precise IF": 0.3688,
+        "Math": 0.6066,
+        "Safety": 0.7089,
+        "Focus": 0.4222,
+        "Ties": 0.3791
+      }
+    },
+    {
+      "model_id": "allenai/open_instruct_dev-rm_1e-6_2_10pctflipped__1__1743295427",
+      "name": "allenai/open_instruct_dev-rm_1e-6_2_10pctflipped__1__1743295427",
+      "developer": "allenai",
+      "scores": {
+        "Score": 0.6009,
+        "Factuality": 0.7263,
+        "Precise IF": 0.375,
+        "Math": 0.5902,
+        "Safety": 0.7933,
+        "Focus": 0.7273,
+        "Ties": 0.3931
+      }
+    },
+    {
+      "model_id": "allenai/open_instruct_dev-rm_1e-6_2_20pctflipped__1__1743295446",
+      "name": "allenai/open_instruct_dev-rm_1e-6_2_20pctflipped__1__1743295446",
+      "developer": "allenai",
+      "scores": {
+        "Score": 0.5716,
+        "Factuality": 0.6779,
+        "Precise IF": 0.3937,
+        "Math": 0.5464,
+        "Safety": 0.7533,
+        "Focus": 0.7051,
+        "Ties": 0.3534
+      }
+    },
+    {
+      "model_id": "allenai/open_instruct_dev-rm_1e-6_2_30pctflipped__1__1743325094",
+      "name": "allenai/open_instruct_dev-rm_1e-6_2_30pctflipped__1__1743325094",
+      "developer": "allenai",
+      "scores": {
+        "Score": 0.5151,
+        "Factuality": 0.6484,
+        "Precise IF": 0.3312,
+        "Math": 0.5574,
+        "Safety": 0.7289,
+        "Focus": 0.4889,
+        "Ties": 0.3357
+      }
+    },
+    {
+      "model_id": "allenai/open_instruct_dev-rm_1e-6_2_5pctflipped__1__1743444636",
+      "name": "allenai/open_instruct_dev-rm_1e-6_2_5pctflipped__1__1743444636",
+      "developer": "allenai",
+      "scores": {
+        "Score": 0.6119,
+        "Factuality": 0.72,
+        "Precise IF": 0.4062,
+        "Math": 0.6284,
+        "Safety": 0.8067,
+        "Focus": 0.6889,
+        "Ties": 0.421
+      }
+    },
+    {
+      "model_id": "allenai/open_instruct_dev-rm_1e-6_2_dpo__1__1743549325",
+      "name": "allenai/open_instruct_dev-rm_1e-6_2_dpo__1__1743549325",
+      "developer": "allenai",
+      "scores": {
+        "Score": 0.6008,
+        "Factuality": 0.7179,
+        "Precise IF": 0.35,
+        "Math": 0.5956,
+        "Safety": 0.8,
+        "Focus": 0.6707,
+        "Ties": 0.4707
+      }
+    },
+    {
+      "model_id": "allenai/open_instruct_dev-rm_1e-6_2_rl__1__1743551238",
+      "name": "allenai/open_instruct_dev-rm_1e-6_2_rl__1__1743551238",
+      "developer": "allenai",
+      "scores": {
+        "Score": 0.5965,
+        "Factuality": 0.7095,
+        "Precise IF": 0.3438,
+        "Math": 0.612,
+        "Safety": 0.8044,
+        "Focus": 0.6566,
+        "Ties": 0.453
+      }
+    },
+    {
+      "model_id": "allenai/open_instruct_dev-rm_1e-6_2_skyworkstulumix__1__1743205906",
+      "name": "allenai/open_instruct_dev-rm_1e-6_2_skyworkstulumix__1__1743205906",
+      "developer": "allenai",
+      "scores": {
+        "Score": 0.5574,
+        "Factuality": 0.6526,
+        "Precise IF": 0.3937,
+        "Math": 0.6011,
+        "Safety": 0.7711,
+        "Focus": 0.5051,
+        "Ties": 0.4208
+      }
+    },
+    {
+      "model_id": "allenai/open_instruct_dev-rm_2e-5_1_100pctflipped__1__1744241529",
+      "name": "allenai/open_instruct_dev-rm_2e-5_1_100pctflipped__1__1744241529",
+      "developer": "allenai",
+      "scores": {
+        "Score": 0.0719,
+        "Factuality": 0.0421,
+        "Precise IF": 0.2062,
+        "Math": 0.0601,
+        "Safety": 0.0378,
+        "Focus": 0.0949,
+        "Ties": -0.01
+      }
+    },
+    {
+      "model_id": "allenai/open_instruct_dev-rm_2e-5_1_10pctflipped__1__1743295305",
+      "name": "allenai/open_instruct_dev-rm_2e-5_1_10pctflipped__1__1743295305",
+      "developer": "allenai",
+      "scores": {
+        "Score": 0.553,
+        "Factuality": 0.6674,
+        "Precise IF": 0.3563,
+        "Math": 0.6284,
+        "Safety": 0.6733,
+        "Focus": 0.5697,
+        "Ties": 0.4227
+      }
+    },
+    {
+      "model_id": "allenai/open_instruct_dev-rm_2e-5_1_20pctflipped__1__1743324778",
+      "name": "allenai/open_instruct_dev-rm_2e-5_1_20pctflipped__1__1743324778",
+      "developer": "allenai",
+      "scores": {
+        "Score": 0.4955,
+        "Factuality": 0.6189,
+        "Precise IF": 0.325,
+        "Math": 0.5792,
+        "Safety": 0.6378,
+        "Focus": 0.5657,
+        "Ties": 0.2466
+      }
+    },
+    {
+      "model_id": "allenai/open_instruct_dev-rm_2e-5_1_30pctflipped__1__1743326459",
+      "name": "allenai/open_instruct_dev-rm_2e-5_1_30pctflipped__1__1743326459",
+      "developer": "allenai",
+      "scores": {
+        "Score": 0.4198,
+        "Factuality": 0.5747,
+        "Precise IF": 0.3375,
+        "Math": 0.5464,
+        "Safety": 0.4933,
+        "Focus": 0.3596,
+        "Ties": 0.2073
+      }
+    },
+    {
+      "model_id": "allenai/open_instruct_dev-rm_2e-5_1_5pctflipped__1__1743443747",
+      "name": "allenai/open_instruct_dev-rm_2e-5_1_5pctflipped__1__1743443747",
+      "developer": "allenai",
+      "scores": {
+        "Score": 0.5465,
+        "Factuality": 0.6821,
+        "Precise IF": 0.375,
+        "Math": 0.612,
+        "Safety": 0.7333,
+        "Focus": 0.5051,
+        "Ties": 0.3713
+      }
+    },
+    {
+      "model_id": "allenai/open_instruct_dev-rm_2e-5_1_skyworkstulumix__1__1743205935",
+      "name": "allenai/open_instruct_dev-rm_2e-5_1_skyworkstulumix__1__1743205935",
+      "developer": "allenai",
+      "scores": {
+        "Score": 0.5197,
+        "Factuality": 0.6126,
+        "Precise IF": 0.3375,
+        "Math": 0.5847,
+        "Safety": 0.7333,
+        "Focus": 0.4646,
+        "Ties": 0.3855
+      }
+    },
+    {
+      "model_id": "allenai/open_instruct_dev-rm_2e-5_2_10pctflipped__1__1743295360",
+      "name": "allenai/open_instruct_dev-rm_2e-5_2_10pctflipped__1__1743295360",
+      "developer": "allenai",
+      "scores": {
+        "Score": 0.4555,
+        "Factuality": 0.5495,
+        "Precise IF": 0.3063,
+        "Math": 0.4262,
+        "Safety": 0.5711,
+        "Focus": 0.6101,
+        "Ties": 0.2696
+      }
+    },
+    {
+      "model_id": "allenai/open_instruct_dev-rm_2e-5_2_20pctflipped__1__1743295366",
+      "name": "allenai/open_instruct_dev-rm_2e-5_2_20pctflipped__1__1743295366",
+      "developer": "allenai",
+      "scores": {
+        "Score": 0.4422,
+        "Factuality": 0.5053,
+        "Precise IF": 0.3375,
+        "Math": 0.4044,
+        "Safety": 0.5422,
+        "Focus": 0.6646,
+        "Ties": 0.1991
+      }
+    },
+    {
+      "model_id": "allenai/open_instruct_dev-rm_2e-5_2_30pctflipped__1__1743326352",
+      "name": "allenai/open_instruct_dev-rm_2e-5_2_30pctflipped__1__1743326352",
+      "developer": "allenai",
+      "scores": {
+        "Score": 0.341,
+        "Factuality": 0.4674,
+        "Precise IF": 0.2875,
+        "Math": 0.3333,
+        "Safety": 0.3711,
+        "Focus": 0.3919,
+        "Ties": 0.195
+      }
+    },
+    {
+      "model_id": "allenai/open_instruct_dev-rm_2e-5_2_5pctflipped__1__1743444634",
+      "name": "allenai/open_instruct_dev-rm_2e-5_2_5pctflipped__1__1743444634",
+      "developer": "allenai",
+      "scores": {
+        "Score": 0.4698,
+        "Factuality": 0.5853,
+        "Precise IF": 0.2562,
+        "Math": 0.5027,
+        "Safety": 0.6489,
+        "Focus": 0.5697,
+        "Ties": 0.2562
+      }
+    },
+    {
+      "model_id": "allenai/open_instruct_dev-rm_2e-5_2_skyworkstulumix__1__1743205988",
+      "name": "allenai/open_instruct_dev-rm_2e-5_2_skyworkstulumix__1__1743205988",
+      "developer": "allenai",
+      "scores": {
+        "Score": 0.4791,
+        "Factuality": 0.6421,
+        "Precise IF": 0.3125,
+        "Math": 0.541,
+        "Safety": 0.6911,
+        "Focus": 0.4182,
+        "Ties": 0.27
+      }
+    },
+    {
+      "model_id": "allenai/open_instruct_dev-rm_3e-6_1_100pctflipped__1__1744242103",
+      "name": "allenai/open_instruct_dev-rm_3e-6_1_100pctflipped__1__1744242103",
+      "developer": "allenai",
+      "scores": {
+        "Score": 0.0607,
+        "Factuality": 0.0274,
+        "Precise IF": 0.1625,
+        "Math": 0.0656,
+        "Safety": 0.04,
+        "Focus": 0.0788,
+        "Ties": -0.01
+      }
+    },
+    {
+      "model_id": "allenai/open_instruct_dev-rm_3e-6_1_10pctflipped__1__1743324835",
+      "name": "allenai/open_instruct_dev-rm_3e-6_1_10pctflipped__1__1743324835",
+      "developer": "allenai",
+      "scores": {
+        "Score": 0.6089,
+        "Factuality": 0.7284,
+        "Precise IF": 0.4375,
+        "Math": 0.612,
+        "Safety": 0.7622,
+        "Focus": 0.6444,
+        "Ties": 0.4686
+      }
+    },
+    {
+      "model_id": "allenai/open_instruct_dev-rm_3e-6_1_1pctflipped__1__1743445221",
+      "name": "allenai/open_instruct_dev-rm_3e-6_1_1pctflipped__1__1743445221",
+      "developer": "allenai",
+      "scores": {
+        "Score": 0.6032,
+        "Factuality": 0.7158,
+        "Precise IF": 0.4062,
+        "Math": 0.6284,
+        "Safety": 0.7778,
+        "Focus": 0.5859,
+        "Ties": 0.5051
+      }
+    },
+    {
+      "model_id": "allenai/open_instruct_dev-rm_3e-6_1_20pctflipped__1__1743324826",
+      "name": "allenai/open_instruct_dev-rm_3e-6_1_20pctflipped__1__1743324826",
+      "developer": "allenai",
+      "scores": {
+        "Score": 0.5831,
+        "Factuality": 0.6947,
+        "Precise IF": 0.4188,
+        "Math": 0.623,
+        "Safety": 0.74,
+        "Focus": 0.5758,
+        "Ties": 0.4465
+      }
+    },
+    {
+      "model_id": "allenai/open_instruct_dev-rm_3e-6_1_30pctflipped__1__1743326363",
+      "name": "allenai/open_instruct_dev-rm_3e-6_1_30pctflipped__1__1743326363",
+      "developer": "allenai",
+      "scores": {
+        "Score": 0.5268,
+        "Factuality": 0.68,
+        "Precise IF": 0.3688,
+        "Math": 0.5792,
+        "Safety": 0.7178,
+        "Focus": 0.4343,
+        "Ties": 0.3809
+      }
+    },
+    {
+      "model_id": "allenai/open_instruct_dev-rm_3e-6_1_5pctflipped__1__1743444498",
+      "name": "allenai/open_instruct_dev-rm_3e-6_1_5pctflipped__1__1743444498",
+      "developer": "allenai",
+      "scores": {
+        "Score": 0.6093,
+        "Factuality": 0.7326,
+        "Precise IF": 0.4313,
+        "Math": 0.6339,
+        "Safety": 0.7578,
+        "Focus": 0.5859,
+        "Ties": 0.5143
+      }
+    },
+    {
+      "model_id": "allenai/open_instruct_dev-rm_3e-6_1__2__1743897475",
+      "name": "allenai/open_instruct_dev-rm_3e-6_1__2__1743897475",
+      "developer": "allenai",
+      "scores": {
+        "Score": 0.6122,
+        "Factuality": 0.7368,
+        "Precise IF": 0.4,
+        "Math": 0.623,
+        "Safety": 0.8044,
+        "Focus": 0.602,
+        "Ties": 0.5071
+      }
+    },
+    {
+      "model_id": "allenai/open_instruct_dev-rm_3e-6_1__3__1744311421",
+      "name": "allenai/open_instruct_dev-rm_3e-6_1__3__1744311421",
+      "developer": "allenai",
+      "scores": {
+        "Score": 0.5995,
+        "Factuality": 0.7179,
+        "Precise IF": 0.3375,
+        "Math": 0.6066,
+        "Safety": 0.8,
+        "Focus": 0.6323,
+        "Ties": 0.503
+      }
+    },
+    {
+      "model_id": "allenai/open_instruct_dev-rm_3e-6_1_dpo__1__1743549903",
+      "name": "allenai/open_instruct_dev-rm_3e-6_1_dpo__1__1743549903",
+      "developer": "allenai",
+      "scores": {
+        "Score": 0.6154,
+        "Factuality": 0.7326,
+        "Precise IF": 0.4375,
+        "Math": 0.6339,
+        "Safety": 0.7778,
+        "Focus": 0.6061,
+        "Ties": 0.5043
+      }
+    },
+    {
+      "model_id": "allenai/open_instruct_dev-rm_3e-6_1_dpo_skyworks__1__1744530368",
+      "name": "allenai/open_instruct_dev-rm_3e-6_1_dpo_skyworks__1__1744530368",
+      "developer": "allenai",
+      "scores": {
+        "Score": 0.6604,
+        "Factuality": 0.6316,
+        "Precise IF": 0.3937,
+        "Math": 0.5792,
+        "Safety": 0.9044,
+        "Focus": 0.8929,
+        "Ties": 0.5604
+      }
+    },
+    {
+      "model_id": "allenai/open_instruct_dev-rm_3e-6_1_dpo_skyworkstulufull__1__1743550182",
+      "name": "allenai/open_instruct_dev-rm_3e-6_1_dpo_skyworkstulufull__1__1743550182",
+      "developer": "allenai",
+      "scores": {
+        "Score": 0.6783,
+        "Factuality": 0.7705,
+        "Precise IF": 0.4,
+        "Math": 0.6066,
+        "Safety": 0.84,
+        "Focus": 0.8101,
+        "Ties": 0.6427
+      }
+    },
+    {
+      "model_id": "allenai/open_instruct_dev-rm_3e-6_1_no_if__2__1744316012",
+      "name": "allenai/open_instruct_dev-rm_3e-6_1_no_if__2__1744316012",
+      "developer": "allenai",
+      "scores": {
+        "Score": 0.5911,
+        "Factuality": 0.7347,
+        "Precise IF": 0.4,
+        "Math": 0.6284,
+        "Safety": 0.74,
+        "Focus": 0.604,
+        "Ties": 0.4392
+      }
+    },
+    {
+      "model_id": "allenai/open_instruct_dev-rm_3e-6_1_no_if__3__1744315765",
+      "name": "allenai/open_instruct_dev-rm_3e-6_1_no_if__3__1744315765",
+      "developer": "allenai",
+      "scores": {
+        "Score": 0.5926,
+        "Factuality": 0.7263,
+        "Precise IF": 0.3563,
+        "Math": 0.623,
+        "Safety": 0.7889,
+        "Focus": 0.5879,
+        "Ties": 0.4733
+      }
+    },
+    {
+      "model_id": "allenai/open_instruct_dev-rm_3e-6_1_rl__1__1743551527",
+      "name": "allenai/open_instruct_dev-rm_3e-6_1_rl__1__1743551527",
+      "developer": "allenai",
+      "scores": {
+        "Score": 0.6126,
+        "Factuality": 0.7411,
+        "Precise IF": 0.425,
+        "Math": 0.623,
+        "Safety": 0.7822,
+        "Focus": 0.5939,
+        "Ties": 0.5104
+      }
+    },
+    {
+      "model_id": "allenai/open_instruct_dev-rm_3e-6_1_rl_skyworks__1__1744530236",
+      "name": "allenai/open_instruct_dev-rm_3e-6_1_rl_skyworks__1__1744530236",
+      "developer": "allenai",
+      "scores": {
+        "Score": 0.6525,
+        "Factuality": 0.6021,
+        "Precise IF": 0.3875,
+        "Math": 0.5792,
+        "Safety": 0.8933,
+        "Focus": 0.8626,
+        "Ties": 0.59
+      }
+    },
+    {
+      "model_id": "allenai/open_instruct_dev-rm_3e-6_1_rl_skyworkstulufull__1__1743551530",
+      "name": "allenai/open_instruct_dev-rm_3e-6_1_rl_skyworkstulufull__1__1743551530",
+      "developer": "allenai",
+      "scores": {
+        "Score": 0.6849,
+        "Factuality": 0.7453,
+        "Precise IF": 0.3812,
+        "Math": 0.612,
+        "Safety": 0.8422,
+        "Focus": 0.8404,
+        "Ties": 0.6885
+      }
+    },
+    {
+      "model_id": "allenai/open_instruct_dev-rm_3e-6_1_skyworkstulu75__1__1743534417",
+      "name": "allenai/open_instruct_dev-rm_3e-6_1_skyworkstulu75__1__1743534417",
+      "developer": "allenai",
+      "scores": {
+        "Score": 0.586,
+        "Factuality": 0.6632,
+        "Precise IF": 0.425,
+        "Math": 0.6557,
+        "Safety": 0.7778,
+        "Focus": 0.5172,
+        "Ties": 0.477
+      }
+    },
+    {
+      "model_id": "allenai/open_instruct_dev-rm_3e-6_1_skyworkstulufull__1__1743446486",
+      "name": "allenai/open_instruct_dev-rm_3e-6_1_skyworkstulufull__1__1743446486",
+      "developer": "allenai",
+      "scores": {
+        "Score": 0.6773,
+        "Factuality": 0.7432,
+        "Precise IF": 0.4,
+        "Math": 0.612,
+        "Safety": 0.8422,
+        "Focus": 0.804,
+        "Ties": 0.6626
+      }
+    },
+    {
+      "model_id": "allenai/open_instruct_dev-rm_3e-6_1_skyworkstulufull__2__1744314745",
+      "name": "allenai/open_instruct_dev-rm_3e-6_1_skyworkstulufull__2__1744314745",
+      "developer": "allenai",
+      "scores": {
+        "Score": 0.6793,
+        "Factuality": 0.7558,
+        "Precise IF": 0.4062,
+        "Math": 0.6284,
+        "Safety": 0.8311,
+        "Focus": 0.8061,
+        "Ties": 0.6485
+      }
+    },
+    {
+      "model_id": "allenai/open_instruct_dev-rm_3e-6_1_skyworkstulufull__3__1744311661",
+      "name": "allenai/open_instruct_dev-rm_3e-6_1_skyworkstulufull__3__1744311661",
+      "developer": "allenai",
+      "scores": {
+        "Score": 0.6611,
+        "Factuality": 0.72,
+        "Precise IF": 0.3563,
+        "Math": 0.6393,
+        "Safety": 0.8444,
+        "Focus": 0.7636,
+        "Ties": 0.6428
+      }
+    },
+    {
+      "model_id": "allenai/open_instruct_dev-rm_3e-6_1_skyworkstulumix__1__1743204472",
+      "name": "allenai/open_instruct_dev-rm_3e-6_1_skyworkstulumix__1__1743204472",
+      "developer": "allenai",
+      "scores": {
+        "Score": 0.5778,
+        "Factuality": 0.6674,
+        "Precise IF": 0.3875,
+        "Math": 0.6011,
+        "Safety": 0.7933,
+        "Focus": 0.5172,
+        "Ties": 0.5003
+      }
+    },
+    {
+      "model_id": "allenai/open_instruct_dev-rm_3e-6_2_10pctflipped__1__1743295267",
+      "name": "allenai/open_instruct_dev-rm_3e-6_2_10pctflipped__1__1743295267",
+      "developer": "allenai",
+      "scores": {
+        "Score": 0.5746,
+        "Factuality": 0.6505,
+        "Precise IF": 0.35,
+        "Math": 0.5082,
+        "Safety": 0.7844,
+        "Focus": 0.7414,
+        "Ties": 0.4128
+      }
+    },
+    {
+      "model_id": "allenai/open_instruct_dev-rm_3e-6_2_1pctflipped__1__1743445759",
+      "name": "allenai/open_instruct_dev-rm_3e-6_2_1pctflipped__1__1743445759",
+      "developer": "allenai",
+      "scores": {
+        "Score": 0.6065,
+        "Factuality": 0.7116,
+        "Precise IF": 0.35,
+        "Math": 0.5792,
+        "Safety": 0.8178,
+        "Focus": 0.7152,
+        "Ties": 0.465
+      }
+    },
+    {
+      "model_id": "allenai/open_instruct_dev-rm_3e-6_2_20pctflipped__1__1743324905",
+      "name": "allenai/open_instruct_dev-rm_3e-6_2_20pctflipped__1__1743324905",
+      "developer": "allenai",
+      "scores": {
+        "Score": 0.5305,
+        "Factuality": 0.5832,
+        "Precise IF": 0.3312,
+        "Math": 0.459,
+        "Safety": 0.7178,
+        "Focus": 0.7071,
+        "Ties": 0.3849
+      }
+    },
+    {
+      "model_id": "allenai/open_instruct_dev-rm_3e-6_2_30pctflipped__1__1743326363",
+      "name": "allenai/open_instruct_dev-rm_3e-6_2_30pctflipped__1__1743326363",
+      "developer": "allenai",
+      "scores": {
+        "Score": 0.4436,
+        "Factuality": 0.5411,
+        "Precise IF": 0.3312,
+        "Math": 0.3115,
+        "Safety": 0.6267,
+        "Focus": 0.5414,
+        "Ties": 0.31
+      }
+    },
+    {
+      "model_id": "allenai/open_instruct_dev-rm_3e-6_2_5pctflipped__1__1743444505",
+      "name": "allenai/open_instruct_dev-rm_3e-6_2_5pctflipped__1__1743444505",
+      "developer": "allenai",
+      "scores": {
+        "Score": 0.5925,
+        "Factuality": 0.68,
+        "Precise IF": 0.3688,
+        "Math": 0.5519,
+        "Safety": 0.78,
+        "Focus": 0.7434,
+        "Ties": 0.431
+      }
+    },
+    {
+      "model_id": "allenai/open_instruct_dev-rm_3e-6_2_dpo__1__1743550180",
+      "name": "allenai/open_instruct_dev-rm_3e-6_2_dpo__1__1743550180",
+      "developer": "allenai",
+      "scores": {
+        "Score": 0.6198,
+        "Factuality": 0.7263,
+        "Precise IF": 0.3312,
+        "Math": 0.6339,
+        "Safety": 0.8133,
+        "Focus": 0.7232,
+        "Ties": 0.4908
+      }
+    },
+    {
+      "model_id": "allenai/open_instruct_dev-rm_3e-6_2_dpo_skyworkstulufull__1__1743550187",
+      "name": "allenai/open_instruct_dev-rm_3e-6_2_dpo_skyworkstulufull__1__1743550187",
+      "developer": "allenai",
+      "scores": {
+        "Score": 0.6763,
+        "Factuality": 0.7411,
+        "Precise IF": 0.375,
+        "Math": 0.612,
+        "Safety": 0.8844,
+        "Focus": 0.8545,
+        "Ties": 0.5908
+      }
+    },
+    {
+      "model_id": "allenai/open_instruct_dev-rm_3e-6_2_rl__1__1743551509",
+      "name": "allenai/open_instruct_dev-rm_3e-6_2_rl__1__1743551509",
+      "developer": "allenai",
+      "scores": {
+        "Score": 0.6245,
+        "Factuality": 0.7242,
+        "Precise IF": 0.35,
+        "Math": 0.6175,
+        "Safety": 0.8178,
+        "Focus": 0.7253,
+        "Ties": 0.5124
+      }
+    },
+    {
+      "model_id": "allenai/open_instruct_dev-rm_3e-6_2_rl_skyworkstulufull__1__1743551498",
+      "name": "allenai/open_instruct_dev-rm_3e-6_2_rl_skyworkstulufull__1__1743551498",
+      "developer": "allenai",
+      "scores": {
+        "Score": 0.6673,
+        "Factuality": 0.7326,
+        "Precise IF": 0.3438,
+        "Math": 0.6175,
+        "Safety": 0.8622,
+        "Focus": 0.8566,
+        "Ties": 0.5911
+      }
+    },
+    {
+      "model_id": "allenai/open_instruct_dev-rm_3e-6_2_skyworkstulu75__1__1743548926",
+      "name": "allenai/open_instruct_dev-rm_3e-6_2_skyworkstulu75__1__1743548926",
+      "developer": "allenai",
+      "scores": {
+        "Score": 0.5863,
+        "Factuality": 0.6674,
+        "Precise IF": 0.3937,
+        "Math": 0.6284,
+        "Safety": 0.8,
+        "Focus": 0.5515,
+        "Ties": 0.4768
+      }
+    },
+    {
+      "model_id": "allenai/open_instruct_dev-rm_3e-6_2_skyworkstulumix__1__1743205661",
+      "name": "allenai/open_instruct_dev-rm_3e-6_2_skyworkstulumix__1__1743205661",
+      "developer": "allenai",
+      "scores": {
+        "Score": 0.589,
+        "Factuality": 0.6842,
+        "Precise IF": 0.3688,
+        "Math": 0.6393,
+        "Safety": 0.7867,
+        "Focus": 0.6081,
+        "Ties": 0.447
+      }
+    },
+    {
+      "model_id": "allenai/open_instruct_dev-rm_llama70b_skyworkstulufull__4__1747266598",
+      "name": "allenai/open_instruct_dev-rm_llama70b_skyworkstulufull__4__1747266598",
+      "developer": "allenai",
+      "scores": {
+        "Score": 0.7306,
+        "Factuality": 0.7474,
+        "Precise IF": 0.375,
+        "Math": 0.694,
+        "Safety": 0.8622,
+        "Focus": 0.8061,
+        "Ties": 0.8992
+      }
+    },
+    {
+      "model_id": "allenai/open_instruct_dev-rm_llama70b_skyworkstulufull__8__1745387923",
+      "name": "allenai/open_instruct_dev-rm_llama70b_skyworkstulufull__8__1745387923",
+      "developer": "allenai",
+      "scores": {
+        "Score": 0.7573,
+        "Factuality": 0.8168,
+        "Precise IF": 0.4125,
+        "Math": 0.7049,
+        "Safety": 0.8733,
+        "Focus": 0.8545,
+        "Ties": 0.8814
+      }
+    },
+    {
+      "model_id": "allenai/open_instruct_dev-rm_llama_1e-6_1__1__1743896628",
+      "name": "allenai/open_instruct_dev-rm_llama_1e-6_1__1__1743896628",
+      "developer": "allenai",
+      "scores": {
+        "Score": 0.6637,
+        "Factuality": 0.6947,
+        "Precise IF": 0.4062,
+        "Math": 0.6284,
+        "Safety": 0.8422,
+        "Focus": 0.7273,
+        "Ties": 0.6834
+      }
+    },
+    {
+      "model_id": "allenai/open_instruct_dev-rm_llama_1e-6_1_skyworks__1__1744062999",
+      "name": "allenai/open_instruct_dev-rm_llama_1e-6_1_skyworks__1__1744062999",
+      "developer": "allenai",
+      "scores": {
+        "Score": 0.6665,
+        "Factuality": 0.5979,
+        "Precise IF": 0.3688,
+        "Math": 0.6339,
+        "Safety": 0.8956,
+        "Focus": 0.8606,
+        "Ties": 0.6422
+      }
+    },
+    {
+      "model_id": "allenai/open_instruct_dev-rm_llama_1e-6_1_skyworkstulufull__1__1743712777",
+      "name": "allenai/open_instruct_dev-rm_llama_1e-6_1_skyworkstulufull__1__1743712777",
+      "developer": "allenai",
+      "scores": {
+        "Score": 0.7038,
+        "Factuality": 0.6947,
+        "Precise IF": 0.3937,
+        "Math": 0.6557,
+        "Safety": 0.8867,
+        "Focus": 0.8586,
+        "Ties": 0.7331
+      }
+    },
+    {
+      "model_id": "allenai/open_instruct_dev-rm_llama_1e-6_2__1__1743896638",
+      "name": "allenai/open_instruct_dev-rm_llama_1e-6_2__1__1743896638",
+      "developer": "allenai",
+      "scores": {
+        "Score": 0.6754,
+        "Factuality": 0.6716,
+        "Precise IF": 0.4,
+        "Math": 0.6339,
+        "Safety": 0.8756,
+        "Focus": 0.7737,
+        "Ties": 0.6976
+      }
+    },
+    {
+      "model_id": "allenai/open_instruct_dev-rm_llama_1e-6_2_skyworkstulufull__1__1743800938",
+      "name": "allenai/open_instruct_dev-rm_llama_1e-6_2_skyworkstulufull__1__1743800938",
+      "developer": "allenai",
+      "scores": {
+        "Score": 0.7241,
+        "Factuality": 0.7305,
+        "Precise IF": 0.4,
+        "Math": 0.6667,
+        "Safety": 0.9422,
+        "Focus": 0.9414,
+        "Ties": 0.6635
+      }
+    },
+    {
+      "model_id": "allenai/open_instruct_dev-rm_llama_2e-5_1_skyworkstulufull__1__1743712885",
+      "name": "allenai/open_instruct_dev-rm_llama_2e-5_1_skyworkstulufull__1__1743712885",
+      "developer": "allenai",
+      "scores": {
+        "Score": 0.6716,
+        "Factuality": 0.6632,
+        "Precise IF": 0.3688,
+        "Math": 0.6284,
+        "Safety": 0.82,
+        "Focus": 0.8303,
+        "Ties": 0.719
+      }
+    },
+    {
+      "model_id": "allenai/open_instruct_dev-rm_llama_2e-5_2_skyworkstulufull__1__1743800773",
+      "name": "allenai/open_instruct_dev-rm_llama_2e-5_2_skyworkstulufull__1__1743800773",
+      "developer": "allenai",
+      "scores": {
+        "Score": 0.6207,
+        "Factuality": 0.6358,
+        "Precise IF": 0.375,
+        "Math": 0.5902,
+        "Safety": 0.8267,
+        "Focus": 0.802,
+        "Ties": 0.4948
+      }
+    },
+    {
+      "model_id": "allenai/open_instruct_dev-rm_llama_2e-6_1_skyworkstulufull__1__1743893867",
+      "name": "allenai/open_instruct_dev-rm_llama_2e-6_1_skyworkstulufull__1__1743893867",
+      "developer": "allenai",
+      "scores": {
+        "Score": 0.719,
+        "Factuality": 0.7263,
+        "Precise IF": 0.3875,
+        "Math": 0.6393,
+        "Safety": 0.8956,
+        "Focus": 0.9273,
+        "Ties": 0.738
+      }
+    },
+    {
+      "model_id": "allenai/open_instruct_dev-rm_llama_3e-6_1__1__1743929424",
+      "name": "allenai/open_instruct_dev-rm_llama_3e-6_1__1__1743929424",
+      "developer": "allenai",
+      "scores": {
+        "Score": 0.6572,
+        "Factuality": 0.7305,
+        "Precise IF": 0.3688,
+        "Math": 0.6284,
+        "Safety": 0.8289,
+        "Focus": 0.703,
+        "Ties": 0.6837
+      }
+    },
+    {
+      "model_id": "allenai/open_instruct_dev-rm_llama_3e-6_1__2__1744311395",
+      "name": "allenai/open_instruct_dev-rm_llama_3e-6_1__2__1744311395",
+      "developer": "allenai",
+      "scores": {
+        "Score": 0.6938,
+        "Factuality": 0.7537,
+        "Precise IF": 0.45,
+        "Math": 0.6393,
+        "Safety": 0.8667,
+        "Focus": 0.7616,
+        "Ties": 0.6913
+      }
+    },
+    {
+      "model_id": "allenai/open_instruct_dev-rm_llama_3e-6_1__3__1744311491",
+      "name": "allenai/open_instruct_dev-rm_llama_3e-6_1__3__1744311491",
+      "developer": "allenai",
+      "scores": {
+        "Score": 0.6754,
+        "Factuality": 0.7242,
+        "Precise IF": 0.4062,
+        "Math": 0.6284,
+        "Safety": 0.8422,
+        "Focus": 0.7535,
+        "Ties": 0.6976
+      }
+    },
+    {
+      "model_id": "allenai/open_instruct_dev-rm_llama_3e-6_1_skyworks__1__1744062787",
+      "name": "allenai/open_instruct_dev-rm_llama_3e-6_1_skyworks__1__1744062787",
+      "developer": "allenai",
+      "scores": {
+        "Score": 0.7045,
+        "Factuality": 0.6253,
+        "Precise IF": 0.3812,
+        "Math": 0.6667,
+        "Safety": 0.92,
+        "Focus": 0.9232,
+        "Ties": 0.7109
+      }
+    },
+    {
+      "model_id": "allenai/open_instruct_dev-rm_llama_3e-6_1_skyworkstulufull__2__1744311461",
+      "name": "allenai/open_instruct_dev-rm_llama_3e-6_1_skyworkstulufull__2__1744311461",
+      "developer": "allenai",
+      "scores": {
+        "Score": 0.7189,
+        "Factuality": 0.7305,
+        "Precise IF": 0.3937,
+        "Math": 0.6066,
+        "Safety": 0.8978,
+        "Focus": 0.9374,
+        "Ties": 0.7475
+      }
+    },
+    {
+      "model_id": "allenai/open_instruct_dev-rm_llama_3e-6_1_skyworkstulufull__3__1744311780",
+      "name": "allenai/open_instruct_dev-rm_llama_3e-6_1_skyworkstulufull__3__1744311780",
+      "developer": "allenai",
+      "scores": {
+        "Score": 0.7172,
+        "Factuality": 0.7242,
+        "Precise IF": 0.4313,
+        "Math": 0.6175,
+        "Safety": 0.8778,
+        "Focus": 0.897,
+        "Ties": 0.7555
+      }
+    },
+    {
+      "model_id": "allenai/open_instruct_dev-rm_llama_3e-6_2__1__1743896489",
+      "name": "allenai/open_instruct_dev-rm_llama_3e-6_2__1__1743896489",
+      "developer": "allenai",
+      "scores": {
+        "Score": 0.6813,
+        "Factuality": 0.7137,
+        "Precise IF": 0.4437,
+        "Math": 0.6284,
+        "Safety": 0.8644,
+        "Focus": 0.7596,
+        "Ties": 0.6781
+      }
+    },
+    {
+      "model_id": "allenai/open_instruct_dev-rm_llama_3e-6_2_skyworkstulufull__1__1743800713",
+      "name": "allenai/open_instruct_dev-rm_llama_3e-6_2_skyworkstulufull__1__1743800713",
+      "developer": "allenai",
+      "scores": {
+        "Score": 0.7209,
+        "Factuality": 0.7116,
+        "Precise IF": 0.3875,
+        "Math": 0.6612,
+        "Safety": 0.9067,
+        "Focus": 0.9172,
+        "Ties": 0.7414
+      }
+    },
+    {
+      "model_id": "allenai/open_instruct_dev-rm_llama_4e-6_1_skyworkstulufull__1__1743893911",
+      "name": "allenai/open_instruct_dev-rm_llama_4e-6_1_skyworkstulufull__1__1743893911",
+      "developer": "allenai",
+      "scores": {
+        "Score": 0.7266,
+        "Factuality": 0.7347,
+        "Precise IF": 0.4313,
+        "Math": 0.6339,
+        "Safety": 0.8933,
+        "Focus": 0.897,
+        "Ties": 0.7697
+      }
+    },
+    {
+      "model_id": "allenai/open_instruct_dev-rm_llamabase_1e-6_1_skyworkstulufull__1__1745386412",
+      "name": "allenai/open_instruct_dev-rm_llamabase_1e-6_1_skyworkstulufull__1__1745386412",
+      "developer": "allenai",
+      "scores": {
+        "Score": 0.5342,
+        "Factuality": 0.6042,
+        "Precise IF": 0.275,
+        "Math": 0.6284,
+        "Safety": 0.7222,
+        "Focus": 0.5818,
+        "Ties": 0.3935
+      }
+    },
+    {
+      "model_id": "allenai/open_instruct_dev-rm_llamabase_1e-6_2_skyworkstulufull__1__1745441922",
+      "name": "allenai/open_instruct_dev-rm_llamabase_1e-6_2_skyworkstulufull__1__1745441922",
+      "developer": "allenai",
+      "scores": {
+        "Score": 0.6111,
+        "Factuality": 0.6884,
+        "Precise IF": 0.3063,
+        "Math": 0.623,
+        "Safety": 0.8289,
+        "Focus": 0.7576,
+        "Ties": 0.4628
+      }
+    },
+    {
+      "model_id": "allenai/open_instruct_dev-rm_llamabase_2e-5_1_skyworkstulufull__1__1745386495",
+      "name": "allenai/open_instruct_dev-rm_llamabase_2e-5_1_skyworkstulufull__1__1745386495",
+      "developer": "allenai",
+      "scores": {
+        "Score": 0.5825,
+        "Factuality": 0.6379,
+        "Precise IF": 0.325,
+        "Math": 0.5355,
+        "Safety": 0.8222,
+        "Focus": 0.7051,
+        "Ties": 0.4691
+      }
+    },
+    {
+      "model_id": "allenai/open_instruct_dev-rm_llamabase_2e-5_2_skyworkstulufull__1__1745386507",
+      "name": "allenai/open_instruct_dev-rm_llamabase_2e-5_2_skyworkstulufull__1__1745386507",
+      "developer": "allenai",
+      "scores": {
+        "Score": 0.5598,
+        "Factuality": 0.5495,
+        "Precise IF": 0.3563,
+        "Math": 0.5902,
+        "Safety": 0.76,
+        "Focus": 0.7273,
+        "Ties": 0.3754
+      }
+    },
+    {
+      "model_id": "allenai/open_instruct_dev-rm_llamabase_3e-6_1_skyworkstulufull__1__1745386507",
+      "name": "allenai/open_instruct_dev-rm_llamabase_3e-6_1_skyworkstulufull__1__1745386507",
+      "developer": "allenai",
+      "scores": {
+        "Score": 0.6101,
+        "Factuality": 0.6632,
+        "Precise IF": 0.35,
+        "Math": 0.6175,
+        "Safety": 0.7778,
+        "Focus": 0.7111,
+        "Ties": 0.5408
+      }
+    },
+    {
+      "model_id": "allenai/open_instruct_dev-rm_qwen32b_1e-6_skyworkstulufull__8__1748235917",
+      "name": "allenai/open_instruct_dev-rm_qwen32b_1e-6_skyworkstulufull__8__1748235917",
+      "developer": "allenai",
+      "scores": {
+        "Score": 0.7185,
+        "Factuality": 0.7305,
+        "Precise IF": 0.4125,
+        "Math": 0.7158,
+        "Safety": 0.7933,
+        "Focus": 0.8545,
+        "Ties": 0.804
+      }
+    },
+    {
+      "model_id": "allenai/open_instruct_dev-rm_qwen32b_3e-6_skyworkstulufull__8__1748288961",
+      "name": "allenai/open_instruct_dev-rm_qwen32b_3e-6_skyworkstulufull__8__1748288961",
+      "developer": "allenai",
+      "scores": {
+        "Score": 0.7325,
+        "Factuality": 0.7474,
+        "Precise IF": 0.4437,
+        "Math": 0.7158,
+        "Safety": 0.7978,
+        "Focus": 0.8141,
+        "Ties": 0.8763
+      }
+    },
+    {
+      "model_id": "allenai/open_instruct_dev-rm_qwen_1e-6_1_skyworks__1__1744062830",
+      "name": "allenai/open_instruct_dev-rm_qwen_1e-6_1_skyworks__1__1744062830",
+      "developer": "allenai",
+      "scores": {
+        "Score": 0.6022,
+        "Factuality": 0.5284,
+        "Precise IF": 0.325,
+        "Math": 0.694,
+        "Safety": 0.7556,
+        "Focus": 0.7616,
+        "Ties": 0.5486
+      }
+    },
+    {
+      "model_id": "allenai/open_instruct_dev-rm_qwen_1e-6_1_skyworks__2__1744576024",
+      "name": "allenai/open_instruct_dev-rm_qwen_1e-6_1_skyworks__2__1744576024",
+      "developer": "allenai",
+      "scores": {
+        "Score": 0.5948,
+        "Factuality": 0.5579,
+        "Precise IF": 0.2875,
+        "Math": 0.6776,
+        "Safety": 0.72,
+        "Focus": 0.7394,
+        "Ties": 0.5863
+      }
+    },
+    {
+      "model_id": "allenai/open_instruct_dev-rm_qwen_1e-6_1_skyworkstulufull__1__1743712914",
+      "name": "allenai/open_instruct_dev-rm_qwen_1e-6_1_skyworkstulufull__1__1743712914",
+      "developer": "allenai",
+      "scores": {
+        "Score": 0.6492,
+        "Factuality": 0.6084,
+        "Precise IF": 0.35,
+        "Math": 0.6776,
+        "Safety": 0.76,
+        "Focus": 0.8,
+        "Ties": 0.699
+      }
+    },
+    {
+      "model_id": "allenai/open_instruct_dev-rm_qwen_2e-5_1_skyworkstulufull__1__1743713091",
+      "name": "allenai/open_instruct_dev-rm_qwen_2e-5_1_skyworkstulufull__1__1743713091",
+      "developer": "allenai",
+      "scores": {
+        "Score": 0.6764,
+        "Factuality": 0.7074,
+        "Precise IF": 0.3,
+        "Math": 0.6885,
+        "Safety": 0.8622,
+        "Focus": 0.802,
+        "Ties": 0.6984
+      }
+    },
+    {
+      "model_id": "allenai/open_instruct_dev-rm_qwen_3e-6_1_skyworks__1__1744062829",
+      "name": "allenai/open_instruct_dev-rm_qwen_3e-6_1_skyworks__1__1744062829",
+      "developer": "allenai",
+      "scores": {
+        "Score": 0.6408,
+        "Factuality": 0.6337,
+        "Precise IF": 0.3063,
+        "Math": 0.6831,
+        "Safety": 0.8467,
+        "Focus": 0.8222,
+        "Ties": 0.5529
+      }
+    },
+    {
+      "model_id": "allenai/open_instruct_dev-rm_qwen_3e-6_1_skyworks__2__1744576050",
+      "name": "allenai/open_instruct_dev-rm_qwen_3e-6_1_skyworks__2__1744576050",
+      "developer": "allenai",
+      "scores": {
+        "Score": 0.6452,
+        "Factuality": 0.6063,
+        "Precise IF": 0.3187,
+        "Math": 0.7158,
+        "Safety": 0.8356,
+        "Focus": 0.8343,
+        "Ties": 0.5603
+      }
+    },
+    {
+      "model_id": "allenai/open_instruct_dev-rm_qwen_3e-6_1_skyworkstulufull__1__1743712916",
+      "name": "allenai/open_instruct_dev-rm_qwen_3e-6_1_skyworkstulufull__1__1743712916",
+      "developer": "allenai",
+      "scores": {
+        "Score": 0.7013,
+        "Factuality": 0.7263,
+        "Precise IF": 0.3438,
+        "Math": 0.6995,
+        "Safety": 0.8222,
+        "Focus": 0.8444,
+        "Ties": 0.7714
+      }
+    },
+    {
+      "model_id": "allenai/open_instruct_dev-rm_qwen_3e-6_2__1__1743023576",
+      "name": "allenai/open_instruct_dev-rm_qwen_3e-6_2__1__1743023576",
+      "developer": "allenai",
+      "scores": {
+        "Score": 0.6369,
+        "Factuality": 0.6905,
+        "Precise IF": 0.3187,
+        "Math": 0.6448,
+        "Safety": 0.7844,
+        "Focus": 0.7596,
+        "Ties": 0.6236
+      }
+    },
+    {
+      "model_id": "allenai/open_instruct_dev-rm_qwen_3e-6_3__1__1743023619",
+      "name": "allenai/open_instruct_dev-rm_qwen_3e-6_3__1__1743023619",
+      "developer": "allenai",
+      "scores": {
+        "Score": 0.6221,
+        "Factuality": 0.6674,
+        "Precise IF": 0.325,
+        "Math": 0.612,
+        "Safety": 0.7978,
+        "Focus": 0.7455,
+        "Ties": 0.5852
+      }
+    },
+    {
+      "model_id": "allenai/open_instruct_dev-rm_qwenbase_1e-6_1_skyworkstulufull__1__1745388583",
+      "name": "allenai/open_instruct_dev-rm_qwenbase_1e-6_1_skyworkstulufull__1__1745388583",
+      "developer": "allenai",
+      "scores": {
+        "Score": 0.5735,
+        "Factuality": 0.5895,
+        "Precise IF": 0.2625,
+        "Math": 0.6448,
+        "Safety": 0.6889,
+        "Focus": 0.6727,
+        "Ties": 0.5823
+      }
+    },
+    {
+      "model_id": "allenai/open_instruct_dev-rm_qwenbase_1e-6_2_skyworkstulufull__1__1745388604",
+      "name": "allenai/open_instruct_dev-rm_qwenbase_1e-6_2_skyworkstulufull__1__1745388604",
+      "developer": "allenai",
+      "scores": {
+        "Score": 0.6336,
+        "Factuality": 0.6337,
+        "Precise IF": 0.3063,
+        "Math": 0.6885,
+        "Safety": 0.7244,
+        "Focus": 0.802,
+        "Ties": 0.6465
+      }
+    },
+    {
+      "model_id": "allenai/open_instruct_dev-rm_qwenbase_2e-5_1_skyworkstulufull__1__1745388738",
+      "name": "allenai/open_instruct_dev-rm_qwenbase_2e-5_1_skyworkstulufull__1__1745388738",
+      "developer": "allenai",
+      "scores": {
+        "Score": 0.6824,
+        "Factuality": 0.6989,
+        "Precise IF": 0.3625,
+        "Math": 0.6831,
+        "Safety": 0.8311,
+        "Focus": 0.8081,
+        "Ties": 0.7107
+      }
+    },
+    {
+      "model_id": "allenai/open_instruct_dev-rm_qwenbase_2e-5_2_skyworkstulufull__1__1745388191",
+      "name": "allenai/open_instruct_dev-rm_qwenbase_2e-5_2_skyworkstulufull__1__1745388191",
+      "developer": "allenai",
+      "scores": {
+        "Score": 0.6392,
+        "Factuality": 0.6589,
+        "Precise IF": 0.3312,
+        "Math": 0.6995,
+        "Safety": 0.7933,
+        "Focus": 0.7717,
+        "Ties": 0.5804
+      }
+    },
+    {
+      "model_id": "allenai/open_instruct_dev-rm_qwenbase_3e-6_1_skyworkstulufull__1__1745388737",
+      "name": "allenai/open_instruct_dev-rm_qwenbase_3e-6_1_skyworkstulufull__1__1745388737",
+      "developer": "allenai",
+      "scores": {
+        "Score": 0.664,
+        "Factuality": 0.6821,
+        "Precise IF": 0.3312,
+        "Math": 0.6448,
+        "Safety": 0.8133,
+        "Focus": 0.8061,
+        "Ties": 0.7066
+      }
+    },
+    {
+      "model_id": "allenai/open_instruct_dev-rm_qwenbase_3e-6_2_skyworkstulufull__1__1745388138",
+      "name": "allenai/open_instruct_dev-rm_qwenbase_3e-6_2_skyworkstulufull__1__1745388138",
+      "developer": "allenai",
+      "scores": {
+        "Score": 0.6678,
+        "Factuality": 0.6505,
+        "Precise IF": 0.3312,
+        "Math": 0.6831,
+        "Safety": 0.7978,
+        "Focus": 0.8808,
+        "Ties": 0.6632
+      }
+    },
+    {
+      "model_id": "allenai/open_instruct_dev-rm_tulu3_70b_1__8__1742924455",
+      "name": "allenai/open_instruct_dev-rm_tulu3_70b_1__8__1742924455",
+      "developer": "allenai",
+      "scores": {
+        "Score": 0.6618,
+        "Factuality": 0.7958,
+        "Precise IF": 0.325,
+        "Math": 0.6557,
+        "Safety": 0.8311,
+        "Focus": 0.6323,
+        "Ties": 0.7311
+      }
+    },
+    {
+      "model_id": "allenai/open_instruct_dev-rm_tulu3_70b_2__8__1742982964",
+      "name": "allenai/open_instruct_dev-rm_tulu3_70b_2__8__1742982964",
+      "developer": "allenai",
+      "scores": {
+        "Score": 0.6605,
+        "Factuality": 0.7789,
+        "Precise IF": 0.3688,
+        "Math": 0.6448,
+        "Safety": 0.8844,
+        "Focus": 0.6667,
+        "Ties": 0.6195
+      }
+    },
+    {
+      "model_id": "allenai/tulu-2-dpo-13b",
+      "name": "allenai/tulu-2-dpo-13b",
+      "developer": "allenai",
+      "scores": {
+        "Score": 0.7368,
+        "Chat": 0.9581,
+        "Chat Hard": 0.5833,
+        "Safety": 0.7946,
+        "Reasoning": 0.7323,
+        "Prior Sets (0.5 weight)": 0.4947
+      }
+    },
+    {
+      "model_id": "allenai/tulu-2-dpo-70b",
+      "name": "allenai/tulu-2-dpo-70b",
+      "developer": "allenai",
+      "scores": {
+        "Score": 0.7621,
+        "Chat": 0.9749,
+        "Chat Hard": 0.6053,
+        "Safety": 0.8446,
+        "Reasoning": 0.7407,
+        "Prior Sets (0.5 weight)": 0.5278
+      }
+    },
+    {
+      "model_id": "allenai/tulu-2-dpo-7b",
+      "name": "allenai/tulu-2-dpo-7b",
+      "developer": "allenai",
+      "scores": {
+        "Score": 0.7212,
+        "Chat": 0.9749,
+        "Chat Hard": 0.5614,
+        "Safety": 0.7527,
+        "Reasoning": 0.7176,
+        "Prior Sets (0.5 weight)": 0.4774
+      }
+    },
+    {
+      "model_id": "allenai/tulu-v2.5-13b-preference-mix-rm",
+      "name": "allenai/tulu-v2.5-13b-preference-mix-rm",
+      "developer": "allenai",
+      "scores": {
+        "Score": 0.8027,
+        "Chat": 0.9358,
+        "Chat Hard": 0.682,
+        "Safety": 0.773,
+        "Reasoning": 0.885,
+        "Prior Sets (0.5 weight)": 0.6724
+      }
+    },
+    {
+      "model_id": "allenai/tulu-v2.5-13b-uf-rm",
+      "name": "allenai/tulu-v2.5-13b-uf-rm",
+      "developer": "allenai",
+      "scores": {
+        "Score": 0.4806,
+        "Chat": 0.3939,
+        "Chat Hard": 0.4232,
+        "Safety": 0.5554,
+        "Reasoning": 0.4737,
+        "Prior Sets (0.5 weight)": 0.6326
+      }
+    },
+    {
+      "model_id": "allenai/tulu-v2.5-70b-preference-mix-rm",
+      "name": "allenai/tulu-v2.5-70b-preference-mix-rm",
+      "developer": "allenai",
+      "scores": {
+        "Score": 0.6516,
+        "Chat": 0.7737,
+        "Chat Hard": 0.5921,
+        "Safety": 0.8486,
+        "Reasoning": 0.4138,
+        "Prior Sets (0.5 weight)": 0.6079
+      }
+    },
+    {
+      "model_id": "allenai/tulu-v2.5-70b-uf-rm",
+      "name": "allenai/tulu-v2.5-70b-uf-rm",
+      "developer": "allenai",
+      "scores": {
+        "Score": 0.7398,
+        "Chat": 0.8659,
+        "Chat Hard": 0.7171,
+        "Safety": 0.7014,
+        "Reasoning": 0.757,
+        "Prior Sets (0.5 weight)": 0.5757
+      }
+    },
+    {
+      "model_id": "anthropic/claude-3-5-sonnet-20240620",
+      "name": "Claude 3.5 Sonnet 20240620",
+      "developer": "anthropic",
+      "scores": {
+        "Score": 0.6466,
+        "Factuality": 0.5284,
+        "Precise IF": 0.3875,
+        "Math": 0.5683,
+        "Safety": 0.8519,
+        "Focus": 0.8697,
+        "Ties": 0.674
+      }
+    },
+    {
+      "model_id": "anthropic/claude-3-7-sonnet-20250219",
+      "name": "claude-3-7-sonnet-20250219",
+      "developer": "anthropic",
+      "scores": {
+        "Score": 0.7539,
+        "Factuality": 0.7326,
+        "Precise IF": 0.5437,
+        "Math": 0.75,
+        "Safety": 0.9033,
+        "Focus": 0.9212,
+        "Ties": 0.6723
+      }
+    },
+    {
+      "model_id": "anthropic/claude-3-haiku-20240307",
+      "name": "Claude 3 Haiku 20240307",
+      "developer": "anthropic",
+      "scores": {
+        "Score": 0.3711,
+        "Factuality": 0.4042,
+        "Precise IF": 0.2812,
+        "Math": 0.3552,
+        "Safety": 0.595,
+        "Focus": 0.501,
+        "Ties": 0.0899
+      }
+    },
+    {
+      "model_id": "anthropic/claude-3-opus-20240229",
+      "name": "Claude 3 Opus 20240229",
+      "developer": "anthropic",
+      "scores": {
+        "Score": 0.5744,
+        "Factuality": 0.5389,
+        "Precise IF": 0.3312,
+        "Math": 0.5137,
+        "Safety": 0.8378,
+        "Focus": 0.6646,
+        "Ties": 0.5601
+      }
+    },
+    {
+      "model_id": "anthropic/claude-opus-4-20250514",
+      "name": "Claude 4 Opus 20250514",
+      "developer": "anthropic",
+      "scores": {
+        "Score": 0.7648,
+        "Factuality": 0.8267,
+        "Precise IF": 0.4188,
+        "Math": 0.7491,
+        "Safety": 0.8954,
+        "Focus": 0.8616,
+        "Ties": 0.8375
+      }
+    },
+    {
+      "model_id": "anthropic/claude-sonnet-4-20250514",
+      "name": "claude-sonnet-4-20250514",
+      "developer": "anthropic",
+      "scores": {
+        "Score": 0.7117,
+        "Factuality": 0.7612,
+        "Precise IF": 0.3594,
+        "Math": 0.7049,
+        "Safety": 0.8909,
+        "Focus": 0.7596,
+        "Ties": 0.7939
+      }
+    },
+    {
+      "model_id": "berkeley-nest/Starling-RM-7B-alpha",
+      "name": "berkeley-nest/Starling-RM-7B-alpha",
+      "developer": "berkeley-nest",
+      "scores": {
+        "Score": 0.7113,
+        "Chat": 0.9804,
+        "Chat Hard": 0.4561,
+        "Safety": 0.8446,
+        "Reasoning": 0.58,
+        "Prior Sets (0.5 weight)": 0.6794
+      }
+    },
+    {
+      "model_id": "facebook/Self-taught-Llama-3-70B",
+      "name": "facebook/Self-taught-Llama-3-70B",
+      "developer": "facebook",
+      "scores": {
+        "Score": 0.8863,
+        "Chat": 0.9693,
+        "Chat Hard": 0.8399,
+        "Safety": 0.9108,
+        "Reasoning": 0.8251
+      }
+    },
+    {
+      "model_id": "facebook/Self-taught-evaluator-llama3.1-70B",
+      "name": "facebook/Self-taught-evaluator-llama3.1-70B",
+      "developer": "facebook",
+      "scores": {
+        "Score": 0.9001,
+        "Chat": 0.9693,
+        "Chat Hard": 0.8509,
+        "Safety": 0.8959,
+        "Reasoning": 0.8844
+      }
+    },
+    {
+      "model_id": "gemini-1.5-flash-8b",
+      "name": "gemini-1.5-flash-8b",
+      "developer": "unknown",
+      "scores": {
+        "Score": 0.7601,
+        "Chat": 0.9441,
+        "Chat Hard": 0.5987,
+        "Safety": 0.7399,
+        "Reasoning": 0.7575
+      }
+    },
+    {
+      "model_id": "general-preference/GPM-Gemma-2B",
+      "name": "general-preference/GPM-Gemma-2B",
+      "developer": "general-preference",
+      "scores": {
+        "Score": 0.7449,
+        "Chat": 0.7151,
+        "Chat Hard": 0.6974,
+        "Safety": 0.8122,
+        "Reasoning": 0.755
+      }
+    },
+    {
+      "model_id": "general-preference/GPM-Llama-3.1-8B",
+      "name": "general-preference/GPM-Llama-3.1-8B",
+      "developer": "general-preference",
+      "scores": {
+        "Score": 0.9224,
+        "Chat": 0.933,
+        "Chat Hard": 0.886,
+        "Safety": 0.9108,
+        "Reasoning": 0.9597
+      }
+    },
+    {
+      "model_id": "google/flame-1.0-24B-july-2024",
+      "name": "google/flame-1.0-24B-july-2024",
+      "developer": "google",
+      "scores": {
+        "Score": 0.8781,
+        "Chat": 0.9218,
+        "Chat Hard": 0.7566,
+        "Safety": 0.8959,
+        "Reasoning": 0.938
+      }
+    },
+    {
+      "model_id": "google/gemini-1.5-flash-001",
+      "name": "Gemini 1.5 Flash 001",
+      "developer": "google",
+      "scores": {
+        "Score": 0.8054,
+        "Chat": 0.9218,
+        "Chat Hard": 0.6349,
+        "Safety": 0.8696,
+        "Reasoning": 0.8512,
+        "Prior Sets (0.5 weight)": 0.6937
+      }
+    },
+    {
+      "model_id": "google/gemini-1.5-flash-8b",
+      "name": "google/gemini-1.5-flash-8b",
+      "developer": "google",
+      "scores": {
+        "Score": 0.4851,
+        "Factuality": 0.4611,
+        "Precise IF": 0.3625,
+        "Math": 0.5082,
+        "Safety": 0.6622,
+        "Focus": 0.6747,
+        "Ties": 0.2421
+      }
+    },
+    {
+      "model_id": "google/gemini-1.5-pro-0514",
+      "name": "google/gemini-1.5-pro-0514",
+      "developer": "google",
+      "scores": {
+        "Score": 0.882,
+        "Chat": 0.9232,
+        "Chat Hard": 0.8059,
+        "Safety": 0.8791,
+        "Reasoning": 0.9199
+      }
+    },
+    {
+      "model_id": "google/gemini-1.5-pro-0924",
+      "name": "google/gemini-1.5-pro-0924",
+      "developer": "google",
+      "scores": {
+        "Score": 0.8678,
+        "Chat": 0.9413,
+        "Chat Hard": 0.7697,
+        "Safety": 0.8581,
+        "Reasoning": 0.9022
+      }
+    },
+    {
+      "model_id": "google/gemini-2.5-flash",
+      "name": "gemini-2.5-flash",
+      "developer": "google",
+      "scores": {
+        "Score": 0.7767,
+        "Factuality": 0.674,
+        "Precise IF": 0.575,
+        "Math": 0.852,
+        "Safety": 0.909,
+        "Focus": 0.841,
+        "Ties": 0.809
+      }
+    },
+    {
+      "model_id": "google/gemini-2.5-flash-preview-04-17",
+      "name": "Gemini 2.5 Flash 04-17 preview",
+      "developer": "google",
+      "scores": {
+        "Score": 0.7721,
+        "Factuality": 0.6574,
+        "Precise IF": 0.5531,
+        "Math": 0.8115,
+        "Safety": 0.9094,
+        "Focus": 0.8672,
+        "Ties": 0.8341
+      }
+    },
+    {
+      "model_id": "google/gemini-2.5-pro",
+      "name": "gemini-2.5-pro",
+      "developer": "google",
+      "scores": {
+        "Score": 0.7948,
+        "Factuality": 0.755,
+        "Precise IF": 0.619,
+        "Math": 0.898,
+        "Safety": 0.881,
+        "Focus": 0.805,
+        "Ties": 0.811
+      }
+    },
+    {
+      "model_id": "google/gemini-2.5-pro-preview-05-06",
+      "name": "google/gemini-2.5-pro-preview-05-06",
+      "developer": "google",
+      "scores": {
+        "Score": 0.6775,
+        "Factuality": 0.6532,
+        "Precise IF": 0.4688,
+        "Math": 0.5342,
+        "Safety": 0.8806,
+        "Focus": 0.8308,
+        "Ties": 0.6973
+      }
+    },
+    {
+      "model_id": "google/gemma-2-27b-it",
+      "name": "Gemma 2 Instruct 27B",
+      "developer": "google",
+      "scores": {
+        "Score": 0.809,
+        "Chat": 0.9483,
+        "Chat Hard": 0.591,
+        "Safety": 0.8635,
+        "Reasoning": 0.833
+      }
+    },
+    {
+      "model_id": "hendrydong/Mistral-RM-for-RAFT-GSHF-v0",
+      "name": "hendrydong/Mistral-RM-for-RAFT-GSHF-v0",
+      "developer": "hendrydong",
+      "scores": {
+        "Score": 0.7847,
+        "Chat": 0.9832,
+        "Chat Hard": 0.5789,
+        "Safety": 0.85,
+        "Reasoning": 0.7434,
+        "Prior Sets (0.5 weight)": 0.7508
+      }
+    },
+    {
+      "model_id": "infly/INF-ORM-Llama3.1-70B",
+      "name": "infly/INF-ORM-Llama3.1-70B",
+      "developer": "infly",
+      "scores": {
+        "Score": 0.9511,
+        "Chat": 0.9665,
+        "Chat Hard": 0.9101,
+        "Safety": 0.9365,
+        "Reasoning": 0.9912
+      }
+    },
+    {
+      "model_id": "internlm/internlm2-1_8b-reward",
+      "name": "internlm/internlm2-1_8b-reward",
+      "developer": "internlm",
+      "scores": {
+        "Score": 0.8217,
+        "Chat": 0.9358,
+        "Chat Hard": 0.6623,
+        "Safety": 0.8162,
+        "Reasoning": 0.8724
+      }
+    },
+    {
+      "model_id": "internlm/internlm2-20b-reward",
+      "name": "internlm/internlm2-20b-reward",
+      "developer": "internlm",
+      "scores": {
+        "Score": 0.9016,
+        "Chat": 0.9888,
+        "Chat Hard": 0.7654,
+        "Safety": 0.8946,
+        "Reasoning": 0.9576
+      }
+    },
+    {
+      "model_id": "internlm/internlm2-7b-reward",
+      "name": "internlm/internlm2-7b-reward",
+      "developer": "internlm",
+      "scores": {
+        "Score": 0.5335,
+        "Factuality": 0.4211,
+        "Precise IF": 0.4,
+        "Math": 0.5628,
+        "Safety": 0.5956,
+        "Focus": 0.7051,
+        "Ties": 0.5164
+      }
+    },
+    {
+      "model_id": "jondurbin/bagel-dpo-34b-v0.5",
+      "name": "jondurbin/bagel-dpo-34b-v0.5",
+      "developer": "jondurbin",
+      "scores": {
+        "Score": 0.7215,
+        "Chat": 0.9385,
+        "Chat Hard": 0.5504,
+        "Safety": 0.6446,
+        "Reasoning": 0.8889,
+        "Prior Sets (0.5 weight)": 0.4487
+      }
+    },
+    {
+      "model_id": "llm-blender/PairRM-hf",
+      "name": "llm-blender/PairRM-hf",
+      "developer": "llm-blender",
+      "scores": {
+        "Score": 0.6087,
+        "Chat": 0.9022,
+        "Chat Hard": 0.5219,
+        "Safety": 0.477,
+        "Reasoning": 0.4898,
+        "Prior Sets (0.5 weight)": 0.6961
+      }
+    },
+    {
+      "model_id": "mattshumer/Reflection-70B",
+      "name": "mattshumer/Reflection-70B",
+      "developer": "mattshumer",
+      "scores": {
+        "Score": 0.8422,
+        "Chat": 0.9749,
+        "Chat Hard": 0.7061,
+        "Safety": 0.8318,
+        "Reasoning": 0.8562
+      }
+    },
+    {
+      "model_id": "meta-llama/Meta-Llama-3-70B-Instruct",
+      "name": "Meta-Llama-3-70B-Instruct",
+      "developer": "meta-llama",
+      "scores": {
+        "Score": 0.7627,
+        "Chat": 0.9763,
+        "Chat Hard": 0.5888,
+        "Safety": 0.7297,
+        "Reasoning": 0.7854,
+        "Prior Sets (0.5 weight)": 0.7035
+      }
+    },
+    {
+      "model_id": "meta-llama/Meta-Llama-3-8B-Instruct",
+      "name": "Meta-Llama-3-8B-Instruct",
+      "developer": "meta-llama",
+      "scores": {
+        "Score": 0.645,
+        "Chat": 0.8547,
+        "Chat Hard": 0.4156,
+        "Safety": 0.6797,
+        "Reasoning": 0.6482,
+        "Prior Sets (0.5 weight)": 0.6082
+      }
+    },
+    {
+      "model_id": "meta-llama/Meta-Llama-3.1-405B-Instruct-Turbo",
+      "name": "meta-llama/Meta-Llama-3.1-405B-Instruct-Turbo",
+      "developer": "meta-llama",
+      "scores": {
+        "Score": 0.8412,
+        "Chat": 0.9721,
+        "Chat Hard": 0.7456,
+        "Safety": 0.7757,
+        "Reasoning": 0.8715
+      }
+    },
+    {
+      "model_id": "meta-llama/Meta-Llama-3.1-70B-Instruct",
+      "name": "meta-llama/Meta-Llama-3.1-70B-Instruct",
+      "developer": "meta-llama",
+      "scores": {
+        "Score": 0.8405,
+        "Chat": 0.9721,
+        "Chat Hard": 0.7018,
+        "Safety": 0.8284,
+        "Reasoning": 0.8599
+      }
+    },
+    {
+      "model_id": "meta-llama/Meta-Llama-3.1-70B-Instruct-Turbo",
+      "name": "meta-llama/Meta-Llama-3.1-70B-Instruct-Turbo",
+      "developer": "meta-llama",
+      "scores": {
+        "Score": 0.7808,
+        "Chat": 0.8757,
+        "Chat Hard": 0.6689,
+        "Safety": 0.7507,
+        "Reasoning": 0.828
+      }
+    },
+    {
+      "model_id": "meta-llama/Meta-Llama-3.1-8B-Instruct-Turbo",
+      "name": "meta-llama/Meta-Llama-3.1-8B-Instruct-Turbo",
+      "developer": "meta-llama",
+      "scores": {
+        "Score": 0.6565,
+        "Chat": 0.8073,
+        "Chat Hard": 0.4978,
+        "Safety": 0.6399,
+        "Reasoning": 0.6811
+      }
+    },
+    {
+      "model_id": "meta-metrics/MetaMetrics-RM-v1.0",
+      "name": "meta-metrics/MetaMetrics-RM-v1.0",
+      "developer": "meta-metrics",
+      "scores": {
+        "Score": 0.9342,
+        "Chat": 0.9832,
+        "Chat Hard": 0.864,
+        "Safety": 0.9081,
+        "Reasoning": 0.9816
+      }
+    },
+    {
+      "model_id": "mightbe/Better-PairRM",
+      "name": "mightbe/Better-PairRM",
+      "developer": "mightbe",
+      "scores": {
+        "Score": 0.673,
+        "Chat": 0.9553,
+        "Chat Hard": 0.3925,
+        "Safety": 0.8203,
+        "Reasoning": 0.4983,
+        "Prior Sets (0.5 weight)": 0.724
+      }
+    },
+    {
+      "model_id": "mistralai/Mixtral-8x7B-Instruct-v0.1",
+      "name": "Mixtral-8x7B-Instruct-v0.1",
+      "developer": "mistralai",
+      "scores": {
+        "Score": 0.7455,
+        "Chat": 0.9497,
+        "Chat Hard": 0.6404,
+        "Safety": 0.7257,
+        "Reasoning": 0.7872,
+        "Prior Sets (0.5 weight)": 0.5033
+      }
+    },
+    {
+      "model_id": "my_model/",
+      "name": "my_model/",
+      "developer": "my_model",
+      "scores": {
+        "Score": 0.5267,
+        "Chat": 0.4553,
+        "Chat Hard": 0.5592,
+        "Safety": 0.4392,
+        "Reasoning": 0.6532
+      }
+    },
+    {
+      "model_id": "nicolinho/QRM-Gemma-2-27B",
+      "name": "nicolinho/QRM-Gemma-2-27B",
+      "developer": "nicolinho",
+      "scores": {
+        "Score": 0.9444,
+        "Chat": 0.9665,
+        "Chat Hard": 0.9013,
+        "Safety": 0.927,
+        "Reasoning": 0.9826
+      }
+    },
+    {
+      "model_id": "nicolinho/QRM-Llama3-8B",
+      "name": "nicolinho/QRM-Llama3-8B",
+      "developer": "nicolinho",
+      "scores": {
+        "Score": 0.911,
+        "Chat": 0.9581,
+        "Chat Hard": 0.8114,
+        "Safety": 0.8986,
+        "Reasoning": 0.9758
+      }
+    },
+    {
+      "model_id": "nicolinho/QRM-Llama3.1-8B",
+      "name": "nicolinho/QRM-Llama3.1-8B",
+      "developer": "nicolinho",
+      "scores": {
+        "Score": 0.9306,
+        "Chat": 0.9441,
+        "Chat Hard": 0.8969,
+        "Safety": 0.923,
+        "Reasoning": 0.9583
+      }
+    },
+    {
+      "model_id": "nicolinho/QRM-Llama3.1-8B-v2",
+      "name": "nicolinho/QRM-Llama3.1-8B-v2",
+      "developer": "nicolinho",
+      "scores": {
+        "Score": 0.7074,
+        "Factuality": 0.6653,
+        "Precise IF": 0.4062,
+        "Math": 0.612,
+        "Safety": 0.9467,
+        "Focus": 0.8909,
+        "Ties": 0.7234
+      }
+    },
+    {
+      "model_id": "nvidia/Llama-3.1-Nemotron-70B-Reward",
+      "name": "nvidia/Llama-3.1-Nemotron-70B-Reward",
+      "developer": "nvidia",
+      "scores": {
+        "Score": 0.9411,
+        "Chat": 0.9749,
+        "Chat Hard": 0.8575,
+        "Safety": 0.9514,
+        "Reasoning": 0.9807
+      }
+    },
+    {
+      "model_id": "nvidia/Llama3-70B-SteerLM-RM",
+      "name": "nvidia/Llama3-70B-SteerLM-RM",
+      "developer": "nvidia",
+      "scores": {
+        "Score": 0.8877,
+        "Chat": 0.9134,
+        "Chat Hard": 0.8026,
+        "Safety": 0.9284,
+        "Reasoning": 0.9064
+      }
+    },
+    {
+      "model_id": "nvidia/Nemotron-4-340B-Reward",
+      "name": "nvidia/Nemotron-4-340B-Reward",
+      "developer": "nvidia",
+      "scores": {
+        "Score": 0.92,
+        "Chat": 0.9581,
+        "Chat Hard": 0.8706,
+        "Safety": 0.9149,
+        "Reasoning": 0.9363
+      }
+    },
+    {
+      "model_id": "openai/gpt-3.5-turbo-0125",
+      "name": "GPT-3.5 Turbo 0125",
+      "developer": "openai",
+      "scores": {
+        "Score": 0.6534,
+        "Chat": 0.9218,
+        "Chat Hard": 0.4452,
+        "Safety": 0.6547,
+        "Reasoning": 0.5912,
+        "Prior Sets (0.5 weight)": 0.6548
+      }
+    },
+    {
+      "model_id": "openai/gpt-4-0125-preview",
+      "name": "openai/gpt-4-0125-preview",
+      "developer": "openai",
+      "scores": {
+        "Score": 0.8434,
+        "Chat": 0.9525,
+        "Chat Hard": 0.7434,
+        "Safety": 0.8757,
+        "Reasoning": 0.8692,
+        "Prior Sets (0.5 weight)": 0.7085
+      }
+    },
+    {
+      "model_id": "openai/gpt-4-turbo-2024-04-09",
+      "name": "GPT-4 Turbo 2024-04-09",
+      "developer": "openai",
+      "scores": {
+        "Score": 0.8395,
+        "Chat": 0.9525,
+        "Chat Hard": 0.7544,
+        "Safety": 0.8757,
+        "Reasoning": 0.827,
+        "Prior Sets (0.5 weight)": 0.7363
+      }
+    },
+    {
+      "model_id": "openai/gpt-4.1-2025-04-14",
+      "name": "gpt-4.1-2025-04-14",
+      "developer": "openai",
+      "scores": {
+        "Score": 0.7232,
+        "Factuality": 0.8289,
+        "Precise IF": 0.3974,
+        "Math": 0.6521,
+        "Safety": 0.8726,
+        "Focus": 0.7338,
+        "Ties": 0.8542
+      }
+    },
+    {
+      "model_id": "openai/gpt-4.1-mini-2025-04-14",
+      "name": "GPT-4.1 mini 2025-04-14",
+      "developer": "openai",
+      "scores": {
+        "Score": 0.6573,
+        "Factuality": 0.6084,
+        "Precise IF": 0.4125,
+        "Math": 0.7213,
+        "Safety": 0.7265,
+        "Focus": 0.7354,
+        "Ties": 0.74
+      }
+    },
+    {
+      "model_id": "openai/gpt-4.1-nano-2025-04-14",
+      "name": "GPT-4.1 nano 2025-04-14",
+      "developer": "openai",
+      "scores": {
+        "Score": 0.4849,
+        "Factuality": 0.4646,
+        "Precise IF": 0.2578,
+        "Math": 0.5041,
+        "Safety": 0.7156,
+        "Focus": 0.466,
+        "Ties": 0.5015
+      }
+    },
+    {
+      "model_id": "openai/gpt-4o-2024-05-13",
+      "name": "GPT-4o 2024-05-13",
+      "developer": "openai",
+      "scores": {
+        "Score": 0.8327,
+        "Chat": 0.9665,
+        "Chat Hard": 0.7039,
+        "Safety": 0.8649,
+        "Reasoning": 0.8487,
+        "Prior Sets (0.5 weight)": 0.7262
+      }
+    },
+    {
+      "model_id": "openai/gpt-4o-2024-08-06",
+      "name": "GPT-4o 2024-08-06",
+      "developer": "openai",
+      "scores": {
+        "Score": 0.8673,
+        "Chat": 0.9609,
+        "Chat Hard": 0.761,
+        "Safety": 0.8811,
+        "Reasoning": 0.8661
+      }
+    },
+    {
+      "model_id": "openai/gpt-4o-mini-2024-07-18",
+      "name": "GPT-4o mini 2024-07-18",
+      "developer": "openai",
+      "scores": {
+        "Score": 0.5796,
+        "Factuality": 0.4105,
+        "Precise IF": 0.3438,
+        "Math": 0.5191,
+        "Safety": 0.7667,
+        "Focus": 0.7414,
+        "Ties": 0.6962
+      }
+    },
+    {
+      "model_id": "openbmb/Eurus-7b-kto",
+      "name": "openbmb/Eurus-7b-kto",
+      "developer": "openbmb",
+      "scores": {
+        "Score": 0.69,
+        "Chat": 0.9525,
+        "Chat Hard": 0.5373,
+        "Safety": 0.6054,
+        "Reasoning": 0.7467,
+        "Prior Sets (0.5 weight)": 0.5261
+      }
+    },
+    {
+      "model_id": "openbmb/Eurus-RM-7b",
+      "name": "openbmb/Eurus-RM-7b",
+      "developer": "openbmb",
+      "scores": {
+        "Score": 0.8159,
+        "Chat": 0.9804,
+        "Chat Hard": 0.6557,
+        "Safety": 0.8135,
+        "Reasoning": 0.8633,
+        "Prior Sets (0.5 weight)": 0.7172
+      }
+    },
+    {
+      "model_id": "openbmb/MiniCPM-2B-dpo-fp32",
+      "name": "openbmb/MiniCPM-2B-dpo-fp32",
+      "developer": "openbmb",
+      "scores": {
+        "Score": 0.673,
+        "Chat": 0.8911,
+        "Chat Hard": 0.4934,
+        "Safety": 0.573,
+        "Reasoning": 0.8233,
+        "Prior Sets (0.5 weight)": 0.4958
+      }
+    },
+    {
+      "model_id": "openbmb/UltraRM-13b",
+      "name": "openbmb/UltraRM-13b",
+      "developer": "openbmb",
+      "scores": {
+        "Score": 0.6903,
+        "Chat": 0.9637,
+        "Chat Hard": 0.5548,
+        "Safety": 0.5986,
+        "Reasoning": 0.6244,
+        "Prior Sets (0.5 weight)": 0.7294
+      }
+    },
+    {
+      "model_id": "opencompass/CompassJudger-1-1.5B-Instruct",
+      "name": "opencompass/CompassJudger-1-1.5B-Instruct",
+      "developer": "opencompass",
+      "scores": {
+        "Score": 0.7344,
+        "Chat": 0.9637,
+        "Chat Hard": 0.4923,
+        "Safety": 0.7818,
+        "Reasoning": 0.6999
+      }
+    },
+    {
+      "model_id": "opencompass/CompassJudger-1-14B-Instruct",
+      "name": "opencompass/CompassJudger-1-14B-Instruct",
+      "developer": "opencompass",
+      "scores": {
+        "Score": 0.8409,
+        "Chat": 0.9749,
+        "Chat Hard": 0.6228,
+        "Safety": 0.8392,
+        "Reasoning": 0.9268
+      }
+    },
+    {
+      "model_id": "opencompass/CompassJudger-1-32B-Instruct",
+      "name": "opencompass/CompassJudger-1-32B-Instruct",
+      "developer": "opencompass",
+      "scores": {
+        "Score": 0.8522,
+        "Chat": 0.9804,
+        "Chat Hard": 0.6513,
+        "Safety": 0.8527,
+        "Reasoning": 0.9244
+      }
+    },
+    {
+      "model_id": "opencompass/CompassJudger-1-7B-Instruct",
+      "name": "opencompass/CompassJudger-1-7B-Instruct",
+      "developer": "opencompass",
+      "scores": {
+        "Score": 0.8317,
+        "Chat": 0.9777,
+        "Chat Hard": 0.6096,
+        "Safety": 0.8446,
+        "Reasoning": 0.8948
+      }
+    },
+    {
+      "model_id": "prometheus-eval/prometheus-7b-v2.0",
+      "name": "prometheus-eval/prometheus-7b-v2.0",
+      "developer": "prometheus-eval",
+      "scores": {
+        "Score": 0.7204,
+        "Chat": 0.8547,
+        "Chat Hard": 0.4912,
+        "Safety": 0.7709,
+        "Reasoning": 0.7648
+      }
+    },
+    {
+      "model_id": "prometheus-eval/prometheus-8x7b-v2.0",
+      "name": "prometheus-eval/prometheus-8x7b-v2.0",
+      "developer": "prometheus-eval",
+      "scores": {
+        "Score": 0.7451,
+        "Chat": 0.9302,
+        "Chat Hard": 0.4715,
+        "Safety": 0.8047,
+        "Reasoning": 0.774
+      }
+    },
+    {
+      "model_id": "sfairXC/FsfairX-LLaMA3-RM-v0.1",
+      "name": "sfairXC/FsfairX-LLaMA3-RM-v0.1",
+      "developer": "sfairXC",
+      "scores": {
+        "Score": 0.8338,
+        "Chat": 0.9944,
+        "Chat Hard": 0.6513,
+        "Safety": 0.8676,
+        "Reasoning": 0.8644,
+        "Prior Sets (0.5 weight)": 0.7492
+      }
+    },
+    {
+      "model_id": "stabilityai/stable-code-instruct-3b",
+      "name": "stabilityai/stable-code-instruct-3b",
+      "developer": "stabilityai",
+      "scores": {
+        "Score": 0.6216,
+        "Chat": 0.5782,
+        "Chat Hard": 0.5855,
+        "Safety": 0.6554,
+        "Reasoning": 0.7528,
+        "Prior Sets (0.5 weight)": 0.4506
+      }
+    },
+    {
+      "model_id": "stabilityai/stablelm-2-12b-chat",
+      "name": "stablelm-2-12b-chat",
+      "developer": "stabilityai",
+      "scores": {
+        "Score": 0.7642,
+        "Chat": 0.9665,
+        "Chat Hard": 0.5548,
+        "Safety": 0.7811,
+        "Reasoning": 0.8945,
+        "Prior Sets (0.5 weight)": 0.4839
+      }
+    },
+    {
+      "model_id": "stabilityai/stablelm-2-zephyr-1_6b",
+      "name": "stablelm-2-zephyr-1_6b",
+      "developer": "stabilityai",
+      "scores": {
+        "Score": 0.6574,
+        "Chat": 0.9665,
+        "Chat Hard": 0.4671,
+        "Safety": 0.6027,
+        "Reasoning": 0.6784,
+        "Prior Sets (0.5 weight)": 0.4868
+      }
+    },
+    {
+      "model_id": "stabilityai/stablelm-zephyr-3b",
+      "name": "stablelm-zephyr-3b",
+      "developer": "stabilityai",
+      "scores": {
+        "Score": 0.7146,
+        "Chat": 0.8631,
+        "Chat Hard": 0.6009,
+        "Safety": 0.7405,
+        "Reasoning": 0.7573,
+        "Prior Sets (0.5 weight)": 0.5075
+      }
+    },
+    {
+      "model_id": "stanfordnlp/SteamSHP-flan-t5-large",
+      "name": "stanfordnlp/SteamSHP-flan-t5-large",
+      "developer": "stanfordnlp",
+      "scores": {
+        "Score": 0.4962,
+        "Chat": 0.8575,
+        "Chat Hard": 0.3311,
+        "Safety": 0.3743,
+        "Reasoning": 0.3563,
+        "Prior Sets (0.5 weight)": 0.6273
+      }
+    },
+    {
+      "model_id": "stanfordnlp/SteamSHP-flan-t5-xl",
+      "name": "stanfordnlp/SteamSHP-flan-t5-xl",
+      "developer": "stanfordnlp",
+      "scores": {
+        "Score": 0.5135,
+        "Chat": 0.8547,
+        "Chat Hard": 0.3684,
+        "Safety": 0.3784,
+        "Reasoning": 0.3841,
+        "Prior Sets (0.5 weight)": 0.6498
+      }
+    },
+    {
+      "model_id": "upstage/SOLAR-10.7B-Instruct-v1.0",
+      "name": "SOLAR-10.7B-Instruct-v1.0",
+      "developer": "upstage",
+      "scores": {
+        "Score": 0.7391,
+        "Chat": 0.8156,
+        "Chat Hard": 0.6864,
+        "Safety": 0.8514,
+        "Reasoning": 0.7252,
+        "Prior Sets (0.5 weight)": 0.4949
+      }
+    },
+    {
+      "model_id": "wenbopan/Faro-Yi-9B-DPO",
+      "name": "wenbopan/Faro-Yi-9B-DPO",
+      "developer": "wenbopan",
+      "scores": {
+        "Score": 0.6461,
+        "Chat": 0.9218,
+        "Chat Hard": 0.5307,
+        "Safety": 0.5514,
+        "Reasoning": 0.5839,
+        "Prior Sets (0.5 weight)": 0.6395
+      }
+    },
+    {
+      "model_id": "weqweasdas/RM-Gemma-2B",
+      "name": "weqweasdas/RM-Gemma-2B",
+      "developer": "weqweasdas",
+      "scores": {
+        "Score": 0.6549,
+        "Chat": 0.9441,
+        "Chat Hard": 0.4079,
+        "Safety": 0.4986,
+        "Reasoning": 0.7637,
+        "Prior Sets (0.5 weight)": 0.6652
+      }
+    },
+    {
+      "model_id": "weqweasdas/RM-Gemma-7B",
+      "name": "weqweasdas/RM-Gemma-7B",
+      "developer": "weqweasdas",
+      "scores": {
+        "Score": 0.4826,
+        "Factuality": 0.4926,
+        "Precise IF": 0.3937,
+        "Math": 0.6066,
+        "Safety": 0.4822,
+        "Focus": 0.497,
+        "Ties": 0.4232
+      }
+    },
+    {
+      "model_id": "weqweasdas/RM-Gemma-7B-4096",
+      "name": "weqweasdas/RM-Gemma-7B-4096",
+      "developer": "weqweasdas",
+      "scores": {
+        "Score": 0.6922,
+        "Chat": 0.9497,
+        "Chat Hard": 0.5022,
+        "Safety": 0.5608,
+        "Reasoning": 0.7511,
+        "Prior Sets (0.5 weight)": 0.7024
+      }
+    },
+    {
+      "model_id": "weqweasdas/RM-Mistral-7B",
+      "name": "weqweasdas/RM-Mistral-7B",
+      "developer": "weqweasdas",
+      "scores": {
+        "Score": 0.7982,
+        "Chat": 0.9665,
+        "Chat Hard": 0.6053,
+        "Safety": 0.8703,
+        "Reasoning": 0.7736,
+        "Prior Sets (0.5 weight)": 0.753
+      }
+    },
+    {
+      "model_id": "weqweasdas/hh_rlhf_rm_open_llama_3b",
+      "name": "weqweasdas/hh_rlhf_rm_open_llama_3b",
+      "developer": "weqweasdas",
+      "scores": {
+        "Score": 0.5027,
+        "Chat": 0.8184,
+        "Chat Hard": 0.3728,
+        "Safety": 0.4149,
+        "Reasoning": 0.3281,
+        "Prior Sets (0.5 weight)": 0.6564
+      }
+    }
+  ]
+}

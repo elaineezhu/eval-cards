@@ -1,0 +1,19 @@
+{
+  "developer": "kayfour",
+  "models": [
+    {
+      "id": "kayfour/T3Q-Qwen2.5-7B-it-KOR-Safe",
+      "name": "T3Q-Qwen2.5-7B-it-KOR-Safe",
+      "developer": "kayfour",
+      "evaluator_relationship": null,
+      "benchmark_scores": {
+        "hfopenllm_v2/IFEval": 0.6081,
+        "hfopenllm_v2/BBH": 0.555,
+        "hfopenllm_v2/MATH Level 5": 0.3761,
+        "hfopenllm_v2/GPQA": 0.3213,
+        "hfopenllm_v2/MUSR": 0.4277,
+        "hfopenllm_v2/MMLU-PRO": 0.4464
+      }
+    }
+  ]
+}

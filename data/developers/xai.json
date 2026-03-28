@@ -1,0 +1,109 @@
+{
+  "developer": "xai",
+  "models": [
+    {
+      "id": "xai/Grok 4",
+      "name": "Grok 4",
+      "developer": "xai",
+      "evaluator_relationship": null,
+      "benchmark_scores": {
+        "apex-agents/Overall Pass@1": 0.152,
+        "apex-agents/Overall Pass@8": 0.329,
+        "apex-agents/Overall Mean Score": 0.303,
+        "apex-agents/Investment Banking Pass@1": 0.17,
+        "apex-agents/Management Consulting Pass@1": 0.12,
+        "apex-agents/Corporate Law Pass@1": 0.165,
+        "apex-agents/Corporate Lawyer Mean Score": 0.41,
+        "apex-v1/Overall Score": 0.635
+      }
+    },
+    {
+      "id": "xai/grok-3-beta",
+      "name": "Grok 3 Beta",
+      "developer": "xai",
+      "evaluator_relationship": null,
+      "benchmark_scores": {
+        "helm_capabilities/Mean score": 0.727,
+        "helm_capabilities/MMLU-Pro": 0.788,
+        "helm_capabilities/GPQA": 0.65,
+        "helm_capabilities/IFEval": 0.884,
+        "helm_capabilities/WildBench": 0.849,
+        "helm_capabilities/Omni-MATH": 0.464
+      }
+    },
+    {
+      "id": "xai/grok-3-mini",
+      "name": "grok-3-mini",
+      "developer": "xai",
+      "evaluator_relationship": null,
+      "benchmark_scores": {
+        "global-mmlu-lite/Global MMLU Lite": 0.673,
+        "global-mmlu-lite/Culturally Sensitive": 0.6717,
+        "global-mmlu-lite/Culturally Agnostic": 0.6743,
+        "global-mmlu-lite/Arabic": 0.755,
+        "global-mmlu-lite/English": 0.5075,
+        "global-mmlu-lite/Bengali": 0.7355,
+        "global-mmlu-lite/German": 0.6591,
+        "global-mmlu-lite/French": 0.485,
+        "global-mmlu-lite/Hindi": 0.56,
+        "global-mmlu-lite/Indonesian": 0.725,
+        "global-mmlu-lite/Italian": 0.696,
+        "global-mmlu-lite/Japanese": 0.6575,
+        "global-mmlu-lite/Korean": 0.7325,
+        "global-mmlu-lite/Portuguese": 0.6275,
+        "global-mmlu-lite/Spanish": 0.61,
+        "global-mmlu-lite/Swahili": 0.7625,
+        "global-mmlu-lite/Yoruba": 0.8296,
+        "global-mmlu-lite/Chinese": 0.5564,
+        "global-mmlu-lite/Burmese": 0.8693
+      }
+    },
+    {
+      "id": "xai/grok-3-mini-beta",
+      "name": "Grok 3 mini Beta",
+      "developer": "xai",
+      "evaluator_relationship": null,
+      "benchmark_scores": {
+        "helm_capabilities/Mean score": 0.679,
+        "helm_capabilities/MMLU-Pro": 0.799,
+        "helm_capabilities/GPQA": 0.675,
+        "helm_capabilities/IFEval": 0.951,
+        "helm_capabilities/WildBench": 0.651,
+        "helm_capabilities/Omni-MATH": 0.318
+      }
+    },
+    {
+      "id": "xai/grok-4-0709",
+      "name": "grok-4-0709",
+      "developer": "xai",
+      "evaluator_relationship": null,
+      "benchmark_scores": {
+        "global-mmlu-lite/Global MMLU Lite": 0.8881,
+        "global-mmlu-lite/Culturally Sensitive": 0.8862,
+        "global-mmlu-lite/Culturally Agnostic": 0.89,
+        "global-mmlu-lite/Arabic": 0.885,
+        "global-mmlu-lite/English": 0.905,
+        "global-mmlu-lite/Bengali": 0.8925,
+        "global-mmlu-lite/German": 0.8725,
+        "global-mmlu-lite/French": 0.875,
+        "global-mmlu-lite/Hindi": 0.8675,
+        "global-mmlu-lite/Indonesian": 0.89,
+        "global-mmlu-lite/Italian": 0.9025,
+        "global-mmlu-lite/Japanese": 0.87,
+        "global-mmlu-lite/Korean": 0.895,
+        "global-mmlu-lite/Portuguese": 0.8725,
+        "global-mmlu-lite/Spanish": 0.9075,
+        "global-mmlu-lite/Swahili": 0.91,
+        "global-mmlu-lite/Yoruba": 0.905,
+        "global-mmlu-lite/Chinese": 0.8525,
+        "global-mmlu-lite/Burmese": 0.9075,
+        "helm_capabilities/Mean score": 0.785,
+        "helm_capabilities/MMLU-Pro": 0.851,
+        "helm_capabilities/GPQA": 0.726,
+        "helm_capabilities/IFEval": 0.949,
+        "helm_capabilities/WildBench": 0.797,
+        "helm_capabilities/Omni-MATH": 0.603
+      }
+    }
+  ]
+}

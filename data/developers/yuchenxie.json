@@ -1,0 +1,33 @@
+{
+  "developer": "yuchenxie",
+  "models": [
+    {
+      "id": "yuchenxie/ArlowGPT-3B-Multilingual",
+      "name": "ArlowGPT-3B-Multilingual",
+      "developer": "yuchenxie",
+      "evaluator_relationship": null,
+      "benchmark_scores": {
+        "hfopenllm_v2/IFEval": 0.6395,
+        "hfopenllm_v2/BBH": 0.4301,
+        "hfopenllm_v2/MATH Level 5": 0.1125,
+        "hfopenllm_v2/GPQA": 0.2802,
+        "hfopenllm_v2/MUSR": 0.3727,
+        "hfopenllm_v2/MMLU-PRO": 0.2817
+      }
+    },
+    {
+      "id": "yuchenxie/ArlowGPT-8B",
+      "name": "ArlowGPT-8B",
+      "developer": "yuchenxie",
+      "evaluator_relationship": null,
+      "benchmark_scores": {
+        "hfopenllm_v2/IFEval": 0.7847,
+        "hfopenllm_v2/BBH": 0.508,
+        "hfopenllm_v2/MATH Level 5": 0.2039,
+        "hfopenllm_v2/GPQA": 0.2936,
+        "hfopenllm_v2/MUSR": 0.3882,
+        "hfopenllm_v2/MMLU-PRO": 0.3787
+      }
+    }
+  ]
+}

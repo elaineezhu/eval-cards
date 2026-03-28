@@ -1,0 +1,1097 @@
+{
+  "developer": "zelk12",
+  "models": [
+    {
+      "id": "zelk12/Gemma-2-TM-9B",
+      "name": "Gemma-2-TM-9B",
+      "developer": "zelk12",
+      "evaluator_relationship": null,
+      "benchmark_scores": {
+        "hfopenllm_v2/IFEval": 0.8045,
+        "hfopenllm_v2/BBH": 0.5987,
+        "hfopenllm_v2/MATH Level 5": 0.2024,
+        "hfopenllm_v2/GPQA": 0.3465,
+        "hfopenllm_v2/MUSR": 0.4152,
+        "hfopenllm_v2/MMLU-PRO": 0.4088
+      }
+    },
+    {
+      "id": "zelk12/MT-Gen1-gemma-2-9B",
+      "name": "MT-Gen1-gemma-2-9B",
+      "developer": "zelk12",
+      "evaluator_relationship": null,
+      "benchmark_scores": {
+        "hfopenllm_v2/IFEval": 0.7886,
+        "hfopenllm_v2/BBH": 0.61,
+        "hfopenllm_v2/MATH Level 5": 0.2221,
+        "hfopenllm_v2/GPQA": 0.3465,
+        "hfopenllm_v2/MUSR": 0.4217,
+        "hfopenllm_v2/MMLU-PRO": 0.4381
+      }
+    },
+    {
+      "id": "zelk12/MT-Gen2-GI-gemma-2-9B",
+      "name": "MT-Gen2-GI-gemma-2-9B",
+      "developer": "zelk12",
+      "evaluator_relationship": null,
+      "benchmark_scores": {
+        "hfopenllm_v2/IFEval": 0.7914,
+        "hfopenllm_v2/BBH": 0.6096,
+        "hfopenllm_v2/MATH Level 5": 0.2205,
+        "hfopenllm_v2/GPQA": 0.3507,
+        "hfopenllm_v2/MUSR": 0.4283,
+        "hfopenllm_v2/MMLU-PRO": 0.4356
+      }
+    },
+    {
+      "id": "zelk12/MT-Gen2-gemma-2-9B",
+      "name": "MT-Gen2-gemma-2-9B",
+      "developer": "zelk12",
+      "evaluator_relationship": null,
+      "benchmark_scores": {
+        "hfopenllm_v2/IFEval": 0.7907,
+        "hfopenllm_v2/BBH": 0.61,
+        "hfopenllm_v2/MATH Level 5": 0.219,
+        "hfopenllm_v2/GPQA": 0.3465,
+        "hfopenllm_v2/MUSR": 0.4323,
+        "hfopenllm_v2/MMLU-PRO": 0.4387
+      }
+    },
+    {
+      "id": "zelk12/MT-Gen3-gemma-2-9B",
+      "name": "MT-Gen3-gemma-2-9B",
+      "developer": "zelk12",
+      "evaluator_relationship": null,
+      "benchmark_scores": {
+        "hfopenllm_v2/IFEval": 0.802,
+        "hfopenllm_v2/BBH": 0.6097,
+        "hfopenllm_v2/MATH Level 5": 0.2296,
+        "hfopenllm_v2/GPQA": 0.349,
+        "hfopenllm_v2/MUSR": 0.4217,
+        "hfopenllm_v2/MMLU-PRO": 0.4356
+      }
+    },
+    {
+      "id": "zelk12/MT-Gen4-gemma-2-9B",
+      "name": "MT-Gen4-gemma-2-9B",
+      "developer": "zelk12",
+      "evaluator_relationship": null,
+      "benchmark_scores": {
+        "hfopenllm_v2/IFEval": 0.7883,
+        "hfopenllm_v2/BBH": 0.611,
+        "hfopenllm_v2/MATH Level 5": 0.2236,
+        "hfopenllm_v2/GPQA": 0.3549,
+        "hfopenllm_v2/MUSR": 0.4228,
+        "hfopenllm_v2/MMLU-PRO": 0.4387
+      }
+    },
+    {
+      "id": "zelk12/MT-Gen5-gemma-2-9B",
+      "name": "MT-Gen5-gemma-2-9B",
+      "developer": "zelk12",
+      "evaluator_relationship": null,
+      "benchmark_scores": {
+        "hfopenllm_v2/IFEval": 0.7923,
+        "hfopenllm_v2/BBH": 0.6133,
+        "hfopenllm_v2/MATH Level 5": 0.2153,
+        "hfopenllm_v2/GPQA": 0.3515,
+        "hfopenllm_v2/MUSR": 0.4202,
+        "hfopenllm_v2/MMLU-PRO": 0.4402
+      }
+    },
+    {
+      "id": "zelk12/MT-Gen6-gemma-2-9B",
+      "name": "MT-Gen6-gemma-2-9B",
+      "developer": "zelk12",
+      "evaluator_relationship": null,
+      "benchmark_scores": {
+        "hfopenllm_v2/IFEval": 0.1616,
+        "hfopenllm_v2/BBH": 0.5845,
+        "hfopenllm_v2/MATH Level 5": 0.0823,
+        "hfopenllm_v2/GPQA": 0.3331,
+        "hfopenllm_v2/MUSR": 0.4069,
+        "hfopenllm_v2/MMLU-PRO": 0.4166
+      }
+    },
+    {
+      "id": "zelk12/MT-Gen6fix-gemma-2-9B",
+      "name": "MT-Gen6fix-gemma-2-9B",
+      "developer": "zelk12",
+      "evaluator_relationship": null,
+      "benchmark_scores": {
+        "hfopenllm_v2/IFEval": 0.1576,
+        "hfopenllm_v2/BBH": 0.5917,
+        "hfopenllm_v2/MATH Level 5": 0.0816,
+        "hfopenllm_v2/GPQA": 0.3372,
+        "hfopenllm_v2/MUSR": 0.4084,
+        "hfopenllm_v2/MMLU-PRO": 0.412
+      }
+    },
+    {
+      "id": "zelk12/MT-Gen7-gemma-2-9B",
+      "name": "MT-Gen7-gemma-2-9B",
+      "developer": "zelk12",
+      "evaluator_relationship": null,
+      "benchmark_scores": {
+        "hfopenllm_v2/IFEval": 0.1664,
+        "hfopenllm_v2/BBH": 0.5935,
+        "hfopenllm_v2/MATH Level 5": 0.0891,
+        "hfopenllm_v2/GPQA": 0.3356,
+        "hfopenllm_v2/MUSR": 0.4098,
+        "hfopenllm_v2/MMLU-PRO": 0.4122
+      }
+    },
+    {
+      "id": "zelk12/MT-Max-Merge_02012025163610-gemma-2-9B",
+      "name": "MT-Max-Merge_02012025163610-gemma-2-9B",
+      "developer": "zelk12",
+      "evaluator_relationship": null,
+      "benchmark_scores": {
+        "hfopenllm_v2/IFEval": 0.7907,
+        "hfopenllm_v2/BBH": 0.6142,
+        "hfopenllm_v2/MATH Level 5": 0.2213,
+        "hfopenllm_v2/GPQA": 0.3515,
+        "hfopenllm_v2/MUSR": 0.4228,
+        "hfopenllm_v2/MMLU-PRO": 0.4396
+      }
+    },
+    {
+      "id": "zelk12/MT-Merge-gemma-2-9B",
+      "name": "MT-Merge-gemma-2-9B",
+      "developer": "zelk12",
+      "evaluator_relationship": null,
+      "benchmark_scores": {
+        "hfopenllm_v2/IFEval": 0.8035,
+        "hfopenllm_v2/BBH": 0.6118,
+        "hfopenllm_v2/MATH Level 5": 0.2205,
+        "hfopenllm_v2/GPQA": 0.3482,
+        "hfopenllm_v2/MUSR": 0.4256,
+        "hfopenllm_v2/MMLU-PRO": 0.4362
+      }
+    },
+    {
+      "id": "zelk12/MT-Merge1-gemma-2-9B",
+      "name": "MT-Merge1-gemma-2-9B",
+      "developer": "zelk12",
+      "evaluator_relationship": null,
+      "benchmark_scores": {
+        "hfopenllm_v2/IFEval": 0.7901,
+        "hfopenllm_v2/BBH": 0.61,
+        "hfopenllm_v2/MATH Level 5": 0.2289,
+        "hfopenllm_v2/GPQA": 0.3515,
+        "hfopenllm_v2/MUSR": 0.4244,
+        "hfopenllm_v2/MMLU-PRO": 0.4374
+      }
+    },
+    {
+      "id": "zelk12/MT-Merge2-MU-gemma-2-MTg2MT1g2-9B",
+      "name": "MT-Merge2-MU-gemma-2-MTg2MT1g2-9B",
+      "developer": "zelk12",
+      "evaluator_relationship": null,
+      "benchmark_scores": {
+        "hfopenllm_v2/IFEval": 0.7956,
+        "hfopenllm_v2/BBH": 0.6084,
+        "hfopenllm_v2/MATH Level 5": 0.2183,
+        "hfopenllm_v2/GPQA": 0.3507,
+        "hfopenllm_v2/MUSR": 0.4322,
+        "hfopenllm_v2/MMLU-PRO": 0.4373
+      }
+    },
+    {
+      "id": "zelk12/MT-Merge2-gemma-2-9B",
+      "name": "MT-Merge2-gemma-2-9B",
+      "developer": "zelk12",
+      "evaluator_relationship": null,
+      "benchmark_scores": {
+        "hfopenllm_v2/IFEval": 0.7877,
+        "hfopenllm_v2/BBH": 0.6107,
+        "hfopenllm_v2/MATH Level 5": 0.2349,
+        "hfopenllm_v2/GPQA": 0.3507,
+        "hfopenllm_v2/MUSR": 0.4217,
+        "hfopenllm_v2/MMLU-PRO": 0.4382
+      }
+    },
+    {
+      "id": "zelk12/MT-Merge3-gemma-2-9B",
+      "name": "MT-Merge3-gemma-2-9B",
+      "developer": "zelk12",
+      "evaluator_relationship": null,
+      "benchmark_scores": {
+        "hfopenllm_v2/IFEval": 0.7859,
+        "hfopenllm_v2/BBH": 0.6102,
+        "hfopenllm_v2/MATH Level 5": 0.2205,
+        "hfopenllm_v2/GPQA": 0.349,
+        "hfopenllm_v2/MUSR": 0.4258,
+        "hfopenllm_v2/MMLU-PRO": 0.4373
+      }
+    },
+    {
+      "id": "zelk12/MT-Merge4-gemma-2-9B",
+      "name": "MT-Merge4-gemma-2-9B",
+      "developer": "zelk12",
+      "evaluator_relationship": null,
+      "benchmark_scores": {
+        "hfopenllm_v2/IFEval": 0.7807,
+        "hfopenllm_v2/BBH": 0.6118,
+        "hfopenllm_v2/MATH Level 5": 0.2168,
+        "hfopenllm_v2/GPQA": 0.3523,
+        "hfopenllm_v2/MUSR": 0.4294,
+        "hfopenllm_v2/MMLU-PRO": 0.439
+      }
+    },
+    {
+      "id": "zelk12/MT-Merge5-gemma-2-9B",
+      "name": "MT-Merge5-gemma-2-9B",
+      "developer": "zelk12",
+      "evaluator_relationship": null,
+      "benchmark_scores": {
+        "hfopenllm_v2/IFEval": 0.7844,
+        "hfopenllm_v2/BBH": 0.6123,
+        "hfopenllm_v2/MATH Level 5": 0.2183,
+        "hfopenllm_v2/GPQA": 0.3532,
+        "hfopenllm_v2/MUSR": 0.4281,
+        "hfopenllm_v2/MMLU-PRO": 0.4387
+      }
+    },
+    {
+      "id": "zelk12/MT-Merge6-gemma-2-9B",
+      "name": "MT-Merge6-gemma-2-9B",
+      "developer": "zelk12",
+      "evaluator_relationship": null,
+      "benchmark_scores": {
+        "hfopenllm_v2/IFEval": 0.1695,
+        "hfopenllm_v2/BBH": 0.5949,
+        "hfopenllm_v2/MATH Level 5": 0.0801,
+        "hfopenllm_v2/GPQA": 0.3289,
+        "hfopenllm_v2/MUSR": 0.4098,
+        "hfopenllm_v2/MMLU-PRO": 0.4115
+      }
+    },
+    {
+      "id": "zelk12/MT-gemma-2-9B",
+      "name": "MT-gemma-2-9B",
+      "developer": "zelk12",
+      "evaluator_relationship": null,
+      "benchmark_scores": {
+        "hfopenllm_v2/IFEval": 0.7968,
+        "hfopenllm_v2/BBH": 0.6064,
+        "hfopenllm_v2/MATH Level 5": 0.2054,
+        "hfopenllm_v2/GPQA": 0.3456,
+        "hfopenllm_v2/MUSR": 0.4071,
+        "hfopenllm_v2/MMLU-PRO": 0.4224
+      }
+    },
+    {
+      "id": "zelk12/MT1-Gen1-gemma-2-9B",
+      "name": "MT1-Gen1-gemma-2-9B",
+      "developer": "zelk12",
+      "evaluator_relationship": null,
+      "benchmark_scores": {
+        "hfopenllm_v2/IFEval": 0.7974,
+        "hfopenllm_v2/BBH": 0.6118,
+        "hfopenllm_v2/MATH Level 5": 0.2243,
+        "hfopenllm_v2/GPQA": 0.344,
+        "hfopenllm_v2/MUSR": 0.431,
+        "hfopenllm_v2/MMLU-PRO": 0.4376
+      }
+    },
+    {
+      "id": "zelk12/MT1-Gen2-gemma-2-9B",
+      "name": "MT1-Gen2-gemma-2-9B",
+      "developer": "zelk12",
+      "evaluator_relationship": null,
+      "benchmark_scores": {
+        "hfopenllm_v2/IFEval": 0.7984,
+        "hfopenllm_v2/BBH": 0.6096,
+        "hfopenllm_v2/MATH Level 5": 0.2251,
+        "hfopenllm_v2/GPQA": 0.3523,
+        "hfopenllm_v2/MUSR": 0.4284,
+        "hfopenllm_v2/MMLU-PRO": 0.4355
+      }
+    },
+    {
+      "id": "zelk12/MT1-Gen3-gemma-2-9B",
+      "name": "MT1-Gen3-gemma-2-9B",
+      "developer": "zelk12",
+      "evaluator_relationship": null,
+      "benchmark_scores": {
+        "hfopenllm_v2/IFEval": 0.796,
+        "hfopenllm_v2/BBH": 0.6102,
+        "hfopenllm_v2/MATH Level 5": 0.2243,
+        "hfopenllm_v2/GPQA": 0.349,
+        "hfopenllm_v2/MUSR": 0.4243,
+        "hfopenllm_v2/MMLU-PRO": 0.4349
+      }
+    },
+    {
+      "id": "zelk12/MT1-Gen4-gemma-2-9B",
+      "name": "MT1-Gen4-gemma-2-9B",
+      "developer": "zelk12",
+      "evaluator_relationship": null,
+      "benchmark_scores": {
+        "hfopenllm_v2/IFEval": 0.7941,
+        "hfopenllm_v2/BBH": 0.6058,
+        "hfopenllm_v2/MATH Level 5": 0.216,
+        "hfopenllm_v2/GPQA": 0.3473,
+        "hfopenllm_v2/MUSR": 0.4231,
+        "hfopenllm_v2/MMLU-PRO": 0.4286
+      }
+    },
+    {
+      "id": "zelk12/MT1-Gen5-IF-gemma-2-S2DMv1-9B",
+      "name": "MT1-Gen5-IF-gemma-2-S2DMv1-9B",
+      "developer": "zelk12",
+      "evaluator_relationship": null,
+      "benchmark_scores": {
+        "hfopenllm_v2/IFEval": 0.7929,
+        "hfopenllm_v2/BBH": 0.6,
+        "hfopenllm_v2/MATH Level 5": 0.2032,
+        "hfopenllm_v2/GPQA": 0.344,
+        "hfopenllm_v2/MUSR": 0.4245,
+        "hfopenllm_v2/MMLU-PRO": 0.4218
+      }
+    },
+    {
+      "id": "zelk12/MT1-Gen5-gemma-2-9B",
+      "name": "MT1-Gen5-gemma-2-9B",
+      "developer": "zelk12",
+      "evaluator_relationship": null,
+      "benchmark_scores": {
+        "hfopenllm_v2/IFEval": 0.7795,
+        "hfopenllm_v2/BBH": 0.6017,
+        "hfopenllm_v2/MATH Level 5": 0.2077,
+        "hfopenllm_v2/GPQA": 0.3465,
+        "hfopenllm_v2/MUSR": 0.4191,
+        "hfopenllm_v2/MMLU-PRO": 0.4222
+      }
+    },
+    {
+      "id": "zelk12/MT1-Gen6-gemma-2-9B",
+      "name": "MT1-Gen6-gemma-2-9B",
+      "developer": "zelk12",
+      "evaluator_relationship": null,
+      "benchmark_scores": {
+        "hfopenllm_v2/IFEval": 0.1634,
+        "hfopenllm_v2/BBH": 0.5944,
+        "hfopenllm_v2/MATH Level 5": 0.0808,
+        "hfopenllm_v2/GPQA": 0.328,
+        "hfopenllm_v2/MUSR": 0.4044,
+        "hfopenllm_v2/MMLU-PRO": 0.4133
+      }
+    },
+    {
+      "id": "zelk12/MT1-Gen7-gemma-2-9B",
+      "name": "MT1-Gen7-gemma-2-9B",
+      "developer": "zelk12",
+      "evaluator_relationship": null,
+      "benchmark_scores": {
+        "hfopenllm_v2/IFEval": 0.1634,
+        "hfopenllm_v2/BBH": 0.5938,
+        "hfopenllm_v2/MATH Level 5": 0.0831,
+        "hfopenllm_v2/GPQA": 0.328,
+        "hfopenllm_v2/MUSR": 0.4111,
+        "hfopenllm_v2/MMLU-PRO": 0.4145
+      }
+    },
+    {
+      "id": "zelk12/MT1-Max-Merge_02012025163610-gemma-2-9B",
+      "name": "MT1-Max-Merge_02012025163610-gemma-2-9B",
+      "developer": "zelk12",
+      "evaluator_relationship": null,
+      "benchmark_scores": {
+        "hfopenllm_v2/IFEval": 0.7929,
+        "hfopenllm_v2/BBH": 0.6123,
+        "hfopenllm_v2/MATH Level 5": 0.2228,
+        "hfopenllm_v2/GPQA": 0.3549,
+        "hfopenllm_v2/MUSR": 0.4255,
+        "hfopenllm_v2/MMLU-PRO": 0.4382
+      }
+    },
+    {
+      "id": "zelk12/MT1-gemma-2-9B",
+      "name": "MT1-gemma-2-9B",
+      "developer": "zelk12",
+      "evaluator_relationship": null,
+      "benchmark_scores": {
+        "hfopenllm_v2/IFEval": 0.7947,
+        "hfopenllm_v2/BBH": 0.6109,
+        "hfopenllm_v2/MATH Level 5": 0.2236,
+        "hfopenllm_v2/GPQA": 0.3456,
+        "hfopenllm_v2/MUSR": 0.4322,
+        "hfopenllm_v2/MMLU-PRO": 0.4358
+      }
+    },
+    {
+      "id": "zelk12/MT2-Gen1-gemma-2-9B",
+      "name": "MT2-Gen1-gemma-2-9B",
+      "developer": "zelk12",
+      "evaluator_relationship": null,
+      "benchmark_scores": {
+        "hfopenllm_v2/IFEval": 0.7856,
+        "hfopenllm_v2/BBH": 0.6101,
+        "hfopenllm_v2/MATH Level 5": 0.2213,
+        "hfopenllm_v2/GPQA": 0.3431,
+        "hfopenllm_v2/MUSR": 0.4243,
+        "hfopenllm_v2/MMLU-PRO": 0.4377
+      }
+    },
+    {
+      "id": "zelk12/MT2-Gen2-gemma-2-9B",
+      "name": "MT2-Gen2-gemma-2-9B",
+      "developer": "zelk12",
+      "evaluator_relationship": null,
+      "benchmark_scores": {
+        "hfopenllm_v2/IFEval": 0.7889,
+        "hfopenllm_v2/BBH": 0.6093,
+        "hfopenllm_v2/MATH Level 5": 0.2183,
+        "hfopenllm_v2/GPQA": 0.3465,
+        "hfopenllm_v2/MUSR": 0.427,
+        "hfopenllm_v2/MMLU-PRO": 0.4388
+      }
+    },
+    {
+      "id": "zelk12/MT2-Gen3-gemma-2-9B",
+      "name": "MT2-Gen3-gemma-2-9B",
+      "developer": "zelk12",
+      "evaluator_relationship": null,
+      "benchmark_scores": {
+        "hfopenllm_v2/IFEval": 0.781,
+        "hfopenllm_v2/BBH": 0.6105,
+        "hfopenllm_v2/MATH Level 5": 0.2107,
+        "hfopenllm_v2/GPQA": 0.3465,
+        "hfopenllm_v2/MUSR": 0.4231,
+        "hfopenllm_v2/MMLU-PRO": 0.4374
+      }
+    },
+    {
+      "id": "zelk12/MT2-Gen4-gemma-2-9B",
+      "name": "MT2-Gen4-gemma-2-9B",
+      "developer": "zelk12",
+      "evaluator_relationship": null,
+      "benchmark_scores": {
+        "hfopenllm_v2/IFEval": 0.7896,
+        "hfopenllm_v2/BBH": 0.6097,
+        "hfopenllm_v2/MATH Level 5": 0.2236,
+        "hfopenllm_v2/GPQA": 0.3456,
+        "hfopenllm_v2/MUSR": 0.4125,
+        "hfopenllm_v2/MMLU-PRO": 0.4321
+      }
+    },
+    {
+      "id": "zelk12/MT2-Gen5-gemma-2-9B",
+      "name": "MT2-Gen5-gemma-2-9B",
+      "developer": "zelk12",
+      "evaluator_relationship": null,
+      "benchmark_scores": {
+        "hfopenllm_v2/IFEval": 0.7749,
+        "hfopenllm_v2/BBH": 0.6064,
+        "hfopenllm_v2/MATH Level 5": 0.2107,
+        "hfopenllm_v2/GPQA": 0.3515,
+        "hfopenllm_v2/MUSR": 0.4244,
+        "hfopenllm_v2/MMLU-PRO": 0.4302
+      }
+    },
+    {
+      "id": "zelk12/MT2-Gen6-gemma-2-9B",
+      "name": "MT2-Gen6-gemma-2-9B",
+      "developer": "zelk12",
+      "evaluator_relationship": null,
+      "benchmark_scores": {
+        "hfopenllm_v2/IFEval": 0.1664,
+        "hfopenllm_v2/BBH": 0.596,
+        "hfopenllm_v2/MATH Level 5": 0.0846,
+        "hfopenllm_v2/GPQA": 0.3381,
+        "hfopenllm_v2/MUSR": 0.4137,
+        "hfopenllm_v2/MMLU-PRO": 0.421
+      }
+    },
+    {
+      "id": "zelk12/MT2-Gen7-gemma-2-9B",
+      "name": "MT2-Gen7-gemma-2-9B",
+      "developer": "zelk12",
+      "evaluator_relationship": null,
+      "benchmark_scores": {
+        "hfopenllm_v2/IFEval": 0.1762,
+        "hfopenllm_v2/BBH": 0.6079,
+        "hfopenllm_v2/MATH Level 5": 0.102,
+        "hfopenllm_v2/GPQA": 0.3549,
+        "hfopenllm_v2/MUSR": 0.4203,
+        "hfopenllm_v2/MMLU-PRO": 0.4311
+      }
+    },
+    {
+      "id": "zelk12/MT2-Max-Merge_02012025163610-gemma-2-9B",
+      "name": "MT2-Max-Merge_02012025163610-gemma-2-9B",
+      "developer": "zelk12",
+      "evaluator_relationship": null,
+      "benchmark_scores": {
+        "hfopenllm_v2/IFEval": 0.7901,
+        "hfopenllm_v2/BBH": 0.6108,
+        "hfopenllm_v2/MATH Level 5": 0.2243,
+        "hfopenllm_v2/GPQA": 0.3515,
+        "hfopenllm_v2/MUSR": 0.4228,
+        "hfopenllm_v2/MMLU-PRO": 0.4391
+      }
+    },
+    {
+      "id": "zelk12/MT2-gemma-2-9B",
+      "name": "MT2-gemma-2-9B",
+      "developer": "zelk12",
+      "evaluator_relationship": null,
+      "benchmark_scores": {
+        "hfopenllm_v2/IFEval": 0.7886,
+        "hfopenllm_v2/BBH": 0.6115,
+        "hfopenllm_v2/MATH Level 5": 0.2213,
+        "hfopenllm_v2/GPQA": 0.3473,
+        "hfopenllm_v2/MUSR": 0.4217,
+        "hfopenllm_v2/MMLU-PRO": 0.4368
+      }
+    },
+    {
+      "id": "zelk12/MT3-Gen1-gemma-2-9B",
+      "name": "MT3-Gen1-gemma-2-9B",
+      "developer": "zelk12",
+      "evaluator_relationship": null,
+      "benchmark_scores": {
+        "hfopenllm_v2/IFEval": 0.7838,
+        "hfopenllm_v2/BBH": 0.6107,
+        "hfopenllm_v2/MATH Level 5": 0.2145,
+        "hfopenllm_v2/GPQA": 0.3465,
+        "hfopenllm_v2/MUSR": 0.4151,
+        "hfopenllm_v2/MMLU-PRO": 0.4327
+      }
+    },
+    {
+      "id": "zelk12/MT3-Gen2-gemma-2-9B",
+      "name": "MT3-Gen2-gemma-2-9B",
+      "developer": "zelk12",
+      "evaluator_relationship": null,
+      "benchmark_scores": {
+        "hfopenllm_v2/IFEval": 0.7843,
+        "hfopenllm_v2/BBH": 0.6091,
+        "hfopenllm_v2/MATH Level 5": 0.2236,
+        "hfopenllm_v2/GPQA": 0.3574,
+        "hfopenllm_v2/MUSR": 0.4111,
+        "hfopenllm_v2/MMLU-PRO": 0.4333
+      }
+    },
+    {
+      "id": "zelk12/MT3-Gen3-gemma-2-9B",
+      "name": "MT3-Gen3-gemma-2-9B",
+      "developer": "zelk12",
+      "evaluator_relationship": null,
+      "benchmark_scores": {
+        "hfopenllm_v2/IFEval": 0.7856,
+        "hfopenllm_v2/BBH": 0.6089,
+        "hfopenllm_v2/MATH Level 5": 0.2153,
+        "hfopenllm_v2/GPQA": 0.3515,
+        "hfopenllm_v2/MUSR": 0.4258,
+        "hfopenllm_v2/MMLU-PRO": 0.4303
+      }
+    },
+    {
+      "id": "zelk12/MT3-Gen4-gemma-2-9B",
+      "name": "MT3-Gen4-gemma-2-9B",
+      "developer": "zelk12",
+      "evaluator_relationship": null,
+      "benchmark_scores": {
+        "hfopenllm_v2/IFEval": 0.7737,
+        "hfopenllm_v2/BBH": 0.6101,
+        "hfopenllm_v2/MATH Level 5": 0.2062,
+        "hfopenllm_v2/GPQA": 0.3473,
+        "hfopenllm_v2/MUSR": 0.4476,
+        "hfopenllm_v2/MMLU-PRO": 0.4387
+      }
+    },
+    {
+      "id": "zelk12/MT3-Gen5-gemma-2-9B",
+      "name": "MT3-Gen5-gemma-2-9B",
+      "developer": "zelk12",
+      "evaluator_relationship": null,
+      "benchmark_scores": {
+        "hfopenllm_v2/IFEval": 0.799,
+        "hfopenllm_v2/BBH": 0.6099,
+        "hfopenllm_v2/MATH Level 5": 0.2266,
+        "hfopenllm_v2/GPQA": 0.3532,
+        "hfopenllm_v2/MUSR": 0.4191,
+        "hfopenllm_v2/MMLU-PRO": 0.4317
+      }
+    },
+    {
+      "id": "zelk12/MT3-Gen5-gemma-2-9B_v1",
+      "name": "MT3-Gen5-gemma-2-9B_v1",
+      "developer": "zelk12",
+      "evaluator_relationship": null,
+      "benchmark_scores": {
+        "hfopenllm_v2/IFEval": 0.7996,
+        "hfopenllm_v2/BBH": 0.6113,
+        "hfopenllm_v2/MATH Level 5": 0.2228,
+        "hfopenllm_v2/GPQA": 0.349,
+        "hfopenllm_v2/MUSR": 0.4204,
+        "hfopenllm_v2/MMLU-PRO": 0.4359
+      }
+    },
+    {
+      "id": "zelk12/MT3-Gen6-gemma-2-9B",
+      "name": "MT3-Gen6-gemma-2-9B",
+      "developer": "zelk12",
+      "evaluator_relationship": null,
+      "benchmark_scores": {
+        "hfopenllm_v2/IFEval": 0.1762,
+        "hfopenllm_v2/BBH": 0.602,
+        "hfopenllm_v2/MATH Level 5": 0.0884,
+        "hfopenllm_v2/GPQA": 0.3431,
+        "hfopenllm_v2/MUSR": 0.4126,
+        "hfopenllm_v2/MMLU-PRO": 0.4102
+      }
+    },
+    {
+      "id": "zelk12/MT3-Max-Merge_02012025163610-gemma-2-9B",
+      "name": "MT3-Max-Merge_02012025163610-gemma-2-9B",
+      "developer": "zelk12",
+      "evaluator_relationship": null,
+      "benchmark_scores": {
+        "hfopenllm_v2/IFEval": 0.1762,
+        "hfopenllm_v2/BBH": 0.6123,
+        "hfopenllm_v2/MATH Level 5": 0.1012,
+        "hfopenllm_v2/GPQA": 0.3507,
+        "hfopenllm_v2/MUSR": 0.4255,
+        "hfopenllm_v2/MMLU-PRO": 0.4389
+      }
+    },
+    {
+      "id": "zelk12/MT3-gemma-2-9B",
+      "name": "MT3-gemma-2-9B",
+      "developer": "zelk12",
+      "evaluator_relationship": null,
+      "benchmark_scores": {
+        "hfopenllm_v2/IFEval": 0.7786,
+        "hfopenllm_v2/BBH": 0.6131,
+        "hfopenllm_v2/MATH Level 5": 0.2168,
+        "hfopenllm_v2/GPQA": 0.3448,
+        "hfopenllm_v2/MUSR": 0.4243,
+        "hfopenllm_v2/MMLU-PRO": 0.4327
+      }
+    },
+    {
+      "id": "zelk12/MT4-Gen1-gemma-2-9B",
+      "name": "MT4-Gen1-gemma-2-9B",
+      "developer": "zelk12",
+      "evaluator_relationship": null,
+      "benchmark_scores": {
+        "hfopenllm_v2/IFEval": 0.7895,
+        "hfopenllm_v2/BBH": 0.6094,
+        "hfopenllm_v2/MATH Level 5": 0.2198,
+        "hfopenllm_v2/GPQA": 0.344,
+        "hfopenllm_v2/MUSR": 0.4322,
+        "hfopenllm_v2/MMLU-PRO": 0.4389
+      }
+    },
+    {
+      "id": "zelk12/MT4-Gen2-gemma-2-9B",
+      "name": "MT4-Gen2-gemma-2-9B",
+      "developer": "zelk12",
+      "evaluator_relationship": null,
+      "benchmark_scores": {
+        "hfopenllm_v2/IFEval": 0.8051,
+        "hfopenllm_v2/BBH": 0.6108,
+        "hfopenllm_v2/MATH Level 5": 0.2326,
+        "hfopenllm_v2/GPQA": 0.3456,
+        "hfopenllm_v2/MUSR": 0.4257,
+        "hfopenllm_v2/MMLU-PRO": 0.4368
+      }
+    },
+    {
+      "id": "zelk12/MT4-Gen3-gemma-2-9B",
+      "name": "MT4-Gen3-gemma-2-9B",
+      "developer": "zelk12",
+      "evaluator_relationship": null,
+      "benchmark_scores": {
+        "hfopenllm_v2/IFEval": 0.7841,
+        "hfopenllm_v2/BBH": 0.6087,
+        "hfopenllm_v2/MATH Level 5": 0.219,
+        "hfopenllm_v2/GPQA": 0.344,
+        "hfopenllm_v2/MUSR": 0.4243,
+        "hfopenllm_v2/MMLU-PRO": 0.4381
+      }
+    },
+    {
+      "id": "zelk12/MT4-Gen4-gemma-2-9B",
+      "name": "MT4-Gen4-gemma-2-9B",
+      "developer": "zelk12",
+      "evaluator_relationship": null,
+      "benchmark_scores": {
+        "hfopenllm_v2/IFEval": 0.7874,
+        "hfopenllm_v2/BBH": 0.6076,
+        "hfopenllm_v2/MATH Level 5": 0.2145,
+        "hfopenllm_v2/GPQA": 0.3523,
+        "hfopenllm_v2/MUSR": 0.4244,
+        "hfopenllm_v2/MMLU-PRO": 0.4323
+      }
+    },
+    {
+      "id": "zelk12/MT4-Gen5-gemma-2-9B",
+      "name": "MT4-Gen5-gemma-2-9B",
+      "developer": "zelk12",
+      "evaluator_relationship": null,
+      "benchmark_scores": {
+        "hfopenllm_v2/IFEval": 0.7789,
+        "hfopenllm_v2/BBH": 0.6107,
+        "hfopenllm_v2/MATH Level 5": 0.2266,
+        "hfopenllm_v2/GPQA": 0.3565,
+        "hfopenllm_v2/MUSR": 0.4268,
+        "hfopenllm_v2/MMLU-PRO": 0.4384
+      }
+    },
+    {
+      "id": "zelk12/MT4-Max-Merge_02012025163610-gemma-2-9B",
+      "name": "MT4-Max-Merge_02012025163610-gemma-2-9B",
+      "developer": "zelk12",
+      "evaluator_relationship": null,
+      "benchmark_scores": {
+        "hfopenllm_v2/IFEval": 0.1771,
+        "hfopenllm_v2/BBH": 0.612,
+        "hfopenllm_v2/MATH Level 5": 0.0952,
+        "hfopenllm_v2/GPQA": 0.3515,
+        "hfopenllm_v2/MUSR": 0.4228,
+        "hfopenllm_v2/MMLU-PRO": 0.4391
+      }
+    },
+    {
+      "id": "zelk12/MT4-gemma-2-9B",
+      "name": "MT4-gemma-2-9B",
+      "developer": "zelk12",
+      "evaluator_relationship": null,
+      "benchmark_scores": {
+        "hfopenllm_v2/IFEval": 0.7762,
+        "hfopenllm_v2/BBH": 0.6073,
+        "hfopenllm_v2/MATH Level 5": 0.2085,
+        "hfopenllm_v2/GPQA": 0.3381,
+        "hfopenllm_v2/MUSR": 0.4309,
+        "hfopenllm_v2/MMLU-PRO": 0.4366
+      }
+    },
+    {
+      "id": "zelk12/MT5-Gen1-gemma-2-9B",
+      "name": "MT5-Gen1-gemma-2-9B",
+      "developer": "zelk12",
+      "evaluator_relationship": null,
+      "benchmark_scores": {
+        "hfopenllm_v2/IFEval": 0.7831,
+        "hfopenllm_v2/BBH": 0.611,
+        "hfopenllm_v2/MATH Level 5": 0.2213,
+        "hfopenllm_v2/GPQA": 0.3473,
+        "hfopenllm_v2/MUSR": 0.4204,
+        "hfopenllm_v2/MMLU-PRO": 0.4368
+      }
+    },
+    {
+      "id": "zelk12/MT5-Gen2-gemma-2-9B",
+      "name": "MT5-Gen2-gemma-2-9B",
+      "developer": "zelk12",
+      "evaluator_relationship": null,
+      "benchmark_scores": {
+        "hfopenllm_v2/IFEval": 0.7962,
+        "hfopenllm_v2/BBH": 0.6105,
+        "hfopenllm_v2/MATH Level 5": 0.2205,
+        "hfopenllm_v2/GPQA": 0.3515,
+        "hfopenllm_v2/MUSR": 0.4163,
+        "hfopenllm_v2/MMLU-PRO": 0.4379
+      }
+    },
+    {
+      "id": "zelk12/MT5-Gen3-gemma-2-9B",
+      "name": "MT5-Gen3-gemma-2-9B",
+      "developer": "zelk12",
+      "evaluator_relationship": null,
+      "benchmark_scores": {
+        "hfopenllm_v2/IFEval": 0.7825,
+        "hfopenllm_v2/BBH": 0.609,
+        "hfopenllm_v2/MATH Level 5": 0.2168,
+        "hfopenllm_v2/GPQA": 0.3515,
+        "hfopenllm_v2/MUSR": 0.4231,
+        "hfopenllm_v2/MMLU-PRO": 0.4375
+      }
+    },
+    {
+      "id": "zelk12/MT5-Gen4-gemma-2-9B",
+      "name": "MT5-Gen4-gemma-2-9B",
+      "developer": "zelk12",
+      "evaluator_relationship": null,
+      "benchmark_scores": {
+        "hfopenllm_v2/IFEval": 0.7835,
+        "hfopenllm_v2/BBH": 0.6131,
+        "hfopenllm_v2/MATH Level 5": 0.2243,
+        "hfopenllm_v2/GPQA": 0.3532,
+        "hfopenllm_v2/MUSR": 0.4228,
+        "hfopenllm_v2/MMLU-PRO": 0.4397
+      }
+    },
+    {
+      "id": "zelk12/MT5-Gen5-gemma-2-9B",
+      "name": "MT5-Gen5-gemma-2-9B",
+      "developer": "zelk12",
+      "evaluator_relationship": null,
+      "benchmark_scores": {
+        "hfopenllm_v2/IFEval": 0.7947,
+        "hfopenllm_v2/BBH": 0.6112,
+        "hfopenllm_v2/MATH Level 5": 0.2258,
+        "hfopenllm_v2/GPQA": 0.3482,
+        "hfopenllm_v2/MUSR": 0.4191,
+        "hfopenllm_v2/MMLU-PRO": 0.4329
+      }
+    },
+    {
+      "id": "zelk12/MT5-Max-Merge_02012025163610-gemma-2-9B",
+      "name": "MT5-Max-Merge_02012025163610-gemma-2-9B",
+      "developer": "zelk12",
+      "evaluator_relationship": null,
+      "benchmark_scores": {
+        "hfopenllm_v2/IFEval": 0.1762,
+        "hfopenllm_v2/BBH": 0.6127,
+        "hfopenllm_v2/MATH Level 5": 0.0982,
+        "hfopenllm_v2/GPQA": 0.3515,
+        "hfopenllm_v2/MUSR": 0.4228,
+        "hfopenllm_v2/MMLU-PRO": 0.439
+      }
+    },
+    {
+      "id": "zelk12/MT5-gemma-2-9B",
+      "name": "MT5-gemma-2-9B",
+      "developer": "zelk12",
+      "evaluator_relationship": null,
+      "benchmark_scores": {
+        "hfopenllm_v2/IFEval": 0.8048,
+        "hfopenllm_v2/BBH": 0.6112,
+        "hfopenllm_v2/MATH Level 5": 0.2258,
+        "hfopenllm_v2/GPQA": 0.3431,
+        "hfopenllm_v2/MUSR": 0.4204,
+        "hfopenllm_v2/MMLU-PRO": 0.4367
+      }
+    },
+    {
+      "id": "zelk12/MTM-Merge-gemma-2-9B",
+      "name": "MTM-Merge-gemma-2-9B",
+      "developer": "zelk12",
+      "evaluator_relationship": null,
+      "benchmark_scores": {
+        "hfopenllm_v2/IFEval": 0.7798,
+        "hfopenllm_v2/BBH": 0.6133,
+        "hfopenllm_v2/MATH Level 5": 0.2175,
+        "hfopenllm_v2/GPQA": 0.3549,
+        "hfopenllm_v2/MUSR": 0.4268,
+        "hfopenllm_v2/MMLU-PRO": 0.4388
+      }
+    },
+    {
+      "id": "zelk12/MTMaMe-Merge_02012025163610-gemma-2-9B",
+      "name": "MTMaMe-Merge_02012025163610-gemma-2-9B",
+      "developer": "zelk12",
+      "evaluator_relationship": null,
+      "benchmark_scores": {
+        "hfopenllm_v2/IFEval": 0.1786,
+        "hfopenllm_v2/BBH": 0.6117,
+        "hfopenllm_v2/MATH Level 5": 0.0959,
+        "hfopenllm_v2/GPQA": 0.3523,
+        "hfopenllm_v2/MUSR": 0.4241,
+        "hfopenllm_v2/MMLU-PRO": 0.4382
+      }
+    },
+    {
+      "id": "zelk12/Rv0.4DMv1t0.25-gemma-2-9B",
+      "name": "Rv0.4DMv1t0.25-gemma-2-9B",
+      "developer": "zelk12",
+      "evaluator_relationship": null,
+      "benchmark_scores": {
+        "hfopenllm_v2/IFEval": 0.7497,
+        "hfopenllm_v2/BBH": 0.607,
+        "hfopenllm_v2/MATH Level 5": 0.2258,
+        "hfopenllm_v2/GPQA": 0.3456,
+        "hfopenllm_v2/MUSR": 0.4309,
+        "hfopenllm_v2/MMLU-PRO": 0.4401
+      }
+    },
+    {
+      "id": "zelk12/Rv0.4DMv1t0.25Tt0.25-gemma-2-9B",
+      "name": "Rv0.4DMv1t0.25Tt0.25-gemma-2-9B",
+      "developer": "zelk12",
+      "evaluator_relationship": null,
+      "benchmark_scores": {
+        "hfopenllm_v2/IFEval": 0.7646,
+        "hfopenllm_v2/BBH": 0.6098,
+        "hfopenllm_v2/MATH Level 5": 0.2069,
+        "hfopenllm_v2/GPQA": 0.3423,
+        "hfopenllm_v2/MUSR": 0.4283,
+        "hfopenllm_v2/MMLU-PRO": 0.4347
+      }
+    },
+    {
+      "id": "zelk12/Rv0.4MT4g2-gemma-2-9B",
+      "name": "Rv0.4MT4g2-gemma-2-9B",
+      "developer": "zelk12",
+      "evaluator_relationship": null,
+      "benchmark_scores": {
+        "hfopenllm_v2/IFEval": 0.732,
+        "hfopenllm_v2/BBH": 0.6041,
+        "hfopenllm_v2/MATH Level 5": 0.1949,
+        "hfopenllm_v2/GPQA": 0.3532,
+        "hfopenllm_v2/MUSR": 0.4231,
+        "hfopenllm_v2/MMLU-PRO": 0.4417
+      }
+    },
+    {
+      "id": "zelk12/T31122024203920-gemma-2-9B",
+      "name": "T31122024203920-gemma-2-9B",
+      "developer": "zelk12",
+      "evaluator_relationship": null,
+      "benchmark_scores": {
+        "hfopenllm_v2/IFEval": 0.7676,
+        "hfopenllm_v2/BBH": 0.6096,
+        "hfopenllm_v2/MATH Level 5": 0.2054,
+        "hfopenllm_v2/GPQA": 0.3507,
+        "hfopenllm_v2/MUSR": 0.4322,
+        "hfopenllm_v2/MMLU-PRO": 0.4373
+      }
+    },
+    {
+      "id": "zelk12/Test01012025155054",
+      "name": "Test01012025155054",
+      "developer": "zelk12",
+      "evaluator_relationship": null,
+      "benchmark_scores": {
+        "hfopenllm_v2/IFEval": 0.1555,
+        "hfopenllm_v2/BBH": 0.283,
+        "hfopenllm_v2/MATH Level 5": 0.0,
+        "hfopenllm_v2/GPQA": 0.2416,
+        "hfopenllm_v2/MUSR": 0.367,
+        "hfopenllm_v2/MMLU-PRO": 0.109
+      }
+    },
+    {
+      "id": "zelk12/Test01012025155054t0.5_gemma-2",
+      "name": "Test01012025155054t0.5_gemma-2",
+      "developer": "zelk12",
+      "evaluator_relationship": null,
+      "benchmark_scores": {
+        "hfopenllm_v2/IFEval": 0.1555,
+        "hfopenllm_v2/BBH": 0.283,
+        "hfopenllm_v2/MATH Level 5": 0.0,
+        "hfopenllm_v2/GPQA": 0.2416,
+        "hfopenllm_v2/MUSR": 0.367,
+        "hfopenllm_v2/MMLU-PRO": 0.109
+      }
+    },
+    {
+      "id": "zelk12/gemma-2-S2MTM-9B",
+      "name": "gemma-2-S2MTM-9B",
+      "developer": "zelk12",
+      "evaluator_relationship": null,
+      "benchmark_scores": {
+        "hfopenllm_v2/IFEval": 0.7823,
+        "hfopenllm_v2/BBH": 0.6061,
+        "hfopenllm_v2/MATH Level 5": 0.2047,
+        "hfopenllm_v2/GPQA": 0.3456,
+        "hfopenllm_v2/MUSR": 0.4218,
+        "hfopenllm_v2/MMLU-PRO": 0.4297
+      }
+    },
+    {
+      "id": "zelk12/recoilme-gemma-2-Ataraxy-9B-v0.1",
+      "name": "recoilme-gemma-2-Ataraxy-9B-v0.1",
+      "developer": "zelk12",
+      "evaluator_relationship": null,
+      "benchmark_scores": {
+        "hfopenllm_v2/IFEval": 0.7649,
+        "hfopenllm_v2/BBH": 0.6075,
+        "hfopenllm_v2/MATH Level 5": 0.2281,
+        "hfopenllm_v2/GPQA": 0.3498,
+        "hfopenllm_v2/MUSR": 0.4136,
+        "hfopenllm_v2/MMLU-PRO": 0.4321
+      }
+    },
+    {
+      "id": "zelk12/recoilme-gemma-2-Ataraxy-9B-v0.1-t0.25",
+      "name": "recoilme-gemma-2-Ataraxy-9B-v0.1-t0.25",
+      "developer": "zelk12",
+      "evaluator_relationship": null,
+      "benchmark_scores": {
+        "hfopenllm_v2/IFEval": 0.7707,
+        "hfopenllm_v2/BBH": 0.6075,
+        "hfopenllm_v2/MATH Level 5": 0.2145,
+        "hfopenllm_v2/GPQA": 0.3431,
+        "hfopenllm_v2/MUSR": 0.4323,
+        "hfopenllm_v2/MMLU-PRO": 0.44
+      }
+    },
+    {
+      "id": "zelk12/recoilme-gemma-2-Ataraxy-9B-v0.1-t0.75",
+      "name": "recoilme-gemma-2-Ataraxy-9B-v0.1-t0.75",
+      "developer": "zelk12",
+      "evaluator_relationship": null,
+      "benchmark_scores": {
+        "hfopenllm_v2/IFEval": 0.7208,
+        "hfopenllm_v2/BBH": 0.5995,
+        "hfopenllm_v2/MATH Level 5": 0.2017,
+        "hfopenllm_v2/GPQA": 0.3498,
+        "hfopenllm_v2/MUSR": 0.3951,
+        "hfopenllm_v2/MMLU-PRO": 0.4141
+      }
+    },
+    {
+      "id": "zelk12/recoilme-gemma-2-Ataraxy-9B-v0.2",
+      "name": "recoilme-gemma-2-Ataraxy-9B-v0.2",
+      "developer": "zelk12",
+      "evaluator_relationship": null,
+      "benchmark_scores": {
+        "hfopenllm_v2/IFEval": 0.76,
+        "hfopenllm_v2/BBH": 0.6066,
+        "hfopenllm_v2/MATH Level 5": 0.2228,
+        "hfopenllm_v2/GPQA": 0.3482,
+        "hfopenllm_v2/MUSR": 0.411,
+        "hfopenllm_v2/MMLU-PRO": 0.4323
+      }
+    },
+    {
+      "id": "zelk12/recoilme-gemma-2-Gutenberg-Doppel-9B-v0.1",
+      "name": "recoilme-gemma-2-Gutenberg-Doppel-9B-v0.1",
+      "developer": "zelk12",
+      "evaluator_relationship": null,
+      "benchmark_scores": {
+        "hfopenllm_v2/IFEval": 0.7615,
+        "hfopenllm_v2/BBH": 0.6099,
+        "hfopenllm_v2/MATH Level 5": 0.21,
+        "hfopenllm_v2/GPQA": 0.3414,
+        "hfopenllm_v2/MUSR": 0.431,
+        "hfopenllm_v2/MMLU-PRO": 0.4315
+      }
+    },
+    {
+      "id": "zelk12/recoilme-gemma-2-Ifable-9B-v0.1",
+      "name": "recoilme-gemma-2-Ifable-9B-v0.1",
+      "developer": "zelk12",
+      "evaluator_relationship": null,
+      "benchmark_scores": {
+        "hfopenllm_v2/IFEval": 0.7944,
+        "hfopenllm_v2/BBH": 0.6064,
+        "hfopenllm_v2/MATH Level 5": 0.2205,
+        "hfopenllm_v2/GPQA": 0.3515,
+        "hfopenllm_v2/MUSR": 0.4202,
+        "hfopenllm_v2/MMLU-PRO": 0.4323
+      }
+    },
+    {
+      "id": "zelk12/recoilme-gemma-2-psy10k-mental_healt-9B-v0.1",
+      "name": "recoilme-gemma-2-psy10k-mental_healt-9B-v0.1",
+      "developer": "zelk12",
+      "evaluator_relationship": null,
+      "benchmark_scores": {
+        "hfopenllm_v2/IFEval": 0.7445,
+        "hfopenllm_v2/BBH": 0.5978,
+        "hfopenllm_v2/MATH Level 5": 0.1888,
+        "hfopenllm_v2/GPQA": 0.344,
+        "hfopenllm_v2/MUSR": 0.4295,
+        "hfopenllm_v2/MMLU-PRO": 0.4181
+      }
+    }
+  ]
+}

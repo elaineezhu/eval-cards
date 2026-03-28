@@ -1,0 +1,103 @@
+{
+  "developer": "uukuguy",
+  "models": [
+    {
+      "id": "uukuguy/speechless-code-mistral-7b-v1.0",
+      "name": "speechless-code-mistral-7b-v1.0",
+      "developer": "uukuguy",
+      "evaluator_relationship": null,
+      "benchmark_scores": {
+        "hfopenllm_v2/IFEval": 0.3665,
+        "hfopenllm_v2/BBH": 0.4572,
+        "hfopenllm_v2/MATH Level 5": 0.0521,
+        "hfopenllm_v2/GPQA": 0.2844,
+        "hfopenllm_v2/MUSR": 0.4502,
+        "hfopenllm_v2/MMLU-PRO": 0.3146
+      }
+    },
+    {
+      "id": "uukuguy/speechless-codellama-34b-v2.0",
+      "name": "speechless-codellama-34b-v2.0",
+      "developer": "uukuguy",
+      "evaluator_relationship": null,
+      "benchmark_scores": {
+        "hfopenllm_v2/IFEval": 0.4604,
+        "hfopenllm_v2/BBH": 0.4813,
+        "hfopenllm_v2/MATH Level 5": 0.0431,
+        "hfopenllm_v2/GPQA": 0.2693,
+        "hfopenllm_v2/MUSR": 0.3787,
+        "hfopenllm_v2/MMLU-PRO": 0.2542
+      }
+    },
+    {
+      "id": "uukuguy/speechless-coder-ds-6.7b",
+      "name": "speechless-coder-ds-6.7b",
+      "developer": "uukuguy",
+      "evaluator_relationship": null,
+      "benchmark_scores": {
+        "hfopenllm_v2/IFEval": 0.2505,
+        "hfopenllm_v2/BBH": 0.4036,
+        "hfopenllm_v2/MATH Level 5": 0.0211,
+        "hfopenllm_v2/GPQA": 0.2643,
+        "hfopenllm_v2/MUSR": 0.3819,
+        "hfopenllm_v2/MMLU-PRO": 0.1719
+      }
+    },
+    {
+      "id": "uukuguy/speechless-instruct-mistral-7b-v0.2",
+      "name": "speechless-instruct-mistral-7b-v0.2",
+      "developer": "uukuguy",
+      "evaluator_relationship": null,
+      "benchmark_scores": {
+        "hfopenllm_v2/IFEval": 0.3261,
+        "hfopenllm_v2/BBH": 0.4607,
+        "hfopenllm_v2/MATH Level 5": 0.0491,
+        "hfopenllm_v2/GPQA": 0.2819,
+        "hfopenllm_v2/MUSR": 0.4902,
+        "hfopenllm_v2/MMLU-PRO": 0.2902
+      }
+    },
+    {
+      "id": "uukuguy/speechless-llama2-hermes-orca-platypus-wizardlm-13b",
+      "name": "speechless-llama2-hermes-orca-platypus-wizardlm-13b",
+      "developer": "uukuguy",
+      "evaluator_relationship": null,
+      "benchmark_scores": {
+        "hfopenllm_v2/IFEval": 0.4562,
+        "hfopenllm_v2/BBH": 0.4846,
+        "hfopenllm_v2/MATH Level 5": 0.0204,
+        "hfopenllm_v2/GPQA": 0.2701,
+        "hfopenllm_v2/MUSR": 0.4655,
+        "hfopenllm_v2/MMLU-PRO": 0.2559
+      }
+    },
+    {
+      "id": "uukuguy/speechless-mistral-dolphin-orca-platypus-samantha-7b",
+      "name": "speechless-mistral-dolphin-orca-platypus-samantha-7b",
+      "developer": "uukuguy",
+      "evaluator_relationship": null,
+      "benchmark_scores": {
+        "hfopenllm_v2/IFEval": 0.37,
+        "hfopenllm_v2/BBH": 0.4983,
+        "hfopenllm_v2/MATH Level 5": 0.0295,
+        "hfopenllm_v2/GPQA": 0.2836,
+        "hfopenllm_v2/MUSR": 0.4361,
+        "hfopenllm_v2/MMLU-PRO": 0.299
+      }
+    },
+    {
+      "id": "uukuguy/speechless-zephyr-code-functionary-7b",
+      "name": "speechless-zephyr-code-functionary-7b",
+      "developer": "uukuguy",
+      "evaluator_relationship": null,
+      "benchmark_scores": {
+        "hfopenllm_v2/IFEval": 0.2696,
+        "hfopenllm_v2/BBH": 0.4664,
+        "hfopenllm_v2/MATH Level 5": 0.0423,
+        "hfopenllm_v2/GPQA": 0.3003,
+        "hfopenllm_v2/MUSR": 0.4268,
+        "hfopenllm_v2/MMLU-PRO": 0.3094
+      }
+    }
+  ]
+}

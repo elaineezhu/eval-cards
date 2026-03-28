@@ -1,0 +1,51 @@
+{
+  "developer": "eleutherai",
+  "models": [
+    {
+      "id": "eleutherai/Pythia-12B",
+      "name": "Pythia 12B",
+      "developer": "eleutherai",
+      "evaluator_relationship": null,
+      "benchmark_scores": {
+        "helm_classic/Mean win rate": 0.257,
+        "helm_classic/MMLU": 0.274,
+        "helm_classic/BoolQ": 0.662,
+        "helm_classic/NarrativeQA": 0.596,
+        "helm_classic/NaturalQuestions (open-book)": 0.581,
+        "helm_classic/QuAC": 0.313,
+        "helm_classic/HellaSwag": -1.0,
+        "helm_classic/OpenbookQA": -1.0,
+        "helm_classic/TruthfulQA": 0.177,
+        "helm_classic/MS MARCO (TREC)": -1.0,
+        "helm_classic/CNN/DailyMail": -1.0,
+        "helm_classic/XSUM": -1.0,
+        "helm_classic/IMDB": 0.931,
+        "helm_classic/CivilComments": 0.531,
+        "helm_classic/RAFT": 0.514
+      }
+    },
+    {
+      "id": "eleutherai/Pythia-6.9B",
+      "name": "Pythia 6.9B",
+      "developer": "eleutherai",
+      "evaluator_relationship": null,
+      "benchmark_scores": {
+        "helm_classic/Mean win rate": 0.196,
+        "helm_classic/MMLU": 0.236,
+        "helm_classic/BoolQ": 0.631,
+        "helm_classic/NarrativeQA": 0.528,
+        "helm_classic/NaturalQuestions (open-book)": 0.539,
+        "helm_classic/QuAC": 0.296,
+        "helm_classic/HellaSwag": -1.0,
+        "helm_classic/OpenbookQA": -1.0,
+        "helm_classic/TruthfulQA": 0.213,
+        "helm_classic/MS MARCO (TREC)": -1.0,
+        "helm_classic/CNN/DailyMail": -1.0,
+        "helm_classic/XSUM": -1.0,
+        "helm_classic/IMDB": 0.928,
+        "helm_classic/CivilComments": 0.511,
+        "helm_classic/RAFT": 0.502
+      }
+    }
+  ]
+}

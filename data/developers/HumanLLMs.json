@@ -1,0 +1,47 @@
+{
+  "developer": "HumanLLMs",
+  "models": [
+    {
+      "id": "HumanLLMs/Humanish-LLama3-8B-Instruct",
+      "name": "Humanish-LLama3-8B-Instruct",
+      "developer": "HumanLLMs",
+      "evaluator_relationship": null,
+      "benchmark_scores": {
+        "hfopenllm_v2/IFEval": 0.6498,
+        "hfopenllm_v2/BBH": 0.4968,
+        "hfopenllm_v2/MATH Level 5": 0.1027,
+        "hfopenllm_v2/GPQA": 0.2559,
+        "hfopenllm_v2/MUSR": 0.3582,
+        "hfopenllm_v2/MMLU-PRO": 0.3702
+      }
+    },
+    {
+      "id": "HumanLLMs/Humanish-Mistral-Nemo-Instruct-2407",
+      "name": "Humanish-Mistral-Nemo-Instruct-2407",
+      "developer": "HumanLLMs",
+      "evaluator_relationship": null,
+      "benchmark_scores": {
+        "hfopenllm_v2/IFEval": 0.5451,
+        "hfopenllm_v2/BBH": 0.5262,
+        "hfopenllm_v2/MATH Level 5": 0.1367,
+        "hfopenllm_v2/GPQA": 0.2878,
+        "hfopenllm_v2/MUSR": 0.3968,
+        "hfopenllm_v2/MMLU-PRO": 0.3521
+      }
+    },
+    {
+      "id": "HumanLLMs/Humanish-Qwen2.5-7B-Instruct",
+      "name": "Humanish-Qwen2.5-7B-Instruct",
+      "developer": "HumanLLMs",
+      "evaluator_relationship": null,
+      "benchmark_scores": {
+        "hfopenllm_v2/IFEval": 0.7284,
+        "hfopenllm_v2/BBH": 0.5364,
+        "hfopenllm_v2/MATH Level 5": 0.5,
+        "hfopenllm_v2/GPQA": 0.2987,
+        "hfopenllm_v2/MUSR": 0.3981,
+        "hfopenllm_v2/MMLU-PRO": 0.4398
+      }
+    }
+  ]
+}

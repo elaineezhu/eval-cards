@@ -1,0 +1,19 @@
+{
+  "developer": "securin",
+  "models": [
+    {
+      "id": "securin/Securin-LLM-V2.5-Qwen-1.5B",
+      "name": "Securin-LLM-V2.5-Qwen-1.5B",
+      "developer": "securin",
+      "evaluator_relationship": null,
+      "benchmark_scores": {
+        "hfopenllm_v2/IFEval": 0.1492,
+        "hfopenllm_v2/BBH": 0.3158,
+        "hfopenllm_v2/MATH Level 5": 0.0249,
+        "hfopenllm_v2/GPQA": 0.25,
+        "hfopenllm_v2/MUSR": 0.3606,
+        "hfopenllm_v2/MMLU-PRO": 0.1615
+      }
+    }
+  ]
+}

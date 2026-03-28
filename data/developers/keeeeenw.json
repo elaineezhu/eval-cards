@@ -1,0 +1,19 @@
+{
+  "developer": "keeeeenw",
+  "models": [
+    {
+      "id": "keeeeenw/MicroLlama",
+      "name": "MicroLlama",
+      "developer": "keeeeenw",
+      "evaluator_relationship": null,
+      "benchmark_scores": {
+        "hfopenllm_v2/IFEval": 0.1985,
+        "hfopenllm_v2/BBH": 0.3007,
+        "hfopenllm_v2/MATH Level 5": 0.0113,
+        "hfopenllm_v2/GPQA": 0.2609,
+        "hfopenllm_v2/MUSR": 0.3698,
+        "hfopenllm_v2/MMLU-PRO": 0.1138
+      }
+    }
+  ]
+}

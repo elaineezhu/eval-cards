@@ -1,0 +1,19 @@
+{
+  "developer": "adriszmar",
+  "models": [
+    {
+      "id": "adriszmar/QAIMath-Qwen2.5-7B-TIES",
+      "name": "QAIMath-Qwen2.5-7B-TIES",
+      "developer": "adriszmar",
+      "evaluator_relationship": null,
+      "benchmark_scores": {
+        "hfopenllm_v2/IFEval": 0.1685,
+        "hfopenllm_v2/BBH": 0.3124,
+        "hfopenllm_v2/MATH Level 5": 0.0015,
+        "hfopenllm_v2/GPQA": 0.2492,
+        "hfopenllm_v2/MUSR": 0.3963,
+        "hfopenllm_v2/MMLU-PRO": 0.1066
+      }
+    }
+  ]
+}

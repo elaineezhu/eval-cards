@@ -1,0 +1,18 @@
+{
+  "developer": "my_model",
+  "models": [
+    {
+      "id": "my_model/",
+      "name": "my_model/",
+      "developer": "my_model",
+      "evaluator_relationship": null,
+      "benchmark_scores": {
+        "reward-bench/Score": 0.5267,
+        "reward-bench/Chat": 0.4553,
+        "reward-bench/Chat Hard": 0.5592,
+        "reward-bench/Safety": 0.4392,
+        "reward-bench/Reasoning": 0.6532
+      }
+    }
+  ]
+}

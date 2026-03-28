@@ -1,0 +1,19 @@
+{
+  "developer": "mhl1",
+  "models": [
+    {
+      "id": "mhl1/Qwen2.5-0.5B-cinstruct-stage1",
+      "name": "Qwen2.5-0.5B-cinstruct-stage1",
+      "developer": "mhl1",
+      "evaluator_relationship": null,
+      "benchmark_scores": {
+        "hfopenllm_v2/IFEval": 0.1482,
+        "hfopenllm_v2/BBH": 0.3256,
+        "hfopenllm_v2/MATH Level 5": 0.0128,
+        "hfopenllm_v2/GPQA": 0.2651,
+        "hfopenllm_v2/MUSR": 0.35,
+        "hfopenllm_v2/MMLU-PRO": 0.1139
+      }
+    }
+  ]
+}

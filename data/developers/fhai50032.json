@@ -1,0 +1,33 @@
+{
+  "developer": "fhai50032",
+  "models": [
+    {
+      "id": "fhai50032/RolePlayLake-7B",
+      "name": "RolePlayLake-7B",
+      "developer": "fhai50032",
+      "evaluator_relationship": null,
+      "benchmark_scores": {
+        "hfopenllm_v2/IFEval": 0.5057,
+        "hfopenllm_v2/BBH": 0.5252,
+        "hfopenllm_v2/MATH Level 5": 0.0725,
+        "hfopenllm_v2/GPQA": 0.3037,
+        "hfopenllm_v2/MUSR": 0.4459,
+        "hfopenllm_v2/MMLU-PRO": 0.316
+      }
+    },
+    {
+      "id": "fhai50032/Unaligned-Thinker-PHI-4",
+      "name": "Unaligned-Thinker-PHI-4",
+      "developer": "fhai50032",
+      "evaluator_relationship": null,
+      "benchmark_scores": {
+        "hfopenllm_v2/IFEval": 0.0563,
+        "hfopenllm_v2/BBH": 0.6643,
+        "hfopenllm_v2/MATH Level 5": 0.3353,
+        "hfopenllm_v2/GPQA": 0.3809,
+        "hfopenllm_v2/MUSR": 0.4679,
+        "hfopenllm_v2/MMLU-PRO": 0.5147
+      }
+    }
+  ]
+}

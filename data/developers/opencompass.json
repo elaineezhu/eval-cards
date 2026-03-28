@@ -1,0 +1,57 @@
+{
+  "developer": "opencompass",
+  "models": [
+    {
+      "id": "opencompass/CompassJudger-1-1.5B-Instruct",
+      "name": "opencompass/CompassJudger-1-1.5B-Instruct",
+      "developer": "opencompass",
+      "evaluator_relationship": null,
+      "benchmark_scores": {
+        "reward-bench/Score": 0.7344,
+        "reward-bench/Chat": 0.9637,
+        "reward-bench/Chat Hard": 0.4923,
+        "reward-bench/Safety": 0.7818,
+        "reward-bench/Reasoning": 0.6999
+      }
+    },
+    {
+      "id": "opencompass/CompassJudger-1-14B-Instruct",
+      "name": "opencompass/CompassJudger-1-14B-Instruct",
+      "developer": "opencompass",
+      "evaluator_relationship": null,
+      "benchmark_scores": {
+        "reward-bench/Score": 0.8409,
+        "reward-bench/Chat": 0.9749,
+        "reward-bench/Chat Hard": 0.6228,
+        "reward-bench/Safety": 0.8392,
+        "reward-bench/Reasoning": 0.9268
+      }
+    },
+    {
+      "id": "opencompass/CompassJudger-1-32B-Instruct",
+      "name": "opencompass/CompassJudger-1-32B-Instruct",
+      "developer": "opencompass",
+      "evaluator_relationship": null,
+      "benchmark_scores": {
+        "reward-bench/Score": 0.8522,
+        "reward-bench/Chat": 0.9804,
+        "reward-bench/Chat Hard": 0.6513,
+        "reward-bench/Safety": 0.8527,
+        "reward-bench/Reasoning": 0.9244
+      }
+    },
+    {
+      "id": "opencompass/CompassJudger-1-7B-Instruct",
+      "name": "opencompass/CompassJudger-1-7B-Instruct",
+      "developer": "opencompass",
+      "evaluator_relationship": null,
+      "benchmark_scores": {
+        "reward-bench/Score": 0.8317,
+        "reward-bench/Chat": 0.9777,
+        "reward-bench/Chat Hard": 0.6096,
+        "reward-bench/Safety": 0.8446,
+        "reward-bench/Reasoning": 0.8948
+      }
+    }
+  ]
+}

@@ -1,0 +1,19 @@
+{
+  "developer": "waqasali1707",
+  "models": [
+    {
+      "id": "waqasali1707/Beast-Soul-new",
+      "name": "Beast-Soul-new",
+      "developer": "waqasali1707",
+      "evaluator_relationship": null,
+      "benchmark_scores": {
+        "hfopenllm_v2/IFEval": 0.503,
+        "hfopenllm_v2/BBH": 0.5225,
+        "hfopenllm_v2/MATH Level 5": 0.0702,
+        "hfopenllm_v2/GPQA": 0.2827,
+        "hfopenllm_v2/MUSR": 0.4486,
+        "hfopenllm_v2/MMLU-PRO": 0.3108
+      }
+    }
+  ]
+}

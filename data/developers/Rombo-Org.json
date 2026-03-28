@@ -1,0 +1,19 @@
+{
+  "developer": "Rombo-Org",
+  "models": [
+    {
+      "id": "Rombo-Org/Rombo-LLM-V2.5-Qwen-7b",
+      "name": "Rombo-LLM-V2.5-Qwen-7b",
+      "developer": "Rombo-Org",
+      "evaluator_relationship": null,
+      "benchmark_scores": {
+        "hfopenllm_v2/IFEval": 0.7482,
+        "hfopenllm_v2/BBH": 0.54,
+        "hfopenllm_v2/MATH Level 5": 0.5068,
+        "hfopenllm_v2/GPQA": 0.3012,
+        "hfopenllm_v2/MUSR": 0.398,
+        "hfopenllm_v2/MMLU-PRO": 0.4283
+      }
+    }
+  ]
+}

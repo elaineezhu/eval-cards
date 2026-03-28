@@ -1,0 +1,47 @@
+{
+  "developer": "bigcode",
+  "models": [
+    {
+      "id": "bigcode/starcoder2-15b",
+      "name": "starcoder2-15b",
+      "developer": "bigcode",
+      "evaluator_relationship": null,
+      "benchmark_scores": {
+        "hfopenllm_v2/IFEval": 0.278,
+        "hfopenllm_v2/BBH": 0.4448,
+        "hfopenllm_v2/MATH Level 5": 0.0597,
+        "hfopenllm_v2/GPQA": 0.2735,
+        "hfopenllm_v2/MUSR": 0.3501,
+        "hfopenllm_v2/MMLU-PRO": 0.2353
+      }
+    },
+    {
+      "id": "bigcode/starcoder2-3b",
+      "name": "starcoder2-3b",
+      "developer": "bigcode",
+      "evaluator_relationship": null,
+      "benchmark_scores": {
+        "hfopenllm_v2/IFEval": 0.2037,
+        "hfopenllm_v2/BBH": 0.3509,
+        "hfopenllm_v2/MATH Level 5": 0.0151,
+        "hfopenllm_v2/GPQA": 0.2441,
+        "hfopenllm_v2/MUSR": 0.3435,
+        "hfopenllm_v2/MMLU-PRO": 0.1636
+      }
+    },
+    {
+      "id": "bigcode/starcoder2-7b",
+      "name": "starcoder2-7b",
+      "developer": "bigcode",
+      "evaluator_relationship": null,
+      "benchmark_scores": {
+        "hfopenllm_v2/IFEval": 0.2209,
+        "hfopenllm_v2/BBH": 0.3661,
+        "hfopenllm_v2/MATH Level 5": 0.031,
+        "hfopenllm_v2/GPQA": 0.2517,
+        "hfopenllm_v2/MUSR": 0.3793,
+        "hfopenllm_v2/MMLU-PRO": 0.1642
+      }
+    }
+  ]
+}

@@ -1,0 +1,19 @@
+{
+  "developer": "wannaphong",
+  "models": [
+    {
+      "id": "wannaphong/KhanomTanLLM-Instruct",
+      "name": "KhanomTanLLM-Instruct",
+      "developer": "wannaphong",
+      "evaluator_relationship": null,
+      "benchmark_scores": {
+        "hfopenllm_v2/IFEval": 0.1621,
+        "hfopenllm_v2/BBH": 0.3093,
+        "hfopenllm_v2/MATH Level 5": 0.0136,
+        "hfopenllm_v2/GPQA": 0.2634,
+        "hfopenllm_v2/MUSR": 0.3701,
+        "hfopenllm_v2/MMLU-PRO": 0.1119
+      }
+    }
+  ]
+}

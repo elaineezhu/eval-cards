@@ -1,0 +1,33 @@
+{
+  "developer": "mrm8488",
+  "models": [
+    {
+      "id": "mrm8488/phi-4-14B-grpo-gsm8k-3e",
+      "name": "phi-4-14B-grpo-gsm8k-3e",
+      "developer": "mrm8488",
+      "evaluator_relationship": null,
+      "benchmark_scores": {
+        "hfopenllm_v2/IFEval": 0.6885,
+        "hfopenllm_v2/BBH": 0.6805,
+        "hfopenllm_v2/MATH Level 5": 0.4524,
+        "hfopenllm_v2/GPQA": 0.3356,
+        "hfopenllm_v2/MUSR": 0.3994,
+        "hfopenllm_v2/MMLU-PRO": 0.5268
+      }
+    },
+    {
+      "id": "mrm8488/phi-4-14B-grpo-limo",
+      "name": "phi-4-14B-grpo-limo",
+      "developer": "mrm8488",
+      "evaluator_relationship": null,
+      "benchmark_scores": {
+        "hfopenllm_v2/IFEval": 0.6812,
+        "hfopenllm_v2/BBH": 0.6785,
+        "hfopenllm_v2/MATH Level 5": 0.4569,
+        "hfopenllm_v2/GPQA": 0.3364,
+        "hfopenllm_v2/MUSR": 0.3981,
+        "hfopenllm_v2/MMLU-PRO": 0.5261
+      }
+    }
+  ]
+}

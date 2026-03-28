@@ -1,0 +1,19 @@
+{
+  "developer": "shastraai",
+  "models": [
+    {
+      "id": "shastraai/Shastra-LLAMA2-Math-Commonsense-SFT",
+      "name": "Shastra-LLAMA2-Math-Commonsense-SFT",
+      "developer": "shastraai",
+      "evaluator_relationship": null,
+      "benchmark_scores": {
+        "hfopenllm_v2/IFEval": 0.3042,
+        "hfopenllm_v2/BBH": 0.3843,
+        "hfopenllm_v2/MATH Level 5": 0.0174,
+        "hfopenllm_v2/GPQA": 0.2592,
+        "hfopenllm_v2/MUSR": 0.3604,
+        "hfopenllm_v2/MMLU-PRO": 0.1997
+      }
+    }
+  ]
+}

@@ -1,0 +1,19 @@
+{
+  "developer": "mindw96",
+  "models": [
+    {
+      "id": "mindw96/DeepSeek-llama3.3-Bllossom-8B-DACON-LLM3",
+      "name": "DeepSeek-llama3.3-Bllossom-8B-DACON-LLM3",
+      "developer": "mindw96",
+      "evaluator_relationship": null,
+      "benchmark_scores": {
+        "hfopenllm_v2/IFEval": 0.1388,
+        "hfopenllm_v2/BBH": 0.3068,
+        "hfopenllm_v2/MATH Level 5": 0.0083,
+        "hfopenllm_v2/GPQA": 0.2508,
+        "hfopenllm_v2/MUSR": 0.3792,
+        "hfopenllm_v2/MMLU-PRO": 0.1106
+      }
+    }
+  ]
+}

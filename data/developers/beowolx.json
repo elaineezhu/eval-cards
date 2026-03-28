@@ -1,0 +1,19 @@
+{
+  "developer": "beowolx",
+  "models": [
+    {
+      "id": "beowolx/CodeNinja-1.0-OpenChat-7B",
+      "name": "CodeNinja-1.0-OpenChat-7B",
+      "developer": "beowolx",
+      "evaluator_relationship": null,
+      "benchmark_scores": {
+        "hfopenllm_v2/IFEval": 0.5447,
+        "hfopenllm_v2/BBH": 0.4441,
+        "hfopenllm_v2/MATH Level 5": 0.0672,
+        "hfopenllm_v2/GPQA": 0.2945,
+        "hfopenllm_v2/MUSR": 0.4243,
+        "hfopenllm_v2/MMLU-PRO": 0.3015
+      }
+    }
+  ]
+}

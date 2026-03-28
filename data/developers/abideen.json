@@ -1,0 +1,19 @@
+{
+  "developer": "abideen",
+  "models": [
+    {
+      "id": "abideen/MedPhi-4-14B-v1",
+      "name": "MedPhi-4-14B-v1",
+      "developer": "abideen",
+      "evaluator_relationship": null,
+      "benchmark_scores": {
+        "hfopenllm_v2/IFEval": 0.6277,
+        "hfopenllm_v2/BBH": 0.6897,
+        "hfopenllm_v2/MATH Level 5": 0.2931,
+        "hfopenllm_v2/GPQA": 0.344,
+        "hfopenllm_v2/MUSR": 0.4155,
+        "hfopenllm_v2/MMLU-PRO": 0.5338
+      }
+    }
+  ]
+}

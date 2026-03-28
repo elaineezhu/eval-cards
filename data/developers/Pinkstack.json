@@ -1,0 +1,61 @@
+{
+  "developer": "Pinkstack",
+  "models": [
+    {
+      "id": "Pinkstack/PARM-V1.5-base-QwQ-Qwen-2.5-o1-3B",
+      "name": "PARM-V1.5-base-QwQ-Qwen-2.5-o1-3B",
+      "developer": "Pinkstack",
+      "evaluator_relationship": null,
+      "benchmark_scores": {
+        "hfopenllm_v2/IFEval": 0.5085,
+        "hfopenllm_v2/BBH": 0.4711,
+        "hfopenllm_v2/MATH Level 5": 0.1692,
+        "hfopenllm_v2/GPQA": 0.297,
+        "hfopenllm_v2/MUSR": 0.4479,
+        "hfopenllm_v2/MMLU-PRO": 0.3511
+      }
+    },
+    {
+      "id": "Pinkstack/SuperThoughts-CoT-14B-16k-o1-QwQ",
+      "name": "SuperThoughts-CoT-14B-16k-o1-QwQ",
+      "developer": "Pinkstack",
+      "evaluator_relationship": null,
+      "benchmark_scores": {
+        "hfopenllm_v2/IFEval": 0.0515,
+        "hfopenllm_v2/BBH": 0.672,
+        "hfopenllm_v2/MATH Level 5": 0.4199,
+        "hfopenllm_v2/GPQA": 0.3926,
+        "hfopenllm_v2/MUSR": 0.4914,
+        "hfopenllm_v2/MMLU-PRO": 0.5268
+      }
+    },
+    {
+      "id": "Pinkstack/Superthoughts-lite-1.8B-experimental-o1",
+      "name": "Superthoughts-lite-1.8B-experimental-o1",
+      "developer": "Pinkstack",
+      "evaluator_relationship": null,
+      "benchmark_scores": {
+        "hfopenllm_v2/IFEval": 0.0375,
+        "hfopenllm_v2/BBH": 0.3435,
+        "hfopenllm_v2/MATH Level 5": 0.0317,
+        "hfopenllm_v2/GPQA": 0.2752,
+        "hfopenllm_v2/MUSR": 0.3354,
+        "hfopenllm_v2/MMLU-PRO": 0.1851
+      }
+    },
+    {
+      "id": "Pinkstack/Superthoughts-lite-v1",
+      "name": "Superthoughts-lite-v1",
+      "developer": "Pinkstack",
+      "evaluator_relationship": null,
+      "benchmark_scores": {
+        "hfopenllm_v2/IFEval": 0.1659,
+        "hfopenllm_v2/BBH": 0.3466,
+        "hfopenllm_v2/MATH Level 5": 0.0295,
+        "hfopenllm_v2/GPQA": 0.281,
+        "hfopenllm_v2/MUSR": 0.3672,
+        "hfopenllm_v2/MMLU-PRO": 0.1755
+      }
+    }
+  ]
+}

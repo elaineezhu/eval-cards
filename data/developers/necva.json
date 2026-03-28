@@ -1,0 +1,33 @@
+{
+  "developer": "necva",
+  "models": [
+    {
+      "id": "necva/IE-cont-Llama3.1-8B",
+      "name": "IE-cont-Llama3.1-8B",
+      "developer": "necva",
+      "evaluator_relationship": null,
+      "benchmark_scores": {
+        "hfopenllm_v2/IFEval": 0.2049,
+        "hfopenllm_v2/BBH": 0.2912,
+        "hfopenllm_v2/MATH Level 5": 0.0,
+        "hfopenllm_v2/GPQA": 0.2601,
+        "hfopenllm_v2/MUSR": 0.3575,
+        "hfopenllm_v2/MMLU-PRO": 0.1167
+      }
+    },
+    {
+      "id": "necva/replica-IEPile",
+      "name": "replica-IEPile",
+      "developer": "necva",
+      "evaluator_relationship": null,
+      "benchmark_scores": {
+        "hfopenllm_v2/IFEval": 0.4678,
+        "hfopenllm_v2/BBH": 0.4779,
+        "hfopenllm_v2/MATH Level 5": 0.1239,
+        "hfopenllm_v2/GPQA": 0.3062,
+        "hfopenllm_v2/MUSR": 0.3998,
+        "hfopenllm_v2/MMLU-PRO": 0.3561
+      }
+    }
+  ]
+}

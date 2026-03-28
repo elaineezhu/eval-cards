@@ -1,0 +1,201 @@
+{
+  "developer": "rombodawg",
+  "models": [
+    {
+      "id": "rombodawg/Rombos-Coder-V2.5-Qwen-14b",
+      "name": "Rombos-Coder-V2.5-Qwen-14b",
+      "developer": "rombodawg",
+      "evaluator_relationship": null,
+      "benchmark_scores": {
+        "hfopenllm_v2/IFEval": 0.7047,
+        "hfopenllm_v2/BBH": 0.6165,
+        "hfopenllm_v2/MATH Level 5": 0.3301,
+        "hfopenllm_v2/GPQA": 0.3029,
+        "hfopenllm_v2/MUSR": 0.3915,
+        "hfopenllm_v2/MMLU-PRO": 0.3939
+      }
+    },
+    {
+      "id": "rombodawg/Rombos-Coder-V2.5-Qwen-7b",
+      "name": "Rombos-Coder-V2.5-Qwen-7b",
+      "developer": "rombodawg",
+      "evaluator_relationship": null,
+      "benchmark_scores": {
+        "hfopenllm_v2/IFEval": 0.621,
+        "hfopenllm_v2/BBH": 0.5077,
+        "hfopenllm_v2/MATH Level 5": 0.3338,
+        "hfopenllm_v2/GPQA": 0.2836,
+        "hfopenllm_v2/MUSR": 0.3979,
+        "hfopenllm_v2/MMLU-PRO": 0.3398
+      }
+    },
+    {
+      "id": "rombodawg/Rombos-LLM-V2.5-Qwen-0.5b",
+      "name": "Rombos-LLM-V2.5-Qwen-0.5b",
+      "developer": "rombodawg",
+      "evaluator_relationship": null,
+      "benchmark_scores": {
+        "hfopenllm_v2/IFEval": 0.2847,
+        "hfopenllm_v2/BBH": 0.3294,
+        "hfopenllm_v2/MATH Level 5": 0.068,
+        "hfopenllm_v2/GPQA": 0.2668,
+        "hfopenllm_v2/MUSR": 0.3236,
+        "hfopenllm_v2/MMLU-PRO": 0.1866
+      }
+    },
+    {
+      "id": "rombodawg/Rombos-LLM-V2.5-Qwen-1.5b",
+      "name": "Rombos-LLM-V2.5-Qwen-1.5b",
+      "developer": "rombodawg",
+      "evaluator_relationship": null,
+      "benchmark_scores": {
+        "hfopenllm_v2/IFEval": 0.3402,
+        "hfopenllm_v2/BBH": 0.4257,
+        "hfopenllm_v2/MATH Level 5": 0.0853,
+        "hfopenllm_v2/GPQA": 0.2886,
+        "hfopenllm_v2/MUSR": 0.4186,
+        "hfopenllm_v2/MMLU-PRO": 0.2922
+      }
+    },
+    {
+      "id": "rombodawg/Rombos-LLM-V2.5-Qwen-14b",
+      "name": "Rombos-LLM-V2.5-Qwen-14b",
+      "developer": "rombodawg",
+      "evaluator_relationship": null,
+      "benchmark_scores": {
+        "hfopenllm_v2/IFEval": 0.584,
+        "hfopenllm_v2/BBH": 0.6481,
+        "hfopenllm_v2/MATH Level 5": 0.4554,
+        "hfopenllm_v2/GPQA": 0.3716,
+        "hfopenllm_v2/MUSR": 0.4717,
+        "hfopenllm_v2/MMLU-PRO": 0.5376
+      }
+    },
+    {
+      "id": "rombodawg/Rombos-LLM-V2.5-Qwen-32b",
+      "name": "Rombos-LLM-V2.5-Qwen-32b",
+      "developer": "rombodawg",
+      "evaluator_relationship": null,
+      "benchmark_scores": {
+        "hfopenllm_v2/IFEval": 0.6827,
+        "hfopenllm_v2/BBH": 0.7046,
+        "hfopenllm_v2/MATH Level 5": 0.4955,
+        "hfopenllm_v2/GPQA": 0.3968,
+        "hfopenllm_v2/MUSR": 0.5034,
+        "hfopenllm_v2/MMLU-PRO": 0.5916
+      }
+    },
+    {
+      "id": "rombodawg/Rombos-LLM-V2.5-Qwen-3b",
+      "name": "Rombos-LLM-V2.5-Qwen-3b",
+      "developer": "rombodawg",
+      "evaluator_relationship": null,
+      "benchmark_scores": {
+        "hfopenllm_v2/IFEval": 0.5342,
+        "hfopenllm_v2/BBH": 0.4809,
+        "hfopenllm_v2/MATH Level 5": 0.2795,
+        "hfopenllm_v2/GPQA": 0.3079,
+        "hfopenllm_v2/MUSR": 0.4042,
+        "hfopenllm_v2/MMLU-PRO": 0.3761
+      }
+    },
+    {
+      "id": "rombodawg/Rombos-LLM-V2.5-Qwen-72b",
+      "name": "Rombos-LLM-V2.5-Qwen-72b",
+      "developer": "rombodawg",
+      "evaluator_relationship": null,
+      "benchmark_scores": {
+        "hfopenllm_v2/IFEval": 0.7155,
+        "hfopenllm_v2/BBH": 0.723,
+        "hfopenllm_v2/MATH Level 5": 0.5423,
+        "hfopenllm_v2/GPQA": 0.3985,
+        "hfopenllm_v2/MUSR": 0.4599,
+        "hfopenllm_v2/MMLU-PRO": 0.5935
+      }
+    },
+    {
+      "id": "rombodawg/Rombos-LLM-V2.5-Qwen-7b",
+      "name": "Rombos-LLM-V2.5-Qwen-7b",
+      "developer": "rombodawg",
+      "evaluator_relationship": null,
+      "benchmark_scores": {
+        "hfopenllm_v2/IFEval": 0.6237,
+        "hfopenllm_v2/BBH": 0.5544,
+        "hfopenllm_v2/MATH Level 5": 0.3814,
+        "hfopenllm_v2/GPQA": 0.318,
+        "hfopenllm_v2/MUSR": 0.4291,
+        "hfopenllm_v2/MMLU-PRO": 0.4469
+      }
+    },
+    {
+      "id": "rombodawg/Rombos-LLM-V2.5.1-Qwen-3b",
+      "name": "Rombos-LLM-V2.5.1-Qwen-3b",
+      "developer": "rombodawg",
+      "evaluator_relationship": null,
+      "benchmark_scores": {
+        "hfopenllm_v2/IFEval": 0.2566,
+        "hfopenllm_v2/BBH": 0.39,
+        "hfopenllm_v2/MATH Level 5": 0.1208,
+        "hfopenllm_v2/GPQA": 0.2626,
+        "hfopenllm_v2/MUSR": 0.3991,
+        "hfopenllm_v2/MMLU-PRO": 0.2741
+      }
+    },
+    {
+      "id": "rombodawg/Rombos-LLM-V2.6-Nemotron-70b",
+      "name": "Rombos-LLM-V2.6-Nemotron-70b",
+      "developer": "rombodawg",
+      "evaluator_relationship": null,
+      "benchmark_scores": {
+        "hfopenllm_v2/IFEval": 0.7527,
+        "hfopenllm_v2/BBH": 0.6938,
+        "hfopenllm_v2/MATH Level 5": 0.3331,
+        "hfopenllm_v2/GPQA": 0.406,
+        "hfopenllm_v2/MUSR": 0.4669,
+        "hfopenllm_v2/MMLU-PRO": 0.5329
+      }
+    },
+    {
+      "id": "rombodawg/Rombos-LLM-V2.6-Qwen-14b",
+      "name": "Rombos-LLM-V2.6-Qwen-14b",
+      "developer": "rombodawg",
+      "evaluator_relationship": null,
+      "benchmark_scores": {
+        "hfopenllm_v2/IFEval": 0.8432,
+        "hfopenllm_v2/BBH": 0.6442,
+        "hfopenllm_v2/MATH Level 5": 0.5211,
+        "hfopenllm_v2/GPQA": 0.3339,
+        "hfopenllm_v2/MUSR": 0.4221,
+        "hfopenllm_v2/MMLU-PRO": 0.4961
+      }
+    },
+    {
+      "id": "rombodawg/rombos_Replete-Coder-Instruct-8b-Merged",
+      "name": "rombos_Replete-Coder-Instruct-8b-Merged",
+      "developer": "rombodawg",
+      "evaluator_relationship": null,
+      "benchmark_scores": {
+        "hfopenllm_v2/IFEval": 0.5388,
+        "hfopenllm_v2/BBH": 0.4462,
+        "hfopenllm_v2/MATH Level 5": 0.0778,
+        "hfopenllm_v2/GPQA": 0.2693,
+        "hfopenllm_v2/MUSR": 0.366,
+        "hfopenllm_v2/MMLU-PRO": 0.1809
+      }
+    },
+    {
+      "id": "rombodawg/rombos_Replete-Coder-Llama3-8B",
+      "name": "rombos_Replete-Coder-Llama3-8B",
+      "developer": "rombodawg",
+      "evaluator_relationship": null,
+      "benchmark_scores": {
+        "hfopenllm_v2/IFEval": 0.4714,
+        "hfopenllm_v2/BBH": 0.3276,
+        "hfopenllm_v2/MATH Level 5": 0.0393,
+        "hfopenllm_v2/GPQA": 0.2668,
+        "hfopenllm_v2/MUSR": 0.3966,
+        "hfopenllm_v2/MMLU-PRO": 0.1335
+      }
+    }
+  ]
+}

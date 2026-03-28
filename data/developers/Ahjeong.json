@@ -1,0 +1,33 @@
+{
+  "developer": "Ahjeong",
+  "models": [
+    {
+      "id": "Ahjeong/MMPO_Gemma_7b",
+      "name": "Ahjeong/MMPO_Gemma_7b",
+      "developer": "Ahjeong",
+      "evaluator_relationship": null,
+      "benchmark_scores": {
+        "reward-bench/Score": 0.7587,
+        "reward-bench/Chat": 0.9693,
+        "reward-bench/Chat Hard": 0.614,
+        "reward-bench/Safety": 0.7135,
+        "reward-bench/Reasoning": 0.7756,
+        "reward-bench/Prior Sets (0.5 weight)": 0.6831
+      }
+    },
+    {
+      "id": "Ahjeong/MMPO_Gemma_7b_gamma1.1_epoch3",
+      "name": "Ahjeong/MMPO_Gemma_7b_gamma1.1_epoch3",
+      "developer": "Ahjeong",
+      "evaluator_relationship": null,
+      "benchmark_scores": {
+        "reward-bench/Score": 0.7652,
+        "reward-bench/Chat": 0.9721,
+        "reward-bench/Chat Hard": 0.6338,
+        "reward-bench/Safety": 0.7635,
+        "reward-bench/Reasoning": 0.7284,
+        "reward-bench/Prior Sets (0.5 weight)": 0.6913
+      }
+    }
+  ]
+}

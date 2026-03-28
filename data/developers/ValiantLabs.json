@@ -1,0 +1,159 @@
+{
+  "developer": "ValiantLabs",
+  "models": [
+    {
+      "id": "ValiantLabs/Llama3-70B-Fireplace",
+      "name": "Llama3-70B-Fireplace",
+      "developer": "ValiantLabs",
+      "evaluator_relationship": null,
+      "benchmark_scores": {
+        "hfopenllm_v2/IFEval": 0.7774,
+        "hfopenllm_v2/BBH": 0.6489,
+        "hfopenllm_v2/MATH Level 5": 0.2145,
+        "hfopenllm_v2/GPQA": 0.3549,
+        "hfopenllm_v2/MUSR": 0.4449,
+        "hfopenllm_v2/MMLU-PRO": 0.4893
+      }
+    },
+    {
+      "id": "ValiantLabs/Llama3-70B-ShiningValiant2",
+      "name": "Llama3-70B-ShiningValiant2",
+      "developer": "ValiantLabs",
+      "evaluator_relationship": null,
+      "benchmark_scores": {
+        "hfopenllm_v2/IFEval": 0.6122,
+        "hfopenllm_v2/BBH": 0.6338,
+        "hfopenllm_v2/MATH Level 5": 0.2077,
+        "hfopenllm_v2/GPQA": 0.3305,
+        "hfopenllm_v2/MUSR": 0.4326,
+        "hfopenllm_v2/MMLU-PRO": 0.4898
+      }
+    },
+    {
+      "id": "ValiantLabs/Llama3.1-70B-ShiningValiant2",
+      "name": "Llama3.1-70B-ShiningValiant2",
+      "developer": "ValiantLabs",
+      "evaluator_relationship": null,
+      "benchmark_scores": {
+        "hfopenllm_v2/IFEval": 0.5355,
+        "hfopenllm_v2/BBH": 0.6738,
+        "hfopenllm_v2/MATH Level 5": 0.2915,
+        "hfopenllm_v2/GPQA": 0.3926,
+        "hfopenllm_v2/MUSR": 0.4681,
+        "hfopenllm_v2/MMLU-PRO": 0.5173
+      }
+    },
+    {
+      "id": "ValiantLabs/Llama3.1-8B-Cobalt",
+      "name": "Llama3.1-8B-Cobalt",
+      "developer": "ValiantLabs",
+      "evaluator_relationship": null,
+      "benchmark_scores": {
+        "hfopenllm_v2/IFEval": 0.3496,
+        "hfopenllm_v2/BBH": 0.4947,
+        "hfopenllm_v2/MATH Level 5": 0.1269,
+        "hfopenllm_v2/GPQA": 0.3037,
+        "hfopenllm_v2/MUSR": 0.3959,
+        "hfopenllm_v2/MMLU-PRO": 0.3644
+      }
+    },
+    {
+      "id": "ValiantLabs/Llama3.1-8B-Enigma",
+      "name": "Llama3.1-8B-Enigma",
+      "developer": "ValiantLabs",
+      "evaluator_relationship": null,
+      "benchmark_scores": {
+        "hfopenllm_v2/IFEval": 0.2681,
+        "hfopenllm_v2/BBH": 0.4478,
+        "hfopenllm_v2/MATH Level 5": 0.0891,
+        "hfopenllm_v2/GPQA": 0.2878,
+        "hfopenllm_v2/MUSR": 0.4196,
+        "hfopenllm_v2/MMLU-PRO": 0.3409
+      }
+    },
+    {
+      "id": "ValiantLabs/Llama3.1-8B-Esper2",
+      "name": "Llama3.1-8B-Esper2",
+      "developer": "ValiantLabs",
+      "evaluator_relationship": null,
+      "benchmark_scores": {
+        "hfopenllm_v2/IFEval": 0.2567,
+        "hfopenllm_v2/BBH": 0.447,
+        "hfopenllm_v2/MATH Level 5": 0.0589,
+        "hfopenllm_v2/GPQA": 0.2727,
+        "hfopenllm_v2/MUSR": 0.3561,
+        "hfopenllm_v2/MMLU-PRO": 0.2904
+      }
+    },
+    {
+      "id": "ValiantLabs/Llama3.1-8B-Fireplace2",
+      "name": "Llama3.1-8B-Fireplace2",
+      "developer": "ValiantLabs",
+      "evaluator_relationship": null,
+      "benchmark_scores": {
+        "hfopenllm_v2/IFEval": 0.5483,
+        "hfopenllm_v2/BBH": 0.461,
+        "hfopenllm_v2/MATH Level 5": 0.0582,
+        "hfopenllm_v2/GPQA": 0.2886,
+        "hfopenllm_v2/MUSR": 0.3433,
+        "hfopenllm_v2/MMLU-PRO": 0.2407
+      }
+    },
+    {
+      "id": "ValiantLabs/Llama3.1-8B-ShiningValiant2",
+      "name": "Llama3.1-8B-ShiningValiant2",
+      "developer": "ValiantLabs",
+      "evaluator_relationship": null,
+      "benchmark_scores": {
+        "hfopenllm_v2/IFEval": 0.6496,
+        "hfopenllm_v2/BBH": 0.4774,
+        "hfopenllm_v2/MATH Level 5": 0.0566,
+        "hfopenllm_v2/GPQA": 0.3104,
+        "hfopenllm_v2/MUSR": 0.3909,
+        "hfopenllm_v2/MMLU-PRO": 0.3382
+      }
+    },
+    {
+      "id": "ValiantLabs/Llama3.2-3B-Enigma",
+      "name": "Llama3.2-3B-Enigma",
+      "developer": "ValiantLabs",
+      "evaluator_relationship": null,
+      "benchmark_scores": {
+        "hfopenllm_v2/IFEval": 0.2786,
+        "hfopenllm_v2/BBH": 0.3723,
+        "hfopenllm_v2/MATH Level 5": 0.0438,
+        "hfopenllm_v2/GPQA": 0.2617,
+        "hfopenllm_v2/MUSR": 0.3921,
+        "hfopenllm_v2/MMLU-PRO": 0.2428
+      }
+    },
+    {
+      "id": "ValiantLabs/Llama3.2-3B-Esper2",
+      "name": "Llama3.2-3B-Esper2",
+      "developer": "ValiantLabs",
+      "evaluator_relationship": null,
+      "benchmark_scores": {
+        "hfopenllm_v2/IFEval": 0.275,
+        "hfopenllm_v2/BBH": 0.3808,
+        "hfopenllm_v2/MATH Level 5": 0.0363,
+        "hfopenllm_v2/GPQA": 0.2701,
+        "hfopenllm_v2/MUSR": 0.355,
+        "hfopenllm_v2/MMLU-PRO": 0.2257
+      }
+    },
+    {
+      "id": "ValiantLabs/Llama3.2-3B-ShiningValiant2",
+      "name": "Llama3.2-3B-ShiningValiant2",
+      "developer": "ValiantLabs",
+      "evaluator_relationship": null,
+      "benchmark_scores": {
+        "hfopenllm_v2/IFEval": 0.2625,
+        "hfopenllm_v2/BBH": 0.4226,
+        "hfopenllm_v2/MATH Level 5": 0.0823,
+        "hfopenllm_v2/GPQA": 0.2802,
+        "hfopenllm_v2/MUSR": 0.3866,
+        "hfopenllm_v2/MMLU-PRO": 0.2829
+      }
+    }
+  ]
+}

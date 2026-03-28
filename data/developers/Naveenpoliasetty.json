@@ -1,0 +1,19 @@
+{
+  "developer": "Naveenpoliasetty",
+  "models": [
+    {
+      "id": "Naveenpoliasetty/llama3-8B-V2",
+      "name": "llama3-8B-V2",
+      "developer": "Naveenpoliasetty",
+      "evaluator_relationship": null,
+      "benchmark_scores": {
+        "hfopenllm_v2/IFEval": 0.4123,
+        "hfopenllm_v2/BBH": 0.5189,
+        "hfopenllm_v2/MATH Level 5": 0.0785,
+        "hfopenllm_v2/GPQA": 0.2903,
+        "hfopenllm_v2/MUSR": 0.4081,
+        "hfopenllm_v2/MMLU-PRO": 0.3738
+      }
+    }
+  ]
+}

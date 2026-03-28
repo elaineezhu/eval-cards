@@ -1,0 +1,19 @@
+{
+  "developer": "CortexLM",
+  "models": [
+    {
+      "id": "CortexLM/btlm-7b-base-v0.2",
+      "name": "btlm-7b-base-v0.2",
+      "developer": "CortexLM",
+      "evaluator_relationship": null,
+      "benchmark_scores": {
+        "hfopenllm_v2/IFEval": 0.1483,
+        "hfopenllm_v2/BBH": 0.4006,
+        "hfopenllm_v2/MATH Level 5": 0.0151,
+        "hfopenllm_v2/GPQA": 0.2534,
+        "hfopenllm_v2/MUSR": 0.3846,
+        "hfopenllm_v2/MMLU-PRO": 0.235
+      }
+    }
+  ]
+}

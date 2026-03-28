@@ -1,0 +1,19 @@
+{
+  "developer": "shivank21",
+  "models": [
+    {
+      "id": "shivank21/mistral_dpo_self",
+      "name": "mistral_dpo_self",
+      "developer": "shivank21",
+      "evaluator_relationship": null,
+      "benchmark_scores": {
+        "hfopenllm_v2/IFEval": 0.3403,
+        "hfopenllm_v2/BBH": 0.3216,
+        "hfopenllm_v2/MATH Level 5": 0.0219,
+        "hfopenllm_v2/GPQA": 0.2408,
+        "hfopenllm_v2/MUSR": 0.3247,
+        "hfopenllm_v2/MMLU-PRO": 0.2214
+      }
+    }
+  ]
+}

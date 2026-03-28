@@ -1,0 +1,19 @@
+{
+  "developer": "nguyentd",
+  "models": [
+    {
+      "id": "nguyentd/FinancialAdvice-Qwen2.5-7B",
+      "name": "FinancialAdvice-Qwen2.5-7B",
+      "developer": "nguyentd",
+      "evaluator_relationship": null,
+      "benchmark_scores": {
+        "hfopenllm_v2/IFEval": 0.4496,
+        "hfopenllm_v2/BBH": 0.4731,
+        "hfopenllm_v2/MATH Level 5": 0.1148,
+        "hfopenllm_v2/GPQA": 0.2945,
+        "hfopenllm_v2/MUSR": 0.4025,
+        "hfopenllm_v2/MMLU-PRO": 0.3752
+      }
+    }
+  ]
+}

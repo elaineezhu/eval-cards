@@ -1,0 +1,47 @@
+{
+  "developer": "baebee",
+  "models": [
+    {
+      "id": "baebee/7B-Cetacea",
+      "name": "7B-Cetacea",
+      "developer": "baebee",
+      "evaluator_relationship": null,
+      "benchmark_scores": {
+        "hfopenllm_v2/IFEval": 0.5279,
+        "hfopenllm_v2/BBH": 0.4757,
+        "hfopenllm_v2/MATH Level 5": 0.0468,
+        "hfopenllm_v2/GPQA": 0.2861,
+        "hfopenllm_v2/MUSR": 0.4136,
+        "hfopenllm_v2/MMLU-PRO": 0.2955
+      }
+    },
+    {
+      "id": "baebee/mergekit-model_stock-nzjnheg",
+      "name": "mergekit-model_stock-nzjnheg",
+      "developer": "baebee",
+      "evaluator_relationship": null,
+      "benchmark_scores": {
+        "hfopenllm_v2/IFEval": 0.4844,
+        "hfopenllm_v2/BBH": 0.5287,
+        "hfopenllm_v2/MATH Level 5": 0.1677,
+        "hfopenllm_v2/GPQA": 0.2802,
+        "hfopenllm_v2/MUSR": 0.3847,
+        "hfopenllm_v2/MMLU-PRO": 0.3699
+      }
+    },
+    {
+      "id": "baebee/mergekit-ties-fnjenli",
+      "name": "mergekit-ties-fnjenli",
+      "developer": "baebee",
+      "evaluator_relationship": null,
+      "benchmark_scores": {
+        "hfopenllm_v2/IFEval": 0.1988,
+        "hfopenllm_v2/BBH": 0.3024,
+        "hfopenllm_v2/MATH Level 5": 0.0023,
+        "hfopenllm_v2/GPQA": 0.245,
+        "hfopenllm_v2/MUSR": 0.4019,
+        "hfopenllm_v2/MMLU-PRO": 0.1129
+      }
+    }
+  ]
+}

@@ -1,0 +1,19 @@
+{
+  "developer": "experiment-llm",
+  "models": [
+    {
+      "id": "experiment-llm/exp-3-q-r",
+      "name": "exp-3-q-r",
+      "developer": "experiment-llm",
+      "evaluator_relationship": null,
+      "benchmark_scores": {
+        "hfopenllm_v2/IFEval": 0.6036,
+        "hfopenllm_v2/BBH": 0.5397,
+        "hfopenllm_v2/MATH Level 5": 0.2787,
+        "hfopenllm_v2/GPQA": 0.2936,
+        "hfopenllm_v2/MUSR": 0.4315,
+        "hfopenllm_v2/MMLU-PRO": 0.4316
+      }
+    }
+  ]
+}

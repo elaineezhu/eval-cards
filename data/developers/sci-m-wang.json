@@ -1,0 +1,47 @@
+{
+  "developer": "sci-m-wang",
+  "models": [
+    {
+      "id": "sci-m-wang/Mistral-7B-Instruct-sa-v0.1",
+      "name": "Mistral-7B-Instruct-sa-v0.1",
+      "developer": "sci-m-wang",
+      "evaluator_relationship": null,
+      "benchmark_scores": {
+        "hfopenllm_v2/IFEval": 0.4335,
+        "hfopenllm_v2/BBH": 0.3273,
+        "hfopenllm_v2/MATH Level 5": 0.0144,
+        "hfopenllm_v2/GPQA": 0.2592,
+        "hfopenllm_v2/MUSR": 0.39,
+        "hfopenllm_v2/MMLU-PRO": 0.2362
+      }
+    },
+    {
+      "id": "sci-m-wang/Phi-3-mini-4k-instruct-sa-v0.1",
+      "name": "Phi-3-mini-4k-instruct-sa-v0.1",
+      "developer": "sci-m-wang",
+      "evaluator_relationship": null,
+      "benchmark_scores": {
+        "hfopenllm_v2/IFEval": 0.5021,
+        "hfopenllm_v2/BBH": 0.5502,
+        "hfopenllm_v2/MATH Level 5": 0.148,
+        "hfopenllm_v2/GPQA": 0.3289,
+        "hfopenllm_v2/MUSR": 0.4073,
+        "hfopenllm_v2/MMLU-PRO": 0.3985
+      }
+    },
+    {
+      "id": "sci-m-wang/deepseek-llm-7b-chat-sa-v0.1",
+      "name": "deepseek-llm-7b-chat-sa-v0.1",
+      "developer": "sci-m-wang",
+      "evaluator_relationship": null,
+      "benchmark_scores": {
+        "hfopenllm_v2/IFEval": 0.4036,
+        "hfopenllm_v2/BBH": 0.3718,
+        "hfopenllm_v2/MATH Level 5": 0.0264,
+        "hfopenllm_v2/GPQA": 0.2567,
+        "hfopenllm_v2/MUSR": 0.4173,
+        "hfopenllm_v2/MMLU-PRO": 0.2209
+      }
+    }
+  ]
+}

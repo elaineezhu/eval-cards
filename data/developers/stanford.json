@@ -1,0 +1,28 @@
+{
+  "developer": "stanford",
+  "models": [
+    {
+      "id": "stanford/Alpaca-7B",
+      "name": "Alpaca 7B",
+      "developer": "stanford",
+      "evaluator_relationship": null,
+      "benchmark_scores": {
+        "helm_classic/Mean win rate": 0.381,
+        "helm_classic/MMLU": 0.385,
+        "helm_classic/BoolQ": 0.778,
+        "helm_classic/NarrativeQA": 0.396,
+        "helm_classic/NaturalQuestions (open-book)": 0.592,
+        "helm_classic/QuAC": 0.27,
+        "helm_classic/HellaSwag": -1.0,
+        "helm_classic/OpenbookQA": -1.0,
+        "helm_classic/TruthfulQA": 0.243,
+        "helm_classic/MS MARCO (TREC)": -1.0,
+        "helm_classic/CNN/DailyMail": -1.0,
+        "helm_classic/XSUM": -1.0,
+        "helm_classic/IMDB": 0.738,
+        "helm_classic/CivilComments": 0.566,
+        "helm_classic/RAFT": 0.486
+      }
+    }
+  ]
+}

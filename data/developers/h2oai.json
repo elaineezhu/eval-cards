@@ -1,0 +1,75 @@
+{
+  "developer": "h2oai",
+  "models": [
+    {
+      "id": "h2oai/h2o-danube-1.8b-chat",
+      "name": "h2o-danube-1.8b-chat",
+      "developer": "h2oai",
+      "evaluator_relationship": null,
+      "benchmark_scores": {
+        "hfopenllm_v2/IFEval": 0.2199,
+        "hfopenllm_v2/BBH": 0.322,
+        "hfopenllm_v2/MATH Level 5": 0.0136,
+        "hfopenllm_v2/GPQA": 0.2542,
+        "hfopenllm_v2/MUSR": 0.3989,
+        "hfopenllm_v2/MMLU-PRO": 0.1314
+      }
+    },
+    {
+      "id": "h2oai/h2o-danube3-4b-base",
+      "name": "h2o-danube3-4b-base",
+      "developer": "h2oai",
+      "evaluator_relationship": null,
+      "benchmark_scores": {
+        "hfopenllm_v2/IFEval": 0.2338,
+        "hfopenllm_v2/BBH": 0.3599,
+        "hfopenllm_v2/MATH Level 5": 0.0227,
+        "hfopenllm_v2/GPQA": 0.2911,
+        "hfopenllm_v2/MUSR": 0.3778,
+        "hfopenllm_v2/MMLU-PRO": 0.2109
+      }
+    },
+    {
+      "id": "h2oai/h2o-danube3-4b-chat",
+      "name": "h2o-danube3-4b-chat",
+      "developer": "h2oai",
+      "evaluator_relationship": null,
+      "benchmark_scores": {
+        "hfopenllm_v2/IFEval": 0.3629,
+        "hfopenllm_v2/BBH": 0.3466,
+        "hfopenllm_v2/MATH Level 5": 0.0408,
+        "hfopenllm_v2/GPQA": 0.2601,
+        "hfopenllm_v2/MUSR": 0.3781,
+        "hfopenllm_v2/MMLU-PRO": 0.2228
+      }
+    },
+    {
+      "id": "h2oai/h2o-danube3-500m-chat",
+      "name": "h2o-danube3-500m-chat",
+      "developer": "h2oai",
+      "evaluator_relationship": null,
+      "benchmark_scores": {
+        "hfopenllm_v2/IFEval": 0.2208,
+        "hfopenllm_v2/BBH": 0.3035,
+        "hfopenllm_v2/MATH Level 5": 0.0166,
+        "hfopenllm_v2/GPQA": 0.2307,
+        "hfopenllm_v2/MUSR": 0.3434,
+        "hfopenllm_v2/MMLU-PRO": 0.1144
+      }
+    },
+    {
+      "id": "h2oai/h2o-danube3.1-4b-chat",
+      "name": "h2o-danube3.1-4b-chat",
+      "developer": "h2oai",
+      "evaluator_relationship": null,
+      "benchmark_scores": {
+        "hfopenllm_v2/IFEval": 0.5021,
+        "hfopenllm_v2/BBH": 0.3608,
+        "hfopenllm_v2/MATH Level 5": 0.0332,
+        "hfopenllm_v2/GPQA": 0.2852,
+        "hfopenllm_v2/MUSR": 0.4102,
+        "hfopenllm_v2/MMLU-PRO": 0.2719
+      }
+    }
+  ]
+}

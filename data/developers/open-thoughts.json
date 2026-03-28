@@ -1,0 +1,19 @@
+{
+  "developer": "open-thoughts",
+  "models": [
+    {
+      "id": "open-thoughts/OpenThinker-7B",
+      "name": "OpenThinker-7B",
+      "developer": "open-thoughts",
+      "evaluator_relationship": null,
+      "benchmark_scores": {
+        "hfopenllm_v2/IFEval": 0.4089,
+        "hfopenllm_v2/BBH": 0.5343,
+        "hfopenllm_v2/MATH Level 5": 0.426,
+        "hfopenllm_v2/GPQA": 0.2567,
+        "hfopenllm_v2/MUSR": 0.382,
+        "hfopenllm_v2/MMLU-PRO": 0.4165
+      }
+    }
+  ]
+}

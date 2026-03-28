@@ -1,0 +1,97 @@
+{
+  "developer": "together",
+  "models": [
+    {
+      "id": "together/RedPajama-INCITE-Base-7B",
+      "name": "RedPajama-INCITE-Base 7B",
+      "developer": "together",
+      "evaluator_relationship": null,
+      "benchmark_scores": {
+        "helm_classic/Mean win rate": 0.378,
+        "helm_classic/MMLU": 0.302,
+        "helm_classic/BoolQ": 0.713,
+        "helm_classic/NarrativeQA": 0.617,
+        "helm_classic/NaturalQuestions (open-book)": 0.586,
+        "helm_classic/QuAC": 0.336,
+        "helm_classic/HellaSwag": -1.0,
+        "helm_classic/OpenbookQA": -1.0,
+        "helm_classic/TruthfulQA": 0.205,
+        "helm_classic/MS MARCO (TREC)": -1.0,
+        "helm_classic/CNN/DailyMail": -1.0,
+        "helm_classic/XSUM": -1.0,
+        "helm_classic/IMDB": 0.752,
+        "helm_classic/CivilComments": 0.547,
+        "helm_classic/RAFT": 0.648
+      }
+    },
+    {
+      "id": "together/RedPajama-INCITE-Base-v1-3B",
+      "name": "RedPajama-INCITE-Base-v1 3B",
+      "developer": "together",
+      "evaluator_relationship": null,
+      "benchmark_scores": {
+        "helm_classic/Mean win rate": 0.311,
+        "helm_classic/MMLU": 0.263,
+        "helm_classic/BoolQ": 0.685,
+        "helm_classic/NarrativeQA": 0.555,
+        "helm_classic/NaturalQuestions (open-book)": 0.52,
+        "helm_classic/QuAC": 0.309,
+        "helm_classic/HellaSwag": -1.0,
+        "helm_classic/OpenbookQA": -1.0,
+        "helm_classic/TruthfulQA": 0.277,
+        "helm_classic/MS MARCO (TREC)": -1.0,
+        "helm_classic/CNN/DailyMail": -1.0,
+        "helm_classic/XSUM": -1.0,
+        "helm_classic/IMDB": 0.907,
+        "helm_classic/CivilComments": 0.549,
+        "helm_classic/RAFT": 0.502
+      }
+    },
+    {
+      "id": "together/RedPajama-INCITE-Instruct-7B",
+      "name": "RedPajama-INCITE-Instruct 7B",
+      "developer": "together",
+      "evaluator_relationship": null,
+      "benchmark_scores": {
+        "helm_classic/Mean win rate": 0.524,
+        "helm_classic/MMLU": 0.363,
+        "helm_classic/BoolQ": 0.705,
+        "helm_classic/NarrativeQA": 0.638,
+        "helm_classic/NaturalQuestions (open-book)": 0.659,
+        "helm_classic/QuAC": 0.26,
+        "helm_classic/HellaSwag": -1.0,
+        "helm_classic/OpenbookQA": -1.0,
+        "helm_classic/TruthfulQA": 0.243,
+        "helm_classic/MS MARCO (TREC)": -1.0,
+        "helm_classic/CNN/DailyMail": -1.0,
+        "helm_classic/XSUM": -1.0,
+        "helm_classic/IMDB": 0.927,
+        "helm_classic/CivilComments": 0.664,
+        "helm_classic/RAFT": 0.695
+      }
+    },
+    {
+      "id": "together/RedPajama-INCITE-Instruct-v1-3B",
+      "name": "RedPajama-INCITE-Instruct-v1 3B",
+      "developer": "together",
+      "evaluator_relationship": null,
+      "benchmark_scores": {
+        "helm_classic/Mean win rate": 0.366,
+        "helm_classic/MMLU": 0.257,
+        "helm_classic/BoolQ": 0.677,
+        "helm_classic/NarrativeQA": 0.638,
+        "helm_classic/NaturalQuestions (open-book)": 0.637,
+        "helm_classic/QuAC": 0.259,
+        "helm_classic/HellaSwag": -1.0,
+        "helm_classic/OpenbookQA": -1.0,
+        "helm_classic/TruthfulQA": 0.208,
+        "helm_classic/MS MARCO (TREC)": -1.0,
+        "helm_classic/CNN/DailyMail": -1.0,
+        "helm_classic/XSUM": -1.0,
+        "helm_classic/IMDB": 0.894,
+        "helm_classic/CivilComments": 0.549,
+        "helm_classic/RAFT": 0.661
+      }
+    }
+  ]
+}

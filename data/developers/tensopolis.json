@@ -1,0 +1,215 @@
+{
+  "developer": "tensopolis",
+  "models": [
+    {
+      "id": "tensopolis/falcon3-10b-tensopolis-v1",
+      "name": "falcon3-10b-tensopolis-v1",
+      "developer": "tensopolis",
+      "evaluator_relationship": null,
+      "benchmark_scores": {
+        "hfopenllm_v2/IFEval": 0.7817,
+        "hfopenllm_v2/BBH": 0.6182,
+        "hfopenllm_v2/MATH Level 5": 0.2749,
+        "hfopenllm_v2/GPQA": 0.3297,
+        "hfopenllm_v2/MUSR": 0.4375,
+        "hfopenllm_v2/MMLU-PRO": 0.442
+      }
+    },
+    {
+      "id": "tensopolis/falcon3-10b-tensopolis-v2",
+      "name": "falcon3-10b-tensopolis-v2",
+      "developer": "tensopolis",
+      "evaluator_relationship": null,
+      "benchmark_scores": {
+        "hfopenllm_v2/IFEval": 0.7792,
+        "hfopenllm_v2/BBH": 0.6182,
+        "hfopenllm_v2/MATH Level 5": 0.2666,
+        "hfopenllm_v2/GPQA": 0.3272,
+        "hfopenllm_v2/MUSR": 0.4297,
+        "hfopenllm_v2/MMLU-PRO": 0.4424
+      }
+    },
+    {
+      "id": "tensopolis/lamarckvergence-14b-tensopolis-v1",
+      "name": "lamarckvergence-14b-tensopolis-v1",
+      "developer": "tensopolis",
+      "evaluator_relationship": null,
+      "benchmark_scores": {
+        "hfopenllm_v2/IFEval": 0.7604,
+        "hfopenllm_v2/BBH": 0.6561,
+        "hfopenllm_v2/MATH Level 5": 0.5166,
+        "hfopenllm_v2/GPQA": 0.3607,
+        "hfopenllm_v2/MUSR": 0.4475,
+        "hfopenllm_v2/MMLU-PRO": 0.525
+      }
+    },
+    {
+      "id": "tensopolis/mistral-small-2501-tensopolis-v1",
+      "name": "mistral-small-2501-tensopolis-v1",
+      "developer": "tensopolis",
+      "evaluator_relationship": null,
+      "benchmark_scores": {
+        "hfopenllm_v2/IFEval": 0.7762,
+        "hfopenllm_v2/BBH": 0.6475,
+        "hfopenllm_v2/MATH Level 5": 0.4441,
+        "hfopenllm_v2/GPQA": 0.3574,
+        "hfopenllm_v2/MUSR": 0.428,
+        "hfopenllm_v2/MMLU-PRO": 0.4465
+      }
+    },
+    {
+      "id": "tensopolis/mistral-small-r1-tensopolis",
+      "name": "mistral-small-r1-tensopolis",
+      "developer": "tensopolis",
+      "evaluator_relationship": null,
+      "benchmark_scores": {
+        "hfopenllm_v2/IFEval": 0.4622,
+        "hfopenllm_v2/BBH": 0.5436,
+        "hfopenllm_v2/MATH Level 5": 0.2908,
+        "hfopenllm_v2/GPQA": 0.2819,
+        "hfopenllm_v2/MUSR": 0.3738,
+        "hfopenllm_v2/MMLU-PRO": 0.4035
+      }
+    },
+    {
+      "id": "tensopolis/phi-4-tensopolis-v1",
+      "name": "phi-4-tensopolis-v1",
+      "developer": "tensopolis",
+      "evaluator_relationship": null,
+      "benchmark_scores": {
+        "hfopenllm_v2/IFEval": 0.6767,
+        "hfopenllm_v2/BBH": 0.6872,
+        "hfopenllm_v2/MATH Level 5": 0.494,
+        "hfopenllm_v2/GPQA": 0.3347,
+        "hfopenllm_v2/MUSR": 0.4141,
+        "hfopenllm_v2/MMLU-PRO": 0.5384
+      }
+    },
+    {
+      "id": "tensopolis/qwen2.5-14b-tensopolis-v1",
+      "name": "qwen2.5-14b-tensopolis-v1",
+      "developer": "tensopolis",
+      "evaluator_relationship": null,
+      "benchmark_scores": {
+        "hfopenllm_v2/IFEval": 0.799,
+        "hfopenllm_v2/BBH": 0.6364,
+        "hfopenllm_v2/MATH Level 5": 0.5295,
+        "hfopenllm_v2/GPQA": 0.3347,
+        "hfopenllm_v2/MUSR": 0.4193,
+        "hfopenllm_v2/MMLU-PRO": 0.4911
+      }
+    },
+    {
+      "id": "tensopolis/qwen2.5-3b-or1-tensopolis",
+      "name": "qwen2.5-3b-or1-tensopolis",
+      "developer": "tensopolis",
+      "evaluator_relationship": null,
+      "benchmark_scores": {
+        "hfopenllm_v2/IFEval": 0.354,
+        "hfopenllm_v2/BBH": 0.4421,
+        "hfopenllm_v2/MATH Level 5": 0.173,
+        "hfopenllm_v2/GPQA": 0.2945,
+        "hfopenllm_v2/MUSR": 0.3749,
+        "hfopenllm_v2/MMLU-PRO": 0.3197
+      }
+    },
+    {
+      "id": "tensopolis/qwen2.5-7b-tensopolis-v1",
+      "name": "qwen2.5-7b-tensopolis-v1",
+      "developer": "tensopolis",
+      "evaluator_relationship": null,
+      "benchmark_scores": {
+        "hfopenllm_v2/IFEval": 0.7661,
+        "hfopenllm_v2/BBH": 0.5379,
+        "hfopenllm_v2/MATH Level 5": 0.4562,
+        "hfopenllm_v2/GPQA": 0.2961,
+        "hfopenllm_v2/MUSR": 0.4339,
+        "hfopenllm_v2/MMLU-PRO": 0.4269
+      }
+    },
+    {
+      "id": "tensopolis/qwen2.5-7b-tensopolis-v2",
+      "name": "qwen2.5-7b-tensopolis-v2",
+      "developer": "tensopolis",
+      "evaluator_relationship": null,
+      "benchmark_scores": {
+        "hfopenllm_v2/IFEval": 0.7521,
+        "hfopenllm_v2/BBH": 0.5415,
+        "hfopenllm_v2/MATH Level 5": 0.4819,
+        "hfopenllm_v2/GPQA": 0.2903,
+        "hfopenllm_v2/MUSR": 0.4246,
+        "hfopenllm_v2/MMLU-PRO": 0.4243
+      }
+    },
+    {
+      "id": "tensopolis/virtuoso-lite-tensopolis-v1",
+      "name": "virtuoso-lite-tensopolis-v1",
+      "developer": "tensopolis",
+      "evaluator_relationship": null,
+      "benchmark_scores": {
+        "hfopenllm_v2/IFEval": 0.8069,
+        "hfopenllm_v2/BBH": 0.6102,
+        "hfopenllm_v2/MATH Level 5": 0.2545,
+        "hfopenllm_v2/GPQA": 0.3448,
+        "hfopenllm_v2/MUSR": 0.4582,
+        "hfopenllm_v2/MMLU-PRO": 0.4435
+      }
+    },
+    {
+      "id": "tensopolis/virtuoso-lite-tensopolis-v2",
+      "name": "virtuoso-lite-tensopolis-v2",
+      "developer": "tensopolis",
+      "evaluator_relationship": null,
+      "benchmark_scores": {
+        "hfopenllm_v2/IFEval": 0.8029,
+        "hfopenllm_v2/BBH": 0.61,
+        "hfopenllm_v2/MATH Level 5": 0.25,
+        "hfopenllm_v2/GPQA": 0.3431,
+        "hfopenllm_v2/MUSR": 0.4595,
+        "hfopenllm_v2/MMLU-PRO": 0.444
+      }
+    },
+    {
+      "id": "tensopolis/virtuoso-small-tensopolis-v1",
+      "name": "virtuoso-small-tensopolis-v1",
+      "developer": "tensopolis",
+      "evaluator_relationship": null,
+      "benchmark_scores": {
+        "hfopenllm_v2/IFEval": 0.7856,
+        "hfopenllm_v2/BBH": 0.6415,
+        "hfopenllm_v2/MATH Level 5": 0.3527,
+        "hfopenllm_v2/GPQA": 0.328,
+        "hfopenllm_v2/MUSR": 0.4326,
+        "hfopenllm_v2/MMLU-PRO": 0.4968
+      }
+    },
+    {
+      "id": "tensopolis/virtuoso-small-tensopolis-v2",
+      "name": "virtuoso-small-tensopolis-v2",
+      "developer": "tensopolis",
+      "evaluator_relationship": null,
+      "benchmark_scores": {
+        "hfopenllm_v2/IFEval": 0.802,
+        "hfopenllm_v2/BBH": 0.6516,
+        "hfopenllm_v2/MATH Level 5": 0.3875,
+        "hfopenllm_v2/GPQA": 0.3289,
+        "hfopenllm_v2/MUSR": 0.4352,
+        "hfopenllm_v2/MMLU-PRO": 0.5154
+      }
+    },
+    {
+      "id": "tensopolis/virtuoso-small-v2-tensopolis-v1",
+      "name": "virtuoso-small-v2-tensopolis-v1",
+      "developer": "tensopolis",
+      "evaluator_relationship": null,
+      "benchmark_scores": {
+        "hfopenllm_v2/IFEval": 0.8419,
+        "hfopenllm_v2/BBH": 0.6545,
+        "hfopenllm_v2/MATH Level 5": 0.4524,
+        "hfopenllm_v2/GPQA": 0.3465,
+        "hfopenllm_v2/MUSR": 0.4509,
+        "hfopenllm_v2/MMLU-PRO": 0.5175
+      }
+    }
+  ]
+}

@@ -1,0 +1,19 @@
+{
+  "developer": "jeanmichela",
+  "models": [
+    {
+      "id": "jeanmichela/o-distil-qwen",
+      "name": "o-distil-qwen",
+      "developer": "jeanmichela",
+      "evaluator_relationship": null,
+      "benchmark_scores": {
+        "hfopenllm_v2/IFEval": 0.4482,
+        "hfopenllm_v2/BBH": 0.59,
+        "hfopenllm_v2/MATH Level 5": 0.565,
+        "hfopenllm_v2/GPQA": 0.3935,
+        "hfopenllm_v2/MUSR": 0.534,
+        "hfopenllm_v2/MMLU-PRO": 0.4658
+      }
+    }
+  ]
+}

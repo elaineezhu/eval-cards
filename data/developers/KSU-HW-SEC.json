@@ -1,0 +1,61 @@
+{
+  "developer": "KSU-HW-SEC",
+  "models": [
+    {
+      "id": "KSU-HW-SEC/Llama3-70b-SVA-FT-1415",
+      "name": "Llama3-70b-SVA-FT-1415",
+      "developer": "KSU-HW-SEC",
+      "evaluator_relationship": null,
+      "benchmark_scores": {
+        "hfopenllm_v2/IFEval": 0.618,
+        "hfopenllm_v2/BBH": 0.665,
+        "hfopenllm_v2/MATH Level 5": 0.2198,
+        "hfopenllm_v2/GPQA": 0.375,
+        "hfopenllm_v2/MUSR": 0.4565,
+        "hfopenllm_v2/MMLU-PRO": 0.5243
+      }
+    },
+    {
+      "id": "KSU-HW-SEC/Llama3-70b-SVA-FT-500",
+      "name": "Llama3-70b-SVA-FT-500",
+      "developer": "KSU-HW-SEC",
+      "evaluator_relationship": null,
+      "benchmark_scores": {
+        "hfopenllm_v2/IFEval": 0.6105,
+        "hfopenllm_v2/BBH": 0.6692,
+        "hfopenllm_v2/MATH Level 5": 0.2137,
+        "hfopenllm_v2/GPQA": 0.3809,
+        "hfopenllm_v2/MUSR": 0.4511,
+        "hfopenllm_v2/MMLU-PRO": 0.5227
+      }
+    },
+    {
+      "id": "KSU-HW-SEC/Llama3-70b-SVA-FT-final",
+      "name": "Llama3-70b-SVA-FT-final",
+      "developer": "KSU-HW-SEC",
+      "evaluator_relationship": null,
+      "benchmark_scores": {
+        "hfopenllm_v2/IFEval": 0.6165,
+        "hfopenllm_v2/BBH": 0.665,
+        "hfopenllm_v2/MATH Level 5": 0.2198,
+        "hfopenllm_v2/GPQA": 0.375,
+        "hfopenllm_v2/MUSR": 0.4565,
+        "hfopenllm_v2/MMLU-PRO": 0.5243
+      }
+    },
+    {
+      "id": "KSU-HW-SEC/Llama3.1-70b-SVA-FT-1000step",
+      "name": "Llama3.1-70b-SVA-FT-1000step",
+      "developer": "KSU-HW-SEC",
+      "evaluator_relationship": null,
+      "benchmark_scores": {
+        "hfopenllm_v2/IFEval": 0.7238,
+        "hfopenllm_v2/BBH": 0.6903,
+        "hfopenllm_v2/MATH Level 5": 0.321,
+        "hfopenllm_v2/GPQA": 0.396,
+        "hfopenllm_v2/MUSR": 0.4592,
+        "hfopenllm_v2/MMLU-PRO": 0.5252
+      }
+    }
+  ]
+}

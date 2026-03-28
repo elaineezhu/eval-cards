@@ -1,0 +1,19 @@
+{
+  "developer": "mosama",
+  "models": [
+    {
+      "id": "mosama/Qwen2.5-1.5B-Instruct-CoT-Reflection",
+      "name": "Qwen2.5-1.5B-Instruct-CoT-Reflection",
+      "developer": "mosama",
+      "evaluator_relationship": null,
+      "benchmark_scores": {
+        "hfopenllm_v2/IFEval": 0.287,
+        "hfopenllm_v2/BBH": 0.4109,
+        "hfopenllm_v2/MATH Level 5": 0.0272,
+        "hfopenllm_v2/GPQA": 0.2617,
+        "hfopenllm_v2/MUSR": 0.3212,
+        "hfopenllm_v2/MMLU-PRO": 0.2651
+      }
+    }
+  ]
+}

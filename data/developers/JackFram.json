@@ -1,0 +1,33 @@
+{
+  "developer": "JackFram",
+  "models": [
+    {
+      "id": "JackFram/llama-160m",
+      "name": "llama-160m",
+      "developer": "JackFram",
+      "evaluator_relationship": null,
+      "benchmark_scores": {
+        "hfopenllm_v2/IFEval": 0.1791,
+        "hfopenllm_v2/BBH": 0.2888,
+        "hfopenllm_v2/MATH Level 5": 0.0083,
+        "hfopenllm_v2/GPQA": 0.2617,
+        "hfopenllm_v2/MUSR": 0.3792,
+        "hfopenllm_v2/MMLU-PRO": 0.1128
+      }
+    },
+    {
+      "id": "JackFram/llama-68m",
+      "name": "llama-68m",
+      "developer": "JackFram",
+      "evaluator_relationship": null,
+      "benchmark_scores": {
+        "hfopenllm_v2/IFEval": 0.1726,
+        "hfopenllm_v2/BBH": 0.2936,
+        "hfopenllm_v2/MATH Level 5": 0.006,
+        "hfopenllm_v2/GPQA": 0.2584,
+        "hfopenllm_v2/MUSR": 0.391,
+        "hfopenllm_v2/MMLU-PRO": 0.1144
+      }
+    }
+  ]
+}

@@ -1,0 +1,19 @@
+{
+  "developer": "jiangxinyang-shanda",
+  "models": [
+    {
+      "id": "jiangxinyang-shanda/Homer-LLama3-8B",
+      "name": "Homer-LLama3-8B",
+      "developer": "jiangxinyang-shanda",
+      "evaluator_relationship": null,
+      "benchmark_scores": {
+        "hfopenllm_v2/IFEval": 0.3992,
+        "hfopenllm_v2/BBH": 0.5173,
+        "hfopenllm_v2/MATH Level 5": 0.0861,
+        "hfopenllm_v2/GPQA": 0.297,
+        "hfopenllm_v2/MUSR": 0.4056,
+        "hfopenllm_v2/MMLU-PRO": 0.3139
+      }
+    }
+  ]
+}

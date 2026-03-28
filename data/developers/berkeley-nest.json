@@ -1,0 +1,33 @@
+{
+  "developer": "berkeley-nest",
+  "models": [
+    {
+      "id": "berkeley-nest/Starling-LM-7B-alpha",
+      "name": "Starling-LM-7B-alpha",
+      "developer": "berkeley-nest",
+      "evaluator_relationship": null,
+      "benchmark_scores": {
+        "hfopenllm_v2/IFEval": 0.548,
+        "hfopenllm_v2/BBH": 0.444,
+        "hfopenllm_v2/MATH Level 5": 0.0838,
+        "hfopenllm_v2/GPQA": 0.297,
+        "hfopenllm_v2/MUSR": 0.412,
+        "hfopenllm_v2/MMLU-PRO": 0.3172
+      }
+    },
+    {
+      "id": "berkeley-nest/Starling-RM-7B-alpha",
+      "name": "berkeley-nest/Starling-RM-7B-alpha",
+      "developer": "berkeley-nest",
+      "evaluator_relationship": null,
+      "benchmark_scores": {
+        "reward-bench/Score": 0.7113,
+        "reward-bench/Chat": 0.9804,
+        "reward-bench/Chat Hard": 0.4561,
+        "reward-bench/Safety": 0.8446,
+        "reward-bench/Reasoning": 0.58,
+        "reward-bench/Prior Sets (0.5 weight)": 0.6794
+      }
+    }
+  ]
+}

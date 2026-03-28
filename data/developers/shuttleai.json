@@ -1,0 +1,19 @@
+{
+  "developer": "shuttleai",
+  "models": [
+    {
+      "id": "shuttleai/shuttle-3",
+      "name": "shuttle-3",
+      "developer": "shuttleai",
+      "evaluator_relationship": null,
+      "benchmark_scores": {
+        "hfopenllm_v2/IFEval": 0.8154,
+        "hfopenllm_v2/BBH": 0.742,
+        "hfopenllm_v2/MATH Level 5": 0.46,
+        "hfopenllm_v2/GPQA": 0.4119,
+        "hfopenllm_v2/MUSR": 0.4377,
+        "hfopenllm_v2/MMLU-PRO": 0.5716
+      }
+    }
+  ]
+}

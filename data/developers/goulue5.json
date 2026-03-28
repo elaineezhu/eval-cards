@@ -1,0 +1,19 @@
+{
+  "developer": "goulue5",
+  "models": [
+    {
+      "id": "goulue5/merging_LLM",
+      "name": "merging_LLM",
+      "developer": "goulue5",
+      "evaluator_relationship": null,
+      "benchmark_scores": {
+        "hfopenllm_v2/IFEval": 0.3233,
+        "hfopenllm_v2/BBH": 0.4216,
+        "hfopenllm_v2/MATH Level 5": 0.0967,
+        "hfopenllm_v2/GPQA": 0.2911,
+        "hfopenllm_v2/MUSR": 0.4333,
+        "hfopenllm_v2/MMLU-PRO": 0.2958
+      }
+    }
+  ]
+}

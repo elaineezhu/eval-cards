@@ -1,0 +1,14 @@
+{
+  "developer": "Multiple",
+  "models": [
+    {
+      "id": "multiple/multiple",
+      "name": "Multiple",
+      "developer": "Multiple",
+      "evaluator_relationship": null,
+      "benchmark_scores": {
+        "terminal-bench-2.0/terminal-bench-2.0": 61.2
+      }
+    }
+  ]
+}

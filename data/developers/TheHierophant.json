@@ -1,0 +1,19 @@
+{
+  "developer": "TheHierophant",
+  "models": [
+    {
+      "id": "TheHierophant/Underground-Cognitive-V0.3-test",
+      "name": "Underground-Cognitive-V0.3-test",
+      "developer": "TheHierophant",
+      "evaluator_relationship": null,
+      "benchmark_scores": {
+        "hfopenllm_v2/IFEval": 0.4808,
+        "hfopenllm_v2/BBH": 0.529,
+        "hfopenllm_v2/MATH Level 5": 0.0589,
+        "hfopenllm_v2/GPQA": 0.2987,
+        "hfopenllm_v2/MUSR": 0.4351,
+        "hfopenllm_v2/MMLU-PRO": 0.3318
+      }
+    }
+  ]
+}

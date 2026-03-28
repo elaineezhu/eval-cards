@@ -1,0 +1,201 @@
+{
+  "developer": "mlabonne",
+  "models": [
+    {
+      "id": "mlabonne/AlphaMonarch-7B",
+      "name": "AlphaMonarch-7B",
+      "developer": "mlabonne",
+      "evaluator_relationship": null,
+      "benchmark_scores": {
+        "hfopenllm_v2/IFEval": 0.4939,
+        "hfopenllm_v2/BBH": 0.4626,
+        "hfopenllm_v2/MATH Level 5": 0.0408,
+        "hfopenllm_v2/GPQA": 0.2701,
+        "hfopenllm_v2/MUSR": 0.4121,
+        "hfopenllm_v2/MMLU-PRO": 0.2473
+      }
+    },
+    {
+      "id": "mlabonne/Beyonder-4x7B-v3",
+      "name": "Beyonder-4x7B-v3",
+      "developer": "mlabonne",
+      "evaluator_relationship": null,
+      "benchmark_scores": {
+        "hfopenllm_v2/IFEval": 0.5608,
+        "hfopenllm_v2/BBH": 0.4671,
+        "hfopenllm_v2/MATH Level 5": 0.0536,
+        "hfopenllm_v2/GPQA": 0.2852,
+        "hfopenllm_v2/MUSR": 0.4045,
+        "hfopenllm_v2/MMLU-PRO": 0.2512
+      }
+    },
+    {
+      "id": "mlabonne/BigQwen2.5-52B-Instruct",
+      "name": "BigQwen2.5-52B-Instruct",
+      "developer": "mlabonne",
+      "evaluator_relationship": null,
+      "benchmark_scores": {
+        "hfopenllm_v2/IFEval": 0.7913,
+        "hfopenllm_v2/BBH": 0.7121,
+        "hfopenllm_v2/MATH Level 5": 0.5476,
+        "hfopenllm_v2/GPQA": 0.302,
+        "hfopenllm_v2/MUSR": 0.4113,
+        "hfopenllm_v2/MMLU-PRO": 0.5519
+      }
+    },
+    {
+      "id": "mlabonne/BigQwen2.5-Echo-47B-Instruct",
+      "name": "BigQwen2.5-Echo-47B-Instruct",
+      "developer": "mlabonne",
+      "evaluator_relationship": null,
+      "benchmark_scores": {
+        "hfopenllm_v2/IFEval": 0.7357,
+        "hfopenllm_v2/BBH": 0.6125,
+        "hfopenllm_v2/MATH Level 5": 0.4381,
+        "hfopenllm_v2/GPQA": 0.3146,
+        "hfopenllm_v2/MUSR": 0.4125,
+        "hfopenllm_v2/MMLU-PRO": 0.4734
+      }
+    },
+    {
+      "id": "mlabonne/ChimeraLlama-3-8B-v2",
+      "name": "ChimeraLlama-3-8B-v2",
+      "developer": "mlabonne",
+      "evaluator_relationship": null,
+      "benchmark_scores": {
+        "hfopenllm_v2/IFEval": 0.4469,
+        "hfopenllm_v2/BBH": 0.5046,
+        "hfopenllm_v2/MATH Level 5": 0.0906,
+        "hfopenllm_v2/GPQA": 0.2852,
+        "hfopenllm_v2/MUSR": 0.3791,
+        "hfopenllm_v2/MMLU-PRO": 0.3569
+      }
+    },
+    {
+      "id": "mlabonne/ChimeraLlama-3-8B-v3",
+      "name": "ChimeraLlama-3-8B-v3",
+      "developer": "mlabonne",
+      "evaluator_relationship": null,
+      "benchmark_scores": {
+        "hfopenllm_v2/IFEval": 0.4408,
+        "hfopenllm_v2/BBH": 0.4978,
+        "hfopenllm_v2/MATH Level 5": 0.0884,
+        "hfopenllm_v2/GPQA": 0.2919,
+        "hfopenllm_v2/MUSR": 0.4004,
+        "hfopenllm_v2/MMLU-PRO": 0.3669
+      }
+    },
+    {
+      "id": "mlabonne/Daredevil-8B",
+      "name": "Daredevil-8B",
+      "developer": "mlabonne",
+      "evaluator_relationship": null,
+      "benchmark_scores": {
+        "hfopenllm_v2/IFEval": 0.4548,
+        "hfopenllm_v2/BBH": 0.5194,
+        "hfopenllm_v2/MATH Level 5": 0.1065,
+        "hfopenllm_v2/GPQA": 0.3079,
+        "hfopenllm_v2/MUSR": 0.3939,
+        "hfopenllm_v2/MMLU-PRO": 0.3831
+      }
+    },
+    {
+      "id": "mlabonne/Daredevil-8B-abliterated",
+      "name": "Daredevil-8B-abliterated",
+      "developer": "mlabonne",
+      "evaluator_relationship": null,
+      "benchmark_scores": {
+        "hfopenllm_v2/IFEval": 0.4426,
+        "hfopenllm_v2/BBH": 0.4254,
+        "hfopenllm_v2/MATH Level 5": 0.0944,
+        "hfopenllm_v2/GPQA": 0.2903,
+        "hfopenllm_v2/MUSR": 0.407,
+        "hfopenllm_v2/MMLU-PRO": 0.3701
+      }
+    },
+    {
+      "id": "mlabonne/Hermes-3-Llama-3.1-70B-lorablated",
+      "name": "Hermes-3-Llama-3.1-70B-lorablated",
+      "developer": "mlabonne",
+      "evaluator_relationship": null,
+      "benchmark_scores": {
+        "hfopenllm_v2/IFEval": 0.3424,
+        "hfopenllm_v2/BBH": 0.6693,
+        "hfopenllm_v2/MATH Level 5": 0.2243,
+        "hfopenllm_v2/GPQA": 0.3658,
+        "hfopenllm_v2/MUSR": 0.5029,
+        "hfopenllm_v2/MMLU-PRO": 0.4679
+      }
+    },
+    {
+      "id": "mlabonne/Meta-Llama-3.1-8B-Instruct-abliterated",
+      "name": "Meta-Llama-3.1-8B-Instruct-abliterated",
+      "developer": "mlabonne",
+      "evaluator_relationship": null,
+      "benchmark_scores": {
+        "hfopenllm_v2/IFEval": 0.7329,
+        "hfopenllm_v2/BBH": 0.4874,
+        "hfopenllm_v2/MATH Level 5": 0.0687,
+        "hfopenllm_v2/GPQA": 0.2567,
+        "hfopenllm_v2/MUSR": 0.3649,
+        "hfopenllm_v2/MMLU-PRO": 0.3503
+      }
+    },
+    {
+      "id": "mlabonne/NeuralBeagle14-7B",
+      "name": "NeuralBeagle14-7B",
+      "developer": "mlabonne",
+      "evaluator_relationship": null,
+      "benchmark_scores": {
+        "hfopenllm_v2/IFEval": 0.4935,
+        "hfopenllm_v2/BBH": 0.4628,
+        "hfopenllm_v2/MATH Level 5": 0.0521,
+        "hfopenllm_v2/GPQA": 0.2819,
+        "hfopenllm_v2/MUSR": 0.4319,
+        "hfopenllm_v2/MMLU-PRO": 0.2601
+      }
+    },
+    {
+      "id": "mlabonne/NeuralDaredevil-8B-abliterated",
+      "name": "NeuralDaredevil-8B-abliterated",
+      "developer": "mlabonne",
+      "evaluator_relationship": null,
+      "benchmark_scores": {
+        "hfopenllm_v2/IFEval": 0.4162,
+        "hfopenllm_v2/BBH": 0.5124,
+        "hfopenllm_v2/MATH Level 5": 0.0853,
+        "hfopenllm_v2/GPQA": 0.3029,
+        "hfopenllm_v2/MUSR": 0.415,
+        "hfopenllm_v2/MMLU-PRO": 0.3802
+      }
+    },
+    {
+      "id": "mlabonne/OrpoLlama-3-8B",
+      "name": "OrpoLlama-3-8B",
+      "developer": "mlabonne",
+      "evaluator_relationship": null,
+      "benchmark_scores": {
+        "hfopenllm_v2/IFEval": 0.3653,
+        "hfopenllm_v2/BBH": 0.4424,
+        "hfopenllm_v2/MATH Level 5": 0.0559,
+        "hfopenllm_v2/GPQA": 0.2794,
+        "hfopenllm_v2/MUSR": 0.3579,
+        "hfopenllm_v2/MMLU-PRO": 0.2705
+      }
+    },
+    {
+      "id": "mlabonne/phixtral-2x2_8",
+      "name": "phixtral-2x2_8",
+      "developer": "mlabonne",
+      "evaluator_relationship": null,
+      "benchmark_scores": {
+        "hfopenllm_v2/IFEval": 0.3431,
+        "hfopenllm_v2/BBH": 0.4889,
+        "hfopenllm_v2/MATH Level 5": 0.0355,
+        "hfopenllm_v2/GPQA": 0.2651,
+        "hfopenllm_v2/MUSR": 0.3644,
+        "hfopenllm_v2/MMLU-PRO": 0.2551
+      }
+    }
+  ]
+}

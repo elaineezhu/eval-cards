@@ -1,0 +1,145 @@
+{
+  "developer": "formulae",
+  "models": [
+    {
+      "id": "formulae/mita-elite-sce-gen1.1-v1-7b-2-26-2025-exp",
+      "name": "mita-elite-sce-gen1.1-v1-7b-2-26-2025-exp",
+      "developer": "formulae",
+      "evaluator_relationship": null,
+      "benchmark_scores": {
+        "hfopenllm_v2/IFEval": 0.1614,
+        "hfopenllm_v2/BBH": 0.2976,
+        "hfopenllm_v2/MATH Level 5": 0.0015,
+        "hfopenllm_v2/GPQA": 0.2534,
+        "hfopenllm_v2/MUSR": 0.4219,
+        "hfopenllm_v2/MMLU-PRO": 0.1174
+      }
+    },
+    {
+      "id": "formulae/mita-elite-v1.1-7b-2-25-2025",
+      "name": "mita-elite-v1.1-7b-2-25-2025",
+      "developer": "formulae",
+      "evaluator_relationship": null,
+      "benchmark_scores": {
+        "hfopenllm_v2/IFEval": 0.125,
+        "hfopenllm_v2/BBH": 0.2867,
+        "hfopenllm_v2/MATH Level 5": 0.0,
+        "hfopenllm_v2/GPQA": 0.2483,
+        "hfopenllm_v2/MUSR": 0.3487,
+        "hfopenllm_v2/MMLU-PRO": 0.1098
+      }
+    },
+    {
+      "id": "formulae/mita-elite-v1.1-gen2-7b-2-25-2025",
+      "name": "mita-elite-v1.1-gen2-7b-2-25-2025",
+      "developer": "formulae",
+      "evaluator_relationship": null,
+      "benchmark_scores": {
+        "hfopenllm_v2/IFEval": 0.1411,
+        "hfopenllm_v2/BBH": 0.2924,
+        "hfopenllm_v2/MATH Level 5": 0.0,
+        "hfopenllm_v2/GPQA": 0.2525,
+        "hfopenllm_v2/MUSR": 0.3541,
+        "hfopenllm_v2/MMLU-PRO": 0.1101
+      }
+    },
+    {
+      "id": "formulae/mita-elite-v1.2-7b-2-26-2025",
+      "name": "mita-elite-v1.2-7b-2-26-2025",
+      "developer": "formulae",
+      "evaluator_relationship": null,
+      "benchmark_scores": {
+        "hfopenllm_v2/IFEval": 0.148,
+        "hfopenllm_v2/BBH": 0.293,
+        "hfopenllm_v2/MATH Level 5": 0.0023,
+        "hfopenllm_v2/GPQA": 0.2743,
+        "hfopenllm_v2/MUSR": 0.4287,
+        "hfopenllm_v2/MMLU-PRO": 0.1186
+      }
+    },
+    {
+      "id": "formulae/mita-gen3-7b-2-26-2025",
+      "name": "mita-gen3-7b-2-26-2025",
+      "developer": "formulae",
+      "evaluator_relationship": null,
+      "benchmark_scores": {
+        "hfopenllm_v2/IFEval": 0.1964,
+        "hfopenllm_v2/BBH": 0.2916,
+        "hfopenllm_v2/MATH Level 5": 0.0023,
+        "hfopenllm_v2/GPQA": 0.2651,
+        "hfopenllm_v2/MUSR": 0.3912,
+        "hfopenllm_v2/MMLU-PRO": 0.1124
+      }
+    },
+    {
+      "id": "formulae/mita-gen3-v1.2-7b-2-26-2025",
+      "name": "mita-gen3-v1.2-7b-2-26-2025",
+      "developer": "formulae",
+      "evaluator_relationship": null,
+      "benchmark_scores": {
+        "hfopenllm_v2/IFEval": 0.2044,
+        "hfopenllm_v2/BBH": 0.3058,
+        "hfopenllm_v2/MATH Level 5": 0.0023,
+        "hfopenllm_v2/GPQA": 0.2592,
+        "hfopenllm_v2/MUSR": 0.39,
+        "hfopenllm_v2/MMLU-PRO": 0.1128
+      }
+    },
+    {
+      "id": "formulae/mita-math-v2.3-2-25-2025",
+      "name": "mita-math-v2.3-2-25-2025",
+      "developer": "formulae",
+      "evaluator_relationship": null,
+      "benchmark_scores": {
+        "hfopenllm_v2/IFEval": 0.1373,
+        "hfopenllm_v2/BBH": 0.2949,
+        "hfopenllm_v2/MATH Level 5": 0.0,
+        "hfopenllm_v2/GPQA": 0.2508,
+        "hfopenllm_v2/MUSR": 0.3698,
+        "hfopenllm_v2/MMLU-PRO": 0.1118
+      }
+    },
+    {
+      "id": "formulae/mita-v1-7b",
+      "name": "mita-v1-7b",
+      "developer": "formulae",
+      "evaluator_relationship": null,
+      "benchmark_scores": {
+        "hfopenllm_v2/IFEval": 0.1972,
+        "hfopenllm_v2/BBH": 0.3003,
+        "hfopenllm_v2/MATH Level 5": 0.0023,
+        "hfopenllm_v2/GPQA": 0.25,
+        "hfopenllm_v2/MUSR": 0.4152,
+        "hfopenllm_v2/MMLU-PRO": 0.1147
+      }
+    },
+    {
+      "id": "formulae/mita-v1.1-7b-2-24-2025",
+      "name": "mita-v1.1-7b-2-24-2025",
+      "developer": "formulae",
+      "evaluator_relationship": null,
+      "benchmark_scores": {
+        "hfopenllm_v2/IFEval": 0.3412,
+        "hfopenllm_v2/BBH": 0.5442,
+        "hfopenllm_v2/MATH Level 5": 0.435,
+        "hfopenllm_v2/GPQA": 0.3146,
+        "hfopenllm_v2/MUSR": 0.4557,
+        "hfopenllm_v2/MMLU-PRO": 0.4524
+      }
+    },
+    {
+      "id": "formulae/mita-v1.2-7b-2-24-2025",
+      "name": "mita-v1.2-7b-2-24-2025",
+      "developer": "formulae",
+      "evaluator_relationship": null,
+      "benchmark_scores": {
+        "hfopenllm_v2/IFEval": 0.2564,
+        "hfopenllm_v2/BBH": 0.4919,
+        "hfopenllm_v2/MATH Level 5": 0.4879,
+        "hfopenllm_v2/GPQA": 0.3062,
+        "hfopenllm_v2/MUSR": 0.4344,
+        "hfopenllm_v2/MMLU-PRO": 0.3359
+      }
+    }
+  ]
+}

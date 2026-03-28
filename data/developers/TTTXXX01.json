@@ -1,0 +1,19 @@
+{
+  "developer": "TTTXXX01",
+  "models": [
+    {
+      "id": "TTTXXX01/Mistral-7B-Base-SimPO2-5e-7",
+      "name": "Mistral-7B-Base-SimPO2-5e-7",
+      "developer": "TTTXXX01",
+      "evaluator_relationship": null,
+      "benchmark_scores": {
+        "hfopenllm_v2/IFEval": 0.4392,
+        "hfopenllm_v2/BBH": 0.432,
+        "hfopenllm_v2/MATH Level 5": 0.0264,
+        "hfopenllm_v2/GPQA": 0.2978,
+        "hfopenllm_v2/MUSR": 0.3604,
+        "hfopenllm_v2/MMLU-PRO": 0.2766
+      }
+    }
+  ]
+}

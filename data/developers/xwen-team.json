@@ -1,0 +1,19 @@
+{
+  "developer": "xwen-team",
+  "models": [
+    {
+      "id": "xwen-team/Xwen-7B-Chat",
+      "name": "Xwen-7B-Chat",
+      "developer": "xwen-team",
+      "evaluator_relationship": null,
+      "benchmark_scores": {
+        "hfopenllm_v2/IFEval": 0.6864,
+        "hfopenllm_v2/BBH": 0.5068,
+        "hfopenllm_v2/MATH Level 5": 0.4509,
+        "hfopenllm_v2/GPQA": 0.2609,
+        "hfopenllm_v2/MUSR": 0.3914,
+        "hfopenllm_v2/MMLU-PRO": 0.429
+      }
+    }
+  ]
+}

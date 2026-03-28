@@ -1,0 +1,19 @@
+{
+  "developer": "aws-prototyping",
+  "models": [
+    {
+      "id": "aws-prototyping/MegaBeam-Mistral-7B-512k",
+      "name": "MegaBeam-Mistral-7B-512k",
+      "developer": "aws-prototyping",
+      "evaluator_relationship": null,
+      "benchmark_scores": {
+        "hfopenllm_v2/IFEval": 0.5973,
+        "hfopenllm_v2/BBH": 0.3662,
+        "hfopenllm_v2/MATH Level 5": 0.0287,
+        "hfopenllm_v2/GPQA": 0.2827,
+        "hfopenllm_v2/MUSR": 0.3994,
+        "hfopenllm_v2/MMLU-PRO": 0.2589
+      }
+    }
+  ]
+}

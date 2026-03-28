@@ -1,0 +1,33 @@
+{
+  "developer": "IDEA-CCNL",
+  "models": [
+    {
+      "id": "IDEA-CCNL/Ziya-LLaMA-13B-v1",
+      "name": "Ziya-LLaMA-13B-v1",
+      "developer": "IDEA-CCNL",
+      "evaluator_relationship": null,
+      "benchmark_scores": {
+        "hfopenllm_v2/IFEval": 0.1697,
+        "hfopenllm_v2/BBH": 0.2877,
+        "hfopenllm_v2/MATH Level 5": 0.0,
+        "hfopenllm_v2/GPQA": 0.2492,
+        "hfopenllm_v2/MUSR": 0.3751,
+        "hfopenllm_v2/MMLU-PRO": 0.1101
+      }
+    },
+    {
+      "id": "IDEA-CCNL/Ziya-LLaMA-7B-Reward",
+      "name": "IDEA-CCNL/Ziya-LLaMA-7B-Reward",
+      "developer": "IDEA-CCNL",
+      "evaluator_relationship": null,
+      "benchmark_scores": {
+        "reward-bench/Score": 0.6378,
+        "reward-bench/Chat": 0.8687,
+        "reward-bench/Chat Hard": 0.4605,
+        "reward-bench/Safety": 0.6405,
+        "reward-bench/Reasoning": 0.5775,
+        "reward-bench/Prior Sets (0.5 weight)": 0.6461
+      }
+    }
+  ]
+}

@@ -1,0 +1,19 @@
+{
+  "developer": "schnapss",
+  "models": [
+    {
+      "id": "schnapss/testmerge-7b",
+      "name": "testmerge-7b",
+      "developer": "schnapss",
+      "evaluator_relationship": null,
+      "benchmark_scores": {
+        "hfopenllm_v2/IFEval": 0.3922,
+        "hfopenllm_v2/BBH": 0.5187,
+        "hfopenllm_v2/MATH Level 5": 0.0687,
+        "hfopenllm_v2/GPQA": 0.2961,
+        "hfopenllm_v2/MUSR": 0.4686,
+        "hfopenllm_v2/MMLU-PRO": 0.306
+      }
+    }
+  ]
+}

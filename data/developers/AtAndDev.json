@@ -1,0 +1,19 @@
+{
+  "developer": "AtAndDev",
+  "models": [
+    {
+      "id": "AtAndDev/Qwen2.5-1.5B-continuous-learnt",
+      "name": "Qwen2.5-1.5B-continuous-learnt",
+      "developer": "AtAndDev",
+      "evaluator_relationship": null,
+      "benchmark_scores": {
+        "hfopenllm_v2/IFEval": 0.4605,
+        "hfopenllm_v2/BBH": 0.4258,
+        "hfopenllm_v2/MATH Level 5": 0.0748,
+        "hfopenllm_v2/GPQA": 0.2659,
+        "hfopenllm_v2/MUSR": 0.3636,
+        "hfopenllm_v2/MMLU-PRO": 0.2812
+      }
+    }
+  ]
+}

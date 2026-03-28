@@ -1,0 +1,33 @@
+{
+  "developer": "kno10",
+  "models": [
+    {
+      "id": "kno10/ende-chat-0.0.5",
+      "name": "ende-chat-0.0.5",
+      "developer": "kno10",
+      "evaluator_relationship": null,
+      "benchmark_scores": {
+        "hfopenllm_v2/IFEval": 0.3404,
+        "hfopenllm_v2/BBH": 0.3604,
+        "hfopenllm_v2/MATH Level 5": 0.0204,
+        "hfopenllm_v2/GPQA": 0.2651,
+        "hfopenllm_v2/MUSR": 0.3938,
+        "hfopenllm_v2/MMLU-PRO": 0.179
+      }
+    },
+    {
+      "id": "kno10/ende-chat-0.0.7",
+      "name": "ende-chat-0.0.7",
+      "developer": "kno10",
+      "evaluator_relationship": null,
+      "benchmark_scores": {
+        "hfopenllm_v2/IFEval": 0.4401,
+        "hfopenllm_v2/BBH": 0.3792,
+        "hfopenllm_v2/MATH Level 5": 0.0174,
+        "hfopenllm_v2/GPQA": 0.281,
+        "hfopenllm_v2/MUSR": 0.3861,
+        "hfopenllm_v2/MMLU-PRO": 0.1966
+      }
+    }
+  ]
+}

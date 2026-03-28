@@ -1,0 +1,19 @@
+{
+  "developer": "HoangHa",
+  "models": [
+    {
+      "id": "HoangHa/Pensez-Llama3.1-8B",
+      "name": "Pensez-Llama3.1-8B",
+      "developer": "HoangHa",
+      "evaluator_relationship": null,
+      "benchmark_scores": {
+        "hfopenllm_v2/IFEval": 0.3887,
+        "hfopenllm_v2/BBH": 0.4669,
+        "hfopenllm_v2/MATH Level 5": 0.1148,
+        "hfopenllm_v2/GPQA": 0.2886,
+        "hfopenllm_v2/MUSR": 0.3597,
+        "hfopenllm_v2/MMLU-PRO": 0.3126
+      }
+    }
+  ]
+}

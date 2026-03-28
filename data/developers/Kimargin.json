@@ -1,0 +1,19 @@
+{
+  "developer": "Kimargin",
+  "models": [
+    {
+      "id": "Kimargin/GPT-NEO-1.3B-wiki",
+      "name": "GPT-NEO-1.3B-wiki",
+      "developer": "Kimargin",
+      "evaluator_relationship": null,
+      "benchmark_scores": {
+        "hfopenllm_v2/IFEval": 0.1921,
+        "hfopenllm_v2/BBH": 0.3026,
+        "hfopenllm_v2/MATH Level 5": 0.0144,
+        "hfopenllm_v2/GPQA": 0.245,
+        "hfopenllm_v2/MUSR": 0.3883,
+        "hfopenllm_v2/MMLU-PRO": 0.1099
+      }
+    }
+  ]
+}

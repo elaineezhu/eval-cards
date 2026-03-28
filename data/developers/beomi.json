@@ -1,0 +1,19 @@
+{
+  "developer": "beomi",
+  "models": [
+    {
+      "id": "beomi/gemma-mling-7b",
+      "name": "gemma-mling-7b",
+      "developer": "beomi",
+      "evaluator_relationship": null,
+      "benchmark_scores": {
+        "hfopenllm_v2/IFEval": 0.2029,
+        "hfopenllm_v2/BBH": 0.4068,
+        "hfopenllm_v2/MATH Level 5": 0.0544,
+        "hfopenllm_v2/GPQA": 0.25,
+        "hfopenllm_v2/MUSR": 0.3759,
+        "hfopenllm_v2/MMLU-PRO": 0.2633
+      }
+    }
+  ]
+}

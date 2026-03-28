@@ -1,0 +1,19 @@
+{
+  "developer": "zai-org",
+  "models": [
+    {
+      "id": "zai-org/glm-4.5-air-fp8",
+      "name": "GLM-4.5-Air-FP8",
+      "developer": "zai-org",
+      "evaluator_relationship": null,
+      "benchmark_scores": {
+        "helm_capabilities/Mean score": 0.67,
+        "helm_capabilities/MMLU-Pro": 0.762,
+        "helm_capabilities/GPQA": 0.594,
+        "helm_capabilities/IFEval": 0.812,
+        "helm_capabilities/WildBench": 0.789,
+        "helm_capabilities/Omni-MATH": 0.391
+      }
+    }
+  ]
+}

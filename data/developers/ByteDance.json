@@ -1,0 +1,16 @@
+{
+  "developer": "ByteDance",
+  "models": [
+    {
+      "id": "bytedance/doubao-seed-1-6-thinking-250615",
+      "name": "doubao-seed-1-6-thinking-250615",
+      "developer": "ByteDance",
+      "evaluator_relationship": null,
+      "benchmark_scores": {
+        "livecodebenchpro/Hard Problems": 0.0,
+        "livecodebenchpro/Medium Problems": 0.07042253521126761,
+        "livecodebenchpro/Easy Problems": 0.5774647887323944
+      }
+    }
+  ]
+}

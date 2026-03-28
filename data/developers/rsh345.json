@@ -1,0 +1,19 @@
+{
+  "developer": "rsh345",
+  "models": [
+    {
+      "id": "rsh345/mistral-ft-optimized-1218-NeuralHermes-2.5-Mistral-7B",
+      "name": "mistral-ft-optimized-1218-NeuralHermes-2.5-Mistral-7B",
+      "developer": "rsh345",
+      "evaluator_relationship": null,
+      "benchmark_scores": {
+        "hfopenllm_v2/IFEval": 0.3892,
+        "hfopenllm_v2/BBH": 0.5188,
+        "hfopenllm_v2/MATH Level 5": 0.0733,
+        "hfopenllm_v2/GPQA": 0.3029,
+        "hfopenllm_v2/MUSR": 0.4672,
+        "hfopenllm_v2/MMLU-PRO": 0.3054
+      }
+    }
+  ]
+}

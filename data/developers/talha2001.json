@@ -1,0 +1,19 @@
+{
+  "developer": "talha2001",
+  "models": [
+    {
+      "id": "talha2001/Beast-Soul-new",
+      "name": "Beast-Soul-new",
+      "developer": "talha2001",
+      "evaluator_relationship": null,
+      "benchmark_scores": {
+        "hfopenllm_v2/IFEval": 0.4854,
+        "hfopenllm_v2/BBH": 0.5227,
+        "hfopenllm_v2/MATH Level 5": 0.074,
+        "hfopenllm_v2/GPQA": 0.2819,
+        "hfopenllm_v2/MUSR": 0.4459,
+        "hfopenllm_v2/MMLU-PRO": 0.3102
+      }
+    }
+  ]
+}

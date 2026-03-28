@@ -1,0 +1,33 @@
+{
+  "developer": "Joseph717171",
+  "models": [
+    {
+      "id": "Joseph717171/Hermes-3-Llama-3.1-8B_TIES_with_Base_Embeds_Initialized_to_Special_Instruct_Toks_dtypeF32",
+      "name": "Hermes-3-Llama-3.1-8B_TIES_with_Base_Embeds_Initialized_to_Special_Instruct_Toks_dtypeF32",
+      "developer": "Joseph717171",
+      "evaluator_relationship": null,
+      "benchmark_scores": {
+        "hfopenllm_v2/IFEval": 0.6185,
+        "hfopenllm_v2/BBH": 0.5177,
+        "hfopenllm_v2/MATH Level 5": 0.0514,
+        "hfopenllm_v2/GPQA": 0.2827,
+        "hfopenllm_v2/MUSR": 0.4369,
+        "hfopenllm_v2/MMLU-PRO": 0.3144
+      }
+    },
+    {
+      "id": "Joseph717171/Llama-3.1-SuperNova-8B-Lite_TIES_with_Base",
+      "name": "Llama-3.1-SuperNova-8B-Lite_TIES_with_Base",
+      "developer": "Joseph717171",
+      "evaluator_relationship": null,
+      "benchmark_scores": {
+        "hfopenllm_v2/IFEval": 0.8096,
+        "hfopenllm_v2/BBH": 0.5147,
+        "hfopenllm_v2/MATH Level 5": 0.1835,
+        "hfopenllm_v2/GPQA": 0.3096,
+        "hfopenllm_v2/MUSR": 0.411,
+        "hfopenllm_v2/MMLU-PRO": 0.388
+      }
+    }
+  ]
+}

@@ -1,0 +1,33 @@
+{
+  "developer": "OpenGenerativeAI",
+  "models": [
+    {
+      "id": "OpenGenerativeAI/Bifrost",
+      "name": "Bifrost",
+      "developer": "OpenGenerativeAI",
+      "evaluator_relationship": null,
+      "benchmark_scores": {
+        "hfopenllm_v2/IFEval": 0.6348,
+        "hfopenllm_v2/BBH": 0.6849,
+        "hfopenllm_v2/MATH Level 5": 0.2545,
+        "hfopenllm_v2/GPQA": 0.3683,
+        "hfopenllm_v2/MUSR": 0.4598,
+        "hfopenllm_v2/MMLU-PRO": 0.516
+      }
+    },
+    {
+      "id": "OpenGenerativeAI/Bifrost-14B",
+      "name": "Bifrost-14B",
+      "developer": "OpenGenerativeAI",
+      "evaluator_relationship": null,
+      "benchmark_scores": {
+        "hfopenllm_v2/IFEval": 0.6615,
+        "hfopenllm_v2/BBH": 0.6845,
+        "hfopenllm_v2/MATH Level 5": 0.2356,
+        "hfopenllm_v2/GPQA": 0.3792,
+        "hfopenllm_v2/MUSR": 0.4624,
+        "hfopenllm_v2/MMLU-PRO": 0.5074
+      }
+    }
+  ]
+}

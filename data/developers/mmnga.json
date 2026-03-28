@@ -1,0 +1,19 @@
+{
+  "developer": "mmnga",
+  "models": [
+    {
+      "id": "mmnga/Llama-3-70B-japanese-suzume-vector-v0.1",
+      "name": "Llama-3-70B-japanese-suzume-vector-v0.1",
+      "developer": "mmnga",
+      "evaluator_relationship": null,
+      "benchmark_scores": {
+        "hfopenllm_v2/IFEval": 0.4649,
+        "hfopenllm_v2/BBH": 0.6542,
+        "hfopenllm_v2/MATH Level 5": 0.2326,
+        "hfopenllm_v2/GPQA": 0.2861,
+        "hfopenllm_v2/MUSR": 0.4141,
+        "hfopenllm_v2/MMLU-PRO": 0.5224
+      }
+    }
+  ]
+}

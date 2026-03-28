@@ -1,0 +1,47 @@
+{
+  "developer": "Hastagaras",
+  "models": [
+    {
+      "id": "Hastagaras/L3.2-JametMini-3B-MK.III",
+      "name": "L3.2-JametMini-3B-MK.III",
+      "developer": "Hastagaras",
+      "evaluator_relationship": null,
+      "benchmark_scores": {
+        "hfopenllm_v2/IFEval": 0.6183,
+        "hfopenllm_v2/BBH": 0.4539,
+        "hfopenllm_v2/MATH Level 5": 0.1458,
+        "hfopenllm_v2/GPQA": 0.2827,
+        "hfopenllm_v2/MUSR": 0.3686,
+        "hfopenllm_v2/MMLU-PRO": 0.2983
+      }
+    },
+    {
+      "id": "Hastagaras/Llama-3.1-Jamet-8B-MK.I",
+      "name": "Llama-3.1-Jamet-8B-MK.I",
+      "developer": "Hastagaras",
+      "evaluator_relationship": null,
+      "benchmark_scores": {
+        "hfopenllm_v2/IFEval": 0.7338,
+        "hfopenllm_v2/BBH": 0.5049,
+        "hfopenllm_v2/MATH Level 5": 0.1269,
+        "hfopenllm_v2/GPQA": 0.2743,
+        "hfopenllm_v2/MUSR": 0.3726,
+        "hfopenllm_v2/MMLU-PRO": 0.3482
+      }
+    },
+    {
+      "id": "Hastagaras/Zabuza-8B-Llama-3.1",
+      "name": "Zabuza-8B-Llama-3.1",
+      "developer": "Hastagaras",
+      "evaluator_relationship": null,
+      "benchmark_scores": {
+        "hfopenllm_v2/IFEval": 0.6265,
+        "hfopenllm_v2/BBH": 0.4539,
+        "hfopenllm_v2/MATH Level 5": 0.0551,
+        "hfopenllm_v2/GPQA": 0.2643,
+        "hfopenllm_v2/MUSR": 0.3568,
+        "hfopenllm_v2/MMLU-PRO": 0.2923
+      }
+    }
+  ]
+}

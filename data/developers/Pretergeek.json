@@ -1,0 +1,131 @@
+{
+  "developer": "Pretergeek",
+  "models": [
+    {
+      "id": "Pretergeek/OpenChat-3.5-0106_10.7B_48Layers-Appended",
+      "name": "OpenChat-3.5-0106_10.7B_48Layers-Appended",
+      "developer": "Pretergeek",
+      "evaluator_relationship": null,
+      "benchmark_scores": {
+        "hfopenllm_v2/IFEval": 0.5961,
+        "hfopenllm_v2/BBH": 0.462,
+        "hfopenllm_v2/MATH Level 5": 0.0793,
+        "hfopenllm_v2/GPQA": 0.307,
+        "hfopenllm_v2/MUSR": 0.4254,
+        "hfopenllm_v2/MMLU-PRO": 0.329
+      }
+    },
+    {
+      "id": "Pretergeek/OpenChat-3.5-0106_10.7B_48Layers-Interleaved",
+      "name": "OpenChat-3.5-0106_10.7B_48Layers-Interleaved",
+      "developer": "Pretergeek",
+      "evaluator_relationship": null,
+      "benchmark_scores": {
+        "hfopenllm_v2/IFEval": 0.5961,
+        "hfopenllm_v2/BBH": 0.462,
+        "hfopenllm_v2/MATH Level 5": 0.0778,
+        "hfopenllm_v2/GPQA": 0.3045,
+        "hfopenllm_v2/MUSR": 0.4254,
+        "hfopenllm_v2/MMLU-PRO": 0.3299
+      }
+    },
+    {
+      "id": "Pretergeek/OpenChat-3.5-0106_32K-PoSE",
+      "name": "OpenChat-3.5-0106_32K-PoSE",
+      "developer": "Pretergeek",
+      "evaluator_relationship": null,
+      "benchmark_scores": {
+        "hfopenllm_v2/IFEval": 0.3969,
+        "hfopenllm_v2/BBH": 0.3471,
+        "hfopenllm_v2/MATH Level 5": 0.0264,
+        "hfopenllm_v2/GPQA": 0.276,
+        "hfopenllm_v2/MUSR": 0.4205,
+        "hfopenllm_v2/MMLU-PRO": 0.2031
+      }
+    },
+    {
+      "id": "Pretergeek/OpenChat-3.5-0106_8.11B_36Layers-Appended",
+      "name": "OpenChat-3.5-0106_8.11B_36Layers-Appended",
+      "developer": "Pretergeek",
+      "evaluator_relationship": null,
+      "benchmark_scores": {
+        "hfopenllm_v2/IFEval": 0.5976,
+        "hfopenllm_v2/BBH": 0.462,
+        "hfopenllm_v2/MATH Level 5": 0.0793,
+        "hfopenllm_v2/GPQA": 0.307,
+        "hfopenllm_v2/MUSR": 0.4254,
+        "hfopenllm_v2/MMLU-PRO": 0.329
+      }
+    },
+    {
+      "id": "Pretergeek/OpenChat-3.5-0106_8.11B_36Layers-Interleaved",
+      "name": "OpenChat-3.5-0106_8.11B_36Layers-Interleaved",
+      "developer": "Pretergeek",
+      "evaluator_relationship": null,
+      "benchmark_scores": {
+        "hfopenllm_v2/IFEval": 0.5961,
+        "hfopenllm_v2/BBH": 0.4621,
+        "hfopenllm_v2/MATH Level 5": 0.0778,
+        "hfopenllm_v2/GPQA": 0.3045,
+        "hfopenllm_v2/MUSR": 0.4241,
+        "hfopenllm_v2/MMLU-PRO": 0.3299
+      }
+    },
+    {
+      "id": "Pretergeek/OpenChat-3.5-0106_8.99B_40Layers-Appended",
+      "name": "OpenChat-3.5-0106_8.99B_40Layers-Appended",
+      "developer": "Pretergeek",
+      "evaluator_relationship": null,
+      "benchmark_scores": {
+        "hfopenllm_v2/IFEval": 0.5961,
+        "hfopenllm_v2/BBH": 0.462,
+        "hfopenllm_v2/MATH Level 5": 0.0793,
+        "hfopenllm_v2/GPQA": 0.307,
+        "hfopenllm_v2/MUSR": 0.4254,
+        "hfopenllm_v2/MMLU-PRO": 0.329
+      }
+    },
+    {
+      "id": "Pretergeek/OpenChat-3.5-0106_8.99B_40Layers-Interleaved",
+      "name": "OpenChat-3.5-0106_8.99B_40Layers-Interleaved",
+      "developer": "Pretergeek",
+      "evaluator_relationship": null,
+      "benchmark_scores": {
+        "hfopenllm_v2/IFEval": 0.5976,
+        "hfopenllm_v2/BBH": 0.4621,
+        "hfopenllm_v2/MATH Level 5": 0.0778,
+        "hfopenllm_v2/GPQA": 0.3045,
+        "hfopenllm_v2/MUSR": 0.4241,
+        "hfopenllm_v2/MMLU-PRO": 0.3299
+      }
+    },
+    {
+      "id": "Pretergeek/OpenChat-3.5-0106_9.86B_44Layers-Appended",
+      "name": "OpenChat-3.5-0106_9.86B_44Layers-Appended",
+      "developer": "Pretergeek",
+      "evaluator_relationship": null,
+      "benchmark_scores": {
+        "hfopenllm_v2/IFEval": 0.5961,
+        "hfopenllm_v2/BBH": 0.462,
+        "hfopenllm_v2/MATH Level 5": 0.0793,
+        "hfopenllm_v2/GPQA": 0.307,
+        "hfopenllm_v2/MUSR": 0.4254,
+        "hfopenllm_v2/MMLU-PRO": 0.329
+      }
+    },
+    {
+      "id": "Pretergeek/openchat-3.5-0106_Rebased_Mistral-7B-v0.2",
+      "name": "openchat-3.5-0106_Rebased_Mistral-7B-v0.2",
+      "developer": "Pretergeek",
+      "evaluator_relationship": null,
+      "benchmark_scores": {
+        "hfopenllm_v2/IFEval": 0.3706,
+        "hfopenllm_v2/BBH": 0.3627,
+        "hfopenllm_v2/MATH Level 5": 0.0453,
+        "hfopenllm_v2/GPQA": 0.2718,
+        "hfopenllm_v2/MUSR": 0.484,
+        "hfopenllm_v2/MMLU-PRO": 0.283
+      }
+    }
+  ]
+}

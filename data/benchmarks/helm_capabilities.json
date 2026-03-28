@@ -1,0 +1,797 @@
+{
+  "models": [
+    {
+      "model_id": "allenai/olmo-2-0325-32b-instruct",
+      "name": "OLMo 2 32B Instruct March 2025",
+      "developer": "allenai",
+      "scores": {
+        "Mean score": 0.475,
+        "MMLU-Pro": 0.414,
+        "GPQA": 0.287,
+        "IFEval": 0.78,
+        "WildBench": 0.734,
+        "Omni-MATH": 0.161
+      }
+    },
+    {
+      "model_id": "allenai/olmo-2-1124-13b-instruct",
+      "name": "OLMo 2 13B Instruct November 2024",
+      "developer": "allenai",
+      "scores": {
+        "Mean score": 0.44,
+        "MMLU-Pro": 0.31,
+        "GPQA": 0.316,
+        "IFEval": 0.73,
+        "WildBench": 0.689,
+        "Omni-MATH": 0.156
+      }
+    },
+    {
+      "model_id": "allenai/olmo-2-1124-7b-instruct",
+      "name": "OLMo 2 7B Instruct November 2024",
+      "developer": "allenai",
+      "scores": {
+        "Mean score": 0.405,
+        "MMLU-Pro": 0.292,
+        "GPQA": 0.296,
+        "IFEval": 0.693,
+        "WildBench": 0.628,
+        "Omni-MATH": 0.116
+      }
+    },
+    {
+      "model_id": "allenai/olmoe-1b-7b-0125-instruct",
+      "name": "OLMoE 1B-7B Instruct January 2025",
+      "developer": "allenai",
+      "scores": {
+        "Mean score": 0.332,
+        "MMLU-Pro": 0.169,
+        "GPQA": 0.22,
+        "IFEval": 0.628,
+        "WildBench": 0.551,
+        "Omni-MATH": 0.093
+      }
+    },
+    {
+      "model_id": "amazon/nova-lite-v1:0",
+      "name": "Amazon Nova Lite",
+      "developer": "amazon",
+      "scores": {
+        "Mean score": 0.551,
+        "MMLU-Pro": 0.6,
+        "GPQA": 0.397,
+        "IFEval": 0.776,
+        "WildBench": 0.75,
+        "Omni-MATH": 0.233
+      }
+    },
+    {
+      "model_id": "amazon/nova-micro-v1:0",
+      "name": "Amazon Nova Micro",
+      "developer": "amazon",
+      "scores": {
+        "Mean score": 0.522,
+        "MMLU-Pro": 0.511,
+        "GPQA": 0.383,
+        "IFEval": 0.76,
+        "WildBench": 0.743,
+        "Omni-MATH": 0.214
+      }
+    },
+    {
+      "model_id": "amazon/nova-premier-v1:0",
+      "name": "Amazon Nova Premier",
+      "developer": "amazon",
+      "scores": {
+        "Mean score": 0.637,
+        "MMLU-Pro": 0.726,
+        "GPQA": 0.518,
+        "IFEval": 0.803,
+        "WildBench": 0.788,
+        "Omni-MATH": 0.35
+      }
+    },
+    {
+      "model_id": "amazon/nova-pro-v1:0",
+      "name": "Amazon Nova Pro",
+      "developer": "amazon",
+      "scores": {
+        "Mean score": 0.591,
+        "MMLU-Pro": 0.673,
+        "GPQA": 0.446,
+        "IFEval": 0.815,
+        "WildBench": 0.777,
+        "Omni-MATH": 0.242
+      }
+    },
+    {
+      "model_id": "anthropic/claude-3-5-haiku-20241022",
+      "name": "claude-3-5-haiku-20241022",
+      "developer": "anthropic",
+      "scores": {
+        "Mean score": 0.549,
+        "MMLU-Pro": 0.605,
+        "GPQA": 0.363,
+        "IFEval": 0.792,
+        "WildBench": 0.76,
+        "Omni-MATH": 0.224
+      }
+    },
+    {
+      "model_id": "anthropic/claude-3-5-sonnet-20241022",
+      "name": "Claude 3.5 Sonnet 20241022",
+      "developer": "anthropic",
+      "scores": {
+        "Mean score": 0.653,
+        "MMLU-Pro": 0.777,
+        "GPQA": 0.565,
+        "IFEval": 0.856,
+        "WildBench": 0.792,
+        "Omni-MATH": 0.276
+      }
+    },
+    {
+      "model_id": "anthropic/claude-3-7-sonnet-20250219",
+      "name": "claude-3-7-sonnet-20250219",
+      "developer": "anthropic",
+      "scores": {
+        "Mean score": 0.674,
+        "MMLU-Pro": 0.784,
+        "GPQA": 0.608,
+        "IFEval": 0.834,
+        "WildBench": 0.814,
+        "Omni-MATH": 0.33
+      }
+    },
+    {
+      "model_id": "anthropic/claude-opus-4-20250514",
+      "name": "Claude 4 Opus 20250514",
+      "developer": "anthropic",
+      "scores": {
+        "Mean score": 0.757,
+        "MMLU-Pro": 0.859,
+        "GPQA": 0.666,
+        "IFEval": 0.918,
+        "WildBench": 0.833,
+        "Omni-MATH": 0.511
+      }
+    },
+    {
+      "model_id": "anthropic/claude-opus-4-20250514-thinking-10k",
+      "name": "Claude 4 Opus 20250514, extended thinking",
+      "developer": "anthropic",
+      "scores": {
+        "Mean score": 0.78,
+        "MMLU-Pro": 0.875,
+        "GPQA": 0.709,
+        "IFEval": 0.849,
+        "WildBench": 0.852,
+        "Omni-MATH": 0.616
+      }
+    },
+    {
+      "model_id": "anthropic/claude-sonnet-4-20250514",
+      "name": "claude-sonnet-4-20250514",
+      "developer": "anthropic",
+      "scores": {
+        "Mean score": 0.733,
+        "MMLU-Pro": 0.843,
+        "GPQA": 0.643,
+        "IFEval": 0.839,
+        "WildBench": 0.825,
+        "Omni-MATH": 0.512
+      }
+    },
+    {
+      "model_id": "anthropic/claude-sonnet-4-20250514-thinking-10k",
+      "name": "Claude 4 Sonnet 20250514, extended thinking",
+      "developer": "anthropic",
+      "scores": {
+        "Mean score": 0.766,
+        "MMLU-Pro": 0.843,
+        "GPQA": 0.706,
+        "IFEval": 0.84,
+        "WildBench": 0.838,
+        "Omni-MATH": 0.602
+      }
+    },
+    {
+      "model_id": "deepseek-ai/deepseek-r1-0528",
+      "name": "DeepSeek-R1-0528",
+      "developer": "deepseek-ai",
+      "scores": {
+        "Mean score": 0.699,
+        "MMLU-Pro": 0.793,
+        "GPQA": 0.666,
+        "IFEval": 0.784,
+        "WildBench": 0.828,
+        "Omni-MATH": 0.424
+      }
+    },
+    {
+      "model_id": "deepseek-ai/deepseek-v3",
+      "name": "DeepSeek v3",
+      "developer": "deepseek-ai",
+      "scores": {
+        "Mean score": 0.665,
+        "MMLU-Pro": 0.723,
+        "GPQA": 0.538,
+        "IFEval": 0.832,
+        "WildBench": 0.831,
+        "Omni-MATH": 0.403
+      }
+    },
+    {
+      "model_id": "google/gemini-1.5-flash-002",
+      "name": "Gemini 1.5 Flash 002",
+      "developer": "google",
+      "scores": {
+        "Mean score": 0.609,
+        "MMLU-Pro": 0.678,
+        "GPQA": 0.437,
+        "IFEval": 0.831,
+        "WildBench": 0.792,
+        "Omni-MATH": 0.305
+      }
+    },
+    {
+      "model_id": "google/gemini-1.5-pro-002",
+      "name": "Gemini 1.5 Pro 002",
+      "developer": "google",
+      "scores": {
+        "Mean score": 0.657,
+        "MMLU-Pro": 0.737,
+        "GPQA": 0.534,
+        "IFEval": 0.837,
+        "WildBench": 0.813,
+        "Omni-MATH": 0.364
+      }
+    },
+    {
+      "model_id": "google/gemini-2.0-flash-001",
+      "name": "Gemini 2.0 Flash",
+      "developer": "google",
+      "scores": {
+        "Mean score": 0.679,
+        "MMLU-Pro": 0.737,
+        "GPQA": 0.556,
+        "IFEval": 0.841,
+        "WildBench": 0.8,
+        "Omni-MATH": 0.459
+      }
+    },
+    {
+      "model_id": "google/gemini-2.0-flash-lite-preview-02-05",
+      "name": "Gemini 2.0 Flash Lite 02-05 preview",
+      "developer": "google",
+      "scores": {
+        "Mean score": 0.642,
+        "MMLU-Pro": 0.72,
+        "GPQA": 0.5,
+        "IFEval": 0.824,
+        "WildBench": 0.79,
+        "Omni-MATH": 0.374
+      }
+    },
+    {
+      "model_id": "google/gemini-2.5-flash-lite",
+      "name": "Gemini 2.5 Flash-Lite",
+      "developer": "google",
+      "scores": {
+        "Mean score": 0.591,
+        "MMLU-Pro": 0.537,
+        "GPQA": 0.309,
+        "IFEval": 0.81,
+        "WildBench": 0.818,
+        "Omni-MATH": 0.48
+      }
+    },
+    {
+      "model_id": "google/gemini-2.5-flash-preview-04-17",
+      "name": "Gemini 2.5 Flash 04-17 preview",
+      "developer": "google",
+      "scores": {
+        "Mean score": 0.626,
+        "MMLU-Pro": 0.639,
+        "GPQA": 0.39,
+        "IFEval": 0.898,
+        "WildBench": 0.817,
+        "Omni-MATH": 0.384
+      }
+    },
+    {
+      "model_id": "google/gemini-2.5-pro-preview-03-25",
+      "name": "Gemini 2.5 Pro 03-25 preview",
+      "developer": "google",
+      "scores": {
+        "Mean score": 0.745,
+        "MMLU-Pro": 0.863,
+        "GPQA": 0.749,
+        "IFEval": 0.84,
+        "WildBench": 0.857,
+        "Omni-MATH": 0.416
+      }
+    },
+    {
+      "model_id": "ibm/granite-3.3-8b-instruct",
+      "name": "IBM Granite 3.3 8B Instruct",
+      "developer": "ibm",
+      "scores": {
+        "Mean score": 0.463,
+        "MMLU-Pro": 0.343,
+        "GPQA": 0.325,
+        "IFEval": 0.729,
+        "WildBench": 0.741,
+        "Omni-MATH": 0.176
+      }
+    },
+    {
+      "model_id": "marin-community/marin-8b-instruct",
+      "name": "Marin 8B Instruct",
+      "developer": "marin-community",
+      "scores": {
+        "Mean score": 0.325,
+        "MMLU-Pro": 0.188,
+        "GPQA": 0.168,
+        "IFEval": 0.632,
+        "WildBench": 0.477,
+        "Omni-MATH": 0.16
+      }
+    },
+    {
+      "model_id": "meta/llama-3.1-405b-instruct-turbo",
+      "name": "Llama 3.1 Instruct Turbo 405B",
+      "developer": "meta",
+      "scores": {
+        "Mean score": 0.618,
+        "MMLU-Pro": 0.723,
+        "GPQA": 0.522,
+        "IFEval": 0.811,
+        "WildBench": 0.783,
+        "Omni-MATH": 0.249
+      }
+    },
+    {
+      "model_id": "meta/llama-3.1-70b-instruct-turbo",
+      "name": "Llama 3.1 Instruct Turbo 70B",
+      "developer": "meta",
+      "scores": {
+        "Mean score": 0.574,
+        "MMLU-Pro": 0.653,
+        "GPQA": 0.426,
+        "IFEval": 0.821,
+        "WildBench": 0.758,
+        "Omni-MATH": 0.21
+      }
+    },
+    {
+      "model_id": "meta/llama-3.1-8b-instruct-turbo",
+      "name": "Llama 3.1 Instruct Turbo 8B",
+      "developer": "meta",
+      "scores": {
+        "Mean score": 0.444,
+        "MMLU-Pro": 0.406,
+        "GPQA": 0.247,
+        "IFEval": 0.743,
+        "WildBench": 0.686,
+        "Omni-MATH": 0.137
+      }
+    },
+    {
+      "model_id": "meta/llama-4-maverick-17b-128e-instruct-fp8",
+      "name": "Llama 4 Maverick 17Bx128E Instruct FP8",
+      "developer": "meta",
+      "scores": {
+        "Mean score": 0.718,
+        "MMLU-Pro": 0.81,
+        "GPQA": 0.65,
+        "IFEval": 0.908,
+        "WildBench": 0.8,
+        "Omni-MATH": 0.422
+      }
+    },
+    {
+      "model_id": "meta/llama-4-scout-17b-16e-instruct",
+      "name": "Llama 4 Scout 17Bx16E Instruct",
+      "developer": "meta",
+      "scores": {
+        "Mean score": 0.644,
+        "MMLU-Pro": 0.742,
+        "GPQA": 0.507,
+        "IFEval": 0.818,
+        "WildBench": 0.779,
+        "Omni-MATH": 0.373
+      }
+    },
+    {
+      "model_id": "mistralai/mistral-7b-instruct-v0.3",
+      "name": "Mistral Instruct v0.3 7B",
+      "developer": "mistralai",
+      "scores": {
+        "Mean score": 0.376,
+        "MMLU-Pro": 0.277,
+        "GPQA": 0.303,
+        "IFEval": 0.567,
+        "WildBench": 0.66,
+        "Omni-MATH": 0.072
+      }
+    },
+    {
+      "model_id": "mistralai/mistral-large-2411",
+      "name": "Mistral Large 2411",
+      "developer": "mistralai",
+      "scores": {
+        "Mean score": 0.598,
+        "MMLU-Pro": 0.599,
+        "GPQA": 0.435,
+        "IFEval": 0.876,
+        "WildBench": 0.801,
+        "Omni-MATH": 0.281
+      }
+    },
+    {
+      "model_id": "mistralai/mistral-small-2503",
+      "name": "mistral-small-2503",
+      "developer": "mistralai",
+      "scores": {
+        "Mean score": 0.558,
+        "MMLU-Pro": 0.61,
+        "GPQA": 0.392,
+        "IFEval": 0.75,
+        "WildBench": 0.788,
+        "Omni-MATH": 0.248
+      }
+    },
+    {
+      "model_id": "mistralai/mixtral-8x22b-instruct-v0.1",
+      "name": "Mixtral Instruct 8x22B",
+      "developer": "mistralai",
+      "scores": {
+        "Mean score": 0.478,
+        "MMLU-Pro": 0.46,
+        "GPQA": 0.334,
+        "IFEval": 0.724,
+        "WildBench": 0.711,
+        "Omni-MATH": 0.163
+      }
+    },
+    {
+      "model_id": "mistralai/mixtral-8x7b-instruct-v0.1",
+      "name": "Mixtral Instruct 8x7B",
+      "developer": "mistralai",
+      "scores": {
+        "Mean score": 0.397,
+        "MMLU-Pro": 0.335,
+        "GPQA": 0.296,
+        "IFEval": 0.575,
+        "WildBench": 0.673,
+        "Omni-MATH": 0.105
+      }
+    },
+    {
+      "model_id": "moonshotai/kimi-k2-instruct",
+      "name": "Kimi K2 Instruct",
+      "developer": "moonshotai",
+      "scores": {
+        "Mean score": 0.768,
+        "MMLU-Pro": 0.819,
+        "GPQA": 0.652,
+        "IFEval": 0.85,
+        "WildBench": 0.862,
+        "Omni-MATH": 0.654
+      }
+    },
+    {
+      "model_id": "openai/gpt-4.1-2025-04-14",
+      "name": "gpt-4.1-2025-04-14",
+      "developer": "openai",
+      "scores": {
+        "Mean score": 0.727,
+        "MMLU-Pro": 0.811,
+        "GPQA": 0.659,
+        "IFEval": 0.838,
+        "WildBench": 0.854,
+        "Omni-MATH": 0.471
+      }
+    },
+    {
+      "model_id": "openai/gpt-4.1-mini-2025-04-14",
+      "name": "GPT-4.1 mini 2025-04-14",
+      "developer": "openai",
+      "scores": {
+        "Mean score": 0.726,
+        "MMLU-Pro": 0.783,
+        "GPQA": 0.614,
+        "IFEval": 0.904,
+        "WildBench": 0.838,
+        "Omni-MATH": 0.491
+      }
+    },
+    {
+      "model_id": "openai/gpt-4.1-nano-2025-04-14",
+      "name": "GPT-4.1 nano 2025-04-14",
+      "developer": "openai",
+      "scores": {
+        "Mean score": 0.616,
+        "MMLU-Pro": 0.55,
+        "GPQA": 0.507,
+        "IFEval": 0.843,
+        "WildBench": 0.811,
+        "Omni-MATH": 0.367
+      }
+    },
+    {
+      "model_id": "openai/gpt-4o-2024-11-20",
+      "name": "GPT-4o 2024-11-20",
+      "developer": "openai",
+      "scores": {
+        "Mean score": 0.634,
+        "MMLU-Pro": 0.713,
+        "GPQA": 0.52,
+        "IFEval": 0.817,
+        "WildBench": 0.828,
+        "Omni-MATH": 0.293
+      }
+    },
+    {
+      "model_id": "openai/gpt-4o-mini-2024-07-18",
+      "name": "GPT-4o mini 2024-07-18",
+      "developer": "openai",
+      "scores": {
+        "Mean score": 0.565,
+        "MMLU-Pro": 0.603,
+        "GPQA": 0.368,
+        "IFEval": 0.782,
+        "WildBench": 0.791,
+        "Omni-MATH": 0.28
+      }
+    },
+    {
+      "model_id": "openai/gpt-5-2025-08-07",
+      "name": "gpt-5-2025-08-07",
+      "developer": "openai",
+      "scores": {
+        "Mean score": 0.807,
+        "MMLU-Pro": 0.863,
+        "GPQA": 0.791,
+        "IFEval": 0.875,
+        "WildBench": 0.857,
+        "Omni-MATH": 0.647
+      }
+    },
+    {
+      "model_id": "openai/gpt-5-mini-2025-08-07",
+      "name": "GPT-5 mini 2025-08-07",
+      "developer": "openai",
+      "scores": {
+        "Mean score": 0.819,
+        "MMLU-Pro": 0.835,
+        "GPQA": 0.756,
+        "IFEval": 0.927,
+        "WildBench": 0.855,
+        "Omni-MATH": 0.722
+      }
+    },
+    {
+      "model_id": "openai/gpt-5-nano-2025-08-07",
+      "name": "GPT-5 nano 2025-08-07",
+      "developer": "openai",
+      "scores": {
+        "Mean score": 0.748,
+        "MMLU-Pro": 0.778,
+        "GPQA": 0.679,
+        "IFEval": 0.932,
+        "WildBench": 0.806,
+        "Omni-MATH": 0.547
+      }
+    },
+    {
+      "model_id": "openai/gpt-oss-120b",
+      "name": "gpt-oss-120b",
+      "developer": "openai",
+      "scores": {
+        "Mean score": 0.77,
+        "MMLU-Pro": 0.795,
+        "GPQA": 0.684,
+        "IFEval": 0.836,
+        "WildBench": 0.845,
+        "Omni-MATH": 0.688
+      }
+    },
+    {
+      "model_id": "openai/gpt-oss-20b",
+      "name": "gpt-oss-20b",
+      "developer": "openai",
+      "scores": {
+        "Mean score": 0.674,
+        "MMLU-Pro": 0.74,
+        "GPQA": 0.594,
+        "IFEval": 0.732,
+        "WildBench": 0.737,
+        "Omni-MATH": 0.565
+      }
+    },
+    {
+      "model_id": "openai/o3-2025-04-16",
+      "name": "o3 2025-04-16",
+      "developer": "openai",
+      "scores": {
+        "Mean score": 0.811,
+        "MMLU-Pro": 0.859,
+        "GPQA": 0.753,
+        "IFEval": 0.869,
+        "WildBench": 0.861,
+        "Omni-MATH": 0.714
+      }
+    },
+    {
+      "model_id": "openai/o4-mini-2025-04-16",
+      "name": "o4-mini-2025-04-16",
+      "developer": "openai",
+      "scores": {
+        "Mean score": 0.812,
+        "MMLU-Pro": 0.82,
+        "GPQA": 0.735,
+        "IFEval": 0.929,
+        "WildBench": 0.854,
+        "Omni-MATH": 0.72
+      }
+    },
+    {
+      "model_id": "qwen/qwen2.5-72b-instruct-turbo",
+      "name": "Qwen2.5 Instruct Turbo 72B",
+      "developer": "qwen",
+      "scores": {
+        "Mean score": 0.599,
+        "MMLU-Pro": 0.631,
+        "GPQA": 0.426,
+        "IFEval": 0.806,
+        "WildBench": 0.802,
+        "Omni-MATH": 0.33
+      }
+    },
+    {
+      "model_id": "qwen/qwen2.5-7b-instruct-turbo",
+      "name": "Qwen2.5 Instruct Turbo 7B",
+      "developer": "qwen",
+      "scores": {
+        "Mean score": 0.529,
+        "MMLU-Pro": 0.539,
+        "GPQA": 0.341,
+        "IFEval": 0.741,
+        "WildBench": 0.731,
+        "Omni-MATH": 0.294
+      }
+    },
+    {
+      "model_id": "qwen/qwen3-235b-a22b-fp8-tput",
+      "name": "Qwen3 235B A22B FP8 Throughput",
+      "developer": "qwen",
+      "scores": {
+        "Mean score": 0.726,
+        "MMLU-Pro": 0.817,
+        "GPQA": 0.623,
+        "IFEval": 0.816,
+        "WildBench": 0.828,
+        "Omni-MATH": 0.548
+      }
+    },
+    {
+      "model_id": "qwen/qwen3-235b-a22b-instruct-2507-fp8",
+      "name": "Qwen3 235B A22B Instruct 2507 FP8",
+      "developer": "qwen",
+      "scores": {
+        "Mean score": 0.798,
+        "MMLU-Pro": 0.844,
+        "GPQA": 0.726,
+        "IFEval": 0.835,
+        "WildBench": 0.866,
+        "Omni-MATH": 0.718
+      }
+    },
+    {
+      "model_id": "writer/palmyra-fin",
+      "name": "Palmyra Fin",
+      "developer": "writer",
+      "scores": {
+        "Mean score": 0.577,
+        "MMLU-Pro": 0.591,
+        "GPQA": 0.422,
+        "IFEval": 0.793,
+        "WildBench": 0.783,
+        "Omni-MATH": 0.295
+      }
+    },
+    {
+      "model_id": "writer/palmyra-med",
+      "name": "Palmyra Med",
+      "developer": "writer",
+      "scores": {
+        "Mean score": 0.476,
+        "MMLU-Pro": 0.411,
+        "GPQA": 0.368,
+        "IFEval": 0.767,
+        "WildBench": 0.676,
+        "Omni-MATH": 0.156
+      }
+    },
+    {
+      "model_id": "writer/palmyra-x-004",
+      "name": "Palmyra-X-004",
+      "developer": "writer",
+      "scores": {
+        "Mean score": 0.609,
+        "MMLU-Pro": 0.657,
+        "GPQA": 0.395,
+        "IFEval": 0.872,
+        "WildBench": 0.802,
+        "Omni-MATH": 0.32
+      }
+    },
+    {
+      "model_id": "writer/palmyra-x5",
+      "name": "Palmyra X5",
+      "developer": "writer",
+      "scores": {
+        "Mean score": 0.696,
+        "MMLU-Pro": 0.804,
+        "GPQA": 0.661,
+        "IFEval": 0.823,
+        "WildBench": 0.78,
+        "Omni-MATH": 0.414
+      }
+    },
+    {
+      "model_id": "xai/grok-3-beta",
+      "name": "Grok 3 Beta",
+      "developer": "xai",
+      "scores": {
+        "Mean score": 0.727,
+        "MMLU-Pro": 0.788,
+        "GPQA": 0.65,
+        "IFEval": 0.884,
+        "WildBench": 0.849,
+        "Omni-MATH": 0.464
+      }
+    },
+    {
+      "model_id": "xai/grok-3-mini-beta",
+      "name": "Grok 3 mini Beta",
+      "developer": "xai",
+      "scores": {
+        "Mean score": 0.679,
+        "MMLU-Pro": 0.799,
+        "GPQA": 0.675,
+        "IFEval": 0.951,
+        "WildBench": 0.651,
+        "Omni-MATH": 0.318
+      }
+    },
+    {
+      "model_id": "xai/grok-4-0709",
+      "name": "grok-4-0709",
+      "developer": "xai",
+      "scores": {
+        "Mean score": 0.785,
+        "MMLU-Pro": 0.851,
+        "GPQA": 0.726,
+        "IFEval": 0.949,
+        "WildBench": 0.797,
+        "Omni-MATH": 0.603
+      }
+    },
+    {
+      "model_id": "zai-org/glm-4.5-air-fp8",
+      "name": "GLM-4.5-Air-FP8",
+      "developer": "zai-org",
+      "scores": {
+        "Mean score": 0.67,
+        "MMLU-Pro": 0.762,
+        "GPQA": 0.594,
+        "IFEval": 0.812,
+        "WildBench": 0.789,
+        "Omni-MATH": 0.391
+      }
+    }
+  ]
+}

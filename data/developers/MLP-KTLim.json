@@ -1,0 +1,19 @@
+{
+  "developer": "MLP-KTLim",
+  "models": [
+    {
+      "id": "MLP-KTLim/llama-3-Korean-Bllossom-8B",
+      "name": "llama-3-Korean-Bllossom-8B",
+      "developer": "MLP-KTLim",
+      "evaluator_relationship": null,
+      "benchmark_scores": {
+        "hfopenllm_v2/IFEval": 0.5113,
+        "hfopenllm_v2/BBH": 0.49,
+        "hfopenllm_v2/MATH Level 5": 0.102,
+        "hfopenllm_v2/GPQA": 0.2626,
+        "hfopenllm_v2/MUSR": 0.3675,
+        "hfopenllm_v2/MMLU-PRO": 0.3594
+      }
+    }
+  ]
+}

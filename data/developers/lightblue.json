@@ -1,0 +1,75 @@
+{
+  "developer": "lightblue",
+  "models": [
+    {
+      "id": "lightblue/suzume-llama-3-8B-multilingual",
+      "name": "suzume-llama-3-8B-multilingual",
+      "developer": "lightblue",
+      "evaluator_relationship": null,
+      "benchmark_scores": {
+        "hfopenllm_v2/IFEval": 0.6678,
+        "hfopenllm_v2/BBH": 0.495,
+        "hfopenllm_v2/MATH Level 5": 0.0944,
+        "hfopenllm_v2/GPQA": 0.2836,
+        "hfopenllm_v2/MUSR": 0.3977,
+        "hfopenllm_v2/MMLU-PRO": 0.3383
+      }
+    },
+    {
+      "id": "lightblue/suzume-llama-3-8B-multilingual-orpo-borda-full",
+      "name": "suzume-llama-3-8B-multilingual-orpo-borda-full",
+      "developer": "lightblue",
+      "evaluator_relationship": null,
+      "benchmark_scores": {
+        "hfopenllm_v2/IFEval": 0.5817,
+        "hfopenllm_v2/BBH": 0.4714,
+        "hfopenllm_v2/MATH Level 5": 0.0763,
+        "hfopenllm_v2/GPQA": 0.2592,
+        "hfopenllm_v2/MUSR": 0.3222,
+        "hfopenllm_v2/MMLU-PRO": 0.331
+      }
+    },
+    {
+      "id": "lightblue/suzume-llama-3-8B-multilingual-orpo-borda-half",
+      "name": "suzume-llama-3-8B-multilingual-orpo-borda-half",
+      "developer": "lightblue",
+      "evaluator_relationship": null,
+      "benchmark_scores": {
+        "hfopenllm_v2/IFEval": 0.6249,
+        "hfopenllm_v2/BBH": 0.4707,
+        "hfopenllm_v2/MATH Level 5": 0.0906,
+        "hfopenllm_v2/GPQA": 0.245,
+        "hfopenllm_v2/MUSR": 0.3516,
+        "hfopenllm_v2/MMLU-PRO": 0.3614
+      }
+    },
+    {
+      "id": "lightblue/suzume-llama-3-8B-multilingual-orpo-borda-top25",
+      "name": "suzume-llama-3-8B-multilingual-orpo-borda-top25",
+      "developer": "lightblue",
+      "evaluator_relationship": null,
+      "benchmark_scores": {
+        "hfopenllm_v2/IFEval": 0.6637,
+        "hfopenllm_v2/BBH": 0.4865,
+        "hfopenllm_v2/MATH Level 5": 0.1042,
+        "hfopenllm_v2/GPQA": 0.2727,
+        "hfopenllm_v2/MUSR": 0.3566,
+        "hfopenllm_v2/MMLU-PRO": 0.3684
+      }
+    },
+    {
+      "id": "lightblue/suzume-llama-3-8B-multilingual-orpo-borda-top75",
+      "name": "suzume-llama-3-8B-multilingual-orpo-borda-top75",
+      "developer": "lightblue",
+      "evaluator_relationship": null,
+      "benchmark_scores": {
+        "hfopenllm_v2/IFEval": 0.6687,
+        "hfopenllm_v2/BBH": 0.4833,
+        "hfopenllm_v2/MATH Level 5": 0.0785,
+        "hfopenllm_v2/GPQA": 0.2727,
+        "hfopenllm_v2/MUSR": 0.3817,
+        "hfopenllm_v2/MMLU-PRO": 0.3769
+      }
+    }
+  ]
+}

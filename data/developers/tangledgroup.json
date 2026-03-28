@@ -1,0 +1,33 @@
+{
+  "developer": "tangledgroup",
+  "models": [
+    {
+      "id": "tangledgroup/tangled-llama-pints-1.5b-v0.1-instruct",
+      "name": "tangled-llama-pints-1.5b-v0.1-instruct",
+      "developer": "tangledgroup",
+      "evaluator_relationship": null,
+      "benchmark_scores": {
+        "hfopenllm_v2/IFEval": 0.1509,
+        "hfopenllm_v2/BBH": 0.3143,
+        "hfopenllm_v2/MATH Level 5": 0.0121,
+        "hfopenllm_v2/GPQA": 0.2399,
+        "hfopenllm_v2/MUSR": 0.3761,
+        "hfopenllm_v2/MMLU-PRO": 0.1109
+      }
+    },
+    {
+      "id": "tangledgroup/tangled-llama-pints-1.5b-v0.2-instruct",
+      "name": "tangled-llama-pints-1.5b-v0.2-instruct",
+      "developer": "tangledgroup",
+      "evaluator_relationship": null,
+      "benchmark_scores": {
+        "hfopenllm_v2/IFEval": 0.1724,
+        "hfopenllm_v2/BBH": 0.3158,
+        "hfopenllm_v2/MATH Level 5": 0.0128,
+        "hfopenllm_v2/GPQA": 0.2416,
+        "hfopenllm_v2/MUSR": 0.3643,
+        "hfopenllm_v2/MMLU-PRO": 0.1117
+      }
+    }
+  ]
+}

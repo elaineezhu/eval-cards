@@ -1,0 +1,33 @@
+{
+  "developer": "silma-ai",
+  "models": [
+    {
+      "id": "silma-ai/SILMA-9B-Instruct-v1.0",
+      "name": "SILMA-9B-Instruct-v1.0",
+      "developer": "silma-ai",
+      "evaluator_relationship": null,
+      "benchmark_scores": {
+        "hfopenllm_v2/IFEval": 0.5842,
+        "hfopenllm_v2/BBH": 0.5219,
+        "hfopenllm_v2/MATH Level 5": 0.1163,
+        "hfopenllm_v2/GPQA": 0.3054,
+        "hfopenllm_v2/MUSR": 0.4637,
+        "hfopenllm_v2/MMLU-PRO": 0.392
+      }
+    },
+    {
+      "id": "silma-ai/SILMA-Kashif-2B-Instruct-v1.0",
+      "name": "SILMA-Kashif-2B-Instruct-v1.0",
+      "developer": "silma-ai",
+      "evaluator_relationship": null,
+      "benchmark_scores": {
+        "hfopenllm_v2/IFEval": 0.1181,
+        "hfopenllm_v2/BBH": 0.3793,
+        "hfopenllm_v2/MATH Level 5": 0.0113,
+        "hfopenllm_v2/GPQA": 0.2701,
+        "hfopenllm_v2/MUSR": 0.4043,
+        "hfopenllm_v2/MMLU-PRO": 0.2258
+      }
+    }
+  ]
+}

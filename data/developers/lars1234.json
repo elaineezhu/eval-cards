@@ -1,0 +1,19 @@
+{
+  "developer": "lars1234",
+  "models": [
+    {
+      "id": "lars1234/Mistral-Small-24B-Instruct-2501-writer",
+      "name": "Mistral-Small-24B-Instruct-2501-writer",
+      "developer": "lars1234",
+      "evaluator_relationship": null,
+      "benchmark_scores": {
+        "hfopenllm_v2/IFEval": 0.6565,
+        "hfopenllm_v2/BBH": 0.6733,
+        "hfopenllm_v2/MATH Level 5": 0.3557,
+        "hfopenllm_v2/GPQA": 0.3893,
+        "hfopenllm_v2/MUSR": 0.4645,
+        "hfopenllm_v2/MMLU-PRO": 0.5448
+      }
+    }
+  ]
+}
