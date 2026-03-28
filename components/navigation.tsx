@@ -24,7 +24,10 @@ export function Navigation() {
       href: "/models",
       label: "Models",
       icon: LayoutGrid,
-      isActive: pathname === "/models" || pathname === "/benchmarks" || pathname?.startsWith("/evaluations")
+      isActive:
+        pathname === "/models" ||
+        pathname?.startsWith("/models/") ||
+        pathname?.startsWith("/developers/")
     },
     {
       href: "/evals",

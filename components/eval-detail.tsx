@@ -137,7 +137,7 @@ export function EvalDetail({ summary }: EvalDetailProps) {
   const scoreDirectionLabel = summary.metric_config.lower_is_better ? "Lower scores rank higher" : "Higher scores rank higher"
   const leaderboardTitle = isResearchView ? "Leaderboard" : "Reporting Comparison"
   const leaderboardDescription = isResearchView
-    ? "Models ranked by normalized score for this evaluation."
+    ? "Models ranked by normalized score for this benchmark."
     : "Model results with stronger emphasis on reporting context and evaluator provenance."
 
   const toggleRow = (key: string) =>
@@ -154,7 +154,10 @@ export function EvalDetail({ summary }: EvalDetailProps) {
             <div className="space-y-3">
               <div className="flex flex-wrap items-center gap-2">
                 <Badge variant="outline" className="border-border/60 bg-background/80 text-[11px] uppercase tracking-[0.18em]">
-                  Eval Metadata
+                  Single Benchmark
+                </Badge>
+                <Badge variant="secondary" className="font-normal">
+                  Composite: {summary.composite_benchmark_name}
                 </Badge>
                 <Badge variant="secondary" className="font-normal capitalize">
                   {summary.metric_config.score_type}
@@ -227,10 +230,16 @@ export function EvalDetail({ summary }: EvalDetailProps) {
             <div className="text-[11px] font-semibold uppercase tracking-[0.2em] text-muted-foreground">
               {isResearchView ? "Metric specification" : "Reading context"}
             </div>
-            <dl className="mt-3 grid gap-x-6 gap-y-3 text-sm sm:grid-cols-2 xl:grid-cols-4">
+            <dl className="mt-3 grid gap-x-6 gap-y-3 text-sm sm:grid-cols-2 xl:grid-cols-5">
               <div>
                 <dt className="text-[11px] font-semibold uppercase tracking-[0.16em] text-muted-foreground">
-                  {isResearchView ? "Benchmark ID" : "What this covers"}
+                  Composite benchmark
+                </dt>
+                <dd className="mt-1 break-words font-medium">{summary.composite_benchmark_name}</dd>
+              </div>
+              <div>
+                <dt className="text-[11px] font-semibold uppercase tracking-[0.16em] text-muted-foreground">
+                  {isResearchView ? "Single benchmark ID" : "What this covers"}
                 </dt>
                 <dd className="mt-1 break-words font-medium">
                   {isResearchView ? summary.evaluation_id : summary.metric_config.evaluation_description}

@@ -76,7 +76,8 @@ function getEvaluationSummaryId(
   evaluation: BenchmarkEvaluation,
   result: EvaluationResult
 ): string {
-  return slugify(`${getBenchmarkName(evaluation, result)}__${result.evaluation_name}`)
+  const benchmarkKey = evaluation.benchmark || getBenchmarkName(evaluation, result)
+  return slugify(`${benchmarkKey}__${result.evaluation_name}`)
 }
 
 // ── Eval-centric (per-benchmark) types ────────────────────────────────────────
@@ -95,6 +96,8 @@ export interface BenchmarkEvalSummary {
   evaluation_name: string
   /** URL-safe slug derived from evaluation_name */
   evaluation_id: string
+  composite_benchmark_key: string
+  composite_benchmark_name: string
   category: CategoryType
   metric_config: MetricConfig
   factsheet: EvaluationResult['factsheet'] | undefined
@@ -722,9 +725,10 @@ export function groupEvaluationsByBenchmark(
 
   for (const eval_ of evaluations) {
     for (const result of eval_.evaluation_results) {
-      const name = result.evaluation_name
       const displayName = getEvaluationDisplayName(eval_, result)
       const evalId = getEvaluationSummaryId(eval_, result)
+      const compositeBenchmarkKey = eval_.benchmark || getBenchmarkName(eval_, result)
+      const compositeBenchmarkName = getBenchmarkDisplayName(compositeBenchmarkKey)
 
       if (!summaries[evalId]) {
         // Determine category from factsheet first, then infer
@@ -743,6 +747,8 @@ export function groupEvaluationsByBenchmark(
         summaries[evalId] = {
           evaluation_name: displayName,
           evaluation_id: evalId,
+          composite_benchmark_key: compositeBenchmarkKey,
+          composite_benchmark_name: compositeBenchmarkName,
           category,
           metric_config: result.metric_config,
           factsheet: result.factsheet,

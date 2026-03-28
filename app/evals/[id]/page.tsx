@@ -42,7 +42,7 @@ export default function EvalDetailPage() {
         const evalId = decodeURIComponent(params.id as string)
         const found = await fetchEvalSummary(evalId)
         setSummary(found)
-        document.title = `${found.evaluation_name} Evaluation`
+        document.title = `${found.evaluation_name} | Single Benchmark`
       } catch (err) {
         console.error(err)
         setError("Evaluation not found")
@@ -94,7 +94,7 @@ export default function EvalDetailPage() {
               <ArrowLeft className="h-4 w-4" />
             </Button>
             <div className="flex-1 text-center">
-              <h2 className="text-base font-medium tracking-tight text-foreground/90 sm:text-lg">Evaluation details</h2>
+              <h2 className="text-base font-medium tracking-tight text-foreground/90 sm:text-lg">Single benchmark details</h2>
             </div>
           </div>
           {/* Desktop */}
@@ -105,7 +105,7 @@ export default function EvalDetailPage() {
             </Button>
             <div className="text-center">
               <h2 className="text-xl font-medium tracking-tight text-foreground/90 md:text-2xl">
-                Evaluation details
+                Single benchmark details
               </h2>
             </div>
             <div />

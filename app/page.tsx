@@ -126,7 +126,7 @@ export default function HomePage() {
           <Info className="h-4 w-4 text-amber-600 dark:text-amber-400" />
           <AlertTitle>Demo Environment</AlertTitle>
           <AlertDescription>
-            This is a demonstration of the evaluation dashboard. The data shown is sample/dummy data for testing purposes.
+            This is a research preview with sample data for demonstration purposes.
           </AlertDescription>
         </Alert>
 
@@ -249,8 +249,8 @@ export default function HomePage() {
         <section className="grid gap-6 xl:grid-cols-2">
           <OverviewPanel
             eyebrow="Accountability"
-            title="Most independently reported models"
-            description="Models with the highest share of independently reported evidence."
+            title="Highest third-party reporting share"
+            description="Models with the largest share of third-party benchmark reporting in the current corpus."
             href="/models"
             cta="Browse models"
           >
@@ -260,7 +260,7 @@ export default function HomePage() {
                   key={model.id}
                   rank={index + 1}
                   model={model}
-                  metricLabel="Independent"
+                  metricLabel="Third-party share"
                   metricValue={`${Math.round(model.independent_verification_ratio * 100)}%`}
                   secondaryLabel={`${model.benchmarks_count} benchmarks`}
                   highlight={model.independent_verification_ratio > 0.5}
@@ -392,7 +392,7 @@ function ModelOverviewRow({
   highlight?: boolean
 }) {
   return (
-    <Link href={`/evaluations/${model.route_id}`} className="block">
+    <Link href={`/models/${model.route_id}`} className="block">
       <div className="flex items-center gap-4 rounded-2xl px-3 py-3 transition-colors hover:bg-muted/30">
         <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full border text-xs font-semibold">
           {rank}

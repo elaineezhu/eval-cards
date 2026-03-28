@@ -26,7 +26,7 @@ export function EvalCard({ summary, delayMs = 0 }: EvalCardProps) {
   const { mode } = useAudienceMode()
   const isResearchView = mode === "research"
   const scorePercent = `${Math.round(summary.avg_score_norm * 100)}%`
-  const purpose = summary.factsheet?.purpose ?? "General capability evaluation"
+  const purpose = summary.factsheet?.purpose ?? "General single-benchmark evaluation"
 
   return (
     <Card
@@ -36,11 +36,14 @@ export function EvalCard({ summary, delayMs = 0 }: EvalCardProps) {
     >
       <CardHeader className="space-y-3 border-b border-border/60 pb-4">
         <div className="text-[10px] font-semibold uppercase tracking-[0.24em] text-muted-foreground">
-          Eval Summary
+          Single Benchmark
         </div>
 
         <div className="min-w-0">
           <div className="text-xl font-bold">{summary.evaluation_name}</div>
+          <div className="mt-1 text-xs font-medium uppercase tracking-[0.18em] text-muted-foreground">
+            Composite benchmark: {summary.composite_benchmark_name}
+          </div>
           <div className="mt-1 text-sm text-muted-foreground line-clamp-2">
             {summary.metric_config.evaluation_description}
           </div>

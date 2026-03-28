@@ -191,11 +191,26 @@ export function getCanonicalModelIdentity(modelInfo: ModelInfo): ParsedModelIden
 
 export function normalizeModelInfo(modelInfo: ModelInfo): ModelInfo {
   const identity = getCanonicalModelIdentity(modelInfo)
+  const additionalArchitecture =
+    typeof modelInfo.additional_details?.architecture === "string"
+      ? modelInfo.additional_details.architecture
+      : undefined
+  const rawParamsBillions = modelInfo.additional_details?.params_billions
+  const parsedParamsBillions =
+    typeof rawParamsBillions === "number"
+      ? rawParamsBillions
+      : typeof rawParamsBillions === "string"
+        ? Number.parseFloat(rawParamsBillions)
+        : null
 
   return {
     ...modelInfo,
     id: modelInfo.id.trim(),
     name: identity.variantDisplayName,
+    architecture: modelInfo.architecture ?? additionalArchitecture,
+    parameter_count:
+      modelInfo.parameter_count ??
+      (Number.isFinite(parsedParamsBillions ?? NaN) ? `${parsedParamsBillions}B` : undefined),
     model_version:
       modelInfo.model_version ??
       (identity.variantKey === "base" ? undefined : identity.variantLabel),

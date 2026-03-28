@@ -139,6 +139,20 @@ function getReportingSummaryLabel(data: BenchmarkEvaluationCardData) {
   return "Aggregated reporting view"
 }
 
+function getReportingMixLabel(data: BenchmarkEvaluationCardData) {
+  const thirdPartyShare = Math.round(data.independent_verification_ratio * 100)
+
+  if (thirdPartyShare <= 0) {
+    return "Self-reported evidence"
+  }
+
+  if (thirdPartyShare >= 100) {
+    return "Third-party reported"
+  }
+
+  return `${thirdPartyShare}% third-party mix`
+}
+
 export function BenchmarkEvaluationCard({ data, onDelete, delayMs = 0 }: BenchmarkEvaluationCardProps) {
   const router = useRouter()
   const { mode } = useAudienceMode()
@@ -152,7 +166,7 @@ export function BenchmarkEvaluationCard({ data, onDelete, delayMs = 0 }: Benchma
     <Card
       className="motion-academic-enter motion-academic-surface motion-academic-hover group cursor-pointer overflow-hidden border-border/70 bg-card hover:shadow-xl"
       style={{ "--enter-delay": `${delayMs}ms` } as CSSProperties}
-      onClick={() => router.push(`/evaluations/${data.route_id}`)}
+      onClick={() => router.push(`/models/${data.route_id}`)}
     >
       <CardHeader className="space-y-4 border-b border-border/60 pb-4">
         <div className="flex flex-wrap items-center justify-between gap-2 text-[10px] font-semibold uppercase tracking-[0.24em] text-muted-foreground">
@@ -184,12 +198,7 @@ export function BenchmarkEvaluationCard({ data, onDelete, delayMs = 0 }: Benchma
               {data.input_modalities && data.input_modalities.length > 1 && (
                 <Badge variant="secondary">Multimodal</Badge>
               )}
-              {data.independent_verification_ratio > 0 ? (
-                <Badge className="bg-emerald-100 text-emerald-800 dark:bg-emerald-950/50 dark:text-emerald-300">
-                  <BadgeCheck className="mr-1 h-3 w-3" />
-                  Independent reporting
-                </Badge>
-              ) : data.evaluator_count > 0 ? (
+              {data.evaluator_count > 0 ? (
                 <Badge variant="secondary">{reportingSummaryLabel}</Badge>
               ) : null}
             </div>
@@ -207,7 +216,7 @@ export function BenchmarkEvaluationCard({ data, onDelete, delayMs = 0 }: Benchma
               </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end">
-              <DropdownMenuItem onClick={() => router.push(`/evaluations/${data.route_id}`)}>
+              <DropdownMenuItem onClick={() => router.push(`/models/${data.route_id}`)}>
                 <Eye className="mr-2 h-4 w-4" />
                 View Details
               </DropdownMenuItem>
@@ -241,8 +250,8 @@ export function BenchmarkEvaluationCard({ data, onDelete, delayMs = 0 }: Benchma
             tone="bg-stone-100 text-stone-900 ring-1 ring-stone-200/80 dark:bg-stone-900/40 dark:text-stone-100 dark:ring-stone-800/70"
           />
           <CompactStat
-            label={isResearchView ? "Independent" : "Third-party"}
-            value={`${Math.round(data.independent_verification_ratio * 100)}%`}
+            label="Reporting Mix"
+            value={getReportingMixLabel(data)}
             tone="bg-emerald-50 text-emerald-900 ring-1 ring-emerald-200/70 dark:bg-emerald-950/25 dark:text-emerald-100 dark:ring-emerald-900/50"
           />
         </div>
@@ -310,9 +319,11 @@ export function BenchmarkEvaluationCard({ data, onDelete, delayMs = 0 }: Benchma
                     <div className="text-sm font-semibold">Reporting summary</div>
                     <div className="text-sm text-muted-foreground">
                       This model has reported results from {reportingSummaryLabel.toLowerCase()} across {data.benchmarks_count} benchmark{data.benchmarks_count !== 1 ? "s" : ""}.
-                      {data.independent_verification_ratio > 0
-                        ? ` ${Math.round(data.independent_verification_ratio * 100)}% of results are independently reported.`
-                        : " Current results are self-reported."}
+                      {data.independent_verification_ratio > 0 && data.independent_verification_ratio < 1
+                        ? ` The current record mixes self-reported and third-party benchmark results, with ${Math.round(data.independent_verification_ratio * 100)}% coming from third-party reporting.`
+                        : data.independent_verification_ratio >= 1
+                          ? " The current record is fully backed by third-party reporting."
+                          : " The current record is self-reported."}
                     </div>
                     <div className="flex flex-wrap gap-2 pt-1">
                       {data.evaluator_names.slice(0, 2).map((evaluator) => (

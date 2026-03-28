@@ -15,6 +15,31 @@ export interface EvalListResponse {
   totalModels: number
 }
 
+export interface DeveloperListItem {
+  developer: string
+  route_id: string
+  model_count: number
+  benchmark_count: number
+  evaluation_count: number
+  popular_evals: Array<{
+    benchmark: string
+    model_count: number
+  }>
+}
+
+export interface DeveloperSummaryResponse {
+  developer: string
+  route_id: string
+  model_count: number
+  benchmark_count: number
+  evaluation_count: number
+  popular_evals: Array<{
+    benchmark: string
+    model_count: number
+  }>
+  models: BenchmarkEvaluationCardData[]
+}
+
 async function fetchJson<T>(input: string): Promise<T> {
   const response = await fetch(input)
 
@@ -46,5 +71,15 @@ export function fetchModelSummary(modelId: string) {
 export function fetchEvalSummary(evalId: string) {
   return fetchJson<BenchmarkEvalSummary>(
     `/api/eval-summary?id=${encodeURIComponent(evalId)}`
+  )
+}
+
+export function fetchDevelopers() {
+  return fetchJson<DeveloperListItem[]>("/api/developers")
+}
+
+export function fetchDeveloperSummary(developerId: string) {
+  return fetchJson<DeveloperSummaryResponse>(
+    `/api/developer-summary?id=${encodeURIComponent(developerId)}`
   )
 }

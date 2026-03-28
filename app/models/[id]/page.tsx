@@ -10,7 +10,7 @@ import type { ModelEvaluationSummary } from "@/lib/eval-processing"
 import { fetchModelSummary } from "@/lib/dashboard-data-client"
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs"
 
-export default function BenchmarkDetailPage() {
+export default function ModelDetailPage() {
   const params = useParams()
   const router = useRouter()
   const searchParams = useSearchParams()
@@ -59,22 +59,69 @@ export default function BenchmarkDetailPage() {
     router.push("/models")
   }, [router])
 
+  const handleVariantChange = useCallback(
+    (nextVariantId: string) => {
+      setSelectedVariantId(nextVariantId)
+
+      if (!summary || summary.variants.length <= 1 || !routeId) {
+        return
+      }
+
+      const nextVariant = summary.variants.find((variant) => variant.variant_id === nextVariantId)
+      if (!nextVariant) {
+        return
+      }
+
+      const nextParams = new URLSearchParams(searchParams.toString())
+      const currentVersion = nextParams.get("version")
+      const nextVersion = nextVariant.variant_key
+
+      if (currentVersion === nextVersion) {
+        return
+      }
+
+      nextParams.set("version", nextVersion)
+      const nextQuery = nextParams.toString()
+      router.replace(
+        nextQuery ? `/models/${routeId}?${nextQuery}` : `/models/${routeId}`,
+        { scroll: false }
+      )
+    },
+    [routeId, router, searchParams, summary]
+  )
+
   useEffect(() => {
+    let isCancelled = false
+
     const loadData = async () => {
       try {
         const modelSummary = await fetchModelSummary(routeId)
+        if (isCancelled) {
+          return
+        }
+
         setSummary(modelSummary)
-        setSelectedVariantId(getVariantFromQuery(modelSummary)?.variant_id ?? null)
+        setSelectedVariantId((current) => current ?? modelSummary.variants[0]?.variant_id ?? null)
       } catch (err) {
-        console.error("Failed to load evaluation:", err)
-        setError("Failed to load evaluation data")
+        if (isCancelled) {
+          return
+        }
+
+        console.error("Failed to load model:", err)
+        setError("Failed to load model data")
       } finally {
-        setLoading(false)
+        if (!isCancelled) {
+          setLoading(false)
+        }
       }
     }
-    
+
     loadData()
-  }, [getVariantFromQuery, routeId])
+
+    return () => {
+      isCancelled = true
+    }
+  }, [routeId])
 
   useEffect(() => {
     if (!summary?.variants.length) {
@@ -85,7 +132,7 @@ export default function BenchmarkDetailPage() {
     if (requestedVariant && requestedVariant.variant_id !== selectedVariantId) {
       setSelectedVariantId(requestedVariant.variant_id)
     }
-  }, [getVariantFromQuery, searchParams, selectedVariantId, summary])
+  }, [getVariantFromQuery, searchParams, summary])
 
   const selectedVariant = useMemo(() => {
     if (!summary) {
@@ -115,34 +162,13 @@ export default function BenchmarkDetailPage() {
     document.title = `${titleParts.join(" · ")} - AI Evaluation Dashboard`
   }, [selectedVariant, summary])
 
-  useEffect(() => {
-    if (!summary || summary.variants.length <= 1 || !selectedVariant || !routeId) {
-      return
-    }
-
-    const nextParams = new URLSearchParams(searchParams.toString())
-    const currentVersion = nextParams.get("version")
-    const nextVersion = selectedVariant.variant_key
-
-    if (currentVersion === nextVersion) {
-      return
-    }
-
-    nextParams.set("version", nextVersion)
-    const nextQuery = nextParams.toString()
-    router.replace(
-      nextQuery ? `/evaluations/${routeId}?${nextQuery}` : `/evaluations/${routeId}`,
-      { scroll: false }
-    )
-  }, [routeId, router, searchParams, selectedVariant, summary])
-
   if (loading) {
     return (
       <div className="min-h-screen bg-background">
         <Navigation />
         <main className="container mx-auto px-4 py-8">
           <div className="flex items-center justify-center h-96">
-            <div className="text-lg text-muted-foreground">Loading evaluation details...</div>
+            <div className="text-lg text-muted-foreground">Loading model details...</div>
           </div>
         </main>
       </div>
@@ -155,7 +181,7 @@ export default function BenchmarkDetailPage() {
         <Navigation />
         <main className="container mx-auto px-4 py-8">
           <div className="flex flex-col items-center justify-center h-96 space-y-4">
-            <div className="text-lg text-muted-foreground">{error || "Evaluation not found"}</div>
+            <div className="text-lg text-muted-foreground">{error || "Model not found"}</div>
             <Button onClick={handleBack}>
               <ArrowLeft className="mr-2 h-4 w-4" />
               Back
@@ -174,10 +200,9 @@ export default function BenchmarkDetailPage() {
       <Navigation />
       <div className="border-b bg-muted/30">
         <div className="container mx-auto px-4 sm:px-6 py-4 sm:py-6">
-          {/* Mobile layout - Back button + centered title */}
           <div className="flex items-center gap-3 sm:hidden">
-            <Button 
-              variant="ghost" 
+            <Button
+              variant="ghost"
               size="sm"
               onClick={handleBack}
               className="shrink-0"
@@ -186,15 +211,14 @@ export default function BenchmarkDetailPage() {
             </Button>
             <div className="flex-1 text-center">
               <h2 className="text-base font-medium tracking-tight text-foreground/90 sm:text-lg">
-                Evaluation details
+                Model details
               </h2>
             </div>
           </div>
-          
-          {/* Desktop layout - Grid with back button, centered title, empty space */}
+
           <div className="hidden sm:grid sm:grid-cols-[auto_1fr_auto] sm:items-center sm:gap-4">
-            <Button 
-              variant="ghost" 
+            <Button
+              variant="ghost"
               onClick={handleBack}
             >
               <ArrowLeft className="mr-2 h-4 w-4" />
@@ -202,7 +226,7 @@ export default function BenchmarkDetailPage() {
             </Button>
             <div className="text-center">
               <h2 className="text-xl font-medium tracking-tight text-foreground/90 md:text-2xl">
-                Evaluation details
+                Model details
               </h2>
             </div>
             <div />
@@ -215,7 +239,7 @@ export default function BenchmarkDetailPage() {
               </div>
               <Tabs
                 value={selectedVariant?.variant_id ?? summary.variants[0].variant_id}
-                onValueChange={setSelectedVariantId}
+                onValueChange={handleVariantChange}
                 className="gap-0"
               >
                 <TabsList className="flex w-full flex-wrap gap-2">

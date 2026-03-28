@@ -153,6 +153,47 @@ export default function AboutPage() {
           <section>
             <Card className="border-border/70">
               <CardHeader className="border-b bg-muted/20 pb-4">
+                <CardTitle className="text-xl">Terminology We Use</CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-5 pt-6">
+                <p className="text-sm leading-7 text-muted-foreground">
+                  The evaluation community often uses <span className="font-medium text-foreground">benchmark</span>, <span className="font-medium text-foreground">eval</span>, <span className="font-medium text-foreground">metric</span>, and <span className="font-medium text-foreground">task</span> interchangeably. That ambiguity showed up repeatedly in this project, so we use a more operational set of definitions in the interface.
+                </p>
+
+                <div className="grid gap-4 md:grid-cols-3">
+                  <DefinitionCard
+                    title="Single benchmark"
+                    definition="An individual evaluation with a defined dataset and scoring method."
+                    examples={["GSM8K", "IFEval", "MMLU-Pro"]}
+                  />
+                  <DefinitionCard
+                    title="Composite benchmark"
+                    definition="A collection of single benchmarks reported together, often under a unified leaderboard."
+                    examples={["Open LLM Leaderboard", "HELM Instruct", "HF Open LLM v2"]}
+                  />
+                  <DefinitionCard
+                    title="Metric"
+                    definition="Strictly what is measured and how; not a benchmark nested inside a composite."
+                    examples={["Accuracy", "pass@1", "F1", "binary accuracy"]}
+                  />
+                </div>
+
+                <div className="rounded-2xl border bg-muted/10 p-4 text-sm leading-7 text-muted-foreground">
+                  <div className="font-medium text-foreground">Important example</div>
+                  <p className="mt-2">
+                    If Reward Bench lists <span className="font-medium text-foreground">factuality</span> under a “metrics” heading, we treat that as a <span className="font-medium text-foreground">benchmark</span> in this interface. The <span className="font-medium text-foreground">metric</span> is the scoring rule attached to it, such as binary accuracy.
+                  </p>
+                  <p className="mt-2">
+                    This is also why the Evaluations page can now group <span className="font-medium text-foreground">single benchmarks</span> underneath a <span className="font-medium text-foreground">composite benchmark</span> like HF Open LLM v2 instead of conflating the two.
+                  </p>
+                </div>
+              </CardContent>
+            </Card>
+          </section>
+
+          <section>
+            <Card className="border-border/70">
+              <CardHeader className="border-b bg-muted/20 pb-4">
                 <CardTitle className="text-xl">Reading This Interface Responsibly</CardTitle>
               </CardHeader>
               <CardContent className="grid gap-4 pt-6 md:grid-cols-2">
@@ -204,6 +245,30 @@ export default function AboutPage() {
           </section>
         </div>
       </main>
+    </div>
+  )
+}
+
+function DefinitionCard({
+  title,
+  definition,
+  examples,
+}: {
+  title: string
+  definition: string
+  examples: string[]
+}) {
+  return (
+    <div className="rounded-2xl border bg-muted/10 p-4">
+      <div className="text-sm font-semibold">{title}</div>
+      <p className="mt-2 text-sm leading-6 text-muted-foreground">{definition}</p>
+      <div className="mt-3 flex flex-wrap gap-2">
+        {examples.map((example) => (
+          <Badge key={example} variant="outline">
+            {example}
+          </Badge>
+        ))}
+      </div>
     </div>
   )
 }
