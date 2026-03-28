@@ -15,7 +15,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { 
   ExternalLink, TrendingUp, Info, Database, Settings, FileCode, Building, Calendar, User, Server, 
   ChevronDown, ChevronUp, BarChart3, Award, AlertTriangle,
-  Cpu, Tag, Globe, Network, Activity, MessageSquare, Clock, Hash, Layers, Search, FlaskConical, Scale, BadgeCheck, BookOpenText
+  Cpu, Tag, Globe, Network, Activity, MessageSquare, Clock, Hash, Layers, Search, FlaskConical, Scale, BookOpenText
 } from "lucide-react"
 import type { BenchmarkEvaluation, CategoryType, EvaluationResult } from "@/lib/benchmark-schema"
 import { inferCategoryFromBenchmark } from "@/lib/benchmark-schema"
@@ -361,18 +361,6 @@ function getPolicySignalLevel(score: number) {
     label: "Low",
     tone: "bg-rose-100 text-rose-800 dark:bg-rose-950/50 dark:text-rose-300",
   }
-}
-
-function getSignalTone(score: number) {
-  if (score >= 0.7) {
-    return "bg-emerald-100 text-emerald-800 dark:bg-emerald-950/50 dark:text-emerald-300"
-  }
-
-  if (score >= 0.4) {
-    return "bg-amber-100 text-amber-800 dark:bg-amber-950/50 dark:text-amber-300"
-  }
-
-  return "bg-rose-100 text-rose-800 dark:bg-rose-950/50 dark:text-rose-300"
 }
 
 function getBenchmarkSpread(group: BenchmarkGroup) {
@@ -845,12 +833,6 @@ export function BenchmarkDetail({ summary }: BenchmarkDetailProps) {
                 <Badge variant="outline" className="border-border/60 bg-background/80 text-[11px] uppercase tracking-[0.18em]">
                   Model Metadata
                 </Badge>
-                {policySummary.independentlyVerified && (
-                  <Badge className="bg-emerald-100 text-emerald-800 hover:bg-emerald-100 dark:bg-emerald-950/40 dark:text-emerald-200">
-                    <BadgeCheck className="mr-1 h-3.5 w-3.5" />
-                    Independent reporting
-                  </Badge>
-                )}
                 {formatParamsBillions(summary.model_info.additional_details?.params_billions) && (
                   <Badge variant="secondary" className="font-normal">
                     {formatParamsBillions(summary.model_info.additional_details?.params_billions)}
@@ -1871,7 +1853,6 @@ function AggregatedBenchmarkCard({
 
   const activeFilterCount = Object.values(selectedFilters).filter((value) => value && value !== "all").length
   const leaderNormalizedScore = filteredRows[0]?.variant.normalizedScore ?? 0
-  const signalTone = getSignalTone(group.avgNormalizedScore)
   const spread = getBenchmarkSpread(group)
   const sourceOrganizations = new Set(group.variants.map((variant) => variant.evaluation.source_metadata.source_organization_name))
   const latestTimestamp = group.variants.reduce((latest, variant) => {
@@ -1899,8 +1880,8 @@ function AggregatedBenchmarkCard({
           <div className="flex flex-col gap-5 lg:flex-row lg:items-start lg:justify-between">
             <div className="min-w-0 flex-1 space-y-3">
               <div className="flex flex-wrap items-center gap-2">
-                <Badge className={`${signalTone} border-0 text-[11px] font-medium shadow-none`}>
-                  {isResearchView ? "Reported signal" : "Public signal"}
+                <Badge variant="outline" className="border-border/60 bg-background/70 text-[11px] font-medium text-foreground/85 shadow-none">
+                  Benchmark summary
                 </Badge>
                 <Badge variant="outline" className="border-border/60 bg-background/70 text-[11px] font-normal text-muted-foreground">
                   {group.scoreType}

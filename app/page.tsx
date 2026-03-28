@@ -79,11 +79,11 @@ export default function HomePage() {
       .slice(0, 6)
   }, [models])
 
-  const independentlyReportedModels = useMemo(() => {
+  const mostReportedModels = useMemo(() => {
     return [...models]
       .sort((a, b) => {
-        if (b.independent_verification_ratio !== a.independent_verification_ratio) {
-          return b.independent_verification_ratio - a.independent_verification_ratio
+        if (b.evaluator_count !== a.evaluator_count) {
+          return b.evaluator_count - a.evaluator_count
         }
         return b.benchmarks_count - a.benchmarks_count
       })
@@ -248,22 +248,22 @@ export default function HomePage() {
 
         <section className="grid gap-6 xl:grid-cols-2">
           <OverviewPanel
-            eyebrow="Accountability"
-            title="Highest third-party reporting share"
-            description="Models with the largest share of third-party benchmark reporting in the current corpus."
+            eyebrow="Reporting"
+            title="Most reporting organizations"
+            description="Models with the broadest spread of reporting organizations in the current corpus."
             href="/models"
             cta="Browse models"
           >
             <div className="space-y-1">
-              {independentlyReportedModels.map((model, index) => (
+              {mostReportedModels.map((model, index) => (
                 <ModelOverviewRow
                   key={model.id}
                   rank={index + 1}
                   model={model}
-                  metricLabel="Third-party share"
-                  metricValue={`${Math.round(model.independent_verification_ratio * 100)}%`}
+                  metricLabel="Reporting orgs"
+                  metricValue={model.evaluator_count.toString()}
                   secondaryLabel={`${model.benchmarks_count} benchmarks`}
-                  highlight={model.independent_verification_ratio > 0.5}
+                  highlight={model.evaluator_count > 1}
                 />
               ))}
             </div>

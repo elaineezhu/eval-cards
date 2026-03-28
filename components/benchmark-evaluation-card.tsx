@@ -5,7 +5,6 @@ import { useAudienceMode } from "@/components/audience-mode-provider"
 import { useRouter } from "next/navigation"
 import {
   Award,
-  BadgeCheck,
   BookOpenText,
   ExternalLink,
   Eye,
@@ -139,20 +138,6 @@ function getReportingSummaryLabel(data: BenchmarkEvaluationCardData) {
   return "Aggregated reporting view"
 }
 
-function getReportingMixLabel(data: BenchmarkEvaluationCardData) {
-  const thirdPartyShare = Math.round(data.independent_verification_ratio * 100)
-
-  if (thirdPartyShare <= 0) {
-    return "Self-reported evidence"
-  }
-
-  if (thirdPartyShare >= 100) {
-    return "Third-party reported"
-  }
-
-  return `${thirdPartyShare}% third-party mix`
-}
-
 export function BenchmarkEvaluationCard({ data, onDelete, delayMs = 0 }: BenchmarkEvaluationCardProps) {
   const router = useRouter()
   const { mode } = useAudienceMode()
@@ -250,8 +235,8 @@ export function BenchmarkEvaluationCard({ data, onDelete, delayMs = 0 }: Benchma
             tone="bg-stone-100 text-stone-900 ring-1 ring-stone-200/80 dark:bg-stone-900/40 dark:text-stone-100 dark:ring-stone-800/70"
           />
           <CompactStat
-            label="Reporting Mix"
-            value={getReportingMixLabel(data)}
+            label="Reporting Orgs"
+            value={data.evaluator_count.toString()}
             tone="bg-emerald-50 text-emerald-900 ring-1 ring-emerald-200/70 dark:bg-emerald-950/25 dark:text-emerald-100 dark:ring-emerald-900/50"
           />
         </div>
@@ -318,17 +303,11 @@ export function BenchmarkEvaluationCard({ data, onDelete, delayMs = 0 }: Benchma
                   <div className="space-y-2">
                     <div className="text-sm font-semibold">Reporting summary</div>
                     <div className="text-sm text-muted-foreground">
-                      This model has reported results from {reportingSummaryLabel.toLowerCase()} across {data.benchmarks_count} benchmark{data.benchmarks_count !== 1 ? "s" : ""}.
-                      {data.independent_verification_ratio > 0 && data.independent_verification_ratio < 1
-                        ? ` The current record mixes self-reported and third-party benchmark results, with ${Math.round(data.independent_verification_ratio * 100)}% coming from third-party reporting.`
-                        : data.independent_verification_ratio >= 1
-                          ? " The current record is fully backed by third-party reporting."
-                          : " The current record is self-reported."}
+                      This model has reported results from {reportingSummaryLabel.toLowerCase()} across {data.benchmarks_count} benchmark{data.benchmarks_count !== 1 ? "s" : ""}. Benchmark detail pages break out reporting provenance benchmark by benchmark.
                     </div>
                     <div className="flex flex-wrap gap-2 pt-1">
                       {data.evaluator_names.slice(0, 2).map((evaluator) => (
                         <Badge key={evaluator} variant="secondary" className="font-normal">
-                          <BadgeCheck className="mr-1 h-3 w-3" />
                           {evaluator}
                         </Badge>
                       ))}

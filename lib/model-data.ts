@@ -371,7 +371,32 @@ function pipelineSlugify(text: string) {
 }
 
 function getDeveloperRouteId(developer: string) {
-  return pipelineSlugify(developer)
+  return pipelineSlugify(developer.trim().toLowerCase())
+}
+
+function getDeveloperSlugCandidates(developerOrRouteId: string) {
+  const normalized = developerOrRouteId.trim()
+  const lowercased = normalized.toLowerCase()
+  const candidates = new Set([
+    pipelineSlugify(normalized),
+    pipelineSlugify(lowercased),
+  ])
+
+  return Array.from(candidates)
+}
+
+async function readDeveloperDetailFile(developerOrRouteId: string) {
+  for (const slug of getDeveloperSlugCandidates(developerOrRouteId)) {
+    const detail = await readJsonFile<IndexedDeveloperDetail>(
+      path.join(getDeveloperSubdirectory(), `${slug}.json`)
+    )
+
+    if (detail?.developer && Array.isArray(detail.models)) {
+      return detail
+    }
+  }
+
+  return null
 }
 
 function getModelDetailSlugCandidates(modelId: string) {
@@ -481,9 +506,7 @@ function summarizeDeveloperModels(models: IndexedModelSummary[]): DeveloperAggre
 }
 
 async function readDeveloperDetail(routeId: string) {
-  const direct = await readJsonFile<IndexedDeveloperDetail>(
-    path.join(getDeveloperSubdirectory(), `${routeId}.json`)
-  )
+  const direct = await readDeveloperDetailFile(routeId)
 
   if (direct?.developer && Array.isArray(direct.models)) {
     return direct
@@ -499,12 +522,7 @@ async function readDeveloperDetail(routeId: string) {
     return null
   }
 
-  const resolved = await readJsonFile<IndexedDeveloperDetail>(
-    path.join(
-      getDeveloperSubdirectory(),
-      `${getDeveloperRouteId(matchedDeveloper.developer)}.json`
-    )
-  )
+  const resolved = await readDeveloperDetailFile(matchedDeveloper.developer)
 
   if (resolved?.developer && Array.isArray(resolved.models)) {
     return resolved
@@ -641,12 +659,7 @@ export async function getDeveloperList() {
     const details = await Promise.all(
       developersIndex.map(async (entry) => ({
         developer: entry.developer,
-        detail: await readJsonFile<IndexedDeveloperDetail>(
-          path.join(
-            getDeveloperSubdirectory(),
-            `${getDeveloperRouteId(entry.developer)}.json`
-          )
-        ),
+        detail: await readDeveloperDetailFile(entry.developer),
       }))
     )
 
