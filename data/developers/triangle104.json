@@ -72,6 +72,76 @@
       }
     },
     {
+      "id": "Triangle104/Dark-Chivalry_V1.0",
+      "name": "Dark-Chivalry_V1.0",
+      "developer": "Triangle104",
+      "evaluator_relationship": null,
+      "benchmark_scores": {
+        "hfopenllm_v2/IFEval": 0.4326,
+        "hfopenllm_v2/BBH": 0.4974,
+        "hfopenllm_v2/MATH Level 5": 0.1314,
+        "hfopenllm_v2/GPQA": 0.2936,
+        "hfopenllm_v2/MUSR": 0.4182,
+        "hfopenllm_v2/MMLU-PRO": 0.3444
+      }
+    },
+    {
+      "id": "Triangle104/Distilled-DarkPlanet-Allades-8B",
+      "name": "Distilled-DarkPlanet-Allades-8B",
+      "developer": "Triangle104",
+      "evaluator_relationship": null,
+      "benchmark_scores": {
+        "hfopenllm_v2/IFEval": 0.346,
+        "hfopenllm_v2/BBH": 0.4634,
+        "hfopenllm_v2/MATH Level 5": 0.4003,
+        "hfopenllm_v2/GPQA": 0.3054,
+        "hfopenllm_v2/MUSR": 0.3538,
+        "hfopenllm_v2/MMLU-PRO": 0.2901
+      }
+    },
+    {
+      "id": "Triangle104/Distilled-DarkPlanet-Allades-8B_TIES",
+      "name": "Distilled-DarkPlanet-Allades-8B_TIES",
+      "developer": "Triangle104",
+      "evaluator_relationship": null,
+      "benchmark_scores": {
+        "hfopenllm_v2/IFEval": 0.3892,
+        "hfopenllm_v2/BBH": 0.5042,
+        "hfopenllm_v2/MATH Level 5": 0.0906,
+        "hfopenllm_v2/GPQA": 0.3146,
+        "hfopenllm_v2/MUSR": 0.3868,
+        "hfopenllm_v2/MMLU-PRO": 0.3401
+      }
+    },
+    {
+      "id": "Triangle104/Distilled-Whiskey-8b",
+      "name": "Distilled-Whiskey-8b",
+      "developer": "Triangle104",
+      "evaluator_relationship": null,
+      "benchmark_scores": {
+        "hfopenllm_v2/IFEval": 0.3448,
+        "hfopenllm_v2/BBH": 0.5028,
+        "hfopenllm_v2/MATH Level 5": 0.2545,
+        "hfopenllm_v2/GPQA": 0.3314,
+        "hfopenllm_v2/MUSR": 0.4172,
+        "hfopenllm_v2/MMLU-PRO": 0.3367
+      }
+    },
+    {
+      "id": "Triangle104/Dolphin3-Llama3.2-Smart",
+      "name": "Dolphin3-Llama3.2-Smart",
+      "developer": "Triangle104",
+      "evaluator_relationship": null,
+      "benchmark_scores": {
+        "hfopenllm_v2/IFEval": 0.4137,
+        "hfopenllm_v2/BBH": 0.3975,
+        "hfopenllm_v2/MATH Level 5": 0.0438,
+        "hfopenllm_v2/GPQA": 0.2693,
+        "hfopenllm_v2/MUSR": 0.3922,
+        "hfopenllm_v2/MMLU-PRO": 0.2195
+      }
+    },
+    {
       "id": "Triangle104/DS-Distilled-Hermes-Llama-3.1",
       "name": "DS-Distilled-Hermes-Llama-3.1",
       "developer": "Triangle104",
@@ -181,76 +251,6 @@
         "hfopenllm_v2/GPQA": 0.3196,
         "hfopenllm_v2/MUSR": 0.4045,
         "hfopenllm_v2/MMLU-PRO": 0.3028
-      }
-    },
-    {
-      "id": "Triangle104/Dark-Chivalry_V1.0",
-      "name": "Dark-Chivalry_V1.0",
-      "developer": "Triangle104",
-      "evaluator_relationship": null,
-      "benchmark_scores": {
-        "hfopenllm_v2/IFEval": 0.4326,
-        "hfopenllm_v2/BBH": 0.4974,
-        "hfopenllm_v2/MATH Level 5": 0.1314,
-        "hfopenllm_v2/GPQA": 0.2936,
-        "hfopenllm_v2/MUSR": 0.4182,
-        "hfopenllm_v2/MMLU-PRO": 0.3444
-      }
-    },
-    {
-      "id": "Triangle104/Distilled-DarkPlanet-Allades-8B",
-      "name": "Distilled-DarkPlanet-Allades-8B",
-      "developer": "Triangle104",
-      "evaluator_relationship": null,
-      "benchmark_scores": {
-        "hfopenllm_v2/IFEval": 0.346,
-        "hfopenllm_v2/BBH": 0.4634,
-        "hfopenllm_v2/MATH Level 5": 0.4003,
-        "hfopenllm_v2/GPQA": 0.3054,
-        "hfopenllm_v2/MUSR": 0.3538,
-        "hfopenllm_v2/MMLU-PRO": 0.2901
-      }
-    },
-    {
-      "id": "Triangle104/Distilled-DarkPlanet-Allades-8B_TIES",
-      "name": "Distilled-DarkPlanet-Allades-8B_TIES",
-      "developer": "Triangle104",
-      "evaluator_relationship": null,
-      "benchmark_scores": {
-        "hfopenllm_v2/IFEval": 0.3892,
-        "hfopenllm_v2/BBH": 0.5042,
-        "hfopenllm_v2/MATH Level 5": 0.0906,
-        "hfopenllm_v2/GPQA": 0.3146,
-        "hfopenllm_v2/MUSR": 0.3868,
-        "hfopenllm_v2/MMLU-PRO": 0.3401
-      }
-    },
-    {
-      "id": "Triangle104/Distilled-Whiskey-8b",
-      "name": "Distilled-Whiskey-8b",
-      "developer": "Triangle104",
-      "evaluator_relationship": null,
-      "benchmark_scores": {
-        "hfopenllm_v2/IFEval": 0.3448,
-        "hfopenllm_v2/BBH": 0.5028,
-        "hfopenllm_v2/MATH Level 5": 0.2545,
-        "hfopenllm_v2/GPQA": 0.3314,
-        "hfopenllm_v2/MUSR": 0.4172,
-        "hfopenllm_v2/MMLU-PRO": 0.3367
-      }
-    },
-    {
-      "id": "Triangle104/Dolphin3-Llama3.2-Smart",
-      "name": "Dolphin3-Llama3.2-Smart",
-      "developer": "Triangle104",
-      "evaluator_relationship": null,
-      "benchmark_scores": {
-        "hfopenllm_v2/IFEval": 0.4137,
-        "hfopenllm_v2/BBH": 0.3975,
-        "hfopenllm_v2/MATH Level 5": 0.0438,
-        "hfopenllm_v2/GPQA": 0.2693,
-        "hfopenllm_v2/MUSR": 0.3922,
-        "hfopenllm_v2/MMLU-PRO": 0.2195
       }
     },
     {
@@ -366,34 +366,6 @@
       }
     },
     {
-      "id": "Triangle104/LThreePointOne-8B-HermesBlackroot",
-      "name": "LThreePointOne-8B-HermesBlackroot",
-      "developer": "Triangle104",
-      "evaluator_relationship": null,
-      "benchmark_scores": {
-        "hfopenllm_v2/IFEval": 0.1792,
-        "hfopenllm_v2/BBH": 0.4998,
-        "hfopenllm_v2/MATH Level 5": 0.0196,
-        "hfopenllm_v2/GPQA": 0.307,
-        "hfopenllm_v2/MUSR": 0.3586,
-        "hfopenllm_v2/MMLU-PRO": 0.3285
-      }
-    },
-    {
-      "id": "Triangle104/LThreePointOne-8B-HermesInk",
-      "name": "LThreePointOne-8B-HermesInk",
-      "developer": "Triangle104",
-      "evaluator_relationship": null,
-      "benchmark_scores": {
-        "hfopenllm_v2/IFEval": 0.4031,
-        "hfopenllm_v2/BBH": 0.5223,
-        "hfopenllm_v2/MATH Level 5": 0.1722,
-        "hfopenllm_v2/GPQA": 0.323,
-        "hfopenllm_v2/MUSR": 0.4129,
-        "hfopenllm_v2/MMLU-PRO": 0.3467
-      }
-    },
-    {
       "id": "Triangle104/Llama3.1-Allades-Lit-8b",
       "name": "Llama3.1-Allades-Lit-8b",
       "developer": "Triangle104",
@@ -419,6 +391,34 @@
         "hfopenllm_v2/GPQA": 0.2777,
         "hfopenllm_v2/MUSR": 0.3854,
         "hfopenllm_v2/MMLU-PRO": 0.3004
+      }
+    },
+    {
+      "id": "Triangle104/LThreePointOne-8B-HermesBlackroot",
+      "name": "LThreePointOne-8B-HermesBlackroot",
+      "developer": "Triangle104",
+      "evaluator_relationship": null,
+      "benchmark_scores": {
+        "hfopenllm_v2/IFEval": 0.1792,
+        "hfopenllm_v2/BBH": 0.4998,
+        "hfopenllm_v2/MATH Level 5": 0.0196,
+        "hfopenllm_v2/GPQA": 0.307,
+        "hfopenllm_v2/MUSR": 0.3586,
+        "hfopenllm_v2/MMLU-PRO": 0.3285
+      }
+    },
+    {
+      "id": "Triangle104/LThreePointOne-8B-HermesInk",
+      "name": "LThreePointOne-8B-HermesInk",
+      "developer": "Triangle104",
+      "evaluator_relationship": null,
+      "benchmark_scores": {
+        "hfopenllm_v2/IFEval": 0.4031,
+        "hfopenllm_v2/BBH": 0.5223,
+        "hfopenllm_v2/MATH Level 5": 0.1722,
+        "hfopenllm_v2/GPQA": 0.323,
+        "hfopenllm_v2/MUSR": 0.4129,
+        "hfopenllm_v2/MMLU-PRO": 0.3467
       }
     },
     {

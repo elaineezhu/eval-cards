@@ -2,132 +2,6 @@
   "developer": "MaziyarPanahi",
   "models": [
     {
-      "id": "MaziyarPanahi/Calme-4x7B-MoE-v0.1",
-      "name": "Calme-4x7B-MoE-v0.1",
-      "developer": "MaziyarPanahi",
-      "evaluator_relationship": null,
-      "benchmark_scores": {
-        "hfopenllm_v2/IFEval": 0.4315,
-        "hfopenllm_v2/BBH": 0.5103,
-        "hfopenllm_v2/MATH Level 5": 0.0801,
-        "hfopenllm_v2/GPQA": 0.2819,
-        "hfopenllm_v2/MUSR": 0.4199,
-        "hfopenllm_v2/MMLU-PRO": 0.3057
-      }
-    },
-    {
-      "id": "MaziyarPanahi/Calme-4x7B-MoE-v0.2",
-      "name": "Calme-4x7B-MoE-v0.2",
-      "developer": "MaziyarPanahi",
-      "evaluator_relationship": null,
-      "benchmark_scores": {
-        "hfopenllm_v2/IFEval": 0.4294,
-        "hfopenllm_v2/BBH": 0.5111,
-        "hfopenllm_v2/MATH Level 5": 0.074,
-        "hfopenllm_v2/GPQA": 0.2794,
-        "hfopenllm_v2/MUSR": 0.4318,
-        "hfopenllm_v2/MMLU-PRO": 0.3058
-      }
-    },
-    {
-      "id": "MaziyarPanahi/Llama-3-70B-Instruct-v0.1",
-      "name": "Llama-3-70B-Instruct-v0.1",
-      "developer": "MaziyarPanahi",
-      "evaluator_relationship": null,
-      "benchmark_scores": {
-        "hfopenllm_v2/IFEval": 0.4714,
-        "hfopenllm_v2/BBH": 0.5366,
-        "hfopenllm_v2/MATH Level 5": 0.1805,
-        "hfopenllm_v2/GPQA": 0.2844,
-        "hfopenllm_v2/MUSR": 0.4433,
-        "hfopenllm_v2/MMLU-PRO": 0.4618
-      }
-    },
-    {
-      "id": "MaziyarPanahi/Llama-3-8B-Instruct-v0.10",
-      "name": "Llama-3-8B-Instruct-v0.10",
-      "developer": "MaziyarPanahi",
-      "evaluator_relationship": null,
-      "benchmark_scores": {
-        "hfopenllm_v2/IFEval": 0.7667,
-        "hfopenllm_v2/BBH": 0.4924,
-        "hfopenllm_v2/MATH Level 5": 0.0574,
-        "hfopenllm_v2/GPQA": 0.3087,
-        "hfopenllm_v2/MUSR": 0.4214,
-        "hfopenllm_v2/MMLU-PRO": 0.3862
-      }
-    },
-    {
-      "id": "MaziyarPanahi/Llama-3-8B-Instruct-v0.8",
-      "name": "Llama-3-8B-Instruct-v0.8",
-      "developer": "MaziyarPanahi",
-      "evaluator_relationship": null,
-      "benchmark_scores": {
-        "hfopenllm_v2/IFEval": 0.7528,
-        "hfopenllm_v2/BBH": 0.4963,
-        "hfopenllm_v2/MATH Level 5": 0.0778,
-        "hfopenllm_v2/GPQA": 0.3054,
-        "hfopenllm_v2/MUSR": 0.4202,
-        "hfopenllm_v2/MMLU-PRO": 0.3853
-      }
-    },
-    {
-      "id": "MaziyarPanahi/Llama-3-8B-Instruct-v0.9",
-      "name": "Llama-3-8B-Instruct-v0.9",
-      "developer": "MaziyarPanahi",
-      "evaluator_relationship": null,
-      "benchmark_scores": {
-        "hfopenllm_v2/IFEval": 0.763,
-        "hfopenllm_v2/BBH": 0.4936,
-        "hfopenllm_v2/MATH Level 5": 0.0733,
-        "hfopenllm_v2/GPQA": 0.3079,
-        "hfopenllm_v2/MUSR": 0.4148,
-        "hfopenllm_v2/MMLU-PRO": 0.3846
-      }
-    },
-    {
-      "id": "MaziyarPanahi/Qwen1.5-MoE-A2.7B-Wikihow",
-      "name": "Qwen1.5-MoE-A2.7B-Wikihow",
-      "developer": "MaziyarPanahi",
-      "evaluator_relationship": null,
-      "benchmark_scores": {
-        "hfopenllm_v2/IFEval": 0.2954,
-        "hfopenllm_v2/BBH": 0.392,
-        "hfopenllm_v2/MATH Level 5": 0.0823,
-        "hfopenllm_v2/GPQA": 0.2752,
-        "hfopenllm_v2/MUSR": 0.3502,
-        "hfopenllm_v2/MMLU-PRO": 0.238
-      }
-    },
-    {
-      "id": "MaziyarPanahi/Qwen2-7B-Instruct-v0.1",
-      "name": "Qwen2-7B-Instruct-v0.1",
-      "developer": "MaziyarPanahi",
-      "evaluator_relationship": null,
-      "benchmark_scores": {
-        "hfopenllm_v2/IFEval": 0.3352,
-        "hfopenllm_v2/BBH": 0.5123,
-        "hfopenllm_v2/MATH Level 5": 0.2213,
-        "hfopenllm_v2/GPQA": 0.2852,
-        "hfopenllm_v2/MUSR": 0.4435,
-        "hfopenllm_v2/MMLU-PRO": 0.3857
-      }
-    },
-    {
-      "id": "MaziyarPanahi/Qwen2-7B-Instruct-v0.8",
-      "name": "Qwen2-7B-Instruct-v0.8",
-      "developer": "MaziyarPanahi",
-      "evaluator_relationship": null,
-      "benchmark_scores": {
-        "hfopenllm_v2/IFEval": 0.2775,
-        "hfopenllm_v2/BBH": 0.4637,
-        "hfopenllm_v2/MATH Level 5": 0.1767,
-        "hfopenllm_v2/GPQA": 0.2936,
-        "hfopenllm_v2/MUSR": 0.4293,
-        "hfopenllm_v2/MMLU-PRO": 0.3566
-      }
-    },
-    {
       "id": "MaziyarPanahi/calme-2.1-llama3.1-70b",
       "name": "calme-2.1-llama3.1-70b",
       "developer": "MaziyarPanahi",
@@ -615,6 +489,132 @@
         "hfopenllm_v2/GPQA": 0.2827,
         "hfopenllm_v2/MUSR": 0.4074,
         "hfopenllm_v2/MMLU-PRO": 0.3305
+      }
+    },
+    {
+      "id": "MaziyarPanahi/Calme-4x7B-MoE-v0.1",
+      "name": "Calme-4x7B-MoE-v0.1",
+      "developer": "MaziyarPanahi",
+      "evaluator_relationship": null,
+      "benchmark_scores": {
+        "hfopenllm_v2/IFEval": 0.4315,
+        "hfopenllm_v2/BBH": 0.5103,
+        "hfopenllm_v2/MATH Level 5": 0.0801,
+        "hfopenllm_v2/GPQA": 0.2819,
+        "hfopenllm_v2/MUSR": 0.4199,
+        "hfopenllm_v2/MMLU-PRO": 0.3057
+      }
+    },
+    {
+      "id": "MaziyarPanahi/Calme-4x7B-MoE-v0.2",
+      "name": "Calme-4x7B-MoE-v0.2",
+      "developer": "MaziyarPanahi",
+      "evaluator_relationship": null,
+      "benchmark_scores": {
+        "hfopenllm_v2/IFEval": 0.4294,
+        "hfopenllm_v2/BBH": 0.5111,
+        "hfopenllm_v2/MATH Level 5": 0.074,
+        "hfopenllm_v2/GPQA": 0.2794,
+        "hfopenllm_v2/MUSR": 0.4318,
+        "hfopenllm_v2/MMLU-PRO": 0.3058
+      }
+    },
+    {
+      "id": "MaziyarPanahi/Llama-3-70B-Instruct-v0.1",
+      "name": "Llama-3-70B-Instruct-v0.1",
+      "developer": "MaziyarPanahi",
+      "evaluator_relationship": null,
+      "benchmark_scores": {
+        "hfopenllm_v2/IFEval": 0.4714,
+        "hfopenllm_v2/BBH": 0.5366,
+        "hfopenllm_v2/MATH Level 5": 0.1805,
+        "hfopenllm_v2/GPQA": 0.2844,
+        "hfopenllm_v2/MUSR": 0.4433,
+        "hfopenllm_v2/MMLU-PRO": 0.4618
+      }
+    },
+    {
+      "id": "MaziyarPanahi/Llama-3-8B-Instruct-v0.10",
+      "name": "Llama-3-8B-Instruct-v0.10",
+      "developer": "MaziyarPanahi",
+      "evaluator_relationship": null,
+      "benchmark_scores": {
+        "hfopenllm_v2/IFEval": 0.7667,
+        "hfopenllm_v2/BBH": 0.4924,
+        "hfopenllm_v2/MATH Level 5": 0.0574,
+        "hfopenllm_v2/GPQA": 0.3087,
+        "hfopenllm_v2/MUSR": 0.4214,
+        "hfopenllm_v2/MMLU-PRO": 0.3862
+      }
+    },
+    {
+      "id": "MaziyarPanahi/Llama-3-8B-Instruct-v0.8",
+      "name": "Llama-3-8B-Instruct-v0.8",
+      "developer": "MaziyarPanahi",
+      "evaluator_relationship": null,
+      "benchmark_scores": {
+        "hfopenllm_v2/IFEval": 0.7528,
+        "hfopenllm_v2/BBH": 0.4963,
+        "hfopenllm_v2/MATH Level 5": 0.0778,
+        "hfopenllm_v2/GPQA": 0.3054,
+        "hfopenllm_v2/MUSR": 0.4202,
+        "hfopenllm_v2/MMLU-PRO": 0.3853
+      }
+    },
+    {
+      "id": "MaziyarPanahi/Llama-3-8B-Instruct-v0.9",
+      "name": "Llama-3-8B-Instruct-v0.9",
+      "developer": "MaziyarPanahi",
+      "evaluator_relationship": null,
+      "benchmark_scores": {
+        "hfopenllm_v2/IFEval": 0.763,
+        "hfopenllm_v2/BBH": 0.4936,
+        "hfopenllm_v2/MATH Level 5": 0.0733,
+        "hfopenllm_v2/GPQA": 0.3079,
+        "hfopenllm_v2/MUSR": 0.4148,
+        "hfopenllm_v2/MMLU-PRO": 0.3846
+      }
+    },
+    {
+      "id": "MaziyarPanahi/Qwen1.5-MoE-A2.7B-Wikihow",
+      "name": "Qwen1.5-MoE-A2.7B-Wikihow",
+      "developer": "MaziyarPanahi",
+      "evaluator_relationship": null,
+      "benchmark_scores": {
+        "hfopenllm_v2/IFEval": 0.2954,
+        "hfopenllm_v2/BBH": 0.392,
+        "hfopenllm_v2/MATH Level 5": 0.0823,
+        "hfopenllm_v2/GPQA": 0.2752,
+        "hfopenllm_v2/MUSR": 0.3502,
+        "hfopenllm_v2/MMLU-PRO": 0.238
+      }
+    },
+    {
+      "id": "MaziyarPanahi/Qwen2-7B-Instruct-v0.1",
+      "name": "Qwen2-7B-Instruct-v0.1",
+      "developer": "MaziyarPanahi",
+      "evaluator_relationship": null,
+      "benchmark_scores": {
+        "hfopenllm_v2/IFEval": 0.3352,
+        "hfopenllm_v2/BBH": 0.5123,
+        "hfopenllm_v2/MATH Level 5": 0.2213,
+        "hfopenllm_v2/GPQA": 0.2852,
+        "hfopenllm_v2/MUSR": 0.4435,
+        "hfopenllm_v2/MMLU-PRO": 0.3857
+      }
+    },
+    {
+      "id": "MaziyarPanahi/Qwen2-7B-Instruct-v0.8",
+      "name": "Qwen2-7B-Instruct-v0.8",
+      "developer": "MaziyarPanahi",
+      "evaluator_relationship": null,
+      "benchmark_scores": {
+        "hfopenllm_v2/IFEval": 0.2775,
+        "hfopenllm_v2/BBH": 0.4637,
+        "hfopenllm_v2/MATH Level 5": 0.1767,
+        "hfopenllm_v2/GPQA": 0.2936,
+        "hfopenllm_v2/MUSR": 0.4293,
+        "hfopenllm_v2/MMLU-PRO": 0.3566
       }
     }
   ]

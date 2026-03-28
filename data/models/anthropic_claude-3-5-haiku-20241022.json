@@ -2,8 +2,11 @@
   "model_info": {
     "name": "Claude 3.5 Haiku 20241022",
     "id": "anthropic/claude-3-5-haiku-20241022",
-    "developer": "anthropic",
-    "inference_platform": "unknown"
+    "developer": "Anthropic",
+    "inference_platform": "unknown",
+    "additional_details": {
+      "display_name": "Claude 3.5 Haiku"
+    }
   },
   "evaluations": [
     {

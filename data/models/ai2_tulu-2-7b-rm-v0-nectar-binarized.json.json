@@ -2,7 +2,7 @@
   "model_info": {
     "name": "ai2/tulu-2-7b-rm-v0-nectar-binarized.json",
     "id": "ai2/tulu-2-7b-rm-v0-nectar-binarized.json",
-    "developer": "ai2",
+    "developer": "AI2",
     "additional_details": {
       "model_type": "Seq. Classifier"
     }

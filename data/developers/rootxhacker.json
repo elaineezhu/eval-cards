@@ -16,20 +16,6 @@
       }
     },
     {
-      "id": "rootxhacker/Apollo_v2-32B",
-      "name": "Apollo_v2-32B",
-      "developer": "rootxhacker",
-      "evaluator_relationship": null,
-      "benchmark_scores": {
-        "hfopenllm_v2/IFEval": 0.428,
-        "hfopenllm_v2/BBH": 0.7072,
-        "hfopenllm_v2/MATH Level 5": 0.4275,
-        "hfopenllm_v2/GPQA": 0.3784,
-        "hfopenllm_v2/MUSR": 0.4994,
-        "hfopenllm_v2/MMLU-PRO": 0.5869
-      }
-    },
-    {
       "id": "rootxhacker/apollo-7B",
       "name": "apollo-7B",
       "developer": "rootxhacker",
@@ -41,6 +27,20 @@
         "hfopenllm_v2/GPQA": 0.2785,
         "hfopenllm_v2/MUSR": 0.4131,
         "hfopenllm_v2/MMLU-PRO": 0.1748
+      }
+    },
+    {
+      "id": "rootxhacker/Apollo_v2-32B",
+      "name": "Apollo_v2-32B",
+      "developer": "rootxhacker",
+      "evaluator_relationship": null,
+      "benchmark_scores": {
+        "hfopenllm_v2/IFEval": 0.428,
+        "hfopenllm_v2/BBH": 0.7072,
+        "hfopenllm_v2/MATH Level 5": 0.4275,
+        "hfopenllm_v2/GPQA": 0.3784,
+        "hfopenllm_v2/MUSR": 0.4994,
+        "hfopenllm_v2/MMLU-PRO": 0.5869
       }
     }
   ]

@@ -1,6 +1,32 @@
 {
   "models": [
     {
+      "model_id": "allenai/OLMo-2-1124-7B-Instruct",
+      "name": "OLMo 2 7B Instruct November 2024",
+      "developer": "allenai",
+      "scores": {
+        "Mean score": 0.405,
+        "MMLU-Pro": 0.292,
+        "GPQA": 0.296,
+        "IFEval": 0.693,
+        "WildBench": 0.628,
+        "Omni-MATH": 0.116
+      }
+    },
+    {
+      "model_id": "allenai/OLMoE-1B-7B-0125-Instruct",
+      "name": "OLMoE 1B-7B Instruct January 2025",
+      "developer": "allenai",
+      "scores": {
+        "Mean score": 0.332,
+        "MMLU-Pro": 0.169,
+        "GPQA": 0.22,
+        "IFEval": 0.628,
+        "WildBench": 0.551,
+        "Omni-MATH": 0.093
+      }
+    },
+    {
       "model_id": "allenai/olmo-2-0325-32b-instruct",
       "name": "OLMo 2 32B Instruct March 2025",
       "developer": "allenai",
@@ -24,32 +50,6 @@
         "IFEval": 0.73,
         "WildBench": 0.689,
         "Omni-MATH": 0.156
-      }
-    },
-    {
-      "model_id": "allenai/olmo-2-1124-7b-instruct",
-      "name": "OLMo 2 7B Instruct November 2024",
-      "developer": "allenai",
-      "scores": {
-        "Mean score": 0.405,
-        "MMLU-Pro": 0.292,
-        "GPQA": 0.296,
-        "IFEval": 0.693,
-        "WildBench": 0.628,
-        "Omni-MATH": 0.116
-      }
-    },
-    {
-      "model_id": "allenai/olmoe-1b-7b-0125-instruct",
-      "name": "OLMoE 1B-7B Instruct January 2025",
-      "developer": "allenai",
-      "scores": {
-        "Mean score": 0.332,
-        "MMLU-Pro": 0.169,
-        "GPQA": 0.22,
-        "IFEval": 0.628,
-        "WildBench": 0.551,
-        "Omni-MATH": 0.093
       }
     },
     {
@@ -106,8 +106,8 @@
     },
     {
       "model_id": "anthropic/claude-3-5-haiku-20241022",
-      "name": "claude-3-5-haiku-20241022",
-      "developer": "anthropic",
+      "name": "Claude 3.5 Haiku 20241022",
+      "developer": "Anthropic",
       "scores": {
         "Mean score": 0.549,
         "MMLU-Pro": 0.605,
@@ -120,7 +120,7 @@
     {
       "model_id": "anthropic/claude-3-5-sonnet-20241022",
       "name": "Claude 3.5 Sonnet 20241022",
-      "developer": "anthropic",
+      "developer": "Anthropic",
       "scores": {
         "Mean score": 0.653,
         "MMLU-Pro": 0.777,
@@ -133,7 +133,7 @@
     {
       "model_id": "anthropic/claude-3-7-sonnet-20250219",
       "name": "claude-3-7-sonnet-20250219",
-      "developer": "anthropic",
+      "developer": "Anthropic",
       "scores": {
         "Mean score": 0.674,
         "MMLU-Pro": 0.784,
@@ -146,7 +146,7 @@
     {
       "model_id": "anthropic/claude-opus-4-20250514",
       "name": "Claude 4 Opus 20250514",
-      "developer": "anthropic",
+      "developer": "Anthropic",
       "scores": {
         "Mean score": 0.757,
         "MMLU-Pro": 0.859,
@@ -159,7 +159,7 @@
     {
       "model_id": "anthropic/claude-opus-4-20250514-thinking-10k",
       "name": "Claude 4 Opus 20250514, extended thinking",
-      "developer": "anthropic",
+      "developer": "Anthropic",
       "scores": {
         "Mean score": 0.78,
         "MMLU-Pro": 0.875,
@@ -172,7 +172,7 @@
     {
       "model_id": "anthropic/claude-sonnet-4-20250514",
       "name": "claude-sonnet-4-20250514",
-      "developer": "anthropic",
+      "developer": "Anthropic",
       "scores": {
         "Mean score": 0.733,
         "MMLU-Pro": 0.843,
@@ -185,7 +185,7 @@
     {
       "model_id": "anthropic/claude-sonnet-4-20250514-thinking-10k",
       "name": "Claude 4 Sonnet 20250514, extended thinking",
-      "developer": "anthropic",
+      "developer": "Anthropic",
       "scores": {
         "Mean score": 0.766,
         "MMLU-Pro": 0.843,
@@ -224,7 +224,7 @@
     {
       "model_id": "google/gemini-1.5-flash-002",
       "name": "Gemini 1.5 Flash 002",
-      "developer": "google",
+      "developer": "Google",
       "scores": {
         "Mean score": 0.609,
         "MMLU-Pro": 0.678,
@@ -237,7 +237,7 @@
     {
       "model_id": "google/gemini-1.5-pro-002",
       "name": "Gemini 1.5 Pro 002",
-      "developer": "google",
+      "developer": "Google",
       "scores": {
         "Mean score": 0.657,
         "MMLU-Pro": 0.737,
@@ -250,7 +250,7 @@
     {
       "model_id": "google/gemini-2.0-flash-001",
       "name": "Gemini 2.0 Flash",
-      "developer": "google",
+      "developer": "Google",
       "scores": {
         "Mean score": 0.679,
         "MMLU-Pro": 0.737,
@@ -263,7 +263,7 @@
     {
       "model_id": "google/gemini-2.0-flash-lite-preview-02-05",
       "name": "Gemini 2.0 Flash Lite 02-05 preview",
-      "developer": "google",
+      "developer": "Google",
       "scores": {
         "Mean score": 0.642,
         "MMLU-Pro": 0.72,
@@ -276,7 +276,7 @@
     {
       "model_id": "google/gemini-2.5-flash-lite",
       "name": "Gemini 2.5 Flash-Lite",
-      "developer": "google",
+      "developer": "Google",
       "scores": {
         "Mean score": 0.591,
         "MMLU-Pro": 0.537,
@@ -289,7 +289,7 @@
     {
       "model_id": "google/gemini-2.5-flash-preview-04-17",
       "name": "Gemini 2.5 Flash 04-17 preview",
-      "developer": "google",
+      "developer": "Google",
       "scores": {
         "Mean score": 0.626,
         "MMLU-Pro": 0.639,
@@ -302,7 +302,7 @@
     {
       "model_id": "google/gemini-2.5-pro-preview-03-25",
       "name": "Gemini 2.5 Pro 03-25 preview",
-      "developer": "google",
+      "developer": "Google",
       "scores": {
         "Mean score": 0.745,
         "MMLU-Pro": 0.863,
@@ -341,7 +341,7 @@
     {
       "model_id": "meta/llama-3.1-405b-instruct-turbo",
       "name": "Llama 3.1 Instruct Turbo 405B",
-      "developer": "meta",
+      "developer": "Meta",
       "scores": {
         "Mean score": 0.618,
         "MMLU-Pro": 0.723,
@@ -354,7 +354,7 @@
     {
       "model_id": "meta/llama-3.1-70b-instruct-turbo",
       "name": "Llama 3.1 Instruct Turbo 70B",
-      "developer": "meta",
+      "developer": "Meta",
       "scores": {
         "Mean score": 0.574,
         "MMLU-Pro": 0.653,
@@ -367,7 +367,7 @@
     {
       "model_id": "meta/llama-3.1-8b-instruct-turbo",
       "name": "Llama 3.1 Instruct Turbo 8B",
-      "developer": "meta",
+      "developer": "Meta",
       "scores": {
         "Mean score": 0.444,
         "MMLU-Pro": 0.406,
@@ -380,7 +380,7 @@
     {
       "model_id": "meta/llama-4-maverick-17b-128e-instruct-fp8",
       "name": "Llama 4 Maverick 17Bx128E Instruct FP8",
-      "developer": "meta",
+      "developer": "Meta",
       "scores": {
         "Mean score": 0.718,
         "MMLU-Pro": 0.81,
@@ -393,7 +393,7 @@
     {
       "model_id": "meta/llama-4-scout-17b-16e-instruct",
       "name": "Llama 4 Scout 17Bx16E Instruct",
-      "developer": "meta",
+      "developer": "Meta",
       "scores": {
         "Mean score": 0.644,
         "MMLU-Pro": 0.742,
@@ -401,6 +401,32 @@
         "IFEval": 0.818,
         "WildBench": 0.779,
         "Omni-MATH": 0.373
+      }
+    },
+    {
+      "model_id": "mistralai/Mixtral-8x22B-Instruct-v0.1",
+      "name": "Mixtral-8x22B-Instruct-v0.1",
+      "developer": "mistralai",
+      "scores": {
+        "Mean score": 0.478,
+        "MMLU-Pro": 0.46,
+        "GPQA": 0.334,
+        "IFEval": 0.724,
+        "WildBench": 0.711,
+        "Omni-MATH": 0.163
+      }
+    },
+    {
+      "model_id": "mistralai/Mixtral-8x7B-Instruct-v0.1",
+      "name": "Mixtral-8x7B-Instruct-v0.1",
+      "developer": "mistralai",
+      "scores": {
+        "Mean score": 0.397,
+        "MMLU-Pro": 0.335,
+        "GPQA": 0.296,
+        "IFEval": 0.575,
+        "WildBench": 0.673,
+        "Omni-MATH": 0.105
       }
     },
     {
@@ -443,32 +469,6 @@
       }
     },
     {
-      "model_id": "mistralai/mixtral-8x22b-instruct-v0.1",
-      "name": "Mixtral Instruct 8x22B",
-      "developer": "mistralai",
-      "scores": {
-        "Mean score": 0.478,
-        "MMLU-Pro": 0.46,
-        "GPQA": 0.334,
-        "IFEval": 0.724,
-        "WildBench": 0.711,
-        "Omni-MATH": 0.163
-      }
-    },
-    {
-      "model_id": "mistralai/mixtral-8x7b-instruct-v0.1",
-      "name": "Mixtral Instruct 8x7B",
-      "developer": "mistralai",
-      "scores": {
-        "Mean score": 0.397,
-        "MMLU-Pro": 0.335,
-        "GPQA": 0.296,
-        "IFEval": 0.575,
-        "WildBench": 0.673,
-        "Omni-MATH": 0.105
-      }
-    },
-    {
       "model_id": "moonshotai/kimi-k2-instruct",
       "name": "Kimi K2 Instruct",
       "developer": "moonshotai",
@@ -484,7 +484,7 @@
     {
       "model_id": "openai/gpt-4.1-2025-04-14",
       "name": "gpt-4.1-2025-04-14",
-      "developer": "openai",
+      "developer": "OpenAI",
       "scores": {
         "Mean score": 0.727,
         "MMLU-Pro": 0.811,
@@ -497,7 +497,7 @@
     {
       "model_id": "openai/gpt-4.1-mini-2025-04-14",
       "name": "GPT-4.1 mini 2025-04-14",
-      "developer": "openai",
+      "developer": "OpenAI",
       "scores": {
         "Mean score": 0.726,
         "MMLU-Pro": 0.783,
@@ -510,7 +510,7 @@
     {
       "model_id": "openai/gpt-4.1-nano-2025-04-14",
       "name": "GPT-4.1 nano 2025-04-14",
-      "developer": "openai",
+      "developer": "OpenAI",
       "scores": {
         "Mean score": 0.616,
         "MMLU-Pro": 0.55,
@@ -523,7 +523,7 @@
     {
       "model_id": "openai/gpt-4o-2024-11-20",
       "name": "GPT-4o 2024-11-20",
-      "developer": "openai",
+      "developer": "OpenAI",
       "scores": {
         "Mean score": 0.634,
         "MMLU-Pro": 0.713,
@@ -536,7 +536,7 @@
     {
       "model_id": "openai/gpt-4o-mini-2024-07-18",
       "name": "GPT-4o mini 2024-07-18",
-      "developer": "openai",
+      "developer": "OpenAI",
       "scores": {
         "Mean score": 0.565,
         "MMLU-Pro": 0.603,
@@ -549,7 +549,7 @@
     {
       "model_id": "openai/gpt-5-2025-08-07",
       "name": "gpt-5-2025-08-07",
-      "developer": "openai",
+      "developer": "OpenAI",
       "scores": {
         "Mean score": 0.807,
         "MMLU-Pro": 0.863,
@@ -562,7 +562,7 @@
     {
       "model_id": "openai/gpt-5-mini-2025-08-07",
       "name": "GPT-5 mini 2025-08-07",
-      "developer": "openai",
+      "developer": "OpenAI",
       "scores": {
         "Mean score": 0.819,
         "MMLU-Pro": 0.835,
@@ -575,7 +575,7 @@
     {
       "model_id": "openai/gpt-5-nano-2025-08-07",
       "name": "GPT-5 nano 2025-08-07",
-      "developer": "openai",
+      "developer": "OpenAI",
       "scores": {
         "Mean score": 0.748,
         "MMLU-Pro": 0.778,
@@ -587,8 +587,8 @@
     },
     {
       "model_id": "openai/gpt-oss-120b",
-      "name": "gpt-oss-120b",
-      "developer": "openai",
+      "name": "GPT-OSS-120B",
+      "developer": "OpenAI",
       "scores": {
         "Mean score": 0.77,
         "MMLU-Pro": 0.795,
@@ -600,8 +600,8 @@
     },
     {
       "model_id": "openai/gpt-oss-20b",
-      "name": "gpt-oss-20b",
-      "developer": "openai",
+      "name": "GPT-OSS-20B",
+      "developer": "OpenAI",
       "scores": {
         "Mean score": 0.674,
         "MMLU-Pro": 0.74,
@@ -613,8 +613,8 @@
     },
     {
       "model_id": "openai/o3-2025-04-16",
-      "name": "o3 2025-04-16",
-      "developer": "openai",
+      "name": "o3-2025-04-16",
+      "developer": "OpenAI",
       "scores": {
         "Mean score": 0.811,
         "MMLU-Pro": 0.859,
@@ -627,7 +627,7 @@
     {
       "model_id": "openai/o4-mini-2025-04-16",
       "name": "o4-mini-2025-04-16",
-      "developer": "openai",
+      "developer": "OpenAI",
       "scores": {
         "Mean score": 0.812,
         "MMLU-Pro": 0.82,
@@ -744,7 +744,7 @@
     {
       "model_id": "xai/grok-3-beta",
       "name": "Grok 3 Beta",
-      "developer": "xai",
+      "developer": "xAI",
       "scores": {
         "Mean score": 0.727,
         "MMLU-Pro": 0.788,
@@ -757,7 +757,7 @@
     {
       "model_id": "xai/grok-3-mini-beta",
       "name": "Grok 3 mini Beta",
-      "developer": "xai",
+      "developer": "xAI",
       "scores": {
         "Mean score": 0.679,
         "MMLU-Pro": 0.799,
@@ -770,7 +770,7 @@
     {
       "model_id": "xai/grok-4-0709",
       "name": "grok-4-0709",
-      "developer": "xai",
+      "developer": "xAI",
       "scores": {
         "Mean score": 0.785,
         "MMLU-Pro": 0.851,

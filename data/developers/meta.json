@@ -4,7 +4,7 @@
     {
       "id": "meta/LLaMA-13B",
       "name": "LLaMA 13B",
-      "developer": "meta",
+      "developer": "Meta",
       "evaluator_relationship": null,
       "benchmark_scores": {
         "helm_classic/Mean win rate": 0.595,
@@ -25,78 +25,9 @@
       }
     },
     {
-      "id": "meta/LLaMA-30B",
-      "name": "LLaMA 30B",
-      "developer": "meta",
-      "evaluator_relationship": null,
-      "benchmark_scores": {
-        "helm_classic/Mean win rate": 0.781,
-        "helm_classic/MMLU": 0.531,
-        "helm_classic/BoolQ": 0.861,
-        "helm_classic/NarrativeQA": 0.752,
-        "helm_classic/NaturalQuestions (open-book)": 0.666,
-        "helm_classic/QuAC": 0.39,
-        "helm_classic/HellaSwag": -1.0,
-        "helm_classic/OpenbookQA": -1.0,
-        "helm_classic/TruthfulQA": 0.344,
-        "helm_classic/MS MARCO (TREC)": -1.0,
-        "helm_classic/CNN/DailyMail": -1.0,
-        "helm_classic/XSUM": -1.0,
-        "helm_classic/IMDB": 0.927,
-        "helm_classic/CivilComments": 0.549,
-        "helm_classic/RAFT": 0.752
-      }
-    },
-    {
-      "id": "meta/LLaMA-65B",
-      "name": "LLaMA 65B",
-      "developer": "meta",
-      "evaluator_relationship": null,
-      "benchmark_scores": {
-        "helm_classic/Mean win rate": 0.908,
-        "helm_classic/MMLU": 0.584,
-        "helm_classic/BoolQ": 0.871,
-        "helm_classic/NarrativeQA": 0.755,
-        "helm_classic/NaturalQuestions (open-book)": 0.672,
-        "helm_classic/QuAC": 0.401,
-        "helm_classic/HellaSwag": -1.0,
-        "helm_classic/OpenbookQA": -1.0,
-        "helm_classic/TruthfulQA": 0.508,
-        "helm_classic/MS MARCO (TREC)": -1.0,
-        "helm_classic/CNN/DailyMail": -1.0,
-        "helm_classic/XSUM": -1.0,
-        "helm_classic/IMDB": 0.962,
-        "helm_classic/CivilComments": 0.655,
-        "helm_classic/RAFT": 0.702
-      }
-    },
-    {
-      "id": "meta/LLaMA-7B",
-      "name": "LLaMA 7B",
-      "developer": "meta",
-      "evaluator_relationship": null,
-      "benchmark_scores": {
-        "helm_classic/Mean win rate": 0.533,
-        "helm_classic/MMLU": 0.321,
-        "helm_classic/BoolQ": 0.756,
-        "helm_classic/NarrativeQA": 0.669,
-        "helm_classic/NaturalQuestions (open-book)": 0.589,
-        "helm_classic/QuAC": 0.338,
-        "helm_classic/HellaSwag": -1.0,
-        "helm_classic/OpenbookQA": -1.0,
-        "helm_classic/TruthfulQA": 0.28,
-        "helm_classic/MS MARCO (TREC)": -1.0,
-        "helm_classic/CNN/DailyMail": -1.0,
-        "helm_classic/XSUM": -1.0,
-        "helm_classic/IMDB": 0.947,
-        "helm_classic/CivilComments": 0.563,
-        "helm_classic/RAFT": 0.573
-      }
-    },
-    {
-      "id": "meta/Llama-2-13B",
+      "id": "meta/llama-2-13b",
       "name": "Llama 2 13B",
-      "developer": "meta",
+      "developer": "Meta",
       "evaluator_relationship": null,
       "benchmark_scores": {
         "helm_classic/Mean win rate": 0.823,
@@ -113,107 +44,7 @@
         "helm_classic/XSUM": -1.0,
         "helm_classic/IMDB": 0.962,
         "helm_classic/CivilComments": 0.588,
-        "helm_classic/RAFT": 0.707
-      }
-    },
-    {
-      "id": "meta/Llama-2-70B",
-      "name": "Llama 2 70B",
-      "developer": "meta",
-      "evaluator_relationship": null,
-      "benchmark_scores": {
-        "helm_classic/Mean win rate": 0.944,
-        "helm_classic/MMLU": 0.582,
-        "helm_classic/BoolQ": 0.886,
-        "helm_classic/NarrativeQA": 0.77,
-        "helm_classic/NaturalQuestions (open-book)": 0.674,
-        "helm_classic/QuAC": 0.484,
-        "helm_classic/HellaSwag": -1.0,
-        "helm_classic/OpenbookQA": -1.0,
-        "helm_classic/TruthfulQA": 0.554,
-        "helm_classic/MS MARCO (TREC)": -1.0,
-        "helm_classic/CNN/DailyMail": -1.0,
-        "helm_classic/XSUM": -1.0,
-        "helm_classic/IMDB": 0.961,
-        "helm_classic/CivilComments": 0.652,
-        "helm_classic/RAFT": 0.727
-      }
-    },
-    {
-      "id": "meta/Llama-2-7B",
-      "name": "Llama 2 7B",
-      "developer": "meta",
-      "evaluator_relationship": null,
-      "benchmark_scores": {
-        "helm_classic/Mean win rate": 0.607,
-        "helm_classic/MMLU": 0.431,
-        "helm_classic/BoolQ": 0.762,
-        "helm_classic/NarrativeQA": 0.691,
-        "helm_classic/NaturalQuestions (open-book)": 0.611,
-        "helm_classic/QuAC": 0.406,
-        "helm_classic/HellaSwag": -1.0,
-        "helm_classic/OpenbookQA": -1.0,
-        "helm_classic/TruthfulQA": 0.272,
-        "helm_classic/MS MARCO (TREC)": -1.0,
-        "helm_classic/CNN/DailyMail": -1.0,
-        "helm_classic/XSUM": -1.0,
-        "helm_classic/IMDB": 0.907,
-        "helm_classic/CivilComments": 0.562,
-        "helm_classic/RAFT": 0.643
-      }
-    },
-    {
-      "id": "meta/OPT-175B",
-      "name": "OPT 175B",
-      "developer": "meta",
-      "evaluator_relationship": null,
-      "benchmark_scores": {
-        "helm_classic/Mean win rate": 0.609,
-        "helm_classic/MMLU": 0.318,
-        "helm_classic/BoolQ": 0.793,
-        "helm_classic/NarrativeQA": 0.671,
-        "helm_classic/NaturalQuestions (open-book)": 0.615,
-        "helm_classic/QuAC": 0.36,
-        "helm_classic/HellaSwag": 0.791,
-        "helm_classic/OpenbookQA": 0.586,
-        "helm_classic/TruthfulQA": 0.25,
-        "helm_classic/MS MARCO (TREC)": 0.448,
-        "helm_classic/CNN/DailyMail": 0.146,
-        "helm_classic/XSUM": 0.155,
-        "helm_classic/IMDB": 0.947,
-        "helm_classic/CivilComments": 0.505,
-        "helm_classic/RAFT": 0.606
-      }
-    },
-    {
-      "id": "meta/OPT-66B",
-      "name": "OPT 66B",
-      "developer": "meta",
-      "evaluator_relationship": null,
-      "benchmark_scores": {
-        "helm_classic/Mean win rate": 0.448,
-        "helm_classic/MMLU": 0.276,
-        "helm_classic/BoolQ": 0.76,
-        "helm_classic/NarrativeQA": 0.638,
-        "helm_classic/NaturalQuestions (open-book)": 0.596,
-        "helm_classic/QuAC": 0.357,
-        "helm_classic/HellaSwag": 0.745,
-        "helm_classic/OpenbookQA": 0.534,
-        "helm_classic/TruthfulQA": 0.201,
-        "helm_classic/MS MARCO (TREC)": 0.482,
-        "helm_classic/CNN/DailyMail": 0.136,
-        "helm_classic/XSUM": 0.126,
-        "helm_classic/IMDB": 0.917,
-        "helm_classic/CivilComments": 0.506,
-        "helm_classic/RAFT": 0.557
-      }
-    },
-    {
-      "id": "meta/llama-2-13b",
-      "name": "Llama 2 13B",
-      "developer": "meta",
-      "evaluator_relationship": null,
-      "benchmark_scores": {
+        "helm_classic/RAFT": 0.707,
         "helm_lite/Mean win rate": 0.233,
         "helm_lite/NarrativeQA": 0.741,
         "helm_lite/NaturalQuestions (closed-book)": 0.371,
@@ -265,9 +96,24 @@
     {
       "id": "meta/llama-2-70b",
       "name": "Llama 2 70B",
-      "developer": "meta",
+      "developer": "Meta",
       "evaluator_relationship": null,
       "benchmark_scores": {
+        "helm_classic/Mean win rate": 0.944,
+        "helm_classic/MMLU": 0.582,
+        "helm_classic/BoolQ": 0.886,
+        "helm_classic/NarrativeQA": 0.77,
+        "helm_classic/NaturalQuestions (open-book)": 0.674,
+        "helm_classic/QuAC": 0.484,
+        "helm_classic/HellaSwag": -1.0,
+        "helm_classic/OpenbookQA": -1.0,
+        "helm_classic/TruthfulQA": 0.554,
+        "helm_classic/MS MARCO (TREC)": -1.0,
+        "helm_classic/CNN/DailyMail": -1.0,
+        "helm_classic/XSUM": -1.0,
+        "helm_classic/IMDB": 0.961,
+        "helm_classic/CivilComments": 0.652,
+        "helm_classic/RAFT": 0.727,
         "helm_lite/Mean win rate": 0.482,
         "helm_lite/NarrativeQA": 0.763,
         "helm_lite/NaturalQuestions (closed-book)": 0.46,
@@ -319,9 +165,24 @@
     {
       "id": "meta/llama-2-7b",
       "name": "Llama 2 7B",
-      "developer": "meta",
+      "developer": "Meta",
       "evaluator_relationship": null,
       "benchmark_scores": {
+        "helm_classic/Mean win rate": 0.607,
+        "helm_classic/MMLU": 0.431,
+        "helm_classic/BoolQ": 0.762,
+        "helm_classic/NarrativeQA": 0.691,
+        "helm_classic/NaturalQuestions (open-book)": 0.611,
+        "helm_classic/QuAC": 0.406,
+        "helm_classic/HellaSwag": -1.0,
+        "helm_classic/OpenbookQA": -1.0,
+        "helm_classic/TruthfulQA": 0.272,
+        "helm_classic/MS MARCO (TREC)": -1.0,
+        "helm_classic/CNN/DailyMail": -1.0,
+        "helm_classic/XSUM": -1.0,
+        "helm_classic/IMDB": 0.907,
+        "helm_classic/CivilComments": 0.562,
+        "helm_classic/RAFT": 0.643,
         "helm_lite/Mean win rate": 0.152,
         "helm_lite/NarrativeQA": 0.686,
         "helm_lite/NaturalQuestions (closed-book)": 0.333,
@@ -373,7 +234,7 @@
     {
       "id": "meta/llama-3-70b",
       "name": "Llama 3 70B",
-      "developer": "meta",
+      "developer": "Meta",
       "evaluator_relationship": null,
       "benchmark_scores": {
         "helm_lite/Mean win rate": 0.793,
@@ -427,7 +288,7 @@
     {
       "id": "meta/llama-3-8b",
       "name": "Llama 3 8B",
-      "developer": "meta",
+      "developer": "Meta",
       "evaluator_relationship": null,
       "benchmark_scores": {
         "helm_lite/Mean win rate": 0.387,
@@ -481,7 +342,7 @@
     {
       "id": "meta/llama-3.1-405b-instruct-turbo",
       "name": "Llama 3.1 Instruct Turbo 405B",
-      "developer": "meta",
+      "developer": "Meta",
       "evaluator_relationship": null,
       "benchmark_scores": {
         "helm_capabilities/Mean score": 0.618,
@@ -541,7 +402,7 @@
     {
       "id": "meta/llama-3.1-70b-instruct-turbo",
       "name": "Llama 3.1 Instruct Turbo 70B",
-      "developer": "meta",
+      "developer": "Meta",
       "evaluator_relationship": null,
       "benchmark_scores": {
         "helm_capabilities/Mean score": 0.574,
@@ -601,7 +462,7 @@
     {
       "id": "meta/llama-3.1-8b-instruct-turbo",
       "name": "Llama 3.1 Instruct Turbo 8B",
-      "developer": "meta",
+      "developer": "Meta",
       "evaluator_relationship": null,
       "benchmark_scores": {
         "helm_capabilities/Mean score": 0.444,
@@ -661,7 +522,7 @@
     {
       "id": "meta/llama-3.2-11b-vision-instruct-turbo",
       "name": "Llama 3.2 Vision Instruct Turbo 11B",
-      "developer": "meta",
+      "developer": "Meta",
       "evaluator_relationship": null,
       "benchmark_scores": {
         "helm_lite/Mean win rate": 0.325,
@@ -715,7 +576,7 @@
     {
       "id": "meta/llama-3.2-90b-vision-instruct-turbo",
       "name": "Llama 3.2 Vision Instruct Turbo 90B",
-      "developer": "meta",
+      "developer": "Meta",
       "evaluator_relationship": null,
       "benchmark_scores": {
         "helm_lite/Mean win rate": 0.819,
@@ -769,7 +630,7 @@
     {
       "id": "meta/llama-3.3-70b-instruct-turbo",
       "name": "Llama 3.3 Instruct Turbo 70B",
-      "developer": "meta",
+      "developer": "Meta",
       "evaluator_relationship": null,
       "benchmark_scores": {
         "helm_lite/Mean win rate": 0.812,
@@ -821,6 +682,29 @@
       }
     },
     {
+      "id": "meta/LLaMA-30B",
+      "name": "LLaMA 30B",
+      "developer": "Meta",
+      "evaluator_relationship": null,
+      "benchmark_scores": {
+        "helm_classic/Mean win rate": 0.781,
+        "helm_classic/MMLU": 0.531,
+        "helm_classic/BoolQ": 0.861,
+        "helm_classic/NarrativeQA": 0.752,
+        "helm_classic/NaturalQuestions (open-book)": 0.666,
+        "helm_classic/QuAC": 0.39,
+        "helm_classic/HellaSwag": -1.0,
+        "helm_classic/OpenbookQA": -1.0,
+        "helm_classic/TruthfulQA": 0.344,
+        "helm_classic/MS MARCO (TREC)": -1.0,
+        "helm_classic/CNN/DailyMail": -1.0,
+        "helm_classic/XSUM": -1.0,
+        "helm_classic/IMDB": 0.927,
+        "helm_classic/CivilComments": 0.549,
+        "helm_classic/RAFT": 0.752
+      }
+    },
+    {
       "id": "meta/llama-4-maverick",
       "name": "meta/llama-4-maverick",
       "developer": "Meta",
@@ -834,7 +718,7 @@
     {
       "id": "meta/llama-4-maverick-17b-128e-instruct-fp8",
       "name": "Llama 4 Maverick 17Bx128E Instruct FP8",
-      "developer": "meta",
+      "developer": "Meta",
       "evaluator_relationship": null,
       "benchmark_scores": {
         "helm_capabilities/Mean score": 0.718,
@@ -848,7 +732,7 @@
     {
       "id": "meta/llama-4-scout-17b-16e-instruct",
       "name": "Llama 4 Scout 17Bx16E Instruct",
-      "developer": "meta",
+      "developer": "Meta",
       "evaluator_relationship": null,
       "benchmark_scores": {
         "helm_capabilities/Mean score": 0.644,
@@ -860,11 +744,26 @@
       }
     },
     {
-      "id": "meta/llama-65b",
+      "id": "meta/LLaMA-65B",
       "name": "LLaMA 65B",
-      "developer": "meta",
+      "developer": "Meta",
       "evaluator_relationship": null,
       "benchmark_scores": {
+        "helm_classic/Mean win rate": 0.908,
+        "helm_classic/MMLU": 0.584,
+        "helm_classic/BoolQ": 0.871,
+        "helm_classic/NarrativeQA": 0.755,
+        "helm_classic/NaturalQuestions (open-book)": 0.672,
+        "helm_classic/QuAC": 0.401,
+        "helm_classic/HellaSwag": -1.0,
+        "helm_classic/OpenbookQA": -1.0,
+        "helm_classic/TruthfulQA": 0.508,
+        "helm_classic/MS MARCO (TREC)": -1.0,
+        "helm_classic/CNN/DailyMail": -1.0,
+        "helm_classic/XSUM": -1.0,
+        "helm_classic/IMDB": 0.962,
+        "helm_classic/CivilComments": 0.655,
+        "helm_classic/RAFT": 0.702,
         "helm_lite/Mean win rate": 0.345,
         "helm_lite/NarrativeQA": 0.755,
         "helm_lite/NaturalQuestions (closed-book)": 0.433,
@@ -875,6 +774,75 @@
         "helm_lite/LegalBench": 0.48,
         "helm_lite/MedQA": 0.507,
         "helm_lite/WMT 2014": 0.189
+      }
+    },
+    {
+      "id": "meta/LLaMA-7B",
+      "name": "LLaMA 7B",
+      "developer": "Meta",
+      "evaluator_relationship": null,
+      "benchmark_scores": {
+        "helm_classic/Mean win rate": 0.533,
+        "helm_classic/MMLU": 0.321,
+        "helm_classic/BoolQ": 0.756,
+        "helm_classic/NarrativeQA": 0.669,
+        "helm_classic/NaturalQuestions (open-book)": 0.589,
+        "helm_classic/QuAC": 0.338,
+        "helm_classic/HellaSwag": -1.0,
+        "helm_classic/OpenbookQA": -1.0,
+        "helm_classic/TruthfulQA": 0.28,
+        "helm_classic/MS MARCO (TREC)": -1.0,
+        "helm_classic/CNN/DailyMail": -1.0,
+        "helm_classic/XSUM": -1.0,
+        "helm_classic/IMDB": 0.947,
+        "helm_classic/CivilComments": 0.563,
+        "helm_classic/RAFT": 0.573
+      }
+    },
+    {
+      "id": "meta/OPT-175B",
+      "name": "OPT 175B",
+      "developer": "Meta",
+      "evaluator_relationship": null,
+      "benchmark_scores": {
+        "helm_classic/Mean win rate": 0.609,
+        "helm_classic/MMLU": 0.318,
+        "helm_classic/BoolQ": 0.793,
+        "helm_classic/NarrativeQA": 0.671,
+        "helm_classic/NaturalQuestions (open-book)": 0.615,
+        "helm_classic/QuAC": 0.36,
+        "helm_classic/HellaSwag": 0.791,
+        "helm_classic/OpenbookQA": 0.586,
+        "helm_classic/TruthfulQA": 0.25,
+        "helm_classic/MS MARCO (TREC)": 0.448,
+        "helm_classic/CNN/DailyMail": 0.146,
+        "helm_classic/XSUM": 0.155,
+        "helm_classic/IMDB": 0.947,
+        "helm_classic/CivilComments": 0.505,
+        "helm_classic/RAFT": 0.606
+      }
+    },
+    {
+      "id": "meta/OPT-66B",
+      "name": "OPT 66B",
+      "developer": "Meta",
+      "evaluator_relationship": null,
+      "benchmark_scores": {
+        "helm_classic/Mean win rate": 0.448,
+        "helm_classic/MMLU": 0.276,
+        "helm_classic/BoolQ": 0.76,
+        "helm_classic/NarrativeQA": 0.638,
+        "helm_classic/NaturalQuestions (open-book)": 0.596,
+        "helm_classic/QuAC": 0.357,
+        "helm_classic/HellaSwag": 0.745,
+        "helm_classic/OpenbookQA": 0.534,
+        "helm_classic/TruthfulQA": 0.201,
+        "helm_classic/MS MARCO (TREC)": 0.482,
+        "helm_classic/CNN/DailyMail": 0.136,
+        "helm_classic/XSUM": 0.126,
+        "helm_classic/IMDB": 0.917,
+        "helm_classic/CivilComments": 0.506,
+        "helm_classic/RAFT": 0.557
       }
     }
   ]

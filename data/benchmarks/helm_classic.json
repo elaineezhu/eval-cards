@@ -23,6 +23,50 @@
       }
     },
     {
+      "model_id": "EleutherAI/pythia-12b",
+      "name": "Pythia 12B",
+      "developer": "EleutherAI",
+      "scores": {
+        "Mean win rate": 0.257,
+        "MMLU": 0.274,
+        "BoolQ": 0.662,
+        "NarrativeQA": 0.596,
+        "NaturalQuestions (open-book)": 0.581,
+        "QuAC": 0.313,
+        "HellaSwag": -1.0,
+        "OpenbookQA": -1.0,
+        "TruthfulQA": 0.177,
+        "MS MARCO (TREC)": -1.0,
+        "CNN/DailyMail": -1.0,
+        "XSUM": -1.0,
+        "IMDB": 0.931,
+        "CivilComments": 0.531,
+        "RAFT": 0.514
+      }
+    },
+    {
+      "model_id": "EleutherAI/pythia-6.9b",
+      "name": "Pythia 6.9B",
+      "developer": "EleutherAI",
+      "scores": {
+        "Mean win rate": 0.196,
+        "MMLU": 0.236,
+        "BoolQ": 0.631,
+        "NarrativeQA": 0.528,
+        "NaturalQuestions (open-book)": 0.539,
+        "QuAC": 0.296,
+        "HellaSwag": -1.0,
+        "OpenbookQA": -1.0,
+        "TruthfulQA": 0.213,
+        "MS MARCO (TREC)": -1.0,
+        "CNN/DailyMail": -1.0,
+        "XSUM": -1.0,
+        "IMDB": 0.928,
+        "CivilComments": 0.511,
+        "RAFT": 0.502
+      }
+    },
+    {
       "model_id": "ai21/J1-Grande-v1-17B",
       "name": "J1-Grande v1 17B",
       "developer": "ai21",
@@ -463,53 +507,9 @@
       }
     },
     {
-      "model_id": "eleutherai/Pythia-12B",
-      "name": "Pythia 12B",
-      "developer": "eleutherai",
-      "scores": {
-        "Mean win rate": 0.257,
-        "MMLU": 0.274,
-        "BoolQ": 0.662,
-        "NarrativeQA": 0.596,
-        "NaturalQuestions (open-book)": 0.581,
-        "QuAC": 0.313,
-        "HellaSwag": -1.0,
-        "OpenbookQA": -1.0,
-        "TruthfulQA": 0.177,
-        "MS MARCO (TREC)": -1.0,
-        "CNN/DailyMail": -1.0,
-        "XSUM": -1.0,
-        "IMDB": 0.931,
-        "CivilComments": 0.531,
-        "RAFT": 0.514
-      }
-    },
-    {
-      "model_id": "eleutherai/Pythia-6.9B",
-      "name": "Pythia 6.9B",
-      "developer": "eleutherai",
-      "scores": {
-        "Mean win rate": 0.196,
-        "MMLU": 0.236,
-        "BoolQ": 0.631,
-        "NarrativeQA": 0.528,
-        "NaturalQuestions (open-book)": 0.539,
-        "QuAC": 0.296,
-        "HellaSwag": -1.0,
-        "OpenbookQA": -1.0,
-        "TruthfulQA": 0.213,
-        "MS MARCO (TREC)": -1.0,
-        "CNN/DailyMail": -1.0,
-        "XSUM": -1.0,
-        "IMDB": 0.928,
-        "CivilComments": 0.511,
-        "RAFT": 0.502
-      }
-    },
-    {
       "model_id": "google/Palmyra-X-43B",
       "name": "Palmyra X 43B",
-      "developer": "google",
+      "developer": "Google",
       "scores": {
         "Mean win rate": 0.732,
         "MMLU": 0.609,
@@ -531,7 +531,7 @@
     {
       "model_id": "google/T5-11B",
       "name": "T5 11B",
-      "developer": "google",
+      "developer": "Google",
       "scores": {
         "Mean win rate": 0.131,
         "MMLU": 0.29,
@@ -553,7 +553,7 @@
     {
       "model_id": "google/UL2-20B",
       "name": "UL2 20B",
-      "developer": "google",
+      "developer": "Google",
       "scores": {
         "Mean win rate": 0.167,
         "MMLU": 0.291,
@@ -619,7 +619,7 @@
     {
       "model_id": "meta/LLaMA-13B",
       "name": "LLaMA 13B",
-      "developer": "meta",
+      "developer": "Meta",
       "scores": {
         "Mean win rate": 0.595,
         "MMLU": 0.422,
@@ -641,7 +641,7 @@
     {
       "model_id": "meta/LLaMA-30B",
       "name": "LLaMA 30B",
-      "developer": "meta",
+      "developer": "Meta",
       "scores": {
         "Mean win rate": 0.781,
         "MMLU": 0.531,
@@ -663,7 +663,7 @@
     {
       "model_id": "meta/LLaMA-65B",
       "name": "LLaMA 65B",
-      "developer": "meta",
+      "developer": "Meta",
       "scores": {
         "Mean win rate": 0.908,
         "MMLU": 0.584,
@@ -685,7 +685,7 @@
     {
       "model_id": "meta/LLaMA-7B",
       "name": "LLaMA 7B",
-      "developer": "meta",
+      "developer": "Meta",
       "scores": {
         "Mean win rate": 0.533,
         "MMLU": 0.321,
@@ -705,75 +705,9 @@
       }
     },
     {
-      "model_id": "meta/Llama-2-13B",
-      "name": "Llama 2 13B",
-      "developer": "meta",
-      "scores": {
-        "Mean win rate": 0.823,
-        "MMLU": 0.507,
-        "BoolQ": 0.811,
-        "NarrativeQA": 0.744,
-        "NaturalQuestions (open-book)": 0.637,
-        "QuAC": 0.424,
-        "HellaSwag": -1.0,
-        "OpenbookQA": -1.0,
-        "TruthfulQA": 0.33,
-        "MS MARCO (TREC)": -1.0,
-        "CNN/DailyMail": -1.0,
-        "XSUM": -1.0,
-        "IMDB": 0.962,
-        "CivilComments": 0.588,
-        "RAFT": 0.707
-      }
-    },
-    {
-      "model_id": "meta/Llama-2-70B",
-      "name": "Llama 2 70B",
-      "developer": "meta",
-      "scores": {
-        "Mean win rate": 0.944,
-        "MMLU": 0.582,
-        "BoolQ": 0.886,
-        "NarrativeQA": 0.77,
-        "NaturalQuestions (open-book)": 0.674,
-        "QuAC": 0.484,
-        "HellaSwag": -1.0,
-        "OpenbookQA": -1.0,
-        "TruthfulQA": 0.554,
-        "MS MARCO (TREC)": -1.0,
-        "CNN/DailyMail": -1.0,
-        "XSUM": -1.0,
-        "IMDB": 0.961,
-        "CivilComments": 0.652,
-        "RAFT": 0.727
-      }
-    },
-    {
-      "model_id": "meta/Llama-2-7B",
-      "name": "Llama 2 7B",
-      "developer": "meta",
-      "scores": {
-        "Mean win rate": 0.607,
-        "MMLU": 0.431,
-        "BoolQ": 0.762,
-        "NarrativeQA": 0.691,
-        "NaturalQuestions (open-book)": 0.611,
-        "QuAC": 0.406,
-        "HellaSwag": -1.0,
-        "OpenbookQA": -1.0,
-        "TruthfulQA": 0.272,
-        "MS MARCO (TREC)": -1.0,
-        "CNN/DailyMail": -1.0,
-        "XSUM": -1.0,
-        "IMDB": 0.907,
-        "CivilComments": 0.562,
-        "RAFT": 0.643
-      }
-    },
-    {
       "model_id": "meta/OPT-175B",
       "name": "OPT 175B",
-      "developer": "meta",
+      "developer": "Meta",
       "scores": {
         "Mean win rate": 0.609,
         "MMLU": 0.318,
@@ -795,7 +729,7 @@
     {
       "model_id": "meta/OPT-66B",
       "name": "OPT 66B",
-      "developer": "meta",
+      "developer": "Meta",
       "scores": {
         "Mean win rate": 0.448,
         "MMLU": 0.276,
@@ -812,6 +746,72 @@
         "IMDB": 0.917,
         "CivilComments": 0.506,
         "RAFT": 0.557
+      }
+    },
+    {
+      "model_id": "meta/llama-2-13b",
+      "name": "Llama 2 13B",
+      "developer": "Meta",
+      "scores": {
+        "Mean win rate": 0.823,
+        "MMLU": 0.507,
+        "BoolQ": 0.811,
+        "NarrativeQA": 0.744,
+        "NaturalQuestions (open-book)": 0.637,
+        "QuAC": 0.424,
+        "HellaSwag": -1.0,
+        "OpenbookQA": -1.0,
+        "TruthfulQA": 0.33,
+        "MS MARCO (TREC)": -1.0,
+        "CNN/DailyMail": -1.0,
+        "XSUM": -1.0,
+        "IMDB": 0.962,
+        "CivilComments": 0.588,
+        "RAFT": 0.707
+      }
+    },
+    {
+      "model_id": "meta/llama-2-70b",
+      "name": "Llama 2 70B",
+      "developer": "Meta",
+      "scores": {
+        "Mean win rate": 0.944,
+        "MMLU": 0.582,
+        "BoolQ": 0.886,
+        "NarrativeQA": 0.77,
+        "NaturalQuestions (open-book)": 0.674,
+        "QuAC": 0.484,
+        "HellaSwag": -1.0,
+        "OpenbookQA": -1.0,
+        "TruthfulQA": 0.554,
+        "MS MARCO (TREC)": -1.0,
+        "CNN/DailyMail": -1.0,
+        "XSUM": -1.0,
+        "IMDB": 0.961,
+        "CivilComments": 0.652,
+        "RAFT": 0.727
+      }
+    },
+    {
+      "model_id": "meta/llama-2-7b",
+      "name": "Llama 2 7B",
+      "developer": "Meta",
+      "scores": {
+        "Mean win rate": 0.607,
+        "MMLU": 0.431,
+        "BoolQ": 0.762,
+        "NarrativeQA": 0.691,
+        "NaturalQuestions (open-book)": 0.611,
+        "QuAC": 0.406,
+        "HellaSwag": -1.0,
+        "OpenbookQA": -1.0,
+        "TruthfulQA": 0.272,
+        "MS MARCO (TREC)": -1.0,
+        "CNN/DailyMail": -1.0,
+        "XSUM": -1.0,
+        "IMDB": 0.907,
+        "CivilComments": 0.562,
+        "RAFT": 0.643
       }
     },
     {
@@ -927,7 +927,7 @@
     {
       "model_id": "openai/GPT-J-6B",
       "name": "GPT-J 6B",
-      "developer": "openai",
+      "developer": "OpenAI",
       "scores": {
         "Mean win rate": 0.273,
         "MMLU": 0.249,
@@ -949,7 +949,7 @@
     {
       "model_id": "openai/GPT-NeoX-20B",
       "name": "GPT-NeoX 20B",
-      "developer": "openai",
+      "developer": "OpenAI",
       "scores": {
         "Mean win rate": 0.351,
         "MMLU": 0.276,
@@ -971,7 +971,7 @@
     {
       "model_id": "openai/ada-350M",
       "name": "ada 350M",
-      "developer": "openai",
+      "developer": "OpenAI",
       "scores": {
         "Mean win rate": 0.108,
         "MMLU": 0.243,
@@ -993,7 +993,7 @@
     {
       "model_id": "openai/babbage-1.3B",
       "name": "babbage 1.3B",
-      "developer": "openai",
+      "developer": "OpenAI",
       "scores": {
         "Mean win rate": 0.114,
         "MMLU": 0.235,
@@ -1015,7 +1015,7 @@
     {
       "model_id": "openai/curie-6.7B",
       "name": "curie 6.7B",
-      "developer": "openai",
+      "developer": "OpenAI",
       "scores": {
         "Mean win rate": 0.247,
         "MMLU": 0.243,
@@ -1037,7 +1037,7 @@
     {
       "model_id": "openai/davinci-175B",
       "name": "davinci 175B",
-      "developer": "openai",
+      "developer": "OpenAI",
       "scores": {
         "Mean win rate": 0.538,
         "MMLU": 0.422,
@@ -1059,7 +1059,7 @@
     {
       "model_id": "openai/gpt-3.5-turbo-0301",
       "name": "gpt-3.5-turbo-0301",
-      "developer": "openai",
+      "developer": "OpenAI",
       "scores": {
         "Mean win rate": 0.76,
         "MMLU": 0.59,
@@ -1080,8 +1080,8 @@
     },
     {
       "model_id": "openai/gpt-3.5-turbo-0613",
-      "name": "gpt-3.5-turbo-0613",
-      "developer": "openai",
+      "name": "GPT-3.5 Turbo 0613",
+      "developer": "OpenAI",
       "scores": {
         "Mean win rate": 0.783,
         "MMLU": 0.391,
@@ -1103,7 +1103,7 @@
     {
       "model_id": "openai/text-ada-001",
       "name": "text-ada-001",
-      "developer": "openai",
+      "developer": "OpenAI",
       "scores": {
         "Mean win rate": 0.107,
         "MMLU": 0.238,
@@ -1125,7 +1125,7 @@
     {
       "model_id": "openai/text-babbage-001",
       "name": "text-babbage-001",
-      "developer": "openai",
+      "developer": "OpenAI",
       "scores": {
         "Mean win rate": 0.229,
         "MMLU": 0.229,
@@ -1147,7 +1147,7 @@
     {
       "model_id": "openai/text-curie-001",
       "name": "text-curie-001",
-      "developer": "openai",
+      "developer": "OpenAI",
       "scores": {
         "Mean win rate": 0.36,
         "MMLU": 0.237,
@@ -1168,8 +1168,8 @@
     },
     {
       "model_id": "openai/text-davinci-002",
-      "name": "text-davinci-002",
-      "developer": "openai",
+      "name": "GPT-3.5 text-davinci-002",
+      "developer": "OpenAI",
       "scores": {
         "Mean win rate": 0.905,
         "MMLU": 0.568,
@@ -1190,8 +1190,8 @@
     },
     {
       "model_id": "openai/text-davinci-003",
-      "name": "text-davinci-003",
-      "developer": "openai",
+      "name": "GPT-3.5 text-davinci-003",
+      "developer": "OpenAI",
       "scores": {
         "Mean win rate": 0.872,
         "MMLU": 0.569,
@@ -1230,50 +1230,6 @@
         "IMDB": 0.738,
         "CivilComments": 0.566,
         "RAFT": 0.486
-      }
-    },
-    {
-      "model_id": "tiiuae/Falcon-40B",
-      "name": "Falcon 40B",
-      "developer": "tiiuae",
-      "scores": {
-        "Mean win rate": 0.729,
-        "MMLU": 0.509,
-        "BoolQ": 0.819,
-        "NarrativeQA": 0.673,
-        "NaturalQuestions (open-book)": 0.675,
-        "QuAC": 0.307,
-        "HellaSwag": -1.0,
-        "OpenbookQA": -1.0,
-        "TruthfulQA": 0.353,
-        "MS MARCO (TREC)": -1.0,
-        "CNN/DailyMail": -1.0,
-        "XSUM": -1.0,
-        "IMDB": 0.959,
-        "CivilComments": 0.552,
-        "RAFT": 0.661
-      }
-    },
-    {
-      "model_id": "tiiuae/Falcon-7B",
-      "name": "Falcon 7B",
-      "developer": "tiiuae",
-      "scores": {
-        "Mean win rate": 0.378,
-        "MMLU": 0.286,
-        "BoolQ": 0.753,
-        "NarrativeQA": 0.621,
-        "NaturalQuestions (open-book)": 0.579,
-        "QuAC": 0.332,
-        "HellaSwag": -1.0,
-        "OpenbookQA": -1.0,
-        "TruthfulQA": 0.234,
-        "MS MARCO (TREC)": -1.0,
-        "CNN/DailyMail": -1.0,
-        "XSUM": -1.0,
-        "IMDB": 0.836,
-        "CivilComments": 0.514,
-        "RAFT": 0.602
       }
     },
     {
@@ -1318,6 +1274,50 @@
         "IMDB": 0.852,
         "CivilComments": 0.511,
         "RAFT": 0.523
+      }
+    },
+    {
+      "model_id": "tiiuae/falcon-40b",
+      "name": "Falcon 40B",
+      "developer": "tiiuae",
+      "scores": {
+        "Mean win rate": 0.729,
+        "MMLU": 0.509,
+        "BoolQ": 0.819,
+        "NarrativeQA": 0.673,
+        "NaturalQuestions (open-book)": 0.675,
+        "QuAC": 0.307,
+        "HellaSwag": -1.0,
+        "OpenbookQA": -1.0,
+        "TruthfulQA": 0.353,
+        "MS MARCO (TREC)": -1.0,
+        "CNN/DailyMail": -1.0,
+        "XSUM": -1.0,
+        "IMDB": 0.959,
+        "CivilComments": 0.552,
+        "RAFT": 0.661
+      }
+    },
+    {
+      "model_id": "tiiuae/falcon-7b",
+      "name": "Falcon 7B",
+      "developer": "tiiuae",
+      "scores": {
+        "Mean win rate": 0.378,
+        "MMLU": 0.286,
+        "BoolQ": 0.753,
+        "NarrativeQA": 0.621,
+        "NaturalQuestions (open-book)": 0.579,
+        "QuAC": 0.332,
+        "HellaSwag": -1.0,
+        "OpenbookQA": -1.0,
+        "TruthfulQA": 0.234,
+        "MS MARCO (TREC)": -1.0,
+        "CNN/DailyMail": -1.0,
+        "XSUM": -1.0,
+        "IMDB": 0.836,
+        "CivilComments": 0.514,
+        "RAFT": 0.602
       }
     },
     {

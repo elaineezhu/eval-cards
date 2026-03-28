@@ -2,6 +2,20 @@
   "developer": "nhyha",
   "models": [
     {
+      "id": "nhyha/merge_Qwen2.5-7B-Instruct_20241023_0314",
+      "name": "merge_Qwen2.5-7B-Instruct_20241023_0314",
+      "developer": "nhyha",
+      "evaluator_relationship": null,
+      "benchmark_scores": {
+        "hfopenllm_v2/IFEval": 0.5695,
+        "hfopenllm_v2/BBH": 0.5559,
+        "hfopenllm_v2/MATH Level 5": 0.3542,
+        "hfopenllm_v2/GPQA": 0.3213,
+        "hfopenllm_v2/MUSR": 0.4251,
+        "hfopenllm_v2/MMLU-PRO": 0.4542
+      }
+    },
+    {
       "id": "nhyha/N3N_Delirium-v1_1030_0227",
       "name": "N3N_Delirium-v1_1030_0227",
       "developer": "nhyha",
@@ -13,20 +27,6 @@
         "hfopenllm_v2/GPQA": 0.3372,
         "hfopenllm_v2/MUSR": 0.4098,
         "hfopenllm_v2/MMLU-PRO": 0.415
-      }
-    },
-    {
-      "id": "nhyha/N3N_Llama-3.1-8B-Instruct_1028_0216",
-      "name": "N3N_Llama-3.1-8B-Instruct_1028_0216",
-      "developer": "nhyha",
-      "evaluator_relationship": null,
-      "benchmark_scores": {
-        "hfopenllm_v2/IFEval": 0.4796,
-        "hfopenllm_v2/BBH": 0.5054,
-        "hfopenllm_v2/MATH Level 5": 0.1707,
-        "hfopenllm_v2/GPQA": 0.3062,
-        "hfopenllm_v2/MUSR": 0.405,
-        "hfopenllm_v2/MMLU-PRO": 0.3638
       }
     },
     {
@@ -58,17 +58,17 @@
       }
     },
     {
-      "id": "nhyha/merge_Qwen2.5-7B-Instruct_20241023_0314",
-      "name": "merge_Qwen2.5-7B-Instruct_20241023_0314",
+      "id": "nhyha/N3N_Llama-3.1-8B-Instruct_1028_0216",
+      "name": "N3N_Llama-3.1-8B-Instruct_1028_0216",
       "developer": "nhyha",
       "evaluator_relationship": null,
       "benchmark_scores": {
-        "hfopenllm_v2/IFEval": 0.5695,
-        "hfopenllm_v2/BBH": 0.5559,
-        "hfopenllm_v2/MATH Level 5": 0.3542,
-        "hfopenllm_v2/GPQA": 0.3213,
-        "hfopenllm_v2/MUSR": 0.4251,
-        "hfopenllm_v2/MMLU-PRO": 0.4542
+        "hfopenllm_v2/IFEval": 0.4796,
+        "hfopenllm_v2/BBH": 0.5054,
+        "hfopenllm_v2/MATH Level 5": 0.1707,
+        "hfopenllm_v2/GPQA": 0.3062,
+        "hfopenllm_v2/MUSR": 0.405,
+        "hfopenllm_v2/MMLU-PRO": 0.3638
       }
     }
   ]

@@ -1,11 +1,9 @@
 {
   "model_info": {
-    "name": "openai/gpt-3.5-turbo-0125",
+    "name": "GPT-3.5 Turbo 0125",
     "id": "openai/gpt-3.5-turbo-0125",
-    "developer": "openai",
-    "additional_details": {
-      "model_type": "Generative"
-    }
+    "developer": "OpenAI",
+    "inference_platform": "unknown"
   },
   "evaluations": [
     {

@@ -2,6 +2,62 @@
   "developer": "DeepAutoAI",
   "models": [
     {
+      "id": "DeepAutoAI/causal_gpt2",
+      "name": "causal_gpt2",
+      "developer": "DeepAutoAI",
+      "evaluator_relationship": null,
+      "benchmark_scores": {
+        "hfopenllm_v2/IFEval": 0.1813,
+        "hfopenllm_v2/BBH": 0.3026,
+        "hfopenllm_v2/MATH Level 5": 0.0053,
+        "hfopenllm_v2/GPQA": 0.2601,
+        "hfopenllm_v2/MUSR": 0.427,
+        "hfopenllm_v2/MMLU-PRO": 0.1131
+      }
+    },
+    {
+      "id": "DeepAutoAI/d2nwg_causal_gpt2",
+      "name": "d2nwg_causal_gpt2",
+      "developer": "DeepAutoAI",
+      "evaluator_relationship": null,
+      "benchmark_scores": {
+        "hfopenllm_v2/IFEval": 0.1916,
+        "hfopenllm_v2/BBH": 0.3027,
+        "hfopenllm_v2/MATH Level 5": 0.0045,
+        "hfopenllm_v2/GPQA": 0.2576,
+        "hfopenllm_v2/MUSR": 0.4297,
+        "hfopenllm_v2/MMLU-PRO": 0.1151
+      }
+    },
+    {
+      "id": "DeepAutoAI/d2nwg_causal_gpt2_v1",
+      "name": "d2nwg_causal_gpt2_v1",
+      "developer": "DeepAutoAI",
+      "evaluator_relationship": null,
+      "benchmark_scores": {
+        "hfopenllm_v2/IFEval": 0.1989,
+        "hfopenllm_v2/BBH": 0.2992,
+        "hfopenllm_v2/MATH Level 5": 0.0038,
+        "hfopenllm_v2/GPQA": 0.2584,
+        "hfopenllm_v2/MUSR": 0.4337,
+        "hfopenllm_v2/MMLU-PRO": 0.1135
+      }
+    },
+    {
+      "id": "DeepAutoAI/d2nwg_Llama-3.1-8B-Instruct-v0.0",
+      "name": "d2nwg_Llama-3.1-8B-Instruct-v0.0",
+      "developer": "DeepAutoAI",
+      "evaluator_relationship": null,
+      "benchmark_scores": {
+        "hfopenllm_v2/IFEval": 0.7893,
+        "hfopenllm_v2/BBH": 0.508,
+        "hfopenllm_v2/MATH Level 5": 0.1805,
+        "hfopenllm_v2/GPQA": 0.2919,
+        "hfopenllm_v2/MUSR": 0.4135,
+        "hfopenllm_v2/MMLU-PRO": 0.3877
+      }
+    },
+    {
       "id": "DeepAutoAI/Explore_Llama-3.1-8B-Inst",
       "name": "Explore_Llama-3.1-8B-Inst",
       "developer": "DeepAutoAI",
@@ -69,62 +125,6 @@
         "hfopenllm_v2/GPQA": 0.2626,
         "hfopenllm_v2/MUSR": 0.3117,
         "hfopenllm_v2/MMLU-PRO": 0.1818
-      }
-    },
-    {
-      "id": "DeepAutoAI/causal_gpt2",
-      "name": "causal_gpt2",
-      "developer": "DeepAutoAI",
-      "evaluator_relationship": null,
-      "benchmark_scores": {
-        "hfopenllm_v2/IFEval": 0.1813,
-        "hfopenllm_v2/BBH": 0.3026,
-        "hfopenllm_v2/MATH Level 5": 0.0053,
-        "hfopenllm_v2/GPQA": 0.2601,
-        "hfopenllm_v2/MUSR": 0.427,
-        "hfopenllm_v2/MMLU-PRO": 0.1131
-      }
-    },
-    {
-      "id": "DeepAutoAI/d2nwg_Llama-3.1-8B-Instruct-v0.0",
-      "name": "d2nwg_Llama-3.1-8B-Instruct-v0.0",
-      "developer": "DeepAutoAI",
-      "evaluator_relationship": null,
-      "benchmark_scores": {
-        "hfopenllm_v2/IFEval": 0.7893,
-        "hfopenllm_v2/BBH": 0.508,
-        "hfopenllm_v2/MATH Level 5": 0.1805,
-        "hfopenllm_v2/GPQA": 0.2919,
-        "hfopenllm_v2/MUSR": 0.4135,
-        "hfopenllm_v2/MMLU-PRO": 0.3877
-      }
-    },
-    {
-      "id": "DeepAutoAI/d2nwg_causal_gpt2",
-      "name": "d2nwg_causal_gpt2",
-      "developer": "DeepAutoAI",
-      "evaluator_relationship": null,
-      "benchmark_scores": {
-        "hfopenllm_v2/IFEval": 0.1916,
-        "hfopenllm_v2/BBH": 0.3027,
-        "hfopenllm_v2/MATH Level 5": 0.0045,
-        "hfopenllm_v2/GPQA": 0.2576,
-        "hfopenllm_v2/MUSR": 0.4297,
-        "hfopenllm_v2/MMLU-PRO": 0.1151
-      }
-    },
-    {
-      "id": "DeepAutoAI/d2nwg_causal_gpt2_v1",
-      "name": "d2nwg_causal_gpt2_v1",
-      "developer": "DeepAutoAI",
-      "evaluator_relationship": null,
-      "benchmark_scores": {
-        "hfopenllm_v2/IFEval": 0.1989,
-        "hfopenllm_v2/BBH": 0.2992,
-        "hfopenllm_v2/MATH Level 5": 0.0038,
-        "hfopenllm_v2/GPQA": 0.2584,
-        "hfopenllm_v2/MUSR": 0.4337,
-        "hfopenllm_v2/MMLU-PRO": 0.1135
       }
     },
     {

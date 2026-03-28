@@ -198,6 +198,20 @@
       }
     },
     {
+      "id": "T145/qwen-2.5-3B-merge-test",
+      "name": "qwen-2.5-3B-merge-test",
+      "developer": "T145",
+      "evaluator_relationship": null,
+      "benchmark_scores": {
+        "hfopenllm_v2/IFEval": 0.5751,
+        "hfopenllm_v2/BBH": 0.4842,
+        "hfopenllm_v2/MATH Level 5": 0.3202,
+        "hfopenllm_v2/GPQA": 0.2852,
+        "hfopenllm_v2/MUSR": 0.4007,
+        "hfopenllm_v2/MMLU-PRO": 0.329
+      }
+    },
+    {
       "id": "T145/ZEUS-8B-V10",
       "name": "ZEUS-8B-V10",
       "developer": "T145",
@@ -408,20 +422,6 @@
       }
     },
     {
-      "id": "T145/ZEUS-8B-V2-ORPO",
-      "name": "ZEUS-8B-V2-ORPO",
-      "developer": "T145",
-      "evaluator_relationship": null,
-      "benchmark_scores": {
-        "hfopenllm_v2/IFEval": 0.7187,
-        "hfopenllm_v2/BBH": 0.5075,
-        "hfopenllm_v2/MATH Level 5": 0.1828,
-        "hfopenllm_v2/GPQA": 0.3104,
-        "hfopenllm_v2/MUSR": 0.3935,
-        "hfopenllm_v2/MMLU-PRO": 0.3678
-      }
-    },
-    {
       "id": "T145/ZEUS-8B-V2-abliterated",
       "name": "ZEUS-8B-V2-abliterated",
       "developer": "T145",
@@ -433,6 +433,20 @@
         "hfopenllm_v2/GPQA": 0.3129,
         "hfopenllm_v2/MUSR": 0.3911,
         "hfopenllm_v2/MMLU-PRO": 0.3825
+      }
+    },
+    {
+      "id": "T145/ZEUS-8B-V2-ORPO",
+      "name": "ZEUS-8B-V2-ORPO",
+      "developer": "T145",
+      "evaluator_relationship": null,
+      "benchmark_scores": {
+        "hfopenllm_v2/IFEval": 0.7187,
+        "hfopenllm_v2/BBH": 0.5075,
+        "hfopenllm_v2/MATH Level 5": 0.1828,
+        "hfopenllm_v2/GPQA": 0.3104,
+        "hfopenllm_v2/MUSR": 0.3935,
+        "hfopenllm_v2/MMLU-PRO": 0.3678
       }
     },
     {
@@ -699,20 +713,6 @@
         "hfopenllm_v2/GPQA": 0.2911,
         "hfopenllm_v2/MUSR": 0.3949,
         "hfopenllm_v2/MMLU-PRO": 0.3901
-      }
-    },
-    {
-      "id": "T145/qwen-2.5-3B-merge-test",
-      "name": "qwen-2.5-3B-merge-test",
-      "developer": "T145",
-      "evaluator_relationship": null,
-      "benchmark_scores": {
-        "hfopenllm_v2/IFEval": 0.5751,
-        "hfopenllm_v2/BBH": 0.4842,
-        "hfopenllm_v2/MATH Level 5": 0.3202,
-        "hfopenllm_v2/GPQA": 0.2852,
-        "hfopenllm_v2/MUSR": 0.4007,
-        "hfopenllm_v2/MMLU-PRO": 0.329
       }
     }
   ]

@@ -58,6 +58,34 @@
       }
     },
     {
+      "id": "sometimesanotion/lamarck-14b-prose-model_stock",
+      "name": "lamarck-14b-prose-model_stock",
+      "developer": "sometimesanotion",
+      "evaluator_relationship": null,
+      "benchmark_scores": {
+        "hfopenllm_v2/IFEval": 0.4276,
+        "hfopenllm_v2/BBH": 0.6488,
+        "hfopenllm_v2/MATH Level 5": 0.3414,
+        "hfopenllm_v2/GPQA": 0.3935,
+        "hfopenllm_v2/MUSR": 0.4846,
+        "hfopenllm_v2/MMLU-PRO": 0.5354
+      }
+    },
+    {
+      "id": "sometimesanotion/lamarck-14b-reason-model_stock",
+      "name": "lamarck-14b-reason-model_stock",
+      "developer": "sometimesanotion",
+      "evaluator_relationship": null,
+      "benchmark_scores": {
+        "hfopenllm_v2/IFEval": 0.4965,
+        "hfopenllm_v2/BBH": 0.6569,
+        "hfopenllm_v2/MATH Level 5": 0.358,
+        "hfopenllm_v2/GPQA": 0.3842,
+        "hfopenllm_v2/MUSR": 0.4741,
+        "hfopenllm_v2/MMLU-PRO": 0.5402
+      }
+    },
+    {
       "id": "sometimesanotion/Lamarck-14B-v0.1-experimental",
       "name": "Lamarck-14B-v0.1-experimental",
       "developer": "sometimesanotion",
@@ -338,20 +366,6 @@
       }
     },
     {
-      "id": "sometimesanotion/Qwen2.5-14B-Vimarckoso-v3-Prose01",
-      "name": "Qwen2.5-14B-Vimarckoso-v3-Prose01",
-      "developer": "sometimesanotion",
-      "evaluator_relationship": null,
-      "benchmark_scores": {
-        "hfopenllm_v2/IFEval": 0.6872,
-        "hfopenllm_v2/BBH": 0.6359,
-        "hfopenllm_v2/MATH Level 5": 0.3995,
-        "hfopenllm_v2/GPQA": 0.3867,
-        "hfopenllm_v2/MUSR": 0.4807,
-        "hfopenllm_v2/MMLU-PRO": 0.5275
-      }
-    },
-    {
       "id": "sometimesanotion/Qwen2.5-14B-Vimarckoso-v3-model_stock",
       "name": "Qwen2.5-14B-Vimarckoso-v3-model_stock",
       "developer": "sometimesanotion",
@@ -363,6 +377,20 @@
         "hfopenllm_v2/GPQA": 0.38,
         "hfopenllm_v2/MUSR": 0.4781,
         "hfopenllm_v2/MMLU-PRO": 0.5316
+      }
+    },
+    {
+      "id": "sometimesanotion/Qwen2.5-14B-Vimarckoso-v3-Prose01",
+      "name": "Qwen2.5-14B-Vimarckoso-v3-Prose01",
+      "developer": "sometimesanotion",
+      "evaluator_relationship": null,
+      "benchmark_scores": {
+        "hfopenllm_v2/IFEval": 0.6872,
+        "hfopenllm_v2/BBH": 0.6359,
+        "hfopenllm_v2/MATH Level 5": 0.3995,
+        "hfopenllm_v2/GPQA": 0.3867,
+        "hfopenllm_v2/MUSR": 0.4807,
+        "hfopenllm_v2/MMLU-PRO": 0.5275
       }
     },
     {
@@ -783,34 +811,6 @@
         "hfopenllm_v2/GPQA": 0.3683,
         "hfopenllm_v2/MUSR": 0.5141,
         "hfopenllm_v2/MMLU-PRO": 0.5111
-      }
-    },
-    {
-      "id": "sometimesanotion/lamarck-14b-prose-model_stock",
-      "name": "lamarck-14b-prose-model_stock",
-      "developer": "sometimesanotion",
-      "evaluator_relationship": null,
-      "benchmark_scores": {
-        "hfopenllm_v2/IFEval": 0.4276,
-        "hfopenllm_v2/BBH": 0.6488,
-        "hfopenllm_v2/MATH Level 5": 0.3414,
-        "hfopenllm_v2/GPQA": 0.3935,
-        "hfopenllm_v2/MUSR": 0.4846,
-        "hfopenllm_v2/MMLU-PRO": 0.5354
-      }
-    },
-    {
-      "id": "sometimesanotion/lamarck-14b-reason-model_stock",
-      "name": "lamarck-14b-reason-model_stock",
-      "developer": "sometimesanotion",
-      "evaluator_relationship": null,
-      "benchmark_scores": {
-        "hfopenllm_v2/IFEval": 0.4965,
-        "hfopenllm_v2/BBH": 0.6569,
-        "hfopenllm_v2/MATH Level 5": 0.358,
-        "hfopenllm_v2/GPQA": 0.3842,
-        "hfopenllm_v2/MUSR": 0.4741,
-        "hfopenllm_v2/MMLU-PRO": 0.5402
       }
     }
   ]

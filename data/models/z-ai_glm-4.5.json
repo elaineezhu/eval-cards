@@ -1,7 +1,7 @@
 {
   "model_info": {
     "name": "z-ai/glm-4.5",
-    "developer": "Z.AI",
+    "developer": "Z.ai",
     "inference_platform": "openrouter",
     "id": "z-ai/glm-4.5"
   },

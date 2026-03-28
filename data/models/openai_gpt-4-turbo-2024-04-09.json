@@ -1,11 +1,9 @@
 {
   "model_info": {
-    "name": "openai/gpt-4-turbo-2024-04-09",
+    "name": "GPT-4 Turbo 2024-04-09",
     "id": "openai/gpt-4-turbo-2024-04-09",
-    "developer": "openai",
-    "additional_details": {
-      "model_type": "Generative"
-    }
+    "developer": "OpenAI",
+    "inference_platform": "unknown"
   },
   "evaluations": [
     {

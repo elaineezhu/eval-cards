@@ -2,7 +2,7 @@
   "model_info": {
     "name": "GPT-4 Turbo 1106 preview",
     "id": "openai/gpt-4-1106-preview",
-    "developer": "openai",
+    "developer": "OpenAI",
     "inference_platform": "unknown"
   },
   "evaluations": [

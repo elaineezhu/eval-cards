@@ -58,20 +58,6 @@
       }
     },
     {
-      "id": "sabersaleh/Llama2-7B-SPO",
-      "name": "Llama2-7B-SPO",
-      "developer": "sabersaleh",
-      "evaluator_relationship": null,
-      "benchmark_scores": {
-        "hfopenllm_v2/IFEval": 0.1567,
-        "hfopenllm_v2/BBH": 0.3383,
-        "hfopenllm_v2/MATH Level 5": 0.0196,
-        "hfopenllm_v2/GPQA": 0.2768,
-        "hfopenllm_v2/MUSR": 0.3874,
-        "hfopenllm_v2/MMLU-PRO": 0.1757
-      }
-    },
-    {
       "id": "sabersaleh/Llama2-7B-SimPO",
       "name": "Llama2-7B-SimPO",
       "developer": "sabersaleh",
@@ -83,6 +69,20 @@
         "hfopenllm_v2/GPQA": 0.271,
         "hfopenllm_v2/MUSR": 0.4007,
         "hfopenllm_v2/MMLU-PRO": 0.1641
+      }
+    },
+    {
+      "id": "sabersaleh/Llama2-7B-SPO",
+      "name": "Llama2-7B-SPO",
+      "developer": "sabersaleh",
+      "evaluator_relationship": null,
+      "benchmark_scores": {
+        "hfopenllm_v2/IFEval": 0.1567,
+        "hfopenllm_v2/BBH": 0.3383,
+        "hfopenllm_v2/MATH Level 5": 0.0196,
+        "hfopenllm_v2/GPQA": 0.2768,
+        "hfopenllm_v2/MUSR": 0.3874,
+        "hfopenllm_v2/MMLU-PRO": 0.1757
       }
     },
     {

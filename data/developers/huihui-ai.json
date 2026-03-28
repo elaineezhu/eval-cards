@@ -16,48 +16,6 @@
       }
     },
     {
-      "id": "huihui-ai/QwQ-32B-Coder-Fusion-7030",
-      "name": "QwQ-32B-Coder-Fusion-7030",
-      "developer": "huihui-ai",
-      "evaluator_relationship": null,
-      "benchmark_scores": {
-        "hfopenllm_v2/IFEval": 0.3865,
-        "hfopenllm_v2/BBH": 0.6178,
-        "hfopenllm_v2/MATH Level 5": 0.2795,
-        "hfopenllm_v2/GPQA": 0.2844,
-        "hfopenllm_v2/MUSR": 0.3922,
-        "hfopenllm_v2/MMLU-PRO": 0.4368
-      }
-    },
-    {
-      "id": "huihui-ai/QwQ-32B-Coder-Fusion-8020",
-      "name": "QwQ-32B-Coder-Fusion-8020",
-      "developer": "huihui-ai",
-      "evaluator_relationship": null,
-      "benchmark_scores": {
-        "hfopenllm_v2/IFEval": 0.6021,
-        "hfopenllm_v2/BBH": 0.6665,
-        "hfopenllm_v2/MATH Level 5": 0.4592,
-        "hfopenllm_v2/GPQA": 0.3549,
-        "hfopenllm_v2/MUSR": 0.4293,
-        "hfopenllm_v2/MMLU-PRO": 0.5367
-      }
-    },
-    {
-      "id": "huihui-ai/QwQ-32B-Coder-Fusion-9010",
-      "name": "QwQ-32B-Coder-Fusion-9010",
-      "developer": "huihui-ai",
-      "evaluator_relationship": null,
-      "benchmark_scores": {
-        "hfopenllm_v2/IFEval": 0.5778,
-        "hfopenllm_v2/BBH": 0.6727,
-        "hfopenllm_v2/MATH Level 5": 0.5317,
-        "hfopenllm_v2/GPQA": 0.3616,
-        "hfopenllm_v2/MUSR": 0.4682,
-        "hfopenllm_v2/MMLU-PRO": 0.56
-      }
-    },
-    {
       "id": "huihui-ai/Qwen2.5-14B-Instruct-abliterated-v2",
       "name": "Qwen2.5-14B-Instruct-abliterated-v2",
       "developer": "huihui-ai",
@@ -111,6 +69,48 @@
         "hfopenllm_v2/GPQA": 0.3087,
         "hfopenllm_v2/MUSR": 0.3981,
         "hfopenllm_v2/MMLU-PRO": 0.4208
+      }
+    },
+    {
+      "id": "huihui-ai/QwQ-32B-Coder-Fusion-7030",
+      "name": "QwQ-32B-Coder-Fusion-7030",
+      "developer": "huihui-ai",
+      "evaluator_relationship": null,
+      "benchmark_scores": {
+        "hfopenllm_v2/IFEval": 0.3865,
+        "hfopenllm_v2/BBH": 0.6178,
+        "hfopenllm_v2/MATH Level 5": 0.2795,
+        "hfopenllm_v2/GPQA": 0.2844,
+        "hfopenllm_v2/MUSR": 0.3922,
+        "hfopenllm_v2/MMLU-PRO": 0.4368
+      }
+    },
+    {
+      "id": "huihui-ai/QwQ-32B-Coder-Fusion-8020",
+      "name": "QwQ-32B-Coder-Fusion-8020",
+      "developer": "huihui-ai",
+      "evaluator_relationship": null,
+      "benchmark_scores": {
+        "hfopenllm_v2/IFEval": 0.6021,
+        "hfopenllm_v2/BBH": 0.6665,
+        "hfopenllm_v2/MATH Level 5": 0.4592,
+        "hfopenllm_v2/GPQA": 0.3549,
+        "hfopenllm_v2/MUSR": 0.4293,
+        "hfopenllm_v2/MMLU-PRO": 0.5367
+      }
+    },
+    {
+      "id": "huihui-ai/QwQ-32B-Coder-Fusion-9010",
+      "name": "QwQ-32B-Coder-Fusion-9010",
+      "developer": "huihui-ai",
+      "evaluator_relationship": null,
+      "benchmark_scores": {
+        "hfopenllm_v2/IFEval": 0.5778,
+        "hfopenllm_v2/BBH": 0.6727,
+        "hfopenllm_v2/MATH Level 5": 0.5317,
+        "hfopenllm_v2/GPQA": 0.3616,
+        "hfopenllm_v2/MUSR": 0.4682,
+        "hfopenllm_v2/MMLU-PRO": 0.56
       }
     }
   ]

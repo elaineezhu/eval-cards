@@ -1,9 +1,12 @@
 {
   "model_info": {
     "name": "o4-mini-2025-04-16",
+    "id": "openai/o4-mini-2025-04-16",
     "developer": "OpenAI",
-    "inference_platform": "openai",
-    "id": "openai/o4-mini-2025-04-16"
+    "inference_platform": "unknown",
+    "additional_details": {
+      "display_name": "o4 mini"
+    }
   },
   "evaluations": [
     {

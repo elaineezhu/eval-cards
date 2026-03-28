@@ -128,6 +128,20 @@
       }
     },
     {
+      "id": "theprint/phi-3-mini-4k-python",
+      "name": "phi-3-mini-4k-python",
+      "developer": "theprint",
+      "evaluator_relationship": null,
+      "benchmark_scores": {
+        "hfopenllm_v2/IFEval": 0.2409,
+        "hfopenllm_v2/BBH": 0.4938,
+        "hfopenllm_v2/MATH Level 5": 0.105,
+        "hfopenllm_v2/GPQA": 0.2911,
+        "hfopenllm_v2/MUSR": 0.3922,
+        "hfopenllm_v2/MMLU-PRO": 0.3577
+      }
+    },
+    {
       "id": "theprint/ReWiz-7B",
       "name": "ReWiz-7B",
       "developer": "theprint",
@@ -237,20 +251,6 @@
         "hfopenllm_v2/GPQA": 0.297,
         "hfopenllm_v2/MUSR": 0.4066,
         "hfopenllm_v2/MMLU-PRO": 0.3192
-      }
-    },
-    {
-      "id": "theprint/phi-3-mini-4k-python",
-      "name": "phi-3-mini-4k-python",
-      "developer": "theprint",
-      "evaluator_relationship": null,
-      "benchmark_scores": {
-        "hfopenllm_v2/IFEval": 0.2409,
-        "hfopenllm_v2/BBH": 0.4938,
-        "hfopenllm_v2/MATH Level 5": 0.105,
-        "hfopenllm_v2/GPQA": 0.2911,
-        "hfopenllm_v2/MUSR": 0.3922,
-        "hfopenllm_v2/MMLU-PRO": 0.3577
       }
     }
   ]

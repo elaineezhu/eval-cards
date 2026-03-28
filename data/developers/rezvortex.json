@@ -2,20 +2,6 @@
   "developer": "RezVortex",
   "models": [
     {
-      "id": "RezVortex/JAJUKA-WEWILLNEVERFORGETYOU-3B",
-      "name": "JAJUKA-WEWILLNEVERFORGETYOU-3B",
-      "developer": "RezVortex",
-      "evaluator_relationship": null,
-      "benchmark_scores": {
-        "hfopenllm_v2/IFEval": 0.6858,
-        "hfopenllm_v2/BBH": 0.4619,
-        "hfopenllm_v2/MATH Level 5": 0.1548,
-        "hfopenllm_v2/GPQA": 0.2576,
-        "hfopenllm_v2/MUSR": 0.363,
-        "hfopenllm_v2/MMLU-PRO": 0.3143
-      }
-    },
-    {
       "id": "RezVortex/Jajuka-3b",
       "name": "Jajuka-3b",
       "developer": "RezVortex",
@@ -27,6 +13,20 @@
         "hfopenllm_v2/GPQA": 0.2659,
         "hfopenllm_v2/MUSR": 0.3671,
         "hfopenllm_v2/MMLU-PRO": 0.3137
+      }
+    },
+    {
+      "id": "RezVortex/JAJUKA-WEWILLNEVERFORGETYOU-3B",
+      "name": "JAJUKA-WEWILLNEVERFORGETYOU-3B",
+      "developer": "RezVortex",
+      "evaluator_relationship": null,
+      "benchmark_scores": {
+        "hfopenllm_v2/IFEval": 0.6858,
+        "hfopenllm_v2/BBH": 0.4619,
+        "hfopenllm_v2/MATH Level 5": 0.1548,
+        "hfopenllm_v2/GPQA": 0.2576,
+        "hfopenllm_v2/MUSR": 0.363,
+        "hfopenllm_v2/MMLU-PRO": 0.3143
       }
     }
   ]

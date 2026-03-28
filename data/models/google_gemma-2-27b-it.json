@@ -1,11 +1,9 @@
 {
   "model_info": {
-    "name": "google/gemma-2-27b-it",
+    "name": "Gemma 2 Instruct 27B",
     "id": "google/gemma-2-27b-it",
-    "developer": "google",
-    "additional_details": {
-      "model_type": "Generative"
-    }
+    "developer": "Google",
+    "inference_platform": "unknown"
   },
   "evaluations": [
     {

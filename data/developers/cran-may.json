@@ -2,48 +2,6 @@
   "developer": "Cran-May",
   "models": [
     {
-      "id": "Cran-May/SCE-2-24B",
-      "name": "SCE-2-24B",
-      "developer": "Cran-May",
-      "evaluator_relationship": null,
-      "benchmark_scores": {
-        "hfopenllm_v2/IFEval": 0.5866,
-        "hfopenllm_v2/BBH": 0.6265,
-        "hfopenllm_v2/MATH Level 5": 0.1896,
-        "hfopenllm_v2/GPQA": 0.3372,
-        "hfopenllm_v2/MUSR": 0.4528,
-        "hfopenllm_v2/MMLU-PRO": 0.4612
-      }
-    },
-    {
-      "id": "Cran-May/SCE-3-24B",
-      "name": "SCE-3-24B",
-      "developer": "Cran-May",
-      "evaluator_relationship": null,
-      "benchmark_scores": {
-        "hfopenllm_v2/IFEval": 0.5465,
-        "hfopenllm_v2/BBH": 0.5973,
-        "hfopenllm_v2/MATH Level 5": 0.1881,
-        "hfopenllm_v2/GPQA": 0.3465,
-        "hfopenllm_v2/MUSR": 0.4435,
-        "hfopenllm_v2/MMLU-PRO": 0.4647
-      }
-    },
-    {
-      "id": "Cran-May/T.E-8.1",
-      "name": "T.E-8.1",
-      "developer": "Cran-May",
-      "evaluator_relationship": null,
-      "benchmark_scores": {
-        "hfopenllm_v2/IFEval": 0.7077,
-        "hfopenllm_v2/BBH": 0.5582,
-        "hfopenllm_v2/MATH Level 5": 0.4456,
-        "hfopenllm_v2/GPQA": 0.3129,
-        "hfopenllm_v2/MUSR": 0.4505,
-        "hfopenllm_v2/MMLU-PRO": 0.4432
-      }
-    },
-    {
       "id": "Cran-May/merge_model_20250308_2",
       "name": "merge_model_20250308_2",
       "developer": "Cran-May",
@@ -83,6 +41,48 @@
         "hfopenllm_v2/GPQA": 0.3977,
         "hfopenllm_v2/MUSR": 0.4688,
         "hfopenllm_v2/MMLU-PRO": 0.5367
+      }
+    },
+    {
+      "id": "Cran-May/SCE-2-24B",
+      "name": "SCE-2-24B",
+      "developer": "Cran-May",
+      "evaluator_relationship": null,
+      "benchmark_scores": {
+        "hfopenllm_v2/IFEval": 0.5866,
+        "hfopenllm_v2/BBH": 0.6265,
+        "hfopenllm_v2/MATH Level 5": 0.1896,
+        "hfopenllm_v2/GPQA": 0.3372,
+        "hfopenllm_v2/MUSR": 0.4528,
+        "hfopenllm_v2/MMLU-PRO": 0.4612
+      }
+    },
+    {
+      "id": "Cran-May/SCE-3-24B",
+      "name": "SCE-3-24B",
+      "developer": "Cran-May",
+      "evaluator_relationship": null,
+      "benchmark_scores": {
+        "hfopenllm_v2/IFEval": 0.5465,
+        "hfopenllm_v2/BBH": 0.5973,
+        "hfopenllm_v2/MATH Level 5": 0.1881,
+        "hfopenllm_v2/GPQA": 0.3465,
+        "hfopenllm_v2/MUSR": 0.4435,
+        "hfopenllm_v2/MMLU-PRO": 0.4647
+      }
+    },
+    {
+      "id": "Cran-May/T.E-8.1",
+      "name": "T.E-8.1",
+      "developer": "Cran-May",
+      "evaluator_relationship": null,
+      "benchmark_scores": {
+        "hfopenllm_v2/IFEval": 0.7077,
+        "hfopenllm_v2/BBH": 0.5582,
+        "hfopenllm_v2/MATH Level 5": 0.4456,
+        "hfopenllm_v2/GPQA": 0.3129,
+        "hfopenllm_v2/MUSR": 0.4505,
+        "hfopenllm_v2/MMLU-PRO": 0.4432
       }
     },
     {

@@ -2,6 +2,33 @@
   "developer": "cohere",
   "models": [
     {
+      "id": "cohere/aya-expanse-32b",
+      "name": "aya-expanse-32b",
+      "developer": "cohere",
+      "evaluator_relationship": null,
+      "benchmark_scores": {
+        "global-mmlu-lite/Global MMLU Lite": 0.7353,
+        "global-mmlu-lite/Culturally Sensitive": 0.6891,
+        "global-mmlu-lite/Culturally Agnostic": 0.7815,
+        "global-mmlu-lite/Arabic": 0.7425,
+        "global-mmlu-lite/English": 0.7544,
+        "global-mmlu-lite/Bengali": 0.7343,
+        "global-mmlu-lite/German": 0.7425,
+        "global-mmlu-lite/French": 0.7325,
+        "global-mmlu-lite/Hindi": 0.7375,
+        "global-mmlu-lite/Indonesian": 0.7594,
+        "global-mmlu-lite/Italian": 0.7305,
+        "global-mmlu-lite/Japanese": 0.7419,
+        "global-mmlu-lite/Korean": 0.7525,
+        "global-mmlu-lite/Portuguese": 0.7544,
+        "global-mmlu-lite/Spanish": 0.7362,
+        "global-mmlu-lite/Swahili": 0.7071,
+        "global-mmlu-lite/Yoruba": 0.6942,
+        "global-mmlu-lite/Chinese": 0.743,
+        "global-mmlu-lite/Burmese": 0.7025
+      }
+    },
+    {
       "id": "cohere/Cohere-Command-beta-52.4B",
       "name": "Cohere Command beta 52.4B",
       "developer": "cohere",
@@ -183,33 +210,6 @@
         "helm_classic/IMDB": 0.956,
         "helm_classic/CivilComments": 0.524,
         "helm_classic/RAFT": 0.624
-      }
-    },
-    {
-      "id": "cohere/aya-expanse-32b",
-      "name": "aya-expanse-32b",
-      "developer": "cohere",
-      "evaluator_relationship": null,
-      "benchmark_scores": {
-        "global-mmlu-lite/Global MMLU Lite": 0.7353,
-        "global-mmlu-lite/Culturally Sensitive": 0.6891,
-        "global-mmlu-lite/Culturally Agnostic": 0.7815,
-        "global-mmlu-lite/Arabic": 0.7425,
-        "global-mmlu-lite/English": 0.7544,
-        "global-mmlu-lite/Bengali": 0.7343,
-        "global-mmlu-lite/German": 0.7425,
-        "global-mmlu-lite/French": 0.7325,
-        "global-mmlu-lite/Hindi": 0.7375,
-        "global-mmlu-lite/Indonesian": 0.7594,
-        "global-mmlu-lite/Italian": 0.7305,
-        "global-mmlu-lite/Japanese": 0.7419,
-        "global-mmlu-lite/Korean": 0.7525,
-        "global-mmlu-lite/Portuguese": 0.7544,
-        "global-mmlu-lite/Spanish": 0.7362,
-        "global-mmlu-lite/Swahili": 0.7071,
-        "global-mmlu-lite/Yoruba": 0.6942,
-        "global-mmlu-lite/Chinese": 0.743,
-        "global-mmlu-lite/Burmese": 0.7025
       }
     },
     {

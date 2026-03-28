@@ -3,8 +3,11 @@
     "name": "stabilityai/stablelm-2-zephyr-1_6b",
     "id": "stabilityai/stablelm-2-zephyr-1_6b",
     "developer": "stabilityai",
+    "inference_platform": "unknown",
     "additional_details": {
-      "model_type": "DPO"
+      "precision": "float16",
+      "architecture": "StableLmForCausalLM",
+      "params_billions": "1.645"
     }
   },
   "evaluations": [

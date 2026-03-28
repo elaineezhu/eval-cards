@@ -2,7 +2,7 @@
   "model_info": {
     "name": "ai2/llama-2-chat-nectar-180k.json",
     "id": "ai2/llama-2-chat-nectar-180k.json",
-    "developer": "ai2",
+    "developer": "AI2",
     "additional_details": {
       "model_type": "Seq. Classifier"
     }

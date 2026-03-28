@@ -114,20 +114,6 @@
       }
     },
     {
-      "id": "Novaciano/LEWD-Mental-Cultist-3.2-1B",
-      "name": "LEWD-Mental-Cultist-3.2-1B",
-      "developer": "Novaciano",
-      "evaluator_relationship": null,
-      "benchmark_scores": {
-        "hfopenllm_v2/IFEval": 0.5309,
-        "hfopenllm_v2/BBH": 0.3513,
-        "hfopenllm_v2/MATH Level 5": 0.0529,
-        "hfopenllm_v2/GPQA": 0.2567,
-        "hfopenllm_v2/MUSR": 0.3223,
-        "hfopenllm_v2/MMLU-PRO": 0.1769
-      }
-    },
-    {
       "id": "Novaciano/La_Mejor_Mezcla-3.2-1B",
       "name": "La_Mejor_Mezcla-3.2-1B",
       "developer": "Novaciano",
@@ -139,6 +125,20 @@
         "hfopenllm_v2/GPQA": 0.2576,
         "hfopenllm_v2/MUSR": 0.3196,
         "hfopenllm_v2/MMLU-PRO": 0.1829
+      }
+    },
+    {
+      "id": "Novaciano/LEWD-Mental-Cultist-3.2-1B",
+      "name": "LEWD-Mental-Cultist-3.2-1B",
+      "developer": "Novaciano",
+      "evaluator_relationship": null,
+      "benchmark_scores": {
+        "hfopenllm_v2/IFEval": 0.5309,
+        "hfopenllm_v2/BBH": 0.3513,
+        "hfopenllm_v2/MATH Level 5": 0.0529,
+        "hfopenllm_v2/GPQA": 0.2567,
+        "hfopenllm_v2/MUSR": 0.3223,
+        "hfopenllm_v2/MMLU-PRO": 0.1769
       }
     },
     {

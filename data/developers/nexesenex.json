@@ -44,20 +44,6 @@
       }
     },
     {
-      "id": "Nexesenex/Llama_3.1_8b_DobHerWild_R1_v1.1R",
-      "name": "Llama_3.1_8b_DobHerWild_R1_v1.1R",
-      "developer": "Nexesenex",
-      "evaluator_relationship": null,
-      "benchmark_scores": {
-        "hfopenllm_v2/IFEval": 0.76,
-        "hfopenllm_v2/BBH": 0.5257,
-        "hfopenllm_v2/MATH Level 5": 0.2319,
-        "hfopenllm_v2/GPQA": 0.2995,
-        "hfopenllm_v2/MUSR": 0.3852,
-        "hfopenllm_v2/MMLU-PRO": 0.3688
-      }
-    },
-    {
       "id": "Nexesenex/Llama_3.1_8b_DoberWild_v2.01",
       "name": "Llama_3.1_8b_DoberWild_v2.01",
       "developer": "Nexesenex",
@@ -97,6 +83,20 @@
         "hfopenllm_v2/GPQA": 0.3045,
         "hfopenllm_v2/MUSR": 0.3906,
         "hfopenllm_v2/MMLU-PRO": 0.3722
+      }
+    },
+    {
+      "id": "Nexesenex/Llama_3.1_8b_DobHerWild_R1_v1.1R",
+      "name": "Llama_3.1_8b_DobHerWild_R1_v1.1R",
+      "developer": "Nexesenex",
+      "evaluator_relationship": null,
+      "benchmark_scores": {
+        "hfopenllm_v2/IFEval": 0.76,
+        "hfopenllm_v2/BBH": 0.5257,
+        "hfopenllm_v2/MATH Level 5": 0.2319,
+        "hfopenllm_v2/GPQA": 0.2995,
+        "hfopenllm_v2/MUSR": 0.3852,
+        "hfopenllm_v2/MMLU-PRO": 0.3688
       }
     },
     {
@@ -604,20 +604,6 @@
       }
     },
     {
-      "id": "Nexesenex/Qwen_2.5_3b_Smarteaz_0.01a",
-      "name": "Qwen_2.5_3b_Smarteaz_0.01a",
-      "developer": "Nexesenex",
-      "evaluator_relationship": null,
-      "benchmark_scores": {
-        "hfopenllm_v2/IFEval": 0.4012,
-        "hfopenllm_v2/BBH": 0.4637,
-        "hfopenllm_v2/MATH Level 5": 0.1805,
-        "hfopenllm_v2/GPQA": 0.2777,
-        "hfopenllm_v2/MUSR": 0.432,
-        "hfopenllm_v2/MMLU-PRO": 0.286
-      }
-    },
-    {
       "id": "Nexesenex/pankajmathur_orca_mini_v9_6_1B-instruct-Abliterated-LPL",
       "name": "pankajmathur_orca_mini_v9_6_1B-instruct-Abliterated-LPL",
       "developer": "Nexesenex",
@@ -629,6 +615,20 @@
         "hfopenllm_v2/GPQA": 0.2668,
         "hfopenllm_v2/MUSR": 0.3396,
         "hfopenllm_v2/MMLU-PRO": 0.1803
+      }
+    },
+    {
+      "id": "Nexesenex/Qwen_2.5_3b_Smarteaz_0.01a",
+      "name": "Qwen_2.5_3b_Smarteaz_0.01a",
+      "developer": "Nexesenex",
+      "evaluator_relationship": null,
+      "benchmark_scores": {
+        "hfopenllm_v2/IFEval": 0.4012,
+        "hfopenllm_v2/BBH": 0.4637,
+        "hfopenllm_v2/MATH Level 5": 0.1805,
+        "hfopenllm_v2/GPQA": 0.2777,
+        "hfopenllm_v2/MUSR": 0.432,
+        "hfopenllm_v2/MMLU-PRO": 0.286
       }
     }
   ]

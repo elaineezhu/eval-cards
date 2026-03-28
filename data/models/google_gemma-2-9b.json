@@ -1,14 +1,9 @@
 {
   "model_info": {
-    "name": "gemma-2-9b",
+    "name": "Gemma 2 9B",
     "id": "google/gemma-2-9b",
-    "developer": "google",
-    "inference_platform": "unknown",
-    "additional_details": {
-      "precision": "bfloat16",
-      "architecture": "Gemma2ForCausalLM",
-      "params_billions": "9.0"
-    }
+    "developer": "Google",
+    "inference_platform": "unknown"
   },
   "evaluations": [
     {

@@ -30,6 +30,20 @@
       }
     },
     {
+      "id": "SicariusSicariiStuff/dn_ep02",
+      "name": "dn_ep02",
+      "developer": "SicariusSicariiStuff",
+      "evaluator_relationship": null,
+      "benchmark_scores": {
+        "hfopenllm_v2/IFEval": 0.5064,
+        "hfopenllm_v2/BBH": 0.5266,
+        "hfopenllm_v2/MATH Level 5": 0.142,
+        "hfopenllm_v2/GPQA": 0.3154,
+        "hfopenllm_v2/MUSR": 0.4316,
+        "hfopenllm_v2/MMLU-PRO": 0.3998
+      }
+    },
+    {
       "id": "SicariusSicariiStuff/Dusk_Rainbow",
       "name": "Dusk_Rainbow",
       "developer": "SicariusSicariiStuff",
@@ -251,20 +265,6 @@
         "hfopenllm_v2/GPQA": 0.2903,
         "hfopenllm_v2/MUSR": 0.4727,
         "hfopenllm_v2/MMLU-PRO": 0.3132
-      }
-    },
-    {
-      "id": "SicariusSicariiStuff/dn_ep02",
-      "name": "dn_ep02",
-      "developer": "SicariusSicariiStuff",
-      "evaluator_relationship": null,
-      "benchmark_scores": {
-        "hfopenllm_v2/IFEval": 0.5064,
-        "hfopenllm_v2/BBH": 0.5266,
-        "hfopenllm_v2/MATH Level 5": 0.142,
-        "hfopenllm_v2/GPQA": 0.3154,
-        "hfopenllm_v2/MUSR": 0.4316,
-        "hfopenllm_v2/MMLU-PRO": 0.3998
       }
     }
   ]

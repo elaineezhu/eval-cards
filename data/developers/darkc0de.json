@@ -2,6 +2,20 @@
   "developer": "darkc0de",
   "models": [
     {
+      "id": "darkc0de/BuddyGlass_v0.3_Xortron7MethedUpSwitchedUp",
+      "name": "BuddyGlass_v0.3_Xortron7MethedUpSwitchedUp",
+      "developer": "darkc0de",
+      "evaluator_relationship": null,
+      "benchmark_scores": {
+        "hfopenllm_v2/IFEval": 0.4358,
+        "hfopenllm_v2/BBH": 0.5243,
+        "hfopenllm_v2/MATH Level 5": 0.1284,
+        "hfopenllm_v2/GPQA": 0.2987,
+        "hfopenllm_v2/MUSR": 0.4143,
+        "hfopenllm_v2/MMLU-PRO": 0.3673
+      }
+    },
+    {
       "id": "darkc0de/BuddyGlassNeverSleeps",
       "name": "BuddyGlassNeverSleeps",
       "developer": "darkc0de",
@@ -27,20 +41,6 @@
         "hfopenllm_v2/GPQA": 0.328,
         "hfopenllm_v2/MUSR": 0.4071,
         "hfopenllm_v2/MMLU-PRO": 0.4336
-      }
-    },
-    {
-      "id": "darkc0de/BuddyGlass_v0.3_Xortron7MethedUpSwitchedUp",
-      "name": "BuddyGlass_v0.3_Xortron7MethedUpSwitchedUp",
-      "developer": "darkc0de",
-      "evaluator_relationship": null,
-      "benchmark_scores": {
-        "hfopenllm_v2/IFEval": 0.4358,
-        "hfopenllm_v2/BBH": 0.5243,
-        "hfopenllm_v2/MATH Level 5": 0.1284,
-        "hfopenllm_v2/GPQA": 0.2987,
-        "hfopenllm_v2/MUSR": 0.4143,
-        "hfopenllm_v2/MMLU-PRO": 0.3673
       }
     }
   ]

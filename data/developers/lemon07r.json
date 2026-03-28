@@ -212,20 +212,6 @@
       }
     },
     {
-      "id": "lemon07r/Llama-3-RedMagic4-8B",
-      "name": "Llama-3-RedMagic4-8B",
-      "developer": "lemon07r",
-      "evaluator_relationship": null,
-      "benchmark_scores": {
-        "hfopenllm_v2/IFEval": 0.4864,
-        "hfopenllm_v2/BBH": 0.4256,
-        "hfopenllm_v2/MATH Level 5": 0.0899,
-        "hfopenllm_v2/GPQA": 0.2903,
-        "hfopenllm_v2/MUSR": 0.3766,
-        "hfopenllm_v2/MMLU-PRO": 0.3676
-      }
-    },
-    {
       "id": "lemon07r/llama-3-NeuralMahou-8b",
       "name": "llama-3-NeuralMahou-8b",
       "developer": "lemon07r",
@@ -237,6 +223,20 @@
         "hfopenllm_v2/GPQA": 0.2886,
         "hfopenllm_v2/MUSR": 0.3873,
         "hfopenllm_v2/MMLU-PRO": 0.369
+      }
+    },
+    {
+      "id": "lemon07r/Llama-3-RedMagic4-8B",
+      "name": "Llama-3-RedMagic4-8B",
+      "developer": "lemon07r",
+      "evaluator_relationship": null,
+      "benchmark_scores": {
+        "hfopenllm_v2/IFEval": 0.4864,
+        "hfopenllm_v2/BBH": 0.4256,
+        "hfopenllm_v2/MATH Level 5": 0.0899,
+        "hfopenllm_v2/GPQA": 0.2903,
+        "hfopenllm_v2/MUSR": 0.3766,
+        "hfopenllm_v2/MMLU-PRO": 0.3676
       }
     }
   ]

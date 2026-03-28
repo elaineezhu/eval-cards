@@ -2,6 +2,20 @@
   "developer": "ewre324",
   "models": [
     {
+      "id": "ewre324/ewre324-R1-SmolLM2-135M-Distill",
+      "name": "ewre324-R1-SmolLM2-135M-Distill",
+      "developer": "ewre324",
+      "evaluator_relationship": null,
+      "benchmark_scores": {
+        "hfopenllm_v2/IFEval": 0.1649,
+        "hfopenllm_v2/BBH": 0.3042,
+        "hfopenllm_v2/MATH Level 5": 0.0128,
+        "hfopenllm_v2/GPQA": 0.2617,
+        "hfopenllm_v2/MUSR": 0.3409,
+        "hfopenllm_v2/MMLU-PRO": 0.1134
+      }
+    },
+    {
       "id": "ewre324/Thinker-Llama-3.2-3B-Instruct-Reasoning",
       "name": "Thinker-Llama-3.2-3B-Instruct-Reasoning",
       "developer": "ewre324",
@@ -41,20 +55,6 @@
         "hfopenllm_v2/GPQA": 0.2525,
         "hfopenllm_v2/MUSR": 0.3661,
         "hfopenllm_v2/MMLU-PRO": 0.1094
-      }
-    },
-    {
-      "id": "ewre324/ewre324-R1-SmolLM2-135M-Distill",
-      "name": "ewre324-R1-SmolLM2-135M-Distill",
-      "developer": "ewre324",
-      "evaluator_relationship": null,
-      "benchmark_scores": {
-        "hfopenllm_v2/IFEval": 0.1649,
-        "hfopenllm_v2/BBH": 0.3042,
-        "hfopenllm_v2/MATH Level 5": 0.0128,
-        "hfopenllm_v2/GPQA": 0.2617,
-        "hfopenllm_v2/MUSR": 0.3409,
-        "hfopenllm_v2/MMLU-PRO": 0.1134
       }
     }
   ]

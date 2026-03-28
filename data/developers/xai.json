@@ -4,7 +4,7 @@
     {
       "id": "xai/Grok 4",
       "name": "Grok 4",
-      "developer": "xai",
+      "developer": "xAI",
       "evaluator_relationship": null,
       "benchmark_scores": {
         "apex-agents/Overall Pass@1": 0.152,
@@ -20,7 +20,7 @@
     {
       "id": "xai/grok-3-beta",
       "name": "Grok 3 Beta",
-      "developer": "xai",
+      "developer": "xAI",
       "evaluator_relationship": null,
       "benchmark_scores": {
         "helm_capabilities/Mean score": 0.727,
@@ -34,7 +34,7 @@
     {
       "id": "xai/grok-3-mini",
       "name": "grok-3-mini",
-      "developer": "xai",
+      "developer": "xAI",
       "evaluator_relationship": null,
       "benchmark_scores": {
         "global-mmlu-lite/Global MMLU Lite": 0.673,
@@ -61,7 +61,7 @@
     {
       "id": "xai/grok-3-mini-beta",
       "name": "Grok 3 mini Beta",
-      "developer": "xai",
+      "developer": "xAI",
       "evaluator_relationship": null,
       "benchmark_scores": {
         "helm_capabilities/Mean score": 0.679,
@@ -78,13 +78,13 @@
       "developer": "xAI",
       "evaluator_relationship": null,
       "benchmark_scores": {
-        "terminal-bench-2.0/terminal-bench-2.0": 25.4
+        "terminal-bench-2.0/terminal-bench-2.0": 23.1
       }
     },
     {
       "id": "xai/grok-4-0709",
       "name": "grok-4-0709",
-      "developer": "xai",
+      "developer": "xAI",
       "evaluator_relationship": null,
       "benchmark_scores": {
         "global-mmlu-lite/Global MMLU Lite": 0.8881,

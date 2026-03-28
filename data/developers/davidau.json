@@ -184,20 +184,6 @@
       }
     },
     {
-      "id": "DavidAU/L3-DARKEST-PLANET-16.5B",
-      "name": "L3-DARKEST-PLANET-16.5B",
-      "developer": "DavidAU",
-      "evaluator_relationship": null,
-      "benchmark_scores": {
-        "hfopenllm_v2/IFEval": 0.6231,
-        "hfopenllm_v2/BBH": 0.523,
-        "hfopenllm_v2/MATH Level 5": 0.0899,
-        "hfopenllm_v2/GPQA": 0.2953,
-        "hfopenllm_v2/MUSR": 0.3754,
-        "hfopenllm_v2/MMLU-PRO": 0.363
-      }
-    },
-    {
       "id": "DavidAU/L3-Dark-Planet-8B",
       "name": "L3-Dark-Planet-8B",
       "developer": "DavidAU",
@@ -209,6 +195,20 @@
         "hfopenllm_v2/GPQA": 0.3003,
         "hfopenllm_v2/MUSR": 0.3616,
         "hfopenllm_v2/MMLU-PRO": 0.3737
+      }
+    },
+    {
+      "id": "DavidAU/L3-DARKEST-PLANET-16.5B",
+      "name": "L3-DARKEST-PLANET-16.5B",
+      "developer": "DavidAU",
+      "evaluator_relationship": null,
+      "benchmark_scores": {
+        "hfopenllm_v2/IFEval": 0.6231,
+        "hfopenllm_v2/BBH": 0.523,
+        "hfopenllm_v2/MATH Level 5": 0.0899,
+        "hfopenllm_v2/GPQA": 0.2953,
+        "hfopenllm_v2/MUSR": 0.3754,
+        "hfopenllm_v2/MMLU-PRO": 0.363
       }
     },
     {

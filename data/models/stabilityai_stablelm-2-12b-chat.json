@@ -3,8 +3,11 @@
     "name": "stabilityai/stablelm-2-12b-chat",
     "id": "stabilityai/stablelm-2-12b-chat",
     "developer": "stabilityai",
+    "inference_platform": "unknown",
     "additional_details": {
-      "model_type": "DPO"
+      "precision": "bfloat16",
+      "architecture": "StableLmForCausalLM",
+      "params_billions": "12.143"
     }
   },
   "evaluations": [

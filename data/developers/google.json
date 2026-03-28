@@ -2,9 +2,120 @@
   "developer": "Google",
   "models": [
     {
+      "id": "google/codegemma-1.1-2b",
+      "name": "codegemma-1.1-2b",
+      "developer": "Google",
+      "evaluator_relationship": null,
+      "benchmark_scores": {
+        "hfopenllm_v2/IFEval": 0.2294,
+        "hfopenllm_v2/BBH": 0.3353,
+        "hfopenllm_v2/MATH Level 5": 0.0128,
+        "hfopenllm_v2/GPQA": 0.2651,
+        "hfopenllm_v2/MUSR": 0.3871,
+        "hfopenllm_v2/MMLU-PRO": 0.1278
+      }
+    },
+    {
+      "id": "google/flame-1.0-24B-july-2024",
+      "name": "google/flame-1.0-24B-july-2024",
+      "developer": "Google",
+      "evaluator_relationship": null,
+      "benchmark_scores": {
+        "reward-bench/Score": 0.8781,
+        "reward-bench/Chat": 0.9218,
+        "reward-bench/Chat Hard": 0.7566,
+        "reward-bench/Safety": 0.8959,
+        "reward-bench/Reasoning": 0.938
+      }
+    },
+    {
+      "id": "google/flan-t5-base",
+      "name": "flan-t5-base",
+      "developer": "Google",
+      "evaluator_relationship": null,
+      "benchmark_scores": {
+        "hfopenllm_v2/IFEval": 0.1891,
+        "hfopenllm_v2/BBH": 0.3526,
+        "hfopenllm_v2/MATH Level 5": 0.0106,
+        "hfopenllm_v2/GPQA": 0.2383,
+        "hfopenllm_v2/MUSR": 0.3671,
+        "hfopenllm_v2/MMLU-PRO": 0.1357
+      }
+    },
+    {
+      "id": "google/flan-t5-large",
+      "name": "flan-t5-large",
+      "developer": "Google",
+      "evaluator_relationship": null,
+      "benchmark_scores": {
+        "hfopenllm_v2/IFEval": 0.2201,
+        "hfopenllm_v2/BBH": 0.4153,
+        "hfopenllm_v2/MATH Level 5": 0.0144,
+        "hfopenllm_v2/GPQA": 0.2508,
+        "hfopenllm_v2/MUSR": 0.4083,
+        "hfopenllm_v2/MMLU-PRO": 0.1709
+      }
+    },
+    {
+      "id": "google/flan-t5-small",
+      "name": "flan-t5-small",
+      "developer": "Google",
+      "evaluator_relationship": null,
+      "benchmark_scores": {
+        "hfopenllm_v2/IFEval": 0.1524,
+        "hfopenllm_v2/BBH": 0.3283,
+        "hfopenllm_v2/MATH Level 5": 0.0076,
+        "hfopenllm_v2/GPQA": 0.2609,
+        "hfopenllm_v2/MUSR": 0.4123,
+        "hfopenllm_v2/MMLU-PRO": 0.1233
+      }
+    },
+    {
+      "id": "google/flan-t5-xl",
+      "name": "flan-t5-xl",
+      "developer": "Google",
+      "evaluator_relationship": null,
+      "benchmark_scores": {
+        "hfopenllm_v2/IFEval": 0.2207,
+        "hfopenllm_v2/BBH": 0.4537,
+        "hfopenllm_v2/MATH Level 5": 0.0008,
+        "hfopenllm_v2/GPQA": 0.2458,
+        "hfopenllm_v2/MUSR": 0.422,
+        "hfopenllm_v2/MMLU-PRO": 0.2142
+      }
+    },
+    {
+      "id": "google/flan-t5-xxl",
+      "name": "flan-t5-xxl",
+      "developer": "Google",
+      "evaluator_relationship": null,
+      "benchmark_scores": {
+        "hfopenllm_v2/IFEval": 0.22,
+        "hfopenllm_v2/BBH": 0.5066,
+        "hfopenllm_v2/MATH Level 5": 0.0106,
+        "hfopenllm_v2/GPQA": 0.2701,
+        "hfopenllm_v2/MUSR": 0.4218,
+        "hfopenllm_v2/MMLU-PRO": 0.2343
+      }
+    },
+    {
+      "id": "google/flan-ul2",
+      "name": "flan-ul2",
+      "developer": "Google",
+      "evaluator_relationship": null,
+      "benchmark_scores": {
+        "hfopenllm_v2/IFEval": 0.2393,
+        "hfopenllm_v2/BBH": 0.5054,
+        "hfopenllm_v2/MATH Level 5": 0.0091,
+        "hfopenllm_v2/GPQA": 0.2878,
+        "hfopenllm_v2/MUSR": 0.3844,
+        "hfopenllm_v2/MMLU-PRO": 0.2493
+      }
+    },
+    {
       "id": "google/Gemini 2.5 Flash",
       "name": "Gemini 2.5 Flash",
-      "developer": "google",
+      "developer": "Google",
       "evaluator_relationship": null,
       "benchmark_scores": {
         "ace/Overall Score": 0.38,
@@ -15,7 +126,7 @@
     {
       "id": "google/Gemini 2.5 Pro",
       "name": "Gemini 2.5 Pro",
-      "developer": "google",
+      "developer": "Google",
       "evaluator_relationship": null,
       "benchmark_scores": {
         "ace/Overall Score": 0.4,
@@ -25,7 +136,7 @@
     {
       "id": "google/Gemini 3 Flash",
       "name": "Gemini 3 Flash",
-      "developer": "google",
+      "developer": "Google",
       "evaluator_relationship": null,
       "benchmark_scores": {
         "ace/Gaming Score": 0.415,
@@ -43,7 +154,7 @@
     {
       "id": "google/Gemini 3 Pro",
       "name": "Gemini 3 Pro",
-      "developer": "google",
+      "developer": "Google",
       "evaluator_relationship": null,
       "benchmark_scores": {
         "ace/Overall Score": 0.47,
@@ -63,7 +174,7 @@
     {
       "id": "google/Gemini 3.1 Pro",
       "name": "Gemini 3.1 Pro",
-      "developer": "google",
+      "developer": "Google",
       "evaluator_relationship": null,
       "benchmark_scores": {
         "apex-agents/Overall Pass@1": 0.335,
@@ -71,189 +182,9 @@
       }
     },
     {
-      "id": "google/Palmyra-X-43B",
-      "name": "Palmyra X 43B",
-      "developer": "google",
-      "evaluator_relationship": null,
-      "benchmark_scores": {
-        "helm_classic/Mean win rate": 0.732,
-        "helm_classic/MMLU": 0.609,
-        "helm_classic/BoolQ": 0.896,
-        "helm_classic/NarrativeQA": 0.742,
-        "helm_classic/NaturalQuestions (open-book)": -1.0,
-        "helm_classic/QuAC": 0.473,
-        "helm_classic/HellaSwag": -1.0,
-        "helm_classic/OpenbookQA": -1.0,
-        "helm_classic/TruthfulQA": 0.616,
-        "helm_classic/MS MARCO (TREC)": -1.0,
-        "helm_classic/CNN/DailyMail": 0.049,
-        "helm_classic/XSUM": 0.149,
-        "helm_classic/IMDB": 0.935,
-        "helm_classic/CivilComments": 0.008,
-        "helm_classic/RAFT": 0.701
-      }
-    },
-    {
-      "id": "google/T5-11B",
-      "name": "T5 11B",
-      "developer": "google",
-      "evaluator_relationship": null,
-      "benchmark_scores": {
-        "helm_classic/Mean win rate": 0.131,
-        "helm_classic/MMLU": 0.29,
-        "helm_classic/BoolQ": 0.761,
-        "helm_classic/NarrativeQA": 0.086,
-        "helm_classic/NaturalQuestions (open-book)": 0.477,
-        "helm_classic/QuAC": 0.116,
-        "helm_classic/HellaSwag": -1.0,
-        "helm_classic/OpenbookQA": -1.0,
-        "helm_classic/TruthfulQA": 0.133,
-        "helm_classic/MS MARCO (TREC)": -1.0,
-        "helm_classic/CNN/DailyMail": 0.043,
-        "helm_classic/XSUM": 0.015,
-        "helm_classic/IMDB": 0.379,
-        "helm_classic/CivilComments": 0.509,
-        "helm_classic/RAFT": 0.37
-      }
-    },
-    {
-      "id": "google/UL2-20B",
-      "name": "UL2 20B",
-      "developer": "google",
-      "evaluator_relationship": null,
-      "benchmark_scores": {
-        "helm_classic/Mean win rate": 0.167,
-        "helm_classic/MMLU": 0.291,
-        "helm_classic/BoolQ": 0.746,
-        "helm_classic/NarrativeQA": 0.083,
-        "helm_classic/NaturalQuestions (open-book)": 0.349,
-        "helm_classic/QuAC": 0.144,
-        "helm_classic/HellaSwag": -1.0,
-        "helm_classic/OpenbookQA": -1.0,
-        "helm_classic/TruthfulQA": 0.193,
-        "helm_classic/MS MARCO (TREC)": -1.0,
-        "helm_classic/CNN/DailyMail": 0.03,
-        "helm_classic/XSUM": 0.058,
-        "helm_classic/IMDB": 0.337,
-        "helm_classic/CivilComments": 0.521,
-        "helm_classic/RAFT": 0.404
-      }
-    },
-    {
-      "id": "google/codegemma-1.1-2b",
-      "name": "codegemma-1.1-2b",
-      "developer": "google",
-      "evaluator_relationship": null,
-      "benchmark_scores": {
-        "hfopenllm_v2/IFEval": 0.2294,
-        "hfopenllm_v2/BBH": 0.3353,
-        "hfopenllm_v2/MATH Level 5": 0.0128,
-        "hfopenllm_v2/GPQA": 0.2651,
-        "hfopenllm_v2/MUSR": 0.3871,
-        "hfopenllm_v2/MMLU-PRO": 0.1278
-      }
-    },
-    {
-      "id": "google/flame-1.0-24B-july-2024",
-      "name": "google/flame-1.0-24B-july-2024",
-      "developer": "google",
-      "evaluator_relationship": null,
-      "benchmark_scores": {
-        "reward-bench/Score": 0.8781,
-        "reward-bench/Chat": 0.9218,
-        "reward-bench/Chat Hard": 0.7566,
-        "reward-bench/Safety": 0.8959,
-        "reward-bench/Reasoning": 0.938
-      }
-    },
-    {
-      "id": "google/flan-t5-base",
-      "name": "flan-t5-base",
-      "developer": "google",
-      "evaluator_relationship": null,
-      "benchmark_scores": {
-        "hfopenllm_v2/IFEval": 0.1891,
-        "hfopenllm_v2/BBH": 0.3526,
-        "hfopenllm_v2/MATH Level 5": 0.0106,
-        "hfopenllm_v2/GPQA": 0.2383,
-        "hfopenllm_v2/MUSR": 0.3671,
-        "hfopenllm_v2/MMLU-PRO": 0.1357
-      }
-    },
-    {
-      "id": "google/flan-t5-large",
-      "name": "flan-t5-large",
-      "developer": "google",
-      "evaluator_relationship": null,
-      "benchmark_scores": {
-        "hfopenllm_v2/IFEval": 0.2201,
-        "hfopenllm_v2/BBH": 0.4153,
-        "hfopenllm_v2/MATH Level 5": 0.0144,
-        "hfopenllm_v2/GPQA": 0.2508,
-        "hfopenllm_v2/MUSR": 0.4083,
-        "hfopenllm_v2/MMLU-PRO": 0.1709
-      }
-    },
-    {
-      "id": "google/flan-t5-small",
-      "name": "flan-t5-small",
-      "developer": "google",
-      "evaluator_relationship": null,
-      "benchmark_scores": {
-        "hfopenllm_v2/IFEval": 0.1524,
-        "hfopenllm_v2/BBH": 0.3283,
-        "hfopenllm_v2/MATH Level 5": 0.0076,
-        "hfopenllm_v2/GPQA": 0.2609,
-        "hfopenllm_v2/MUSR": 0.4123,
-        "hfopenllm_v2/MMLU-PRO": 0.1233
-      }
-    },
-    {
-      "id": "google/flan-t5-xl",
-      "name": "flan-t5-xl",
-      "developer": "google",
-      "evaluator_relationship": null,
-      "benchmark_scores": {
-        "hfopenllm_v2/IFEval": 0.2237,
-        "hfopenllm_v2/BBH": 0.4531,
-        "hfopenllm_v2/MATH Level 5": 0.0076,
-        "hfopenllm_v2/GPQA": 0.2525,
-        "hfopenllm_v2/MUSR": 0.4181,
-        "hfopenllm_v2/MMLU-PRO": 0.2147
-      }
-    },
-    {
-      "id": "google/flan-t5-xxl",
-      "name": "flan-t5-xxl",
-      "developer": "google",
-      "evaluator_relationship": null,
-      "benchmark_scores": {
-        "hfopenllm_v2/IFEval": 0.22,
-        "hfopenllm_v2/BBH": 0.5066,
-        "hfopenllm_v2/MATH Level 5": 0.0106,
-        "hfopenllm_v2/GPQA": 0.2701,
-        "hfopenllm_v2/MUSR": 0.4218,
-        "hfopenllm_v2/MMLU-PRO": 0.2343
-      }
-    },
-    {
-      "id": "google/flan-ul2",
-      "name": "flan-ul2",
-      "developer": "google",
-      "evaluator_relationship": null,
-      "benchmark_scores": {
-        "hfopenllm_v2/IFEval": 0.2393,
-        "hfopenllm_v2/BBH": 0.5054,
-        "hfopenllm_v2/MATH Level 5": 0.0091,
-        "hfopenllm_v2/GPQA": 0.2878,
-        "hfopenllm_v2/MUSR": 0.3844,
-        "hfopenllm_v2/MMLU-PRO": 0.2493
-      }
-    },
-    {
       "id": "google/gemini-1.0-pro-001",
       "name": "Gemini 1.0 Pro 001",
-      "developer": "google",
+      "developer": "Google",
       "evaluator_relationship": null,
       "benchmark_scores": {
         "helm_mmlu/MMLU All Subjects": 0.7,
@@ -297,7 +228,7 @@
     {
       "id": "google/gemini-1.0-pro-002",
       "name": "Gemini 1.0 Pro 002",
-      "developer": "google",
+      "developer": "Google",
       "evaluator_relationship": null,
       "benchmark_scores": {
         "helm_lite/Mean win rate": 0.422,
@@ -315,7 +246,7 @@
     {
       "id": "google/gemini-1.5-flash-001",
       "name": "Gemini 1.5 Flash 001",
-      "developer": "google",
+      "developer": "Google",
       "evaluator_relationship": null,
       "benchmark_scores": {
         "helm_lite/Mean win rate": 0.667,
@@ -375,7 +306,7 @@
     {
       "id": "google/gemini-1.5-flash-002",
       "name": "Gemini 1.5 Flash 002",
-      "developer": "google",
+      "developer": "Google",
       "evaluator_relationship": null,
       "benchmark_scores": {
         "helm_capabilities/Mean score": 0.609,
@@ -435,7 +366,7 @@
     {
       "id": "google/gemini-1.5-flash-8b",
       "name": "google/gemini-1.5-flash-8b",
-      "developer": "google",
+      "developer": "Google",
       "evaluator_relationship": null,
       "benchmark_scores": {
         "reward-bench/Score": 0.4851,
@@ -450,7 +381,7 @@
     {
       "id": "google/gemini-1.5-flash-preview-0514",
       "name": "Gemini 1.5 Flash 0514 preview",
-      "developer": "google",
+      "developer": "Google",
       "evaluator_relationship": null,
       "benchmark_scores": {
         "helm_mmlu/MMLU All Subjects": 0.778,
@@ -494,7 +425,7 @@
     {
       "id": "google/gemini-1.5-pro-001",
       "name": "Gemini 1.5 Pro 001",
-      "developer": "google",
+      "developer": "Google",
       "evaluator_relationship": null,
       "benchmark_scores": {
         "helm_lite/Mean win rate": 0.739,
@@ -548,7 +479,7 @@
     {
       "id": "google/gemini-1.5-pro-002",
       "name": "Gemini 1.5 Pro 002",
-      "developer": "google",
+      "developer": "Google",
       "evaluator_relationship": null,
       "benchmark_scores": {
         "helm_capabilities/Mean score": 0.657,
@@ -608,7 +539,7 @@
     {
       "id": "google/gemini-1.5-pro-0514",
       "name": "google/gemini-1.5-pro-0514",
-      "developer": "google",
+      "developer": "Google",
       "evaluator_relationship": null,
       "benchmark_scores": {
         "reward-bench/Score": 0.882,
@@ -621,7 +552,7 @@
     {
       "id": "google/gemini-1.5-pro-0924",
       "name": "google/gemini-1.5-pro-0924",
-      "developer": "google",
+      "developer": "Google",
       "evaluator_relationship": null,
       "benchmark_scores": {
         "reward-bench/Score": 0.8678,
@@ -634,7 +565,7 @@
     {
       "id": "google/gemini-1.5-pro-preview-0409",
       "name": "Gemini 1.5 Pro 0409 preview",
-      "developer": "google",
+      "developer": "Google",
       "evaluator_relationship": null,
       "benchmark_scores": {
         "helm_mmlu/MMLU All Subjects": 0.81,
@@ -678,7 +609,7 @@
     {
       "id": "google/gemini-2.0-flash-001",
       "name": "Gemini 2.0 Flash",
-      "developer": "google",
+      "developer": "Google",
       "evaluator_relationship": null,
       "benchmark_scores": {
         "helm_capabilities/Mean score": 0.679,
@@ -692,7 +623,7 @@
     {
       "id": "google/gemini-2.0-flash-exp",
       "name": "Gemini 2.0 Flash Experimental",
-      "developer": "google",
+      "developer": "Google",
       "evaluator_relationship": null,
       "benchmark_scores": {
         "helm_lite/Mean win rate": 0.813,
@@ -746,7 +677,7 @@
     {
       "id": "google/gemini-2.0-flash-lite-preview-02-05",
       "name": "Gemini 2.0 Flash Lite 02-05 preview",
-      "developer": "google",
+      "developer": "Google",
       "evaluator_relationship": null,
       "benchmark_scores": {
         "helm_capabilities/Mean score": 0.642,
@@ -759,8 +690,8 @@
     },
     {
       "id": "google/gemini-2.5-flash",
-      "name": "gemini-2.5-flash",
-      "developer": "google",
+      "name": "Gemini 2.5 Flash",
+      "developer": "Google",
       "evaluator_relationship": null,
       "benchmark_scores": {
         "global-mmlu-lite/Global MMLU Lite": 0.9145,
@@ -792,13 +723,13 @@
         "reward-bench/Safety": 0.909,
         "reward-bench/Focus": 0.841,
         "reward-bench/Ties": 0.809,
-        "terminal-bench-2.0/terminal-bench-2.0": 15.4
+        "terminal-bench-2.0/terminal-bench-2.0": 16.4
       }
     },
     {
       "id": "google/gemini-2.5-flash-lite",
       "name": "Gemini 2.5 Flash-Lite",
-      "developer": "google",
+      "developer": "Google",
       "evaluator_relationship": null,
       "benchmark_scores": {
         "helm_capabilities/Mean score": 0.591,
@@ -812,7 +743,7 @@
     {
       "id": "google/gemini-2.5-flash-preview-04-17",
       "name": "Gemini 2.5 Flash 04-17 preview",
-      "developer": "google",
+      "developer": "Google",
       "evaluator_relationship": null,
       "benchmark_scores": {
         "helm_capabilities/Mean score": 0.626,
@@ -833,7 +764,7 @@
     {
       "id": "google/gemini-2.5-flash-preview-05-20",
       "name": "gemini-2.5-flash-preview-05-20",
-      "developer": "google",
+      "developer": "Google",
       "evaluator_relationship": null,
       "benchmark_scores": {
         "global-mmlu-lite/Global MMLU Lite": 0.9092,
@@ -859,8 +790,8 @@
     },
     {
       "id": "google/gemini-2.5-pro",
-      "name": "gemini-2.5-pro",
-      "developer": "google",
+      "name": "Gemini 2.5 Pro",
+      "developer": "Google",
       "evaluator_relationship": null,
       "benchmark_scores": {
         "global-mmlu-lite/Global MMLU Lite": 0.9323,
@@ -898,7 +829,7 @@
     {
       "id": "google/gemini-2.5-pro-preview-03-25",
       "name": "Gemini 2.5 Pro 03-25 preview",
-      "developer": "google",
+      "developer": "Google",
       "evaluator_relationship": null,
       "benchmark_scores": {
         "helm_capabilities/Mean score": 0.745,
@@ -912,7 +843,7 @@
     {
       "id": "google/gemini-2.5-pro-preview-05-06",
       "name": "google/gemini-2.5-pro-preview-05-06",
-      "developer": "google",
+      "developer": "Google",
       "evaluator_relationship": null,
       "benchmark_scores": {
         "reward-bench/Score": 0.6775,
@@ -930,7 +861,7 @@
       "developer": "Google",
       "evaluator_relationship": null,
       "benchmark_scores": {
-        "terminal-bench-2.0/terminal-bench-2.0": 47.4
+        "terminal-bench-2.0/terminal-bench-2.0": 64.3
       }
     },
     {
@@ -939,7 +870,7 @@
       "developer": "Google",
       "evaluator_relationship": null,
       "benchmark_scores": {
-        "terminal-bench-2.0/terminal-bench-2.0": 56.9
+        "terminal-bench-2.0/terminal-bench-2.0": 61.8
       }
     },
     {
@@ -949,7 +880,7 @@
       "evaluator_relationship": null,
       "benchmark_scores": {
         "appworld_test_normal/appworld/test_normal": 0.36,
-        "browsecompplus/browsecompplus": 0.48,
+        "browsecompplus/browsecompplus": 0.3333,
         "global-mmlu-lite/Global MMLU Lite": 0.9453,
         "global-mmlu-lite/Culturally Sensitive": 0.9397,
         "global-mmlu-lite/Culturally Agnostic": 0.9509,
@@ -969,10 +900,10 @@
         "global-mmlu-lite/Yoruba": 0.9425,
         "global-mmlu-lite/Chinese": 0.9475,
         "global-mmlu-lite/Burmese": 0.9425,
-        "swe-bench/swe-bench": 0.71,
-        "tau-bench-2_airline/tau-bench-2/airline": 0.7,
+        "swe-bench/swe-bench": 0.7576,
+        "tau-bench-2_airline/tau-bench-2/airline": 0.68,
         "tau-bench-2_retail/tau-bench-2/retail": 0.7805,
-        "tau-bench-2_telecom/tau-bench-2/telecom": 0.73
+        "tau-bench-2_telecom/tau-bench-2/telecom": 0.88
       }
     },
     {
@@ -981,13 +912,13 @@
       "developer": "Google",
       "evaluator_relationship": null,
       "benchmark_scores": {
-        "terminal-bench-2.0/terminal-bench-2.0": 74.8
+        "terminal-bench-2.0/terminal-bench-2.0": 78.4
       }
     },
     {
       "id": "google/gemma-1.1-2b-it",
       "name": "gemma-1.1-2b-it",
-      "developer": "google",
+      "developer": "Google",
       "evaluator_relationship": null,
       "benchmark_scores": {
         "hfopenllm_v2/IFEval": 0.3067,
@@ -1001,7 +932,7 @@
     {
       "id": "google/gemma-1.1-7b-it",
       "name": "gemma-1.1-7b-it",
-      "developer": "google",
+      "developer": "Google",
       "evaluator_relationship": null,
       "benchmark_scores": {
         "hfopenllm_v2/IFEval": 0.5039,
@@ -1015,7 +946,7 @@
     {
       "id": "google/gemma-2-27b",
       "name": "Gemma 2 27B",
-      "developer": "google",
+      "developer": "Google",
       "evaluator_relationship": null,
       "benchmark_scores": {
         "helm_mmlu/MMLU All Subjects": 0.757,
@@ -1065,7 +996,7 @@
     {
       "id": "google/gemma-2-27b-it",
       "name": "Gemma 2 Instruct 27B",
-      "developer": "google",
+      "developer": "Google",
       "evaluator_relationship": null,
       "benchmark_scores": {
         "helm_lite/Mean win rate": 0.675,
@@ -1094,7 +1025,7 @@
     {
       "id": "google/gemma-2-2b",
       "name": "gemma-2-2b",
-      "developer": "google",
+      "developer": "Google",
       "evaluator_relationship": null,
       "benchmark_scores": {
         "hfopenllm_v2/IFEval": 0.1993,
@@ -1108,7 +1039,7 @@
     {
       "id": "google/gemma-2-2b-it",
       "name": "gemma-2-2b-it",
-      "developer": "google",
+      "developer": "Google",
       "evaluator_relationship": null,
       "benchmark_scores": {
         "hfopenllm_v2/IFEval": 0.5668,
@@ -1122,21 +1053,21 @@
     {
       "id": "google/gemma-2-2b-jpn-it",
       "name": "gemma-2-2b-jpn-it",
-      "developer": "google",
+      "developer": "Google",
       "evaluator_relationship": null,
       "benchmark_scores": {
-        "hfopenllm_v2/IFEval": 0.5288,
-        "hfopenllm_v2/BBH": 0.4178,
-        "hfopenllm_v2/MATH Level 5": 0.0476,
-        "hfopenllm_v2/GPQA": 0.2752,
-        "hfopenllm_v2/MUSR": 0.3728,
-        "hfopenllm_v2/MMLU-PRO": 0.2467
+        "hfopenllm_v2/IFEval": 0.5078,
+        "hfopenllm_v2/BBH": 0.4226,
+        "hfopenllm_v2/MATH Level 5": 0.0347,
+        "hfopenllm_v2/GPQA": 0.2852,
+        "hfopenllm_v2/MUSR": 0.3964,
+        "hfopenllm_v2/MMLU-PRO": 0.2578
       }
     },
     {
       "id": "google/gemma-2-9b",
       "name": "Gemma 2 9B",
-      "developer": "google",
+      "developer": "Google",
       "evaluator_relationship": null,
       "benchmark_scores": {
         "helm_mmlu/MMLU All Subjects": 0.721,
@@ -1186,7 +1117,7 @@
     {
       "id": "google/gemma-2-9b-it",
       "name": "Gemma 2 Instruct 9B",
-      "developer": "google",
+      "developer": "Google",
       "evaluator_relationship": null,
       "benchmark_scores": {
         "helm_lite/Mean win rate": 0.562,
@@ -1211,7 +1142,7 @@
     {
       "id": "google/gemma-2b",
       "name": "gemma-2b",
-      "developer": "google",
+      "developer": "Google",
       "evaluator_relationship": null,
       "benchmark_scores": {
         "hfopenllm_v2/IFEval": 0.2038,
@@ -1225,7 +1156,7 @@
     {
       "id": "google/gemma-2b-it",
       "name": "gemma-2b-it",
-      "developer": "google",
+      "developer": "Google",
       "evaluator_relationship": null,
       "benchmark_scores": {
         "hfopenllm_v2/IFEval": 0.269,
@@ -1239,7 +1170,7 @@
     {
       "id": "google/gemma-3-27b-it",
       "name": "gemma-3-27b-it",
-      "developer": "google",
+      "developer": "Google",
       "evaluator_relationship": null,
       "benchmark_scores": {
         "global-mmlu-lite/Global MMLU Lite": 0.763,
@@ -1266,7 +1197,7 @@
     {
       "id": "google/gemma-3-4b-it",
       "name": "gemma-3-4b-it",
-      "developer": "google",
+      "developer": "Google",
       "evaluator_relationship": null,
       "benchmark_scores": {
         "global-mmlu-lite/Global MMLU Lite": 0.6511,
@@ -1293,7 +1224,7 @@
     {
       "id": "google/gemma-7b",
       "name": "Gemma 7B",
-      "developer": "google",
+      "developer": "Google",
       "evaluator_relationship": null,
       "benchmark_scores": {
         "helm_lite/Mean win rate": 0.336,
@@ -1353,7 +1284,7 @@
     {
       "id": "google/gemma-7b-it",
       "name": "gemma-7b-it",
-      "developer": "google",
+      "developer": "Google",
       "evaluator_relationship": null,
       "benchmark_scores": {
         "hfopenllm_v2/IFEval": 0.3868,
@@ -1367,7 +1298,7 @@
     {
       "id": "google/mt5-base",
       "name": "mt5-base",
-      "developer": "google",
+      "developer": "Google",
       "evaluator_relationship": null,
       "benchmark_scores": {
         "hfopenllm_v2/IFEval": 0.1645,
@@ -1381,7 +1312,7 @@
     {
       "id": "google/mt5-small",
       "name": "mt5-small",
-      "developer": "google",
+      "developer": "Google",
       "evaluator_relationship": null,
       "benchmark_scores": {
         "hfopenllm_v2/IFEval": 0.1718,
@@ -1395,7 +1326,7 @@
     {
       "id": "google/mt5-xl",
       "name": "mt5-xl",
-      "developer": "google",
+      "developer": "Google",
       "evaluator_relationship": null,
       "benchmark_scores": {
         "hfopenllm_v2/IFEval": 0.196,
@@ -1409,7 +1340,7 @@
     {
       "id": "google/mt5-xxl",
       "name": "mt5-xxl",
-      "developer": "google",
+      "developer": "Google",
       "evaluator_relationship": null,
       "benchmark_scores": {
         "hfopenllm_v2/IFEval": 0.2358,
@@ -1421,9 +1352,32 @@
       }
     },
     {
+      "id": "google/Palmyra-X-43B",
+      "name": "Palmyra X 43B",
+      "developer": "Google",
+      "evaluator_relationship": null,
+      "benchmark_scores": {
+        "helm_classic/Mean win rate": 0.732,
+        "helm_classic/MMLU": 0.609,
+        "helm_classic/BoolQ": 0.896,
+        "helm_classic/NarrativeQA": 0.742,
+        "helm_classic/NaturalQuestions (open-book)": -1.0,
+        "helm_classic/QuAC": 0.473,
+        "helm_classic/HellaSwag": -1.0,
+        "helm_classic/OpenbookQA": -1.0,
+        "helm_classic/TruthfulQA": 0.616,
+        "helm_classic/MS MARCO (TREC)": -1.0,
+        "helm_classic/CNN/DailyMail": 0.049,
+        "helm_classic/XSUM": 0.149,
+        "helm_classic/IMDB": 0.935,
+        "helm_classic/CivilComments": 0.008,
+        "helm_classic/RAFT": 0.701
+      }
+    },
+    {
       "id": "google/recurrentgemma-2b",
       "name": "recurrentgemma-2b",
-      "developer": "google",
+      "developer": "Google",
       "evaluator_relationship": null,
       "benchmark_scores": {
         "hfopenllm_v2/IFEval": 0.3017,
@@ -1437,7 +1391,7 @@
     {
       "id": "google/recurrentgemma-2b-it",
       "name": "recurrentgemma-2b-it",
-      "developer": "google",
+      "developer": "Google",
       "evaluator_relationship": null,
       "benchmark_scores": {
         "hfopenllm_v2/IFEval": 0.2949,
@@ -1451,7 +1405,7 @@
     {
       "id": "google/recurrentgemma-9b",
       "name": "recurrentgemma-9b",
-      "developer": "google",
+      "developer": "Google",
       "evaluator_relationship": null,
       "benchmark_scores": {
         "hfopenllm_v2/IFEval": 0.3116,
@@ -1465,7 +1419,7 @@
     {
       "id": "google/recurrentgemma-9b-it",
       "name": "recurrentgemma-9b-it",
-      "developer": "google",
+      "developer": "Google",
       "evaluator_relationship": null,
       "benchmark_scores": {
         "hfopenllm_v2/IFEval": 0.501,
@@ -1479,7 +1433,7 @@
     {
       "id": "google/switch-base-8",
       "name": "switch-base-8",
-      "developer": "google",
+      "developer": "Google",
       "evaluator_relationship": null,
       "benchmark_scores": {
         "hfopenllm_v2/IFEval": 0.1585,
@@ -1491,9 +1445,32 @@
       }
     },
     {
+      "id": "google/T5-11B",
+      "name": "T5 11B",
+      "developer": "Google",
+      "evaluator_relationship": null,
+      "benchmark_scores": {
+        "helm_classic/Mean win rate": 0.131,
+        "helm_classic/MMLU": 0.29,
+        "helm_classic/BoolQ": 0.761,
+        "helm_classic/NarrativeQA": 0.086,
+        "helm_classic/NaturalQuestions (open-book)": 0.477,
+        "helm_classic/QuAC": 0.116,
+        "helm_classic/HellaSwag": -1.0,
+        "helm_classic/OpenbookQA": -1.0,
+        "helm_classic/TruthfulQA": 0.133,
+        "helm_classic/MS MARCO (TREC)": -1.0,
+        "helm_classic/CNN/DailyMail": 0.043,
+        "helm_classic/XSUM": 0.015,
+        "helm_classic/IMDB": 0.379,
+        "helm_classic/CivilComments": 0.509,
+        "helm_classic/RAFT": 0.37
+      }
+    },
+    {
       "id": "google/text-bison@001",
       "name": "PaLM-2 Bison",
-      "developer": "google",
+      "developer": "Google",
       "evaluator_relationship": null,
       "benchmark_scores": {
         "helm_lite/Mean win rate": 0.526,
@@ -1547,7 +1524,7 @@
     {
       "id": "google/text-unicorn@001",
       "name": "PaLM-2 Unicorn",
-      "developer": "google",
+      "developer": "Google",
       "evaluator_relationship": null,
       "benchmark_scores": {
         "helm_lite/Mean win rate": 0.644,
@@ -1599,9 +1576,32 @@
       }
     },
     {
+      "id": "google/UL2-20B",
+      "name": "UL2 20B",
+      "developer": "Google",
+      "evaluator_relationship": null,
+      "benchmark_scores": {
+        "helm_classic/Mean win rate": 0.167,
+        "helm_classic/MMLU": 0.291,
+        "helm_classic/BoolQ": 0.746,
+        "helm_classic/NarrativeQA": 0.083,
+        "helm_classic/NaturalQuestions (open-book)": 0.349,
+        "helm_classic/QuAC": 0.144,
+        "helm_classic/HellaSwag": -1.0,
+        "helm_classic/OpenbookQA": -1.0,
+        "helm_classic/TruthfulQA": 0.193,
+        "helm_classic/MS MARCO (TREC)": -1.0,
+        "helm_classic/CNN/DailyMail": 0.03,
+        "helm_classic/XSUM": 0.058,
+        "helm_classic/IMDB": 0.337,
+        "helm_classic/CivilComments": 0.521,
+        "helm_classic/RAFT": 0.404
+      }
+    },
+    {
       "id": "google/umt5-base",
       "name": "umt5-base",
-      "developer": "google",
+      "developer": "Google",
       "evaluator_relationship": null,
       "benchmark_scores": {
         "hfopenllm_v2/IFEval": 0.1746,

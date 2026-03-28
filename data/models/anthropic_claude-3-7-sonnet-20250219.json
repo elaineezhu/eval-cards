@@ -1,10 +1,11 @@
 {
   "model_info": {
-    "name": "anthropic/claude-3-7-sonnet-20250219",
+    "name": "claude-3-7-sonnet-20250219",
     "id": "anthropic/claude-3-7-sonnet-20250219",
-    "developer": "anthropic",
+    "developer": "Anthropic",
+    "inference_platform": "unknown",
     "additional_details": {
-      "model_type": "Generative RM"
+      "display_name": "Claude 3.7 Sonnet"
     }
   },
   "evaluations": [

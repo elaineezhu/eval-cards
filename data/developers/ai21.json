@@ -94,75 +94,6 @@
       }
     },
     {
-      "id": "ai21/Jurassic-2-Grande-17B",
-      "name": "Jurassic-2 Grande 17B",
-      "developer": "ai21",
-      "evaluator_relationship": null,
-      "benchmark_scores": {
-        "helm_classic/Mean win rate": 0.743,
-        "helm_classic/MMLU": 0.475,
-        "helm_classic/BoolQ": 0.826,
-        "helm_classic/NarrativeQA": 0.737,
-        "helm_classic/NaturalQuestions (open-book)": 0.639,
-        "helm_classic/QuAC": 0.418,
-        "helm_classic/HellaSwag": 0.781,
-        "helm_classic/OpenbookQA": 0.542,
-        "helm_classic/TruthfulQA": 0.348,
-        "helm_classic/MS MARCO (TREC)": 0.514,
-        "helm_classic/CNN/DailyMail": 0.144,
-        "helm_classic/XSUM": 0.167,
-        "helm_classic/IMDB": 0.938,
-        "helm_classic/CivilComments": 0.547,
-        "helm_classic/RAFT": 0.712
-      }
-    },
-    {
-      "id": "ai21/Jurassic-2-Jumbo-178B",
-      "name": "Jurassic-2 Jumbo 178B",
-      "developer": "ai21",
-      "evaluator_relationship": null,
-      "benchmark_scores": {
-        "helm_classic/Mean win rate": 0.824,
-        "helm_classic/MMLU": 0.48,
-        "helm_classic/BoolQ": 0.829,
-        "helm_classic/NarrativeQA": 0.733,
-        "helm_classic/NaturalQuestions (open-book)": 0.669,
-        "helm_classic/QuAC": 0.435,
-        "helm_classic/HellaSwag": 0.788,
-        "helm_classic/OpenbookQA": 0.558,
-        "helm_classic/TruthfulQA": 0.437,
-        "helm_classic/MS MARCO (TREC)": 0.661,
-        "helm_classic/CNN/DailyMail": 0.149,
-        "helm_classic/XSUM": 0.182,
-        "helm_classic/IMDB": 0.938,
-        "helm_classic/CivilComments": 0.57,
-        "helm_classic/RAFT": 0.746
-      }
-    },
-    {
-      "id": "ai21/Jurassic-2-Large-7.5B",
-      "name": "Jurassic-2 Large 7.5B",
-      "developer": "ai21",
-      "evaluator_relationship": null,
-      "benchmark_scores": {
-        "helm_classic/Mean win rate": 0.553,
-        "helm_classic/MMLU": 0.339,
-        "helm_classic/BoolQ": 0.742,
-        "helm_classic/NarrativeQA": -1.0,
-        "helm_classic/NaturalQuestions (open-book)": 0.589,
-        "helm_classic/QuAC": -1.0,
-        "helm_classic/HellaSwag": 0.729,
-        "helm_classic/OpenbookQA": 0.53,
-        "helm_classic/TruthfulQA": 0.245,
-        "helm_classic/MS MARCO (TREC)": 0.464,
-        "helm_classic/CNN/DailyMail": 0.136,
-        "helm_classic/XSUM": 0.142,
-        "helm_classic/IMDB": 0.956,
-        "helm_classic/CivilComments": 0.57,
-        "helm_classic/RAFT": 0.622
-      }
-    },
-    {
       "id": "ai21/j2-grande",
       "name": "Jurassic-2 Grande 17B",
       "developer": "ai21",
@@ -358,6 +289,75 @@
         "helm_mmlu/Virology": 0.53,
         "helm_mmlu/World Religions": 0.813,
         "helm_mmlu/Mean win rate": 0.887
+      }
+    },
+    {
+      "id": "ai21/Jurassic-2-Grande-17B",
+      "name": "Jurassic-2 Grande 17B",
+      "developer": "ai21",
+      "evaluator_relationship": null,
+      "benchmark_scores": {
+        "helm_classic/Mean win rate": 0.743,
+        "helm_classic/MMLU": 0.475,
+        "helm_classic/BoolQ": 0.826,
+        "helm_classic/NarrativeQA": 0.737,
+        "helm_classic/NaturalQuestions (open-book)": 0.639,
+        "helm_classic/QuAC": 0.418,
+        "helm_classic/HellaSwag": 0.781,
+        "helm_classic/OpenbookQA": 0.542,
+        "helm_classic/TruthfulQA": 0.348,
+        "helm_classic/MS MARCO (TREC)": 0.514,
+        "helm_classic/CNN/DailyMail": 0.144,
+        "helm_classic/XSUM": 0.167,
+        "helm_classic/IMDB": 0.938,
+        "helm_classic/CivilComments": 0.547,
+        "helm_classic/RAFT": 0.712
+      }
+    },
+    {
+      "id": "ai21/Jurassic-2-Jumbo-178B",
+      "name": "Jurassic-2 Jumbo 178B",
+      "developer": "ai21",
+      "evaluator_relationship": null,
+      "benchmark_scores": {
+        "helm_classic/Mean win rate": 0.824,
+        "helm_classic/MMLU": 0.48,
+        "helm_classic/BoolQ": 0.829,
+        "helm_classic/NarrativeQA": 0.733,
+        "helm_classic/NaturalQuestions (open-book)": 0.669,
+        "helm_classic/QuAC": 0.435,
+        "helm_classic/HellaSwag": 0.788,
+        "helm_classic/OpenbookQA": 0.558,
+        "helm_classic/TruthfulQA": 0.437,
+        "helm_classic/MS MARCO (TREC)": 0.661,
+        "helm_classic/CNN/DailyMail": 0.149,
+        "helm_classic/XSUM": 0.182,
+        "helm_classic/IMDB": 0.938,
+        "helm_classic/CivilComments": 0.57,
+        "helm_classic/RAFT": 0.746
+      }
+    },
+    {
+      "id": "ai21/Jurassic-2-Large-7.5B",
+      "name": "Jurassic-2 Large 7.5B",
+      "developer": "ai21",
+      "evaluator_relationship": null,
+      "benchmark_scores": {
+        "helm_classic/Mean win rate": 0.553,
+        "helm_classic/MMLU": 0.339,
+        "helm_classic/BoolQ": 0.742,
+        "helm_classic/NarrativeQA": -1.0,
+        "helm_classic/NaturalQuestions (open-book)": 0.589,
+        "helm_classic/QuAC": -1.0,
+        "helm_classic/HellaSwag": 0.729,
+        "helm_classic/OpenbookQA": 0.53,
+        "helm_classic/TruthfulQA": 0.245,
+        "helm_classic/MS MARCO (TREC)": 0.464,
+        "helm_classic/CNN/DailyMail": 0.136,
+        "helm_classic/XSUM": 0.142,
+        "helm_classic/IMDB": 0.956,
+        "helm_classic/CivilComments": 0.57,
+        "helm_classic/RAFT": 0.622
       }
     }
   ]

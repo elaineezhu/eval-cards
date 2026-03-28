@@ -198,6 +198,20 @@
       }
     },
     {
+      "id": "braindao/iq-code-evmind-0.5b",
+      "name": "iq-code-evmind-0.5b",
+      "developer": "braindao",
+      "evaluator_relationship": null,
+      "benchmark_scores": {
+        "hfopenllm_v2/IFEval": 0.3216,
+        "hfopenllm_v2/BBH": 0.3164,
+        "hfopenllm_v2/MATH Level 5": 0.0242,
+        "hfopenllm_v2/GPQA": 0.2416,
+        "hfopenllm_v2/MUSR": 0.3304,
+        "hfopenllm_v2/MMLU-PRO": 0.1189
+      }
+    },
+    {
       "id": "braindao/Qwen2.5-14B",
       "name": "Qwen2.5-14B",
       "developer": "braindao",
@@ -223,20 +237,6 @@
         "hfopenllm_v2/GPQA": 0.3289,
         "hfopenllm_v2/MUSR": 0.414,
         "hfopenllm_v2/MMLU-PRO": 0.4889
-      }
-    },
-    {
-      "id": "braindao/iq-code-evmind-0.5b",
-      "name": "iq-code-evmind-0.5b",
-      "developer": "braindao",
-      "evaluator_relationship": null,
-      "benchmark_scores": {
-        "hfopenllm_v2/IFEval": 0.3216,
-        "hfopenllm_v2/BBH": 0.3164,
-        "hfopenllm_v2/MATH Level 5": 0.0242,
-        "hfopenllm_v2/GPQA": 0.2416,
-        "hfopenllm_v2/MUSR": 0.3304,
-        "hfopenllm_v2/MMLU-PRO": 0.1189
       }
     }
   ]

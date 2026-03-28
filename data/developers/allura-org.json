@@ -16,34 +16,6 @@
       }
     },
     {
-      "id": "allura-org/MN-12b-RP-Ink",
-      "name": "MN-12b-RP-Ink",
-      "developer": "allura-org",
-      "evaluator_relationship": null,
-      "benchmark_scores": {
-        "hfopenllm_v2/IFEval": 0.7186,
-        "hfopenllm_v2/BBH": 0.4834,
-        "hfopenllm_v2/MATH Level 5": 0.1186,
-        "hfopenllm_v2/GPQA": 0.2852,
-        "hfopenllm_v2/MUSR": 0.3818,
-        "hfopenllm_v2/MMLU-PRO": 0.3514
-      }
-    },
-    {
-      "id": "allura-org/MS-Meadowlark-22B",
-      "name": "MS-Meadowlark-22B",
-      "developer": "allura-org",
-      "evaluator_relationship": null,
-      "benchmark_scores": {
-        "hfopenllm_v2/IFEval": 0.6697,
-        "hfopenllm_v2/BBH": 0.5163,
-        "hfopenllm_v2/MATH Level 5": 0.1835,
-        "hfopenllm_v2/GPQA": 0.3255,
-        "hfopenllm_v2/MUSR": 0.3843,
-        "hfopenllm_v2/MMLU-PRO": 0.3823
-      }
-    },
-    {
       "id": "allura-org/Mistral-Small-24b-Sertraline-0304",
       "name": "Mistral-Small-24b-Sertraline-0304",
       "developer": "allura-org",
@@ -72,6 +44,20 @@
       }
     },
     {
+      "id": "allura-org/MN-12b-RP-Ink",
+      "name": "MN-12b-RP-Ink",
+      "developer": "allura-org",
+      "evaluator_relationship": null,
+      "benchmark_scores": {
+        "hfopenllm_v2/IFEval": 0.7186,
+        "hfopenllm_v2/BBH": 0.4834,
+        "hfopenllm_v2/MATH Level 5": 0.1186,
+        "hfopenllm_v2/GPQA": 0.2852,
+        "hfopenllm_v2/MUSR": 0.3818,
+        "hfopenllm_v2/MMLU-PRO": 0.3514
+      }
+    },
+    {
       "id": "allura-org/MoE-Girl-1BA-7BT",
       "name": "MoE-Girl-1BA-7BT",
       "developer": "allura-org",
@@ -83,6 +69,34 @@
         "hfopenllm_v2/GPQA": 0.2584,
         "hfopenllm_v2/MUSR": 0.3436,
         "hfopenllm_v2/MMLU-PRO": 0.1218
+      }
+    },
+    {
+      "id": "allura-org/MS-Meadowlark-22B",
+      "name": "MS-Meadowlark-22B",
+      "developer": "allura-org",
+      "evaluator_relationship": null,
+      "benchmark_scores": {
+        "hfopenllm_v2/IFEval": 0.6697,
+        "hfopenllm_v2/BBH": 0.5163,
+        "hfopenllm_v2/MATH Level 5": 0.1835,
+        "hfopenllm_v2/GPQA": 0.3255,
+        "hfopenllm_v2/MUSR": 0.3843,
+        "hfopenllm_v2/MMLU-PRO": 0.3823
+      }
+    },
+    {
+      "id": "allura-org/Teleut-7b",
+      "name": "Teleut-7b",
+      "developer": "allura-org",
+      "evaluator_relationship": null,
+      "benchmark_scores": {
+        "hfopenllm_v2/IFEval": 0.6379,
+        "hfopenllm_v2/BBH": 0.5141,
+        "hfopenllm_v2/MATH Level 5": 0.2409,
+        "hfopenllm_v2/GPQA": 0.3263,
+        "hfopenllm_v2/MUSR": 0.464,
+        "hfopenllm_v2/MMLU-PRO": 0.4131
       }
     },
     {
@@ -111,20 +125,6 @@
         "hfopenllm_v2/GPQA": 0.3716,
         "hfopenllm_v2/MUSR": 0.461,
         "hfopenllm_v2/MMLU-PRO": 0.5253
-      }
-    },
-    {
-      "id": "allura-org/Teleut-7b",
-      "name": "Teleut-7b",
-      "developer": "allura-org",
-      "evaluator_relationship": null,
-      "benchmark_scores": {
-        "hfopenllm_v2/IFEval": 0.6379,
-        "hfopenllm_v2/BBH": 0.5141,
-        "hfopenllm_v2/MATH Level 5": 0.2409,
-        "hfopenllm_v2/GPQA": 0.3263,
-        "hfopenllm_v2/MUSR": 0.464,
-        "hfopenllm_v2/MMLU-PRO": 0.4131
       }
     }
   ]

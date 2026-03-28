@@ -16,48 +16,6 @@
       }
     },
     {
-      "id": "ontocord/RedPajama-3B-v1-AutoRedteam",
-      "name": "RedPajama-3B-v1-AutoRedteam",
-      "developer": "ontocord",
-      "evaluator_relationship": null,
-      "benchmark_scores": {
-        "hfopenllm_v2/IFEval": 0.1343,
-        "hfopenllm_v2/BBH": 0.3026,
-        "hfopenllm_v2/MATH Level 5": 0.0091,
-        "hfopenllm_v2/GPQA": 0.2424,
-        "hfopenllm_v2/MUSR": 0.3661,
-        "hfopenllm_v2/MMLU-PRO": 0.1108
-      }
-    },
-    {
-      "id": "ontocord/RedPajama-3B-v1-AutoRedteam-Harmless-only",
-      "name": "RedPajama-3B-v1-AutoRedteam-Harmless-only",
-      "developer": "ontocord",
-      "evaluator_relationship": null,
-      "benchmark_scores": {
-        "hfopenllm_v2/IFEval": 0.1525,
-        "hfopenllm_v2/BBH": 0.3124,
-        "hfopenllm_v2/MATH Level 5": 0.006,
-        "hfopenllm_v2/GPQA": 0.2315,
-        "hfopenllm_v2/MUSR": 0.3661,
-        "hfopenllm_v2/MMLU-PRO": 0.11
-      }
-    },
-    {
-      "id": "ontocord/RedPajama3b_v1-autoredteam_helpfulness-train",
-      "name": "RedPajama3b_v1-autoredteam_helpfulness-train",
-      "developer": "ontocord",
-      "evaluator_relationship": null,
-      "benchmark_scores": {
-        "hfopenllm_v2/IFEval": 0.2848,
-        "hfopenllm_v2/BBH": 0.3093,
-        "hfopenllm_v2/MATH Level 5": 0.0068,
-        "hfopenllm_v2/GPQA": 0.2458,
-        "hfopenllm_v2/MUSR": 0.358,
-        "hfopenllm_v2/MMLU-PRO": 0.1107
-      }
-    },
-    {
       "id": "ontocord/merged_0.2_expert_0.8",
       "name": "merged_0.2_expert_0.8",
       "developer": "ontocord",
@@ -139,6 +97,48 @@
         "hfopenllm_v2/GPQA": 0.2466,
         "hfopenllm_v2/MUSR": 0.3538,
         "hfopenllm_v2/MMLU-PRO": 0.1117
+      }
+    },
+    {
+      "id": "ontocord/RedPajama-3B-v1-AutoRedteam",
+      "name": "RedPajama-3B-v1-AutoRedteam",
+      "developer": "ontocord",
+      "evaluator_relationship": null,
+      "benchmark_scores": {
+        "hfopenllm_v2/IFEval": 0.1343,
+        "hfopenllm_v2/BBH": 0.3026,
+        "hfopenllm_v2/MATH Level 5": 0.0091,
+        "hfopenllm_v2/GPQA": 0.2424,
+        "hfopenllm_v2/MUSR": 0.3661,
+        "hfopenllm_v2/MMLU-PRO": 0.1108
+      }
+    },
+    {
+      "id": "ontocord/RedPajama-3B-v1-AutoRedteam-Harmless-only",
+      "name": "RedPajama-3B-v1-AutoRedteam-Harmless-only",
+      "developer": "ontocord",
+      "evaluator_relationship": null,
+      "benchmark_scores": {
+        "hfopenllm_v2/IFEval": 0.1525,
+        "hfopenllm_v2/BBH": 0.3124,
+        "hfopenllm_v2/MATH Level 5": 0.006,
+        "hfopenllm_v2/GPQA": 0.2315,
+        "hfopenllm_v2/MUSR": 0.3661,
+        "hfopenllm_v2/MMLU-PRO": 0.11
+      }
+    },
+    {
+      "id": "ontocord/RedPajama3b_v1-autoredteam_helpfulness-train",
+      "name": "RedPajama3b_v1-autoredteam_helpfulness-train",
+      "developer": "ontocord",
+      "evaluator_relationship": null,
+      "benchmark_scores": {
+        "hfopenllm_v2/IFEval": 0.2848,
+        "hfopenllm_v2/BBH": 0.3093,
+        "hfopenllm_v2/MATH Level 5": 0.0068,
+        "hfopenllm_v2/GPQA": 0.2458,
+        "hfopenllm_v2/MUSR": 0.358,
+        "hfopenllm_v2/MMLU-PRO": 0.1107
       }
     },
     {
@@ -273,12 +273,12 @@
       "developer": "ontocord",
       "evaluator_relationship": null,
       "benchmark_scores": {
-        "hfopenllm_v2/IFEval": 0.1128,
-        "hfopenllm_v2/BBH": 0.3171,
-        "hfopenllm_v2/MATH Level 5": 0.0113,
-        "hfopenllm_v2/GPQA": 0.2685,
-        "hfopenllm_v2/MUSR": 0.346,
-        "hfopenllm_v2/MMLU-PRO": 0.1129
+        "hfopenllm_v2/IFEval": 0.1162,
+        "hfopenllm_v2/BBH": 0.3184,
+        "hfopenllm_v2/MATH Level 5": 0.0076,
+        "hfopenllm_v2/GPQA": 0.2634,
+        "hfopenllm_v2/MUSR": 0.3447,
+        "hfopenllm_v2/MMLU-PRO": 0.1124
       }
     },
     {

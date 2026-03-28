@@ -2,6 +2,20 @@
   "developer": "Corianas",
   "models": [
     {
+      "id": "Corianas/llama-3-reactor",
+      "name": "llama-3-reactor",
+      "developer": "Corianas",
+      "evaluator_relationship": null,
+      "benchmark_scores": {
+        "hfopenllm_v2/IFEval": 0.23,
+        "hfopenllm_v2/BBH": 0.4457,
+        "hfopenllm_v2/MATH Level 5": 0.0468,
+        "hfopenllm_v2/GPQA": 0.2978,
+        "hfopenllm_v2/MUSR": 0.3977,
+        "hfopenllm_v2/MMLU-PRO": 0.2801
+      }
+    },
+    {
       "id": "Corianas/Neural-Mistral-7B",
       "name": "Neural-Mistral-7B",
       "developer": "Corianas",
@@ -27,20 +41,6 @@
         "hfopenllm_v2/GPQA": 0.2559,
         "hfopenllm_v2/MUSR": 0.3908,
         "hfopenllm_v2/MMLU-PRO": 0.1145
-      }
-    },
-    {
-      "id": "Corianas/llama-3-reactor",
-      "name": "llama-3-reactor",
-      "developer": "Corianas",
-      "evaluator_relationship": null,
-      "benchmark_scores": {
-        "hfopenllm_v2/IFEval": 0.23,
-        "hfopenllm_v2/BBH": 0.4457,
-        "hfopenllm_v2/MATH Level 5": 0.0468,
-        "hfopenllm_v2/GPQA": 0.2978,
-        "hfopenllm_v2/MUSR": 0.3977,
-        "hfopenllm_v2/MMLU-PRO": 0.2801
       }
     }
   ]

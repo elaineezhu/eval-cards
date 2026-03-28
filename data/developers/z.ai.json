@@ -1,10 +1,10 @@
 {
-  "developer": "Z.AI",
+  "developer": "Z.ai",
   "models": [
     {
       "id": "z-ai/glm-4.5",
       "name": "z-ai/glm-4.5",
-      "developer": "Z.AI",
+      "developer": "Z.ai",
       "evaluator_relationship": null,
       "benchmark_scores": {
         "livecodebenchpro/Hard Problems": 0.0,

@@ -2,6 +2,20 @@
   "developer": "xinchen9",
   "models": [
     {
+      "id": "xinchen9/llama3-b8-ft-dis",
+      "name": "llama3-b8-ft-dis",
+      "developer": "xinchen9",
+      "evaluator_relationship": null,
+      "benchmark_scores": {
+        "hfopenllm_v2/IFEval": 0.1546,
+        "hfopenllm_v2/BBH": 0.4626,
+        "hfopenllm_v2/MATH Level 5": 0.0393,
+        "hfopenllm_v2/GPQA": 0.3129,
+        "hfopenllm_v2/MUSR": 0.3654,
+        "hfopenllm_v2/MMLU-PRO": 0.3244
+      }
+    },
+    {
       "id": "xinchen9/Llama3.1_8B_Instruct_CoT",
       "name": "Llama3.1_8B_Instruct_CoT",
       "developer": "xinchen9",
@@ -55,20 +69,6 @@
         "hfopenllm_v2/GPQA": 0.2492,
         "hfopenllm_v2/MUSR": 0.3994,
         "hfopenllm_v2/MMLU-PRO": 0.2284
-      }
-    },
-    {
-      "id": "xinchen9/llama3-b8-ft-dis",
-      "name": "llama3-b8-ft-dis",
-      "developer": "xinchen9",
-      "evaluator_relationship": null,
-      "benchmark_scores": {
-        "hfopenllm_v2/IFEval": 0.1546,
-        "hfopenllm_v2/BBH": 0.4626,
-        "hfopenllm_v2/MATH Level 5": 0.0393,
-        "hfopenllm_v2/GPQA": 0.3129,
-        "hfopenllm_v2/MUSR": 0.3654,
-        "hfopenllm_v2/MMLU-PRO": 0.3244
       }
     }
   ]

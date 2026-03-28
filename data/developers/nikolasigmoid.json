@@ -30,20 +30,6 @@
       }
     },
     {
-      "id": "NikolaSigmoid/DeepSeek-R1-Distill-Qwen-1.5B-500",
-      "name": "DeepSeek-R1-Distill-Qwen-1.5B-500",
-      "developer": "NikolaSigmoid",
-      "evaluator_relationship": null,
-      "benchmark_scores": {
-        "hfopenllm_v2/IFEval": 0.1749,
-        "hfopenllm_v2/BBH": 0.2602,
-        "hfopenllm_v2/MATH Level 5": 0.0,
-        "hfopenllm_v2/GPQA": 0.2458,
-        "hfopenllm_v2/MUSR": 0.338,
-        "hfopenllm_v2/MMLU-PRO": 0.1125
-      }
-    },
-    {
       "id": "NikolaSigmoid/acemath-200",
       "name": "acemath-200",
       "developer": "NikolaSigmoid",
@@ -55,6 +41,20 @@
         "hfopenllm_v2/GPQA": 0.2777,
         "hfopenllm_v2/MUSR": 0.3925,
         "hfopenllm_v2/MMLU-PRO": 0.2376
+      }
+    },
+    {
+      "id": "NikolaSigmoid/DeepSeek-R1-Distill-Qwen-1.5B-500",
+      "name": "DeepSeek-R1-Distill-Qwen-1.5B-500",
+      "developer": "NikolaSigmoid",
+      "evaluator_relationship": null,
+      "benchmark_scores": {
+        "hfopenllm_v2/IFEval": 0.1749,
+        "hfopenllm_v2/BBH": 0.2602,
+        "hfopenllm_v2/MATH Level 5": 0.0,
+        "hfopenllm_v2/GPQA": 0.2458,
+        "hfopenllm_v2/MUSR": 0.338,
+        "hfopenllm_v2/MMLU-PRO": 0.1125
       }
     },
     {

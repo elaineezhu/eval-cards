@@ -2,7 +2,7 @@
   "model_info": {
     "name": "PaLM-2 Unicorn",
     "id": "google/text-unicorn@001",
-    "developer": "google",
+    "developer": "Google",
     "inference_platform": "unknown"
   },
   "evaluations": [

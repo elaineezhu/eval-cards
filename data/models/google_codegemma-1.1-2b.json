@@ -2,7 +2,7 @@
   "model_info": {
     "name": "codegemma-1.1-2b",
     "id": "google/codegemma-1.1-2b",
-    "developer": "google",
+    "developer": "Google",
     "inference_platform": "unknown",
     "additional_details": {
       "precision": "bfloat16",

@@ -2,7 +2,7 @@
   "model_info": {
     "name": "GPT-3.5 text-davinci-002",
     "id": "openai/text-davinci-002",
-    "developer": "openai",
+    "developer": "OpenAI",
     "inference_platform": "unknown"
   },
   "evaluations": [

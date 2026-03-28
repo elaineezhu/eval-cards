@@ -1,14 +1,9 @@
 {
   "model_info": {
-    "name": "dbrx-instruct",
+    "name": "DBRX Instruct",
     "id": "databricks/dbrx-instruct",
     "developer": "databricks",
-    "inference_platform": "unknown",
-    "additional_details": {
-      "precision": "bfloat16",
-      "architecture": "DbrxForCausalLM",
-      "params_billions": "131.597"
-    }
+    "inference_platform": "unknown"
   },
   "evaluations": [
     {

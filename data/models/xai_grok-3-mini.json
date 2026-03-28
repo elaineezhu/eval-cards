@@ -2,7 +2,7 @@
   "model_info": {
     "name": "grok-3-mini",
     "id": "xai/grok-3-mini",
-    "developer": "xai",
+    "developer": "xAI",
     "inference_platform": "unknown",
     "additional_details": {
       "display_name": "Grok 3 Mini"

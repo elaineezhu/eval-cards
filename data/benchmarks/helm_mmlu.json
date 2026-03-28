@@ -476,7 +476,7 @@
     {
       "model_id": "anthropic/claude-2.1",
       "name": "Claude 2.1",
-      "developer": "anthropic",
+      "developer": "Anthropic",
       "scores": {
         "MMLU All Subjects": 0.735,
         "Abstract Algebra": 0.4,
@@ -518,8 +518,8 @@
     },
     {
       "model_id": "anthropic/claude-3-5-haiku-20241022",
-      "name": "claude-3-5-haiku-20241022",
-      "developer": "anthropic",
+      "name": "Claude 3.5 Haiku 20241022",
+      "developer": "Anthropic",
       "scores": {
         "MMLU All Subjects": 0.743,
         "Abstract Algebra": 0.47,
@@ -562,7 +562,7 @@
     {
       "model_id": "anthropic/claude-3-5-sonnet-20240620",
       "name": "Claude 3.5 Sonnet 20240620",
-      "developer": "anthropic",
+      "developer": "Anthropic",
       "scores": {
         "MMLU All Subjects": 0.865,
         "Abstract Algebra": 0.75,
@@ -605,7 +605,7 @@
     {
       "model_id": "anthropic/claude-3-5-sonnet-20241022",
       "name": "Claude 3.5 Sonnet 20241022",
-      "developer": "anthropic",
+      "developer": "Anthropic",
       "scores": {
         "MMLU All Subjects": 0.873,
         "Abstract Algebra": 0.78,
@@ -648,7 +648,7 @@
     {
       "model_id": "anthropic/claude-3-haiku-20240307",
       "name": "Claude 3 Haiku 20240307",
-      "developer": "anthropic",
+      "developer": "Anthropic",
       "scores": {
         "MMLU All Subjects": 0.738,
         "Abstract Algebra": 0.42,
@@ -691,7 +691,7 @@
     {
       "model_id": "anthropic/claude-3-opus-20240229",
       "name": "Claude 3 Opus 20240229",
-      "developer": "anthropic",
+      "developer": "Anthropic",
       "scores": {
         "MMLU All Subjects": 0.846,
         "Abstract Algebra": 0.64,
@@ -734,7 +734,7 @@
     {
       "model_id": "anthropic/claude-3-sonnet-20240229",
       "name": "Claude 3 Sonnet 20240229",
-      "developer": "anthropic",
+      "developer": "Anthropic",
       "scores": {
         "MMLU All Subjects": 0.759,
         "Abstract Algebra": 0.39,
@@ -777,7 +777,7 @@
     {
       "model_id": "anthropic/claude-instant-1.2",
       "name": "Claude Instant 1.2",
-      "developer": "anthropic",
+      "developer": "Anthropic",
       "scores": {
         "MMLU All Subjects": 0.688,
         "Abstract Algebra": 0.37,
@@ -1035,7 +1035,7 @@
     {
       "model_id": "google/gemini-1.0-pro-001",
       "name": "Gemini 1.0 Pro 001",
-      "developer": "google",
+      "developer": "Google",
       "scores": {
         "MMLU All Subjects": 0.7,
         "Abstract Algebra": 0.34,
@@ -1078,7 +1078,7 @@
     {
       "model_id": "google/gemini-1.5-flash-001",
       "name": "Gemini 1.5 Flash 001",
-      "developer": "google",
+      "developer": "Google",
       "scores": {
         "MMLU All Subjects": 0.779,
         "Abstract Algebra": 0.58,
@@ -1121,7 +1121,7 @@
     {
       "model_id": "google/gemini-1.5-flash-002",
       "name": "Gemini 1.5 Flash 002",
-      "developer": "google",
+      "developer": "Google",
       "scores": {
         "MMLU All Subjects": 0.739,
         "Abstract Algebra": 0.63,
@@ -1164,7 +1164,7 @@
     {
       "model_id": "google/gemini-1.5-flash-preview-0514",
       "name": "Gemini 1.5 Flash 0514 preview",
-      "developer": "google",
+      "developer": "Google",
       "scores": {
         "MMLU All Subjects": 0.778,
         "Abstract Algebra": 0.56,
@@ -1207,7 +1207,7 @@
     {
       "model_id": "google/gemini-1.5-pro-001",
       "name": "Gemini 1.5 Pro 001",
-      "developer": "google",
+      "developer": "Google",
       "scores": {
         "MMLU All Subjects": 0.827,
         "Abstract Algebra": 0.75,
@@ -1250,7 +1250,7 @@
     {
       "model_id": "google/gemini-1.5-pro-002",
       "name": "Gemini 1.5 Pro 002",
-      "developer": "google",
+      "developer": "Google",
       "scores": {
         "MMLU All Subjects": 0.869,
         "Abstract Algebra": 0.82,
@@ -1293,7 +1293,7 @@
     {
       "model_id": "google/gemini-1.5-pro-preview-0409",
       "name": "Gemini 1.5 Pro 0409 preview",
-      "developer": "google",
+      "developer": "Google",
       "scores": {
         "MMLU All Subjects": 0.81,
         "Abstract Algebra": 0.6,
@@ -1336,7 +1336,7 @@
     {
       "model_id": "google/gemini-2.0-flash-exp",
       "name": "Gemini 2.0 Flash Experimental",
-      "developer": "google",
+      "developer": "Google",
       "scores": {
         "MMLU All Subjects": 0.797,
         "Abstract Algebra": 0.72,
@@ -1379,7 +1379,7 @@
     {
       "model_id": "google/gemma-2-27b",
       "name": "Gemma 2 27B",
-      "developer": "google",
+      "developer": "Google",
       "scores": {
         "MMLU All Subjects": 0.757,
         "Abstract Algebra": 0.4,
@@ -1422,7 +1422,7 @@
     {
       "model_id": "google/gemma-2-9b",
       "name": "Gemma 2 9B",
-      "developer": "google",
+      "developer": "Google",
       "scores": {
         "MMLU All Subjects": 0.721,
         "Abstract Algebra": 0.4,
@@ -1465,7 +1465,7 @@
     {
       "model_id": "google/gemma-7b",
       "name": "Gemma 7B",
-      "developer": "google",
+      "developer": "Google",
       "scores": {
         "MMLU All Subjects": 0.661,
         "Abstract Algebra": 0.28,
@@ -1508,7 +1508,7 @@
     {
       "model_id": "google/text-bison@001",
       "name": "PaLM-2 Bison",
-      "developer": "google",
+      "developer": "Google",
       "scores": {
         "MMLU All Subjects": 0.692,
         "Abstract Algebra": 0.39,
@@ -1551,7 +1551,7 @@
     {
       "model_id": "google/text-unicorn@001",
       "name": "PaLM-2 Unicorn",
-      "developer": "google",
+      "developer": "Google",
       "scores": {
         "MMLU All Subjects": 0.786,
         "Abstract Algebra": 0.51,
@@ -1594,7 +1594,7 @@
     {
       "model_id": "meta/llama-2-13b",
       "name": "Llama 2 13B",
-      "developer": "meta",
+      "developer": "Meta",
       "scores": {
         "MMLU All Subjects": 0.554,
         "Abstract Algebra": 0.27,
@@ -1637,7 +1637,7 @@
     {
       "model_id": "meta/llama-2-70b",
       "name": "Llama 2 70B",
-      "developer": "meta",
+      "developer": "Meta",
       "scores": {
         "MMLU All Subjects": 0.695,
         "Abstract Algebra": 0.31,
@@ -1680,7 +1680,7 @@
     {
       "model_id": "meta/llama-2-7b",
       "name": "Llama 2 7B",
-      "developer": "meta",
+      "developer": "Meta",
       "scores": {
         "MMLU All Subjects": 0.458,
         "Abstract Algebra": 0.29,
@@ -1723,7 +1723,7 @@
     {
       "model_id": "meta/llama-3-70b",
       "name": "Llama 3 70B",
-      "developer": "meta",
+      "developer": "Meta",
       "scores": {
         "MMLU All Subjects": 0.793,
         "Abstract Algebra": 0.43,
@@ -1766,7 +1766,7 @@
     {
       "model_id": "meta/llama-3-8b",
       "name": "Llama 3 8B",
-      "developer": "meta",
+      "developer": "Meta",
       "scores": {
         "MMLU All Subjects": 0.668,
         "Abstract Algebra": 0.33,
@@ -1809,7 +1809,7 @@
     {
       "model_id": "meta/llama-3.1-405b-instruct-turbo",
       "name": "Llama 3.1 Instruct Turbo 405B",
-      "developer": "meta",
+      "developer": "Meta",
       "scores": {
         "MMLU All Subjects": 0.845,
         "Abstract Algebra": 0.7,
@@ -1852,7 +1852,7 @@
     {
       "model_id": "meta/llama-3.1-70b-instruct-turbo",
       "name": "Llama 3.1 Instruct Turbo 70B",
-      "developer": "meta",
+      "developer": "Meta",
       "scores": {
         "MMLU All Subjects": 0.801,
         "Abstract Algebra": 0.55,
@@ -1895,7 +1895,7 @@
     {
       "model_id": "meta/llama-3.1-8b-instruct-turbo",
       "name": "Llama 3.1 Instruct Turbo 8B",
-      "developer": "meta",
+      "developer": "Meta",
       "scores": {
         "MMLU All Subjects": 0.561,
         "Abstract Algebra": 0.26,
@@ -1938,7 +1938,7 @@
     {
       "model_id": "meta/llama-3.2-11b-vision-instruct-turbo",
       "name": "Llama 3.2 Vision Instruct Turbo 11B",
-      "developer": "meta",
+      "developer": "Meta",
       "scores": {
         "MMLU All Subjects": 0.565,
         "Abstract Algebra": 0.28,
@@ -1981,7 +1981,7 @@
     {
       "model_id": "meta/llama-3.2-90b-vision-instruct-turbo",
       "name": "Llama 3.2 Vision Instruct Turbo 90B",
-      "developer": "meta",
+      "developer": "Meta",
       "scores": {
         "MMLU All Subjects": 0.803,
         "Abstract Algebra": 0.52,
@@ -2024,7 +2024,7 @@
     {
       "model_id": "meta/llama-3.3-70b-instruct-turbo",
       "name": "Llama 3.3 Instruct Turbo 70B",
-      "developer": "meta",
+      "developer": "Meta",
       "scores": {
         "MMLU All Subjects": 0.791,
         "Abstract Algebra": 0.5,
@@ -2540,7 +2540,7 @@
     {
       "model_id": "openai/gpt-3.5-turbo-0125",
       "name": "GPT-3.5 Turbo 0125",
-      "developer": "openai",
+      "developer": "OpenAI",
       "scores": {
         "MMLU All Subjects": 0.673,
         "Abstract Algebra": 0.31,
@@ -2582,8 +2582,8 @@
     },
     {
       "model_id": "openai/gpt-3.5-turbo-0613",
-      "name": "gpt-3.5-turbo-0613",
-      "developer": "openai",
+      "name": "GPT-3.5 Turbo 0613",
+      "developer": "OpenAI",
       "scores": {
         "MMLU All Subjects": 0.689,
         "Abstract Algebra": 0.38,
@@ -2626,7 +2626,7 @@
     {
       "model_id": "openai/gpt-4-0613",
       "name": "GPT-4 0613",
-      "developer": "openai",
+      "developer": "OpenAI",
       "scores": {
         "MMLU All Subjects": 0.824,
         "Abstract Algebra": 0.63,
@@ -2669,7 +2669,7 @@
     {
       "model_id": "openai/gpt-4-1106-preview",
       "name": "GPT-4 Turbo 1106 preview",
-      "developer": "openai",
+      "developer": "OpenAI",
       "scores": {
         "MMLU All Subjects": 0.796,
         "Abstract Algebra": 0.53,
@@ -2712,7 +2712,7 @@
     {
       "model_id": "openai/gpt-4-turbo-2024-04-09",
       "name": "GPT-4 Turbo 2024-04-09",
-      "developer": "openai",
+      "developer": "OpenAI",
       "scores": {
         "MMLU All Subjects": 0.813,
         "Abstract Algebra": 0.56,
@@ -2755,7 +2755,7 @@
     {
       "model_id": "openai/gpt-4o-2024-05-13",
       "name": "GPT-4o 2024-05-13",
-      "developer": "openai",
+      "developer": "OpenAI",
       "scores": {
         "MMLU All Subjects": 0.842,
         "Abstract Algebra": 0.66,
@@ -2798,7 +2798,7 @@
     {
       "model_id": "openai/gpt-4o-2024-08-06",
       "name": "GPT-4o 2024-08-06",
-      "developer": "openai",
+      "developer": "OpenAI",
       "scores": {
         "MMLU All Subjects": 0.843,
         "Abstract Algebra": 0.58,
@@ -2841,7 +2841,7 @@
     {
       "model_id": "openai/gpt-4o-mini-2024-07-18",
       "name": "GPT-4o mini 2024-07-18",
-      "developer": "openai",
+      "developer": "OpenAI",
       "scores": {
         "MMLU All Subjects": 0.767,
         "Abstract Algebra": 0.42,

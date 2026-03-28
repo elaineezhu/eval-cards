@@ -1,11 +1,9 @@
 {
   "model_info": {
-    "name": "google/gemini-2.5-flash-preview-04-17",
+    "name": "Gemini 2.5 Flash 04-17 preview",
     "id": "google/gemini-2.5-flash-preview-04-17",
-    "developer": "google",
-    "additional_details": {
-      "model_type": "Generative RM"
-    }
+    "developer": "Google",
+    "inference_platform": "unknown"
   },
   "evaluations": [
     {

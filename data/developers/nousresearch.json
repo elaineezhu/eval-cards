@@ -59,7 +59,7 @@
     },
     {
       "id": "NousResearch/Hermes-3-Llama-3.1-70B",
-      "name": "Hermes-3-Llama-3.1-70B",
+      "name": "NousResearch/Hermes-3-Llama-3.1-70B",
       "developer": "NousResearch",
       "evaluator_relationship": null,
       "benchmark_scores": {
@@ -106,7 +106,7 @@
     },
     {
       "id": "NousResearch/Nous-Hermes-2-Mistral-7B-DPO",
-      "name": "Nous-Hermes-2-Mistral-7B-DPO",
+      "name": "NousResearch/Nous-Hermes-2-Mistral-7B-DPO",
       "developer": "NousResearch",
       "evaluator_relationship": null,
       "benchmark_scores": {
@@ -126,7 +126,7 @@
     },
     {
       "id": "NousResearch/Nous-Hermes-2-Mixtral-8x7B-DPO",
-      "name": "Nous-Hermes-2-Mixtral-8x7B-DPO",
+      "name": "NousResearch/Nous-Hermes-2-Mixtral-8x7B-DPO",
       "developer": "NousResearch",
       "evaluator_relationship": null,
       "benchmark_scores": {

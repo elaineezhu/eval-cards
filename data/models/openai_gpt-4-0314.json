@@ -2,7 +2,7 @@
   "model_info": {
     "name": "GPT-4 0314",
     "id": "openai/gpt-4-0314",
-    "developer": "openai",
+    "developer": "OpenAI",
     "inference_platform": "unknown"
   },
   "evaluations": [

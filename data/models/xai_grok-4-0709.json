@@ -1,14 +1,17 @@
 {
   "model_info": {
-    "name": "Grok 4 0709",
+    "name": "grok-4-0709",
     "id": "xai/grok-4-0709",
-    "developer": "xai",
-    "inference_platform": "unknown"
+    "developer": "xAI",
+    "inference_platform": "unknown",
+    "additional_details": {
+      "display_name": "Grok 4"
+    }
   },
   "evaluations": [
     {
-      "evaluation_id": "global-mmlu-lite/xai_grok-4-0709/1773936583.743359",
-      "retrieved_timestamp": "1773936583.743359",
+      "evaluation_id": "global-mmlu-lite/xai_grok-4-0709/1773936496.366405",
+      "retrieved_timestamp": "1773936496.366405",
       "source_metadata": {
         "source_name": "Global MMLU Lite Leaderboard",
         "source_type": "documentation",
@@ -522,8 +525,8 @@
       "generation_config": null
     },
     {
-      "evaluation_id": "global-mmlu-lite/xai_grok-4-0709/1773936496.366405",
-      "retrieved_timestamp": "1773936496.366405",
+      "evaluation_id": "global-mmlu-lite/xai_grok-4-0709/1773936583.743359",
+      "retrieved_timestamp": "1773936583.743359",
       "source_metadata": {
         "source_name": "Global MMLU Lite Leaderboard",
         "source_type": "documentation",

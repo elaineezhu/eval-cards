@@ -1,14 +1,9 @@
 {
   "model_info": {
-    "name": "gemma-7b",
+    "name": "Gemma 7B",
     "id": "google/gemma-7b",
-    "developer": "google",
-    "inference_platform": "unknown",
-    "additional_details": {
-      "precision": "bfloat16",
-      "architecture": "GemmaForCausalLM",
-      "params_billions": "8.538"
-    }
+    "developer": "Google",
+    "inference_platform": "unknown"
   },
   "evaluations": [
     {

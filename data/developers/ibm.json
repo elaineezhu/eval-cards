@@ -2,20 +2,6 @@
   "developer": "ibm",
   "models": [
     {
-      "id": "ibm/PowerLM-3b",
-      "name": "PowerLM-3b",
-      "developer": "ibm",
-      "evaluator_relationship": null,
-      "benchmark_scores": {
-        "hfopenllm_v2/IFEval": 0.3321,
-        "hfopenllm_v2/BBH": 0.3679,
-        "hfopenllm_v2/MATH Level 5": 0.0363,
-        "hfopenllm_v2/GPQA": 0.2752,
-        "hfopenllm_v2/MUSR": 0.3563,
-        "hfopenllm_v2/MMLU-PRO": 0.2016
-      }
-    },
-    {
       "id": "ibm/granite-3.3-8b-instruct",
       "name": "IBM Granite 3.3 8B Instruct",
       "developer": "ibm",
@@ -68,6 +54,20 @@
         "hfopenllm_v2/GPQA": 0.297,
         "hfopenllm_v2/MUSR": 0.4412,
         "hfopenllm_v2/MMLU-PRO": 0.3068
+      }
+    },
+    {
+      "id": "ibm/PowerLM-3b",
+      "name": "PowerLM-3b",
+      "developer": "ibm",
+      "evaluator_relationship": null,
+      "benchmark_scores": {
+        "hfopenllm_v2/IFEval": 0.3321,
+        "hfopenllm_v2/BBH": 0.3679,
+        "hfopenllm_v2/MATH Level 5": 0.0363,
+        "hfopenllm_v2/GPQA": 0.2752,
+        "hfopenllm_v2/MUSR": 0.3563,
+        "hfopenllm_v2/MMLU-PRO": 0.2016
       }
     }
   ]

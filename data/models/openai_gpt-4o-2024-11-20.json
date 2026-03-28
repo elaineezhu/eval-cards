@@ -1,9 +1,9 @@
 {
   "model_info": {
-    "name": "openai/gpt-4o-2024-11-20",
+    "name": "GPT-4o 2024-11-20",
+    "id": "openai/gpt-4o-2024-11-20",
     "developer": "OpenAI",
-    "inference_platform": "openrouter",
-    "id": "openai/gpt-4o-2024-11-20"
+    "inference_platform": "unknown"
   },
   "evaluations": [
     {

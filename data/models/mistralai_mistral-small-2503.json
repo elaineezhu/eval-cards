@@ -1,9 +1,12 @@
 {
   "model_info": {
-    "name": "Mistral Small 3.1 2503",
+    "name": "mistral-small-2503",
     "id": "mistralai/mistral-small-2503",
     "developer": "mistralai",
-    "inference_platform": "unknown"
+    "inference_platform": "unknown",
+    "additional_details": {
+      "display_name": "Mistral Small 3.1"
+    }
   },
   "evaluations": [
     {

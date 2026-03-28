@@ -2,7 +2,7 @@
   "model_info": {
     "name": "gemma-1.1-2b-it",
     "id": "google/gemma-1.1-2b-it",
-    "developer": "google",
+    "developer": "Google",
     "inference_platform": "unknown",
     "additional_details": {
       "precision": "bfloat16",

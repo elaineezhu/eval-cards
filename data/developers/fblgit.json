@@ -2,62 +2,6 @@
   "developer": "fblgit",
   "models": [
     {
-      "id": "fblgit/TheBeagle-v2beta-32B-MGS",
-      "name": "TheBeagle-v2beta-32B-MGS",
-      "developer": "fblgit",
-      "evaluator_relationship": null,
-      "benchmark_scores": {
-        "hfopenllm_v2/IFEval": 0.5181,
-        "hfopenllm_v2/BBH": 0.7033,
-        "hfopenllm_v2/MATH Level 5": 0.4947,
-        "hfopenllm_v2/GPQA": 0.3826,
-        "hfopenllm_v2/MUSR": 0.5008,
-        "hfopenllm_v2/MMLU-PRO": 0.5915
-      }
-    },
-    {
-      "id": "fblgit/UNA-SimpleSmaug-34b-v1beta",
-      "name": "UNA-SimpleSmaug-34b-v1beta",
-      "developer": "fblgit",
-      "evaluator_relationship": null,
-      "benchmark_scores": {
-        "hfopenllm_v2/IFEval": 0.4556,
-        "hfopenllm_v2/BBH": 0.5287,
-        "hfopenllm_v2/MATH Level 5": 0.0718,
-        "hfopenllm_v2/GPQA": 0.3171,
-        "hfopenllm_v2/MUSR": 0.4256,
-        "hfopenllm_v2/MMLU-PRO": 0.454
-      }
-    },
-    {
-      "id": "fblgit/UNA-TheBeagle-7b-v1",
-      "name": "UNA-TheBeagle-7b-v1",
-      "developer": "fblgit",
-      "evaluator_relationship": null,
-      "benchmark_scores": {
-        "hfopenllm_v2/IFEval": 0.3689,
-        "hfopenllm_v2/BBH": 0.5029,
-        "hfopenllm_v2/MATH Level 5": 0.077,
-        "hfopenllm_v2/GPQA": 0.2844,
-        "hfopenllm_v2/MUSR": 0.4564,
-        "hfopenllm_v2/MMLU-PRO": 0.3019
-      }
-    },
-    {
-      "id": "fblgit/UNA-ThePitbull-21.4B-v2",
-      "name": "UNA-ThePitbull-21.4B-v2",
-      "developer": "fblgit",
-      "evaluator_relationship": null,
-      "benchmark_scores": {
-        "hfopenllm_v2/IFEval": 0.379,
-        "hfopenllm_v2/BBH": 0.635,
-        "hfopenllm_v2/MATH Level 5": 0.1216,
-        "hfopenllm_v2/GPQA": 0.302,
-        "hfopenllm_v2/MUSR": 0.3922,
-        "hfopenllm_v2/MMLU-PRO": 0.3516
-      }
-    },
-    {
       "id": "fblgit/cybertron-v4-qw7B-MGS",
       "name": "cybertron-v4-qw7B-MGS",
       "developer": "fblgit",
@@ -142,6 +86,20 @@
       }
     },
     {
+      "id": "fblgit/TheBeagle-v2beta-32B-MGS",
+      "name": "TheBeagle-v2beta-32B-MGS",
+      "developer": "fblgit",
+      "evaluator_relationship": null,
+      "benchmark_scores": {
+        "hfopenllm_v2/IFEval": 0.5181,
+        "hfopenllm_v2/BBH": 0.7033,
+        "hfopenllm_v2/MATH Level 5": 0.4947,
+        "hfopenllm_v2/GPQA": 0.3826,
+        "hfopenllm_v2/MUSR": 0.5008,
+        "hfopenllm_v2/MMLU-PRO": 0.5915
+      }
+    },
+    {
       "id": "fblgit/una-cybertron-7b-v2-bf16",
       "name": "una-cybertron-7b-v2-bf16",
       "developer": "fblgit",
@@ -153,6 +111,48 @@
         "hfopenllm_v2/GPQA": 0.2978,
         "hfopenllm_v2/MUSR": 0.4473,
         "hfopenllm_v2/MMLU-PRO": 0.2443
+      }
+    },
+    {
+      "id": "fblgit/UNA-SimpleSmaug-34b-v1beta",
+      "name": "UNA-SimpleSmaug-34b-v1beta",
+      "developer": "fblgit",
+      "evaluator_relationship": null,
+      "benchmark_scores": {
+        "hfopenllm_v2/IFEval": 0.4556,
+        "hfopenllm_v2/BBH": 0.5287,
+        "hfopenllm_v2/MATH Level 5": 0.0718,
+        "hfopenllm_v2/GPQA": 0.3171,
+        "hfopenllm_v2/MUSR": 0.4256,
+        "hfopenllm_v2/MMLU-PRO": 0.454
+      }
+    },
+    {
+      "id": "fblgit/UNA-TheBeagle-7b-v1",
+      "name": "UNA-TheBeagle-7b-v1",
+      "developer": "fblgit",
+      "evaluator_relationship": null,
+      "benchmark_scores": {
+        "hfopenllm_v2/IFEval": 0.3689,
+        "hfopenllm_v2/BBH": 0.5029,
+        "hfopenllm_v2/MATH Level 5": 0.077,
+        "hfopenllm_v2/GPQA": 0.2844,
+        "hfopenllm_v2/MUSR": 0.4564,
+        "hfopenllm_v2/MMLU-PRO": 0.3019
+      }
+    },
+    {
+      "id": "fblgit/UNA-ThePitbull-21.4B-v2",
+      "name": "UNA-ThePitbull-21.4B-v2",
+      "developer": "fblgit",
+      "evaluator_relationship": null,
+      "benchmark_scores": {
+        "hfopenllm_v2/IFEval": 0.379,
+        "hfopenllm_v2/BBH": 0.635,
+        "hfopenllm_v2/MATH Level 5": 0.1216,
+        "hfopenllm_v2/GPQA": 0.302,
+        "hfopenllm_v2/MUSR": 0.3922,
+        "hfopenllm_v2/MMLU-PRO": 0.3516
       }
     }
   ]

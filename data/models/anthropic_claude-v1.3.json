@@ -1,8 +1,8 @@
 {
   "model_info": {
-    "name": "Claude v1.3",
+    "name": "Anthropic Claude v1.3",
     "id": "anthropic/claude-v1.3",
-    "developer": "anthropic",
+    "developer": "Anthropic",
     "inference_platform": "unknown"
   },
   "evaluations": [

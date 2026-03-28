@@ -17,7 +17,7 @@
     },
     {
       "id": "HuggingFaceH4/zephyr-7b-alpha",
-      "name": "zephyr-7b-alpha",
+      "name": "HuggingFaceH4/zephyr-7b-alpha",
       "developer": "HuggingFaceH4",
       "evaluator_relationship": null,
       "benchmark_scores": {
@@ -37,7 +37,7 @@
     },
     {
       "id": "HuggingFaceH4/zephyr-7b-beta",
-      "name": "zephyr-7b-beta",
+      "name": "HuggingFaceH4/zephyr-7b-beta",
       "developer": "HuggingFaceH4",
       "evaluator_relationship": null,
       "benchmark_scores": {
@@ -57,7 +57,7 @@
     },
     {
       "id": "HuggingFaceH4/zephyr-7b-gemma-v0.1",
-      "name": "zephyr-7b-gemma-v0.1",
+      "name": "HuggingFaceH4/zephyr-7b-gemma-v0.1",
       "developer": "HuggingFaceH4",
       "evaluator_relationship": null,
       "benchmark_scores": {

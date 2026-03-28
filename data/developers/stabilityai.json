@@ -2,20 +2,6 @@
   "developer": "stabilityai",
   "models": [
     {
-      "id": "stabilityai/StableBeluga2",
-      "name": "StableBeluga2",
-      "developer": "stabilityai",
-      "evaluator_relationship": null,
-      "benchmark_scores": {
-        "hfopenllm_v2/IFEval": 0.3787,
-        "hfopenllm_v2/BBH": 0.5824,
-        "hfopenllm_v2/MATH Level 5": 0.0438,
-        "hfopenllm_v2/GPQA": 0.3163,
-        "hfopenllm_v2/MUSR": 0.473,
-        "hfopenllm_v2/MMLU-PRO": 0.3326
-      }
-    },
-    {
       "id": "stabilityai/stable-code-instruct-3b",
       "name": "stabilityai/stable-code-instruct-3b",
       "developer": "stabilityai",
@@ -27,6 +13,20 @@
         "reward-bench/Safety": 0.6554,
         "reward-bench/Reasoning": 0.7528,
         "reward-bench/Prior Sets (0.5 weight)": 0.4506
+      }
+    },
+    {
+      "id": "stabilityai/StableBeluga2",
+      "name": "StableBeluga2",
+      "developer": "stabilityai",
+      "evaluator_relationship": null,
+      "benchmark_scores": {
+        "hfopenllm_v2/IFEval": 0.3787,
+        "hfopenllm_v2/BBH": 0.5824,
+        "hfopenllm_v2/MATH Level 5": 0.0438,
+        "hfopenllm_v2/GPQA": 0.3163,
+        "hfopenllm_v2/MUSR": 0.473,
+        "hfopenllm_v2/MMLU-PRO": 0.3326
       }
     },
     {
@@ -45,7 +45,7 @@
     },
     {
       "id": "stabilityai/stablelm-2-12b-chat",
-      "name": "stablelm-2-12b-chat",
+      "name": "stabilityai/stablelm-2-12b-chat",
       "developer": "stabilityai",
       "evaluator_relationship": null,
       "benchmark_scores": {
@@ -93,7 +93,7 @@
     },
     {
       "id": "stabilityai/stablelm-2-zephyr-1_6b",
-      "name": "stablelm-2-zephyr-1_6b",
+      "name": "stabilityai/stablelm-2-zephyr-1_6b",
       "developer": "stabilityai",
       "evaluator_relationship": null,
       "benchmark_scores": {
@@ -127,7 +127,7 @@
     },
     {
       "id": "stabilityai/stablelm-zephyr-3b",
-      "name": "stablelm-zephyr-3b",
+      "name": "stabilityai/stablelm-zephyr-3b",
       "developer": "stabilityai",
       "evaluator_relationship": null,
       "benchmark_scores": {

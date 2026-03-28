@@ -2,7 +2,7 @@
   "model_info": {
     "name": "umt5-base",
     "id": "google/umt5-base",
-    "developer": "google",
+    "developer": "Google",
     "inference_platform": "unknown",
     "additional_details": {
       "precision": "float16",

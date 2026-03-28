@@ -100,6 +100,34 @@
       }
     },
     {
+      "id": "VAGOsolutions/SauerkrautLM-gemma-2-2b-it",
+      "name": "SauerkrautLM-gemma-2-2b-it",
+      "developer": "VAGOsolutions",
+      "evaluator_relationship": null,
+      "benchmark_scores": {
+        "hfopenllm_v2/IFEval": 0.1321,
+        "hfopenllm_v2/BBH": 0.4241,
+        "hfopenllm_v2/MATH Level 5": 0.0219,
+        "hfopenllm_v2/GPQA": 0.2727,
+        "hfopenllm_v2/MUSR": 0.3995,
+        "hfopenllm_v2/MMLU-PRO": 0.2693
+      }
+    },
+    {
+      "id": "VAGOsolutions/SauerkrautLM-gemma-2-9b-it",
+      "name": "SauerkrautLM-gemma-2-9b-it",
+      "developer": "VAGOsolutions",
+      "evaluator_relationship": null,
+      "benchmark_scores": {
+        "hfopenllm_v2/IFEval": 0.3024,
+        "hfopenllm_v2/BBH": 0.6073,
+        "hfopenllm_v2/MATH Level 5": 0.0838,
+        "hfopenllm_v2/GPQA": 0.3272,
+        "hfopenllm_v2/MUSR": 0.4318,
+        "hfopenllm_v2/MMLU-PRO": 0.4091
+      }
+    },
+    {
       "id": "VAGOsolutions/SauerkrautLM-Gemma-2b",
       "name": "SauerkrautLM-Gemma-2b",
       "developer": "VAGOsolutions",
@@ -181,34 +209,6 @@
         "hfopenllm_v2/GPQA": 0.3054,
         "hfopenllm_v2/MUSR": 0.3965,
         "hfopenllm_v2/MMLU-PRO": 0.3183
-      }
-    },
-    {
-      "id": "VAGOsolutions/SauerkrautLM-gemma-2-2b-it",
-      "name": "SauerkrautLM-gemma-2-2b-it",
-      "developer": "VAGOsolutions",
-      "evaluator_relationship": null,
-      "benchmark_scores": {
-        "hfopenllm_v2/IFEval": 0.1321,
-        "hfopenllm_v2/BBH": 0.4241,
-        "hfopenllm_v2/MATH Level 5": 0.0219,
-        "hfopenllm_v2/GPQA": 0.2727,
-        "hfopenllm_v2/MUSR": 0.3995,
-        "hfopenllm_v2/MMLU-PRO": 0.2693
-      }
-    },
-    {
-      "id": "VAGOsolutions/SauerkrautLM-gemma-2-9b-it",
-      "name": "SauerkrautLM-gemma-2-9b-it",
-      "developer": "VAGOsolutions",
-      "evaluator_relationship": null,
-      "benchmark_scores": {
-        "hfopenllm_v2/IFEval": 0.3024,
-        "hfopenllm_v2/BBH": 0.6073,
-        "hfopenllm_v2/MATH Level 5": 0.0838,
-        "hfopenllm_v2/GPQA": 0.3272,
-        "hfopenllm_v2/MUSR": 0.4318,
-        "hfopenllm_v2/MMLU-PRO": 0.4091
       }
     },
     {

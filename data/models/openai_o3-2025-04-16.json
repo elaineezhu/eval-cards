@@ -1,9 +1,9 @@
 {
   "model_info": {
     "name": "o3-2025-04-16",
+    "id": "openai/o3-2025-04-16",
     "developer": "OpenAI",
-    "inference_platform": "openai",
-    "id": "openai/o3-2025-04-16"
+    "inference_platform": "unknown"
   },
   "evaluations": [
     {

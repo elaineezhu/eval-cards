@@ -2,7 +2,7 @@
   "model_info": {
     "name": "claude-sonnet-4-5-20250929",
     "id": "anthropic/claude-sonnet-4-5-20250929",
-    "developer": "anthropic",
+    "developer": "Anthropic",
     "inference_platform": "anthropic"
   },
   "evaluations": [

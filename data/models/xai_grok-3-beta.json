@@ -2,7 +2,7 @@
   "model_info": {
     "name": "Grok 3 Beta",
     "id": "xai/grok-3-beta",
-    "developer": "xai",
+    "developer": "xAI",
     "inference_platform": "unknown"
   },
   "evaluations": [

@@ -72,20 +72,6 @@
       }
     },
     {
-      "id": "DeepMount00/Llama-3.1-8b-Ita",
-      "name": "Llama-3.1-8b-Ita",
-      "developer": "DeepMount00",
-      "evaluator_relationship": null,
-      "benchmark_scores": {
-        "hfopenllm_v2/IFEval": 0.5365,
-        "hfopenllm_v2/BBH": 0.517,
-        "hfopenllm_v2/MATH Level 5": 0.1707,
-        "hfopenllm_v2/GPQA": 0.3062,
-        "hfopenllm_v2/MUSR": 0.4487,
-        "hfopenllm_v2/MMLU-PRO": 0.396
-      }
-    },
-    {
       "id": "DeepMount00/Llama-3.1-Distilled",
       "name": "Llama-3.1-Distilled",
       "developer": "DeepMount00",
@@ -97,6 +83,20 @@
         "hfopenllm_v2/GPQA": 0.3037,
         "hfopenllm_v2/MUSR": 0.4058,
         "hfopenllm_v2/MMLU-PRO": 0.3782
+      }
+    },
+    {
+      "id": "DeepMount00/mergekit-ties-okvgjfz",
+      "name": "mergekit-ties-okvgjfz",
+      "developer": "DeepMount00",
+      "evaluator_relationship": null,
+      "benchmark_scores": {
+        "hfopenllm_v2/IFEval": 0.153,
+        "hfopenllm_v2/BBH": 0.2998,
+        "hfopenllm_v2/MATH Level 5": 0.0008,
+        "hfopenllm_v2/GPQA": 0.2626,
+        "hfopenllm_v2/MUSR": 0.3806,
+        "hfopenllm_v2/MMLU-PRO": 0.1118
       }
     },
     {
@@ -172,20 +172,6 @@
     {
       "id": "DeepMount00/Qwen2.5-7B-Instruct-MathCoder",
       "name": "Qwen2.5-7B-Instruct-MathCoder",
-      "developer": "DeepMount00",
-      "evaluator_relationship": null,
-      "benchmark_scores": {
-        "hfopenllm_v2/IFEval": 0.153,
-        "hfopenllm_v2/BBH": 0.2998,
-        "hfopenllm_v2/MATH Level 5": 0.0008,
-        "hfopenllm_v2/GPQA": 0.2626,
-        "hfopenllm_v2/MUSR": 0.3806,
-        "hfopenllm_v2/MMLU-PRO": 0.1118
-      }
-    },
-    {
-      "id": "DeepMount00/mergekit-ties-okvgjfz",
-      "name": "mergekit-ties-okvgjfz",
       "developer": "DeepMount00",
       "evaluator_relationship": null,
       "benchmark_scores": {

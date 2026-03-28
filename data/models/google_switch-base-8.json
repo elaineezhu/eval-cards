@@ -2,7 +2,7 @@
   "model_info": {
     "name": "switch-base-8",
     "id": "google/switch-base-8",
-    "developer": "google",
+    "developer": "Google",
     "inference_platform": "unknown",
     "additional_details": {
       "precision": "float16",

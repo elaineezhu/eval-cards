@@ -59,7 +59,7 @@
     },
     {
       "id": "CohereForAI/c4ai-command-r-plus",
-      "name": "c4ai-command-r-plus",
+      "name": "CohereForAI/c4ai-command-r-plus",
       "developer": "CohereForAI",
       "evaluator_relationship": null,
       "benchmark_scores": {

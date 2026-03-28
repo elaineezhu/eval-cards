@@ -1,0 +1,156 @@
+{
+  "model_info": {
+    "name": "o3 Pro",
+    "developer": "OpenAI",
+    "id": "openai/o3 Pro",
+    "inference_platform": "unknown"
+  },
+  "evaluations": [
+    {
+      "evaluation_id": "ace/openai_o3-pro/1773260200",
+      "retrieved_timestamp": "1773260200",
+      "source_metadata": {
+        "source_name": "Mercor ACE Leaderboard",
+        "source_type": "evaluation_run",
+        "source_organization_name": "Mercor",
+        "source_organization_url": "https://www.mercor.com",
+        "evaluator_relationship": "first_party"
+      },
+      "eval_library": {
+        "name": "archipelago",
+        "version": "1.0.0"
+      },
+      "benchmark": "ace",
+      "evaluation_results": [
+        {
+          "evaluation_name": "Overall Score",
+          "source_data": {
+            "dataset_name": "ace",
+            "source_type": "hf_dataset",
+            "hf_repo": "Mercor/ACE"
+          },
+          "metric_config": {
+            "evaluation_description": "Overall ACE score across all consumer-task domains.",
+            "lower_is_better": false,
+            "score_type": "continuous",
+            "min_score": 0,
+            "max_score": 1
+          },
+          "score_details": {
+            "score": 0.552,
+            "uncertainty": {
+              "confidence_interval": {
+                "lower": -0.032,
+                "upper": 0.032,
+                "method": "bootstrap"
+              }
+            }
+          },
+          "generation_config": {
+            "additional_details": {
+              "run_setting": "High"
+            }
+          }
+        },
+        {
+          "evaluation_name": "DIY Score",
+          "source_data": {
+            "dataset_name": "ace",
+            "source_type": "hf_dataset",
+            "hf_repo": "Mercor/ACE"
+          },
+          "metric_config": {
+            "evaluation_description": "DIY domain score.",
+            "lower_is_better": false,
+            "score_type": "continuous",
+            "min_score": 0,
+            "max_score": 1
+          },
+          "score_details": {
+            "score": 0.54
+          },
+          "generation_config": {
+            "additional_details": {
+              "run_setting": "High"
+            }
+          }
+        },
+        {
+          "evaluation_name": "Food Score",
+          "source_data": {
+            "dataset_name": "ace",
+            "source_type": "hf_dataset",
+            "hf_repo": "Mercor/ACE"
+          },
+          "metric_config": {
+            "evaluation_description": "Food domain score.",
+            "lower_is_better": false,
+            "score_type": "continuous",
+            "min_score": 0,
+            "max_score": 1
+          },
+          "score_details": {
+            "score": 0.6
+          },
+          "generation_config": {
+            "additional_details": {
+              "run_setting": "High"
+            }
+          }
+        },
+        {
+          "evaluation_name": "Gaming Score",
+          "source_data": {
+            "dataset_name": "ace",
+            "source_type": "hf_dataset",
+            "hf_repo": "Mercor/ACE"
+          },
+          "metric_config": {
+            "evaluation_description": "Gaming domain score.",
+            "lower_is_better": false,
+            "score_type": "continuous",
+            "min_score": 0,
+            "max_score": 1
+          },
+          "score_details": {
+            "score": 0.613
+          },
+          "generation_config": {
+            "additional_details": {
+              "run_setting": "High"
+            }
+          }
+        },
+        {
+          "evaluation_name": "Shopping Score",
+          "source_data": {
+            "dataset_name": "ace",
+            "source_type": "hf_dataset",
+            "hf_repo": "Mercor/ACE"
+          },
+          "metric_config": {
+            "evaluation_description": "Shopping domain score.",
+            "lower_is_better": false,
+            "score_type": "continuous",
+            "min_score": 0,
+            "max_score": 1
+          },
+          "score_details": {
+            "score": 0.45
+          },
+          "generation_config": {
+            "additional_details": {
+              "run_setting": "High"
+            }
+          }
+        }
+      ],
+      "detailed_evaluation_results": null,
+      "generation_config": {
+        "additional_details": {
+          "run_setting": "High"
+        }
+      }
+    }
+  ]
+}

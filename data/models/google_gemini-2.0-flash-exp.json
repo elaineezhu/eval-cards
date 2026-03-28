@@ -2,7 +2,7 @@
   "model_info": {
     "name": "Gemini 2.0 Flash Experimental",
     "id": "google/gemini-2.0-flash-exp",
-    "developer": "google",
+    "developer": "Google",
     "inference_platform": "unknown"
   },
   "evaluations": [

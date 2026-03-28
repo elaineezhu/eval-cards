@@ -2,6 +2,34 @@
   "developer": "bamec66557",
   "models": [
     {
+      "id": "bamec66557/mergekit-model_stock-zdaysvi",
+      "name": "mergekit-model_stock-zdaysvi",
+      "developer": "bamec66557",
+      "evaluator_relationship": null,
+      "benchmark_scores": {
+        "hfopenllm_v2/IFEval": 0.6426,
+        "hfopenllm_v2/BBH": 0.5063,
+        "hfopenllm_v2/MATH Level 5": 0.1352,
+        "hfopenllm_v2/GPQA": 0.3138,
+        "hfopenllm_v2/MUSR": 0.4124,
+        "hfopenllm_v2/MMLU-PRO": 0.3688
+      }
+    },
+    {
+      "id": "bamec66557/mergekit-ties-sinbkow",
+      "name": "mergekit-ties-sinbkow",
+      "developer": "bamec66557",
+      "evaluator_relationship": null,
+      "benchmark_scores": {
+        "hfopenllm_v2/IFEval": 0.6432,
+        "hfopenllm_v2/BBH": 0.5092,
+        "hfopenllm_v2/MATH Level 5": 0.145,
+        "hfopenllm_v2/GPQA": 0.3196,
+        "hfopenllm_v2/MUSR": 0.4045,
+        "hfopenllm_v2/MMLU-PRO": 0.3603
+      }
+    },
+    {
       "id": "bamec66557/MISCHIEVOUS-12B",
       "name": "MISCHIEVOUS-12B",
       "developer": "bamec66557",
@@ -100,20 +128,6 @@
       }
     },
     {
-      "id": "bamec66557/MISCHIEVOUS-12B-Mix_III_IV_V",
-      "name": "MISCHIEVOUS-12B-Mix_III_IV_V",
-      "developer": "bamec66557",
-      "evaluator_relationship": null,
-      "benchmark_scores": {
-        "hfopenllm_v2/IFEval": 0.4031,
-        "hfopenllm_v2/BBH": 0.5465,
-        "hfopenllm_v2/MATH Level 5": 0.1292,
-        "hfopenllm_v2/GPQA": 0.3205,
-        "hfopenllm_v2/MUSR": 0.4198,
-        "hfopenllm_v2/MMLU-PRO": 0.3664
-      }
-    },
-    {
       "id": "bamec66557/MISCHIEVOUS-12B-Mix_III_ex_V",
       "name": "MISCHIEVOUS-12B-Mix_III_ex_V",
       "developer": "bamec66557",
@@ -125,6 +139,20 @@
         "hfopenllm_v2/GPQA": 0.3205,
         "hfopenllm_v2/MUSR": 0.4198,
         "hfopenllm_v2/MMLU-PRO": 0.3649
+      }
+    },
+    {
+      "id": "bamec66557/MISCHIEVOUS-12B-Mix_III_IV_V",
+      "name": "MISCHIEVOUS-12B-Mix_III_IV_V",
+      "developer": "bamec66557",
+      "evaluator_relationship": null,
+      "benchmark_scores": {
+        "hfopenllm_v2/IFEval": 0.4031,
+        "hfopenllm_v2/BBH": 0.5465,
+        "hfopenllm_v2/MATH Level 5": 0.1292,
+        "hfopenllm_v2/GPQA": 0.3205,
+        "hfopenllm_v2/MUSR": 0.4198,
+        "hfopenllm_v2/MMLU-PRO": 0.3664
       }
     },
     {
@@ -349,34 +377,6 @@
         "hfopenllm_v2/GPQA": 0.323,
         "hfopenllm_v2/MUSR": 0.4092,
         "hfopenllm_v2/MMLU-PRO": 0.3669
-      }
-    },
-    {
-      "id": "bamec66557/mergekit-model_stock-zdaysvi",
-      "name": "mergekit-model_stock-zdaysvi",
-      "developer": "bamec66557",
-      "evaluator_relationship": null,
-      "benchmark_scores": {
-        "hfopenllm_v2/IFEval": 0.6426,
-        "hfopenllm_v2/BBH": 0.5063,
-        "hfopenllm_v2/MATH Level 5": 0.1352,
-        "hfopenllm_v2/GPQA": 0.3138,
-        "hfopenllm_v2/MUSR": 0.4124,
-        "hfopenllm_v2/MMLU-PRO": 0.3688
-      }
-    },
-    {
-      "id": "bamec66557/mergekit-ties-sinbkow",
-      "name": "mergekit-ties-sinbkow",
-      "developer": "bamec66557",
-      "evaluator_relationship": null,
-      "benchmark_scores": {
-        "hfopenllm_v2/IFEval": 0.6432,
-        "hfopenllm_v2/BBH": 0.5092,
-        "hfopenllm_v2/MATH Level 5": 0.145,
-        "hfopenllm_v2/GPQA": 0.3196,
-        "hfopenllm_v2/MUSR": 0.4045,
-        "hfopenllm_v2/MMLU-PRO": 0.3603
       }
     }
   ]

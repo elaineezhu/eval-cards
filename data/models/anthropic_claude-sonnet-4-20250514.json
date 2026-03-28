@@ -1,10 +1,11 @@
 {
   "model_info": {
-    "name": "anthropic/claude-sonnet-4-20250514",
+    "name": "claude-sonnet-4-20250514",
     "id": "anthropic/claude-sonnet-4-20250514",
-    "developer": "anthropic",
+    "developer": "Anthropic",
+    "inference_platform": "unknown",
     "additional_details": {
-      "model_type": "Generative RM"
+      "display_name": "Claude Sonnet 4"
     }
   },
   "evaluations": [

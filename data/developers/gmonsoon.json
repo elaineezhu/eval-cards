@@ -2,6 +2,20 @@
   "developer": "gmonsoon",
   "models": [
     {
+      "id": "gmonsoon/gemma2-9b-sahabatai-v1-instruct-BaseTIES",
+      "name": "gemma2-9b-sahabatai-v1-instruct-BaseTIES",
+      "developer": "gmonsoon",
+      "evaluator_relationship": null,
+      "benchmark_scores": {
+        "hfopenllm_v2/IFEval": 0.7378,
+        "hfopenllm_v2/BBH": 0.6077,
+        "hfopenllm_v2/MATH Level 5": 0.1994,
+        "hfopenllm_v2/GPQA": 0.3205,
+        "hfopenllm_v2/MUSR": 0.4778,
+        "hfopenllm_v2/MMLU-PRO": 0.4347
+      }
+    },
+    {
       "id": "gmonsoon/SahabatAI-Llama-11B-Test",
       "name": "SahabatAI-Llama-11B-Test",
       "developer": "gmonsoon",
@@ -55,20 +69,6 @@
         "hfopenllm_v2/GPQA": 0.3029,
         "hfopenllm_v2/MUSR": 0.4214,
         "hfopenllm_v2/MMLU-PRO": 0.3952
-      }
-    },
-    {
-      "id": "gmonsoon/gemma2-9b-sahabatai-v1-instruct-BaseTIES",
-      "name": "gemma2-9b-sahabatai-v1-instruct-BaseTIES",
-      "developer": "gmonsoon",
-      "evaluator_relationship": null,
-      "benchmark_scores": {
-        "hfopenllm_v2/IFEval": 0.7378,
-        "hfopenllm_v2/BBH": 0.6077,
-        "hfopenllm_v2/MATH Level 5": 0.1994,
-        "hfopenllm_v2/GPQA": 0.3205,
-        "hfopenllm_v2/MUSR": 0.4778,
-        "hfopenllm_v2/MMLU-PRO": 0.4347
       }
     }
   ]

@@ -44,6 +44,34 @@
       }
     },
     {
+      "id": "Josephgflowers/Tinyllama-r1",
+      "name": "Tinyllama-r1",
+      "developer": "Josephgflowers",
+      "evaluator_relationship": null,
+      "benchmark_scores": {
+        "hfopenllm_v2/IFEval": 0.2119,
+        "hfopenllm_v2/BBH": 0.3015,
+        "hfopenllm_v2/MATH Level 5": 0.0325,
+        "hfopenllm_v2/GPQA": 0.2567,
+        "hfopenllm_v2/MUSR": 0.3315,
+        "hfopenllm_v2/MMLU-PRO": 0.1134
+      }
+    },
+    {
+      "id": "Josephgflowers/Tinyllama-STEM-Cinder-Agent-v1",
+      "name": "Tinyllama-STEM-Cinder-Agent-v1",
+      "developer": "Josephgflowers",
+      "evaluator_relationship": null,
+      "benchmark_scores": {
+        "hfopenllm_v2/IFEval": 0.2126,
+        "hfopenllm_v2/BBH": 0.3084,
+        "hfopenllm_v2/MATH Level 5": 0.0672,
+        "hfopenllm_v2/GPQA": 0.2349,
+        "hfopenllm_v2/MUSR": 0.3341,
+        "hfopenllm_v2/MMLU-PRO": 0.1086
+      }
+    },
+    {
       "id": "Josephgflowers/TinyLlama-v1.1-Cinders-World",
       "name": "TinyLlama-v1.1-Cinders-World",
       "developer": "Josephgflowers",
@@ -69,34 +97,6 @@
         "hfopenllm_v2/GPQA": 0.2341,
         "hfopenllm_v2/MUSR": 0.3499,
         "hfopenllm_v2/MMLU-PRO": 0.1132
-      }
-    },
-    {
-      "id": "Josephgflowers/Tinyllama-STEM-Cinder-Agent-v1",
-      "name": "Tinyllama-STEM-Cinder-Agent-v1",
-      "developer": "Josephgflowers",
-      "evaluator_relationship": null,
-      "benchmark_scores": {
-        "hfopenllm_v2/IFEval": 0.2126,
-        "hfopenllm_v2/BBH": 0.3084,
-        "hfopenllm_v2/MATH Level 5": 0.0672,
-        "hfopenllm_v2/GPQA": 0.2349,
-        "hfopenllm_v2/MUSR": 0.3341,
-        "hfopenllm_v2/MMLU-PRO": 0.1086
-      }
-    },
-    {
-      "id": "Josephgflowers/Tinyllama-r1",
-      "name": "Tinyllama-r1",
-      "developer": "Josephgflowers",
-      "evaluator_relationship": null,
-      "benchmark_scores": {
-        "hfopenllm_v2/IFEval": 0.2119,
-        "hfopenllm_v2/BBH": 0.3015,
-        "hfopenllm_v2/MATH Level 5": 0.0325,
-        "hfopenllm_v2/GPQA": 0.2567,
-        "hfopenllm_v2/MUSR": 0.3315,
-        "hfopenllm_v2/MMLU-PRO": 0.1134
       }
     }
   ]

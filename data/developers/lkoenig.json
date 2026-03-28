@@ -30,20 +30,6 @@
       }
     },
     {
-      "id": "lkoenig/BBAI_212_QwenLawLo",
-      "name": "BBAI_212_QwenLawLo",
-      "developer": "lkoenig",
-      "evaluator_relationship": null,
-      "benchmark_scores": {
-        "hfopenllm_v2/IFEval": 0.4566,
-        "hfopenllm_v2/BBH": 0.5574,
-        "hfopenllm_v2/MATH Level 5": 0.3603,
-        "hfopenllm_v2/GPQA": 0.3163,
-        "hfopenllm_v2/MUSR": 0.437,
-        "hfopenllm_v2/MMLU-PRO": 0.4489
-      }
-    },
-    {
       "id": "lkoenig/BBAI_212_Qwencore",
       "name": "BBAI_212_Qwencore",
       "developer": "lkoenig",
@@ -55,6 +41,20 @@
         "hfopenllm_v2/GPQA": 0.3163,
         "hfopenllm_v2/MUSR": 0.4343,
         "hfopenllm_v2/MMLU-PRO": 0.449
+      }
+    },
+    {
+      "id": "lkoenig/BBAI_212_QwenLawLo",
+      "name": "BBAI_212_QwenLawLo",
+      "developer": "lkoenig",
+      "evaluator_relationship": null,
+      "benchmark_scores": {
+        "hfopenllm_v2/IFEval": 0.4566,
+        "hfopenllm_v2/BBH": 0.5574,
+        "hfopenllm_v2/MATH Level 5": 0.3603,
+        "hfopenllm_v2/GPQA": 0.3163,
+        "hfopenllm_v2/MUSR": 0.437,
+        "hfopenllm_v2/MMLU-PRO": 0.4489
       }
     },
     {
@@ -128,20 +128,6 @@
       }
     },
     {
-      "id": "lkoenig/BBAI_7B_QwenDyanKoenLo",
-      "name": "BBAI_7B_QwenDyanKoenLo",
-      "developer": "lkoenig",
-      "evaluator_relationship": null,
-      "benchmark_scores": {
-        "hfopenllm_v2/IFEval": 0.4663,
-        "hfopenllm_v2/BBH": 0.5562,
-        "hfopenllm_v2/MATH Level 5": 0.364,
-        "hfopenllm_v2/GPQA": 0.3188,
-        "hfopenllm_v2/MUSR": 0.4343,
-        "hfopenllm_v2/MMLU-PRO": 0.4465
-      }
-    },
-    {
       "id": "lkoenig/BBAI_7B_QwenDyancabsLAW",
       "name": "BBAI_7B_QwenDyancabsLAW",
       "developer": "lkoenig",
@@ -153,6 +139,20 @@
         "hfopenllm_v2/GPQA": 0.3188,
         "hfopenllm_v2/MUSR": 0.4461,
         "hfopenllm_v2/MMLU-PRO": 0.4471
+      }
+    },
+    {
+      "id": "lkoenig/BBAI_7B_QwenDyanKoenLo",
+      "name": "BBAI_7B_QwenDyanKoenLo",
+      "developer": "lkoenig",
+      "evaluator_relationship": null,
+      "benchmark_scores": {
+        "hfopenllm_v2/IFEval": 0.4663,
+        "hfopenllm_v2/BBH": 0.5562,
+        "hfopenllm_v2/MATH Level 5": 0.364,
+        "hfopenllm_v2/GPQA": 0.3188,
+        "hfopenllm_v2/MUSR": 0.4343,
+        "hfopenllm_v2/MMLU-PRO": 0.4465
       }
     }
   ]

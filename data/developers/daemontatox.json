@@ -170,6 +170,34 @@
       }
     },
     {
+      "id": "Daemontatox/mini-Cogito-R1",
+      "name": "mini-Cogito-R1",
+      "developer": "Daemontatox",
+      "evaluator_relationship": null,
+      "benchmark_scores": {
+        "hfopenllm_v2/IFEval": 0.2298,
+        "hfopenllm_v2/BBH": 0.328,
+        "hfopenllm_v2/MATH Level 5": 0.2749,
+        "hfopenllm_v2/GPQA": 0.2869,
+        "hfopenllm_v2/MUSR": 0.3447,
+        "hfopenllm_v2/MMLU-PRO": 0.1482
+      }
+    },
+    {
+      "id": "Daemontatox/mini_Pathfinder",
+      "name": "mini_Pathfinder",
+      "developer": "Daemontatox",
+      "evaluator_relationship": null,
+      "benchmark_scores": {
+        "hfopenllm_v2/IFEval": 0.2962,
+        "hfopenllm_v2/BBH": 0.3956,
+        "hfopenllm_v2/MATH Level 5": 0.4751,
+        "hfopenllm_v2/GPQA": 0.2584,
+        "hfopenllm_v2/MUSR": 0.3781,
+        "hfopenllm_v2/MMLU-PRO": 0.2809
+      }
+    },
+    {
       "id": "Daemontatox/Mini_QwQ",
       "name": "Mini_QwQ",
       "developer": "Daemontatox",
@@ -198,6 +226,20 @@
       }
     },
     {
+      "id": "Daemontatox/PathfinderAI",
+      "name": "PathfinderAI",
+      "developer": "Daemontatox",
+      "evaluator_relationship": null,
+      "benchmark_scores": {
+        "hfopenllm_v2/IFEval": 0.3745,
+        "hfopenllm_v2/BBH": 0.6668,
+        "hfopenllm_v2/MATH Level 5": 0.4758,
+        "hfopenllm_v2/GPQA": 0.3943,
+        "hfopenllm_v2/MUSR": 0.4858,
+        "hfopenllm_v2/MMLU-PRO": 0.5593
+      }
+    },
+    {
       "id": "Daemontatox/PathFinderAI2.0",
       "name": "PathFinderAI2.0",
       "developer": "Daemontatox",
@@ -223,20 +265,6 @@
         "hfopenllm_v2/GPQA": 0.4086,
         "hfopenllm_v2/MUSR": 0.4807,
         "hfopenllm_v2/MMLU-PRO": 0.5757
-      }
-    },
-    {
-      "id": "Daemontatox/PathfinderAI",
-      "name": "PathfinderAI",
-      "developer": "Daemontatox",
-      "evaluator_relationship": null,
-      "benchmark_scores": {
-        "hfopenllm_v2/IFEval": 0.4855,
-        "hfopenllm_v2/BBH": 0.6627,
-        "hfopenllm_v2/MATH Level 5": 0.4841,
-        "hfopenllm_v2/GPQA": 0.3096,
-        "hfopenllm_v2/MUSR": 0.4256,
-        "hfopenllm_v2/MMLU-PRO": 0.5542
       }
     },
     {
@@ -419,34 +447,6 @@
         "hfopenllm_v2/GPQA": 0.2601,
         "hfopenllm_v2/MUSR": 0.3658,
         "hfopenllm_v2/MMLU-PRO": 0.2143
-      }
-    },
-    {
-      "id": "Daemontatox/mini-Cogito-R1",
-      "name": "mini-Cogito-R1",
-      "developer": "Daemontatox",
-      "evaluator_relationship": null,
-      "benchmark_scores": {
-        "hfopenllm_v2/IFEval": 0.2298,
-        "hfopenllm_v2/BBH": 0.328,
-        "hfopenllm_v2/MATH Level 5": 0.2749,
-        "hfopenllm_v2/GPQA": 0.2869,
-        "hfopenllm_v2/MUSR": 0.3447,
-        "hfopenllm_v2/MMLU-PRO": 0.1482
-      }
-    },
-    {
-      "id": "Daemontatox/mini_Pathfinder",
-      "name": "mini_Pathfinder",
-      "developer": "Daemontatox",
-      "evaluator_relationship": null,
-      "benchmark_scores": {
-        "hfopenllm_v2/IFEval": 0.2962,
-        "hfopenllm_v2/BBH": 0.3956,
-        "hfopenllm_v2/MATH Level 5": 0.4751,
-        "hfopenllm_v2/GPQA": 0.2584,
-        "hfopenllm_v2/MUSR": 0.3781,
-        "hfopenllm_v2/MMLU-PRO": 0.2809
       }
     }
   ]

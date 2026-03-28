@@ -21,17 +21,17 @@
       "developer": "Nexusflow",
       "evaluator_relationship": null,
       "benchmark_scores": {
-        "reward-bench/Score": 0.4553,
-        "reward-bench/Chat": 0.9693,
-        "reward-bench/Chat Hard": 0.5724,
-        "reward-bench/Safety": 0.7556,
-        "reward-bench/Reasoning": 0.8845,
-        "reward-bench/Prior Sets (0.5 weight)": 0.7137,
+        "reward-bench/Score": 0.8133,
         "reward-bench/Factuality": 0.4589,
         "reward-bench/Precise IF": 0.3187,
         "reward-bench/Math": 0.6175,
+        "reward-bench/Safety": 0.877,
         "reward-bench/Focus": 0.4808,
-        "reward-bench/Ties": 0.1004
+        "reward-bench/Ties": 0.1004,
+        "reward-bench/Chat": 0.9693,
+        "reward-bench/Chat Hard": 0.5724,
+        "reward-bench/Reasoning": 0.8845,
+        "reward-bench/Prior Sets (0.5 weight)": 0.7137
       }
     }
   ]

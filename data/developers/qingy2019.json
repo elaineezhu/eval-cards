@@ -49,12 +49,12 @@
       "developer": "qingy2019",
       "evaluator_relationship": null,
       "benchmark_scores": {
-        "hfopenllm_v2/IFEval": 0.6066,
-        "hfopenllm_v2/BBH": 0.635,
-        "hfopenllm_v2/MATH Level 5": 0.3716,
-        "hfopenllm_v2/GPQA": 0.3725,
+        "hfopenllm_v2/IFEval": 0.6005,
+        "hfopenllm_v2/BBH": 0.6356,
+        "hfopenllm_v2/MATH Level 5": 0.2764,
+        "hfopenllm_v2/GPQA": 0.3691,
         "hfopenllm_v2/MUSR": 0.4757,
-        "hfopenllm_v2/MMLU-PRO": 0.5331
+        "hfopenllm_v2/MMLU-PRO": 0.5339
       }
     },
     {

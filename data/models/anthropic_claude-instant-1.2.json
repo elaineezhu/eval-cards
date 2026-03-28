@@ -2,7 +2,7 @@
   "model_info": {
     "name": "Claude Instant 1.2",
     "id": "anthropic/claude-instant-1.2",
-    "developer": "anthropic",
+    "developer": "Anthropic",
     "inference_platform": "unknown"
   },
   "evaluations": [

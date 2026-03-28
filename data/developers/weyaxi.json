@@ -44,20 +44,6 @@
       }
     },
     {
-      "id": "Weyaxi/Einstein-v6.1-Llama3-8B",
-      "name": "Einstein-v6.1-Llama3-8B",
-      "developer": "Weyaxi",
-      "evaluator_relationship": null,
-      "benchmark_scores": {
-        "hfopenllm_v2/IFEval": 0.4568,
-        "hfopenllm_v2/BBH": 0.5008,
-        "hfopenllm_v2/MATH Level 5": 0.068,
-        "hfopenllm_v2/GPQA": 0.2819,
-        "hfopenllm_v2/MUSR": 0.4213,
-        "hfopenllm_v2/MMLU-PRO": 0.3131
-      }
-    },
-    {
       "id": "Weyaxi/Einstein-v6.1-developed-by-Weyaxi-Llama3-8B",
       "name": "Einstein-v6.1-developed-by-Weyaxi-Llama3-8B",
       "developer": "Weyaxi",
@@ -69,6 +55,20 @@
         "hfopenllm_v2/GPQA": 0.2735,
         "hfopenllm_v2/MUSR": 0.4332,
         "hfopenllm_v2/MMLU-PRO": 0.3093
+      }
+    },
+    {
+      "id": "Weyaxi/Einstein-v6.1-Llama3-8B",
+      "name": "Einstein-v6.1-Llama3-8B",
+      "developer": "Weyaxi",
+      "evaluator_relationship": null,
+      "benchmark_scores": {
+        "hfopenllm_v2/IFEval": 0.4568,
+        "hfopenllm_v2/BBH": 0.5008,
+        "hfopenllm_v2/MATH Level 5": 0.068,
+        "hfopenllm_v2/GPQA": 0.2819,
+        "hfopenllm_v2/MUSR": 0.4213,
+        "hfopenllm_v2/MMLU-PRO": 0.3131
       }
     },
     {

@@ -100,34 +100,6 @@
       }
     },
     {
-      "id": "qingy2024/QwEnlarge-16B-Instruct",
-      "name": "QwEnlarge-16B-Instruct",
-      "developer": "qingy2024",
-      "evaluator_relationship": null,
-      "benchmark_scores": {
-        "hfopenllm_v2/IFEval": 0.7802,
-        "hfopenllm_v2/BBH": 0.5949,
-        "hfopenllm_v2/MATH Level 5": 0.46,
-        "hfopenllm_v2/GPQA": 0.3331,
-        "hfopenllm_v2/MUSR": 0.4101,
-        "hfopenllm_v2/MMLU-PRO": 0.4476
-      }
-    },
-    {
-      "id": "qingy2024/QwQ-14B-Math-v0.2",
-      "name": "QwQ-14B-Math-v0.2",
-      "developer": "qingy2024",
-      "evaluator_relationship": null,
-      "benchmark_scores": {
-        "hfopenllm_v2/IFEval": 0.3391,
-        "hfopenllm_v2/BBH": 0.5731,
-        "hfopenllm_v2/MATH Level 5": 0.4811,
-        "hfopenllm_v2/GPQA": 0.2626,
-        "hfopenllm_v2/MUSR": 0.4021,
-        "hfopenllm_v2/MMLU-PRO": 0.48
-      }
-    },
-    {
       "id": "qingy2024/Qwarkstar-4B",
       "name": "Qwarkstar-4B",
       "developer": "qingy2024",
@@ -237,6 +209,34 @@
         "hfopenllm_v2/GPQA": 0.37,
         "hfopenllm_v2/MUSR": 0.4759,
         "hfopenllm_v2/MMLU-PRO": 0.5241
+      }
+    },
+    {
+      "id": "qingy2024/QwEnlarge-16B-Instruct",
+      "name": "QwEnlarge-16B-Instruct",
+      "developer": "qingy2024",
+      "evaluator_relationship": null,
+      "benchmark_scores": {
+        "hfopenllm_v2/IFEval": 0.7802,
+        "hfopenllm_v2/BBH": 0.5949,
+        "hfopenllm_v2/MATH Level 5": 0.46,
+        "hfopenllm_v2/GPQA": 0.3331,
+        "hfopenllm_v2/MUSR": 0.4101,
+        "hfopenllm_v2/MMLU-PRO": 0.4476
+      }
+    },
+    {
+      "id": "qingy2024/QwQ-14B-Math-v0.2",
+      "name": "QwQ-14B-Math-v0.2",
+      "developer": "qingy2024",
+      "evaluator_relationship": null,
+      "benchmark_scores": {
+        "hfopenllm_v2/IFEval": 0.3391,
+        "hfopenllm_v2/BBH": 0.5731,
+        "hfopenllm_v2/MATH Level 5": 0.4811,
+        "hfopenllm_v2/GPQA": 0.2626,
+        "hfopenllm_v2/MUSR": 0.4021,
+        "hfopenllm_v2/MMLU-PRO": 0.48
       }
     }
   ]

@@ -30,20 +30,6 @@
       }
     },
     {
-      "id": "Supichi/BBAIK29",
-      "name": "BBAIK29",
-      "developer": "Supichi",
-      "evaluator_relationship": null,
-      "benchmark_scores": {
-        "hfopenllm_v2/IFEval": 0.4588,
-        "hfopenllm_v2/BBH": 0.559,
-        "hfopenllm_v2/MATH Level 5": 0.3678,
-        "hfopenllm_v2/GPQA": 0.3121,
-        "hfopenllm_v2/MUSR": 0.4501,
-        "hfopenllm_v2/MMLU-PRO": 0.4469
-      }
-    },
-    {
       "id": "Supichi/BBAI_135_Gemma",
       "name": "BBAI_135_Gemma",
       "developer": "Supichi",
@@ -125,6 +111,20 @@
         "hfopenllm_v2/GPQA": 0.2315,
         "hfopenllm_v2/MUSR": 0.3445,
         "hfopenllm_v2/MMLU-PRO": 0.116
+      }
+    },
+    {
+      "id": "Supichi/BBAIK29",
+      "name": "BBAIK29",
+      "developer": "Supichi",
+      "evaluator_relationship": null,
+      "benchmark_scores": {
+        "hfopenllm_v2/IFEval": 0.4588,
+        "hfopenllm_v2/BBH": 0.559,
+        "hfopenllm_v2/MATH Level 5": 0.3678,
+        "hfopenllm_v2/GPQA": 0.3121,
+        "hfopenllm_v2/MUSR": 0.4501,
+        "hfopenllm_v2/MMLU-PRO": 0.4469
       }
     },
     {

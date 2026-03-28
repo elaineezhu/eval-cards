@@ -2,20 +2,6 @@
   "developer": "Isaak-Carter",
   "models": [
     {
-      "id": "Isaak-Carter/JOSIEv4o-8b-stage1-v4",
-      "name": "JOSIEv4o-8b-stage1-v4",
-      "developer": "Isaak-Carter",
-      "evaluator_relationship": null,
-      "benchmark_scores": {
-        "hfopenllm_v2/IFEval": 0.2477,
-        "hfopenllm_v2/BBH": 0.4758,
-        "hfopenllm_v2/MATH Level 5": 0.0453,
-        "hfopenllm_v2/GPQA": 0.2911,
-        "hfopenllm_v2/MUSR": 0.3641,
-        "hfopenllm_v2/MMLU-PRO": 0.3292
-      }
-    },
-    {
       "id": "Isaak-Carter/Josiefied-Qwen2.5-7B-Instruct-abliterated",
       "name": "Josiefied-Qwen2.5-7B-Instruct-abliterated",
       "developer": "Isaak-Carter",
@@ -41,6 +27,20 @@
         "hfopenllm_v2/GPQA": 0.2987,
         "hfopenllm_v2/MUSR": 0.4354,
         "hfopenllm_v2/MMLU-PRO": 0.4128
+      }
+    },
+    {
+      "id": "Isaak-Carter/JOSIEv4o-8b-stage1-v4",
+      "name": "JOSIEv4o-8b-stage1-v4",
+      "developer": "Isaak-Carter",
+      "evaluator_relationship": null,
+      "benchmark_scores": {
+        "hfopenllm_v2/IFEval": 0.2553,
+        "hfopenllm_v2/BBH": 0.4725,
+        "hfopenllm_v2/MATH Level 5": 0.0529,
+        "hfopenllm_v2/GPQA": 0.2919,
+        "hfopenllm_v2/MUSR": 0.3654,
+        "hfopenllm_v2/MMLU-PRO": 0.3316
       }
     }
   ]

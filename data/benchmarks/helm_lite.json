@@ -258,7 +258,7 @@
     {
       "model_id": "anthropic/claude-2.0",
       "name": "Claude 2.0",
-      "developer": "anthropic",
+      "developer": "Anthropic",
       "scores": {
         "Mean win rate": 0.489,
         "NarrativeQA": 0.718,
@@ -275,7 +275,7 @@
     {
       "model_id": "anthropic/claude-2.1",
       "name": "Claude 2.1",
-      "developer": "anthropic",
+      "developer": "Anthropic",
       "scores": {
         "Mean win rate": 0.437,
         "NarrativeQA": 0.677,
@@ -291,8 +291,8 @@
     },
     {
       "model_id": "anthropic/claude-3-5-haiku-20241022",
-      "name": "claude-3-5-haiku-20241022",
-      "developer": "anthropic",
+      "name": "Claude 3.5 Haiku 20241022",
+      "developer": "Anthropic",
       "scores": {
         "Mean win rate": 0.531,
         "NarrativeQA": 0.763,
@@ -309,7 +309,7 @@
     {
       "model_id": "anthropic/claude-3-5-sonnet-20240620",
       "name": "Claude 3.5 Sonnet 20240620",
-      "developer": "anthropic",
+      "developer": "Anthropic",
       "scores": {
         "Mean win rate": 0.885,
         "NarrativeQA": 0.746,
@@ -326,7 +326,7 @@
     {
       "model_id": "anthropic/claude-3-5-sonnet-20241022",
       "name": "Claude 3.5 Sonnet 20241022",
-      "developer": "anthropic",
+      "developer": "Anthropic",
       "scores": {
         "Mean win rate": 0.846,
         "NarrativeQA": 0.77,
@@ -343,7 +343,7 @@
     {
       "model_id": "anthropic/claude-3-haiku-20240307",
       "name": "Claude 3 Haiku 20240307",
-      "developer": "anthropic",
+      "developer": "Anthropic",
       "scores": {
         "Mean win rate": 0.263,
         "NarrativeQA": 0.244,
@@ -360,7 +360,7 @@
     {
       "model_id": "anthropic/claude-3-opus-20240229",
       "name": "Claude 3 Opus 20240229",
-      "developer": "anthropic",
+      "developer": "Anthropic",
       "scores": {
         "Mean win rate": 0.683,
         "NarrativeQA": 0.351,
@@ -377,7 +377,7 @@
     {
       "model_id": "anthropic/claude-3-sonnet-20240229",
       "name": "Claude 3 Sonnet 20240229",
-      "developer": "anthropic",
+      "developer": "Anthropic",
       "scores": {
         "Mean win rate": 0.377,
         "NarrativeQA": 0.111,
@@ -394,7 +394,7 @@
     {
       "model_id": "anthropic/claude-instant-1.2",
       "name": "Claude Instant 1.2",
-      "developer": "anthropic",
+      "developer": "Anthropic",
       "scores": {
         "Mean win rate": 0.399,
         "NarrativeQA": 0.616,
@@ -411,7 +411,7 @@
     {
       "model_id": "anthropic/claude-v1.3",
       "name": "Anthropic Claude v1.3",
-      "developer": "anthropic",
+      "developer": "Anthropic",
       "scores": {
         "Mean win rate": 0.518,
         "NarrativeQA": 0.723,
@@ -547,7 +547,7 @@
     {
       "model_id": "google/gemini-1.0-pro-002",
       "name": "Gemini 1.0 Pro 002",
-      "developer": "google",
+      "developer": "Google",
       "scores": {
         "Mean win rate": 0.422,
         "NarrativeQA": 0.751,
@@ -564,7 +564,7 @@
     {
       "model_id": "google/gemini-1.5-flash-001",
       "name": "Gemini 1.5 Flash 001",
-      "developer": "google",
+      "developer": "Google",
       "scores": {
         "Mean win rate": 0.667,
         "NarrativeQA": 0.783,
@@ -581,7 +581,7 @@
     {
       "model_id": "google/gemini-1.5-flash-002",
       "name": "Gemini 1.5 Flash 002",
-      "developer": "google",
+      "developer": "Google",
       "scores": {
         "Mean win rate": 0.573,
         "NarrativeQA": 0.746,
@@ -598,7 +598,7 @@
     {
       "model_id": "google/gemini-1.5-pro-001",
       "name": "Gemini 1.5 Pro 001",
-      "developer": "google",
+      "developer": "Google",
       "scores": {
         "Mean win rate": 0.739,
         "NarrativeQA": 0.783,
@@ -615,7 +615,7 @@
     {
       "model_id": "google/gemini-1.5-pro-002",
       "name": "Gemini 1.5 Pro 002",
-      "developer": "google",
+      "developer": "Google",
       "scores": {
         "Mean win rate": 0.842,
         "NarrativeQA": 0.756,
@@ -632,7 +632,7 @@
     {
       "model_id": "google/gemini-2.0-flash-exp",
       "name": "Gemini 2.0 Flash Experimental",
-      "developer": "google",
+      "developer": "Google",
       "scores": {
         "Mean win rate": 0.813,
         "NarrativeQA": 0.783,
@@ -649,7 +649,7 @@
     {
       "model_id": "google/gemma-2-27b-it",
       "name": "Gemma 2 Instruct 27B",
-      "developer": "google",
+      "developer": "Google",
       "scores": {
         "Mean win rate": 0.675,
         "NarrativeQA": 0.79,
@@ -666,7 +666,7 @@
     {
       "model_id": "google/gemma-2-9b-it",
       "name": "Gemma 2 Instruct 9B",
-      "developer": "google",
+      "developer": "Google",
       "scores": {
         "Mean win rate": 0.562,
         "NarrativeQA": 0.768,
@@ -683,7 +683,7 @@
     {
       "model_id": "google/gemma-7b",
       "name": "Gemma 7B",
-      "developer": "google",
+      "developer": "Google",
       "scores": {
         "Mean win rate": 0.336,
         "NarrativeQA": 0.752,
@@ -700,7 +700,7 @@
     {
       "model_id": "google/text-bison@001",
       "name": "PaLM-2 Bison",
-      "developer": "google",
+      "developer": "Google",
       "scores": {
         "Mean win rate": 0.526,
         "NarrativeQA": 0.718,
@@ -717,7 +717,7 @@
     {
       "model_id": "google/text-unicorn@001",
       "name": "PaLM-2 Unicorn",
-      "developer": "google",
+      "developer": "Google",
       "scores": {
         "Mean win rate": 0.644,
         "NarrativeQA": 0.583,
@@ -732,9 +732,26 @@
       }
     },
     {
+      "model_id": "meta/LLaMA-65B",
+      "name": "LLaMA 65B",
+      "developer": "Meta",
+      "scores": {
+        "Mean win rate": 0.345,
+        "NarrativeQA": 0.755,
+        "NaturalQuestions (closed-book)": 0.433,
+        "OpenbookQA": 0.754,
+        "MMLU": 0.584,
+        "MATH": 0.257,
+        "GSM8K": 0.489,
+        "LegalBench": 0.48,
+        "MedQA": 0.507,
+        "WMT 2014": 0.189
+      }
+    },
+    {
       "model_id": "meta/llama-2-13b",
       "name": "Llama 2 13B",
-      "developer": "meta",
+      "developer": "Meta",
       "scores": {
         "Mean win rate": 0.233,
         "NarrativeQA": 0.741,
@@ -751,7 +768,7 @@
     {
       "model_id": "meta/llama-2-70b",
       "name": "Llama 2 70B",
-      "developer": "meta",
+      "developer": "Meta",
       "scores": {
         "Mean win rate": 0.482,
         "NarrativeQA": 0.763,
@@ -768,7 +785,7 @@
     {
       "model_id": "meta/llama-2-7b",
       "name": "Llama 2 7B",
-      "developer": "meta",
+      "developer": "Meta",
       "scores": {
         "Mean win rate": 0.152,
         "NarrativeQA": 0.686,
@@ -785,7 +802,7 @@
     {
       "model_id": "meta/llama-3-70b",
       "name": "Llama 3 70B",
-      "developer": "meta",
+      "developer": "Meta",
       "scores": {
         "Mean win rate": 0.793,
         "NarrativeQA": 0.798,
@@ -802,7 +819,7 @@
     {
       "model_id": "meta/llama-3-8b",
       "name": "Llama 3 8B",
-      "developer": "meta",
+      "developer": "Meta",
       "scores": {
         "Mean win rate": 0.387,
         "NarrativeQA": 0.754,
@@ -819,7 +836,7 @@
     {
       "model_id": "meta/llama-3.1-405b-instruct-turbo",
       "name": "Llama 3.1 Instruct Turbo 405B",
-      "developer": "meta",
+      "developer": "Meta",
       "scores": {
         "Mean win rate": 0.854,
         "NarrativeQA": 0.749,
@@ -836,7 +853,7 @@
     {
       "model_id": "meta/llama-3.1-70b-instruct-turbo",
       "name": "Llama 3.1 Instruct Turbo 70B",
-      "developer": "meta",
+      "developer": "Meta",
       "scores": {
         "Mean win rate": 0.808,
         "NarrativeQA": 0.772,
@@ -853,7 +870,7 @@
     {
       "model_id": "meta/llama-3.1-8b-instruct-turbo",
       "name": "Llama 3.1 Instruct Turbo 8B",
-      "developer": "meta",
+      "developer": "Meta",
       "scores": {
         "Mean win rate": 0.303,
         "NarrativeQA": 0.756,
@@ -870,7 +887,7 @@
     {
       "model_id": "meta/llama-3.2-11b-vision-instruct-turbo",
       "name": "Llama 3.2 Vision Instruct Turbo 11B",
-      "developer": "meta",
+      "developer": "Meta",
       "scores": {
         "Mean win rate": 0.325,
         "NarrativeQA": 0.756,
@@ -887,7 +904,7 @@
     {
       "model_id": "meta/llama-3.2-90b-vision-instruct-turbo",
       "name": "Llama 3.2 Vision Instruct Turbo 90B",
-      "developer": "meta",
+      "developer": "Meta",
       "scores": {
         "Mean win rate": 0.819,
         "NarrativeQA": 0.777,
@@ -904,7 +921,7 @@
     {
       "model_id": "meta/llama-3.3-70b-instruct-turbo",
       "name": "Llama 3.3 Instruct Turbo 70B",
-      "developer": "meta",
+      "developer": "Meta",
       "scores": {
         "Mean win rate": 0.812,
         "NarrativeQA": 0.791,
@@ -916,23 +933,6 @@
         "LegalBench": 0.725,
         "MedQA": 0.761,
         "WMT 2014": 0.219
-      }
-    },
-    {
-      "model_id": "meta/llama-65b",
-      "name": "LLaMA 65B",
-      "developer": "meta",
-      "scores": {
-        "Mean win rate": 0.345,
-        "NarrativeQA": 0.755,
-        "NaturalQuestions (closed-book)": 0.433,
-        "OpenbookQA": 0.754,
-        "MMLU": 0.584,
-        "MATH": 0.257,
-        "GSM8K": 0.489,
-        "LegalBench": 0.48,
-        "MedQA": 0.507,
-        "WMT 2014": 0.189
       }
     },
     {
@@ -1141,8 +1141,8 @@
     },
     {
       "model_id": "openai/gpt-3.5-turbo-0613",
-      "name": "gpt-3.5-turbo-0613",
-      "developer": "openai",
+      "name": "GPT-3.5 Turbo 0613",
+      "developer": "OpenAI",
       "scores": {
         "Mean win rate": 0.358,
         "NarrativeQA": 0.655,
@@ -1159,7 +1159,7 @@
     {
       "model_id": "openai/gpt-4-0613",
       "name": "GPT-4 0613",
-      "developer": "openai",
+      "developer": "OpenAI",
       "scores": {
         "Mean win rate": 0.867,
         "NarrativeQA": 0.768,
@@ -1176,7 +1176,7 @@
     {
       "model_id": "openai/gpt-4-1106-preview",
       "name": "GPT-4 Turbo 1106 preview",
-      "developer": "openai",
+      "developer": "OpenAI",
       "scores": {
         "Mean win rate": 0.698,
         "NarrativeQA": 0.727,
@@ -1193,7 +1193,7 @@
     {
       "model_id": "openai/gpt-4-turbo-2024-04-09",
       "name": "GPT-4 Turbo 2024-04-09",
-      "developer": "openai",
+      "developer": "OpenAI",
       "scores": {
         "Mean win rate": 0.864,
         "NarrativeQA": 0.761,
@@ -1210,7 +1210,7 @@
     {
       "model_id": "openai/gpt-4o-2024-05-13",
       "name": "GPT-4o 2024-05-13",
-      "developer": "openai",
+      "developer": "OpenAI",
       "scores": {
         "Mean win rate": 0.938,
         "NarrativeQA": 0.804,
@@ -1227,7 +1227,7 @@
     {
       "model_id": "openai/gpt-4o-2024-08-06",
       "name": "GPT-4o 2024-08-06",
-      "developer": "openai",
+      "developer": "OpenAI",
       "scores": {
         "Mean win rate": 0.928,
         "NarrativeQA": 0.795,
@@ -1244,7 +1244,7 @@
     {
       "model_id": "openai/gpt-4o-mini-2024-07-18",
       "name": "GPT-4o mini 2024-07-18",
-      "developer": "openai",
+      "developer": "OpenAI",
       "scores": {
         "Mean win rate": 0.701,
         "NarrativeQA": 0.768,
@@ -1260,8 +1260,8 @@
     },
     {
       "model_id": "openai/text-davinci-002",
-      "name": "text-davinci-002",
-      "developer": "openai",
+      "name": "GPT-3.5 text-davinci-002",
+      "developer": "OpenAI",
       "scores": {
         "Mean win rate": 0.336,
         "NarrativeQA": 0.719,
@@ -1277,8 +1277,8 @@
     },
     {
       "model_id": "openai/text-davinci-003",
-      "name": "text-davinci-003",
-      "developer": "openai",
+      "name": "GPT-3.5 text-davinci-003",
+      "developer": "OpenAI",
       "scores": {
         "Mean win rate": 0.439,
         "NarrativeQA": 0.731,

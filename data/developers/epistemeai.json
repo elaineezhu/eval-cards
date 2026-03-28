@@ -394,6 +394,20 @@
       }
     },
     {
+      "id": "EpistemeAI/Polypsyche-Llama-3.1-8B-Instruct-Agent-0.003-128K-code-ds-auto-divergent",
+      "name": "Polypsyche-Llama-3.1-8B-Instruct-Agent-0.003-128K-code-ds-auto-divergent",
+      "developer": "EpistemeAI",
+      "evaluator_relationship": null,
+      "benchmark_scores": {
+        "hfopenllm_v2/IFEval": 0.6915,
+        "hfopenllm_v2/BBH": 0.4525,
+        "hfopenllm_v2/MATH Level 5": 0.1292,
+        "hfopenllm_v2/GPQA": 0.2668,
+        "hfopenllm_v2/MUSR": 0.3578,
+        "hfopenllm_v2/MMLU-PRO": 0.329
+      }
+    },
+    {
       "id": "EpistemeAI/Polypsyche-Llama-3.1-8B-Instruct-Agent-0.003-128K-code-ds-auto-Empathy",
       "name": "Polypsyche-Llama-3.1-8B-Instruct-Agent-0.003-128K-code-ds-auto-Empathy",
       "developer": "EpistemeAI",
@@ -419,20 +433,6 @@
         "hfopenllm_v2/GPQA": 0.2844,
         "hfopenllm_v2/MUSR": 0.3235,
         "hfopenllm_v2/MMLU-PRO": 0.335
-      }
-    },
-    {
-      "id": "EpistemeAI/Polypsyche-Llama-3.1-8B-Instruct-Agent-0.003-128K-code-ds-auto-divergent",
-      "name": "Polypsyche-Llama-3.1-8B-Instruct-Agent-0.003-128K-code-ds-auto-divergent",
-      "developer": "EpistemeAI",
-      "evaluator_relationship": null,
-      "benchmark_scores": {
-        "hfopenllm_v2/IFEval": 0.6915,
-        "hfopenllm_v2/BBH": 0.4525,
-        "hfopenllm_v2/MATH Level 5": 0.1292,
-        "hfopenllm_v2/GPQA": 0.2668,
-        "hfopenllm_v2/MUSR": 0.3578,
-        "hfopenllm_v2/MMLU-PRO": 0.329
       }
     },
     {

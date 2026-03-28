@@ -3,7 +3,7 @@
     {
       "model_id": "anthropic/Opus 4.5",
       "name": "Opus 4.5",
-      "developer": "anthropic",
+      "developer": "Anthropic",
       "scores": {
         "Overall Pass@1": 0.184,
         "Overall Pass@8": 0.34,
@@ -17,7 +17,7 @@
     {
       "model_id": "anthropic/Opus 4.6",
       "name": "Opus 4.6",
-      "developer": "anthropic",
+      "developer": "Anthropic",
       "scores": {
         "Overall Pass@1": 0.298,
         "Corporate Lawyer Mean Score": 0.502
@@ -37,7 +37,7 @@
     {
       "model_id": "google/Gemini 3 Flash",
       "name": "Gemini 3 Flash",
-      "developer": "google",
+      "developer": "Google",
       "scores": {
         "Overall Pass@1": 0.24,
         "Overall Pass@8": 0.367,
@@ -51,7 +51,7 @@
     {
       "model_id": "google/Gemini 3 Pro",
       "name": "Gemini 3 Pro",
-      "developer": "google",
+      "developer": "Google",
       "scores": {
         "Overall Pass@1": 0.184,
         "Overall Pass@8": 0.373,
@@ -65,7 +65,7 @@
     {
       "model_id": "google/Gemini 3.1 Pro",
       "name": "Gemini 3.1 Pro",
-      "developer": "google",
+      "developer": "Google",
       "scores": {
         "Overall Pass@1": 0.335,
         "Corporate Lawyer Mean Score": 0.494
@@ -104,7 +104,7 @@
     {
       "model_id": "openai/GPT 5",
       "name": "GPT 5",
-      "developer": "openai",
+      "developer": "OpenAI",
       "scores": {
         "Overall Pass@1": 0.183,
         "Overall Pass@8": 0.31,
@@ -118,7 +118,7 @@
     {
       "model_id": "openai/GPT 5 Codex",
       "name": "GPT 5 Codex",
-      "developer": "openai",
+      "developer": "OpenAI",
       "scores": {
         "Corporate Lawyer Mean Score": 0.362
       }
@@ -126,7 +126,7 @@
     {
       "model_id": "openai/GPT 5.1",
       "name": "GPT 5.1",
-      "developer": "openai",
+      "developer": "OpenAI",
       "scores": {
         "Corporate Lawyer Mean Score": 0.376
       }
@@ -134,7 +134,7 @@
     {
       "model_id": "openai/GPT 5.1 Codex",
       "name": "GPT 5.1 Codex",
-      "developer": "openai",
+      "developer": "OpenAI",
       "scores": {
         "Corporate Lawyer Mean Score": 0.366
       }
@@ -142,7 +142,7 @@
     {
       "model_id": "openai/GPT 5.2",
       "name": "GPT 5.2",
-      "developer": "openai",
+      "developer": "OpenAI",
       "scores": {
         "Overall Pass@1": 0.23,
         "Overall Pass@8": 0.4,
@@ -156,7 +156,7 @@
     {
       "model_id": "openai/GPT 5.2 Codex",
       "name": "GPT 5.2 Codex",
-      "developer": "openai",
+      "developer": "OpenAI",
       "scores": {
         "Overall Pass@1": 0.276,
         "Corporate Lawyer Mean Score": 0.394
@@ -165,7 +165,7 @@
     {
       "model_id": "openai/GPT 5.3 Codex",
       "name": "GPT 5.3 Codex",
-      "developer": "openai",
+      "developer": "OpenAI",
       "scores": {
         "Overall Pass@1": 0.317
       }
@@ -173,7 +173,7 @@
     {
       "model_id": "openai/GPT OSS 120B",
       "name": "GPT OSS 120B",
-      "developer": "openai",
+      "developer": "OpenAI",
       "scores": {
         "Overall Pass@1": 0.047,
         "Overall Pass@8": 0.115,
@@ -187,7 +187,7 @@
     {
       "model_id": "xai/Grok 4",
       "name": "Grok 4",
-      "developer": "xai",
+      "developer": "xAI",
       "scores": {
         "Overall Pass@1": 0.152,
         "Overall Pass@8": 0.329,

@@ -2,7 +2,7 @@
   "model_info": {
     "name": "google/gemini-1.5-flash-8b",
     "id": "google/gemini-1.5-flash-8b",
-    "developer": "google",
+    "developer": "Google",
     "additional_details": {
       "model_type": "Generative RM"
     }

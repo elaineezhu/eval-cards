@@ -13,7 +13,7 @@
       "name": "gemini-3-pro-preview",
       "developer": "Google",
       "scores": {
-        "tau-bench-2/airline": 0.7
+        "tau-bench-2/airline": 0.68
       }
     },
     {
@@ -21,7 +21,7 @@
       "name": "gpt-5.2-2025-12-11",
       "developer": "OpenAI",
       "scores": {
-        "tau-bench-2/airline": 0.54
+        "tau-bench-2/airline": 0.6
       }
     }
   ]

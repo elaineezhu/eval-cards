@@ -2,7 +2,7 @@
   "model_info": {
     "name": "Gemini 2.5 Pro 03-25 preview",
     "id": "google/gemini-2.5-pro-preview-03-25",
-    "developer": "google",
+    "developer": "Google",
     "inference_platform": "unknown"
   },
   "evaluations": [

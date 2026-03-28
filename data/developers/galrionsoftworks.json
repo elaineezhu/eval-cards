@@ -2,20 +2,6 @@
   "developer": "GalrionSoftworks",
   "models": [
     {
-      "id": "GalrionSoftworks/MN-LooseCannon-12B-v1",
-      "name": "MN-LooseCannon-12B-v1",
-      "developer": "GalrionSoftworks",
-      "evaluator_relationship": null,
-      "benchmark_scores": {
-        "hfopenllm_v2/IFEval": 0.5418,
-        "hfopenllm_v2/BBH": 0.5128,
-        "hfopenllm_v2/MATH Level 5": 0.0853,
-        "hfopenllm_v2/GPQA": 0.2852,
-        "hfopenllm_v2/MUSR": 0.4138,
-        "hfopenllm_v2/MMLU-PRO": 0.3196
-      }
-    },
-    {
       "id": "GalrionSoftworks/MagnusIntellectus-12B-v1",
       "name": "MagnusIntellectus-12B-v1",
       "developer": "GalrionSoftworks",
@@ -27,6 +13,20 @@
         "hfopenllm_v2/GPQA": 0.2844,
         "hfopenllm_v2/MUSR": 0.4428,
         "hfopenllm_v2/MMLU-PRO": 0.3421
+      }
+    },
+    {
+      "id": "GalrionSoftworks/MN-LooseCannon-12B-v1",
+      "name": "MN-LooseCannon-12B-v1",
+      "developer": "GalrionSoftworks",
+      "evaluator_relationship": null,
+      "benchmark_scores": {
+        "hfopenllm_v2/IFEval": 0.5418,
+        "hfopenllm_v2/BBH": 0.5128,
+        "hfopenllm_v2/MATH Level 5": 0.0853,
+        "hfopenllm_v2/GPQA": 0.2852,
+        "hfopenllm_v2/MUSR": 0.4138,
+        "hfopenllm_v2/MMLU-PRO": 0.3196
       }
     }
   ]

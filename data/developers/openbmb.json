@@ -21,17 +21,17 @@
       "developer": "openbmb",
       "evaluator_relationship": null,
       "benchmark_scores": {
-        "reward-bench/Score": 0.8159,
+        "reward-bench/Score": 0.5806,
+        "reward-bench/Chat": 0.9804,
+        "reward-bench/Chat Hard": 0.6557,
+        "reward-bench/Safety": 0.6267,
+        "reward-bench/Reasoning": 0.8633,
+        "reward-bench/Prior Sets (0.5 weight)": 0.7172,
         "reward-bench/Factuality": 0.6,
         "reward-bench/Precise IF": 0.3438,
         "reward-bench/Math": 0.5683,
-        "reward-bench/Safety": 0.8135,
         "reward-bench/Focus": 0.7475,
-        "reward-bench/Ties": 0.5972,
-        "reward-bench/Chat": 0.9804,
-        "reward-bench/Chat Hard": 0.6557,
-        "reward-bench/Reasoning": 0.8633,
-        "reward-bench/Prior Sets (0.5 weight)": 0.7172
+        "reward-bench/Ties": 0.5972
       }
     },
     {

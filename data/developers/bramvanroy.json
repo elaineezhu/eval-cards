@@ -2,20 +2,6 @@
   "developer": "BramVanroy",
   "models": [
     {
-      "id": "BramVanroy/GEITje-7B-ultra",
-      "name": "GEITje-7B-ultra",
-      "developer": "BramVanroy",
-      "evaluator_relationship": null,
-      "benchmark_scores": {
-        "hfopenllm_v2/IFEval": 0.3723,
-        "hfopenllm_v2/BBH": 0.3776,
-        "hfopenllm_v2/MATH Level 5": 0.0159,
-        "hfopenllm_v2/GPQA": 0.2626,
-        "hfopenllm_v2/MUSR": 0.329,
-        "hfopenllm_v2/MMLU-PRO": 0.2011
-      }
-    },
-    {
       "id": "BramVanroy/fietje-2",
       "name": "fietje-2",
       "developer": "BramVanroy",
@@ -55,6 +41,20 @@
         "hfopenllm_v2/GPQA": 0.2332,
         "hfopenllm_v2/MUSR": 0.3369,
         "hfopenllm_v2/MMLU-PRO": 0.2104
+      }
+    },
+    {
+      "id": "BramVanroy/GEITje-7B-ultra",
+      "name": "GEITje-7B-ultra",
+      "developer": "BramVanroy",
+      "evaluator_relationship": null,
+      "benchmark_scores": {
+        "hfopenllm_v2/IFEval": 0.3723,
+        "hfopenllm_v2/BBH": 0.3776,
+        "hfopenllm_v2/MATH Level 5": 0.0159,
+        "hfopenllm_v2/GPQA": 0.2626,
+        "hfopenllm_v2/MUSR": 0.329,
+        "hfopenllm_v2/MMLU-PRO": 0.2011
       }
     }
   ]

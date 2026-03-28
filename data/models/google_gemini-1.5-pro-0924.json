@@ -2,7 +2,7 @@
   "model_info": {
     "name": "google/gemini-1.5-pro-0924",
     "id": "google/gemini-1.5-pro-0924",
-    "developer": "google",
+    "developer": "Google",
     "additional_details": {
       "model_type": "Generative"
     }

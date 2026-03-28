@@ -16,6 +16,20 @@
       }
     },
     {
+      "id": "PocketDoc/Dans-PersonalityEngine-v1.0.0-8b",
+      "name": "Dans-PersonalityEngine-v1.0.0-8b",
+      "developer": "PocketDoc",
+      "evaluator_relationship": null,
+      "benchmark_scores": {
+        "hfopenllm_v2/IFEval": 0.4982,
+        "hfopenllm_v2/BBH": 0.4733,
+        "hfopenllm_v2/MATH Level 5": 0.0816,
+        "hfopenllm_v2/GPQA": 0.2852,
+        "hfopenllm_v2/MUSR": 0.3542,
+        "hfopenllm_v2/MMLU-PRO": 0.3065
+      }
+    },
+    {
       "id": "PocketDoc/Dans-PersonalityEngine-V1.1.0-12b",
       "name": "Dans-PersonalityEngine-V1.1.0-12b",
       "developer": "PocketDoc",
@@ -41,20 +55,6 @@
         "hfopenllm_v2/GPQA": 0.3188,
         "hfopenllm_v2/MUSR": 0.43,
         "hfopenllm_v2/MMLU-PRO": 0.5026
-      }
-    },
-    {
-      "id": "PocketDoc/Dans-PersonalityEngine-v1.0.0-8b",
-      "name": "Dans-PersonalityEngine-v1.0.0-8b",
-      "developer": "PocketDoc",
-      "evaluator_relationship": null,
-      "benchmark_scores": {
-        "hfopenllm_v2/IFEval": 0.4982,
-        "hfopenllm_v2/BBH": 0.4733,
-        "hfopenllm_v2/MATH Level 5": 0.0816,
-        "hfopenllm_v2/GPQA": 0.2852,
-        "hfopenllm_v2/MUSR": 0.3542,
-        "hfopenllm_v2/MMLU-PRO": 0.3065
       }
     },
     {

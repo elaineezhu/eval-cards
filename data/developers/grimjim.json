@@ -72,6 +72,20 @@
       }
     },
     {
+      "id": "grimjim/Llama-3-Instruct-8B-SimPO-SPPO-Iter3-merge",
+      "name": "Llama-3-Instruct-8B-SimPO-SPPO-Iter3-merge",
+      "developer": "grimjim",
+      "evaluator_relationship": null,
+      "benchmark_scores": {
+        "hfopenllm_v2/IFEval": 0.6806,
+        "hfopenllm_v2/BBH": 0.5022,
+        "hfopenllm_v2/MATH Level 5": 0.0891,
+        "hfopenllm_v2/GPQA": 0.2626,
+        "hfopenllm_v2/MUSR": 0.3885,
+        "hfopenllm_v2/MMLU-PRO": 0.3684
+      }
+    },
+    {
       "id": "grimjim/Llama-3-Instruct-8B-SPPO-Iter3-SimPO-merge",
       "name": "Llama-3-Instruct-8B-SPPO-Iter3-SimPO-merge",
       "developer": "grimjim",
@@ -86,17 +100,59 @@
       }
     },
     {
-      "id": "grimjim/Llama-3-Instruct-8B-SimPO-SPPO-Iter3-merge",
-      "name": "Llama-3-Instruct-8B-SimPO-SPPO-Iter3-merge",
+      "id": "grimjim/llama-3-Nephilim-v1-8B",
+      "name": "llama-3-Nephilim-v1-8B",
       "developer": "grimjim",
       "evaluator_relationship": null,
       "benchmark_scores": {
-        "hfopenllm_v2/IFEval": 0.6806,
-        "hfopenllm_v2/BBH": 0.5022,
-        "hfopenllm_v2/MATH Level 5": 0.0891,
-        "hfopenllm_v2/GPQA": 0.2626,
-        "hfopenllm_v2/MUSR": 0.3885,
-        "hfopenllm_v2/MMLU-PRO": 0.3684
+        "hfopenllm_v2/IFEval": 0.4277,
+        "hfopenllm_v2/BBH": 0.5132,
+        "hfopenllm_v2/MATH Level 5": 0.0906,
+        "hfopenllm_v2/GPQA": 0.302,
+        "hfopenllm_v2/MUSR": 0.4136,
+        "hfopenllm_v2/MMLU-PRO": 0.3796
+      }
+    },
+    {
+      "id": "grimjim/llama-3-Nephilim-v2-8B",
+      "name": "llama-3-Nephilim-v2-8B",
+      "developer": "grimjim",
+      "evaluator_relationship": null,
+      "benchmark_scores": {
+        "hfopenllm_v2/IFEval": 0.3922,
+        "hfopenllm_v2/BBH": 0.5048,
+        "hfopenllm_v2/MATH Level 5": 0.1065,
+        "hfopenllm_v2/GPQA": 0.2995,
+        "hfopenllm_v2/MUSR": 0.3895,
+        "hfopenllm_v2/MMLU-PRO": 0.3641
+      }
+    },
+    {
+      "id": "grimjim/llama-3-Nephilim-v2.1-8B",
+      "name": "llama-3-Nephilim-v2.1-8B",
+      "developer": "grimjim",
+      "evaluator_relationship": null,
+      "benchmark_scores": {
+        "hfopenllm_v2/IFEval": 0.3895,
+        "hfopenllm_v2/BBH": 0.5095,
+        "hfopenllm_v2/MATH Level 5": 0.0997,
+        "hfopenllm_v2/GPQA": 0.2995,
+        "hfopenllm_v2/MUSR": 0.3935,
+        "hfopenllm_v2/MMLU-PRO": 0.3644
+      }
+    },
+    {
+      "id": "grimjim/llama-3-Nephilim-v3-8B",
+      "name": "llama-3-Nephilim-v3-8B",
+      "developer": "grimjim",
+      "evaluator_relationship": null,
+      "benchmark_scores": {
+        "hfopenllm_v2/IFEval": 0.4174,
+        "hfopenllm_v2/BBH": 0.5013,
+        "hfopenllm_v2/MATH Level 5": 0.0952,
+        "hfopenllm_v2/GPQA": 0.2953,
+        "hfopenllm_v2/MUSR": 0.3989,
+        "hfopenllm_v2/MMLU-PRO": 0.3612
       }
     },
     {
@@ -293,62 +349,6 @@
         "hfopenllm_v2/GPQA": 0.3213,
         "hfopenllm_v2/MUSR": 0.4527,
         "hfopenllm_v2/MMLU-PRO": 0.3991
-      }
-    },
-    {
-      "id": "grimjim/llama-3-Nephilim-v1-8B",
-      "name": "llama-3-Nephilim-v1-8B",
-      "developer": "grimjim",
-      "evaluator_relationship": null,
-      "benchmark_scores": {
-        "hfopenllm_v2/IFEval": 0.4277,
-        "hfopenllm_v2/BBH": 0.5132,
-        "hfopenllm_v2/MATH Level 5": 0.0906,
-        "hfopenllm_v2/GPQA": 0.302,
-        "hfopenllm_v2/MUSR": 0.4136,
-        "hfopenllm_v2/MMLU-PRO": 0.3796
-      }
-    },
-    {
-      "id": "grimjim/llama-3-Nephilim-v2-8B",
-      "name": "llama-3-Nephilim-v2-8B",
-      "developer": "grimjim",
-      "evaluator_relationship": null,
-      "benchmark_scores": {
-        "hfopenllm_v2/IFEval": 0.3922,
-        "hfopenllm_v2/BBH": 0.5048,
-        "hfopenllm_v2/MATH Level 5": 0.1065,
-        "hfopenllm_v2/GPQA": 0.2995,
-        "hfopenllm_v2/MUSR": 0.3895,
-        "hfopenllm_v2/MMLU-PRO": 0.3641
-      }
-    },
-    {
-      "id": "grimjim/llama-3-Nephilim-v2.1-8B",
-      "name": "llama-3-Nephilim-v2.1-8B",
-      "developer": "grimjim",
-      "evaluator_relationship": null,
-      "benchmark_scores": {
-        "hfopenllm_v2/IFEval": 0.3895,
-        "hfopenllm_v2/BBH": 0.5095,
-        "hfopenllm_v2/MATH Level 5": 0.0997,
-        "hfopenllm_v2/GPQA": 0.2995,
-        "hfopenllm_v2/MUSR": 0.3935,
-        "hfopenllm_v2/MMLU-PRO": 0.3644
-      }
-    },
-    {
-      "id": "grimjim/llama-3-Nephilim-v3-8B",
-      "name": "llama-3-Nephilim-v3-8B",
-      "developer": "grimjim",
-      "evaluator_relationship": null,
-      "benchmark_scores": {
-        "hfopenllm_v2/IFEval": 0.4174,
-        "hfopenllm_v2/BBH": 0.5013,
-        "hfopenllm_v2/MATH Level 5": 0.0952,
-        "hfopenllm_v2/GPQA": 0.2953,
-        "hfopenllm_v2/MUSR": 0.3989,
-        "hfopenllm_v2/MMLU-PRO": 0.3612
       }
     }
   ]

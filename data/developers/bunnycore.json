@@ -380,6 +380,20 @@
       }
     },
     {
+      "id": "bunnycore/Llama-3.2-3b-RP-Toxic-Fuse",
+      "name": "Llama-3.2-3b-RP-Toxic-Fuse",
+      "developer": "bunnycore",
+      "evaluator_relationship": null,
+      "benchmark_scores": {
+        "hfopenllm_v2/IFEval": 0.6834,
+        "hfopenllm_v2/BBH": 0.465,
+        "hfopenllm_v2/MATH Level 5": 0.2402,
+        "hfopenllm_v2/GPQA": 0.2777,
+        "hfopenllm_v2/MUSR": 0.3954,
+        "hfopenllm_v2/MMLU-PRO": 0.3106
+      }
+    },
+    {
       "id": "bunnycore/Llama-3.2-3B-RRStock",
       "name": "Llama-3.2-3B-RRStock",
       "developer": "bunnycore",
@@ -405,20 +419,6 @@
         "hfopenllm_v2/GPQA": 0.2659,
         "hfopenllm_v2/MUSR": 0.3475,
         "hfopenllm_v2/MMLU-PRO": 0.288
-      }
-    },
-    {
-      "id": "bunnycore/Llama-3.2-3b-RP-Toxic-Fuse",
-      "name": "Llama-3.2-3b-RP-Toxic-Fuse",
-      "developer": "bunnycore",
-      "evaluator_relationship": null,
-      "benchmark_scores": {
-        "hfopenllm_v2/IFEval": 0.6834,
-        "hfopenllm_v2/BBH": 0.465,
-        "hfopenllm_v2/MATH Level 5": 0.2402,
-        "hfopenllm_v2/GPQA": 0.2777,
-        "hfopenllm_v2/MUSR": 0.3954,
-        "hfopenllm_v2/MMLU-PRO": 0.3106
       }
     },
     {
@@ -506,6 +506,20 @@
       }
     },
     {
+      "id": "bunnycore/Phi-4-ReasoningRP",
+      "name": "Phi-4-ReasoningRP",
+      "developer": "bunnycore",
+      "evaluator_relationship": null,
+      "benchmark_scores": {
+        "hfopenllm_v2/IFEval": 0.6736,
+        "hfopenllm_v2/BBH": 0.6922,
+        "hfopenllm_v2/MATH Level 5": 0.4569,
+        "hfopenllm_v2/GPQA": 0.344,
+        "hfopenllm_v2/MUSR": 0.4491,
+        "hfopenllm_v2/MMLU-PRO": 0.5421
+      }
+    },
+    {
       "id": "bunnycore/Phi-4-RP-v0",
       "name": "Phi-4-RP-v0",
       "developer": "bunnycore",
@@ -545,20 +559,6 @@
         "hfopenllm_v2/GPQA": 0.3649,
         "hfopenllm_v2/MUSR": 0.4584,
         "hfopenllm_v2/MMLU-PRO": 0.5401
-      }
-    },
-    {
-      "id": "bunnycore/Phi-4-ReasoningRP",
-      "name": "Phi-4-ReasoningRP",
-      "developer": "bunnycore",
-      "evaluator_relationship": null,
-      "benchmark_scores": {
-        "hfopenllm_v2/IFEval": 0.6736,
-        "hfopenllm_v2/BBH": 0.6922,
-        "hfopenllm_v2/MATH Level 5": 0.4569,
-        "hfopenllm_v2/GPQA": 0.344,
-        "hfopenllm_v2/MUSR": 0.4491,
-        "hfopenllm_v2/MMLU-PRO": 0.5421
       }
     },
     {
@@ -688,34 +688,6 @@
       }
     },
     {
-      "id": "bunnycore/QwQen-3B-LCoT",
-      "name": "QwQen-3B-LCoT",
-      "developer": "bunnycore",
-      "evaluator_relationship": null,
-      "benchmark_scores": {
-        "hfopenllm_v2/IFEval": 0.6025,
-        "hfopenllm_v2/BBH": 0.4899,
-        "hfopenllm_v2/MATH Level 5": 0.3618,
-        "hfopenllm_v2/GPQA": 0.2668,
-        "hfopenllm_v2/MUSR": 0.4178,
-        "hfopenllm_v2/MMLU-PRO": 0.3699
-      }
-    },
-    {
-      "id": "bunnycore/QwQen-3B-LCoT-R1",
-      "name": "QwQen-3B-LCoT-R1",
-      "developer": "bunnycore",
-      "evaluator_relationship": null,
-      "benchmark_scores": {
-        "hfopenllm_v2/IFEval": 0.5342,
-        "hfopenllm_v2/BBH": 0.4799,
-        "hfopenllm_v2/MATH Level 5": 0.3353,
-        "hfopenllm_v2/GPQA": 0.2617,
-        "hfopenllm_v2/MUSR": 0.4138,
-        "hfopenllm_v2/MMLU-PRO": 0.3723
-      }
-    },
-    {
       "id": "bunnycore/Qwen-2.5-7B-Deep-Sky-T1",
       "name": "Qwen-2.5-7B-Deep-Sky-T1",
       "developer": "bunnycore",
@@ -800,20 +772,6 @@
       }
     },
     {
-      "id": "bunnycore/Qwen-2.5-7B-Stock-Deep-Bespoke",
-      "name": "Qwen-2.5-7B-Stock-Deep-Bespoke",
-      "developer": "bunnycore",
-      "evaluator_relationship": null,
-      "benchmark_scores": {
-        "hfopenllm_v2/IFEval": 0.5206,
-        "hfopenllm_v2/BBH": 0.492,
-        "hfopenllm_v2/MATH Level 5": 0.1888,
-        "hfopenllm_v2/GPQA": 0.281,
-        "hfopenllm_v2/MUSR": 0.4068,
-        "hfopenllm_v2/MMLU-PRO": 0.358
-      }
-    },
-    {
       "id": "bunnycore/Qwen-2.5-7b-S1k",
       "name": "Qwen-2.5-7b-S1k",
       "developer": "bunnycore",
@@ -825,6 +783,20 @@
         "hfopenllm_v2/GPQA": 0.2844,
         "hfopenllm_v2/MUSR": 0.4071,
         "hfopenllm_v2/MMLU-PRO": 0.4382
+      }
+    },
+    {
+      "id": "bunnycore/Qwen-2.5-7B-Stock-Deep-Bespoke",
+      "name": "Qwen-2.5-7B-Stock-Deep-Bespoke",
+      "developer": "bunnycore",
+      "evaluator_relationship": null,
+      "benchmark_scores": {
+        "hfopenllm_v2/IFEval": 0.5206,
+        "hfopenllm_v2/BBH": 0.492,
+        "hfopenllm_v2/MATH Level 5": 0.1888,
+        "hfopenllm_v2/GPQA": 0.281,
+        "hfopenllm_v2/MUSR": 0.4068,
+        "hfopenllm_v2/MMLU-PRO": 0.358
       }
     },
     {
@@ -1133,6 +1105,34 @@
         "hfopenllm_v2/GPQA": 0.2609,
         "hfopenllm_v2/MUSR": 0.4164,
         "hfopenllm_v2/MMLU-PRO": 0.431
+      }
+    },
+    {
+      "id": "bunnycore/QwQen-3B-LCoT",
+      "name": "QwQen-3B-LCoT",
+      "developer": "bunnycore",
+      "evaluator_relationship": null,
+      "benchmark_scores": {
+        "hfopenllm_v2/IFEval": 0.6025,
+        "hfopenllm_v2/BBH": 0.4899,
+        "hfopenllm_v2/MATH Level 5": 0.3618,
+        "hfopenllm_v2/GPQA": 0.2668,
+        "hfopenllm_v2/MUSR": 0.4178,
+        "hfopenllm_v2/MMLU-PRO": 0.3699
+      }
+    },
+    {
+      "id": "bunnycore/QwQen-3B-LCoT-R1",
+      "name": "QwQen-3B-LCoT-R1",
+      "developer": "bunnycore",
+      "evaluator_relationship": null,
+      "benchmark_scores": {
+        "hfopenllm_v2/IFEval": 0.5342,
+        "hfopenllm_v2/BBH": 0.4799,
+        "hfopenllm_v2/MATH Level 5": 0.3353,
+        "hfopenllm_v2/GPQA": 0.2617,
+        "hfopenllm_v2/MUSR": 0.4138,
+        "hfopenllm_v2/MMLU-PRO": 0.3723
       }
     },
     {

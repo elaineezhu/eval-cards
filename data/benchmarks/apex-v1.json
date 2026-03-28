@@ -3,7 +3,7 @@
     {
       "model_id": "anthropic/Opus 4.5",
       "name": "Opus 4.5",
-      "developer": "anthropic",
+      "developer": "Anthropic",
       "scores": {
         "Medicine (MD) Score": 0.65
       }
@@ -11,7 +11,7 @@
     {
       "model_id": "google/Gemini 2.5 Flash",
       "name": "Gemini 2.5 Flash",
-      "developer": "google",
+      "developer": "Google",
       "scores": {
         "Overall Score": 0.604
       }
@@ -19,7 +19,7 @@
     {
       "model_id": "google/Gemini 3 Flash",
       "name": "Gemini 3 Flash",
-      "developer": "google",
+      "developer": "Google",
       "scores": {
         "Overall Score": 0.64,
         "Consulting Score": 0.64
@@ -28,7 +28,7 @@
     {
       "model_id": "google/Gemini 3 Pro",
       "name": "Gemini 3 Pro",
-      "developer": "google",
+      "developer": "Google",
       "scores": {
         "Overall Score": 0.643,
         "Consulting Score": 0.64,
@@ -38,7 +38,7 @@
     {
       "model_id": "openai/GPT 4o",
       "name": "GPT 4o",
-      "developer": "openai",
+      "developer": "OpenAI",
       "scores": {
         "Overall Score": 0.359
       }
@@ -46,7 +46,7 @@
     {
       "model_id": "openai/GPT 5",
       "name": "GPT 5",
-      "developer": "openai",
+      "developer": "OpenAI",
       "scores": {
         "Overall Score": 0.67,
         "Big Law Score": 0.78,
@@ -57,7 +57,7 @@
     {
       "model_id": "openai/GPT 5.1",
       "name": "GPT 5.1",
-      "developer": "openai",
+      "developer": "OpenAI",
       "scores": {
         "Big Law Score": 0.77
       }
@@ -65,7 +65,7 @@
     {
       "model_id": "openai/GPT 5.2 Pro",
       "name": "GPT 5.2 Pro",
-      "developer": "openai",
+      "developer": "OpenAI",
       "scores": {
         "Overall Score": 0.668,
         "Consulting Score": 0.64,
@@ -76,7 +76,7 @@
     {
       "model_id": "openai/o3",
       "name": "o3",
-      "developer": "openai",
+      "developer": "OpenAI",
       "scores": {
         "Big Law Score": 0.76
       }
@@ -84,7 +84,7 @@
     {
       "model_id": "xai/Grok 4",
       "name": "Grok 4",
-      "developer": "xai",
+      "developer": "xAI",
       "scores": {
         "Overall Score": 0.635
       }

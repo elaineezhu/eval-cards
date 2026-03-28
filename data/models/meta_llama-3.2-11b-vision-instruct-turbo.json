@@ -2,7 +2,7 @@
   "model_info": {
     "name": "Llama 3.2 Vision Instruct Turbo 11B",
     "id": "meta/llama-3.2-11b-vision-instruct-turbo",
-    "developer": "meta",
+    "developer": "Meta",
     "inference_platform": "unknown"
   },
   "evaluations": [

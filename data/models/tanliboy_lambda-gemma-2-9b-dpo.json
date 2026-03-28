@@ -5,7 +5,7 @@
     "developer": "tanliboy",
     "inference_platform": "unknown",
     "additional_details": {
-      "precision": "float16",
+      "precision": "bfloat16",
       "architecture": "Gemma2ForCausalLM",
       "params_billions": "9.242"
     }

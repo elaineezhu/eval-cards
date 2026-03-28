@@ -2,7 +2,7 @@
   "model_info": {
     "name": "Claude 4 Sonnet 20250514, extended thinking",
     "id": "anthropic/claude-sonnet-4-20250514-thinking-10k",
-    "developer": "anthropic",
+    "developer": "Anthropic",
     "inference_platform": "unknown"
   },
   "evaluations": [

@@ -30,20 +30,6 @@
       }
     },
     {
-      "id": "sethuiyer/LlamaZero-3.1-8B-Experimental-1208",
-      "name": "LlamaZero-3.1-8B-Experimental-1208",
-      "developer": "sethuiyer",
-      "evaluator_relationship": null,
-      "benchmark_scores": {
-        "hfopenllm_v2/IFEval": 0.6051,
-        "hfopenllm_v2/BBH": 0.4981,
-        "hfopenllm_v2/MATH Level 5": 0.108,
-        "hfopenllm_v2/GPQA": 0.2685,
-        "hfopenllm_v2/MUSR": 0.382,
-        "hfopenllm_v2/MMLU-PRO": 0.3
-      }
-    },
-    {
       "id": "sethuiyer/Llamaverse-3.1-8B-Instruct",
       "name": "Llamaverse-3.1-8B-Instruct",
       "developer": "sethuiyer",
@@ -55,6 +41,20 @@
         "hfopenllm_v2/GPQA": 0.2911,
         "hfopenllm_v2/MUSR": 0.3762,
         "hfopenllm_v2/MMLU-PRO": 0.3523
+      }
+    },
+    {
+      "id": "sethuiyer/LlamaZero-3.1-8B-Experimental-1208",
+      "name": "LlamaZero-3.1-8B-Experimental-1208",
+      "developer": "sethuiyer",
+      "evaluator_relationship": null,
+      "benchmark_scores": {
+        "hfopenllm_v2/IFEval": 0.6051,
+        "hfopenllm_v2/BBH": 0.4981,
+        "hfopenllm_v2/MATH Level 5": 0.108,
+        "hfopenllm_v2/GPQA": 0.2685,
+        "hfopenllm_v2/MUSR": 0.382,
+        "hfopenllm_v2/MMLU-PRO": 0.3
       }
     },
     {

@@ -16,20 +16,6 @@
       }
     },
     {
-      "id": "meditsolutions/Llama-3.2-SUN-1B-Instruct",
-      "name": "Llama-3.2-SUN-1B-Instruct",
-      "developer": "meditsolutions",
-      "evaluator_relationship": null,
-      "benchmark_scores": {
-        "hfopenllm_v2/IFEval": 0.6413,
-        "hfopenllm_v2/BBH": 0.3474,
-        "hfopenllm_v2/MATH Level 5": 0.071,
-        "hfopenllm_v2/GPQA": 0.2424,
-        "hfopenllm_v2/MUSR": 0.3514,
-        "hfopenllm_v2/MMLU-PRO": 0.1781
-      }
-    },
-    {
       "id": "meditsolutions/Llama-3.2-SUN-1B-chat",
       "name": "Llama-3.2-SUN-1B-chat",
       "developer": "meditsolutions",
@@ -41,6 +27,20 @@
         "hfopenllm_v2/GPQA": 0.2617,
         "hfopenllm_v2/MUSR": 0.3249,
         "hfopenllm_v2/MMLU-PRO": 0.1838
+      }
+    },
+    {
+      "id": "meditsolutions/Llama-3.2-SUN-1B-Instruct",
+      "name": "Llama-3.2-SUN-1B-Instruct",
+      "developer": "meditsolutions",
+      "evaluator_relationship": null,
+      "benchmark_scores": {
+        "hfopenllm_v2/IFEval": 0.6413,
+        "hfopenllm_v2/BBH": 0.3474,
+        "hfopenllm_v2/MATH Level 5": 0.071,
+        "hfopenllm_v2/GPQA": 0.2424,
+        "hfopenllm_v2/MUSR": 0.3514,
+        "hfopenllm_v2/MMLU-PRO": 0.1781
       }
     },
     {
@@ -114,6 +114,20 @@
       }
     },
     {
+      "id": "meditsolutions/MedIT-Mesh-3B-Instruct",
+      "name": "MedIT-Mesh-3B-Instruct",
+      "developer": "meditsolutions",
+      "evaluator_relationship": null,
+      "benchmark_scores": {
+        "hfopenllm_v2/IFEval": 0.5814,
+        "hfopenllm_v2/BBH": 0.5576,
+        "hfopenllm_v2/MATH Level 5": 0.2032,
+        "hfopenllm_v2/GPQA": 0.3238,
+        "hfopenllm_v2/MUSR": 0.4048,
+        "hfopenllm_v2/MMLU-PRO": 0.4012
+      }
+    },
+    {
       "id": "meditsolutions/MSH-Lite-7B-v1-Bielik-v2.3-Instruct-Llama-Prune",
       "name": "MSH-Lite-7B-v1-Bielik-v2.3-Instruct-Llama-Prune",
       "developer": "meditsolutions",
@@ -139,20 +153,6 @@
         "hfopenllm_v2/GPQA": 0.3456,
         "hfopenllm_v2/MUSR": 0.4385,
         "hfopenllm_v2/MMLU-PRO": 0.35
-      }
-    },
-    {
-      "id": "meditsolutions/MedIT-Mesh-3B-Instruct",
-      "name": "MedIT-Mesh-3B-Instruct",
-      "developer": "meditsolutions",
-      "evaluator_relationship": null,
-      "benchmark_scores": {
-        "hfopenllm_v2/IFEval": 0.5814,
-        "hfopenllm_v2/BBH": 0.5576,
-        "hfopenllm_v2/MATH Level 5": 0.2032,
-        "hfopenllm_v2/GPQA": 0.3238,
-        "hfopenllm_v2/MUSR": 0.4048,
-        "hfopenllm_v2/MMLU-PRO": 0.4012
       }
     },
     {

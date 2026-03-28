@@ -2,20 +2,6 @@
   "developer": "0-hero",
   "models": [
     {
-      "id": "0-hero/Matter-0.1-7B-DPO-preview",
-      "name": "0-hero/Matter-0.1-7B-DPO-preview",
-      "developer": "0-hero",
-      "evaluator_relationship": null,
-      "benchmark_scores": {
-        "reward-bench/Score": 0.7247,
-        "reward-bench/Chat": 0.8939,
-        "reward-bench/Chat Hard": 0.5768,
-        "reward-bench/Safety": 0.6378,
-        "reward-bench/Reasoning": 0.8854,
-        "reward-bench/Prior Sets (0.5 weight)": 0.5348
-      }
-    },
-    {
       "id": "0-hero/Matter-0.1-7B-boost-DPO-preview",
       "name": "0-hero/Matter-0.1-7B-boost-DPO-preview",
       "developer": "0-hero",
@@ -27,6 +13,20 @@
         "reward-bench/Safety": 0.7135,
         "reward-bench/Reasoning": 0.8395,
         "reward-bench/Prior Sets (0.5 weight)": 0.5566
+      }
+    },
+    {
+      "id": "0-hero/Matter-0.1-7B-DPO-preview",
+      "name": "0-hero/Matter-0.1-7B-DPO-preview",
+      "developer": "0-hero",
+      "evaluator_relationship": null,
+      "benchmark_scores": {
+        "reward-bench/Score": 0.7247,
+        "reward-bench/Chat": 0.8939,
+        "reward-bench/Chat Hard": 0.5768,
+        "reward-bench/Safety": 0.6378,
+        "reward-bench/Reasoning": 0.8854,
+        "reward-bench/Prior Sets (0.5 weight)": 0.5348
       }
     },
     {

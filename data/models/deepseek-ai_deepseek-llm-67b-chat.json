@@ -1,14 +1,9 @@
 {
   "model_info": {
-    "name": "deepseek-llm-67b-chat",
+    "name": "DeepSeek LLM Chat 67B",
     "id": "deepseek-ai/deepseek-llm-67b-chat",
     "developer": "deepseek-ai",
-    "inference_platform": "unknown",
-    "additional_details": {
-      "precision": "bfloat16",
-      "architecture": "LlamaForCausalLM",
-      "params_billions": "67.0"
-    }
+    "inference_platform": "unknown"
   },
   "evaluations": [
     {

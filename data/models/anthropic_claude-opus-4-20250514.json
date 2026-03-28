@@ -1,11 +1,9 @@
 {
   "model_info": {
-    "name": "anthropic/claude-opus-4-20250514",
+    "name": "Claude 4 Opus 20250514",
     "id": "anthropic/claude-opus-4-20250514",
-    "developer": "anthropic",
-    "additional_details": {
-      "model_type": "Generative RM"
-    }
+    "developer": "Anthropic",
+    "inference_platform": "unknown"
   },
   "evaluations": [
     {

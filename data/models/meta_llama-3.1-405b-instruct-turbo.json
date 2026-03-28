@@ -2,7 +2,7 @@
   "model_info": {
     "name": "Llama 3.1 Instruct Turbo 405B",
     "id": "meta/llama-3.1-405b-instruct-turbo",
-    "developer": "meta",
+    "developer": "Meta",
     "inference_platform": "unknown"
   },
   "evaluations": [

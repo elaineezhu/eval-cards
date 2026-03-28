@@ -16,6 +16,34 @@
       }
     },
     {
+      "id": "BlackBeenie/llama-3-luminous-merged",
+      "name": "llama-3-luminous-merged",
+      "developer": "BlackBeenie",
+      "evaluator_relationship": null,
+      "benchmark_scores": {
+        "hfopenllm_v2/IFEval": 0.4323,
+        "hfopenllm_v2/BBH": 0.5154,
+        "hfopenllm_v2/MATH Level 5": 0.0869,
+        "hfopenllm_v2/GPQA": 0.2928,
+        "hfopenllm_v2/MUSR": 0.4149,
+        "hfopenllm_v2/MMLU-PRO": 0.3773
+      }
+    },
+    {
+      "id": "BlackBeenie/llama-3.1-8B-Galore-openassistant-guanaco",
+      "name": "llama-3.1-8B-Galore-openassistant-guanaco",
+      "developer": "BlackBeenie",
+      "evaluator_relationship": null,
+      "benchmark_scores": {
+        "hfopenllm_v2/IFEval": 0.2635,
+        "hfopenllm_v2/BBH": 0.5213,
+        "hfopenllm_v2/MATH Level 5": 0.0665,
+        "hfopenllm_v2/GPQA": 0.3003,
+        "hfopenllm_v2/MUSR": 0.4406,
+        "hfopenllm_v2/MMLU-PRO": 0.3206
+      }
+    },
+    {
       "id": "BlackBeenie/Llama-3.1-8B-OpenO1-SFT-v0.1",
       "name": "Llama-3.1-8B-OpenO1-SFT-v0.1",
       "developer": "BlackBeenie",
@@ -97,34 +125,6 @@
         "hfopenllm_v2/GPQA": 0.3054,
         "hfopenllm_v2/MUSR": 0.4125,
         "hfopenllm_v2/MMLU-PRO": 0.4564
-      }
-    },
-    {
-      "id": "BlackBeenie/llama-3-luminous-merged",
-      "name": "llama-3-luminous-merged",
-      "developer": "BlackBeenie",
-      "evaluator_relationship": null,
-      "benchmark_scores": {
-        "hfopenllm_v2/IFEval": 0.4323,
-        "hfopenllm_v2/BBH": 0.5154,
-        "hfopenllm_v2/MATH Level 5": 0.0869,
-        "hfopenllm_v2/GPQA": 0.2928,
-        "hfopenllm_v2/MUSR": 0.4149,
-        "hfopenllm_v2/MMLU-PRO": 0.3773
-      }
-    },
-    {
-      "id": "BlackBeenie/llama-3.1-8B-Galore-openassistant-guanaco",
-      "name": "llama-3.1-8B-Galore-openassistant-guanaco",
-      "developer": "BlackBeenie",
-      "evaluator_relationship": null,
-      "benchmark_scores": {
-        "hfopenllm_v2/IFEval": 0.2635,
-        "hfopenllm_v2/BBH": 0.5213,
-        "hfopenllm_v2/MATH Level 5": 0.0665,
-        "hfopenllm_v2/GPQA": 0.3003,
-        "hfopenllm_v2/MUSR": 0.4406,
-        "hfopenllm_v2/MMLU-PRO": 0.3206
       }
     }
   ]

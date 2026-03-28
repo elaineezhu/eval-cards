@@ -2,7 +2,7 @@
   "model_info": {
     "name": "text-babbage-001",
     "id": "openai/text-babbage-001",
-    "developer": "openai",
+    "developer": "OpenAI",
     "inference_platform": "unknown"
   },
   "evaluations": [

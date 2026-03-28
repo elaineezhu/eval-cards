@@ -28,8 +28,8 @@
     },
     {
       "model_id": "anthropic/claude-3-5-haiku-20241022",
-      "name": "claude-3-5-haiku-20241022",
-      "developer": "anthropic",
+      "name": "Claude 3.5 Haiku 20241022",
+      "developer": "Anthropic",
       "scores": {
         "Global MMLU Lite": 0.6114,
         "Culturally Sensitive": 0.5834,
@@ -55,7 +55,7 @@
     {
       "model_id": "anthropic/claude-3-7-sonnet-20250219",
       "name": "claude-3-7-sonnet-20250219",
-      "developer": "anthropic",
+      "developer": "Anthropic",
       "scores": {
         "Global MMLU Lite": 0.8078,
         "Culturally Sensitive": 0.7794,
@@ -81,7 +81,7 @@
     {
       "model_id": "anthropic/claude-opus-4-1-20250805",
       "name": "claude-opus-4-1-20250805",
-      "developer": "anthropic",
+      "developer": "Anthropic",
       "scores": {
         "Global MMLU Lite": 0.943,
         "Culturally Sensitive": 0.9331,
@@ -107,7 +107,7 @@
     {
       "model_id": "anthropic/claude-sonnet-4-20250514",
       "name": "claude-sonnet-4-20250514",
-      "developer": "anthropic",
+      "developer": "Anthropic",
       "scores": {
         "Global MMLU Lite": 0.9058,
         "Culturally Sensitive": 0.8913,
@@ -236,8 +236,8 @@
     },
     {
       "model_id": "google/gemini-2.5-flash",
-      "name": "gemini-2.5-flash",
-      "developer": "google",
+      "name": "Gemini 2.5 Flash",
+      "developer": "Google",
       "scores": {
         "Global MMLU Lite": 0.9145,
         "Culturally Sensitive": 0.9,
@@ -263,7 +263,7 @@
     {
       "model_id": "google/gemini-2.5-flash-preview-05-20",
       "name": "gemini-2.5-flash-preview-05-20",
-      "developer": "google",
+      "developer": "Google",
       "scores": {
         "Global MMLU Lite": 0.9092,
         "Culturally Sensitive": 0.8925,
@@ -288,8 +288,8 @@
     },
     {
       "model_id": "google/gemini-2.5-pro",
-      "name": "gemini-2.5-pro",
-      "developer": "google",
+      "name": "Gemini 2.5 Pro",
+      "developer": "Google",
       "scores": {
         "Global MMLU Lite": 0.9323,
         "Culturally Sensitive": 0.9241,
@@ -315,7 +315,7 @@
     {
       "model_id": "google/gemini-3-pro-preview",
       "name": "gemini-3-pro-preview",
-      "developer": "google",
+      "developer": "Google",
       "scores": {
         "Global MMLU Lite": 0.9453,
         "Culturally Sensitive": 0.9397,
@@ -341,7 +341,7 @@
     {
       "model_id": "google/gemma-3-27b-it",
       "name": "gemma-3-27b-it",
-      "developer": "google",
+      "developer": "Google",
       "scores": {
         "Global MMLU Lite": 0.763,
         "Culturally Sensitive": 0.7528,
@@ -367,7 +367,7 @@
     {
       "model_id": "google/gemma-3-4b-it",
       "name": "gemma-3-4b-it",
-      "developer": "google",
+      "developer": "Google",
       "scores": {
         "Global MMLU Lite": 0.6511,
         "Culturally Sensitive": 0.6116,
@@ -471,7 +471,7 @@
     {
       "model_id": "openai/gpt-4.1-2025-04-14",
       "name": "gpt-4.1-2025-04-14",
-      "developer": "openai",
+      "developer": "OpenAI",
       "scores": {
         "Global MMLU Lite": 0.8755,
         "Culturally Sensitive": 0.8541,
@@ -497,7 +497,7 @@
     {
       "model_id": "openai/gpt-5-2025-08-07",
       "name": "gpt-5-2025-08-07",
-      "developer": "openai",
+      "developer": "OpenAI",
       "scores": {
         "Global MMLU Lite": 0.8895,
         "Culturally Sensitive": 0.8913,
@@ -523,7 +523,7 @@
     {
       "model_id": "openai/o3-mini-2025-01-31",
       "name": "o3-mini-2025-01-31",
-      "developer": "openai",
+      "developer": "OpenAI",
       "scores": {
         "Global MMLU Lite": 0.78,
         "Culturally Sensitive": 0.765,
@@ -549,7 +549,7 @@
     {
       "model_id": "openai/o4-mini-2025-04-16",
       "name": "o4-mini-2025-04-16",
-      "developer": "openai",
+      "developer": "OpenAI",
       "scores": {
         "Global MMLU Lite": 0.8705,
         "Culturally Sensitive": 0.8503,
@@ -653,7 +653,7 @@
     {
       "model_id": "xai/grok-3-mini",
       "name": "grok-3-mini",
-      "developer": "xai",
+      "developer": "xAI",
       "scores": {
         "Global MMLU Lite": 0.673,
         "Culturally Sensitive": 0.6717,
@@ -679,7 +679,7 @@
     {
       "model_id": "xai/grok-4-0709",
       "name": "grok-4-0709",
-      "developer": "xai",
+      "developer": "xAI",
       "scores": {
         "Global MMLU Lite": 0.8881,
         "Culturally Sensitive": 0.8862,

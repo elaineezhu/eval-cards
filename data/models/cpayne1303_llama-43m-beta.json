@@ -5,7 +5,7 @@
     "developer": "cpayne1303",
     "inference_platform": "unknown",
     "additional_details": {
-      "precision": "float16",
+      "precision": "bfloat16",
       "architecture": "LlamaForCausalLM",
       "params_billions": "0.043"
     }

@@ -548,6 +548,20 @@
       }
     },
     {
+      "id": "DreadPoor/felix_dies-mistral-7B-model_stock",
+      "name": "felix_dies-mistral-7B-model_stock",
+      "developer": "DreadPoor",
+      "evaluator_relationship": null,
+      "benchmark_scores": {
+        "hfopenllm_v2/IFEval": 0.3008,
+        "hfopenllm_v2/BBH": 0.4901,
+        "hfopenllm_v2/MATH Level 5": 0.0536,
+        "hfopenllm_v2/GPQA": 0.2919,
+        "hfopenllm_v2/MUSR": 0.4518,
+        "hfopenllm_v2/MMLU-PRO": 0.3109
+      }
+    },
+    {
       "id": "DreadPoor/Fu_sion_HA-8B-SLERP",
       "name": "Fu_sion_HA-8B-SLERP",
       "developer": "DreadPoor",
@@ -562,20 +576,6 @@
       }
     },
     {
-      "id": "DreadPoor/HOT_STINKING_GARBAGE",
-      "name": "HOT_STINKING_GARBAGE",
-      "developer": "DreadPoor",
-      "evaluator_relationship": null,
-      "benchmark_scores": {
-        "hfopenllm_v2/IFEval": 0.5754,
-        "hfopenllm_v2/BBH": 0.4884,
-        "hfopenllm_v2/MATH Level 5": 0.0672,
-        "hfopenllm_v2/GPQA": 0.2752,
-        "hfopenllm_v2/MUSR": 0.425,
-        "hfopenllm_v2/MMLU-PRO": 0.3017
-      }
-    },
-    {
       "id": "DreadPoor/H_the_eighth-8B-LINEAR",
       "name": "H_the_eighth-8B-LINEAR",
       "developer": "DreadPoor",
@@ -587,6 +587,20 @@
         "hfopenllm_v2/GPQA": 0.328,
         "hfopenllm_v2/MUSR": 0.4173,
         "hfopenllm_v2/MMLU-PRO": 0.3824
+      }
+    },
+    {
+      "id": "DreadPoor/hakuchido-8B-MODEL_STOCK",
+      "name": "hakuchido-8B-MODEL_STOCK",
+      "developer": "DreadPoor",
+      "evaluator_relationship": null,
+      "benchmark_scores": {
+        "hfopenllm_v2/IFEval": 0.7375,
+        "hfopenllm_v2/BBH": 0.5398,
+        "hfopenllm_v2/MATH Level 5": 0.1949,
+        "hfopenllm_v2/GPQA": 0.2953,
+        "hfopenllm_v2/MUSR": 0.4175,
+        "hfopenllm_v2/MMLU-PRO": 0.3782
       }
     },
     {
@@ -646,6 +660,20 @@
       }
     },
     {
+      "id": "DreadPoor/HOT_STINKING_GARBAGE",
+      "name": "HOT_STINKING_GARBAGE",
+      "developer": "DreadPoor",
+      "evaluator_relationship": null,
+      "benchmark_scores": {
+        "hfopenllm_v2/IFEval": 0.5754,
+        "hfopenllm_v2/BBH": 0.4884,
+        "hfopenllm_v2/MATH Level 5": 0.0672,
+        "hfopenllm_v2/GPQA": 0.2752,
+        "hfopenllm_v2/MUSR": 0.425,
+        "hfopenllm_v2/MMLU-PRO": 0.3017
+      }
+    },
+    {
       "id": "DreadPoor/Howdy-8B-LINEAR",
       "name": "Howdy-8B-LINEAR",
       "developer": "DreadPoor",
@@ -660,6 +688,34 @@
       }
     },
     {
+      "id": "DreadPoor/ichor-8B-Model_Stock",
+      "name": "ichor-8B-Model_Stock",
+      "developer": "DreadPoor",
+      "evaluator_relationship": null,
+      "benchmark_scores": {
+        "hfopenllm_v2/IFEval": 0.5386,
+        "hfopenllm_v2/BBH": 0.5084,
+        "hfopenllm_v2/MATH Level 5": 0.1088,
+        "hfopenllm_v2/GPQA": 0.3238,
+        "hfopenllm_v2/MUSR": 0.4212,
+        "hfopenllm_v2/MMLU-PRO": 0.3151
+      }
+    },
+    {
+      "id": "DreadPoor/ichor_1.1-8B-Model_Stock",
+      "name": "ichor_1.1-8B-Model_Stock",
+      "developer": "DreadPoor",
+      "evaluator_relationship": null,
+      "benchmark_scores": {
+        "hfopenllm_v2/IFEval": 0.8096,
+        "hfopenllm_v2/BBH": 0.5281,
+        "hfopenllm_v2/MATH Level 5": 0.1775,
+        "hfopenllm_v2/GPQA": 0.3062,
+        "hfopenllm_v2/MUSR": 0.4068,
+        "hfopenllm_v2/MMLU-PRO": 0.3856
+      }
+    },
+    {
       "id": "DreadPoor/Incidental-8B-Model_Stock",
       "name": "Incidental-8B-Model_Stock",
       "developer": "DreadPoor",
@@ -671,6 +727,48 @@
         "hfopenllm_v2/GPQA": 0.3029,
         "hfopenllm_v2/MUSR": 0.424,
         "hfopenllm_v2/MMLU-PRO": 0.3873
+      }
+    },
+    {
+      "id": "DreadPoor/inexpertus-8B-Model_Stock",
+      "name": "inexpertus-8B-Model_Stock",
+      "developer": "DreadPoor",
+      "evaluator_relationship": null,
+      "benchmark_scores": {
+        "hfopenllm_v2/IFEval": 0.7795,
+        "hfopenllm_v2/BBH": 0.528,
+        "hfopenllm_v2/MATH Level 5": 0.1707,
+        "hfopenllm_v2/GPQA": 0.3096,
+        "hfopenllm_v2/MUSR": 0.4118,
+        "hfopenllm_v2/MMLU-PRO": 0.3791
+      }
+    },
+    {
+      "id": "DreadPoor/inexpertus_1.1-8B-LINEAR",
+      "name": "inexpertus_1.1-8B-LINEAR",
+      "developer": "DreadPoor",
+      "evaluator_relationship": null,
+      "benchmark_scores": {
+        "hfopenllm_v2/IFEval": 0.7527,
+        "hfopenllm_v2/BBH": 0.5525,
+        "hfopenllm_v2/MATH Level 5": 0.173,
+        "hfopenllm_v2/GPQA": 0.2978,
+        "hfopenllm_v2/MUSR": 0.4173,
+        "hfopenllm_v2/MMLU-PRO": 0.3827
+      }
+    },
+    {
+      "id": "DreadPoor/inexpertus_1.2-8B-LINEAR",
+      "name": "inexpertus_1.2-8B-LINEAR",
+      "developer": "DreadPoor",
+      "evaluator_relationship": null,
+      "benchmark_scores": {
+        "hfopenllm_v2/IFEval": 0.7348,
+        "hfopenllm_v2/BBH": 0.5523,
+        "hfopenllm_v2/MATH Level 5": 0.1586,
+        "hfopenllm_v2/GPQA": 0.2953,
+        "hfopenllm_v2/MUSR": 0.4133,
+        "hfopenllm_v2/MMLU-PRO": 0.3788
       }
     },
     {
@@ -797,6 +895,20 @@
         "hfopenllm_v2/GPQA": 0.3163,
         "hfopenllm_v2/MUSR": 0.4199,
         "hfopenllm_v2/MMLU-PRO": 0.3829
+      }
+    },
+    {
+      "id": "DreadPoor/mergekit-nuslerp-nqzkedi",
+      "name": "mergekit-nuslerp-nqzkedi",
+      "developer": "DreadPoor",
+      "evaluator_relationship": null,
+      "benchmark_scores": {
+        "hfopenllm_v2/IFEval": 0.7765,
+        "hfopenllm_v2/BBH": 0.5362,
+        "hfopenllm_v2/MATH Level 5": 0.1881,
+        "hfopenllm_v2/GPQA": 0.3012,
+        "hfopenllm_v2/MUSR": 0.4225,
+        "hfopenllm_v2/MMLU-PRO": 0.3919
       }
     },
     {
@@ -940,20 +1052,6 @@
       }
     },
     {
-      "id": "DreadPoor/ONeil-model_stock-8B",
-      "name": "ONeil-model_stock-8B",
-      "developer": "DreadPoor",
-      "evaluator_relationship": null,
-      "benchmark_scores": {
-        "hfopenllm_v2/IFEval": 0.6786,
-        "hfopenllm_v2/BBH": 0.5548,
-        "hfopenllm_v2/MATH Level 5": 0.1012,
-        "hfopenllm_v2/GPQA": 0.3054,
-        "hfopenllm_v2/MUSR": 0.4173,
-        "hfopenllm_v2/MMLU-PRO": 0.3599
-      }
-    },
-    {
       "id": "DreadPoor/Oh_Boy-8B-LINEAR",
       "name": "Oh_Boy-8B-LINEAR",
       "developer": "DreadPoor",
@@ -965,6 +1063,20 @@
         "hfopenllm_v2/GPQA": 0.3079,
         "hfopenllm_v2/MUSR": 0.4108,
         "hfopenllm_v2/MMLU-PRO": 0.3849
+      }
+    },
+    {
+      "id": "DreadPoor/ONeil-model_stock-8B",
+      "name": "ONeil-model_stock-8B",
+      "developer": "DreadPoor",
+      "evaluator_relationship": null,
+      "benchmark_scores": {
+        "hfopenllm_v2/IFEval": 0.6786,
+        "hfopenllm_v2/BBH": 0.5548,
+        "hfopenllm_v2/MATH Level 5": 0.1012,
+        "hfopenllm_v2/GPQA": 0.3054,
+        "hfopenllm_v2/MUSR": 0.4173,
+        "hfopenllm_v2/MMLU-PRO": 0.3599
       }
     },
     {
@@ -1007,6 +1119,20 @@
         "hfopenllm_v2/GPQA": 0.3037,
         "hfopenllm_v2/MUSR": 0.4198,
         "hfopenllm_v2/MMLU-PRO": 0.3739
+      }
+    },
+    {
+      "id": "DreadPoor/remember_to_breathe-8b-Model-Stock",
+      "name": "remember_to_breathe-8b-Model-Stock",
+      "developer": "DreadPoor",
+      "evaluator_relationship": null,
+      "benchmark_scores": {
+        "hfopenllm_v2/IFEval": 0.7104,
+        "hfopenllm_v2/BBH": 0.5412,
+        "hfopenllm_v2/MATH Level 5": 0.1488,
+        "hfopenllm_v2/GPQA": 0.3012,
+        "hfopenllm_v2/MUSR": 0.4145,
+        "hfopenllm_v2/MMLU-PRO": 0.3761
       }
     },
     {
@@ -1206,6 +1332,20 @@
       }
     },
     {
+      "id": "DreadPoor/test",
+      "name": "test",
+      "developer": "DreadPoor",
+      "evaluator_relationship": null,
+      "benchmark_scores": {
+        "hfopenllm_v2/IFEval": 0.4937,
+        "hfopenllm_v2/BBH": 0.5372,
+        "hfopenllm_v2/MATH Level 5": 0.1934,
+        "hfopenllm_v2/GPQA": 0.271,
+        "hfopenllm_v2/MUSR": 0.4351,
+        "hfopenllm_v2/MMLU-PRO": 0.3647
+      }
+    },
+    {
       "id": "DreadPoor/TEST02-Ignore",
       "name": "TEST02-Ignore",
       "developer": "DreadPoor",
@@ -1276,6 +1416,34 @@
       }
     },
     {
+      "id": "DreadPoor/test_ALT",
+      "name": "test_ALT",
+      "developer": "DreadPoor",
+      "evaluator_relationship": null,
+      "benchmark_scores": {
+        "hfopenllm_v2/IFEval": 0.4997,
+        "hfopenllm_v2/BBH": 0.537,
+        "hfopenllm_v2/MATH Level 5": 0.1707,
+        "hfopenllm_v2/GPQA": 0.2693,
+        "hfopenllm_v2/MUSR": 0.4363,
+        "hfopenllm_v2/MMLU-PRO": 0.3492
+      }
+    },
+    {
+      "id": "DreadPoor/tests_pending-do_not_use_yet",
+      "name": "tests_pending-do_not_use_yet",
+      "developer": "DreadPoor",
+      "evaluator_relationship": null,
+      "benchmark_scores": {
+        "hfopenllm_v2/IFEval": 0.7691,
+        "hfopenllm_v2/BBH": 0.5408,
+        "hfopenllm_v2/MATH Level 5": 0.1979,
+        "hfopenllm_v2/GPQA": 0.297,
+        "hfopenllm_v2/MUSR": 0.4005,
+        "hfopenllm_v2/MMLU-PRO": 0.3827
+      }
+    },
+    {
       "id": "DreadPoor/Trinas_Nectar-8B-model_stock",
       "name": "Trinas_Nectar-8B-model_stock",
       "developer": "DreadPoor",
@@ -1315,34 +1483,6 @@
         "hfopenllm_v2/GPQA": 0.297,
         "hfopenllm_v2/MUSR": 0.42,
         "hfopenllm_v2/MMLU-PRO": 0.3721
-      }
-    },
-    {
-      "id": "DreadPoor/WIP-Acacia-8B-Model_Stock",
-      "name": "WIP-Acacia-8B-Model_Stock",
-      "developer": "DreadPoor",
-      "evaluator_relationship": null,
-      "benchmark_scores": {
-        "hfopenllm_v2/IFEval": 0.6246,
-        "hfopenllm_v2/BBH": 0.5195,
-        "hfopenllm_v2/MATH Level 5": 0.1669,
-        "hfopenllm_v2/GPQA": 0.3062,
-        "hfopenllm_v2/MUSR": 0.4226,
-        "hfopenllm_v2/MMLU-PRO": 0.3737
-      }
-    },
-    {
-      "id": "DreadPoor/WIP_Damascus-8B-TIES",
-      "name": "WIP_Damascus-8B-TIES",
-      "developer": "DreadPoor",
-      "evaluator_relationship": null,
-      "benchmark_scores": {
-        "hfopenllm_v2/IFEval": 0.4776,
-        "hfopenllm_v2/BBH": 0.5411,
-        "hfopenllm_v2/MATH Level 5": 0.1654,
-        "hfopenllm_v2/GPQA": 0.307,
-        "hfopenllm_v2/MUSR": 0.4119,
-        "hfopenllm_v2/MMLU-PRO": 0.3761
       }
     },
     {
@@ -1430,6 +1570,34 @@
       }
     },
     {
+      "id": "DreadPoor/WIP-Acacia-8B-Model_Stock",
+      "name": "WIP-Acacia-8B-Model_Stock",
+      "developer": "DreadPoor",
+      "evaluator_relationship": null,
+      "benchmark_scores": {
+        "hfopenllm_v2/IFEval": 0.6246,
+        "hfopenllm_v2/BBH": 0.5195,
+        "hfopenllm_v2/MATH Level 5": 0.1669,
+        "hfopenllm_v2/GPQA": 0.3062,
+        "hfopenllm_v2/MUSR": 0.4226,
+        "hfopenllm_v2/MMLU-PRO": 0.3737
+      }
+    },
+    {
+      "id": "DreadPoor/WIP_Damascus-8B-TIES",
+      "name": "WIP_Damascus-8B-TIES",
+      "developer": "DreadPoor",
+      "evaluator_relationship": null,
+      "benchmark_scores": {
+        "hfopenllm_v2/IFEval": 0.4776,
+        "hfopenllm_v2/BBH": 0.5411,
+        "hfopenllm_v2/MATH Level 5": 0.1654,
+        "hfopenllm_v2/GPQA": 0.307,
+        "hfopenllm_v2/MUSR": 0.4119,
+        "hfopenllm_v2/MMLU-PRO": 0.3761
+      }
+    },
+    {
       "id": "DreadPoor/Yafune-8B-Model_Stock",
       "name": "Yafune-8B-Model_Stock",
       "developer": "DreadPoor",
@@ -1455,20 +1623,6 @@
         "hfopenllm_v2/GPQA": 0.3054,
         "hfopenllm_v2/MUSR": 0.3909,
         "hfopenllm_v2/MMLU-PRO": 0.3802
-      }
-    },
-    {
-      "id": "DreadPoor/ZEUS-8B-V17-Abliterated_ALT",
-      "name": "ZEUS-8B-V17-Abliterated_ALT",
-      "developer": "DreadPoor",
-      "evaluator_relationship": null,
-      "benchmark_scores": {
-        "hfopenllm_v2/IFEval": 0.5511,
-        "hfopenllm_v2/BBH": 0.5231,
-        "hfopenllm_v2/MATH Level 5": 0.1903,
-        "hfopenllm_v2/GPQA": 0.3079,
-        "hfopenllm_v2/MUSR": 0.4149,
-        "hfopenllm_v2/MMLU-PRO": 0.389
       }
     },
     {
@@ -1500,171 +1654,17 @@
       }
     },
     {
-      "id": "DreadPoor/felix_dies-mistral-7B-model_stock",
-      "name": "felix_dies-mistral-7B-model_stock",
+      "id": "DreadPoor/ZEUS-8B-V17-Abliterated_ALT",
+      "name": "ZEUS-8B-V17-Abliterated_ALT",
       "developer": "DreadPoor",
       "evaluator_relationship": null,
       "benchmark_scores": {
-        "hfopenllm_v2/IFEval": 0.3008,
-        "hfopenllm_v2/BBH": 0.4901,
-        "hfopenllm_v2/MATH Level 5": 0.0536,
-        "hfopenllm_v2/GPQA": 0.2919,
-        "hfopenllm_v2/MUSR": 0.4518,
-        "hfopenllm_v2/MMLU-PRO": 0.3109
-      }
-    },
-    {
-      "id": "DreadPoor/hakuchido-8B-MODEL_STOCK",
-      "name": "hakuchido-8B-MODEL_STOCK",
-      "developer": "DreadPoor",
-      "evaluator_relationship": null,
-      "benchmark_scores": {
-        "hfopenllm_v2/IFEval": 0.7375,
-        "hfopenllm_v2/BBH": 0.5398,
-        "hfopenllm_v2/MATH Level 5": 0.1949,
-        "hfopenllm_v2/GPQA": 0.2953,
-        "hfopenllm_v2/MUSR": 0.4175,
-        "hfopenllm_v2/MMLU-PRO": 0.3782
-      }
-    },
-    {
-      "id": "DreadPoor/ichor-8B-Model_Stock",
-      "name": "ichor-8B-Model_Stock",
-      "developer": "DreadPoor",
-      "evaluator_relationship": null,
-      "benchmark_scores": {
-        "hfopenllm_v2/IFEval": 0.5386,
-        "hfopenllm_v2/BBH": 0.5084,
-        "hfopenllm_v2/MATH Level 5": 0.1088,
-        "hfopenllm_v2/GPQA": 0.3238,
-        "hfopenllm_v2/MUSR": 0.4212,
-        "hfopenllm_v2/MMLU-PRO": 0.3151
-      }
-    },
-    {
-      "id": "DreadPoor/ichor_1.1-8B-Model_Stock",
-      "name": "ichor_1.1-8B-Model_Stock",
-      "developer": "DreadPoor",
-      "evaluator_relationship": null,
-      "benchmark_scores": {
-        "hfopenllm_v2/IFEval": 0.8096,
-        "hfopenllm_v2/BBH": 0.5281,
-        "hfopenllm_v2/MATH Level 5": 0.1775,
-        "hfopenllm_v2/GPQA": 0.3062,
-        "hfopenllm_v2/MUSR": 0.4068,
-        "hfopenllm_v2/MMLU-PRO": 0.3856
-      }
-    },
-    {
-      "id": "DreadPoor/inexpertus-8B-Model_Stock",
-      "name": "inexpertus-8B-Model_Stock",
-      "developer": "DreadPoor",
-      "evaluator_relationship": null,
-      "benchmark_scores": {
-        "hfopenllm_v2/IFEval": 0.7795,
-        "hfopenllm_v2/BBH": 0.528,
-        "hfopenllm_v2/MATH Level 5": 0.1707,
-        "hfopenllm_v2/GPQA": 0.3096,
-        "hfopenllm_v2/MUSR": 0.4118,
-        "hfopenllm_v2/MMLU-PRO": 0.3791
-      }
-    },
-    {
-      "id": "DreadPoor/inexpertus_1.1-8B-LINEAR",
-      "name": "inexpertus_1.1-8B-LINEAR",
-      "developer": "DreadPoor",
-      "evaluator_relationship": null,
-      "benchmark_scores": {
-        "hfopenllm_v2/IFEval": 0.7527,
-        "hfopenllm_v2/BBH": 0.5525,
-        "hfopenllm_v2/MATH Level 5": 0.173,
-        "hfopenllm_v2/GPQA": 0.2978,
-        "hfopenllm_v2/MUSR": 0.4173,
-        "hfopenllm_v2/MMLU-PRO": 0.3827
-      }
-    },
-    {
-      "id": "DreadPoor/inexpertus_1.2-8B-LINEAR",
-      "name": "inexpertus_1.2-8B-LINEAR",
-      "developer": "DreadPoor",
-      "evaluator_relationship": null,
-      "benchmark_scores": {
-        "hfopenllm_v2/IFEval": 0.7348,
-        "hfopenllm_v2/BBH": 0.5523,
-        "hfopenllm_v2/MATH Level 5": 0.1586,
-        "hfopenllm_v2/GPQA": 0.2953,
-        "hfopenllm_v2/MUSR": 0.4133,
-        "hfopenllm_v2/MMLU-PRO": 0.3788
-      }
-    },
-    {
-      "id": "DreadPoor/mergekit-nuslerp-nqzkedi",
-      "name": "mergekit-nuslerp-nqzkedi",
-      "developer": "DreadPoor",
-      "evaluator_relationship": null,
-      "benchmark_scores": {
-        "hfopenllm_v2/IFEval": 0.7765,
-        "hfopenllm_v2/BBH": 0.5362,
-        "hfopenllm_v2/MATH Level 5": 0.1881,
-        "hfopenllm_v2/GPQA": 0.3012,
-        "hfopenllm_v2/MUSR": 0.4225,
-        "hfopenllm_v2/MMLU-PRO": 0.3919
-      }
-    },
-    {
-      "id": "DreadPoor/remember_to_breathe-8b-Model-Stock",
-      "name": "remember_to_breathe-8b-Model-Stock",
-      "developer": "DreadPoor",
-      "evaluator_relationship": null,
-      "benchmark_scores": {
-        "hfopenllm_v2/IFEval": 0.7104,
-        "hfopenllm_v2/BBH": 0.5412,
-        "hfopenllm_v2/MATH Level 5": 0.1488,
-        "hfopenllm_v2/GPQA": 0.3012,
-        "hfopenllm_v2/MUSR": 0.4145,
-        "hfopenllm_v2/MMLU-PRO": 0.3761
-      }
-    },
-    {
-      "id": "DreadPoor/test",
-      "name": "test",
-      "developer": "DreadPoor",
-      "evaluator_relationship": null,
-      "benchmark_scores": {
-        "hfopenllm_v2/IFEval": 0.4937,
-        "hfopenllm_v2/BBH": 0.5372,
-        "hfopenllm_v2/MATH Level 5": 0.1934,
-        "hfopenllm_v2/GPQA": 0.271,
-        "hfopenllm_v2/MUSR": 0.4351,
-        "hfopenllm_v2/MMLU-PRO": 0.3647
-      }
-    },
-    {
-      "id": "DreadPoor/test_ALT",
-      "name": "test_ALT",
-      "developer": "DreadPoor",
-      "evaluator_relationship": null,
-      "benchmark_scores": {
-        "hfopenllm_v2/IFEval": 0.4997,
-        "hfopenllm_v2/BBH": 0.537,
-        "hfopenllm_v2/MATH Level 5": 0.1707,
-        "hfopenllm_v2/GPQA": 0.2693,
-        "hfopenllm_v2/MUSR": 0.4363,
-        "hfopenllm_v2/MMLU-PRO": 0.3492
-      }
-    },
-    {
-      "id": "DreadPoor/tests_pending-do_not_use_yet",
-      "name": "tests_pending-do_not_use_yet",
-      "developer": "DreadPoor",
-      "evaluator_relationship": null,
-      "benchmark_scores": {
-        "hfopenllm_v2/IFEval": 0.7691,
-        "hfopenllm_v2/BBH": 0.5408,
-        "hfopenllm_v2/MATH Level 5": 0.1979,
-        "hfopenllm_v2/GPQA": 0.297,
-        "hfopenllm_v2/MUSR": 0.4005,
-        "hfopenllm_v2/MMLU-PRO": 0.3827
+        "hfopenllm_v2/IFEval": 0.5511,
+        "hfopenllm_v2/BBH": 0.5231,
+        "hfopenllm_v2/MATH Level 5": 0.1903,
+        "hfopenllm_v2/GPQA": 0.3079,
+        "hfopenllm_v2/MUSR": 0.4149,
+        "hfopenllm_v2/MMLU-PRO": 0.389
       }
     }
   ]

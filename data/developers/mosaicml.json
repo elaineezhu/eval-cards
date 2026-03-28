@@ -25,6 +25,20 @@
       }
     },
     {
+      "id": "mosaicml/mpt-7b",
+      "name": "mpt-7b",
+      "developer": "mosaicml",
+      "evaluator_relationship": null,
+      "benchmark_scores": {
+        "hfopenllm_v2/IFEval": 0.2152,
+        "hfopenllm_v2/BBH": 0.33,
+        "hfopenllm_v2/MATH Level 5": 0.0159,
+        "hfopenllm_v2/GPQA": 0.2601,
+        "hfopenllm_v2/MUSR": 0.3672,
+        "hfopenllm_v2/MMLU-PRO": 0.1206
+      }
+    },
+    {
       "id": "mosaicml/MPT-Instruct-30B",
       "name": "MPT-Instruct 30B",
       "developer": "mosaicml",
@@ -45,20 +59,6 @@
         "helm_classic/IMDB": 0.956,
         "helm_classic/CivilComments": 0.573,
         "helm_classic/RAFT": 0.68
-      }
-    },
-    {
-      "id": "mosaicml/mpt-7b",
-      "name": "mpt-7b",
-      "developer": "mosaicml",
-      "evaluator_relationship": null,
-      "benchmark_scores": {
-        "hfopenllm_v2/IFEval": 0.2152,
-        "hfopenllm_v2/BBH": 0.33,
-        "hfopenllm_v2/MATH Level 5": 0.0159,
-        "hfopenllm_v2/GPQA": 0.2601,
-        "hfopenllm_v2/MUSR": 0.3672,
-        "hfopenllm_v2/MMLU-PRO": 0.1206
       }
     }
   ]

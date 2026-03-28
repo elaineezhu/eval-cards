@@ -2,20 +2,6 @@
   "developer": "macadeliccc",
   "models": [
     {
-      "id": "macadeliccc/Samantha-Qwen-2-7B",
-      "name": "Samantha-Qwen-2-7B",
-      "developer": "macadeliccc",
-      "evaluator_relationship": null,
-      "benchmark_scores": {
-        "hfopenllm_v2/IFEval": 0.4377,
-        "hfopenllm_v2/BBH": 0.5082,
-        "hfopenllm_v2/MATH Level 5": 0.2115,
-        "hfopenllm_v2/GPQA": 0.2727,
-        "hfopenllm_v2/MUSR": 0.4799,
-        "hfopenllm_v2/MMLU-PRO": 0.3779
-      }
-    },
-    {
       "id": "macadeliccc/magistrate-3.2-3b-base",
       "name": "magistrate-3.2-3b-base",
       "developer": "macadeliccc",
@@ -41,6 +27,20 @@
         "hfopenllm_v2/GPQA": 0.2475,
         "hfopenllm_v2/MUSR": 0.3763,
         "hfopenllm_v2/MMLU-PRO": 0.1592
+      }
+    },
+    {
+      "id": "macadeliccc/Samantha-Qwen-2-7B",
+      "name": "Samantha-Qwen-2-7B",
+      "developer": "macadeliccc",
+      "evaluator_relationship": null,
+      "benchmark_scores": {
+        "hfopenllm_v2/IFEval": 0.4377,
+        "hfopenllm_v2/BBH": 0.5082,
+        "hfopenllm_v2/MATH Level 5": 0.2115,
+        "hfopenllm_v2/GPQA": 0.2727,
+        "hfopenllm_v2/MUSR": 0.4799,
+        "hfopenllm_v2/MMLU-PRO": 0.3779
       }
     }
   ]

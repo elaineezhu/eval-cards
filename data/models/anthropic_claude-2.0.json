@@ -2,7 +2,7 @@
   "model_info": {
     "name": "Claude 2.0",
     "id": "anthropic/claude-2.0",
-    "developer": "anthropic",
+    "developer": "Anthropic",
     "inference_platform": "unknown"
   },
   "evaluations": [

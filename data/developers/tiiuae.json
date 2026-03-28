@@ -2,7 +2,21 @@
   "developer": "tiiuae",
   "models": [
     {
-      "id": "tiiuae/Falcon-40B",
+      "id": "tiiuae/falcon-11B",
+      "name": "falcon-11B",
+      "developer": "tiiuae",
+      "evaluator_relationship": null,
+      "benchmark_scores": {
+        "hfopenllm_v2/IFEval": 0.3261,
+        "hfopenllm_v2/BBH": 0.4392,
+        "hfopenllm_v2/MATH Level 5": 0.0279,
+        "hfopenllm_v2/GPQA": 0.271,
+        "hfopenllm_v2/MUSR": 0.3986,
+        "hfopenllm_v2/MMLU-PRO": 0.2389
+      }
+    },
+    {
+      "id": "tiiuae/falcon-40b",
       "name": "Falcon 40B",
       "developer": "tiiuae",
       "evaluator_relationship": null,
@@ -21,11 +35,41 @@
         "helm_classic/XSUM": -1.0,
         "helm_classic/IMDB": 0.959,
         "helm_classic/CivilComments": 0.552,
-        "helm_classic/RAFT": 0.661
+        "helm_classic/RAFT": 0.661,
+        "helm_lite/Mean win rate": 0.217,
+        "helm_lite/NarrativeQA": 0.671,
+        "helm_lite/NaturalQuestions (closed-book)": 0.392,
+        "helm_lite/OpenbookQA": 0.662,
+        "helm_lite/MMLU": 0.507,
+        "helm_lite/MATH": 0.128,
+        "helm_lite/GSM8K": 0.267,
+        "helm_lite/LegalBench": 0.442,
+        "helm_lite/MedQA": 0.419,
+        "helm_lite/WMT 2014": 0.162,
+        "hfopenllm_v2/IFEval": 0.2496,
+        "hfopenllm_v2/BBH": 0.4019,
+        "hfopenllm_v2/MATH Level 5": 0.0181,
+        "hfopenllm_v2/GPQA": 0.2735,
+        "hfopenllm_v2/MUSR": 0.3631,
+        "hfopenllm_v2/MMLU-PRO": 0.2505
       }
     },
     {
-      "id": "tiiuae/Falcon-7B",
+      "id": "tiiuae/falcon-40b-instruct",
+      "name": "falcon-40b-instruct",
+      "developer": "tiiuae",
+      "evaluator_relationship": null,
+      "benchmark_scores": {
+        "hfopenllm_v2/IFEval": 0.2454,
+        "hfopenllm_v2/BBH": 0.4054,
+        "hfopenllm_v2/MATH Level 5": 0.0196,
+        "hfopenllm_v2/GPQA": 0.25,
+        "hfopenllm_v2/MUSR": 0.3762,
+        "hfopenllm_v2/MMLU-PRO": 0.2261
+      }
+    },
+    {
+      "id": "tiiuae/falcon-7b",
       "name": "Falcon 7B",
       "developer": "tiiuae",
       "evaluator_relationship": null,
@@ -44,7 +88,37 @@
         "helm_classic/XSUM": -1.0,
         "helm_classic/IMDB": 0.836,
         "helm_classic/CivilComments": 0.514,
-        "helm_classic/RAFT": 0.602
+        "helm_classic/RAFT": 0.602,
+        "helm_lite/Mean win rate": 0.064,
+        "helm_lite/NarrativeQA": 0.621,
+        "helm_lite/NaturalQuestions (closed-book)": 0.285,
+        "helm_lite/OpenbookQA": 0.26,
+        "helm_lite/MMLU": 0.288,
+        "helm_lite/MATH": 0.044,
+        "helm_lite/GSM8K": 0.055,
+        "helm_lite/LegalBench": 0.346,
+        "helm_lite/MedQA": 0.254,
+        "helm_lite/WMT 2014": 0.094,
+        "hfopenllm_v2/IFEval": 0.1821,
+        "hfopenllm_v2/BBH": 0.3285,
+        "hfopenllm_v2/MATH Level 5": 0.0098,
+        "hfopenllm_v2/GPQA": 0.245,
+        "hfopenllm_v2/MUSR": 0.3778,
+        "hfopenllm_v2/MMLU-PRO": 0.1125
+      }
+    },
+    {
+      "id": "tiiuae/falcon-7b-instruct",
+      "name": "falcon-7b-instruct",
+      "developer": "tiiuae",
+      "evaluator_relationship": null,
+      "benchmark_scores": {
+        "hfopenllm_v2/IFEval": 0.1969,
+        "hfopenllm_v2/BBH": 0.3203,
+        "hfopenllm_v2/MATH Level 5": 0.0121,
+        "hfopenllm_v2/GPQA": 0.2475,
+        "hfopenllm_v2/MUSR": 0.3634,
+        "hfopenllm_v2/MMLU-PRO": 0.1155
       }
     },
     {
@@ -91,6 +165,20 @@
         "helm_classic/IMDB": 0.852,
         "helm_classic/CivilComments": 0.511,
         "helm_classic/RAFT": 0.523
+      }
+    },
+    {
+      "id": "tiiuae/falcon-mamba-7b",
+      "name": "falcon-mamba-7b",
+      "developer": "tiiuae",
+      "evaluator_relationship": null,
+      "benchmark_scores": {
+        "hfopenllm_v2/IFEval": 0.3336,
+        "hfopenllm_v2/BBH": 0.4285,
+        "hfopenllm_v2/MATH Level 5": 0.0446,
+        "hfopenllm_v2/GPQA": 0.3104,
+        "hfopenllm_v2/MUSR": 0.421,
+        "hfopenllm_v2/MMLU-PRO": 0.2302
       }
     },
     {
@@ -231,110 +319,6 @@
         "hfopenllm_v2/GPQA": 0.3037,
         "hfopenllm_v2/MUSR": 0.3869,
         "hfopenllm_v2/MMLU-PRO": 0.3369
-      }
-    },
-    {
-      "id": "tiiuae/falcon-11B",
-      "name": "falcon-11B",
-      "developer": "tiiuae",
-      "evaluator_relationship": null,
-      "benchmark_scores": {
-        "hfopenllm_v2/IFEval": 0.3261,
-        "hfopenllm_v2/BBH": 0.4392,
-        "hfopenllm_v2/MATH Level 5": 0.0279,
-        "hfopenllm_v2/GPQA": 0.271,
-        "hfopenllm_v2/MUSR": 0.3986,
-        "hfopenllm_v2/MMLU-PRO": 0.2389
-      }
-    },
-    {
-      "id": "tiiuae/falcon-40b",
-      "name": "Falcon 40B",
-      "developer": "tiiuae",
-      "evaluator_relationship": null,
-      "benchmark_scores": {
-        "helm_lite/Mean win rate": 0.217,
-        "helm_lite/NarrativeQA": 0.671,
-        "helm_lite/NaturalQuestions (closed-book)": 0.392,
-        "helm_lite/OpenbookQA": 0.662,
-        "helm_lite/MMLU": 0.507,
-        "helm_lite/MATH": 0.128,
-        "helm_lite/GSM8K": 0.267,
-        "helm_lite/LegalBench": 0.442,
-        "helm_lite/MedQA": 0.419,
-        "helm_lite/WMT 2014": 0.162,
-        "hfopenllm_v2/IFEval": 0.2496,
-        "hfopenllm_v2/BBH": 0.4019,
-        "hfopenllm_v2/MATH Level 5": 0.0181,
-        "hfopenllm_v2/GPQA": 0.2735,
-        "hfopenllm_v2/MUSR": 0.3631,
-        "hfopenllm_v2/MMLU-PRO": 0.2505
-      }
-    },
-    {
-      "id": "tiiuae/falcon-40b-instruct",
-      "name": "falcon-40b-instruct",
-      "developer": "tiiuae",
-      "evaluator_relationship": null,
-      "benchmark_scores": {
-        "hfopenllm_v2/IFEval": 0.2454,
-        "hfopenllm_v2/BBH": 0.4054,
-        "hfopenllm_v2/MATH Level 5": 0.0196,
-        "hfopenllm_v2/GPQA": 0.25,
-        "hfopenllm_v2/MUSR": 0.3762,
-        "hfopenllm_v2/MMLU-PRO": 0.2261
-      }
-    },
-    {
-      "id": "tiiuae/falcon-7b",
-      "name": "Falcon 7B",
-      "developer": "tiiuae",
-      "evaluator_relationship": null,
-      "benchmark_scores": {
-        "helm_lite/Mean win rate": 0.064,
-        "helm_lite/NarrativeQA": 0.621,
-        "helm_lite/NaturalQuestions (closed-book)": 0.285,
-        "helm_lite/OpenbookQA": 0.26,
-        "helm_lite/MMLU": 0.288,
-        "helm_lite/MATH": 0.044,
-        "helm_lite/GSM8K": 0.055,
-        "helm_lite/LegalBench": 0.346,
-        "helm_lite/MedQA": 0.254,
-        "helm_lite/WMT 2014": 0.094,
-        "hfopenllm_v2/IFEval": 0.1821,
-        "hfopenllm_v2/BBH": 0.3285,
-        "hfopenllm_v2/MATH Level 5": 0.0098,
-        "hfopenllm_v2/GPQA": 0.245,
-        "hfopenllm_v2/MUSR": 0.3778,
-        "hfopenllm_v2/MMLU-PRO": 0.1125
-      }
-    },
-    {
-      "id": "tiiuae/falcon-7b-instruct",
-      "name": "falcon-7b-instruct",
-      "developer": "tiiuae",
-      "evaluator_relationship": null,
-      "benchmark_scores": {
-        "hfopenllm_v2/IFEval": 0.1969,
-        "hfopenllm_v2/BBH": 0.3203,
-        "hfopenllm_v2/MATH Level 5": 0.0121,
-        "hfopenllm_v2/GPQA": 0.2475,
-        "hfopenllm_v2/MUSR": 0.3634,
-        "hfopenllm_v2/MMLU-PRO": 0.1155
-      }
-    },
-    {
-      "id": "tiiuae/falcon-mamba-7b",
-      "name": "falcon-mamba-7b",
-      "developer": "tiiuae",
-      "evaluator_relationship": null,
-      "benchmark_scores": {
-        "hfopenllm_v2/IFEval": 0.3336,
-        "hfopenllm_v2/BBH": 0.4285,
-        "hfopenllm_v2/MATH Level 5": 0.0446,
-        "hfopenllm_v2/GPQA": 0.3104,
-        "hfopenllm_v2/MUSR": 0.421,
-        "hfopenllm_v2/MMLU-PRO": 0.2302
       }
     }
   ]

@@ -2,20 +2,6 @@
   "developer": "Nekochu",
   "models": [
     {
-      "id": "Nekochu/Llama-3.1-8B-German-ORPO",
-      "name": "Llama-3.1-8B-German-ORPO",
-      "developer": "Nekochu",
-      "evaluator_relationship": null,
-      "benchmark_scores": {
-        "hfopenllm_v2/IFEval": 0.4611,
-        "hfopenllm_v2/BBH": 0.4983,
-        "hfopenllm_v2/MATH Level 5": 0.1171,
-        "hfopenllm_v2/GPQA": 0.3163,
-        "hfopenllm_v2/MUSR": 0.4647,
-        "hfopenllm_v2/MMLU-PRO": 0.3393
-      }
-    },
-    {
       "id": "Nekochu/Llama-3.1-8B-french-DPO",
       "name": "Llama-3.1-8B-french-DPO",
       "developer": "Nekochu",
@@ -27,6 +13,20 @@
         "hfopenllm_v2/GPQA": 0.2911,
         "hfopenllm_v2/MUSR": 0.4216,
         "hfopenllm_v2/MMLU-PRO": 0.3414
+      }
+    },
+    {
+      "id": "Nekochu/Llama-3.1-8B-German-ORPO",
+      "name": "Llama-3.1-8B-German-ORPO",
+      "developer": "Nekochu",
+      "evaluator_relationship": null,
+      "benchmark_scores": {
+        "hfopenllm_v2/IFEval": 0.4611,
+        "hfopenllm_v2/BBH": 0.4983,
+        "hfopenllm_v2/MATH Level 5": 0.1171,
+        "hfopenllm_v2/GPQA": 0.3163,
+        "hfopenllm_v2/MUSR": 0.4647,
+        "hfopenllm_v2/MMLU-PRO": 0.3393
       }
     },
     {

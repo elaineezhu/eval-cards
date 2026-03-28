@@ -1,11 +1,9 @@
 {
   "model_info": {
-    "name": "openai/gpt-4.1-nano-2025-04-14",
+    "name": "GPT-4.1 nano 2025-04-14",
     "id": "openai/gpt-4.1-nano-2025-04-14",
-    "developer": "openai",
-    "additional_details": {
-      "model_type": "Generative RM"
-    }
+    "developer": "OpenAI",
+    "inference_platform": "unknown"
   },
   "evaluations": [
     {

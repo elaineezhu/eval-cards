@@ -2,6 +2,34 @@
   "developer": "CombinHorizon",
   "models": [
     {
+      "id": "CombinHorizon/huihui-ai-abliterated-Qwen2.5-32B-Inst-BaseMerge-TIES",
+      "name": "huihui-ai-abliterated-Qwen2.5-32B-Inst-BaseMerge-TIES",
+      "developer": "CombinHorizon",
+      "evaluator_relationship": null,
+      "benchmark_scores": {
+        "hfopenllm_v2/IFEval": 0.8206,
+        "hfopenllm_v2/BBH": 0.6929,
+        "hfopenllm_v2/MATH Level 5": 0.5944,
+        "hfopenllm_v2/GPQA": 0.3389,
+        "hfopenllm_v2/MUSR": 0.4207,
+        "hfopenllm_v2/MMLU-PRO": 0.5721
+      }
+    },
+    {
+      "id": "CombinHorizon/huihui-ai-abliteratedV2-Qwen2.5-14B-Inst-BaseMerge-TIES",
+      "name": "huihui-ai-abliteratedV2-Qwen2.5-14B-Inst-BaseMerge-TIES",
+      "developer": "CombinHorizon",
+      "evaluator_relationship": null,
+      "benchmark_scores": {
+        "hfopenllm_v2/IFEval": 0.8176,
+        "hfopenllm_v2/BBH": 0.6336,
+        "hfopenllm_v2/MATH Level 5": 0.5476,
+        "hfopenllm_v2/GPQA": 0.3146,
+        "hfopenllm_v2/MUSR": 0.426,
+        "hfopenllm_v2/MMLU-PRO": 0.491
+      }
+    },
+    {
       "id": "CombinHorizon/Josiefied-abliteratedV4-Qwen2.5-14B-Inst-BaseMerge-TIES",
       "name": "Josiefied-abliteratedV4-Qwen2.5-14B-Inst-BaseMerge-TIES",
       "developer": "CombinHorizon",
@@ -41,34 +69,6 @@
         "hfopenllm_v2/GPQA": 0.3557,
         "hfopenllm_v2/MUSR": 0.4413,
         "hfopenllm_v2/MMLU-PRO": 0.4741
-      }
-    },
-    {
-      "id": "CombinHorizon/huihui-ai-abliterated-Qwen2.5-32B-Inst-BaseMerge-TIES",
-      "name": "huihui-ai-abliterated-Qwen2.5-32B-Inst-BaseMerge-TIES",
-      "developer": "CombinHorizon",
-      "evaluator_relationship": null,
-      "benchmark_scores": {
-        "hfopenllm_v2/IFEval": 0.8206,
-        "hfopenllm_v2/BBH": 0.6929,
-        "hfopenllm_v2/MATH Level 5": 0.5944,
-        "hfopenllm_v2/GPQA": 0.3389,
-        "hfopenllm_v2/MUSR": 0.4207,
-        "hfopenllm_v2/MMLU-PRO": 0.5721
-      }
-    },
-    {
-      "id": "CombinHorizon/huihui-ai-abliteratedV2-Qwen2.5-14B-Inst-BaseMerge-TIES",
-      "name": "huihui-ai-abliteratedV2-Qwen2.5-14B-Inst-BaseMerge-TIES",
-      "developer": "CombinHorizon",
-      "evaluator_relationship": null,
-      "benchmark_scores": {
-        "hfopenllm_v2/IFEval": 0.8176,
-        "hfopenllm_v2/BBH": 0.6336,
-        "hfopenllm_v2/MATH Level 5": 0.5476,
-        "hfopenllm_v2/GPQA": 0.3146,
-        "hfopenllm_v2/MUSR": 0.426,
-        "hfopenllm_v2/MMLU-PRO": 0.491
       }
     },
     {

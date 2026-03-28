@@ -44,6 +44,76 @@
       }
     },
     {
+      "id": "DoppelReflEx/MiniusLight-24B",
+      "name": "MiniusLight-24B",
+      "developer": "DoppelReflEx",
+      "evaluator_relationship": null,
+      "benchmark_scores": {
+        "hfopenllm_v2/IFEval": 0.2577,
+        "hfopenllm_v2/BBH": 0.6256,
+        "hfopenllm_v2/MATH Level 5": 0.1261,
+        "hfopenllm_v2/GPQA": 0.3582,
+        "hfopenllm_v2/MUSR": 0.4319,
+        "hfopenllm_v2/MMLU-PRO": 0.5091
+      }
+    },
+    {
+      "id": "DoppelReflEx/MiniusLight-24B-test",
+      "name": "MiniusLight-24B-test",
+      "developer": "DoppelReflEx",
+      "evaluator_relationship": null,
+      "benchmark_scores": {
+        "hfopenllm_v2/IFEval": 0.0394,
+        "hfopenllm_v2/BBH": 0.6334,
+        "hfopenllm_v2/MATH Level 5": 0.0257,
+        "hfopenllm_v2/GPQA": 0.3683,
+        "hfopenllm_v2/MUSR": 0.4093,
+        "hfopenllm_v2/MMLU-PRO": 0.5182
+      }
+    },
+    {
+      "id": "DoppelReflEx/MiniusLight-24B-v1b-test",
+      "name": "MiniusLight-24B-v1b-test",
+      "developer": "DoppelReflEx",
+      "evaluator_relationship": null,
+      "benchmark_scores": {
+        "hfopenllm_v2/IFEval": 0.3791,
+        "hfopenllm_v2/BBH": 0.6617,
+        "hfopenllm_v2/MATH Level 5": 0.2394,
+        "hfopenllm_v2/GPQA": 0.3792,
+        "hfopenllm_v2/MUSR": 0.4557,
+        "hfopenllm_v2/MMLU-PRO": 0.5365
+      }
+    },
+    {
+      "id": "DoppelReflEx/MiniusLight-24B-v1c-test",
+      "name": "MiniusLight-24B-v1c-test",
+      "developer": "DoppelReflEx",
+      "evaluator_relationship": null,
+      "benchmark_scores": {
+        "hfopenllm_v2/IFEval": 0.3786,
+        "hfopenllm_v2/BBH": 0.6753,
+        "hfopenllm_v2/MATH Level 5": 0.2968,
+        "hfopenllm_v2/GPQA": 0.3951,
+        "hfopenllm_v2/MUSR": 0.4634,
+        "hfopenllm_v2/MMLU-PRO": 0.5487
+      }
+    },
+    {
+      "id": "DoppelReflEx/MiniusLight-24B-v1d-test",
+      "name": "MiniusLight-24B-v1d-test",
+      "developer": "DoppelReflEx",
+      "evaluator_relationship": null,
+      "benchmark_scores": {
+        "hfopenllm_v2/IFEval": 0.4032,
+        "hfopenllm_v2/BBH": 0.6712,
+        "hfopenllm_v2/MATH Level 5": 0.2946,
+        "hfopenllm_v2/GPQA": 0.3951,
+        "hfopenllm_v2/MUSR": 0.4621,
+        "hfopenllm_v2/MMLU-PRO": 0.5489
+      }
+    },
+    {
       "id": "DoppelReflEx/MN-12B-FoxFrame-test",
       "name": "MN-12B-FoxFrame-test",
       "developer": "DoppelReflEx",
@@ -335,76 +405,6 @@
         "hfopenllm_v2/GPQA": 0.3104,
         "hfopenllm_v2/MUSR": 0.4015,
         "hfopenllm_v2/MMLU-PRO": 0.3393
-      }
-    },
-    {
-      "id": "DoppelReflEx/MiniusLight-24B",
-      "name": "MiniusLight-24B",
-      "developer": "DoppelReflEx",
-      "evaluator_relationship": null,
-      "benchmark_scores": {
-        "hfopenllm_v2/IFEval": 0.2577,
-        "hfopenllm_v2/BBH": 0.6256,
-        "hfopenllm_v2/MATH Level 5": 0.1261,
-        "hfopenllm_v2/GPQA": 0.3582,
-        "hfopenllm_v2/MUSR": 0.4319,
-        "hfopenllm_v2/MMLU-PRO": 0.5091
-      }
-    },
-    {
-      "id": "DoppelReflEx/MiniusLight-24B-test",
-      "name": "MiniusLight-24B-test",
-      "developer": "DoppelReflEx",
-      "evaluator_relationship": null,
-      "benchmark_scores": {
-        "hfopenllm_v2/IFEval": 0.0394,
-        "hfopenllm_v2/BBH": 0.6334,
-        "hfopenllm_v2/MATH Level 5": 0.0257,
-        "hfopenllm_v2/GPQA": 0.3683,
-        "hfopenllm_v2/MUSR": 0.4093,
-        "hfopenllm_v2/MMLU-PRO": 0.5182
-      }
-    },
-    {
-      "id": "DoppelReflEx/MiniusLight-24B-v1b-test",
-      "name": "MiniusLight-24B-v1b-test",
-      "developer": "DoppelReflEx",
-      "evaluator_relationship": null,
-      "benchmark_scores": {
-        "hfopenllm_v2/IFEval": 0.3791,
-        "hfopenllm_v2/BBH": 0.6617,
-        "hfopenllm_v2/MATH Level 5": 0.2394,
-        "hfopenllm_v2/GPQA": 0.3792,
-        "hfopenllm_v2/MUSR": 0.4557,
-        "hfopenllm_v2/MMLU-PRO": 0.5365
-      }
-    },
-    {
-      "id": "DoppelReflEx/MiniusLight-24B-v1c-test",
-      "name": "MiniusLight-24B-v1c-test",
-      "developer": "DoppelReflEx",
-      "evaluator_relationship": null,
-      "benchmark_scores": {
-        "hfopenllm_v2/IFEval": 0.3786,
-        "hfopenllm_v2/BBH": 0.6753,
-        "hfopenllm_v2/MATH Level 5": 0.2968,
-        "hfopenllm_v2/GPQA": 0.3951,
-        "hfopenllm_v2/MUSR": 0.4634,
-        "hfopenllm_v2/MMLU-PRO": 0.5487
-      }
-    },
-    {
-      "id": "DoppelReflEx/MiniusLight-24B-v1d-test",
-      "name": "MiniusLight-24B-v1d-test",
-      "developer": "DoppelReflEx",
-      "evaluator_relationship": null,
-      "benchmark_scores": {
-        "hfopenllm_v2/IFEval": 0.4032,
-        "hfopenllm_v2/BBH": 0.6712,
-        "hfopenllm_v2/MATH Level 5": 0.2946,
-        "hfopenllm_v2/GPQA": 0.3951,
-        "hfopenllm_v2/MUSR": 0.4621,
-        "hfopenllm_v2/MMLU-PRO": 0.5489
       }
     }
   ]

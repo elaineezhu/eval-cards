@@ -4,7 +4,7 @@
     {
       "id": "ai2/llama-2-chat-7b-nectar-3.8m.json",
       "name": "ai2/llama-2-chat-7b-nectar-3.8m.json",
-      "developer": "ai2",
+      "developer": "AI2",
       "evaluator_relationship": null,
       "benchmark_scores": {
         "reward-bench/Score": 0.5843,
@@ -16,7 +16,7 @@
     {
       "id": "ai2/llama-2-chat-nectar-180k.json",
       "name": "ai2/llama-2-chat-nectar-180k.json",
-      "developer": "ai2",
+      "developer": "AI2",
       "evaluator_relationship": null,
       "benchmark_scores": {
         "reward-bench/Score": 0.5235,
@@ -28,7 +28,7 @@
     {
       "id": "ai2/llama-2-chat-ultrafeedback-60k.jsonl",
       "name": "ai2/llama-2-chat-ultrafeedback-60k.jsonl",
-      "developer": "ai2",
+      "developer": "AI2",
       "evaluator_relationship": null,
       "benchmark_scores": {
         "reward-bench/Score": 0.644,
@@ -40,19 +40,19 @@
     {
       "id": "ai2/tulu-2-7b-rm-v0-nectar-binarized-3.8m-check...",
       "name": "ai2/tulu-2-7b-rm-v0-nectar-binarized-3.8m-check...",
-      "developer": "ai2",
+      "developer": "AI2",
       "evaluator_relationship": null,
       "benchmark_scores": {
-        "reward-bench/Score": 0.7008,
-        "reward-bench/Chat": 0.9385,
-        "reward-bench/Chat Hard": 0.3882,
+        "reward-bench/Score": 0.6924,
+        "reward-bench/Chat": 0.9441,
+        "reward-bench/Chat Hard": 0.3575,
         "reward-bench/Safety": 0.7757
       }
     },
     {
       "id": "ai2/tulu-2-7b-rm-v0-nectar-binarized-700k.json",
       "name": "ai2/tulu-2-7b-rm-v0-nectar-binarized-700k.json",
-      "developer": "ai2",
+      "developer": "AI2",
       "evaluator_relationship": null,
       "benchmark_scores": {
         "reward-bench/Score": 0.7127,
@@ -64,7 +64,7 @@
     {
       "id": "ai2/tulu-2-7b-rm-v0-nectar-binarized.json",
       "name": "ai2/tulu-2-7b-rm-v0-nectar-binarized.json",
-      "developer": "ai2",
+      "developer": "AI2",
       "evaluator_relationship": null,
       "benchmark_scores": {
         "reward-bench/Score": 0.6756,
@@ -76,7 +76,7 @@
     {
       "id": "ai2/tulu-2-7b-rm-v0.json",
       "name": "ai2/tulu-2-7b-rm-v0.json",
-      "developer": "ai2",
+      "developer": "AI2",
       "evaluator_relationship": null,
       "benchmark_scores": {
         "reward-bench/Score": 0.6655,

@@ -2,62 +2,6 @@
   "developer": "ymcki",
   "models": [
     {
-      "id": "ymcki/Llama-3.1-8B-GRPO-Instruct",
-      "name": "Llama-3.1-8B-GRPO-Instruct",
-      "developer": "ymcki",
-      "evaluator_relationship": null,
-      "benchmark_scores": {
-        "hfopenllm_v2/IFEval": 0.7445,
-        "hfopenllm_v2/BBH": 0.5132,
-        "hfopenllm_v2/MATH Level 5": 0.2024,
-        "hfopenllm_v2/GPQA": 0.2945,
-        "hfopenllm_v2/MUSR": 0.3817,
-        "hfopenllm_v2/MMLU-PRO": 0.3738
-      }
-    },
-    {
-      "id": "ymcki/Llama-3.1-8B-SFT-GRPO-Instruct",
-      "name": "Llama-3.1-8B-SFT-GRPO-Instruct",
-      "developer": "ymcki",
-      "evaluator_relationship": null,
-      "benchmark_scores": {
-        "hfopenllm_v2/IFEval": 0.3354,
-        "hfopenllm_v2/BBH": 0.3126,
-        "hfopenllm_v2/MATH Level 5": 0.04,
-        "hfopenllm_v2/GPQA": 0.2534,
-        "hfopenllm_v2/MUSR": 0.3526,
-        "hfopenllm_v2/MMLU-PRO": 0.1098
-      }
-    },
-    {
-      "id": "ymcki/gemma-2-2b-ORPO-jpn-it-abliterated-18",
-      "name": "gemma-2-2b-ORPO-jpn-it-abliterated-18",
-      "developer": "ymcki",
-      "evaluator_relationship": null,
-      "benchmark_scores": {
-        "hfopenllm_v2/IFEval": 0.4631,
-        "hfopenllm_v2/BBH": 0.4053,
-        "hfopenllm_v2/MATH Level 5": 0.0431,
-        "hfopenllm_v2/GPQA": 0.2886,
-        "hfopenllm_v2/MUSR": 0.3754,
-        "hfopenllm_v2/MMLU-PRO": 0.2345
-      }
-    },
-    {
-      "id": "ymcki/gemma-2-2b-ORPO-jpn-it-abliterated-18-merge",
-      "name": "gemma-2-2b-ORPO-jpn-it-abliterated-18-merge",
-      "developer": "ymcki",
-      "evaluator_relationship": null,
-      "benchmark_scores": {
-        "hfopenllm_v2/IFEval": 0.5218,
-        "hfopenllm_v2/BBH": 0.4147,
-        "hfopenllm_v2/MATH Level 5": 0.0544,
-        "hfopenllm_v2/GPQA": 0.2836,
-        "hfopenllm_v2/MUSR": 0.3514,
-        "hfopenllm_v2/MMLU-PRO": 0.2461
-      }
-    },
-    {
       "id": "ymcki/gemma-2-2b-jpn-it-abliterated-17",
       "name": "gemma-2-2b-jpn-it-abliterated-17",
       "developer": "ymcki",
@@ -153,6 +97,62 @@
         "hfopenllm_v2/GPQA": 0.2777,
         "hfopenllm_v2/MUSR": 0.3915,
         "hfopenllm_v2/MMLU-PRO": 0.2473
+      }
+    },
+    {
+      "id": "ymcki/gemma-2-2b-ORPO-jpn-it-abliterated-18",
+      "name": "gemma-2-2b-ORPO-jpn-it-abliterated-18",
+      "developer": "ymcki",
+      "evaluator_relationship": null,
+      "benchmark_scores": {
+        "hfopenllm_v2/IFEval": 0.4631,
+        "hfopenllm_v2/BBH": 0.4053,
+        "hfopenllm_v2/MATH Level 5": 0.0431,
+        "hfopenllm_v2/GPQA": 0.2886,
+        "hfopenllm_v2/MUSR": 0.3754,
+        "hfopenllm_v2/MMLU-PRO": 0.2345
+      }
+    },
+    {
+      "id": "ymcki/gemma-2-2b-ORPO-jpn-it-abliterated-18-merge",
+      "name": "gemma-2-2b-ORPO-jpn-it-abliterated-18-merge",
+      "developer": "ymcki",
+      "evaluator_relationship": null,
+      "benchmark_scores": {
+        "hfopenllm_v2/IFEval": 0.5218,
+        "hfopenllm_v2/BBH": 0.4147,
+        "hfopenllm_v2/MATH Level 5": 0.0544,
+        "hfopenllm_v2/GPQA": 0.2836,
+        "hfopenllm_v2/MUSR": 0.3514,
+        "hfopenllm_v2/MMLU-PRO": 0.2461
+      }
+    },
+    {
+      "id": "ymcki/Llama-3.1-8B-GRPO-Instruct",
+      "name": "Llama-3.1-8B-GRPO-Instruct",
+      "developer": "ymcki",
+      "evaluator_relationship": null,
+      "benchmark_scores": {
+        "hfopenllm_v2/IFEval": 0.7445,
+        "hfopenllm_v2/BBH": 0.5132,
+        "hfopenllm_v2/MATH Level 5": 0.2024,
+        "hfopenllm_v2/GPQA": 0.2945,
+        "hfopenllm_v2/MUSR": 0.3817,
+        "hfopenllm_v2/MMLU-PRO": 0.3738
+      }
+    },
+    {
+      "id": "ymcki/Llama-3.1-8B-SFT-GRPO-Instruct",
+      "name": "Llama-3.1-8B-SFT-GRPO-Instruct",
+      "developer": "ymcki",
+      "evaluator_relationship": null,
+      "benchmark_scores": {
+        "hfopenllm_v2/IFEval": 0.3354,
+        "hfopenllm_v2/BBH": 0.3126,
+        "hfopenllm_v2/MATH Level 5": 0.04,
+        "hfopenllm_v2/GPQA": 0.2534,
+        "hfopenllm_v2/MUSR": 0.3526,
+        "hfopenllm_v2/MMLU-PRO": 0.1098
       }
     }
   ]

@@ -100,20 +100,6 @@
       }
     },
     {
-      "id": "Dans-DiscountModels/Mistral-7b-v0.3-Test-E0.7",
-      "name": "Mistral-7b-v0.3-Test-E0.7",
-      "developer": "Dans-DiscountModels",
-      "evaluator_relationship": null,
-      "benchmark_scores": {
-        "hfopenllm_v2/IFEval": 0.5124,
-        "hfopenllm_v2/BBH": 0.475,
-        "hfopenllm_v2/MATH Level 5": 0.034,
-        "hfopenllm_v2/GPQA": 0.2961,
-        "hfopenllm_v2/MUSR": 0.4005,
-        "hfopenllm_v2/MMLU-PRO": 0.2744
-      }
-    },
-    {
       "id": "Dans-DiscountModels/mistral-7b-test-merged",
       "name": "mistral-7b-test-merged",
       "developer": "Dans-DiscountModels",
@@ -125,6 +111,20 @@
         "hfopenllm_v2/GPQA": 0.2945,
         "hfopenllm_v2/MUSR": 0.3754,
         "hfopenllm_v2/MMLU-PRO": 0.2978
+      }
+    },
+    {
+      "id": "Dans-DiscountModels/Mistral-7b-v0.3-Test-E0.7",
+      "name": "Mistral-7b-v0.3-Test-E0.7",
+      "developer": "Dans-DiscountModels",
+      "evaluator_relationship": null,
+      "benchmark_scores": {
+        "hfopenllm_v2/IFEval": 0.5124,
+        "hfopenllm_v2/BBH": 0.475,
+        "hfopenllm_v2/MATH Level 5": 0.034,
+        "hfopenllm_v2/GPQA": 0.2961,
+        "hfopenllm_v2/MUSR": 0.4005,
+        "hfopenllm_v2/MMLU-PRO": 0.2744
       }
     }
   ]

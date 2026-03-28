@@ -2,7 +2,7 @@
   "model_info": {
     "name": "Gemini 1.5 Flash 0514 preview",
     "id": "google/gemini-1.5-flash-preview-0514",
-    "developer": "google",
+    "developer": "Google",
     "inference_platform": "unknown"
   },
   "evaluations": [

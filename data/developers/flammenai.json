@@ -2,6 +2,20 @@
   "developer": "flammenai",
   "models": [
     {
+      "id": "flammenai/flammen15-gutenberg-DPO-v1-7B",
+      "name": "flammen15-gutenberg-DPO-v1-7B",
+      "developer": "flammenai",
+      "evaluator_relationship": null,
+      "benchmark_scores": {
+        "hfopenllm_v2/IFEval": 0.4798,
+        "hfopenllm_v2/BBH": 0.5203,
+        "hfopenllm_v2/MATH Level 5": 0.0763,
+        "hfopenllm_v2/GPQA": 0.2844,
+        "hfopenllm_v2/MUSR": 0.4293,
+        "hfopenllm_v2/MMLU-PRO": 0.3186
+      }
+    },
+    {
       "id": "flammenai/Llama3.1-Flammades-70B",
       "name": "Llama3.1-Flammades-70B",
       "developer": "flammenai",
@@ -69,20 +83,6 @@
         "hfopenllm_v2/GPQA": 0.276,
         "hfopenllm_v2/MUSR": 0.452,
         "hfopenllm_v2/MMLU-PRO": 0.3602
-      }
-    },
-    {
-      "id": "flammenai/flammen15-gutenberg-DPO-v1-7B",
-      "name": "flammen15-gutenberg-DPO-v1-7B",
-      "developer": "flammenai",
-      "evaluator_relationship": null,
-      "benchmark_scores": {
-        "hfopenllm_v2/IFEval": 0.4798,
-        "hfopenllm_v2/BBH": 0.5203,
-        "hfopenllm_v2/MATH Level 5": 0.0763,
-        "hfopenllm_v2/GPQA": 0.2844,
-        "hfopenllm_v2/MUSR": 0.4293,
-        "hfopenllm_v2/MMLU-PRO": 0.3186
       }
     }
   ]

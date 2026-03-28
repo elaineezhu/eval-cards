@@ -2,20 +2,6 @@
   "developer": "c10x",
   "models": [
     {
-      "id": "c10x/Q-Pluse",
-      "name": "Q-Pluse",
-      "developer": "c10x",
-      "evaluator_relationship": null,
-      "benchmark_scores": {
-        "hfopenllm_v2/IFEval": 0.1123,
-        "hfopenllm_v2/BBH": 0.2875,
-        "hfopenllm_v2/MATH Level 5": 0.0,
-        "hfopenllm_v2/GPQA": 0.2466,
-        "hfopenllm_v2/MUSR": 0.3938,
-        "hfopenllm_v2/MMLU-PRO": 0.1135
-      }
-    },
-    {
       "id": "c10x/longthinker",
       "name": "longthinker",
       "developer": "c10x",
@@ -27,6 +13,20 @@
         "hfopenllm_v2/GPQA": 0.2643,
         "hfopenllm_v2/MUSR": 0.391,
         "hfopenllm_v2/MMLU-PRO": 0.3527
+      }
+    },
+    {
+      "id": "c10x/Q-Pluse",
+      "name": "Q-Pluse",
+      "developer": "c10x",
+      "evaluator_relationship": null,
+      "benchmark_scores": {
+        "hfopenllm_v2/IFEval": 0.1123,
+        "hfopenllm_v2/BBH": 0.2875,
+        "hfopenllm_v2/MATH Level 5": 0.0,
+        "hfopenllm_v2/GPQA": 0.2466,
+        "hfopenllm_v2/MUSR": 0.3938,
+        "hfopenllm_v2/MMLU-PRO": 0.1135
       }
     }
   ]

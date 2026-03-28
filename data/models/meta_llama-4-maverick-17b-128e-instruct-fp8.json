@@ -2,7 +2,7 @@
   "model_info": {
     "name": "Llama 4 Maverick 17Bx128E Instruct FP8",
     "id": "meta/llama-4-maverick-17b-128e-instruct-fp8",
-    "developer": "meta",
+    "developer": "Meta",
     "inference_platform": "unknown"
   },
   "evaluations": [

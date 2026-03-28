@@ -2,7 +2,7 @@
   "model_info": {
     "name": "mt5-base",
     "id": "google/mt5-base",
-    "developer": "google",
+    "developer": "Google",
     "inference_platform": "unknown",
     "additional_details": {
       "precision": "float16",

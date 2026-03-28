@@ -58,6 +58,34 @@
       }
     },
     {
+      "id": "win10/llama3-13.45b-Instruct",
+      "name": "llama3-13.45b-Instruct",
+      "developer": "win10",
+      "evaluator_relationship": null,
+      "benchmark_scores": {
+        "hfopenllm_v2/IFEval": 0.4144,
+        "hfopenllm_v2/BBH": 0.4865,
+        "hfopenllm_v2/MATH Level 5": 0.0242,
+        "hfopenllm_v2/GPQA": 0.2584,
+        "hfopenllm_v2/MUSR": 0.3848,
+        "hfopenllm_v2/MMLU-PRO": 0.3345
+      }
+    },
+    {
+      "id": "win10/miscii-14b-1M-0128",
+      "name": "miscii-14b-1M-0128",
+      "developer": "win10",
+      "evaluator_relationship": null,
+      "benchmark_scores": {
+        "hfopenllm_v2/IFEval": 0.4181,
+        "hfopenllm_v2/BBH": 0.5742,
+        "hfopenllm_v2/MATH Level 5": 0.4773,
+        "hfopenllm_v2/GPQA": 0.3826,
+        "hfopenllm_v2/MUSR": 0.5431,
+        "hfopenllm_v2/MMLU-PRO": 0.4491
+      }
+    },
+    {
       "id": "win10/Norns-Qwen2.5-12B",
       "name": "Norns-Qwen2.5-12B",
       "developer": "win10",
@@ -97,34 +125,6 @@
         "hfopenllm_v2/GPQA": 0.2676,
         "hfopenllm_v2/MUSR": 0.4378,
         "hfopenllm_v2/MMLU-PRO": 0.1934
-      }
-    },
-    {
-      "id": "win10/llama3-13.45b-Instruct",
-      "name": "llama3-13.45b-Instruct",
-      "developer": "win10",
-      "evaluator_relationship": null,
-      "benchmark_scores": {
-        "hfopenllm_v2/IFEval": 0.4144,
-        "hfopenllm_v2/BBH": 0.4865,
-        "hfopenllm_v2/MATH Level 5": 0.0242,
-        "hfopenllm_v2/GPQA": 0.2584,
-        "hfopenllm_v2/MUSR": 0.3848,
-        "hfopenllm_v2/MMLU-PRO": 0.3345
-      }
-    },
-    {
-      "id": "win10/miscii-14b-1M-0128",
-      "name": "miscii-14b-1M-0128",
-      "developer": "win10",
-      "evaluator_relationship": null,
-      "benchmark_scores": {
-        "hfopenllm_v2/IFEval": 0.4181,
-        "hfopenllm_v2/BBH": 0.5742,
-        "hfopenllm_v2/MATH Level 5": 0.4773,
-        "hfopenllm_v2/GPQA": 0.3826,
-        "hfopenllm_v2/MUSR": 0.5431,
-        "hfopenllm_v2/MMLU-PRO": 0.4491
       }
     }
   ]

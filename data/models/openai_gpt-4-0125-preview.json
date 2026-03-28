@@ -2,7 +2,7 @@
   "model_info": {
     "name": "openai/gpt-4-0125-preview",
     "id": "openai/gpt-4-0125-preview",
-    "developer": "openai",
+    "developer": "OpenAI",
     "additional_details": {
       "model_type": "Generative"
     }

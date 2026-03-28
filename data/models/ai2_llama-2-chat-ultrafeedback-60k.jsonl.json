@@ -2,7 +2,7 @@
   "model_info": {
     "name": "ai2/llama-2-chat-ultrafeedback-60k.jsonl",
     "id": "ai2/llama-2-chat-ultrafeedback-60k.jsonl",
-    "developer": "ai2",
+    "developer": "AI2",
     "additional_details": {
       "model_type": "Seq. Classifier"
     }

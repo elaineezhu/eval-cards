@@ -2,7 +2,7 @@
   "model_info": {
     "name": "recurrentgemma-9b",
     "id": "google/recurrentgemma-9b",
-    "developer": "google",
+    "developer": "Google",
     "inference_platform": "unknown",
     "additional_details": {
       "precision": "bfloat16",

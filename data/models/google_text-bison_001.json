@@ -2,7 +2,7 @@
   "model_info": {
     "name": "PaLM-2 Bison",
     "id": "google/text-bison@001",
-    "developer": "google",
+    "developer": "Google",
     "inference_platform": "unknown"
   },
   "evaluations": [

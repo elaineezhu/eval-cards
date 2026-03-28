@@ -1,16 +1,17 @@
 {
   "model_info": {
-    "name": "openai/gpt-4.1-2025-04-14",
+    "name": "gpt-4.1-2025-04-14",
     "id": "openai/gpt-4.1-2025-04-14",
-    "developer": "openai",
+    "developer": "OpenAI",
+    "inference_platform": "unknown",
     "additional_details": {
-      "model_type": "Generative RM"
+      "display_name": "GPT-4.1"
     }
   },
   "evaluations": [
     {
-      "evaluation_id": "global-mmlu-lite/openai_gpt-4.1-2025-04-14/1773936583.743359",
-      "retrieved_timestamp": "1773936583.743359",
+      "evaluation_id": "global-mmlu-lite/openai_gpt-4.1-2025-04-14/1773936496.366405",
+      "retrieved_timestamp": "1773936496.366405",
       "source_metadata": {
         "source_name": "Global MMLU Lite Leaderboard",
         "source_type": "documentation",
@@ -524,8 +525,8 @@
       "generation_config": null
     },
     {
-      "evaluation_id": "global-mmlu-lite/openai_gpt-4.1-2025-04-14/1773936496.366405",
-      "retrieved_timestamp": "1773936496.366405",
+      "evaluation_id": "global-mmlu-lite/openai_gpt-4.1-2025-04-14/1773936583.743359",
+      "retrieved_timestamp": "1773936583.743359",
       "source_metadata": {
         "source_name": "Global MMLU Lite Leaderboard",
         "source_type": "documentation",

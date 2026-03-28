@@ -2,7 +2,7 @@
   "model_info": {
     "name": "gemma-3-4b-it",
     "id": "google/gemma-3-4b-it",
-    "developer": "google",
+    "developer": "Google",
     "inference_platform": "unknown",
     "additional_details": {
       "display_name": "Gemma 3 4B"

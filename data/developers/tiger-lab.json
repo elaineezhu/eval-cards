@@ -2,20 +2,6 @@
   "developer": "TIGER-Lab",
   "models": [
     {
-      "id": "TIGER-Lab/AceCodeRM-7B",
-      "name": "AceCodeRM-7B",
-      "developer": "TIGER-Lab",
-      "evaluator_relationship": null,
-      "benchmark_scores": {
-        "hfopenllm_v2/IFEval": 0.5855,
-        "hfopenllm_v2/BBH": 0.4773,
-        "hfopenllm_v2/MATH Level 5": 0.3467,
-        "hfopenllm_v2/GPQA": 0.3045,
-        "hfopenllm_v2/MUSR": 0.4192,
-        "hfopenllm_v2/MMLU-PRO": 0.3361
-      }
-    },
-    {
       "id": "TIGER-Lab/AceCoder-Qwen2.5-7B-Ins-Rule",
       "name": "AceCoder-Qwen2.5-7B-Ins-Rule",
       "developer": "TIGER-Lab",
@@ -55,6 +41,20 @@
         "hfopenllm_v2/GPQA": 0.2777,
         "hfopenllm_v2/MUSR": 0.4046,
         "hfopenllm_v2/MMLU-PRO": 0.3428
+      }
+    },
+    {
+      "id": "TIGER-Lab/AceCodeRM-7B",
+      "name": "AceCodeRM-7B",
+      "developer": "TIGER-Lab",
+      "evaluator_relationship": null,
+      "benchmark_scores": {
+        "hfopenllm_v2/IFEval": 0.5855,
+        "hfopenllm_v2/BBH": 0.4773,
+        "hfopenllm_v2/MATH Level 5": 0.3467,
+        "hfopenllm_v2/GPQA": 0.3045,
+        "hfopenllm_v2/MUSR": 0.4192,
+        "hfopenllm_v2/MMLU-PRO": 0.3361
       }
     },
     {

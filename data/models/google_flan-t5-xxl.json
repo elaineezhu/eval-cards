@@ -2,7 +2,7 @@
   "model_info": {
     "name": "flan-t5-xxl",
     "id": "google/flan-t5-xxl",
-    "developer": "google",
+    "developer": "Google",
     "inference_platform": "unknown",
     "additional_details": {
       "precision": "float16",

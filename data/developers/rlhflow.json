@@ -3,7 +3,7 @@
   "models": [
     {
       "id": "RLHFlow/ArmoRM-Llama3-8B-v0.1",
-      "name": "ArmoRM-Llama3-8B-v0.1",
+      "name": "RLHFlow/ArmoRM-Llama3-8B-v0.1",
       "developer": "RLHFlow",
       "evaluator_relationship": null,
       "benchmark_scores": {
@@ -28,7 +28,7 @@
     },
     {
       "id": "RLHFlow/LLaMA3-iterative-DPO-final",
-      "name": "LLaMA3-iterative-DPO-final",
+      "name": "RLHFlow/LLaMA3-iterative-DPO-final",
       "developer": "RLHFlow",
       "evaluator_relationship": null,
       "benchmark_scores": {
@@ -47,20 +47,6 @@
       }
     },
     {
-      "id": "RLHFlow/RewardModel-Mistral-7B-for-DPA-v1",
-      "name": "RLHFlow/RewardModel-Mistral-7B-for-DPA-v1",
-      "developer": "RLHFlow",
-      "evaluator_relationship": null,
-      "benchmark_scores": {
-        "reward-bench/Score": 0.6633,
-        "reward-bench/Chat": 0.8799,
-        "reward-bench/Chat Hard": 0.4978,
-        "reward-bench/Safety": 0.7068,
-        "reward-bench/Reasoning": 0.5971,
-        "reward-bench/Prior Sets (0.5 weight)": 0.6068
-      }
-    },
-    {
       "id": "RLHFlow/pair-preference-model-LLaMA3-8B",
       "name": "RLHFlow/pair-preference-model-LLaMA3-8B",
       "developer": "RLHFlow",
@@ -72,6 +58,20 @@
         "reward-bench/Safety": 0.8973,
         "reward-bench/Reasoning": 0.9473,
         "reward-bench/Prior Sets (0.5 weight)": 0.7458
+      }
+    },
+    {
+      "id": "RLHFlow/RewardModel-Mistral-7B-for-DPA-v1",
+      "name": "RLHFlow/RewardModel-Mistral-7B-for-DPA-v1",
+      "developer": "RLHFlow",
+      "evaluator_relationship": null,
+      "benchmark_scores": {
+        "reward-bench/Score": 0.6633,
+        "reward-bench/Chat": 0.8799,
+        "reward-bench/Chat Hard": 0.4978,
+        "reward-bench/Safety": 0.7068,
+        "reward-bench/Reasoning": 0.5971,
+        "reward-bench/Prior Sets (0.5 weight)": 0.6068
       }
     }
   ]

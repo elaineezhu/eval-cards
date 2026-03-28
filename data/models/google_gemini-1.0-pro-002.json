@@ -2,7 +2,7 @@
   "model_info": {
     "name": "Gemini 1.0 Pro 002",
     "id": "google/gemini-1.0-pro-002",
-    "developer": "google",
+    "developer": "Google",
     "inference_platform": "unknown"
   },
   "evaluations": [

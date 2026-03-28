@@ -1,8 +1,9 @@
 {
   "model_info": {
-    "name": "Gemma 2 9B Instruct",
+    "name": "Gemma 2 Instruct 9B",
     "id": "google/gemma-2-9b-it",
-    "developer": "unknown"
+    "developer": "Google",
+    "inference_platform": "unknown"
   },
   "evaluations": [
     {

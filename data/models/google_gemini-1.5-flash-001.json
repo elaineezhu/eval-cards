@@ -1,11 +1,9 @@
 {
   "model_info": {
-    "name": "google/gemini-1.5-flash-001",
+    "name": "Gemini 1.5 Flash 001",
     "id": "google/gemini-1.5-flash-001",
-    "developer": "google",
-    "additional_details": {
-      "model_type": "Generative"
-    }
+    "developer": "Google",
+    "inference_platform": "unknown"
   },
   "evaluations": [
     {

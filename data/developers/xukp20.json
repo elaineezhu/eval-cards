@@ -2,6 +2,20 @@
   "developer": "xukp20",
   "models": [
     {
+      "id": "xukp20/llama-3-8b-instruct-sppo-iter1-gp-2b-tau01-table",
+      "name": "llama-3-8b-instruct-sppo-iter1-gp-2b-tau01-table",
+      "developer": "xukp20",
+      "evaluator_relationship": null,
+      "benchmark_scores": {
+        "hfopenllm_v2/IFEval": 0.69,
+        "hfopenllm_v2/BBH": 0.4978,
+        "hfopenllm_v2/MATH Level 5": 0.105,
+        "hfopenllm_v2/GPQA": 0.2592,
+        "hfopenllm_v2/MUSR": 0.3673,
+        "hfopenllm_v2/MMLU-PRO": 0.3716
+      }
+    },
+    {
       "id": "xukp20/Llama-3-8B-Instruct-SPPO-Iter3_bt_2b-table",
       "name": "Llama-3-8B-Instruct-SPPO-Iter3_bt_2b-table",
       "developer": "xukp20",
@@ -97,20 +111,6 @@
         "hfopenllm_v2/GPQA": 0.2609,
         "hfopenllm_v2/MUSR": 0.3633,
         "hfopenllm_v2/MMLU-PRO": 0.3671
-      }
-    },
-    {
-      "id": "xukp20/llama-3-8b-instruct-sppo-iter1-gp-2b-tau01-table",
-      "name": "llama-3-8b-instruct-sppo-iter1-gp-2b-tau01-table",
-      "developer": "xukp20",
-      "evaluator_relationship": null,
-      "benchmark_scores": {
-        "hfopenllm_v2/IFEval": 0.69,
-        "hfopenllm_v2/BBH": 0.4978,
-        "hfopenllm_v2/MATH Level 5": 0.105,
-        "hfopenllm_v2/GPQA": 0.2592,
-        "hfopenllm_v2/MUSR": 0.3673,
-        "hfopenllm_v2/MMLU-PRO": 0.3716
       }
     }
   ]
