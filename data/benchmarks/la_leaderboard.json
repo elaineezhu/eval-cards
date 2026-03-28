@@ -1,0 +1,44 @@
+{
+  "models": [
+    {
+      "model_id": "Qwen/Qwen2.5-7B",
+      "name": "Qwen2.5-7B",
+      "developer": "unknown",
+      "scores": {
+        "la_leaderboard": 27.61
+      }
+    },
+    {
+      "model_id": "google/gemma-2-9b-it",
+      "name": "Gemma 2 Instruct 9B",
+      "developer": "unknown",
+      "scores": {
+        "la_leaderboard": 33.62
+      }
+    },
+    {
+      "model_id": "meta-llama/Meta-Llama-3.1-8B",
+      "name": "Meta Llama 3.1 8B",
+      "developer": "unknown",
+      "scores": {
+        "la_leaderboard": 27.04
+      }
+    },
+    {
+      "model_id": "meta-llama/Meta-Llama-3.1-8B-Instruct",
+      "name": "Meta Llama 3.1 8B Instruct",
+      "developer": "unknown",
+      "scores": {
+        "la_leaderboard": 30.23
+      }
+    },
+    {
+      "model_id": "utter-project/EuroLLM-9B",
+      "name": "EuroLLM 9B",
+      "developer": "unknown",
+      "scores": {
+        "la_leaderboard": 25.87
+      }
+    }
+  ]
+}

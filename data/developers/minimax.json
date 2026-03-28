@@ -1,5 +1,5 @@
 {
-  "developer": "minimax",
+  "developer": "MiniMax",
   "models": [
     {
       "id": "minimax/Minimax-2.5",
@@ -8,6 +8,33 @@
       "evaluator_relationship": null,
       "benchmark_scores": {
         "apex-agents/Corporate Lawyer Mean Score": 0.339
+      }
+    },
+    {
+      "id": "minimax/minimax-m2",
+      "name": "MiniMax M2",
+      "developer": "MiniMax",
+      "evaluator_relationship": null,
+      "benchmark_scores": {
+        "terminal-bench-2.0/terminal-bench-2.0": 30.0
+      }
+    },
+    {
+      "id": "minimax/minimax-m2.1",
+      "name": "MiniMax M2.1",
+      "developer": "MiniMax",
+      "evaluator_relationship": null,
+      "benchmark_scores": {
+        "terminal-bench-2.0/terminal-bench-2.0": 36.6
+      }
+    },
+    {
+      "id": "minimax/minimax-m2.5",
+      "name": "Minimax m2.5",
+      "developer": "Minimax",
+      "evaluator_relationship": null,
+      "benchmark_scores": {
+        "terminal-bench-2.0/terminal-bench-2.0": 42.2
       }
     }
   ]

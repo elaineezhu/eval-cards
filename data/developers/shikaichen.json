@@ -1,0 +1,23 @@
+{
+  "developer": "ShikaiChen",
+  "models": [
+    {
+      "id": "ShikaiChen/LDL-Reward-Gemma-2-27B-v0.1",
+      "name": "ShikaiChen/LDL-Reward-Gemma-2-27B-v0.1",
+      "developer": "ShikaiChen",
+      "evaluator_relationship": null,
+      "benchmark_scores": {
+        "reward-bench/Score": 0.7249,
+        "reward-bench/Chat": 0.9637,
+        "reward-bench/Chat Hard": 0.9079,
+        "reward-bench/Safety": 0.9222,
+        "reward-bench/Reasoning": 0.9903,
+        "reward-bench/Factuality": 0.7558,
+        "reward-bench/Precise IF": 0.35,
+        "reward-bench/Math": 0.6448,
+        "reward-bench/Focus": 0.9131,
+        "reward-bench/Ties": 0.7633
+      }
+    }
+  ]
+}

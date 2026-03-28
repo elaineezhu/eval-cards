@@ -133,12 +133,12 @@
       "developer": "cognitivecomputations",
       "evaluator_relationship": null,
       "benchmark_scores": {
-        "hfopenllm_v2/IFEval": 0.4124,
-        "hfopenllm_v2/BBH": 0.6383,
-        "hfopenllm_v2/MATH Level 5": 0.182,
-        "hfopenllm_v2/GPQA": 0.3289,
-        "hfopenllm_v2/MUSR": 0.4349,
-        "hfopenllm_v2/MMLU-PRO": 0.4525
+        "hfopenllm_v2/IFEval": 0.3613,
+        "hfopenllm_v2/BBH": 0.6123,
+        "hfopenllm_v2/MATH Level 5": 0.1239,
+        "hfopenllm_v2/GPQA": 0.328,
+        "hfopenllm_v2/MUSR": 0.4112,
+        "hfopenllm_v2/MMLU-PRO": 0.4494
       }
     },
     {

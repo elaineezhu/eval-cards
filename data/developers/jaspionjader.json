@@ -119,12 +119,12 @@
       "developer": "jaspionjader",
       "evaluator_relationship": null,
       "benchmark_scores": {
-        "hfopenllm_v2/IFEval": 0.4345,
-        "hfopenllm_v2/BBH": 0.5419,
-        "hfopenllm_v2/MATH Level 5": 0.1292,
-        "hfopenllm_v2/GPQA": 0.3087,
+        "hfopenllm_v2/IFEval": 0.4418,
+        "hfopenllm_v2/BBH": 0.5406,
+        "hfopenllm_v2/MATH Level 5": 0.1352,
+        "hfopenllm_v2/GPQA": 0.3062,
         "hfopenllm_v2/MUSR": 0.4277,
-        "hfopenllm_v2/MMLU-PRO": 0.3854
+        "hfopenllm_v2/MMLU-PRO": 0.386
       }
     },
     {

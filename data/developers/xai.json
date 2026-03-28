@@ -1,5 +1,5 @@
 {
-  "developer": "xai",
+  "developer": "xAI",
   "models": [
     {
       "id": "xai/Grok 4",
@@ -73,6 +73,15 @@
       }
     },
     {
+      "id": "xai/grok-4",
+      "name": "Grok 4",
+      "developer": "xAI",
+      "evaluator_relationship": null,
+      "benchmark_scores": {
+        "terminal-bench-2.0/terminal-bench-2.0": 25.4
+      }
+    },
+    {
       "id": "xai/grok-4-0709",
       "name": "grok-4-0709",
       "developer": "xai",
@@ -103,6 +112,15 @@
         "helm_capabilities/IFEval": 0.949,
         "helm_capabilities/WildBench": 0.797,
         "helm_capabilities/Omni-MATH": 0.603
+      }
+    },
+    {
+      "id": "xai/grok-code-fast-1",
+      "name": "Grok Code Fast 1",
+      "developer": "xAI",
+      "evaluator_relationship": null,
+      "benchmark_scores": {
+        "terminal-bench-2.0/terminal-bench-2.0": 25.8
       }
     }
   ]

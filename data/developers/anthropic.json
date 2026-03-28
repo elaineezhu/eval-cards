@@ -1,6 +1,60 @@
 {
-  "developer": "anthropic",
+  "developer": "Anthropic",
   "models": [
+    {
+      "id": "Anthropic/claude-3-5-sonnet-20240620",
+      "name": "Anthropic/claude-3-5-sonnet-20240620",
+      "developer": "Anthropic",
+      "evaluator_relationship": null,
+      "benchmark_scores": {
+        "reward-bench/Score": 0.8417,
+        "reward-bench/Chat": 0.9637,
+        "reward-bench/Chat Hard": 0.7401,
+        "reward-bench/Safety": 0.8162,
+        "reward-bench/Reasoning": 0.8469
+      }
+    },
+    {
+      "id": "Anthropic/claude-3-haiku-20240307",
+      "name": "Anthropic/claude-3-haiku-20240307",
+      "developer": "Anthropic",
+      "evaluator_relationship": null,
+      "benchmark_scores": {
+        "reward-bench/Score": 0.7289,
+        "reward-bench/Chat": 0.9274,
+        "reward-bench/Chat Hard": 0.5197,
+        "reward-bench/Safety": 0.7953,
+        "reward-bench/Reasoning": 0.706,
+        "reward-bench/Prior Sets (0.5 weight)": 0.6635
+      }
+    },
+    {
+      "id": "Anthropic/claude-3-opus-20240229",
+      "name": "Anthropic/claude-3-opus-20240229",
+      "developer": "Anthropic",
+      "evaluator_relationship": null,
+      "benchmark_scores": {
+        "reward-bench/Score": 0.8008,
+        "reward-bench/Chat": 0.9469,
+        "reward-bench/Chat Hard": 0.6031,
+        "reward-bench/Safety": 0.8662,
+        "reward-bench/Reasoning": 0.7868
+      }
+    },
+    {
+      "id": "Anthropic/claude-3-sonnet-20240229",
+      "name": "Anthropic/claude-3-sonnet-20240229",
+      "developer": "Anthropic",
+      "evaluator_relationship": null,
+      "benchmark_scores": {
+        "reward-bench/Score": 0.7458,
+        "reward-bench/Chat": 0.9344,
+        "reward-bench/Chat Hard": 0.5658,
+        "reward-bench/Safety": 0.8169,
+        "reward-bench/Reasoning": 0.6907,
+        "reward-bench/Prior Sets (0.5 weight)": 0.6963
+      }
+    },
     {
       "id": "anthropic/Opus 4.1",
       "name": "Opus 4.1",
@@ -17,8 +71,6 @@
       "developer": "anthropic",
       "evaluator_relationship": null,
       "benchmark_scores": {
-        "ace/Overall Score": 0.478,
-        "ace/Gaming Score": 0.391,
         "apex-agents/Overall Pass@1": 0.184,
         "apex-agents/Overall Pass@8": 0.34,
         "apex-agents/Overall Mean Score": 0.348,
@@ -26,6 +78,8 @@
         "apex-agents/Management Consulting Pass@1": 0.132,
         "apex-agents/Corporate Law Pass@1": 0.202,
         "apex-agents/Corporate Lawyer Mean Score": 0.471,
+        "ace/Overall Score": 0.478,
+        "ace/Gaming Score": 0.391,
         "apex-v1/Medicine (MD) Score": 0.65
       }
     },
@@ -541,6 +595,26 @@
       }
     },
     {
+      "id": "anthropic/claude-3.7-sonnet",
+      "name": "anthropic/claude-3.7-sonnet",
+      "developer": "Anthropic",
+      "evaluator_relationship": null,
+      "benchmark_scores": {
+        "livecodebenchpro/Hard Problems": 0.0,
+        "livecodebenchpro/Medium Problems": 0.014084507042253521,
+        "livecodebenchpro/Easy Problems": 0.15492957746478872
+      }
+    },
+    {
+      "id": "anthropic/claude-haiku-4.5",
+      "name": "Claude Haiku 4.5",
+      "developer": "Anthropic",
+      "evaluator_relationship": null,
+      "benchmark_scores": {
+        "terminal-bench-2.0/terminal-bench-2.0": 29.8
+      }
+    },
+    {
       "id": "anthropic/claude-instant-1.2",
       "name": "Claude Instant 1.2",
       "developer": "anthropic",
@@ -657,6 +731,47 @@
       }
     },
     {
+      "id": "anthropic/claude-opus-4-5",
+      "name": "claude-opus-4-5",
+      "developer": "Anthropic",
+      "evaluator_relationship": null,
+      "benchmark_scores": {
+        "appworld_test_normal/appworld/test_normal": 0.61,
+        "browsecompplus/browsecompplus": 0.61,
+        "swe-bench/swe-bench": 0.6061,
+        "tau-bench-2_airline/tau-bench-2/airline": 0.74,
+        "tau-bench-2_retail/tau-bench-2/retail": 0.78,
+        "tau-bench-2_telecom/tau-bench-2/telecom": 0.76
+      }
+    },
+    {
+      "id": "anthropic/claude-opus-4.1",
+      "name": "Claude Opus 4.1",
+      "developer": "Anthropic",
+      "evaluator_relationship": null,
+      "benchmark_scores": {
+        "terminal-bench-2.0/terminal-bench-2.0": 36.9
+      }
+    },
+    {
+      "id": "anthropic/claude-opus-4.5",
+      "name": "Claude Opus 4.5",
+      "developer": "Anthropic",
+      "evaluator_relationship": null,
+      "benchmark_scores": {
+        "terminal-bench-2.0/terminal-bench-2.0": 52.1
+      }
+    },
+    {
+      "id": "anthropic/claude-opus-4.6",
+      "name": "Claude Opus 4.6",
+      "developer": "Anthropic",
+      "evaluator_relationship": null,
+      "benchmark_scores": {
+        "terminal-bench-2.0/terminal-bench-2.0": 62.9
+      }
+    },
+    {
       "id": "anthropic/claude-sonnet-4-20250514",
       "name": "claude-sonnet-4-20250514",
       "developer": "anthropic",
@@ -719,6 +834,15 @@
         "livecodebenchpro/Hard Problems": 0.0,
         "livecodebenchpro/Medium Problems": 0.0,
         "livecodebenchpro/Easy Problems": 0.5352
+      }
+    },
+    {
+      "id": "anthropic/claude-sonnet-4.5",
+      "name": "Claude Sonnet 4.5",
+      "developer": "Anthropic",
+      "evaluator_relationship": null,
+      "benchmark_scores": {
+        "terminal-bench-2.0/terminal-bench-2.0": 46.5
       }
     },
     {

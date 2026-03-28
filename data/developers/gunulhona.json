@@ -1,0 +1,33 @@
+{
+  "developer": "Gunulhona",
+  "models": [
+    {
+      "id": "Gunulhona/Gemma-Ko-Merge",
+      "name": "Gemma-Ko-Merge",
+      "developer": "Gunulhona",
+      "evaluator_relationship": null,
+      "benchmark_scores": {
+        "hfopenllm_v2/IFEval": 0.6416,
+        "hfopenllm_v2/BBH": 0.5813,
+        "hfopenllm_v2/MATH Level 5": 0.1881,
+        "hfopenllm_v2/GPQA": 0.3356,
+        "hfopenllm_v2/MUSR": 0.4047,
+        "hfopenllm_v2/MMLU-PRO": 0.3879
+      }
+    },
+    {
+      "id": "Gunulhona/Gemma-Ko-Merge-PEFT",
+      "name": "Gemma-Ko-Merge-PEFT",
+      "developer": "Gunulhona",
+      "evaluator_relationship": null,
+      "benchmark_scores": {
+        "hfopenllm_v2/IFEval": 0.4441,
+        "hfopenllm_v2/BBH": 0.4863,
+        "hfopenllm_v2/MATH Level 5": 0.0,
+        "hfopenllm_v2/GPQA": 0.307,
+        "hfopenllm_v2/MUSR": 0.3986,
+        "hfopenllm_v2/MMLU-PRO": 0.3098
+      }
+    }
+  ]
+}

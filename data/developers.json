@@ -32,1356 +32,24 @@
     "model_count": 1
   },
   {
+    "developer": "aaditya",
+    "model_count": 1
+  },
+  {
     "developer": "AALF",
     "model_count": 4
-  },
-  {
-    "developer": "AELLM",
-    "model_count": 2
-  },
-  {
-    "developer": "AGI-0",
-    "model_count": 3
-  },
-  {
-    "developer": "AI-MO",
-    "model_count": 2
-  },
-  {
-    "developer": "AI-Sweden-Models",
-    "model_count": 2
-  },
-  {
-    "developer": "AI4free",
-    "model_count": 2
-  },
-  {
-    "developer": "AIDC-AI",
-    "model_count": 1
   },
   {
     "developer": "Aashraf995",
     "model_count": 4
   },
   {
-    "developer": "AbacusResearch",
-    "model_count": 1
-  },
-  {
-    "developer": "Ahdoot",
-    "model_count": 2
-  },
-  {
-    "developer": "Ahjeong",
-    "model_count": 2
-  },
-  {
-    "developer": "AicoresSecurity",
-    "model_count": 4
-  },
-  {
-    "developer": "Alepach",
-    "model_count": 3
-  },
-  {
-    "developer": "AlephAlpha",
-    "model_count": 3
-  },
-  {
-    "developer": "Alibaba",
-    "model_count": 5
-  },
-  {
-    "developer": "Alibaba-NLP",
-    "model_count": 1
-  },
-  {
-    "developer": "Alsebay",
-    "model_count": 1
-  },
-  {
-    "developer": "Amaorynho",
-    "model_count": 4
-  },
-  {
-    "developer": "Amu",
-    "model_count": 2
-  },
-  {
-    "developer": "Anthropic",
-    "model_count": 11
-  },
-  {
-    "developer": "ArliAI",
-    "model_count": 2
-  },
-  {
-    "developer": "Arthur-LAGACHERIE",
-    "model_count": 1
-  },
-  {
-    "developer": "Artples",
-    "model_count": 2
-  },
-  {
-    "developer": "Aryanne",
-    "model_count": 3
-  },
-  {
-    "developer": "AtAndDev",
-    "model_count": 1
-  },
-  {
-    "developer": "Ateron",
-    "model_count": 3
-  },
-  {
-    "developer": "AtlaAI",
-    "model_count": 2
-  },
-  {
-    "developer": "AuraIndustries",
-    "model_count": 4
-  },
-  {
-    "developer": "Aurel9",
-    "model_count": 1
-  },
-  {
-    "developer": "Ayush-Singh",
-    "model_count": 1
-  },
-  {
-    "developer": "Azure99",
-    "model_count": 6
-  },
-  {
-    "developer": "BAAI",
-    "model_count": 14
-  },
-  {
-    "developer": "BEE-spoke-data",
-    "model_count": 9
-  },
-  {
-    "developer": "BSC-LT",
-    "model_count": 2
-  },
-  {
-    "developer": "Ba2han",
-    "model_count": 1
-  },
-  {
-    "developer": "Baptiste-HUVELLE-10",
-    "model_count": 1
-  },
-  {
-    "developer": "BenevolenceMessiah",
-    "model_count": 2
-  },
-  {
-    "developer": "BlackBeenie",
-    "model_count": 9
-  },
-  {
-    "developer": "Bllossom",
-    "model_count": 1
-  },
-  {
-    "developer": "BoltMonkey",
-    "model_count": 3
-  },
-  {
-    "developer": "BrainWave-ML",
-    "model_count": 1
-  },
-  {
-    "developer": "BramVanroy",
-    "model_count": 4
-  },
-  {
-    "developer": "ByteDance",
-    "model_count": 1
-  },
-  {
-    "developer": "CIR-AMS",
-    "model_count": 1
-  },
-  {
-    "developer": "CYFRAGOVPL",
-    "model_count": 6
-  },
-  {
-    "developer": "CarrotAI",
-    "model_count": 2
-  },
-  {
-    "developer": "Casual-Autopsy",
-    "model_count": 1
-  },
-  {
-    "developer": "CausalLM",
-    "model_count": 3
-  },
-  {
-    "developer": "Changgil",
-    "model_count": 2
-  },
-  {
-    "developer": "ClaudioItaly",
-    "model_count": 4
-  },
-  {
-    "developer": "CohereForAI",
-    "model_count": 8
-  },
-  {
-    "developer": "Columbia-NLP",
-    "model_count": 6
-  },
-  {
-    "developer": "CombinHorizon",
-    "model_count": 6
-  },
-  {
-    "developer": "ContactDoctor",
-    "model_count": 2
-  },
-  {
-    "developer": "ContextualAI",
-    "model_count": 16
-  },
-  {
-    "developer": "CoolSpring",
-    "model_count": 3
-  },
-  {
-    "developer": "Corianas",
-    "model_count": 3
-  },
-  {
-    "developer": "CortexLM",
-    "model_count": 1
-  },
-  {
-    "developer": "Cran-May",
-    "model_count": 7
-  },
-  {
-    "developer": "CreitinGameplays",
-    "model_count": 1
-  },
-  {
-    "developer": "CultriX",
-    "model_count": 32
-  },
-  {
-    "developer": "DRXD1000",
-    "model_count": 2
-  },
-  {
-    "developer": "DUAL-GPO",
-    "model_count": 1
-  },
-  {
-    "developer": "DZgas",
-    "model_count": 1
-  },
-  {
-    "developer": "Daemontatox",
-    "model_count": 32
-  },
-  {
-    "developer": "Dampfinchen",
-    "model_count": 1
-  },
-  {
-    "developer": "Danielbrdz",
-    "model_count": 7
-  },
-  {
-    "developer": "Dans-DiscountModels",
-    "model_count": 9
-  },
-  {
-    "developer": "Darkknight535",
-    "model_count": 1
-  },
-  {
-    "developer": "Databricks-Mosaic-Research",
-    "model_count": 1
-  },
-  {
-    "developer": "DavidAU",
-    "model_count": 25
-  },
-  {
-    "developer": "Davidsv",
-    "model_count": 1
-  },
-  {
-    "developer": "DavieLion",
-    "model_count": 5
-  },
-  {
-    "developer": "DebateLabKIT",
-    "model_count": 1
-  },
-  {
-    "developer": "Deci",
-    "model_count": 2
-  },
-  {
-    "developer": "DeepAutoAI",
-    "model_count": 12
-  },
-  {
-    "developer": "DeepMount00",
-    "model_count": 14
-  },
-  {
-    "developer": "DeepSeek",
-    "model_count": 5
-  },
-  {
-    "developer": "Delta-Vector",
-    "model_count": 7
-  },
-  {
-    "developer": "DevQuasar",
-    "model_count": 1
-  },
-  {
-    "developer": "Dongwei",
-    "model_count": 1
-  },
-  {
-    "developer": "DoppelReflEx",
-    "model_count": 29
-  },
-  {
-    "developer": "DreadPoor",
-    "model_count": 119
-  },
-  {
-    "developer": "ECE-ILAB-PRYMMAL",
-    "model_count": 1
-  },
-  {
-    "developer": "EVA-UNIT-01",
-    "model_count": 2
-  },
-  {
-    "developer": "Edgerunners",
-    "model_count": 1
-  },
-  {
-    "developer": "EleutherAI",
-    "model_count": 12
-  },
-  {
-    "developer": "Enno-Ai",
-    "model_count": 4
-  },
-  {
-    "developer": "EnnoAi",
-    "model_count": 2
-  },
-  {
-    "developer": "Epiculous",
-    "model_count": 4
-  },
-  {
-    "developer": "EpistemeAI",
-    "model_count": 47
-  },
-  {
-    "developer": "EpistemeAI2",
-    "model_count": 15
-  },
-  {
-    "developer": "Eric111",
-    "model_count": 2
-  },
-  {
-    "developer": "Etherll",
-    "model_count": 8
-  },
-  {
-    "developer": "Eurdem",
-    "model_count": 1
-  },
-  {
-    "developer": "FINGU-AI",
-    "model_count": 7
-  },
-  {
-    "developer": "FallenMerick",
-    "model_count": 1
-  },
-  {
-    "developer": "Felladrin",
-    "model_count": 2
-  },
-  {
-    "developer": "FlofloB",
-    "model_count": 27
-  },
-  {
-    "developer": "FuJhen",
-    "model_count": 4
-  },
-  {
-    "developer": "FuseAI",
-    "model_count": 4
-  },
-  {
-    "developer": "GalrionSoftworks",
-    "model_count": 2
-  },
-  {
-    "developer": "GenVRadmin",
-    "model_count": 4
-  },
-  {
-    "developer": "GoToCompany",
-    "model_count": 2
-  },
-  {
-    "developer": "Goekdeniz-Guelmez",
-    "model_count": 10
-  },
-  {
-    "developer": "Google",
-    "model_count": 4
-  },
-  {
-    "developer": "GreenNode",
-    "model_count": 1
-  },
-  {
-    "developer": "GritLM",
-    "model_count": 2
-  },
-  {
-    "developer": "Groq",
-    "model_count": 1
-  },
-  {
-    "developer": "Gryphe",
-    "model_count": 5
-  },
-  {
-    "developer": "GuilhermeNaturaUmana",
-    "model_count": 1
-  },
-  {
-    "developer": "Gunulhona",
-    "model_count": 2
-  },
-  {
-    "developer": "HFXM",
-    "model_count": 1
-  },
-  {
-    "developer": "HPAI-BSC",
-    "model_count": 3
-  },
-  {
-    "developer": "HarbingerX",
-    "model_count": 2
-  },
-  {
-    "developer": "Hastagaras",
-    "model_count": 3
-  },
-  {
-    "developer": "HelpingAI",
-    "model_count": 4
-  },
-  {
-    "developer": "HeraiHench",
-    "model_count": 4
-  },
-  {
-    "developer": "HiroseKoichi",
-    "model_count": 1
-  },
-  {
-    "developer": "HoangHa",
-    "model_count": 1
-  },
-  {
-    "developer": "HuggingFaceH4",
-    "model_count": 5
-  },
-  {
-    "developer": "HuggingFaceTB",
-    "model_count": 12
-  },
-  {
-    "developer": "HumanLLMs",
-    "model_count": 3
-  },
-  {
-    "developer": "IDEA-CCNL",
-    "model_count": 2
-  },
-  {
-    "developer": "INSAIT-Institute",
-    "model_count": 1
-  },
-  {
-    "developer": "IlyaGusev",
-    "model_count": 2
-  },
-  {
-    "developer": "Infinirc",
-    "model_count": 1
-  },
-  {
-    "developer": "Intel",
-    "model_count": 4
-  },
-  {
-    "developer": "IntervitensInc",
-    "model_count": 1
-  },
-  {
-    "developer": "Invalid-Null",
-    "model_count": 2
-  },
-  {
-    "developer": "Isaak-Carter",
-    "model_count": 3
-  },
-  {
-    "developer": "J-LAB",
-    "model_count": 1
-  },
-  {
-    "developer": "JackFram",
-    "model_count": 2
-  },
-  {
-    "developer": "Jacoby746",
-    "model_count": 7
-  },
-  {
-    "developer": "JayHyeon",
-    "model_count": 174
-  },
-  {
-    "developer": "Jimmy19991222",
-    "model_count": 8
-  },
-  {
-    "developer": "Joseph717171",
-    "model_count": 2
-  },
-  {
-    "developer": "Josephgflowers",
-    "model_count": 7
-  },
-  {
-    "developer": "JungZoona",
-    "model_count": 2
-  },
-  {
-    "developer": "Junhoee",
-    "model_count": 1
-  },
-  {
-    "developer": "KSU-HW-SEC",
-    "model_count": 4
-  },
-  {
-    "developer": "Khetterman",
-    "model_count": 2
-  },
-  {
-    "developer": "Kimargin",
-    "model_count": 1
-  },
-  {
-    "developer": "Kimi",
-    "model_count": 1
-  },
-  {
-    "developer": "KingNish",
-    "model_count": 7
-  },
-  {
-    "developer": "Kquant03",
-    "model_count": 2
-  },
-  {
-    "developer": "Krystalan",
-    "model_count": 2
-  },
-  {
-    "developer": "Kuaishou",
-    "model_count": 1
-  },
-  {
-    "developer": "Kukedlc",
-    "model_count": 7
-  },
-  {
-    "developer": "Kumar955",
-    "model_count": 1
-  },
-  {
-    "developer": "L-RAGE",
-    "model_count": 1
-  },
-  {
-    "developer": "LEESM",
-    "model_count": 4
-  },
-  {
-    "developer": "LGAI-EXAONE",
-    "model_count": 4
-  },
-  {
-    "developer": "LLM360",
-    "model_count": 2
-  },
-  {
-    "developer": "LLM4Binary",
-    "model_count": 1
-  },
-  {
-    "developer": "Lambent",
-    "model_count": 1
-  },
-  {
-    "developer": "Langboat",
-    "model_count": 1
-  },
-  {
-    "developer": "Lawnakk",
-    "model_count": 10
-  },
-  {
-    "developer": "LenguajeNaturalAI",
-    "model_count": 2
-  },
-  {
-    "developer": "LeroyDyer",
-    "model_count": 58
-  },
-  {
-    "developer": "LightningRodLabs",
-    "model_count": 3
-  },
-  {
-    "developer": "Lil-R",
-    "model_count": 8
-  },
-  {
-    "developer": "LilRg",
-    "model_count": 10
-  },
-  {
-    "developer": "LimYeri",
-    "model_count": 5
-  },
-  {
-    "developer": "Locutusque",
-    "model_count": 6
-  },
-  {
-    "developer": "Luni",
-    "model_count": 2
-  },
-  {
-    "developer": "Lunzima",
-    "model_count": 18
-  },
-  {
-    "developer": "LxzGordon",
-    "model_count": 2
-  },
-  {
-    "developer": "Lyte",
-    "model_count": 3
-  },
-  {
-    "developer": "M4-ai",
-    "model_count": 1
-  },
-  {
-    "developer": "MEscriva",
-    "model_count": 1
-  },
-  {
-    "developer": "MLP-KTLim",
-    "model_count": 1
-  },
-  {
-    "developer": "MTSAIR",
-    "model_count": 2
-  },
-  {
-    "developer": "Magpie-Align",
-    "model_count": 8
-  },
-  {
-    "developer": "MagusCorp",
-    "model_count": 1
-  },
-  {
-    "developer": "ManoloPueblo",
-    "model_count": 3
-  },
-  {
-    "developer": "MarinaraSpaghetti",
-    "model_count": 2
-  },
-  {
-    "developer": "Marsouuu",
-    "model_count": 8
-  },
-  {
-    "developer": "MaziyarPanahi",
-    "model_count": 44
-  },
-  {
-    "developer": "Meta",
-    "model_count": 1
-  },
-  {
-    "developer": "Minami-su",
-    "model_count": 5
-  },
-  {
-    "developer": "MiniMax",
-    "model_count": 2
-  },
-  {
-    "developer": "Minimax",
-    "model_count": 1
-  },
-  {
-    "developer": "ModelCloud",
-    "model_count": 1
-  },
-  {
-    "developer": "ModelSpace",
-    "model_count": 1
-  },
-  {
-    "developer": "MoonRide",
-    "model_count": 1
-  },
-  {
-    "developer": "Moonshot AI",
-    "model_count": 2
-  },
-  {
-    "developer": "Mostafa8Mehrabi",
-    "model_count": 1
-  },
-  {
-    "developer": "MrRobotoAI",
-    "model_count": 2
-  },
-  {
-    "developer": "Multiple",
-    "model_count": 1
-  },
-  {
-    "developer": "MultivexAI",
-    "model_count": 5
-  },
-  {
-    "developer": "Mxode",
-    "model_count": 5
-  },
-  {
-    "developer": "NAPS-ai",
-    "model_count": 7
-  },
-  {
-    "developer": "NCSOFT",
-    "model_count": 3
-  },
-  {
-    "developer": "NJS26",
-    "model_count": 1
-  },
-  {
-    "developer": "NLPark",
-    "model_count": 3
-  },
-  {
-    "developer": "NTQAI",
-    "model_count": 2
-  },
-  {
-    "developer": "NYTK",
-    "model_count": 2
-  },
-  {
-    "developer": "Naveenpoliasetty",
-    "model_count": 1
-  },
-  {
-    "developer": "NbAiLab",
-    "model_count": 2
-  },
-  {
-    "developer": "Nekochu",
-    "model_count": 4
-  },
-  {
-    "developer": "NeverSleep",
-    "model_count": 2
-  },
-  {
-    "developer": "Nexesenex",
-    "model_count": 45
-  },
-  {
-    "developer": "Nexusflow",
-    "model_count": 2
-  },
-  {
-    "developer": "NikolaSigmoid",
-    "model_count": 7
-  },
-  {
-    "developer": "Nitral-AI",
-    "model_count": 8
-  },
-  {
-    "developer": "Nohobby",
-    "model_count": 2
-  },
-  {
-    "developer": "Norquinal",
-    "model_count": 8
-  },
-  {
-    "developer": "NotASI",
-    "model_count": 4
-  },
-  {
-    "developer": "NousResearch",
-    "model_count": 19
-  },
-  {
-    "developer": "Novaciano",
-    "model_count": 11
-  },
-  {
-    "developer": "NucleusAI",
-    "model_count": 1
-  },
-  {
-    "developer": "NyxKrage",
-    "model_count": 1
-  },
-  {
-    "developer": "OEvortex",
-    "model_count": 5
-  },
-  {
-    "developer": "OliveiraJLT",
-    "model_count": 1
-  },
-  {
-    "developer": "Omkar1102",
-    "model_count": 1
-  },
-  {
-    "developer": "OmnicromsBrain",
-    "model_count": 1
-  },
-  {
-    "developer": "OnlyCheeini",
-    "model_count": 1
-  },
-  {
-    "developer": "Open-Orca",
-    "model_count": 1
-  },
-  {
-    "developer": "OpenAI",
-    "model_count": 13
-  },
-  {
-    "developer": "OpenAssistant",
-    "model_count": 4
-  },
-  {
-    "developer": "OpenBuddy",
-    "model_count": 22
-  },
-  {
-    "developer": "OpenGenerativeAI",
-    "model_count": 2
-  },
-  {
-    "developer": "OpenLLM-France",
-    "model_count": 4
-  },
-  {
-    "developer": "OpenLeecher",
-    "model_count": 1
-  },
-  {
-    "developer": "OpenScholar",
-    "model_count": 1
-  },
-  {
-    "developer": "Orenguteng",
-    "model_count": 2
-  },
-  {
-    "developer": "Orion-zhen",
-    "model_count": 2
-  },
-  {
-    "developer": "P0x0",
-    "model_count": 1
-  },
-  {
-    "developer": "PJMixers",
-    "model_count": 1
-  },
-  {
-    "developer": "PJMixers-Dev",
-    "model_count": 9
-  },
-  {
-    "developer": "PKU-Alignment",
-    "model_count": 4
-  },
-  {
-    "developer": "Parissa3",
-    "model_count": 1
-  },
-  {
-    "developer": "Pinkstack",
-    "model_count": 4
-  },
-  {
-    "developer": "PoLL",
-    "model_count": 1
-  },
-  {
-    "developer": "PocketDoc",
-    "model_count": 5
-  },
-  {
-    "developer": "PowerInfer",
-    "model_count": 1
-  },
-  {
-    "developer": "PranavHarshan",
-    "model_count": 2
-  },
-  {
-    "developer": "Pretergeek",
-    "model_count": 9
-  },
-  {
-    "developer": "PrimeIntellect",
-    "model_count": 2
-  },
-  {
-    "developer": "PuxAI",
-    "model_count": 1
-  },
-  {
-    "developer": "PygmalionAI",
-    "model_count": 1
-  },
-  {
-    "developer": "Q-bert",
-    "model_count": 1
-  },
-  {
-    "developer": "Quazim0t0",
-    "model_count": 70
-  },
-  {
-    "developer": "Qwen",
-    "model_count": 60
-  },
-  {
-    "developer": "R-I-S-E",
-    "model_count": 2
-  },
-  {
-    "developer": "RDson",
-    "model_count": 1
-  },
-  {
-    "developer": "RESMPDEV",
-    "model_count": 2
-  },
-  {
-    "developer": "RLHFlow",
-    "model_count": 4
-  },
-  {
-    "developer": "RWKV",
-    "model_count": 1
-  },
-  {
-    "developer": "Rakuten",
-    "model_count": 3
-  },
-  {
-    "developer": "Ray2333",
-    "model_count": 10
-  },
-  {
-    "developer": "Replete-AI",
-    "model_count": 9
-  },
-  {
-    "developer": "RezVortex",
-    "model_count": 2
-  },
-  {
-    "developer": "Ro-xe",
-    "model_count": 4
-  },
-  {
-    "developer": "Rombo-Org",
-    "model_count": 1
-  },
-  {
-    "developer": "RubielLabarta",
-    "model_count": 1
-  },
-  {
-    "developer": "SF-Foundation",
-    "model_count": 2
-  },
-  {
-    "developer": "SaisExperiments",
-    "model_count": 6
-  },
-  {
-    "developer": "Sakalti",
-    "model_count": 66
-  },
-  {
-    "developer": "Salesforce",
-    "model_count": 4
-  },
-  {
-    "developer": "SanjiWatsuki",
-    "model_count": 2
-  },
-  {
-    "developer": "Sao10K",
-    "model_count": 8
-  },
-  {
-    "developer": "Saxo",
-    "model_count": 11
-  },
-  {
-    "developer": "Schrieffer",
-    "model_count": 1
-  },
-  {
-    "developer": "SeaLLMs",
-    "model_count": 3
-  },
-  {
-    "developer": "SenseLLM",
-    "model_count": 2
-  },
-  {
-    "developer": "SentientAGI",
-    "model_count": 2
-  },
-  {
-    "developer": "SeppeV",
-    "model_count": 1
-  },
-  {
-    "developer": "Sharathhebbar24",
-    "model_count": 2
-  },
-  {
-    "developer": "ShikaiChen",
-    "model_count": 1
-  },
-  {
-    "developer": "Shreyash2010",
-    "model_count": 1
-  },
-  {
-    "developer": "Sicarius-Prototyping",
-    "model_count": 3
-  },
-  {
-    "developer": "SicariusSicariiStuff",
-    "model_count": 19
-  },
-  {
-    "developer": "SkyOrbis",
-    "model_count": 12
-  },
-  {
-    "developer": "Skywork",
-    "model_count": 15
-  },
-  {
-    "developer": "Solshine",
-    "model_count": 2
-  },
-  {
-    "developer": "Sorawiz",
-    "model_count": 2
-  },
-  {
-    "developer": "Sourjayon",
-    "model_count": 2
-  },
-  {
-    "developer": "SpaceYL",
-    "model_count": 1
-  },
-  {
-    "developer": "Spestly",
-    "model_count": 3
-  },
-  {
-    "developer": "Stark2008",
-    "model_count": 3
-  },
-  {
-    "developer": "Steelskull",
-    "model_count": 2
-  },
-  {
-    "developer": "StelleX",
-    "model_count": 2
-  },
-  {
-    "developer": "SultanR",
-    "model_count": 4
-  },
-  {
-    "developer": "Supichi",
-    "model_count": 11
-  },
-  {
-    "developer": "Svak",
-    "model_count": 2
-  },
-  {
-    "developer": "Syed-Hasan-8503",
-    "model_count": 1
-  },
-  {
-    "developer": "T145",
-    "model_count": 51
-  },
-  {
-    "developer": "THUDM",
-    "model_count": 5
-  },
-  {
-    "developer": "TIGER-Lab",
-    "model_count": 6
-  },
-  {
-    "developer": "TTTXXX01",
-    "model_count": 1
-  },
-  {
-    "developer": "Tarek07",
-    "model_count": 2
-  },
-  {
-    "developer": "TeeZee",
-    "model_count": 1
-  },
-  {
-    "developer": "Telugu-LLM-Labs",
-    "model_count": 2
-  },
-  {
-    "developer": "TencentARC",
-    "model_count": 4
-  },
-  {
-    "developer": "TheDrummer",
-    "model_count": 9
-  },
-  {
-    "developer": "TheDrunkenSnail",
-    "model_count": 3
-  },
-  {
-    "developer": "TheHierophant",
-    "model_count": 1
-  },
-  {
-    "developer": "TheTsar1209",
-    "model_count": 7
-  },
-  {
-    "developer": "Tijmen2",
-    "model_count": 1
-  },
-  {
-    "developer": "TinyLlama",
-    "model_count": 6
-  },
-  {
-    "developer": "ToastyPigeon",
-    "model_count": 1
-  },
-  {
-    "developer": "Trappu",
-    "model_count": 2
-  },
-  {
-    "developer": "Tremontaine",
-    "model_count": 1
-  },
-  {
-    "developer": "Triangle104",
-    "model_count": 61
-  },
-  {
-    "developer": "Tsunami-th",
-    "model_count": 4
-  },
-  {
-    "developer": "UCLA-AGI",
-    "model_count": 10
-  },
-  {
-    "developer": "UKzExecution",
-    "model_count": 1
-  },
-  {
-    "developer": "Unbabel",
-    "model_count": 1
-  },
-  {
-    "developer": "Undi95",
-    "model_count": 2
-  },
-  {
-    "developer": "V3N0M",
-    "model_count": 1
-  },
-  {
-    "developer": "VAGOsolutions",
-    "model_count": 17
-  },
-  {
-    "developer": "VIRNECT",
-    "model_count": 2
-  },
-  {
-    "developer": "ValiantLabs",
-    "model_count": 11
-  },
-  {
-    "developer": "Vikhrmodels",
-    "model_count": 2
-  },
-  {
-    "developer": "Weyaxi",
-    "model_count": 8
-  },
-  {
-    "developer": "WizardLMTeam",
-    "model_count": 3
-  },
-  {
-    "developer": "Wladastic",
-    "model_count": 1
-  },
-  {
-    "developer": "Xclbr7",
-    "model_count": 4
-  },
-  {
-    "developer": "Xiaojian9992024",
-    "model_count": 12
-  },
-  {
-    "developer": "Xkev",
-    "model_count": 1
-  },
-  {
-    "developer": "YOYO-AI",
-    "model_count": 21
-  },
-  {
-    "developer": "Yash21",
-    "model_count": 1
-  },
-  {
-    "developer": "Youlln",
-    "model_count": 19
-  },
-  {
-    "developer": "YoungPanda",
-    "model_count": 1
-  },
-  {
-    "developer": "Yuma42",
-    "model_count": 3
-  },
-  {
-    "developer": "Z-AI",
-    "model_count": 2
-  },
-  {
-    "developer": "Z.AI",
-    "model_count": 1
-  },
-  {
-    "developer": "Z.ai",
-    "model_count": 1
-  },
-  {
-    "developer": "Z1-Coder",
-    "model_count": 1
-  },
-  {
-    "developer": "ZHLiu627",
-    "model_count": 2
-  },
-  {
-    "developer": "ZeroXClem",
-    "model_count": 11
-  },
-  {
-    "developer": "ZeusLabs",
-    "model_count": 1
-  },
-  {
-    "developer": "ZhangShenao",
-    "model_count": 1
-  },
-  {
-    "developer": "ZiyiYe",
-    "model_count": 1
-  },
-  {
-    "developer": "aaditya",
-    "model_count": 1
-  },
-  {
     "developer": "abacusai",
     "model_count": 10
+  },
+  {
+    "developer": "AbacusResearch",
+    "model_count": 1
   },
   {
     "developer": "abhishek",
@@ -1400,6 +68,10 @@
     "model_count": 1
   },
   {
+    "developer": "AELLM",
+    "model_count": 2
+  },
+  {
     "developer": "aevalone",
     "model_count": 1
   },
@@ -1408,11 +80,31 @@
     "model_count": 9
   },
   {
+    "developer": "AGI-0",
+    "model_count": 3
+  },
+  {
+    "developer": "Ahdoot",
+    "model_count": 2
+  },
+  {
+    "developer": "Ahjeong",
+    "model_count": 2
+  },
+  {
     "developer": "ahmeda335",
     "model_count": 1
   },
   {
-    "developer": "ai2",
+    "developer": "AI-MO",
+    "model_count": 2
+  },
+  {
+    "developer": "AI-Sweden-Models",
+    "model_count": 2
+  },
+  {
+    "developer": "AI2",
     "model_count": 7
   },
   {
@@ -1425,6 +117,18 @@
   },
   {
     "developer": "ai4bharat",
+    "model_count": 1
+  },
+  {
+    "developer": "AI4free",
+    "model_count": 2
+  },
+  {
+    "developer": "AicoresSecurity",
+    "model_count": 4
+  },
+  {
+    "developer": "AIDC-AI",
     "model_count": 1
   },
   {
@@ -1444,11 +148,23 @@
     "model_count": 1
   },
   {
+    "developer": "Alepach",
+    "model_count": 3
+  },
+  {
     "developer": "aleph-alpha",
     "model_count": 3
   },
   {
-    "developer": "alibaba",
+    "developer": "AlephAlpha",
+    "model_count": 3
+  },
+  {
+    "developer": "Alibaba",
+    "model_count": 6
+  },
+  {
+    "developer": "Alibaba-NLP",
     "model_count": 1
   },
   {
@@ -1476,8 +192,16 @@
     "model_count": 2
   },
   {
+    "developer": "Alsebay",
+    "model_count": 1
+  },
+  {
     "developer": "altomek",
     "model_count": 1
+  },
+  {
+    "developer": "Amaorynho",
+    "model_count": 4
   },
   {
     "developer": "amazon",
@@ -1488,6 +212,10 @@
     "model_count": 1
   },
   {
+    "developer": "Amu",
+    "model_count": 2
+  },
+  {
     "developer": "anakin87",
     "model_count": 1
   },
@@ -1496,8 +224,8 @@
     "model_count": 12
   },
   {
-    "developer": "anthropic",
-    "model_count": 21
+    "developer": "Anthropic",
+    "model_count": 32
   },
   {
     "developer": "apple",
@@ -1532,8 +260,24 @@
     "model_count": 1
   },
   {
+    "developer": "ArliAI",
+    "model_count": 2
+  },
+  {
     "developer": "arshiaafshani",
     "model_count": 1
+  },
+  {
+    "developer": "Arthur-LAGACHERIE",
+    "model_count": 1
+  },
+  {
+    "developer": "Artples",
+    "model_count": 2
+  },
+  {
+    "developer": "Aryanne",
+    "model_count": 3
   },
   {
     "developer": "asharsha30",
@@ -1548,7 +292,27 @@
     "model_count": 1
   },
   {
+    "developer": "AtAndDev",
+    "model_count": 1
+  },
+  {
+    "developer": "Ateron",
+    "model_count": 3
+  },
+  {
     "developer": "athirdpath",
+    "model_count": 1
+  },
+  {
+    "developer": "AtlaAI",
+    "model_count": 2
+  },
+  {
+    "developer": "AuraIndustries",
+    "model_count": 4
+  },
+  {
+    "developer": "Aurel9",
     "model_count": 1
   },
   {
@@ -1572,6 +336,22 @@
     "model_count": 1
   },
   {
+    "developer": "Ayush-Singh",
+    "model_count": 1
+  },
+  {
+    "developer": "Azure99",
+    "model_count": 6
+  },
+  {
+    "developer": "Ba2han",
+    "model_count": 1
+  },
+  {
+    "developer": "BAAI",
+    "model_count": 14
+  },
+  {
     "developer": "baconnier",
     "model_count": 2
   },
@@ -1584,7 +364,19 @@
     "model_count": 27
   },
   {
+    "developer": "Baptiste-HUVELLE-10",
+    "model_count": 1
+  },
+  {
+    "developer": "BEE-spoke-data",
+    "model_count": 9
+  },
+  {
     "developer": "belztjti",
+    "model_count": 2
+  },
+  {
+    "developer": "BenevolenceMessiah",
     "model_count": 2
   },
   {
@@ -1620,8 +412,20 @@
     "model_count": 7
   },
   {
+    "developer": "BlackBeenie",
+    "model_count": 9
+  },
+  {
+    "developer": "Bllossom",
+    "model_count": 1
+  },
+  {
     "developer": "bluuwhale",
     "model_count": 1
+  },
+  {
+    "developer": "BoltMonkey",
+    "model_count": 3
   },
   {
     "developer": "bond005",
@@ -1636,8 +440,20 @@
     "model_count": 17
   },
   {
+    "developer": "BrainWave-ML",
+    "model_count": 1
+  },
+  {
+    "developer": "BramVanroy",
+    "model_count": 4
+  },
+  {
     "developer": "brgx53",
     "model_count": 6
+  },
+  {
+    "developer": "BSC-LT",
+    "model_count": 2
   },
   {
     "developer": "bunnycore",
@@ -1648,7 +464,15 @@
     "model_count": 3
   },
   {
+    "developer": "ByteDance",
+    "model_count": 1
+  },
+  {
     "developer": "c10x",
+    "model_count": 2
+  },
+  {
+    "developer": "CarrotAI",
     "model_count": 2
   },
   {
@@ -1656,8 +480,16 @@
     "model_count": 2
   },
   {
+    "developer": "Casual-Autopsy",
+    "model_count": 1
+  },
+  {
     "developer": "cat-searcher",
     "model_count": 2
+  },
+  {
+    "developer": "CausalLM",
+    "model_count": 3
   },
   {
     "developer": "cckm",
@@ -1668,6 +500,10 @@
     "model_count": 1
   },
   {
+    "developer": "Changgil",
+    "model_count": 2
+  },
+  {
     "developer": "chargoddard",
     "model_count": 1
   },
@@ -1676,8 +512,16 @@
     "model_count": 2
   },
   {
+    "developer": "CIR-AMS",
+    "model_count": 1
+  },
+  {
     "developer": "cjvt",
     "model_count": 1
+  },
+  {
+    "developer": "ClaudioItaly",
+    "model_count": 4
   },
   {
     "developer": "cloudyu",
@@ -1696,12 +540,52 @@
     "model_count": 15
   },
   {
+    "developer": "CohereForAI",
+    "model_count": 8
+  },
+  {
     "developer": "collaiborateorg",
+    "model_count": 1
+  },
+  {
+    "developer": "Columbia-NLP",
+    "model_count": 6
+  },
+  {
+    "developer": "CombinHorizon",
+    "model_count": 6
+  },
+  {
+    "developer": "ContactDoctor",
+    "model_count": 2
+  },
+  {
+    "developer": "ContextualAI",
+    "model_count": 16
+  },
+  {
+    "developer": "CoolSpring",
+    "model_count": 3
+  },
+  {
+    "developer": "Corianas",
+    "model_count": 3
+  },
+  {
+    "developer": "CortexLM",
     "model_count": 1
   },
   {
     "developer": "cpayne1303",
     "model_count": 4
+  },
+  {
+    "developer": "Cran-May",
+    "model_count": 7
+  },
+  {
+    "developer": "CreitinGameplays",
+    "model_count": 1
   },
   {
     "developer": "crestf411",
@@ -1712,28 +596,96 @@
     "model_count": 1
   },
   {
+    "developer": "CultriX",
+    "model_count": 32
+  },
+  {
     "developer": "cyberagent",
     "model_count": 1
+  },
+  {
+    "developer": "CYFRAGOVPL",
+    "model_count": 6
+  },
+  {
+    "developer": "Daemontatox",
+    "model_count": 32
+  },
+  {
+    "developer": "Dampfinchen",
+    "model_count": 1
+  },
+  {
+    "developer": "Danielbrdz",
+    "model_count": 7
+  },
+  {
+    "developer": "Dans-DiscountModels",
+    "model_count": 9
   },
   {
     "developer": "darkc0de",
     "model_count": 3
   },
   {
+    "developer": "Darkknight535",
+    "model_count": 1
+  },
+  {
     "developer": "databricks",
     "model_count": 6
+  },
+  {
+    "developer": "Databricks-Mosaic-Research",
+    "model_count": 1
+  },
+  {
+    "developer": "DavidAU",
+    "model_count": 25
   },
   {
     "developer": "davidkim205",
     "model_count": 2
   },
   {
-    "developer": "deepseek",
+    "developer": "Davidsv",
+    "model_count": 1
+  },
+  {
+    "developer": "DavieLion",
+    "model_count": 5
+  },
+  {
+    "developer": "DebateLabKIT",
+    "model_count": 1
+  },
+  {
+    "developer": "Deci",
     "model_count": 2
+  },
+  {
+    "developer": "DeepAutoAI",
+    "model_count": 12
+  },
+  {
+    "developer": "DeepMount00",
+    "model_count": 14
+  },
+  {
+    "developer": "DeepSeek",
+    "model_count": 7
   },
   {
     "developer": "deepseek-ai",
     "model_count": 13
+  },
+  {
+    "developer": "Delta-Vector",
+    "model_count": 7
+  },
+  {
+    "developer": "DevQuasar",
+    "model_count": 1
   },
   {
     "developer": "dfurman",
@@ -1764,7 +716,27 @@
     "model_count": 10
   },
   {
+    "developer": "Dongwei",
+    "model_count": 1
+  },
+  {
+    "developer": "DoppelReflEx",
+    "model_count": 29
+  },
+  {
+    "developer": "DreadPoor",
+    "model_count": 119
+  },
+  {
     "developer": "dreamgen",
+    "model_count": 1
+  },
+  {
+    "developer": "DRXD1000",
+    "model_count": 2
+  },
+  {
+    "developer": "DUAL-GPO",
     "model_count": 1
   },
   {
@@ -1784,12 +756,24 @@
     "model_count": 1
   },
   {
+    "developer": "DZgas",
+    "model_count": 1
+  },
+  {
+    "developer": "ECE-ILAB-PRYMMAL",
+    "model_count": 1
+  },
+  {
+    "developer": "Edgerunners",
+    "model_count": 1
+  },
+  {
     "developer": "ehristoforu",
     "model_count": 36
   },
   {
-    "developer": "eleutherai",
-    "model_count": 2
+    "developer": "EleutherAI",
+    "model_count": 14
   },
   {
     "developer": "elinas",
@@ -1800,8 +784,44 @@
     "model_count": 1
   },
   {
+    "developer": "Enno-Ai",
+    "model_count": 4
+  },
+  {
+    "developer": "EnnoAi",
+    "model_count": 2
+  },
+  {
+    "developer": "Epiculous",
+    "model_count": 4
+  },
+  {
+    "developer": "EpistemeAI",
+    "model_count": 47
+  },
+  {
+    "developer": "EpistemeAI2",
+    "model_count": 15
+  },
+  {
+    "developer": "Eric111",
+    "model_count": 2
+  },
+  {
+    "developer": "Etherll",
+    "model_count": 8
+  },
+  {
     "developer": "euclaise",
     "model_count": 1
+  },
+  {
+    "developer": "Eurdem",
+    "model_count": 1
+  },
+  {
+    "developer": "EVA-UNIT-01",
+    "model_count": 2
   },
   {
     "developer": "eworojoshua",
@@ -1824,16 +844,32 @@
     "model_count": 6
   },
   {
+    "developer": "FallenMerick",
+    "model_count": 1
+  },
+  {
     "developer": "fblgit",
     "model_count": 11
+  },
+  {
+    "developer": "Felladrin",
+    "model_count": 2
   },
   {
     "developer": "fhai50032",
     "model_count": 2
   },
   {
+    "developer": "FINGU-AI",
+    "model_count": 7
+  },
+  {
     "developer": "flammenai",
     "model_count": 6
+  },
+  {
+    "developer": "FlofloB",
+    "model_count": 27
   },
   {
     "developer": "fluently-lm",
@@ -1856,12 +892,24 @@
     "model_count": 4
   },
   {
+    "developer": "FuJhen",
+    "model_count": 4
+  },
+  {
     "developer": "fulim",
     "model_count": 1
   },
   {
+    "developer": "FuseAI",
+    "model_count": 4
+  },
+  {
     "developer": "gabrielmbmb",
     "model_count": 1
+  },
+  {
+    "developer": "GalrionSoftworks",
+    "model_count": 2
   },
   {
     "developer": "gaverfraxz",
@@ -1874,6 +922,10 @@
   {
     "developer": "general-preference",
     "model_count": 2
+  },
+  {
+    "developer": "GenVRadmin",
+    "model_count": 4
   },
   {
     "developer": "ghost-x",
@@ -1892,8 +944,16 @@
     "model_count": 26
   },
   {
-    "developer": "google",
-    "model_count": 64
+    "developer": "Goekdeniz-Guelmez",
+    "model_count": 10
+  },
+  {
+    "developer": "Google",
+    "model_count": 68
+  },
+  {
+    "developer": "GoToCompany",
+    "model_count": 2
   },
   {
     "developer": "goulue5",
@@ -1904,8 +964,32 @@
     "model_count": 1
   },
   {
+    "developer": "GreenNode",
+    "model_count": 1
+  },
+  {
     "developer": "grimjim",
     "model_count": 25
+  },
+  {
+    "developer": "GritLM",
+    "model_count": 2
+  },
+  {
+    "developer": "Groq",
+    "model_count": 1
+  },
+  {
+    "developer": "Gryphe",
+    "model_count": 5
+  },
+  {
+    "developer": "GuilhermeNaturaUmana",
+    "model_count": 1
+  },
+  {
+    "developer": "Gunulhona",
+    "model_count": 2
   },
   {
     "developer": "gupta-tanish",
@@ -1924,11 +1008,39 @@
     "model_count": 3
   },
   {
+    "developer": "HarbingerX",
+    "model_count": 2
+  },
+  {
+    "developer": "Hastagaras",
+    "model_count": 3
+  },
+  {
     "developer": "hatemmahmoud",
     "model_count": 1
   },
   {
+    "developer": "HelpingAI",
+    "model_count": 4
+  },
+  {
     "developer": "hendrydong",
+    "model_count": 1
+  },
+  {
+    "developer": "HeraiHench",
+    "model_count": 4
+  },
+  {
+    "developer": "HFXM",
+    "model_count": 1
+  },
+  {
+    "developer": "HiroseKoichi",
+    "model_count": 1
+  },
+  {
+    "developer": "HoangHa",
     "model_count": 1
   },
   {
@@ -1944,6 +1056,18 @@
     "model_count": 34
   },
   {
+    "developer": "HPAI-BSC",
+    "model_count": 3
+  },
+  {
+    "developer": "HuggingFaceH4",
+    "model_count": 5
+  },
+  {
+    "developer": "HuggingFaceTB",
+    "model_count": 12
+  },
+  {
     "developer": "huggyllama",
     "model_count": 3
   },
@@ -1952,16 +1076,12 @@
     "model_count": 8
   },
   {
+    "developer": "HumanLLMs",
+    "model_count": 3
+  },
+  {
     "developer": "huu-ontocord",
     "model_count": 1
-  },
-  {
-    "developer": "iFaz",
-    "model_count": 8
-  },
-  {
-    "developer": "iRyanBell",
-    "model_count": 2
   },
   {
     "developer": "ibivibiv",
@@ -1980,11 +1100,27 @@
     "model_count": 62
   },
   {
+    "developer": "IDEA-CCNL",
+    "model_count": 2
+  },
+  {
     "developer": "ifable",
     "model_count": 1
   },
   {
+    "developer": "iFaz",
+    "model_count": 8
+  },
+  {
     "developer": "ilsp",
+    "model_count": 1
+  },
+  {
+    "developer": "IlyaGusev",
+    "model_count": 2
+  },
+  {
+    "developer": "Infinirc",
     "model_count": 1
   },
   {
@@ -2000,6 +1136,10 @@
     "model_count": 1
   },
   {
+    "developer": "INSAIT-Institute",
+    "model_count": 1
+  },
+  {
     "developer": "insightfactory",
     "model_count": 1
   },
@@ -2008,11 +1148,19 @@
     "model_count": 1
   },
   {
+    "developer": "Intel",
+    "model_count": 4
+  },
+  {
     "developer": "internlm",
     "model_count": 9
   },
   {
     "developer": "intervitens",
+    "model_count": 1
+  },
+  {
+    "developer": "IntervitensInc",
     "model_count": 1
   },
   {
@@ -2024,12 +1172,36 @@
     "model_count": 1
   },
   {
+    "developer": "Invalid-Null",
+    "model_count": 2
+  },
+  {
     "developer": "invisietch",
     "model_count": 4
   },
   {
     "developer": "irahulpandey",
     "model_count": 1
+  },
+  {
+    "developer": "iRyanBell",
+    "model_count": 2
+  },
+  {
+    "developer": "Isaak-Carter",
+    "model_count": 3
+  },
+  {
+    "developer": "J-LAB",
+    "model_count": 1
+  },
+  {
+    "developer": "JackFram",
+    "model_count": 2
+  },
+  {
+    "developer": "Jacoby746",
+    "model_count": 7
   },
   {
     "developer": "jaredjoss",
@@ -2042,6 +1214,10 @@
   {
     "developer": "jayasuryajsk",
     "model_count": 1
+  },
+  {
+    "developer": "JayHyeon",
+    "model_count": 174
   },
   {
     "developer": "jeanmichela",
@@ -2072,6 +1248,10 @@
     "model_count": 1
   },
   {
+    "developer": "Jimmy19991222",
+    "model_count": 8
+  },
+  {
     "developer": "jiviai",
     "model_count": 1
   },
@@ -2088,12 +1268,28 @@
     "model_count": 1
   },
   {
+    "developer": "Joseph717171",
+    "model_count": 2
+  },
+  {
+    "developer": "Josephgflowers",
+    "model_count": 7
+  },
+  {
     "developer": "jpacifico",
     "model_count": 18
   },
   {
     "developer": "jsfs11",
     "model_count": 3
+  },
+  {
+    "developer": "JungZoona",
+    "model_count": 2
+  },
+  {
+    "developer": "Junhoee",
+    "model_count": 1
   },
   {
     "developer": "kaist-ai",
@@ -2120,12 +1316,28 @@
     "model_count": 1
   },
   {
+    "developer": "Khetterman",
+    "model_count": 2
+  },
+  {
     "developer": "khoantap",
     "model_count": 9
   },
   {
     "developer": "khulaifi95",
     "model_count": 1
+  },
+  {
+    "developer": "Kimargin",
+    "model_count": 1
+  },
+  {
+    "developer": "Kimi",
+    "model_count": 1
+  },
+  {
+    "developer": "KingNish",
+    "model_count": 7
   },
   {
     "developer": "kms7530",
@@ -2136,11 +1348,39 @@
     "model_count": 2
   },
   {
+    "developer": "Kquant03",
+    "model_count": 2
+  },
+  {
+    "developer": "Krystalan",
+    "model_count": 2
+  },
+  {
+    "developer": "KSU-HW-SEC",
+    "model_count": 4
+  },
+  {
+    "developer": "Kuaishou",
+    "model_count": 1
+  },
+  {
+    "developer": "Kukedlc",
+    "model_count": 7
+  },
+  {
+    "developer": "Kumar955",
+    "model_count": 1
+  },
+  {
     "developer": "kyutai",
     "model_count": 1
   },
   {
     "developer": "kz919",
+    "model_count": 1
+  },
+  {
+    "developer": "L-RAGE",
     "model_count": 1
   },
   {
@@ -2156,6 +1396,14 @@
     "model_count": 7
   },
   {
+    "developer": "Lambent",
+    "model_count": 1
+  },
+  {
+    "developer": "Langboat",
+    "model_count": 1
+  },
+  {
     "developer": "langgptai",
     "model_count": 2
   },
@@ -2164,19 +1412,55 @@
     "model_count": 1
   },
   {
+    "developer": "Lawnakk",
+    "model_count": 10
+  },
+  {
     "developer": "leafspark",
     "model_count": 1
+  },
+  {
+    "developer": "LEESM",
+    "model_count": 4
   },
   {
     "developer": "lemon07r",
     "model_count": 17
   },
   {
+    "developer": "LenguajeNaturalAI",
+    "model_count": 2
+  },
+  {
+    "developer": "LeroyDyer",
+    "model_count": 58
+  },
+  {
     "developer": "lesubra",
     "model_count": 8
   },
   {
+    "developer": "LGAI-EXAONE",
+    "model_count": 4
+  },
+  {
     "developer": "lightblue",
+    "model_count": 5
+  },
+  {
+    "developer": "LightningRodLabs",
+    "model_count": 3
+  },
+  {
+    "developer": "Lil-R",
+    "model_count": 8
+  },
+  {
+    "developer": "LilRg",
+    "model_count": 10
+  },
+  {
+    "developer": "LimYeri",
     "model_count": 5
   },
   {
@@ -2185,6 +1469,14 @@
   },
   {
     "developer": "llm-blender",
+    "model_count": 1
+  },
+  {
+    "developer": "LLM360",
+    "model_count": 2
+  },
+  {
+    "developer": "LLM4Binary",
     "model_count": 1
   },
   {
@@ -2198,6 +1490,10 @@
   {
     "developer": "lmsys",
     "model_count": 5
+  },
+  {
+    "developer": "Locutusque",
+    "model_count": 6
   },
   {
     "developer": "lodrick-the-lafted",
@@ -2216,6 +1512,26 @@
     "model_count": 2
   },
   {
+    "developer": "Luni",
+    "model_count": 2
+  },
+  {
+    "developer": "Lunzima",
+    "model_count": 18
+  },
+  {
+    "developer": "LxzGordon",
+    "model_count": 2
+  },
+  {
+    "developer": "Lyte",
+    "model_count": 3
+  },
+  {
+    "developer": "M4-ai",
+    "model_count": 1
+  },
+  {
     "developer": "m42-health",
     "model_count": 1
   },
@@ -2228,8 +1544,20 @@
     "model_count": 1
   },
   {
+    "developer": "Magpie-Align",
+    "model_count": 8
+  },
+  {
+    "developer": "MagusCorp",
+    "model_count": 1
+  },
+  {
     "developer": "maldv",
     "model_count": 7
+  },
+  {
+    "developer": "ManoloPueblo",
+    "model_count": 3
   },
   {
     "developer": "marcuscedricridia",
@@ -2238,6 +1566,14 @@
   {
     "developer": "marin-community",
     "model_count": 1
+  },
+  {
+    "developer": "MarinaraSpaghetti",
+    "model_count": 2
+  },
+  {
+    "developer": "Marsouuu",
+    "model_count": 8
   },
   {
     "developer": "matouLeLoup",
@@ -2250,6 +1586,10 @@
   {
     "developer": "maywell",
     "model_count": 1
+  },
+  {
+    "developer": "MaziyarPanahi",
+    "model_count": 44
   },
   {
     "developer": "meditsolutions",
@@ -2268,8 +1608,12 @@
     "model_count": 11
   },
   {
-    "developer": "meta",
-    "model_count": 23
+    "developer": "MEscriva",
+    "model_count": 1
+  },
+  {
+    "developer": "Meta",
+    "model_count": 24
   },
   {
     "developer": "meta-llama",
@@ -2296,6 +1640,10 @@
     "model_count": 8
   },
   {
+    "developer": "Minami-su",
+    "model_count": 5
+  },
+  {
     "developer": "mindw96",
     "model_count": 1
   },
@@ -2304,8 +1652,8 @@
     "model_count": 1
   },
   {
-    "developer": "minimax",
-    "model_count": 1
+    "developer": "MiniMax",
+    "model_count": 4
   },
   {
     "developer": "ministral",
@@ -2336,6 +1684,10 @@
     "model_count": 14
   },
   {
+    "developer": "MLP-KTLim",
+    "model_count": 1
+  },
+  {
     "developer": "mlx-community",
     "model_count": 2
   },
@@ -2348,6 +1700,14 @@
     "model_count": 2
   },
   {
+    "developer": "ModelCloud",
+    "model_count": 1
+  },
+  {
+    "developer": "ModelSpace",
+    "model_count": 1
+  },
+  {
     "developer": "moeru-ai",
     "model_count": 3
   },
@@ -2356,7 +1716,15 @@
     "model_count": 2
   },
   {
+    "developer": "MoonRide",
+    "model_count": 1
+  },
+  {
     "developer": "moonshot",
+    "model_count": 2
+  },
+  {
+    "developer": "Moonshot AI",
     "model_count": 2
   },
   {
@@ -2372,6 +1740,10 @@
     "model_count": 1
   },
   {
+    "developer": "Mostafa8Mehrabi",
+    "model_count": 1
+  },
+  {
     "developer": "mrdayl",
     "model_count": 5
   },
@@ -2380,19 +1752,51 @@
     "model_count": 2
   },
   {
+    "developer": "MrRobotoAI",
+    "model_count": 2
+  },
+  {
+    "developer": "MTSAIR",
+    "model_count": 2
+  },
+  {
     "developer": "mukaj",
     "model_count": 1
+  },
+  {
+    "developer": "Multiple",
+    "model_count": 1
+  },
+  {
+    "developer": "MultivexAI",
+    "model_count": 5
+  },
+  {
+    "developer": "Mxode",
+    "model_count": 5
   },
   {
     "developer": "my_model",
     "model_count": 1
   },
   {
+    "developer": "NAPS-ai",
+    "model_count": 7
+  },
+  {
     "developer": "natong19",
     "model_count": 2
   },
   {
+    "developer": "Naveenpoliasetty",
+    "model_count": 1
+  },
+  {
     "developer": "nazimali",
+    "model_count": 2
+  },
+  {
+    "developer": "NbAiLab",
     "model_count": 2
   },
   {
@@ -2404,8 +1808,16 @@
     "model_count": 1
   },
   {
+    "developer": "NCSOFT",
+    "model_count": 3
+  },
+  {
     "developer": "necva",
     "model_count": 2
+  },
+  {
+    "developer": "Nekochu",
+    "model_count": 4
   },
   {
     "developer": "neopolita",
@@ -2420,8 +1832,20 @@
     "model_count": 1
   },
   {
+    "developer": "NeverSleep",
+    "model_count": 2
+  },
+  {
     "developer": "newsbang",
     "model_count": 7
+  },
+  {
+    "developer": "Nexesenex",
+    "model_count": 45
+  },
+  {
+    "developer": "Nexusflow",
+    "model_count": 2
   },
   {
     "developer": "nguyentd",
@@ -2444,16 +1868,44 @@
     "model_count": 1
   },
   {
+    "developer": "NikolaSigmoid",
+    "model_count": 7
+  },
+  {
     "developer": "nisten",
     "model_count": 2
+  },
+  {
+    "developer": "Nitral-AI",
+    "model_count": 8
+  },
+  {
+    "developer": "NJS26",
+    "model_count": 1
+  },
+  {
+    "developer": "NLPark",
+    "model_count": 3
   },
   {
     "developer": "nlpguy",
     "model_count": 9
   },
   {
+    "developer": "Nohobby",
+    "model_count": 2
+  },
+  {
     "developer": "noname0202",
     "model_count": 8
+  },
+  {
+    "developer": "Norquinal",
+    "model_count": 8
+  },
+  {
+    "developer": "NotASI",
+    "model_count": 4
   },
   {
     "developer": "notbdq",
@@ -2464,11 +1916,35 @@
     "model_count": 3
   },
   {
+    "developer": "NousResearch",
+    "model_count": 19
+  },
+  {
+    "developer": "Novaciano",
+    "model_count": 11
+  },
+  {
+    "developer": "NTQAI",
+    "model_count": 2
+  },
+  {
+    "developer": "NucleusAI",
+    "model_count": 1
+  },
+  {
     "developer": "nvidia",
     "model_count": 21
   },
   {
     "developer": "nxmwxm",
+    "model_count": 1
+  },
+  {
+    "developer": "NYTK",
+    "model_count": 2
+  },
+  {
+    "developer": "NyxKrage",
     "model_count": 1
   },
   {
@@ -2480,7 +1956,27 @@
     "model_count": 1
   },
   {
+    "developer": "OEvortex",
+    "model_count": 5
+  },
+  {
     "developer": "olabs-ai",
+    "model_count": 1
+  },
+  {
+    "developer": "OliveiraJLT",
+    "model_count": 1
+  },
+  {
+    "developer": "Omkar1102",
+    "model_count": 1
+  },
+  {
+    "developer": "OmnicromsBrain",
+    "model_count": 1
+  },
+  {
+    "developer": "OnlyCheeini",
     "model_count": 1
   },
   {
@@ -2504,20 +2000,32 @@
     "model_count": 2
   },
   {
+    "developer": "Open-Orca",
+    "model_count": 1
+  },
+  {
     "developer": "open-thoughts",
     "model_count": 1
   },
   {
-    "developer": "openai",
-    "model_count": 46
+    "developer": "OpenAI",
+    "model_count": 59
   },
   {
     "developer": "openai-community",
     "model_count": 4
   },
   {
+    "developer": "OpenAssistant",
+    "model_count": 4
+  },
+  {
     "developer": "openbmb",
     "model_count": 5
+  },
+  {
+    "developer": "OpenBuddy",
+    "model_count": 22
   },
   {
     "developer": "openchat",
@@ -2528,8 +2036,32 @@
     "model_count": 4
   },
   {
+    "developer": "OpenGenerativeAI",
+    "model_count": 2
+  },
+  {
+    "developer": "OpenLeecher",
+    "model_count": 1
+  },
+  {
+    "developer": "OpenLLM-France",
+    "model_count": 4
+  },
+  {
+    "developer": "OpenScholar",
+    "model_count": 1
+  },
+  {
     "developer": "orai-nlp",
     "model_count": 1
+  },
+  {
+    "developer": "Orenguteng",
+    "model_count": 2
+  },
+  {
+    "developer": "Orion-zhen",
+    "model_count": 2
   },
   {
     "developer": "oxyapi",
@@ -2544,6 +2076,10 @@
     "model_count": 1
   },
   {
+    "developer": "P0x0",
+    "model_count": 1
+  },
+  {
     "developer": "paloalma",
     "model_count": 5
   },
@@ -2552,8 +2088,16 @@
     "model_count": 29
   },
   {
+    "developer": "Parissa3",
+    "model_count": 1
+  },
+  {
     "developer": "paulml",
     "model_count": 1
+  },
+  {
+    "developer": "Pinkstack",
+    "model_count": 4
   },
   {
     "developer": "pints-ai",
@@ -2564,8 +2108,44 @@
     "model_count": 3
   },
   {
+    "developer": "PJMixers",
+    "model_count": 1
+  },
+  {
+    "developer": "PJMixers-Dev",
+    "model_count": 9
+  },
+  {
+    "developer": "PKU-Alignment",
+    "model_count": 4
+  },
+  {
+    "developer": "PocketDoc",
+    "model_count": 5
+  },
+  {
+    "developer": "PoLL",
+    "model_count": 1
+  },
+  {
     "developer": "postbot",
     "model_count": 1
+  },
+  {
+    "developer": "PowerInfer",
+    "model_count": 1
+  },
+  {
+    "developer": "PranavHarshan",
+    "model_count": 2
+  },
+  {
+    "developer": "Pretergeek",
+    "model_count": 9
+  },
+  {
+    "developer": "PrimeIntellect",
+    "model_count": 2
   },
   {
     "developer": "prince-canuma",
@@ -2588,6 +2168,18 @@
     "model_count": 2
   },
   {
+    "developer": "PuxAI",
+    "model_count": 1
+  },
+  {
+    "developer": "PygmalionAI",
+    "model_count": 1
+  },
+  {
+    "developer": "Q-bert",
+    "model_count": 1
+  },
+  {
     "developer": "qingy2019",
     "model_count": 7
   },
@@ -2600,8 +2192,20 @@
     "model_count": 1
   },
   {
-    "developer": "qwen",
-    "model_count": 10
+    "developer": "Quazim0t0",
+    "model_count": 70
+  },
+  {
+    "developer": "Qwen",
+    "model_count": 70
+  },
+  {
+    "developer": "R-I-S-E",
+    "model_count": 2
+  },
+  {
+    "developer": "Rakuten",
+    "model_count": 3
   },
   {
     "developer": "raphgg",
@@ -2610,6 +2214,14 @@
   {
     "developer": "rasyosef",
     "model_count": 4
+  },
+  {
+    "developer": "Ray2333",
+    "model_count": 10
+  },
+  {
+    "developer": "RDson",
+    "model_count": 1
   },
   {
     "developer": "realtreetune",
@@ -2628,6 +2240,18 @@
     "model_count": 1
   },
   {
+    "developer": "Replete-AI",
+    "model_count": 9
+  },
+  {
+    "developer": "RESMPDEV",
+    "model_count": 2
+  },
+  {
+    "developer": "RezVortex",
+    "model_count": 2
+  },
+  {
     "developer": "rhplus0831",
     "model_count": 1
   },
@@ -2644,7 +2268,19 @@
     "model_count": 1
   },
   {
+    "developer": "RLHFlow",
+    "model_count": 4
+  },
+  {
     "developer": "rmdhirr",
+    "model_count": 1
+  },
+  {
+    "developer": "Ro-xe",
+    "model_count": 4
+  },
+  {
+    "developer": "Rombo-Org",
     "model_count": 1
   },
   {
@@ -2664,11 +2300,19 @@
     "model_count": 3
   },
   {
+    "developer": "RubielLabarta",
+    "model_count": 1
+  },
+  {
     "developer": "ruizhe1217",
     "model_count": 1
   },
   {
     "developer": "rwitz",
+    "model_count": 1
+  },
+  {
+    "developer": "RWKV",
     "model_count": 1
   },
   {
@@ -2678,6 +2322,10 @@
   {
     "developer": "sabersalehk",
     "model_count": 4
+  },
+  {
+    "developer": "SaisExperiments",
+    "model_count": 6
   },
   {
     "developer": "saishf",
@@ -2692,8 +2340,16 @@
     "model_count": 2
   },
   {
+    "developer": "Sakalti",
+    "model_count": 66
+  },
+  {
     "developer": "sakhan10",
     "model_count": 1
+  },
+  {
+    "developer": "Salesforce",
+    "model_count": 4
   },
   {
     "developer": "saltlux",
@@ -2704,15 +2360,35 @@
     "model_count": 3
   },
   {
+    "developer": "SanjiWatsuki",
+    "model_count": 2
+  },
+  {
+    "developer": "Sao10K",
+    "model_count": 8
+  },
+  {
     "developer": "sarvamai",
     "model_count": 1
+  },
+  {
+    "developer": "Saxo",
+    "model_count": 11
   },
   {
     "developer": "schnapss",
     "model_count": 1
   },
   {
+    "developer": "Schrieffer",
+    "model_count": 1
+  },
+  {
     "developer": "sci-m-wang",
+    "model_count": 3
+  },
+  {
+    "developer": "SeaLLMs",
     "model_count": 3
   },
   {
@@ -2724,12 +2400,28 @@
     "model_count": 1
   },
   {
+    "developer": "SenseLLM",
+    "model_count": 2
+  },
+  {
+    "developer": "SentientAGI",
+    "model_count": 2
+  },
+  {
+    "developer": "SeppeV",
+    "model_count": 1
+  },
+  {
     "developer": "sequelbox",
     "model_count": 6
   },
   {
     "developer": "sethuiyer",
     "model_count": 6
+  },
+  {
+    "developer": "SF-Foundation",
+    "model_count": 2
   },
   {
     "developer": "sfairXC",
@@ -2740,7 +2432,15 @@
     "model_count": 2
   },
   {
+    "developer": "Sharathhebbar24",
+    "model_count": 2
+  },
+  {
     "developer": "shastraai",
+    "model_count": 1
+  },
+  {
+    "developer": "ShikaiChen",
     "model_count": 1
   },
   {
@@ -2752,12 +2452,24 @@
     "model_count": 1
   },
   {
+    "developer": "Shreyash2010",
+    "model_count": 1
+  },
+  {
     "developer": "shuttleai",
     "model_count": 1
   },
   {
     "developer": "shyamieee",
     "model_count": 1
+  },
+  {
+    "developer": "Sicarius-Prototyping",
+    "model_count": 3
+  },
+  {
+    "developer": "SicariusSicariiStuff",
+    "model_count": 19
   },
   {
     "developer": "silma-ai",
@@ -2776,8 +2488,20 @@
     "model_count": 1
   },
   {
+    "developer": "SkyOrbis",
+    "model_count": 12
+  },
+  {
+    "developer": "Skywork",
+    "model_count": 15
+  },
+  {
     "developer": "snowflake",
     "model_count": 1
+  },
+  {
+    "developer": "Solshine",
+    "model_count": 2
   },
   {
     "developer": "someon98",
@@ -2796,8 +2520,24 @@
     "model_count": 1
   },
   {
+    "developer": "Sorawiz",
+    "model_count": 2
+  },
+  {
+    "developer": "Sourjayon",
+    "model_count": 2
+  },
+  {
+    "developer": "SpaceYL",
+    "model_count": 1
+  },
+  {
     "developer": "speakleash",
     "model_count": 5
+  },
+  {
+    "developer": "Spestly",
+    "model_count": 3
   },
   {
     "developer": "spmurrayzzz",
@@ -2824,6 +2564,18 @@
     "model_count": 2
   },
   {
+    "developer": "Stark2008",
+    "model_count": 3
+  },
+  {
+    "developer": "Steelskull",
+    "model_count": 2
+  },
+  {
+    "developer": "StelleX",
+    "model_count": 2
+  },
+  {
     "developer": "sthenno",
     "model_count": 9
   },
@@ -2844,6 +2596,10 @@
     "model_count": 12
   },
   {
+    "developer": "SultanR",
+    "model_count": 4
+  },
+  {
     "developer": "sumink",
     "model_count": 22
   },
@@ -2852,12 +2608,28 @@
     "model_count": 1
   },
   {
+    "developer": "Supichi",
+    "model_count": 11
+  },
+  {
+    "developer": "Svak",
+    "model_count": 2
+  },
+  {
     "developer": "swap-uniba",
+    "model_count": 1
+  },
+  {
+    "developer": "Syed-Hasan-8503",
     "model_count": 1
   },
   {
     "developer": "synergetic",
     "model_count": 1
+  },
+  {
+    "developer": "T145",
+    "model_count": 51
   },
   {
     "developer": "talha2001",
@@ -2876,8 +2648,24 @@
     "model_count": 4
   },
   {
+    "developer": "Tarek07",
+    "model_count": 2
+  },
+  {
+    "developer": "TeeZee",
+    "model_count": 1
+  },
+  {
     "developer": "teknium",
     "model_count": 5
+  },
+  {
+    "developer": "Telugu-LLM-Labs",
+    "model_count": 2
+  },
+  {
+    "developer": "TencentARC",
+    "model_count": 4
   },
   {
     "developer": "tensopolis",
@@ -2892,12 +2680,28 @@
     "model_count": 1
   },
   {
+    "developer": "TheDrummer",
+    "model_count": 9
+  },
+  {
+    "developer": "TheDrunkenSnail",
+    "model_count": 3
+  },
+  {
+    "developer": "TheHierophant",
+    "model_count": 1
+  },
+  {
     "developer": "theo77186",
     "model_count": 1
   },
   {
     "developer": "theprint",
     "model_count": 18
+  },
+  {
+    "developer": "TheTsar1209",
+    "model_count": 7
   },
   {
     "developer": "thinkcoder",
@@ -2912,19 +2716,39 @@
     "model_count": 4
   },
   {
+    "developer": "THUDM",
+    "model_count": 5
+  },
+  {
     "developer": "tianyil1",
     "model_count": 1
+  },
+  {
+    "developer": "TIGER-Lab",
+    "model_count": 6
   },
   {
     "developer": "tiiuae",
     "model_count": 20
   },
   {
+    "developer": "Tijmen2",
+    "model_count": 1
+  },
+  {
     "developer": "tinycompany",
     "model_count": 15
   },
   {
+    "developer": "TinyLlama",
+    "model_count": 6
+  },
+  {
     "developer": "tklohj",
+    "model_count": 1
+  },
+  {
+    "developer": "ToastyPigeon",
     "model_count": 1
   },
   {
@@ -2944,7 +2768,27 @@
     "model_count": 1
   },
   {
+    "developer": "Trappu",
+    "model_count": 2
+  },
+  {
+    "developer": "Tremontaine",
+    "model_count": 1
+  },
+  {
+    "developer": "Triangle104",
+    "model_count": 61
+  },
+  {
     "developer": "trthminh1112",
+    "model_count": 1
+  },
+  {
+    "developer": "Tsunami-th",
+    "model_count": 4
+  },
+  {
+    "developer": "TTTXXX01",
     "model_count": 1
   },
   {
@@ -2952,12 +2796,28 @@
     "model_count": 1
   },
   {
+    "developer": "UCLA-AGI",
+    "model_count": 10
+  },
+  {
+    "developer": "UKzExecution",
+    "model_count": 1
+  },
+  {
+    "developer": "Unbabel",
+    "model_count": 1
+  },
+  {
+    "developer": "Undi95",
+    "model_count": 2
+  },
+  {
     "developer": "universalml",
     "model_count": 1
   },
   {
     "developer": "unknown",
-    "model_count": 7
+    "model_count": 10
   },
   {
     "developer": "unsloth",
@@ -2980,6 +2840,18 @@
     "model_count": 6
   },
   {
+    "developer": "V3N0M",
+    "model_count": 1
+  },
+  {
+    "developer": "VAGOsolutions",
+    "model_count": 17
+  },
+  {
+    "developer": "ValiantLabs",
+    "model_count": 11
+  },
+  {
     "developer": "vhab10",
     "model_count": 3
   },
@@ -2994,6 +2866,14 @@
   {
     "developer": "vihangd",
     "model_count": 1
+  },
+  {
+    "developer": "Vikhrmodels",
+    "model_count": 2
+  },
+  {
+    "developer": "VIRNECT",
+    "model_count": 2
   },
   {
     "developer": "voidful",
@@ -3036,12 +2916,24 @@
     "model_count": 5
   },
   {
+    "developer": "Weyaxi",
+    "model_count": 8
+  },
+  {
     "developer": "win10",
     "model_count": 9
   },
   {
     "developer": "winglian",
     "model_count": 2
+  },
+  {
+    "developer": "WizardLMTeam",
+    "model_count": 3
+  },
+  {
+    "developer": "Wladastic",
+    "model_count": 1
   },
   {
     "developer": "writer",
@@ -3057,23 +2949,31 @@
   },
   {
     "developer": "xAI",
-    "model_count": 2
+    "model_count": 7
   },
   {
-    "developer": "xMaulana",
-    "model_count": 1
+    "developer": "Xclbr7",
+    "model_count": 4
   },
   {
-    "developer": "xai",
-    "model_count": 5
+    "developer": "Xiaojian9992024",
+    "model_count": 12
   },
   {
     "developer": "xinchen9",
     "model_count": 5
   },
   {
+    "developer": "Xkev",
+    "model_count": 1
+  },
+  {
     "developer": "xkp24",
     "model_count": 8
+  },
+  {
+    "developer": "xMaulana",
+    "model_count": 1
   },
   {
     "developer": "xukp20",
@@ -3097,6 +2997,10 @@
   },
   {
     "developer": "yanng1242",
+    "model_count": 1
+  },
+  {
+    "developer": "Yash21",
     "model_count": 1
   },
   {
@@ -3124,12 +3028,40 @@
     "model_count": 11
   },
   {
+    "developer": "Youlln",
+    "model_count": 19
+  },
+  {
+    "developer": "YoungPanda",
+    "model_count": 1
+  },
+  {
+    "developer": "YOYO-AI",
+    "model_count": 21
+  },
+  {
     "developer": "yuchenxie",
     "model_count": 2
   },
   {
+    "developer": "Yuma42",
+    "model_count": 3
+  },
+  {
     "developer": "yuvraj17",
     "model_count": 3
+  },
+  {
+    "developer": "Z-AI",
+    "model_count": 2
+  },
+  {
+    "developer": "Z.AI",
+    "model_count": 2
+  },
+  {
+    "developer": "Z1-Coder",
+    "model_count": 1
   },
   {
     "developer": "zai-org",
@@ -3144,8 +3076,20 @@
     "model_count": 78
   },
   {
+    "developer": "ZeroXClem",
+    "model_count": 11
+  },
+  {
     "developer": "zetasepic",
     "model_count": 2
+  },
+  {
+    "developer": "ZeusLabs",
+    "model_count": 1
+  },
+  {
+    "developer": "ZhangShenao",
+    "model_count": 1
   },
   {
     "developer": "zhengr",
@@ -3157,6 +3101,14 @@
   },
   {
     "developer": "zhipu-ai",
+    "model_count": 1
+  },
+  {
+    "developer": "ZHLiu627",
+    "model_count": 2
+  },
+  {
+    "developer": "ZiyiYe",
     "model_count": 1
   }
 ]

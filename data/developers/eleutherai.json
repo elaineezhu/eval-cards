@@ -1,6 +1,174 @@
 {
-  "developer": "eleutherai",
+  "developer": "EleutherAI",
   "models": [
+    {
+      "id": "EleutherAI/gpt-j-6b",
+      "name": "gpt-j-6b",
+      "developer": "EleutherAI",
+      "evaluator_relationship": null,
+      "benchmark_scores": {
+        "hfopenllm_v2/IFEval": 0.2522,
+        "hfopenllm_v2/BBH": 0.3191,
+        "hfopenllm_v2/MATH Level 5": 0.0136,
+        "hfopenllm_v2/GPQA": 0.2458,
+        "hfopenllm_v2/MUSR": 0.3658,
+        "hfopenllm_v2/MMLU-PRO": 0.1241
+      }
+    },
+    {
+      "id": "EleutherAI/gpt-neo-1.3B",
+      "name": "gpt-neo-1.3B",
+      "developer": "EleutherAI",
+      "evaluator_relationship": null,
+      "benchmark_scores": {
+        "hfopenllm_v2/IFEval": 0.2079,
+        "hfopenllm_v2/BBH": 0.3039,
+        "hfopenllm_v2/MATH Level 5": 0.0106,
+        "hfopenllm_v2/GPQA": 0.2559,
+        "hfopenllm_v2/MUSR": 0.3817,
+        "hfopenllm_v2/MMLU-PRO": 0.1164
+      }
+    },
+    {
+      "id": "EleutherAI/gpt-neo-125m",
+      "name": "gpt-neo-125m",
+      "developer": "EleutherAI",
+      "evaluator_relationship": null,
+      "benchmark_scores": {
+        "hfopenllm_v2/IFEval": 0.1905,
+        "hfopenllm_v2/BBH": 0.3115,
+        "hfopenllm_v2/MATH Level 5": 0.006,
+        "hfopenllm_v2/GPQA": 0.2534,
+        "hfopenllm_v2/MUSR": 0.3593,
+        "hfopenllm_v2/MMLU-PRO": 0.1026
+      }
+    },
+    {
+      "id": "EleutherAI/gpt-neo-2.7B",
+      "name": "gpt-neo-2.7B",
+      "developer": "EleutherAI",
+      "evaluator_relationship": null,
+      "benchmark_scores": {
+        "hfopenllm_v2/IFEval": 0.259,
+        "hfopenllm_v2/BBH": 0.314,
+        "hfopenllm_v2/MATH Level 5": 0.0106,
+        "hfopenllm_v2/GPQA": 0.2659,
+        "hfopenllm_v2/MUSR": 0.3554,
+        "hfopenllm_v2/MMLU-PRO": 0.1163
+      }
+    },
+    {
+      "id": "EleutherAI/gpt-neox-20b",
+      "name": "gpt-neox-20b",
+      "developer": "EleutherAI",
+      "evaluator_relationship": null,
+      "benchmark_scores": {
+        "hfopenllm_v2/IFEval": 0.2587,
+        "hfopenllm_v2/BBH": 0.3165,
+        "hfopenllm_v2/MATH Level 5": 0.0136,
+        "hfopenllm_v2/GPQA": 0.2433,
+        "hfopenllm_v2/MUSR": 0.3647,
+        "hfopenllm_v2/MMLU-PRO": 0.1155
+      }
+    },
+    {
+      "id": "EleutherAI/pythia-1.4b",
+      "name": "pythia-1.4b",
+      "developer": "EleutherAI",
+      "evaluator_relationship": null,
+      "benchmark_scores": {
+        "hfopenllm_v2/IFEval": 0.2371,
+        "hfopenllm_v2/BBH": 0.315,
+        "hfopenllm_v2/MATH Level 5": 0.0151,
+        "hfopenllm_v2/GPQA": 0.2617,
+        "hfopenllm_v2/MUSR": 0.3538,
+        "hfopenllm_v2/MMLU-PRO": 0.1123
+      }
+    },
+    {
+      "id": "EleutherAI/pythia-12b",
+      "name": "pythia-12b",
+      "developer": "EleutherAI",
+      "evaluator_relationship": null,
+      "benchmark_scores": {
+        "hfopenllm_v2/IFEval": 0.2471,
+        "hfopenllm_v2/BBH": 0.318,
+        "hfopenllm_v2/MATH Level 5": 0.0166,
+        "hfopenllm_v2/GPQA": 0.2466,
+        "hfopenllm_v2/MUSR": 0.3647,
+        "hfopenllm_v2/MMLU-PRO": 0.1109
+      }
+    },
+    {
+      "id": "EleutherAI/pythia-160m",
+      "name": "pythia-160m",
+      "developer": "EleutherAI",
+      "evaluator_relationship": null,
+      "benchmark_scores": {
+        "hfopenllm_v2/IFEval": 0.1816,
+        "hfopenllm_v2/BBH": 0.297,
+        "hfopenllm_v2/MATH Level 5": 0.0091,
+        "hfopenllm_v2/GPQA": 0.2584,
+        "hfopenllm_v2/MUSR": 0.4179,
+        "hfopenllm_v2/MMLU-PRO": 0.112
+      }
+    },
+    {
+      "id": "EleutherAI/pythia-1b",
+      "name": "pythia-1b",
+      "developer": "EleutherAI",
+      "evaluator_relationship": null,
+      "benchmark_scores": {
+        "hfopenllm_v2/IFEval": 0.2208,
+        "hfopenllm_v2/BBH": 0.3004,
+        "hfopenllm_v2/MATH Level 5": 0.0091,
+        "hfopenllm_v2/GPQA": 0.2567,
+        "hfopenllm_v2/MUSR": 0.3552,
+        "hfopenllm_v2/MMLU-PRO": 0.1136
+      }
+    },
+    {
+      "id": "EleutherAI/pythia-2.8b",
+      "name": "pythia-2.8b",
+      "developer": "EleutherAI",
+      "evaluator_relationship": null,
+      "benchmark_scores": {
+        "hfopenllm_v2/IFEval": 0.2173,
+        "hfopenllm_v2/BBH": 0.3224,
+        "hfopenllm_v2/MATH Level 5": 0.0136,
+        "hfopenllm_v2/GPQA": 0.25,
+        "hfopenllm_v2/MUSR": 0.3486,
+        "hfopenllm_v2/MMLU-PRO": 0.1137
+      }
+    },
+    {
+      "id": "EleutherAI/pythia-410m",
+      "name": "pythia-410m",
+      "developer": "EleutherAI",
+      "evaluator_relationship": null,
+      "benchmark_scores": {
+        "hfopenllm_v2/IFEval": 0.2195,
+        "hfopenllm_v2/BBH": 0.3028,
+        "hfopenllm_v2/MATH Level 5": 0.0098,
+        "hfopenllm_v2/GPQA": 0.2592,
+        "hfopenllm_v2/MUSR": 0.3578,
+        "hfopenllm_v2/MMLU-PRO": 0.1128
+      }
+    },
+    {
+      "id": "EleutherAI/pythia-6.9b",
+      "name": "pythia-6.9b",
+      "developer": "EleutherAI",
+      "evaluator_relationship": null,
+      "benchmark_scores": {
+        "hfopenllm_v2/IFEval": 0.2281,
+        "hfopenllm_v2/BBH": 0.3232,
+        "hfopenllm_v2/MATH Level 5": 0.0144,
+        "hfopenllm_v2/GPQA": 0.2517,
+        "hfopenllm_v2/MUSR": 0.3591,
+        "hfopenllm_v2/MMLU-PRO": 0.1147
+      }
+    },
     {
       "id": "eleutherai/Pythia-12B",
       "name": "Pythia 12B",

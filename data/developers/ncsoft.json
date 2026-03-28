@@ -1,0 +1,50 @@
+{
+  "developer": "NCSOFT",
+  "models": [
+    {
+      "id": "NCSOFT/Llama-3-OffsetBias-8B",
+      "name": "NCSOFT/Llama-3-OffsetBias-8B",
+      "developer": "NCSOFT",
+      "evaluator_relationship": null,
+      "benchmark_scores": {
+        "reward-bench/Score": 0.8397,
+        "reward-bench/Chat": 0.9246,
+        "reward-bench/Chat Hard": 0.8026,
+        "reward-bench/Safety": 0.8676,
+        "reward-bench/Reasoning": 0.7639
+      }
+    },
+    {
+      "id": "NCSOFT/Llama-3-OffsetBias-RM-8B",
+      "name": "NCSOFT/Llama-3-OffsetBias-RM-8B",
+      "developer": "NCSOFT",
+      "evaluator_relationship": null,
+      "benchmark_scores": {
+        "reward-bench/Score": 0.8942,
+        "reward-bench/Factuality": 0.6084,
+        "reward-bench/Precise IF": 0.4,
+        "reward-bench/Math": 0.5191,
+        "reward-bench/Safety": 0.8676,
+        "reward-bench/Focus": 0.9596,
+        "reward-bench/Ties": 0.6786,
+        "reward-bench/Chat": 0.9721,
+        "reward-bench/Chat Hard": 0.818,
+        "reward-bench/Reasoning": 0.9192
+      }
+    },
+    {
+      "id": "NCSOFT/Llama-VARCO-8B-Instruct",
+      "name": "Llama-VARCO-8B-Instruct",
+      "developer": "NCSOFT",
+      "evaluator_relationship": null,
+      "benchmark_scores": {
+        "hfopenllm_v2/IFEval": 0.447,
+        "hfopenllm_v2/BBH": 0.5023,
+        "hfopenllm_v2/MATH Level 5": 0.1065,
+        "hfopenllm_v2/GPQA": 0.297,
+        "hfopenllm_v2/MUSR": 0.3841,
+        "hfopenllm_v2/MMLU-PRO": 0.319
+      }
+    }
+  ]
+}

@@ -1,5 +1,5 @@
 {
-  "developer": "google",
+  "developer": "Google",
   "models": [
     {
       "id": "google/Gemini 2.5 Flash",
@@ -28,6 +28,7 @@
       "developer": "google",
       "evaluator_relationship": null,
       "benchmark_scores": {
+        "ace/Gaming Score": 0.415,
         "apex-agents/Overall Pass@1": 0.24,
         "apex-agents/Overall Pass@8": 0.367,
         "apex-agents/Overall Mean Score": 0.395,
@@ -35,7 +36,6 @@
         "apex-agents/Management Consulting Pass@1": 0.193,
         "apex-agents/Corporate Law Pass@1": 0.259,
         "apex-agents/Corporate Lawyer Mean Score": 0.524,
-        "ace/Gaming Score": 0.415,
         "apex-v1/Overall Score": 0.64,
         "apex-v1/Consulting Score": 0.64
       }
@@ -214,12 +214,12 @@
       "developer": "google",
       "evaluator_relationship": null,
       "benchmark_scores": {
-        "hfopenllm_v2/IFEval": 0.2207,
-        "hfopenllm_v2/BBH": 0.4537,
-        "hfopenllm_v2/MATH Level 5": 0.0008,
-        "hfopenllm_v2/GPQA": 0.2458,
-        "hfopenllm_v2/MUSR": 0.422,
-        "hfopenllm_v2/MMLU-PRO": 0.2142
+        "hfopenllm_v2/IFEval": 0.2237,
+        "hfopenllm_v2/BBH": 0.4531,
+        "hfopenllm_v2/MATH Level 5": 0.0076,
+        "hfopenllm_v2/GPQA": 0.2525,
+        "hfopenllm_v2/MUSR": 0.4181,
+        "hfopenllm_v2/MMLU-PRO": 0.2147
       }
     },
     {
@@ -925,6 +925,66 @@
       }
     },
     {
+      "id": "google/gemini-3-flash",
+      "name": "Gemini 3 Flash",
+      "developer": "Google",
+      "evaluator_relationship": null,
+      "benchmark_scores": {
+        "terminal-bench-2.0/terminal-bench-2.0": 47.4
+      }
+    },
+    {
+      "id": "google/gemini-3-pro",
+      "name": "Gemini 3 Pro",
+      "developer": "Google",
+      "evaluator_relationship": null,
+      "benchmark_scores": {
+        "terminal-bench-2.0/terminal-bench-2.0": 56.9
+      }
+    },
+    {
+      "id": "google/gemini-3-pro-preview",
+      "name": "gemini-3-pro-preview",
+      "developer": "Google",
+      "evaluator_relationship": null,
+      "benchmark_scores": {
+        "appworld_test_normal/appworld/test_normal": 0.36,
+        "browsecompplus/browsecompplus": 0.48,
+        "global-mmlu-lite/Global MMLU Lite": 0.9453,
+        "global-mmlu-lite/Culturally Sensitive": 0.9397,
+        "global-mmlu-lite/Culturally Agnostic": 0.9509,
+        "global-mmlu-lite/Arabic": 0.9475,
+        "global-mmlu-lite/English": 0.9425,
+        "global-mmlu-lite/Bengali": 0.9425,
+        "global-mmlu-lite/German": 0.94,
+        "global-mmlu-lite/French": 0.9575,
+        "global-mmlu-lite/Hindi": 0.9425,
+        "global-mmlu-lite/Indonesian": 0.955,
+        "global-mmlu-lite/Italian": 0.955,
+        "global-mmlu-lite/Japanese": 0.94,
+        "global-mmlu-lite/Korean": 0.94,
+        "global-mmlu-lite/Portuguese": 0.9425,
+        "global-mmlu-lite/Spanish": 0.9475,
+        "global-mmlu-lite/Swahili": 0.94,
+        "global-mmlu-lite/Yoruba": 0.9425,
+        "global-mmlu-lite/Chinese": 0.9475,
+        "global-mmlu-lite/Burmese": 0.9425,
+        "swe-bench/swe-bench": 0.71,
+        "tau-bench-2_airline/tau-bench-2/airline": 0.7,
+        "tau-bench-2_retail/tau-bench-2/retail": 0.7805,
+        "tau-bench-2_telecom/tau-bench-2/telecom": 0.73
+      }
+    },
+    {
+      "id": "google/gemini-3.1-pro",
+      "name": "Gemini 3.1 Pro",
+      "developer": "Google",
+      "evaluator_relationship": null,
+      "benchmark_scores": {
+        "terminal-bench-2.0/terminal-bench-2.0": 74.8
+      }
+    },
+    {
       "id": "google/gemma-1.1-2b-it",
       "name": "gemma-1.1-2b-it",
       "developer": "google",
@@ -1144,7 +1204,8 @@
         "hfopenllm_v2/MATH Level 5": 0.1949,
         "hfopenllm_v2/GPQA": 0.3607,
         "hfopenllm_v2/MUSR": 0.4073,
-        "hfopenllm_v2/MMLU-PRO": 0.3875
+        "hfopenllm_v2/MMLU-PRO": 0.3875,
+        "la_leaderboard/la_leaderboard": 33.62
       }
     },
     {

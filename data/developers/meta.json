@@ -1,5 +1,5 @@
 {
-  "developer": "meta",
+  "developer": "Meta",
   "models": [
     {
       "id": "meta/LLaMA-13B",
@@ -818,6 +818,17 @@
         "helm_mmlu/Virology": 0.566,
         "helm_mmlu/World Religions": 0.883,
         "helm_mmlu/Mean win rate": 0.722
+      }
+    },
+    {
+      "id": "meta/llama-4-maverick",
+      "name": "meta/llama-4-maverick",
+      "developer": "Meta",
+      "evaluator_relationship": null,
+      "benchmark_scores": {
+        "livecodebenchpro/Hard Problems": 0.0,
+        "livecodebenchpro/Medium Problems": 0.0,
+        "livecodebenchpro/Easy Problems": 0.09859154929577464
       }
     },
     {

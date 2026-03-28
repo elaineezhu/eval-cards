@@ -1,5 +1,5 @@
 {
-  "developer": "ai2",
+  "developer": "AI2",
   "models": [
     {
       "id": "ai2/llama-2-chat-7b-nectar-3.8m.json",
@@ -43,10 +43,10 @@
       "developer": "ai2",
       "evaluator_relationship": null,
       "benchmark_scores": {
-        "reward-bench/Score": 0.6895,
+        "reward-bench/Score": 0.7008,
         "reward-bench/Chat": 0.9385,
-        "reward-bench/Chat Hard": 0.3706,
-        "reward-bench/Safety": 0.7595
+        "reward-bench/Chat Hard": 0.3882,
+        "reward-bench/Safety": 0.7757
       }
     },
     {

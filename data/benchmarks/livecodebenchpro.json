@@ -53,7 +53,7 @@
     {
       "model_id": "anthropic/claude-3-7-sonnet-20250219",
       "name": "claude-3-7-sonnet-20250219",
-      "developer": "anthropic",
+      "developer": "Anthropic",
       "scores": {
         "Hard Problems": 0.0,
         "Medium Problems": 0.0,
@@ -143,7 +143,7 @@
     {
       "model_id": "google/gemini-2.5-flash",
       "name": "gemini-2.5-flash",
-      "developer": "google",
+      "developer": "Google",
       "scores": {
         "Hard Problems": 0.0,
         "Medium Problems": 0.028169014084507043,
@@ -153,7 +153,7 @@
     {
       "model_id": "google/gemini-2.5-pro",
       "name": "gemini-2.5-pro",
-      "developer": "google",
+      "developer": "Google",
       "scores": {
         "Hard Problems": 0.014084507042253521,
         "Medium Problems": 0.2112676056338028,
@@ -193,7 +193,7 @@
     {
       "model_id": "openai/gpt-4o-2024-11-20",
       "name": "GPT-4o 2024-11-20",
-      "developer": "openai",
+      "developer": "OpenAI",
       "scores": {
         "Hard Problems": 0.0,
         "Medium Problems": 0.0,
@@ -213,7 +213,7 @@
     {
       "model_id": "openai/gpt-5.2-2025-12-11",
       "name": "gpt-5.2-2025-12-11",
-      "developer": "OpenAI",
+      "developer": "openai",
       "scores": {
         "Hard Problems": 0.1594,
         "Medium Problems": 0.5211,
@@ -223,7 +223,7 @@
     {
       "model_id": "openai/gpt-oss-120b",
       "name": "gpt-oss-120b",
-      "developer": "openai",
+      "developer": "OpenAI",
       "scores": {
         "Hard Problems": 0.0,
         "Medium Problems": 0.11267605633802817,
@@ -233,7 +233,7 @@
     {
       "model_id": "openai/gpt-oss-20b",
       "name": "gpt-oss-20b",
-      "developer": "openai",
+      "developer": "OpenAI",
       "scores": {
         "Hard Problems": 0.0,
         "Medium Problems": 0.056338028169014086,
@@ -243,7 +243,7 @@
     {
       "model_id": "openai/o3-2025-04-16",
       "name": "o3 2025-04-16",
-      "developer": "openai",
+      "developer": "OpenAI",
       "scores": {
         "Hard Problems": 0.0,
         "Medium Problems": 0.22535211267605634,
@@ -255,9 +255,9 @@
       "name": "o4-mini-2025-04-16",
       "developer": "openai",
       "scores": {
-        "Hard Problems": 0.014084507042253521,
-        "Medium Problems": 0.30985915492957744,
-        "Easy Problems": 0.8873239436619719
+        "Hard Problems": 0.0143,
+        "Medium Problems": 0.2923,
+        "Easy Problems": 0.8571
       }
     },
     {

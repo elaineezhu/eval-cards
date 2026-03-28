@@ -315,7 +315,7 @@
     {
       "model_id": "google/gemini-3-pro-preview",
       "name": "gemini-3-pro-preview",
-      "developer": "Google",
+      "developer": "google",
       "scores": {
         "Global MMLU Lite": 0.9453,
         "Culturally Sensitive": 0.9397,
