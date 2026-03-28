@@ -5,6 +5,8 @@
 FROM node:18-bullseye-slim AS builder
 WORKDIR /app
 
+ARG PNPM_VERSION=10.25.0
+
 # install OS build deps required by some native node modules and package manager
 # copy lockfile first to leverage Docker layer caching
 COPY package*.json ./
@@ -12,16 +14,17 @@ COPY pnpm-lock.yaml ./
 
 # Install minimal build tools for native modules (node-gyp) and install pnpm.
 # Using the repo's `pnpm-lock.yaml` keeps installs deterministic on Spaces.
-ENV DEBIAN_FRONTEND=noninteractive
+ENV DEBIAN_FRONTEND=noninteractive \
+	CI=true
 RUN apt-get update \
 	&& apt-get install -y --no-install-recommends ca-certificates python3 build-essential git curl \
 	&& rm -rf /var/lib/apt/lists/* \
-	&& npm install -g pnpm@latest \
+	&& npm install -g pnpm@${PNPM_VERSION} \
 	&& pnpm install --frozen-lockfile
 
 # copy source and build
 COPY . ./
-RUN npm run build
+RUN pnpm run build
 
 FROM node:18-bullseye-slim AS runner
 WORKDIR /app
