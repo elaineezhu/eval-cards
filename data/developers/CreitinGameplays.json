@@ -1,0 +1,19 @@
+{
+  "developer": "CreitinGameplays",
+  "models": [
+    {
+      "id": "CreitinGameplays/Llama-3.1-8B-R1-v0.1",
+      "name": "Llama-3.1-8B-R1-v0.1",
+      "developer": "CreitinGameplays",
+      "evaluator_relationship": null,
+      "benchmark_scores": {
+        "hfopenllm_v2/IFEval": 0.3235,
+        "hfopenllm_v2/BBH": 0.3057,
+        "hfopenllm_v2/MATH Level 5": 0.1813,
+        "hfopenllm_v2/GPQA": 0.2584,
+        "hfopenllm_v2/MUSR": 0.3622,
+        "hfopenllm_v2/MMLU-PRO": 0.1252
+      }
+    }
+  ]
+}

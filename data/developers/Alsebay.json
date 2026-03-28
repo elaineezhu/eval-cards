@@ -1,0 +1,19 @@
+{
+  "developer": "Alsebay",
+  "models": [
+    {
+      "id": "Alsebay/Qwen2.5-7B-test-novelist",
+      "name": "Qwen2.5-7B-test-novelist",
+      "developer": "Alsebay",
+      "evaluator_relationship": null,
+      "benchmark_scores": {
+        "hfopenllm_v2/IFEval": 0.5352,
+        "hfopenllm_v2/BBH": 0.5151,
+        "hfopenllm_v2/MATH Level 5": 0.2349,
+        "hfopenllm_v2/GPQA": 0.2911,
+        "hfopenllm_v2/MUSR": 0.4749,
+        "hfopenllm_v2/MMLU-PRO": 0.3866
+      }
+    }
+  ]
+}

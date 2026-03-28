@@ -1,0 +1,19 @@
+{
+  "developer": "kyutai",
+  "models": [
+    {
+      "id": "kyutai/helium-1-preview-2b",
+      "name": "helium-1-preview-2b",
+      "developer": "kyutai",
+      "evaluator_relationship": null,
+      "benchmark_scores": {
+        "hfopenllm_v2/IFEval": 0.2614,
+        "hfopenllm_v2/BBH": 0.3638,
+        "hfopenllm_v2/MATH Level 5": 0.0136,
+        "hfopenllm_v2/GPQA": 0.2785,
+        "hfopenllm_v2/MUSR": 0.355,
+        "hfopenllm_v2/MMLU-PRO": 0.1873
+      }
+    }
+  ]
+}

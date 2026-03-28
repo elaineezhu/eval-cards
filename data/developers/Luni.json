@@ -1,0 +1,33 @@
+{
+  "developer": "Luni",
+  "models": [
+    {
+      "id": "Luni/StarDust-12b-v1",
+      "name": "StarDust-12b-v1",
+      "developer": "Luni",
+      "evaluator_relationship": null,
+      "benchmark_scores": {
+        "hfopenllm_v2/IFEval": 0.5459,
+        "hfopenllm_v2/BBH": 0.5366,
+        "hfopenllm_v2/MATH Level 5": 0.0763,
+        "hfopenllm_v2/GPQA": 0.276,
+        "hfopenllm_v2/MUSR": 0.4324,
+        "hfopenllm_v2/MMLU-PRO": 0.3412
+      }
+    },
+    {
+      "id": "Luni/StarDust-12b-v2",
+      "name": "StarDust-12b-v2",
+      "developer": "Luni",
+      "evaluator_relationship": null,
+      "benchmark_scores": {
+        "hfopenllm_v2/IFEval": 0.5629,
+        "hfopenllm_v2/BBH": 0.5419,
+        "hfopenllm_v2/MATH Level 5": 0.0687,
+        "hfopenllm_v2/GPQA": 0.2936,
+        "hfopenllm_v2/MUSR": 0.4338,
+        "hfopenllm_v2/MMLU-PRO": 0.3439
+      }
+    }
+  ]
+}

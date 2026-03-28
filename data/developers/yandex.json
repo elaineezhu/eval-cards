@@ -1,0 +1,28 @@
+{
+  "developer": "yandex",
+  "models": [
+    {
+      "id": "yandex/YaLM-100B",
+      "name": "YaLM 100B",
+      "developer": "yandex",
+      "evaluator_relationship": null,
+      "benchmark_scores": {
+        "helm_classic/Mean win rate": 0.075,
+        "helm_classic/MMLU": 0.243,
+        "helm_classic/BoolQ": 0.634,
+        "helm_classic/NarrativeQA": 0.252,
+        "helm_classic/NaturalQuestions (open-book)": 0.227,
+        "helm_classic/QuAC": 0.162,
+        "helm_classic/HellaSwag": -1.0,
+        "helm_classic/OpenbookQA": -1.0,
+        "helm_classic/TruthfulQA": 0.202,
+        "helm_classic/MS MARCO (TREC)": -1.0,
+        "helm_classic/CNN/DailyMail": 0.017,
+        "helm_classic/XSUM": 0.021,
+        "helm_classic/IMDB": 0.836,
+        "helm_classic/CivilComments": 0.49,
+        "helm_classic/RAFT": 0.395
+      }
+    }
+  ]
+}

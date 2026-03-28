@@ -1,0 +1,89 @@
+{
+  "developer": "flammenai",
+  "models": [
+    {
+      "id": "flammenai/Llama3.1-Flammades-70B",
+      "name": "Llama3.1-Flammades-70B",
+      "developer": "flammenai",
+      "evaluator_relationship": null,
+      "benchmark_scores": {
+        "hfopenllm_v2/IFEval": 0.7058,
+        "hfopenllm_v2/BBH": 0.666,
+        "hfopenllm_v2/MATH Level 5": 0.2092,
+        "hfopenllm_v2/GPQA": 0.354,
+        "hfopenllm_v2/MUSR": 0.4871,
+        "hfopenllm_v2/MMLU-PRO": 0.4752
+      }
+    },
+    {
+      "id": "flammenai/Mahou-1.2a-llama3-8B",
+      "name": "Mahou-1.2a-llama3-8B",
+      "developer": "flammenai",
+      "evaluator_relationship": null,
+      "benchmark_scores": {
+        "hfopenllm_v2/IFEval": 0.5093,
+        "hfopenllm_v2/BBH": 0.5094,
+        "hfopenllm_v2/MATH Level 5": 0.0838,
+        "hfopenllm_v2/GPQA": 0.2886,
+        "hfopenllm_v2/MUSR": 0.3847,
+        "hfopenllm_v2/MMLU-PRO": 0.3817
+      }
+    },
+    {
+      "id": "flammenai/Mahou-1.2a-mistral-7B",
+      "name": "Mahou-1.2a-mistral-7B",
+      "developer": "flammenai",
+      "evaluator_relationship": null,
+      "benchmark_scores": {
+        "hfopenllm_v2/IFEval": 0.4552,
+        "hfopenllm_v2/BBH": 0.5118,
+        "hfopenllm_v2/MATH Level 5": 0.0687,
+        "hfopenllm_v2/GPQA": 0.2718,
+        "hfopenllm_v2/MUSR": 0.3896,
+        "hfopenllm_v2/MMLU-PRO": 0.3163
+      }
+    },
+    {
+      "id": "flammenai/Mahou-1.5-llama3.1-70B",
+      "name": "Mahou-1.5-llama3.1-70B",
+      "developer": "flammenai",
+      "evaluator_relationship": null,
+      "benchmark_scores": {
+        "hfopenllm_v2/IFEval": 0.7147,
+        "hfopenllm_v2/BBH": 0.6651,
+        "hfopenllm_v2/MATH Level 5": 0.21,
+        "hfopenllm_v2/GPQA": 0.354,
+        "hfopenllm_v2/MUSR": 0.495,
+        "hfopenllm_v2/MMLU-PRO": 0.4749
+      }
+    },
+    {
+      "id": "flammenai/Mahou-1.5-mistral-nemo-12B",
+      "name": "Mahou-1.5-mistral-nemo-12B",
+      "developer": "flammenai",
+      "evaluator_relationship": null,
+      "benchmark_scores": {
+        "hfopenllm_v2/IFEval": 0.6751,
+        "hfopenllm_v2/BBH": 0.5522,
+        "hfopenllm_v2/MATH Level 5": 0.0869,
+        "hfopenllm_v2/GPQA": 0.276,
+        "hfopenllm_v2/MUSR": 0.452,
+        "hfopenllm_v2/MMLU-PRO": 0.3602
+      }
+    },
+    {
+      "id": "flammenai/flammen15-gutenberg-DPO-v1-7B",
+      "name": "flammen15-gutenberg-DPO-v1-7B",
+      "developer": "flammenai",
+      "evaluator_relationship": null,
+      "benchmark_scores": {
+        "hfopenllm_v2/IFEval": 0.4798,
+        "hfopenllm_v2/BBH": 0.5203,
+        "hfopenllm_v2/MATH Level 5": 0.0763,
+        "hfopenllm_v2/GPQA": 0.2844,
+        "hfopenllm_v2/MUSR": 0.4293,
+        "hfopenllm_v2/MMLU-PRO": 0.3186
+      }
+    }
+  ]
+}

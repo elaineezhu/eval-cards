@@ -1,0 +1,33 @@
+{
+  "developer": "nisten",
+  "models": [
+    {
+      "id": "nisten/franqwenstein-35b",
+      "name": "franqwenstein-35b",
+      "developer": "nisten",
+      "evaluator_relationship": null,
+      "benchmark_scores": {
+        "hfopenllm_v2/IFEval": 0.3914,
+        "hfopenllm_v2/BBH": 0.6591,
+        "hfopenllm_v2/MATH Level 5": 0.3044,
+        "hfopenllm_v2/GPQA": 0.3591,
+        "hfopenllm_v2/MUSR": 0.4681,
+        "hfopenllm_v2/MMLU-PRO": 0.5611
+      }
+    },
+    {
+      "id": "nisten/tqwendo-36b",
+      "name": "tqwendo-36b",
+      "developer": "nisten",
+      "evaluator_relationship": null,
+      "benchmark_scores": {
+        "hfopenllm_v2/IFEval": 0.6778,
+        "hfopenllm_v2/BBH": 0.6432,
+        "hfopenllm_v2/MATH Level 5": 0.4154,
+        "hfopenllm_v2/GPQA": 0.3314,
+        "hfopenllm_v2/MUSR": 0.443,
+        "hfopenllm_v2/MMLU-PRO": 0.4381
+      }
+    }
+  ]
+}

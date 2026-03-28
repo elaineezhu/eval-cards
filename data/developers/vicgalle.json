@@ -1,0 +1,173 @@
+{
+  "developer": "vicgalle",
+  "models": [
+    {
+      "id": "vicgalle/CarbonBeagle-11B",
+      "name": "CarbonBeagle-11B",
+      "developer": "vicgalle",
+      "evaluator_relationship": null,
+      "benchmark_scores": {
+        "hfopenllm_v2/IFEval": 0.5415,
+        "hfopenllm_v2/BBH": 0.5294,
+        "hfopenllm_v2/MATH Level 5": 0.0619,
+        "hfopenllm_v2/GPQA": 0.302,
+        "hfopenllm_v2/MUSR": 0.402,
+        "hfopenllm_v2/MMLU-PRO": 0.3276
+      }
+    },
+    {
+      "id": "vicgalle/CarbonBeagle-11B-truthy",
+      "name": "CarbonBeagle-11B-truthy",
+      "developer": "vicgalle",
+      "evaluator_relationship": null,
+      "benchmark_scores": {
+        "hfopenllm_v2/IFEval": 0.5212,
+        "hfopenllm_v2/BBH": 0.5348,
+        "hfopenllm_v2/MATH Level 5": 0.0491,
+        "hfopenllm_v2/GPQA": 0.2995,
+        "hfopenllm_v2/MUSR": 0.374,
+        "hfopenllm_v2/MMLU-PRO": 0.3357
+      }
+    },
+    {
+      "id": "vicgalle/Configurable-Hermes-2-Pro-Llama-3-8B",
+      "name": "Configurable-Hermes-2-Pro-Llama-3-8B",
+      "developer": "vicgalle",
+      "evaluator_relationship": null,
+      "benchmark_scores": {
+        "hfopenllm_v2/IFEval": 0.5763,
+        "hfopenllm_v2/BBH": 0.5055,
+        "hfopenllm_v2/MATH Level 5": 0.0763,
+        "hfopenllm_v2/GPQA": 0.297,
+        "hfopenllm_v2/MUSR": 0.4184,
+        "hfopenllm_v2/MMLU-PRO": 0.3098
+      }
+    },
+    {
+      "id": "vicgalle/Configurable-Llama-3.1-8B-Instruct",
+      "name": "Configurable-Llama-3.1-8B-Instruct",
+      "developer": "vicgalle",
+      "evaluator_relationship": null,
+      "benchmark_scores": {
+        "hfopenllm_v2/IFEval": 0.8312,
+        "hfopenllm_v2/BBH": 0.5045,
+        "hfopenllm_v2/MATH Level 5": 0.173,
+        "hfopenllm_v2/GPQA": 0.2743,
+        "hfopenllm_v2/MUSR": 0.3845,
+        "hfopenllm_v2/MMLU-PRO": 0.3592
+      }
+    },
+    {
+      "id": "vicgalle/Configurable-Yi-1.5-9B-Chat",
+      "name": "Configurable-Yi-1.5-9B-Chat",
+      "developer": "vicgalle",
+      "evaluator_relationship": null,
+      "benchmark_scores": {
+        "hfopenllm_v2/IFEval": 0.4323,
+        "hfopenllm_v2/BBH": 0.5452,
+        "hfopenllm_v2/MATH Level 5": 0.2047,
+        "hfopenllm_v2/GPQA": 0.3431,
+        "hfopenllm_v2/MUSR": 0.4271,
+        "hfopenllm_v2/MMLU-PRO": 0.4015
+      }
+    },
+    {
+      "id": "vicgalle/ConfigurableBeagle-11B",
+      "name": "ConfigurableBeagle-11B",
+      "developer": "vicgalle",
+      "evaluator_relationship": null,
+      "benchmark_scores": {
+        "hfopenllm_v2/IFEval": 0.5834,
+        "hfopenllm_v2/BBH": 0.5287,
+        "hfopenllm_v2/MATH Level 5": 0.0431,
+        "hfopenllm_v2/GPQA": 0.302,
+        "hfopenllm_v2/MUSR": 0.3953,
+        "hfopenllm_v2/MMLU-PRO": 0.3374
+      }
+    },
+    {
+      "id": "vicgalle/ConfigurableHermes-7B",
+      "name": "ConfigurableHermes-7B",
+      "developer": "vicgalle",
+      "evaluator_relationship": null,
+      "benchmark_scores": {
+        "hfopenllm_v2/IFEval": 0.5411,
+        "hfopenllm_v2/BBH": 0.4573,
+        "hfopenllm_v2/MATH Level 5": 0.0476,
+        "hfopenllm_v2/GPQA": 0.2768,
+        "hfopenllm_v2/MUSR": 0.4057,
+        "hfopenllm_v2/MMLU-PRO": 0.3025
+      }
+    },
+    {
+      "id": "vicgalle/ConfigurableSOLAR-10.7B",
+      "name": "ConfigurableSOLAR-10.7B",
+      "developer": "vicgalle",
+      "evaluator_relationship": null,
+      "benchmark_scores": {
+        "hfopenllm_v2/IFEval": 0.51,
+        "hfopenllm_v2/BBH": 0.4867,
+        "hfopenllm_v2/MATH Level 5": 0.0665,
+        "hfopenllm_v2/GPQA": 0.2987,
+        "hfopenllm_v2/MUSR": 0.3805,
+        "hfopenllm_v2/MMLU-PRO": 0.3173
+      }
+    },
+    {
+      "id": "vicgalle/Humanish-RP-Llama-3.1-8B",
+      "name": "Humanish-RP-Llama-3.1-8B",
+      "developer": "vicgalle",
+      "evaluator_relationship": null,
+      "benchmark_scores": {
+        "hfopenllm_v2/IFEval": 0.6669,
+        "hfopenllm_v2/BBH": 0.51,
+        "hfopenllm_v2/MATH Level 5": 0.1518,
+        "hfopenllm_v2/GPQA": 0.2869,
+        "hfopenllm_v2/MUSR": 0.3952,
+        "hfopenllm_v2/MMLU-PRO": 0.3477
+      }
+    },
+    {
+      "id": "vicgalle/Merge-Mistral-Prometheus-7B",
+      "name": "Merge-Mistral-Prometheus-7B",
+      "developer": "vicgalle",
+      "evaluator_relationship": null,
+      "benchmark_scores": {
+        "hfopenllm_v2/IFEval": 0.4848,
+        "hfopenllm_v2/BBH": 0.4201,
+        "hfopenllm_v2/MATH Level 5": 0.0181,
+        "hfopenllm_v2/GPQA": 0.2634,
+        "hfopenllm_v2/MUSR": 0.41,
+        "hfopenllm_v2/MMLU-PRO": 0.2717
+      }
+    },
+    {
+      "id": "vicgalle/Merge-Mixtral-Prometheus-8x7B",
+      "name": "Merge-Mixtral-Prometheus-8x7B",
+      "developer": "vicgalle",
+      "evaluator_relationship": null,
+      "benchmark_scores": {
+        "hfopenllm_v2/IFEval": 0.5744,
+        "hfopenllm_v2/BBH": 0.5351,
+        "hfopenllm_v2/MATH Level 5": 0.0929,
+        "hfopenllm_v2/GPQA": 0.3087,
+        "hfopenllm_v2/MUSR": 0.4098,
+        "hfopenllm_v2/MMLU-PRO": 0.3684
+      }
+    },
+    {
+      "id": "vicgalle/Roleplay-Llama-3-8B",
+      "name": "Roleplay-Llama-3-8B",
+      "developer": "vicgalle",
+      "evaluator_relationship": null,
+      "benchmark_scores": {
+        "hfopenllm_v2/IFEval": 0.732,
+        "hfopenllm_v2/BBH": 0.5012,
+        "hfopenllm_v2/MATH Level 5": 0.0914,
+        "hfopenllm_v2/GPQA": 0.2609,
+        "hfopenllm_v2/MUSR": 0.3529,
+        "hfopenllm_v2/MMLU-PRO": 0.3708
+      }
+    }
+  ]
+}

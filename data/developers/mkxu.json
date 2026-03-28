@@ -1,0 +1,33 @@
+{
+  "developer": "mkxu",
+  "models": [
+    {
+      "id": "mkxu/llama-3-8b-instruct-fpo",
+      "name": "llama-3-8b-instruct-fpo",
+      "developer": "mkxu",
+      "evaluator_relationship": null,
+      "benchmark_scores": {
+        "hfopenllm_v2/IFEval": 0.679,
+        "hfopenllm_v2/BBH": 0.4959,
+        "hfopenllm_v2/MATH Level 5": 0.0733,
+        "hfopenllm_v2/GPQA": 0.2777,
+        "hfopenllm_v2/MUSR": 0.3658,
+        "hfopenllm_v2/MMLU-PRO": 0.3605
+      }
+    },
+    {
+      "id": "mkxu/llama-3-8b-po1",
+      "name": "llama-3-8b-po1",
+      "developer": "mkxu",
+      "evaluator_relationship": null,
+      "benchmark_scores": {
+        "hfopenllm_v2/IFEval": 0.4081,
+        "hfopenllm_v2/BBH": 0.4976,
+        "hfopenllm_v2/MATH Level 5": 0.0702,
+        "hfopenllm_v2/GPQA": 0.297,
+        "hfopenllm_v2/MUSR": 0.3804,
+        "hfopenllm_v2/MMLU-PRO": 0.3562
+      }
+    }
+  ]
+}

@@ -1,0 +1,19 @@
+{
+  "developer": "moonshotai",
+  "models": [
+    {
+      "id": "moonshotai/kimi-k2-instruct",
+      "name": "Kimi K2 Instruct",
+      "developer": "moonshotai",
+      "evaluator_relationship": null,
+      "benchmark_scores": {
+        "helm_capabilities/Mean score": 0.768,
+        "helm_capabilities/MMLU-Pro": 0.819,
+        "helm_capabilities/GPQA": 0.652,
+        "helm_capabilities/IFEval": 0.85,
+        "helm_capabilities/WildBench": 0.862,
+        "helm_capabilities/Omni-MATH": 0.654
+      }
+    }
+  ]
+}

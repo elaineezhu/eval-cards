@@ -1,0 +1,33 @@
+{
+  "developer": "MarinaraSpaghetti",
+  "models": [
+    {
+      "id": "MarinaraSpaghetti/NemoReRemix-12B",
+      "name": "NemoReRemix-12B",
+      "developer": "MarinaraSpaghetti",
+      "evaluator_relationship": null,
+      "benchmark_scores": {
+        "hfopenllm_v2/IFEval": 0.3343,
+        "hfopenllm_v2/BBH": 0.5537,
+        "hfopenllm_v2/MATH Level 5": 0.0906,
+        "hfopenllm_v2/GPQA": 0.318,
+        "hfopenllm_v2/MUSR": 0.4501,
+        "hfopenllm_v2/MMLU-PRO": 0.3598
+      }
+    },
+    {
+      "id": "MarinaraSpaghetti/Nemomix-v4.0-12B",
+      "name": "Nemomix-v4.0-12B",
+      "developer": "MarinaraSpaghetti",
+      "evaluator_relationship": null,
+      "benchmark_scores": {
+        "hfopenllm_v2/IFEval": 0.5575,
+        "hfopenllm_v2/BBH": 0.5275,
+        "hfopenllm_v2/MATH Level 5": 0.108,
+        "hfopenllm_v2/GPQA": 0.2919,
+        "hfopenllm_v2/MUSR": 0.4244,
+        "hfopenllm_v2/MMLU-PRO": 0.3613
+      }
+    }
+  ]
+}

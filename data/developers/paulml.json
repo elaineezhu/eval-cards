@@ -1,0 +1,19 @@
+{
+  "developer": "paulml",
+  "models": [
+    {
+      "id": "paulml/ECE-ILAB-Q1",
+      "name": "ECE-ILAB-Q1",
+      "developer": "paulml",
+      "evaluator_relationship": null,
+      "benchmark_scores": {
+        "hfopenllm_v2/IFEval": 0.7865,
+        "hfopenllm_v2/BBH": 0.6718,
+        "hfopenllm_v2/MATH Level 5": 0.3557,
+        "hfopenllm_v2/GPQA": 0.3867,
+        "hfopenllm_v2/MUSR": 0.4614,
+        "hfopenllm_v2/MMLU-PRO": 0.5505
+      }
+    }
+  ]
+}

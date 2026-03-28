@@ -1,0 +1,31 @@
+{
+  "developer": "general-preference",
+  "models": [
+    {
+      "id": "general-preference/GPM-Gemma-2B",
+      "name": "general-preference/GPM-Gemma-2B",
+      "developer": "general-preference",
+      "evaluator_relationship": null,
+      "benchmark_scores": {
+        "reward-bench/Score": 0.7449,
+        "reward-bench/Chat": 0.7151,
+        "reward-bench/Chat Hard": 0.6974,
+        "reward-bench/Safety": 0.8122,
+        "reward-bench/Reasoning": 0.755
+      }
+    },
+    {
+      "id": "general-preference/GPM-Llama-3.1-8B",
+      "name": "general-preference/GPM-Llama-3.1-8B",
+      "developer": "general-preference",
+      "evaluator_relationship": null,
+      "benchmark_scores": {
+        "reward-bench/Score": 0.9224,
+        "reward-bench/Chat": 0.933,
+        "reward-bench/Chat Hard": 0.886,
+        "reward-bench/Safety": 0.9108,
+        "reward-bench/Reasoning": 0.9597
+      }
+    }
+  ]
+}

@@ -1,0 +1,47 @@
+{
+  "developer": "saishshinde15",
+  "models": [
+    {
+      "id": "saishshinde15/TethysAI_Base_Reasoning",
+      "name": "TethysAI_Base_Reasoning",
+      "developer": "saishshinde15",
+      "evaluator_relationship": null,
+      "benchmark_scores": {
+        "hfopenllm_v2/IFEval": 0.6369,
+        "hfopenllm_v2/BBH": 0.4519,
+        "hfopenllm_v2/MATH Level 5": 0.3142,
+        "hfopenllm_v2/GPQA": 0.2861,
+        "hfopenllm_v2/MUSR": 0.4075,
+        "hfopenllm_v2/MMLU-PRO": 0.3236
+      }
+    },
+    {
+      "id": "saishshinde15/TethysAI_Vortex",
+      "name": "TethysAI_Vortex",
+      "developer": "saishshinde15",
+      "evaluator_relationship": null,
+      "benchmark_scores": {
+        "hfopenllm_v2/IFEval": 0.4298,
+        "hfopenllm_v2/BBH": 0.4749,
+        "hfopenllm_v2/MATH Level 5": 0.315,
+        "hfopenllm_v2/GPQA": 0.3054,
+        "hfopenllm_v2/MUSR": 0.4458,
+        "hfopenllm_v2/MMLU-PRO": 0.3241
+      }
+    },
+    {
+      "id": "saishshinde15/TethysAI_Vortex_Reasoning",
+      "name": "TethysAI_Vortex_Reasoning",
+      "developer": "saishshinde15",
+      "evaluator_relationship": null,
+      "benchmark_scores": {
+        "hfopenllm_v2/IFEval": 0.4021,
+        "hfopenllm_v2/BBH": 0.4694,
+        "hfopenllm_v2/MATH Level 5": 0.2145,
+        "hfopenllm_v2/GPQA": 0.3045,
+        "hfopenllm_v2/MUSR": 0.4084,
+        "hfopenllm_v2/MMLU-PRO": 0.3381
+      }
+    }
+  ]
+}

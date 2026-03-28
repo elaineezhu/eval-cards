@@ -1,0 +1,19 @@
+{
+  "developer": "llm-blender",
+  "models": [
+    {
+      "id": "llm-blender/PairRM-hf",
+      "name": "llm-blender/PairRM-hf",
+      "developer": "llm-blender",
+      "evaluator_relationship": null,
+      "benchmark_scores": {
+        "reward-bench/Score": 0.6087,
+        "reward-bench/Chat": 0.9022,
+        "reward-bench/Chat Hard": 0.5219,
+        "reward-bench/Safety": 0.477,
+        "reward-bench/Reasoning": 0.4898,
+        "reward-bench/Prior Sets (0.5 weight)": 0.6961
+      }
+    }
+  ]
+}

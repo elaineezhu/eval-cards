@@ -1,0 +1,19 @@
+{
+  "developer": "L-RAGE",
+  "models": [
+    {
+      "id": "L-RAGE/3_PRYMMAL-ECE-7B-SLERP-V1",
+      "name": "3_PRYMMAL-ECE-7B-SLERP-V1",
+      "developer": "L-RAGE",
+      "evaluator_relationship": null,
+      "benchmark_scores": {
+        "hfopenllm_v2/IFEval": 0.2742,
+        "hfopenllm_v2/BBH": 0.4228,
+        "hfopenllm_v2/MATH Level 5": 0.108,
+        "hfopenllm_v2/GPQA": 0.2819,
+        "hfopenllm_v2/MUSR": 0.3841,
+        "hfopenllm_v2/MMLU-PRO": 0.2925
+      }
+    }
+  ]
+}

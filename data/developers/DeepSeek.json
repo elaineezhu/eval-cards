@@ -1,0 +1,58 @@
+{
+  "developer": "DeepSeek",
+  "models": [
+    {
+      "id": "deepseek/chat-v3-0324",
+      "name": "deepseek/chat-v3-0324",
+      "developer": "DeepSeek",
+      "evaluator_relationship": null,
+      "benchmark_scores": {
+        "livecodebenchpro/Hard Problems": 0.0,
+        "livecodebenchpro/Medium Problems": 0.0,
+        "livecodebenchpro/Easy Problems": 0.19718309859154928
+      }
+    },
+    {
+      "id": "deepseek/deepseek-v3.2",
+      "name": "DeepSeek-V3.2",
+      "developer": "DeepSeek",
+      "evaluator_relationship": null,
+      "benchmark_scores": {
+        "terminal-bench-2.0/terminal-bench-2.0": 39.6
+      }
+    },
+    {
+      "id": "deepseek/ep-20250214004308-p7n89",
+      "name": "ep-20250214004308-p7n89",
+      "developer": "DeepSeek",
+      "evaluator_relationship": null,
+      "benchmark_scores": {
+        "livecodebenchpro/Hard Problems": 0.0,
+        "livecodebenchpro/Medium Problems": 0.014084507042253521,
+        "livecodebenchpro/Easy Problems": 0.4225352112676056
+      }
+    },
+    {
+      "id": "deepseek/ep-20250228232227-z44x5",
+      "name": "ep-20250228232227-z44x5",
+      "developer": "DeepSeek",
+      "evaluator_relationship": null,
+      "benchmark_scores": {
+        "livecodebenchpro/Hard Problems": 0.0,
+        "livecodebenchpro/Medium Problems": 0.0,
+        "livecodebenchpro/Easy Problems": 0.1267605633802817
+      }
+    },
+    {
+      "id": "deepseek/ep-20250603132404-cgpjm",
+      "name": "ep-20250603132404-cgpjm",
+      "developer": "DeepSeek",
+      "evaluator_relationship": null,
+      "benchmark_scores": {
+        "livecodebenchpro/Hard Problems": 0.0,
+        "livecodebenchpro/Medium Problems": 0.08450704225352113,
+        "livecodebenchpro/Easy Problems": 0.5774647887323944
+      }
+    }
+  ]
+}

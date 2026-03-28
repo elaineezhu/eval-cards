@@ -1,0 +1,19 @@
+{
+  "developer": "OpenLeecher",
+  "models": [
+    {
+      "id": "OpenLeecher/llama3-8b-lima",
+      "name": "llama3-8b-lima",
+      "developer": "OpenLeecher",
+      "evaluator_relationship": null,
+      "benchmark_scores": {
+        "hfopenllm_v2/IFEval": 0.4371,
+        "hfopenllm_v2/BBH": 0.4296,
+        "hfopenllm_v2/MATH Level 5": 0.0506,
+        "hfopenllm_v2/GPQA": 0.2383,
+        "hfopenllm_v2/MUSR": 0.3713,
+        "hfopenllm_v2/MMLU-PRO": 0.2626
+      }
+    }
+  ]
+}

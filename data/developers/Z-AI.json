@@ -1,0 +1,23 @@
+{
+  "developer": "Z-AI",
+  "models": [
+    {
+      "id": "zhipu-ai/glm-4.7",
+      "name": "GLM 4.7",
+      "developer": "Z-AI",
+      "evaluator_relationship": null,
+      "benchmark_scores": {
+        "terminal-bench-2.0/terminal-bench-2.0": 33.3
+      }
+    },
+    {
+      "id": "zhipu-ai/glm-5",
+      "name": "GLM 5",
+      "developer": "Z-AI",
+      "evaluator_relationship": null,
+      "benchmark_scores": {
+        "terminal-bench-2.0/terminal-bench-2.0": 52.4
+      }
+    }
+  ]
+}

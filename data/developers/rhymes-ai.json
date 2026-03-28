@@ -1,0 +1,19 @@
+{
+  "developer": "rhymes-ai",
+  "models": [
+    {
+      "id": "rhymes-ai/Aria",
+      "name": "Aria",
+      "developer": "rhymes-ai",
+      "evaluator_relationship": null,
+      "benchmark_scores": {
+        "hfopenllm_v2/IFEval": 0.4773,
+        "hfopenllm_v2/BBH": 0.5695,
+        "hfopenllm_v2/MATH Level 5": 0.1934,
+        "hfopenllm_v2/GPQA": 0.3624,
+        "hfopenllm_v2/MUSR": 0.4338,
+        "hfopenllm_v2/MMLU-PRO": 0.4405
+      }
+    }
+  ]
+}

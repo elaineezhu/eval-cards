@@ -1,0 +1,19 @@
+{
+  "developer": "SpaceYL",
+  "models": [
+    {
+      "id": "SpaceYL/ECE_Poirot",
+      "name": "ECE_Poirot",
+      "developer": "SpaceYL",
+      "evaluator_relationship": null,
+      "benchmark_scores": {
+        "hfopenllm_v2/IFEval": 0.3107,
+        "hfopenllm_v2/BBH": 0.4262,
+        "hfopenllm_v2/MATH Level 5": 0.0914,
+        "hfopenllm_v2/GPQA": 0.2978,
+        "hfopenllm_v2/MUSR": 0.4026,
+        "hfopenllm_v2/MMLU-PRO": 0.2883
+      }
+    }
+  ]
+}

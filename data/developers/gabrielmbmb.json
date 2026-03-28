@@ -1,0 +1,19 @@
+{
+  "developer": "gabrielmbmb",
+  "models": [
+    {
+      "id": "gabrielmbmb/SmolLM-1.7B-Instruct-IFEval",
+      "name": "SmolLM-1.7B-Instruct-IFEval",
+      "developer": "gabrielmbmb",
+      "evaluator_relationship": null,
+      "benchmark_scores": {
+        "hfopenllm_v2/IFEval": 0.2306,
+        "hfopenllm_v2/BBH": 0.3138,
+        "hfopenllm_v2/MATH Level 5": 0.0106,
+        "hfopenllm_v2/GPQA": 0.2534,
+        "hfopenllm_v2/MUSR": 0.3328,
+        "hfopenllm_v2/MMLU-PRO": 0.1156
+      }
+    }
+  ]
+}

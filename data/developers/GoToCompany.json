@@ -1,0 +1,33 @@
+{
+  "developer": "GoToCompany",
+  "models": [
+    {
+      "id": "GoToCompany/gemma2-9b-cpt-sahabatai-v1-instruct",
+      "name": "gemma2-9b-cpt-sahabatai-v1-instruct",
+      "developer": "GoToCompany",
+      "evaluator_relationship": null,
+      "benchmark_scores": {
+        "hfopenllm_v2/IFEval": 0.6551,
+        "hfopenllm_v2/BBH": 0.5955,
+        "hfopenllm_v2/MATH Level 5": 0.2054,
+        "hfopenllm_v2/GPQA": 0.3347,
+        "hfopenllm_v2/MUSR": 0.4779,
+        "hfopenllm_v2/MMLU-PRO": 0.4264
+      }
+    },
+    {
+      "id": "GoToCompany/llama3-8b-cpt-sahabatai-v1-instruct",
+      "name": "llama3-8b-cpt-sahabatai-v1-instruct",
+      "developer": "GoToCompany",
+      "evaluator_relationship": null,
+      "benchmark_scores": {
+        "hfopenllm_v2/IFEval": 0.5238,
+        "hfopenllm_v2/BBH": 0.4951,
+        "hfopenllm_v2/MATH Level 5": 0.1276,
+        "hfopenllm_v2/GPQA": 0.2668,
+        "hfopenllm_v2/MUSR": 0.4488,
+        "hfopenllm_v2/MMLU-PRO": 0.3453
+      }
+    }
+  ]
+}

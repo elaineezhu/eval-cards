@@ -1,0 +1,19 @@
+{
+  "developer": "laislemke",
+  "models": [
+    {
+      "id": "laislemke/LLaMA-2-vicuna-7b-slerp",
+      "name": "LLaMA-2-vicuna-7b-slerp",
+      "developer": "laislemke",
+      "evaluator_relationship": null,
+      "benchmark_scores": {
+        "hfopenllm_v2/IFEval": 0.2932,
+        "hfopenllm_v2/BBH": 0.2986,
+        "hfopenllm_v2/MATH Level 5": 0.0113,
+        "hfopenllm_v2/GPQA": 0.2735,
+        "hfopenllm_v2/MUSR": 0.3833,
+        "hfopenllm_v2/MMLU-PRO": 0.1342
+      }
+    }
+  ]
+}

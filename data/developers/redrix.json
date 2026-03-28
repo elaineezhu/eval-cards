@@ -1,0 +1,33 @@
+{
+  "developer": "redrix",
+  "models": [
+    {
+      "id": "redrix/AngelSlayer-12B-Unslop-Mell-RPMax-DARKNESS",
+      "name": "AngelSlayer-12B-Unslop-Mell-RPMax-DARKNESS",
+      "developer": "redrix",
+      "evaluator_relationship": null,
+      "benchmark_scores": {
+        "hfopenllm_v2/IFEval": 0.536,
+        "hfopenllm_v2/BBH": 0.5129,
+        "hfopenllm_v2/MATH Level 5": 0.1133,
+        "hfopenllm_v2/GPQA": 0.3154,
+        "hfopenllm_v2/MUSR": 0.3818,
+        "hfopenllm_v2/MMLU-PRO": 0.318
+      }
+    },
+    {
+      "id": "redrix/patricide-12B-Unslop-Mell",
+      "name": "patricide-12B-Unslop-Mell",
+      "developer": "redrix",
+      "evaluator_relationship": null,
+      "benchmark_scores": {
+        "hfopenllm_v2/IFEval": 0.4074,
+        "hfopenllm_v2/BBH": 0.5399,
+        "hfopenllm_v2/MATH Level 5": 0.1314,
+        "hfopenllm_v2/GPQA": 0.3238,
+        "hfopenllm_v2/MUSR": 0.4026,
+        "hfopenllm_v2/MMLU-PRO": 0.357
+      }
+    }
+  ]
+}

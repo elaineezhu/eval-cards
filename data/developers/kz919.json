@@ -1,0 +1,19 @@
+{
+  "developer": "kz919",
+  "models": [
+    {
+      "id": "kz919/QwQ-0.5B-Distilled-SFT",
+      "name": "QwQ-0.5B-Distilled-SFT",
+      "developer": "kz919",
+      "evaluator_relationship": null,
+      "benchmark_scores": {
+        "hfopenllm_v2/IFEval": 0.3077,
+        "hfopenllm_v2/BBH": 0.3256,
+        "hfopenllm_v2/MATH Level 5": 0.074,
+        "hfopenllm_v2/GPQA": 0.2609,
+        "hfopenllm_v2/MUSR": 0.3409,
+        "hfopenllm_v2/MMLU-PRO": 0.1587
+      }
+    }
+  ]
+}

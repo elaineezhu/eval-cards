@@ -1,0 +1,33 @@
+{
+  "developer": "VIRNECT",
+  "models": [
+    {
+      "id": "VIRNECT/llama-3-Korean-8B",
+      "name": "llama-3-Korean-8B",
+      "developer": "VIRNECT",
+      "evaluator_relationship": null,
+      "benchmark_scores": {
+        "hfopenllm_v2/IFEval": 0.5058,
+        "hfopenllm_v2/BBH": 0.4908,
+        "hfopenllm_v2/MATH Level 5": 0.0929,
+        "hfopenllm_v2/GPQA": 0.271,
+        "hfopenllm_v2/MUSR": 0.3662,
+        "hfopenllm_v2/MMLU-PRO": 0.3539
+      }
+    },
+    {
+      "id": "VIRNECT/llama-3-Korean-8B-r-v-0.1",
+      "name": "llama-3-Korean-8B-r-v-0.1",
+      "developer": "VIRNECT",
+      "evaluator_relationship": null,
+      "benchmark_scores": {
+        "hfopenllm_v2/IFEval": 0.4916,
+        "hfopenllm_v2/BBH": 0.4806,
+        "hfopenllm_v2/MATH Level 5": 0.0861,
+        "hfopenllm_v2/GPQA": 0.2424,
+        "hfopenllm_v2/MUSR": 0.3675,
+        "hfopenllm_v2/MMLU-PRO": 0.326
+      }
+    }
+  ]
+}

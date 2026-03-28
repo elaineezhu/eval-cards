@@ -1,0 +1,20 @@
+{
+  "developer": "Databricks-Mosaic-Research",
+  "models": [
+    {
+      "id": "Databricks-Mosaic-Research/PGRM",
+      "name": "Databricks-Mosaic-Research/PGRM",
+      "developer": "Databricks-Mosaic-Research",
+      "evaluator_relationship": null,
+      "benchmark_scores": {
+        "reward-bench/Score": 0.8002,
+        "reward-bench/Factuality": 0.7937,
+        "reward-bench/Precise IF": 0.5062,
+        "reward-bench/Math": 0.7404,
+        "reward-bench/Safety": 0.9289,
+        "reward-bench/Focus": 0.9424,
+        "reward-bench/Ties": 0.8893
+      }
+    }
+  ]
+}

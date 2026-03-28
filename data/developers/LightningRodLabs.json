@@ -1,0 +1,47 @@
+{
+  "developer": "LightningRodLabs",
+  "models": [
+    {
+      "id": "LightningRodLabs/Flashlight-v1.0",
+      "name": "Flashlight-v1.0",
+      "developer": "LightningRodLabs",
+      "evaluator_relationship": null,
+      "benchmark_scores": {
+        "hfopenllm_v2/IFEval": 0.6745,
+        "hfopenllm_v2/BBH": 0.6877,
+        "hfopenllm_v2/MATH Level 5": 0.497,
+        "hfopenllm_v2/GPQA": 0.3423,
+        "hfopenllm_v2/MUSR": 0.4101,
+        "hfopenllm_v2/MMLU-PRO": 0.5402
+      }
+    },
+    {
+      "id": "LightningRodLabs/Flashlight-v1.1",
+      "name": "Flashlight-v1.1",
+      "developer": "LightningRodLabs",
+      "evaluator_relationship": null,
+      "benchmark_scores": {
+        "hfopenllm_v2/IFEval": 0.6721,
+        "hfopenllm_v2/BBH": 0.6901,
+        "hfopenllm_v2/MATH Level 5": 0.5325,
+        "hfopenllm_v2/GPQA": 0.3398,
+        "hfopenllm_v2/MUSR": 0.4048,
+        "hfopenllm_v2/MMLU-PRO": 0.5416
+      }
+    },
+    {
+      "id": "LightningRodLabs/Flashlight-v1.2",
+      "name": "Flashlight-v1.2",
+      "developer": "LightningRodLabs",
+      "evaluator_relationship": null,
+      "benchmark_scores": {
+        "hfopenllm_v2/IFEval": 0.436,
+        "hfopenllm_v2/BBH": 0.3265,
+        "hfopenllm_v2/MATH Level 5": 0.1556,
+        "hfopenllm_v2/GPQA": 0.2357,
+        "hfopenllm_v2/MUSR": 0.4554,
+        "hfopenllm_v2/MMLU-PRO": 0.2485
+      }
+    }
+  ]
+}

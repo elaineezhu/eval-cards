@@ -1,0 +1,135 @@
+{
+  "developer": "databricks",
+  "models": [
+    {
+      "id": "databricks/dbrx-base",
+      "name": "dbrx-base",
+      "developer": "databricks",
+      "evaluator_relationship": null,
+      "benchmark_scores": {
+        "hfopenllm_v2/IFEval": 0.0821,
+        "hfopenllm_v2/BBH": 0.5196,
+        "hfopenllm_v2/MATH Level 5": 0.1,
+        "hfopenllm_v2/GPQA": 0.3267,
+        "hfopenllm_v2/MUSR": 0.4067,
+        "hfopenllm_v2/MMLU-PRO": 0.35
+      }
+    },
+    {
+      "id": "databricks/dbrx-instruct",
+      "name": "DBRX Instruct",
+      "developer": "databricks",
+      "evaluator_relationship": null,
+      "benchmark_scores": {
+        "helm_lite/Mean win rate": 0.289,
+        "helm_lite/NarrativeQA": 0.488,
+        "helm_lite/NaturalQuestions (closed-book)": 0.284,
+        "helm_lite/OpenbookQA": 0.91,
+        "helm_lite/MMLU": 0.643,
+        "helm_lite/MATH": 0.358,
+        "helm_lite/GSM8K": 0.671,
+        "helm_lite/LegalBench": 0.426,
+        "helm_lite/MedQA": 0.694,
+        "helm_lite/WMT 2014": 0.131,
+        "helm_mmlu/MMLU All Subjects": 0.741,
+        "helm_mmlu/Abstract Algebra": 0.34,
+        "helm_mmlu/Anatomy": 0.667,
+        "helm_mmlu/College Physics": 0.539,
+        "helm_mmlu/Computer Security": 0.83,
+        "helm_mmlu/Econometrics": 0.605,
+        "helm_mmlu/Global Facts": 0.46,
+        "helm_mmlu/Jurisprudence": 0.843,
+        "helm_mmlu/Philosophy": 0.804,
+        "helm_mmlu/Professional Psychology": 0.801,
+        "helm_mmlu/Us Foreign Policy": 0.93,
+        "helm_mmlu/Astronomy": 0.836,
+        "helm_mmlu/Business Ethics": 0.78,
+        "helm_mmlu/Clinical Knowledge": 0.789,
+        "helm_mmlu/Conceptual Physics": 0.74,
+        "helm_mmlu/Electrical Engineering": 0.71,
+        "helm_mmlu/Elementary Mathematics": 0.563,
+        "helm_mmlu/Formal Logic": 0.563,
+        "helm_mmlu/High School World History": 0.903,
+        "helm_mmlu/Human Sexuality": 0.878,
+        "helm_mmlu/International Law": 0.884,
+        "helm_mmlu/Logical Fallacies": 0.847,
+        "helm_mmlu/Machine Learning": 0.625,
+        "helm_mmlu/Management": 0.854,
+        "helm_mmlu/Marketing": 0.94,
+        "helm_mmlu/Medical Genetics": 0.85,
+        "helm_mmlu/Miscellaneous": 0.911,
+        "helm_mmlu/Moral Scenarios": 0.465,
+        "helm_mmlu/Nutrition": 0.814,
+        "helm_mmlu/Prehistory": 0.84,
+        "helm_mmlu/Public Relations": 0.691,
+        "helm_mmlu/Security Studies": 0.804,
+        "helm_mmlu/Sociology": 0.896,
+        "helm_mmlu/Virology": 0.566,
+        "helm_mmlu/World Religions": 0.871,
+        "helm_mmlu/Mean win rate": 0.537,
+        "hfopenllm_v2/IFEval": 0.5416,
+        "hfopenllm_v2/BBH": 0.5429,
+        "hfopenllm_v2/MATH Level 5": 0.0687,
+        "hfopenllm_v2/GPQA": 0.3414,
+        "hfopenllm_v2/MUSR": 0.4269,
+        "hfopenllm_v2/MMLU-PRO": 0.3683
+      }
+    },
+    {
+      "id": "databricks/dolly-v1-6b",
+      "name": "dolly-v1-6b",
+      "developer": "databricks",
+      "evaluator_relationship": null,
+      "benchmark_scores": {
+        "hfopenllm_v2/IFEval": 0.2224,
+        "hfopenllm_v2/BBH": 0.3172,
+        "hfopenllm_v2/MATH Level 5": 0.0189,
+        "hfopenllm_v2/GPQA": 0.2643,
+        "hfopenllm_v2/MUSR": 0.4004,
+        "hfopenllm_v2/MMLU-PRO": 0.1266
+      }
+    },
+    {
+      "id": "databricks/dolly-v2-12b",
+      "name": "dolly-v2-12b",
+      "developer": "databricks",
+      "evaluator_relationship": null,
+      "benchmark_scores": {
+        "hfopenllm_v2/IFEval": 0.2355,
+        "hfopenllm_v2/BBH": 0.332,
+        "hfopenllm_v2/MATH Level 5": 0.0136,
+        "hfopenllm_v2/GPQA": 0.2408,
+        "hfopenllm_v2/MUSR": 0.3739,
+        "hfopenllm_v2/MMLU-PRO": 0.1129
+      }
+    },
+    {
+      "id": "databricks/dolly-v2-3b",
+      "name": "dolly-v2-3b",
+      "developer": "databricks",
+      "evaluator_relationship": null,
+      "benchmark_scores": {
+        "hfopenllm_v2/IFEval": 0.2247,
+        "hfopenllm_v2/BBH": 0.3079,
+        "hfopenllm_v2/MATH Level 5": 0.0151,
+        "hfopenllm_v2/GPQA": 0.2609,
+        "hfopenllm_v2/MUSR": 0.3338,
+        "hfopenllm_v2/MMLU-PRO": 0.1145
+      }
+    },
+    {
+      "id": "databricks/dolly-v2-7b",
+      "name": "dolly-v2-7b",
+      "developer": "databricks",
+      "evaluator_relationship": null,
+      "benchmark_scores": {
+        "hfopenllm_v2/IFEval": 0.201,
+        "hfopenllm_v2/BBH": 0.3173,
+        "hfopenllm_v2/MATH Level 5": 0.0144,
+        "hfopenllm_v2/GPQA": 0.2685,
+        "hfopenllm_v2/MUSR": 0.3553,
+        "hfopenllm_v2/MMLU-PRO": 0.1149
+      }
+    }
+  ]
+}

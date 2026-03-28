@@ -1,0 +1,19 @@
+{
+  "developer": "rmdhirr",
+  "models": [
+    {
+      "id": "rmdhirr/Gluon-8B",
+      "name": "Gluon-8B",
+      "developer": "rmdhirr",
+      "evaluator_relationship": null,
+      "benchmark_scores": {
+        "hfopenllm_v2/IFEval": 0.5053,
+        "hfopenllm_v2/BBH": 0.5153,
+        "hfopenllm_v2/MATH Level 5": 0.1443,
+        "hfopenllm_v2/GPQA": 0.3121,
+        "hfopenllm_v2/MUSR": 0.4039,
+        "hfopenllm_v2/MMLU-PRO": 0.3808
+      }
+    }
+  ]
+}

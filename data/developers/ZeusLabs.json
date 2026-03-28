@@ -1,0 +1,19 @@
+{
+  "developer": "ZeusLabs",
+  "models": [
+    {
+      "id": "ZeusLabs/L3-Aethora-15B-V2",
+      "name": "L3-Aethora-15B-V2",
+      "developer": "ZeusLabs",
+      "evaluator_relationship": null,
+      "benchmark_scores": {
+        "hfopenllm_v2/IFEval": 0.7208,
+        "hfopenllm_v2/BBH": 0.5011,
+        "hfopenllm_v2/MATH Level 5": 0.0808,
+        "hfopenllm_v2/GPQA": 0.2878,
+        "hfopenllm_v2/MUSR": 0.3871,
+        "hfopenllm_v2/MMLU-PRO": 0.35
+      }
+    }
+  ]
+}

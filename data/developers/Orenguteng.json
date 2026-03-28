@@ -1,0 +1,33 @@
+{
+  "developer": "Orenguteng",
+  "models": [
+    {
+      "id": "Orenguteng/Llama-3.1-8B-Lexi-Uncensored",
+      "name": "Llama-3.1-8B-Lexi-Uncensored",
+      "developer": "Orenguteng",
+      "evaluator_relationship": null,
+      "benchmark_scores": {
+        "hfopenllm_v2/IFEval": 0.7777,
+        "hfopenllm_v2/BBH": 0.5057,
+        "hfopenllm_v2/MATH Level 5": 0.1571,
+        "hfopenllm_v2/GPQA": 0.2718,
+        "hfopenllm_v2/MUSR": 0.3871,
+        "hfopenllm_v2/MMLU-PRO": 0.379
+      }
+    },
+    {
+      "id": "Orenguteng/Llama-3.1-8B-Lexi-Uncensored-V2",
+      "name": "Llama-3.1-8B-Lexi-Uncensored-V2",
+      "developer": "Orenguteng",
+      "evaluator_relationship": null,
+      "benchmark_scores": {
+        "hfopenllm_v2/IFEval": 0.7792,
+        "hfopenllm_v2/BBH": 0.5084,
+        "hfopenllm_v2/MATH Level 5": 0.1971,
+        "hfopenllm_v2/GPQA": 0.2827,
+        "hfopenllm_v2/MUSR": 0.3843,
+        "hfopenllm_v2/MMLU-PRO": 0.3781
+      }
+    }
+  ]
+}

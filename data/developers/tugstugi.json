@@ -1,0 +1,19 @@
+{
+  "developer": "tugstugi",
+  "models": [
+    {
+      "id": "tugstugi/Qwen2.5-7B-Instruct-QwQ-v0.1",
+      "name": "Qwen2.5-7B-Instruct-QwQ-v0.1",
+      "developer": "tugstugi",
+      "evaluator_relationship": null,
+      "benchmark_scores": {
+        "hfopenllm_v2/IFEval": 0.6017,
+        "hfopenllm_v2/BBH": 0.5101,
+        "hfopenllm_v2/MATH Level 5": 0.3814,
+        "hfopenllm_v2/GPQA": 0.2685,
+        "hfopenllm_v2/MUSR": 0.3794,
+        "hfopenllm_v2/MMLU-PRO": 0.4081
+      }
+    }
+  ]
+}

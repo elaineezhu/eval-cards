@@ -1,0 +1,33 @@
+{
+  "developer": "pszemraj",
+  "models": [
+    {
+      "id": "pszemraj/Llama-3-6.3b-v0.1",
+      "name": "Llama-3-6.3b-v0.1",
+      "developer": "pszemraj",
+      "evaluator_relationship": null,
+      "benchmark_scores": {
+        "hfopenllm_v2/IFEval": 0.1044,
+        "hfopenllm_v2/BBH": 0.4197,
+        "hfopenllm_v2/MATH Level 5": 0.0211,
+        "hfopenllm_v2/GPQA": 0.2836,
+        "hfopenllm_v2/MUSR": 0.3908,
+        "hfopenllm_v2/MMLU-PRO": 0.284
+      }
+    },
+    {
+      "id": "pszemraj/Mistral-v0.3-6B",
+      "name": "Mistral-v0.3-6B",
+      "developer": "pszemraj",
+      "evaluator_relationship": null,
+      "benchmark_scores": {
+        "hfopenllm_v2/IFEval": 0.2454,
+        "hfopenllm_v2/BBH": 0.3774,
+        "hfopenllm_v2/MATH Level 5": 0.0136,
+        "hfopenllm_v2/GPQA": 0.2651,
+        "hfopenllm_v2/MUSR": 0.3908,
+        "hfopenllm_v2/MMLU-PRO": 0.2143
+      }
+    }
+  ]
+}

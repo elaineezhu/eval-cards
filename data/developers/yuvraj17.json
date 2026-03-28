@@ -1,0 +1,47 @@
+{
+  "developer": "yuvraj17",
+  "models": [
+    {
+      "id": "yuvraj17/Llama3-8B-SuperNova-Spectrum-Hermes-DPO",
+      "name": "Llama3-8B-SuperNova-Spectrum-Hermes-DPO",
+      "developer": "yuvraj17",
+      "evaluator_relationship": null,
+      "benchmark_scores": {
+        "hfopenllm_v2/IFEval": 0.4691,
+        "hfopenllm_v2/BBH": 0.44,
+        "hfopenllm_v2/MATH Level 5": 0.0566,
+        "hfopenllm_v2/GPQA": 0.302,
+        "hfopenllm_v2/MUSR": 0.4012,
+        "hfopenllm_v2/MMLU-PRO": 0.2635
+      }
+    },
+    {
+      "id": "yuvraj17/Llama3-8B-SuperNova-Spectrum-dare_ties",
+      "name": "Llama3-8B-SuperNova-Spectrum-dare_ties",
+      "developer": "yuvraj17",
+      "evaluator_relationship": null,
+      "benchmark_scores": {
+        "hfopenllm_v2/IFEval": 0.4013,
+        "hfopenllm_v2/BBH": 0.4616,
+        "hfopenllm_v2/MATH Level 5": 0.0846,
+        "hfopenllm_v2/GPQA": 0.2752,
+        "hfopenllm_v2/MUSR": 0.4211,
+        "hfopenllm_v2/MMLU-PRO": 0.3574
+      }
+    },
+    {
+      "id": "yuvraj17/Llama3-8B-abliterated-Spectrum-slerp",
+      "name": "Llama3-8B-abliterated-Spectrum-slerp",
+      "developer": "yuvraj17",
+      "evaluator_relationship": null,
+      "benchmark_scores": {
+        "hfopenllm_v2/IFEval": 0.2885,
+        "hfopenllm_v2/BBH": 0.4978,
+        "hfopenllm_v2/MATH Level 5": 0.0604,
+        "hfopenllm_v2/GPQA": 0.3012,
+        "hfopenllm_v2/MUSR": 0.3998,
+        "hfopenllm_v2/MMLU-PRO": 0.3257
+      }
+    }
+  ]
+}

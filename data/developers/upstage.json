@@ -1,0 +1,107 @@
+{
+  "developer": "upstage",
+  "models": [
+    {
+      "id": "upstage/SOLAR-10.7B-Instruct-v1.0",
+      "name": "SOLAR-10.7B-Instruct-v1.0",
+      "developer": "upstage",
+      "evaluator_relationship": null,
+      "benchmark_scores": {
+        "hfopenllm_v2/IFEval": 0.4737,
+        "hfopenllm_v2/BBH": 0.5162,
+        "hfopenllm_v2/MATH Level 5": 0.0566,
+        "hfopenllm_v2/GPQA": 0.3087,
+        "hfopenllm_v2/MUSR": 0.3899,
+        "hfopenllm_v2/MMLU-PRO": 0.3138,
+        "reward-bench/Score": 0.7391,
+        "reward-bench/Chat": 0.8156,
+        "reward-bench/Chat Hard": 0.6864,
+        "reward-bench/Safety": 0.8514,
+        "reward-bench/Reasoning": 0.7252,
+        "reward-bench/Prior Sets (0.5 weight)": 0.4949
+      }
+    },
+    {
+      "id": "upstage/SOLAR-10.7B-v1.0",
+      "name": "SOLAR-10.7B-v1.0",
+      "developer": "upstage",
+      "evaluator_relationship": null,
+      "benchmark_scores": {
+        "hfopenllm_v2/IFEval": 0.2421,
+        "hfopenllm_v2/BBH": 0.5094,
+        "hfopenllm_v2/MATH Level 5": 0.0264,
+        "hfopenllm_v2/GPQA": 0.281,
+        "hfopenllm_v2/MUSR": 0.4372,
+        "hfopenllm_v2/MMLU-PRO": 0.34
+      }
+    },
+    {
+      "id": "upstage/solar-pro-241126",
+      "name": "Solar Pro",
+      "developer": "upstage",
+      "evaluator_relationship": null,
+      "benchmark_scores": {
+        "helm_lite/Mean win rate": 0.602,
+        "helm_lite/NarrativeQA": 0.753,
+        "helm_lite/NaturalQuestions (closed-book)": 0.297,
+        "helm_lite/OpenbookQA": 0.922,
+        "helm_lite/MMLU": 0.679,
+        "helm_lite/MATH": 0.567,
+        "helm_lite/GSM8K": 0.871,
+        "helm_lite/LegalBench": 0.67,
+        "helm_lite/MedQA": 0.698,
+        "helm_lite/WMT 2014": 0.169,
+        "helm_mmlu/MMLU All Subjects": 0.776,
+        "helm_mmlu/Abstract Algebra": 0.46,
+        "helm_mmlu/Anatomy": 0.719,
+        "helm_mmlu/College Physics": 0.559,
+        "helm_mmlu/Computer Security": 0.82,
+        "helm_mmlu/Econometrics": 0.605,
+        "helm_mmlu/Global Facts": 0.5,
+        "helm_mmlu/Jurisprudence": 0.898,
+        "helm_mmlu/Philosophy": 0.817,
+        "helm_mmlu/Professional Psychology": 0.85,
+        "helm_mmlu/Us Foreign Policy": 0.97,
+        "helm_mmlu/Astronomy": 0.868,
+        "helm_mmlu/Business Ethics": 0.8,
+        "helm_mmlu/Clinical Knowledge": 0.808,
+        "helm_mmlu/Conceptual Physics": 0.826,
+        "helm_mmlu/Electrical Engineering": 0.697,
+        "helm_mmlu/Elementary Mathematics": 0.611,
+        "helm_mmlu/Formal Logic": 0.579,
+        "helm_mmlu/High School World History": 0.907,
+        "helm_mmlu/Human Sexuality": 0.847,
+        "helm_mmlu/International Law": 0.901,
+        "helm_mmlu/Logical Fallacies": 0.865,
+        "helm_mmlu/Machine Learning": 0.616,
+        "helm_mmlu/Management": 0.864,
+        "helm_mmlu/Marketing": 0.953,
+        "helm_mmlu/Medical Genetics": 0.91,
+        "helm_mmlu/Miscellaneous": 0.888,
+        "helm_mmlu/Moral Scenarios": 0.811,
+        "helm_mmlu/Nutrition": 0.859,
+        "helm_mmlu/Prehistory": 0.867,
+        "helm_mmlu/Public Relations": 0.764,
+        "helm_mmlu/Security Studies": 0.82,
+        "helm_mmlu/Sociology": 0.886,
+        "helm_mmlu/Virology": 0.572,
+        "helm_mmlu/World Religions": 0.883,
+        "helm_mmlu/Mean win rate": 0.462
+      }
+    },
+    {
+      "id": "upstage/solar-pro-preview-instruct",
+      "name": "solar-pro-preview-instruct",
+      "developer": "upstage",
+      "evaluator_relationship": null,
+      "benchmark_scores": {
+        "hfopenllm_v2/IFEval": 0.8416,
+        "hfopenllm_v2/BBH": 0.6817,
+        "hfopenllm_v2/MATH Level 5": 0.2205,
+        "hfopenllm_v2/GPQA": 0.3708,
+        "hfopenllm_v2/MUSR": 0.4417,
+        "hfopenllm_v2/MMLU-PRO": 0.5273
+      }
+    }
+  ]
+}

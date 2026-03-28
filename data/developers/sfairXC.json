@@ -1,0 +1,24 @@
+{
+  "developer": "sfairXC",
+  "models": [
+    {
+      "id": "sfairXC/FsfairX-LLaMA3-RM-v0.1",
+      "name": "sfairXC/FsfairX-LLaMA3-RM-v0.1",
+      "developer": "sfairXC",
+      "evaluator_relationship": null,
+      "benchmark_scores": {
+        "reward-bench/Score": 0.8338,
+        "reward-bench/Factuality": 0.5916,
+        "reward-bench/Precise IF": 0.4188,
+        "reward-bench/Math": 0.6284,
+        "reward-bench/Safety": 0.8676,
+        "reward-bench/Focus": 0.7051,
+        "reward-bench/Ties": 0.6647,
+        "reward-bench/Chat": 0.9944,
+        "reward-bench/Chat Hard": 0.6513,
+        "reward-bench/Reasoning": 0.8644,
+        "reward-bench/Prior Sets (0.5 weight)": 0.7492
+      }
+    }
+  ]
+}

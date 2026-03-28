@@ -1,0 +1,19 @@
+{
+  "developer": "aaditya",
+  "models": [
+    {
+      "id": "aaditya/Llama3-OpenBioLLM-70B",
+      "name": "Llama3-OpenBioLLM-70B",
+      "developer": "aaditya",
+      "evaluator_relationship": null,
+      "benchmark_scores": {
+        "hfopenllm_v2/IFEval": 0.7597,
+        "hfopenllm_v2/BBH": 0.6399,
+        "hfopenllm_v2/MATH Level 5": 0.1971,
+        "hfopenllm_v2/GPQA": 0.323,
+        "hfopenllm_v2/MUSR": 0.4417,
+        "hfopenllm_v2/MMLU-PRO": 0.4867
+      }
+    }
+  ]
+}

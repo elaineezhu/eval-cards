@@ -1,0 +1,19 @@
+{
+  "developer": "ModelSpace",
+  "models": [
+    {
+      "id": "ModelSpace/GemmaX2-28-9B-v0.1",
+      "name": "GemmaX2-28-9B-v0.1",
+      "developer": "ModelSpace",
+      "evaluator_relationship": null,
+      "benchmark_scores": {
+        "hfopenllm_v2/IFEval": 0.0039,
+        "hfopenllm_v2/BBH": 0.3687,
+        "hfopenllm_v2/MATH Level 5": 0.0272,
+        "hfopenllm_v2/GPQA": 0.2768,
+        "hfopenllm_v2/MUSR": 0.3537,
+        "hfopenllm_v2/MMLU-PRO": 0.2231
+      }
+    }
+  ]
+}

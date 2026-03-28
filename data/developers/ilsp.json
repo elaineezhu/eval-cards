@@ -1,0 +1,19 @@
+{
+  "developer": "ilsp",
+  "models": [
+    {
+      "id": "ilsp/Llama-Krikri-8B-Instruct",
+      "name": "Llama-Krikri-8B-Instruct",
+      "developer": "ilsp",
+      "evaluator_relationship": null,
+      "benchmark_scores": {
+        "hfopenllm_v2/IFEval": 0.6079,
+        "hfopenllm_v2/BBH": 0.5047,
+        "hfopenllm_v2/MATH Level 5": 0.1178,
+        "hfopenllm_v2/GPQA": 0.3029,
+        "hfopenllm_v2/MUSR": 0.408,
+        "hfopenllm_v2/MMLU-PRO": 0.3313
+      }
+    }
+  ]
+}

@@ -1,0 +1,33 @@
+{
+  "developer": "Trappu",
+  "models": [
+    {
+      "id": "Trappu/Magnum-Picaro-0.7-v2-12b",
+      "name": "Magnum-Picaro-0.7-v2-12b",
+      "developer": "Trappu",
+      "evaluator_relationship": null,
+      "benchmark_scores": {
+        "hfopenllm_v2/IFEval": 0.3003,
+        "hfopenllm_v2/BBH": 0.5507,
+        "hfopenllm_v2/MATH Level 5": 0.0665,
+        "hfopenllm_v2/GPQA": 0.323,
+        "hfopenllm_v2/MUSR": 0.4727,
+        "hfopenllm_v2/MMLU-PRO": 0.358
+      }
+    },
+    {
+      "id": "Trappu/Nemo-Picaro-12B",
+      "name": "Nemo-Picaro-12B",
+      "developer": "Trappu",
+      "evaluator_relationship": null,
+      "benchmark_scores": {
+        "hfopenllm_v2/IFEval": 0.2577,
+        "hfopenllm_v2/BBH": 0.549,
+        "hfopenllm_v2/MATH Level 5": 0.0846,
+        "hfopenllm_v2/GPQA": 0.3272,
+        "hfopenllm_v2/MUSR": 0.4726,
+        "hfopenllm_v2/MMLU-PRO": 0.3605
+      }
+    }
+  ]
+}

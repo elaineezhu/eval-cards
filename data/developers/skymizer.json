@@ -1,0 +1,19 @@
+{
+  "developer": "skymizer",
+  "models": [
+    {
+      "id": "skymizer/Llama2-7b-sft-chat-custom-template-dpo",
+      "name": "Llama2-7b-sft-chat-custom-template-dpo",
+      "developer": "skymizer",
+      "evaluator_relationship": null,
+      "benchmark_scores": {
+        "hfopenllm_v2/IFEval": 0.2353,
+        "hfopenllm_v2/BBH": 0.3688,
+        "hfopenllm_v2/MATH Level 5": 0.0144,
+        "hfopenllm_v2/GPQA": 0.2391,
+        "hfopenllm_v2/MUSR": 0.4429,
+        "hfopenllm_v2/MMLU-PRO": 0.1946
+      }
+    }
+  ]
+}

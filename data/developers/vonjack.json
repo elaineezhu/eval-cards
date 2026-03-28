@@ -1,0 +1,103 @@
+{
+  "developer": "vonjack",
+  "models": [
+    {
+      "id": "vonjack/MobileLLM-125M-HF",
+      "name": "MobileLLM-125M-HF",
+      "developer": "vonjack",
+      "evaluator_relationship": null,
+      "benchmark_scores": {
+        "hfopenllm_v2/IFEval": 0.2107,
+        "hfopenllm_v2/BBH": 0.3027,
+        "hfopenllm_v2/MATH Level 5": 0.0091,
+        "hfopenllm_v2/GPQA": 0.2601,
+        "hfopenllm_v2/MUSR": 0.3782,
+        "hfopenllm_v2/MMLU-PRO": 0.1164
+      }
+    },
+    {
+      "id": "vonjack/Phi-3-mini-4k-instruct-LLaMAfied",
+      "name": "Phi-3-mini-4k-instruct-LLaMAfied",
+      "developer": "vonjack",
+      "evaluator_relationship": null,
+      "benchmark_scores": {
+        "hfopenllm_v2/IFEval": 0.5787,
+        "hfopenllm_v2/BBH": 0.5741,
+        "hfopenllm_v2/MATH Level 5": 0.1382,
+        "hfopenllm_v2/GPQA": 0.3305,
+        "hfopenllm_v2/MUSR": 0.3924,
+        "hfopenllm_v2/MMLU-PRO": 0.3885
+      }
+    },
+    {
+      "id": "vonjack/Phi-3.5-mini-instruct-hermes-fc-json",
+      "name": "Phi-3.5-mini-instruct-hermes-fc-json",
+      "developer": "vonjack",
+      "evaluator_relationship": null,
+      "benchmark_scores": {
+        "hfopenllm_v2/IFEval": 0.1416,
+        "hfopenllm_v2/BBH": 0.2975,
+        "hfopenllm_v2/MATH Level 5": 0.0076,
+        "hfopenllm_v2/GPQA": 0.2542,
+        "hfopenllm_v2/MUSR": 0.4041,
+        "hfopenllm_v2/MMLU-PRO": 0.1139
+      }
+    },
+    {
+      "id": "vonjack/Qwen2.5-Coder-0.5B-Merged",
+      "name": "Qwen2.5-Coder-0.5B-Merged",
+      "developer": "vonjack",
+      "evaluator_relationship": null,
+      "benchmark_scores": {
+        "hfopenllm_v2/IFEval": 0.31,
+        "hfopenllm_v2/BBH": 0.3076,
+        "hfopenllm_v2/MATH Level 5": 0.0378,
+        "hfopenllm_v2/GPQA": 0.2534,
+        "hfopenllm_v2/MUSR": 0.3303,
+        "hfopenllm_v2/MMLU-PRO": 0.1202
+      }
+    },
+    {
+      "id": "vonjack/SmolLM2-1.7B-Merged",
+      "name": "SmolLM2-1.7B-Merged",
+      "developer": "vonjack",
+      "evaluator_relationship": null,
+      "benchmark_scores": {
+        "hfopenllm_v2/IFEval": 0.3698,
+        "hfopenllm_v2/BBH": 0.3587,
+        "hfopenllm_v2/MATH Level 5": 0.0627,
+        "hfopenllm_v2/GPQA": 0.2794,
+        "hfopenllm_v2/MUSR": 0.3408,
+        "hfopenllm_v2/MMLU-PRO": 0.2048
+      }
+    },
+    {
+      "id": "vonjack/SmolLM2-135M-Merged",
+      "name": "SmolLM2-135M-Merged",
+      "developer": "vonjack",
+      "evaluator_relationship": null,
+      "benchmark_scores": {
+        "hfopenllm_v2/IFEval": 0.2483,
+        "hfopenllm_v2/BBH": 0.31,
+        "hfopenllm_v2/MATH Level 5": 0.0113,
+        "hfopenllm_v2/GPQA": 0.2383,
+        "hfopenllm_v2/MUSR": 0.3662,
+        "hfopenllm_v2/MMLU-PRO": 0.1112
+      }
+    },
+    {
+      "id": "vonjack/SmolLM2-360M-Merged",
+      "name": "SmolLM2-360M-Merged",
+      "developer": "vonjack",
+      "evaluator_relationship": null,
+      "benchmark_scores": {
+        "hfopenllm_v2/IFEval": 0.3206,
+        "hfopenllm_v2/BBH": 0.3155,
+        "hfopenllm_v2/MATH Level 5": 0.0174,
+        "hfopenllm_v2/GPQA": 0.2559,
+        "hfopenllm_v2/MUSR": 0.3527,
+        "hfopenllm_v2/MMLU-PRO": 0.1098
+      }
+    }
+  ]
+}

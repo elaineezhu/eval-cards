@@ -1,0 +1,19 @@
+{
+  "developer": "marin-community",
+  "models": [
+    {
+      "id": "marin-community/marin-8b-instruct",
+      "name": "Marin 8B Instruct",
+      "developer": "marin-community",
+      "evaluator_relationship": null,
+      "benchmark_scores": {
+        "helm_capabilities/Mean score": 0.325,
+        "helm_capabilities/MMLU-Pro": 0.188,
+        "helm_capabilities/GPQA": 0.168,
+        "helm_capabilities/IFEval": 0.632,
+        "helm_capabilities/WildBench": 0.477,
+        "helm_capabilities/Omni-MATH": 0.16
+      }
+    }
+  ]
+}

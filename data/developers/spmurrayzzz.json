@@ -1,0 +1,19 @@
+{
+  "developer": "spmurrayzzz",
+  "models": [
+    {
+      "id": "spmurrayzzz/Mistral-Syndicate-7B",
+      "name": "Mistral-Syndicate-7B",
+      "developer": "spmurrayzzz",
+      "evaluator_relationship": null,
+      "benchmark_scores": {
+        "hfopenllm_v2/IFEval": 0.2496,
+        "hfopenllm_v2/BBH": 0.4245,
+        "hfopenllm_v2/MATH Level 5": 0.034,
+        "hfopenllm_v2/GPQA": 0.276,
+        "hfopenllm_v2/MUSR": 0.4386,
+        "hfopenllm_v2/MMLU-PRO": 0.2631
+      }
+    }
+  ]
+}

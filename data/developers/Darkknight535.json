@@ -1,0 +1,19 @@
+{
+  "developer": "Darkknight535",
+  "models": [
+    {
+      "id": "Darkknight535/OpenCrystal-12B-L3",
+      "name": "OpenCrystal-12B-L3",
+      "developer": "Darkknight535",
+      "evaluator_relationship": null,
+      "benchmark_scores": {
+        "hfopenllm_v2/IFEval": 0.4071,
+        "hfopenllm_v2/BBH": 0.5223,
+        "hfopenllm_v2/MATH Level 5": 0.0899,
+        "hfopenllm_v2/GPQA": 0.3062,
+        "hfopenllm_v2/MUSR": 0.3657,
+        "hfopenllm_v2/MMLU-PRO": 0.364
+      }
+    }
+  ]
+}

@@ -1,0 +1,19 @@
+{
+  "developer": "MagusCorp",
+  "models": [
+    {
+      "id": "MagusCorp/grpo_lora_enem_llama3_7b",
+      "name": "grpo_lora_enem_llama3_7b",
+      "developer": "MagusCorp",
+      "evaluator_relationship": null,
+      "benchmark_scores": {
+        "hfopenllm_v2/IFEval": 0.4724,
+        "hfopenllm_v2/BBH": 0.4801,
+        "hfopenllm_v2/MATH Level 5": 0.1216,
+        "hfopenllm_v2/GPQA": 0.3096,
+        "hfopenllm_v2/MUSR": 0.3971,
+        "hfopenllm_v2/MMLU-PRO": 0.3574
+      }
+    }
+  ]
+}

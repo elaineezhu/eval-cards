@@ -1,0 +1,47 @@
+{
+  "developer": "BoltMonkey",
+  "models": [
+    {
+      "id": "BoltMonkey/DreadMix",
+      "name": "DreadMix",
+      "developer": "BoltMonkey",
+      "evaluator_relationship": null,
+      "benchmark_scores": {
+        "hfopenllm_v2/IFEval": 0.7095,
+        "hfopenllm_v2/BBH": 0.5435,
+        "hfopenllm_v2/MATH Level 5": 0.1556,
+        "hfopenllm_v2/GPQA": 0.2995,
+        "hfopenllm_v2/MUSR": 0.4212,
+        "hfopenllm_v2/MMLU-PRO": 0.379
+      }
+    },
+    {
+      "id": "BoltMonkey/NeuralDaredevil-SuperNova-Lite-7B-DARETIES-abliterated",
+      "name": "NeuralDaredevil-SuperNova-Lite-7B-DARETIES-abliterated",
+      "developer": "BoltMonkey",
+      "evaluator_relationship": null,
+      "benchmark_scores": {
+        "hfopenllm_v2/IFEval": 0.7999,
+        "hfopenllm_v2/BBH": 0.5152,
+        "hfopenllm_v2/MATH Level 5": 0.1193,
+        "hfopenllm_v2/GPQA": 0.281,
+        "hfopenllm_v2/MUSR": 0.4019,
+        "hfopenllm_v2/MMLU-PRO": 0.3733
+      }
+    },
+    {
+      "id": "BoltMonkey/SuperNeuralDreadDevil-8b",
+      "name": "SuperNeuralDreadDevil-8b",
+      "developer": "BoltMonkey",
+      "evaluator_relationship": null,
+      "benchmark_scores": {
+        "hfopenllm_v2/IFEval": 0.771,
+        "hfopenllm_v2/BBH": 0.5286,
+        "hfopenllm_v2/MATH Level 5": 0.0929,
+        "hfopenllm_v2/GPQA": 0.2919,
+        "hfopenllm_v2/MUSR": 0.3977,
+        "hfopenllm_v2/MMLU-PRO": 0.3679
+      }
+    }
+  ]
+}

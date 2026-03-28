@@ -1,0 +1,19 @@
+{
+  "developer": "HiroseKoichi",
+  "models": [
+    {
+      "id": "HiroseKoichi/Llama-Salad-4x8B-V3",
+      "name": "Llama-Salad-4x8B-V3",
+      "developer": "HiroseKoichi",
+      "evaluator_relationship": null,
+      "benchmark_scores": {
+        "hfopenllm_v2/IFEval": 0.6654,
+        "hfopenllm_v2/BBH": 0.5245,
+        "hfopenllm_v2/MATH Level 5": 0.0959,
+        "hfopenllm_v2/GPQA": 0.3029,
+        "hfopenllm_v2/MUSR": 0.374,
+        "hfopenllm_v2/MMLU-PRO": 0.3518
+      }
+    }
+  ]
+}

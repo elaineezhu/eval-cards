@@ -1,0 +1,20 @@
+{
+  "developer": "Schrieffer",
+  "models": [
+    {
+      "id": "Schrieffer/Llama-SARM-4B",
+      "name": "Schrieffer/Llama-SARM-4B",
+      "developer": "Schrieffer",
+      "evaluator_relationship": null,
+      "benchmark_scores": {
+        "reward-bench/Score": 0.7379,
+        "reward-bench/Factuality": 0.6874,
+        "reward-bench/Precise IF": 0.4281,
+        "reward-bench/Math": 0.6448,
+        "reward-bench/Safety": 0.9178,
+        "reward-bench/Focus": 0.9556,
+        "reward-bench/Ties": 0.7939
+      }
+    }
+  ]
+}

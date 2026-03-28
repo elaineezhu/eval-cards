@@ -1,0 +1,19 @@
+{
+  "developer": "arshiaafshani",
+  "models": [
+    {
+      "id": "arshiaafshani/Arsh-V1",
+      "name": "Arsh-V1",
+      "developer": "arshiaafshani",
+      "evaluator_relationship": null,
+      "benchmark_scores": {
+        "hfopenllm_v2/IFEval": 0.6043,
+        "hfopenllm_v2/BBH": 0.674,
+        "hfopenllm_v2/MATH Level 5": 0.2621,
+        "hfopenllm_v2/GPQA": 0.3733,
+        "hfopenllm_v2/MUSR": 0.4899,
+        "hfopenllm_v2/MMLU-PRO": 0.5257
+      }
+    }
+  ]
+}

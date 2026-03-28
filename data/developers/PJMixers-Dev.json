@@ -1,0 +1,131 @@
+{
+  "developer": "PJMixers-Dev",
+  "models": [
+    {
+      "id": "PJMixers-Dev/L3.2-Instruct-Thinking-v0.1-1B",
+      "name": "L3.2-Instruct-Thinking-v0.1-1B",
+      "developer": "PJMixers-Dev",
+      "evaluator_relationship": null,
+      "benchmark_scores": {
+        "hfopenllm_v2/IFEval": 0.4628,
+        "hfopenllm_v2/BBH": 0.3302,
+        "hfopenllm_v2/MATH Level 5": 0.0544,
+        "hfopenllm_v2/GPQA": 0.2576,
+        "hfopenllm_v2/MUSR": 0.3262,
+        "hfopenllm_v2/MMLU-PRO": 0.1483
+      }
+    },
+    {
+      "id": "PJMixers-Dev/LLaMa-3.1-Instruct-Interleaved-Zeroed-13B",
+      "name": "LLaMa-3.1-Instruct-Interleaved-Zeroed-13B",
+      "developer": "PJMixers-Dev",
+      "evaluator_relationship": null,
+      "benchmark_scores": {
+        "hfopenllm_v2/IFEval": 0.7871,
+        "hfopenllm_v2/BBH": 0.5073,
+        "hfopenllm_v2/MATH Level 5": 0.2002,
+        "hfopenllm_v2/GPQA": 0.2919,
+        "hfopenllm_v2/MUSR": 0.387,
+        "hfopenllm_v2/MMLU-PRO": 0.3767
+      }
+    },
+    {
+      "id": "PJMixers-Dev/LLaMa-3.1-RomboTiesTest-8B",
+      "name": "LLaMa-3.1-RomboTiesTest-8B",
+      "developer": "PJMixers-Dev",
+      "evaluator_relationship": null,
+      "benchmark_scores": {
+        "hfopenllm_v2/IFEval": 0.7825,
+        "hfopenllm_v2/BBH": 0.5073,
+        "hfopenllm_v2/MATH Level 5": 0.2002,
+        "hfopenllm_v2/GPQA": 0.2919,
+        "hfopenllm_v2/MUSR": 0.387,
+        "hfopenllm_v2/MMLU-PRO": 0.3767
+      }
+    },
+    {
+      "id": "PJMixers-Dev/LLaMa-3.1-RomboTiesTest2-8B",
+      "name": "LLaMa-3.1-RomboTiesTest2-8B",
+      "developer": "PJMixers-Dev",
+      "evaluator_relationship": null,
+      "benchmark_scores": {
+        "hfopenllm_v2/IFEval": 0.7825,
+        "hfopenllm_v2/BBH": 0.5073,
+        "hfopenllm_v2/MATH Level 5": 0.2002,
+        "hfopenllm_v2/GPQA": 0.2919,
+        "hfopenllm_v2/MUSR": 0.387,
+        "hfopenllm_v2/MMLU-PRO": 0.3767
+      }
+    },
+    {
+      "id": "PJMixers-Dev/LLaMa-3.2-Instruct-JankMix-v0.1-SFT-3B",
+      "name": "LLaMa-3.2-Instruct-JankMix-v0.1-SFT-3B",
+      "developer": "PJMixers-Dev",
+      "evaluator_relationship": null,
+      "benchmark_scores": {
+        "hfopenllm_v2/IFEval": 0.6931,
+        "hfopenllm_v2/BBH": 0.4556,
+        "hfopenllm_v2/MATH Level 5": 0.1216,
+        "hfopenllm_v2/GPQA": 0.2743,
+        "hfopenllm_v2/MUSR": 0.37,
+        "hfopenllm_v2/MMLU-PRO": 0.3127
+      }
+    },
+    {
+      "id": "PJMixers-Dev/LLaMa-3.2-Instruct-JankMix-v0.2-SFT-3B",
+      "name": "LLaMa-3.2-Instruct-JankMix-v0.2-SFT-3B",
+      "developer": "PJMixers-Dev",
+      "evaluator_relationship": null,
+      "benchmark_scores": {
+        "hfopenllm_v2/IFEval": 0.6292,
+        "hfopenllm_v2/BBH": 0.4581,
+        "hfopenllm_v2/MATH Level 5": 0.1299,
+        "hfopenllm_v2/GPQA": 0.2727,
+        "hfopenllm_v2/MUSR": 0.3659,
+        "hfopenllm_v2/MMLU-PRO": 0.3115
+      }
+    },
+    {
+      "id": "PJMixers-Dev/LLaMa-3.2-Instruct-JankMix-v0.2-SFT-HailMary-v0.1-KTO-3B",
+      "name": "LLaMa-3.2-Instruct-JankMix-v0.2-SFT-HailMary-v0.1-KTO-3B",
+      "developer": "PJMixers-Dev",
+      "evaluator_relationship": null,
+      "benchmark_scores": {
+        "hfopenllm_v2/IFEval": 0.6504,
+        "hfopenllm_v2/BBH": 0.4511,
+        "hfopenllm_v2/MATH Level 5": 0.1261,
+        "hfopenllm_v2/GPQA": 0.2718,
+        "hfopenllm_v2/MUSR": 0.3687,
+        "hfopenllm_v2/MMLU-PRO": 0.3108
+      }
+    },
+    {
+      "id": "PJMixers-Dev/LLaMa-3.2-Instruct-JankMixBread-v0.1-3B",
+      "name": "LLaMa-3.2-Instruct-JankMixBread-v0.1-3B",
+      "developer": "PJMixers-Dev",
+      "evaluator_relationship": null,
+      "benchmark_scores": {
+        "hfopenllm_v2/IFEval": 0.5041,
+        "hfopenllm_v2/BBH": 0.4483,
+        "hfopenllm_v2/MATH Level 5": 0.1307,
+        "hfopenllm_v2/GPQA": 0.2827,
+        "hfopenllm_v2/MUSR": 0.3516,
+        "hfopenllm_v2/MMLU-PRO": 0.3083
+      }
+    },
+    {
+      "id": "PJMixers-Dev/Qwen2.5-RomboTiesTest-7B",
+      "name": "Qwen2.5-RomboTiesTest-7B",
+      "developer": "PJMixers-Dev",
+      "evaluator_relationship": null,
+      "benchmark_scores": {
+        "hfopenllm_v2/IFEval": 0.7558,
+        "hfopenllm_v2/BBH": 0.5399,
+        "hfopenllm_v2/MATH Level 5": 0.4962,
+        "hfopenllm_v2/GPQA": 0.2978,
+        "hfopenllm_v2/MUSR": 0.4034,
+        "hfopenllm_v2/MMLU-PRO": 0.4285
+      }
+    }
+  ]
+}

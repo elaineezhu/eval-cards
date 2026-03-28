@@ -1,0 +1,33 @@
+{
+  "developer": "Vikhrmodels",
+  "models": [
+    {
+      "id": "Vikhrmodels/Vikhr-Llama3.1-8B-Instruct-R-21-09-24",
+      "name": "Vikhr-Llama3.1-8B-Instruct-R-21-09-24",
+      "developer": "Vikhrmodels",
+      "evaluator_relationship": null,
+      "benchmark_scores": {
+        "hfopenllm_v2/IFEval": 0.6431,
+        "hfopenllm_v2/BBH": 0.5272,
+        "hfopenllm_v2/MATH Level 5": 0.2175,
+        "hfopenllm_v2/GPQA": 0.245,
+        "hfopenllm_v2/MUSR": 0.3754,
+        "hfopenllm_v2/MMLU-PRO": 0.3547
+      }
+    },
+    {
+      "id": "Vikhrmodels/Vikhr-Nemo-12B-Instruct-R-21-09-24",
+      "name": "Vikhr-Nemo-12B-Instruct-R-21-09-24",
+      "developer": "Vikhrmodels",
+      "evaluator_relationship": null,
+      "benchmark_scores": {
+        "hfopenllm_v2/IFEval": 0.5999,
+        "hfopenllm_v2/BBH": 0.5212,
+        "hfopenllm_v2/MATH Level 5": 0.1715,
+        "hfopenllm_v2/GPQA": 0.2911,
+        "hfopenllm_v2/MUSR": 0.4073,
+        "hfopenllm_v2/MMLU-PRO": 0.3398
+      }
+    }
+  ]
+}

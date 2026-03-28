@@ -1,0 +1,19 @@
+{
+  "developer": "jlzhou",
+  "models": [
+    {
+      "id": "jlzhou/Qwen2.5-3B-Infinity-Instruct-0625",
+      "name": "Qwen2.5-3B-Infinity-Instruct-0625",
+      "developer": "jlzhou",
+      "evaluator_relationship": null,
+      "benchmark_scores": {
+        "hfopenllm_v2/IFEval": 0.3558,
+        "hfopenllm_v2/BBH": 0.4774,
+        "hfopenllm_v2/MATH Level 5": 0.1367,
+        "hfopenllm_v2/GPQA": 0.2693,
+        "hfopenllm_v2/MUSR": 0.3981,
+        "hfopenllm_v2/MMLU-PRO": 0.3199
+      }
+    }
+  ]
+}

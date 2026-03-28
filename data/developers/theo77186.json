@@ -1,0 +1,19 @@
+{
+  "developer": "theo77186",
+  "models": [
+    {
+      "id": "theo77186/Qwen2.5-Coder-7B-Instruct-20241106",
+      "name": "Qwen2.5-Coder-7B-Instruct-20241106",
+      "developer": "theo77186",
+      "evaluator_relationship": null,
+      "benchmark_scores": {
+        "hfopenllm_v2/IFEval": 0.6101,
+        "hfopenllm_v2/BBH": 0.5008,
+        "hfopenllm_v2/MATH Level 5": 0.3882,
+        "hfopenllm_v2/GPQA": 0.2919,
+        "hfopenllm_v2/MUSR": 0.4073,
+        "hfopenllm_v2/MMLU-PRO": 0.3353
+      }
+    }
+  ]
+}

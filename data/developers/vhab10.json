@@ -1,0 +1,47 @@
+{
+  "developer": "vhab10",
+  "models": [
+    {
+      "id": "vhab10/Llama-3.1-8B-Base-Instruct-SLERP",
+      "name": "Llama-3.1-8B-Base-Instruct-SLERP",
+      "developer": "vhab10",
+      "evaluator_relationship": null,
+      "benchmark_scores": {
+        "hfopenllm_v2/IFEval": 0.2907,
+        "hfopenllm_v2/BBH": 0.5057,
+        "hfopenllm_v2/MATH Level 5": 0.1201,
+        "hfopenllm_v2/GPQA": 0.2961,
+        "hfopenllm_v2/MUSR": 0.4011,
+        "hfopenllm_v2/MMLU-PRO": 0.3621
+      }
+    },
+    {
+      "id": "vhab10/Llama-3.2-Instruct-3B-TIES",
+      "name": "Llama-3.2-Instruct-3B-TIES",
+      "developer": "vhab10",
+      "evaluator_relationship": null,
+      "benchmark_scores": {
+        "hfopenllm_v2/IFEval": 0.4727,
+        "hfopenllm_v2/BBH": 0.4332,
+        "hfopenllm_v2/MATH Level 5": 0.0982,
+        "hfopenllm_v2/GPQA": 0.2693,
+        "hfopenllm_v2/MUSR": 0.3497,
+        "hfopenllm_v2/MMLU-PRO": 0.2916
+      }
+    },
+    {
+      "id": "vhab10/llama-3-8b-merged-linear",
+      "name": "llama-3-8b-merged-linear",
+      "developer": "vhab10",
+      "evaluator_relationship": null,
+      "benchmark_scores": {
+        "hfopenllm_v2/IFEval": 0.5917,
+        "hfopenllm_v2/BBH": 0.4937,
+        "hfopenllm_v2/MATH Level 5": 0.0816,
+        "hfopenllm_v2/GPQA": 0.2995,
+        "hfopenllm_v2/MUSR": 0.4191,
+        "hfopenllm_v2/MMLU-PRO": 0.3704
+      }
+    }
+  ]
+}

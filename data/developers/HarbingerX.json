@@ -1,0 +1,33 @@
+{
+  "developer": "HarbingerX",
+  "models": [
+    {
+      "id": "HarbingerX/Zeitgeist-3b-V1",
+      "name": "Zeitgeist-3b-V1",
+      "developer": "HarbingerX",
+      "evaluator_relationship": null,
+      "benchmark_scores": {
+        "hfopenllm_v2/IFEval": 0.6712,
+        "hfopenllm_v2/BBH": 0.4441,
+        "hfopenllm_v2/MATH Level 5": 0.1035,
+        "hfopenllm_v2/GPQA": 0.2819,
+        "hfopenllm_v2/MUSR": 0.3579,
+        "hfopenllm_v2/MMLU-PRO": 0.3009
+      }
+    },
+    {
+      "id": "HarbingerX/Zeitgeist-3b-V1.2",
+      "name": "Zeitgeist-3b-V1.2",
+      "developer": "HarbingerX",
+      "evaluator_relationship": null,
+      "benchmark_scores": {
+        "hfopenllm_v2/IFEval": 0.6754,
+        "hfopenllm_v2/BBH": 0.4441,
+        "hfopenllm_v2/MATH Level 5": 0.1012,
+        "hfopenllm_v2/GPQA": 0.2777,
+        "hfopenllm_v2/MUSR": 0.3579,
+        "hfopenllm_v2/MMLU-PRO": 0.3056
+      }
+    }
+  ]
+}

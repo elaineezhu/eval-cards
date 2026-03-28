@@ -1,0 +1,19 @@
+{
+  "developer": "V3N0M",
+  "models": [
+    {
+      "id": "V3N0M/Jenna-Tiny-2.0",
+      "name": "Jenna-Tiny-2.0",
+      "developer": "V3N0M",
+      "evaluator_relationship": null,
+      "benchmark_scores": {
+        "hfopenllm_v2/IFEval": 0.2309,
+        "hfopenllm_v2/BBH": 0.3148,
+        "hfopenllm_v2/MATH Level 5": 0.0121,
+        "hfopenllm_v2/GPQA": 0.25,
+        "hfopenllm_v2/MUSR": 0.3367,
+        "hfopenllm_v2/MMLU-PRO": 0.1147
+      }
+    }
+  ]
+}

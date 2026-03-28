@@ -1,0 +1,257 @@
+{
+  "developer": "theprint",
+  "models": [
+    {
+      "id": "theprint/Boptruth-Agatha-7B",
+      "name": "Boptruth-Agatha-7B",
+      "developer": "theprint",
+      "evaluator_relationship": null,
+      "benchmark_scores": {
+        "hfopenllm_v2/IFEval": 0.3124,
+        "hfopenllm_v2/BBH": 0.4984,
+        "hfopenllm_v2/MATH Level 5": 0.0551,
+        "hfopenllm_v2/GPQA": 0.2995,
+        "hfopenllm_v2/MUSR": 0.4277,
+        "hfopenllm_v2/MMLU-PRO": 0.2861
+      }
+    },
+    {
+      "id": "theprint/CleverBoi-7B-v2",
+      "name": "CleverBoi-7B-v2",
+      "developer": "theprint",
+      "evaluator_relationship": null,
+      "benchmark_scores": {
+        "hfopenllm_v2/IFEval": 0.217,
+        "hfopenllm_v2/BBH": 0.4532,
+        "hfopenllm_v2/MATH Level 5": 0.0264,
+        "hfopenllm_v2/GPQA": 0.2886,
+        "hfopenllm_v2/MUSR": 0.4695,
+        "hfopenllm_v2/MMLU-PRO": 0.2709
+      }
+    },
+    {
+      "id": "theprint/CleverBoi-7B-v3",
+      "name": "CleverBoi-7B-v3",
+      "developer": "theprint",
+      "evaluator_relationship": null,
+      "benchmark_scores": {
+        "hfopenllm_v2/IFEval": 0.2382,
+        "hfopenllm_v2/BBH": 0.4414,
+        "hfopenllm_v2/MATH Level 5": 0.04,
+        "hfopenllm_v2/GPQA": 0.2659,
+        "hfopenllm_v2/MUSR": 0.4072,
+        "hfopenllm_v2/MMLU-PRO": 0.2868
+      }
+    },
+    {
+      "id": "theprint/CleverBoi-Llama-3.1-8B-Instruct",
+      "name": "CleverBoi-Llama-3.1-8B-Instruct",
+      "developer": "theprint",
+      "evaluator_relationship": null,
+      "benchmark_scores": {
+        "hfopenllm_v2/IFEval": 0.1682,
+        "hfopenllm_v2/BBH": 0.456,
+        "hfopenllm_v2/MATH Level 5": 0.0491,
+        "hfopenllm_v2/GPQA": 0.3003,
+        "hfopenllm_v2/MUSR": 0.4014,
+        "hfopenllm_v2/MMLU-PRO": 0.3075
+      }
+    },
+    {
+      "id": "theprint/CleverBoi-Llama-3.1-8B-v2",
+      "name": "CleverBoi-Llama-3.1-8B-v2",
+      "developer": "theprint",
+      "evaluator_relationship": null,
+      "benchmark_scores": {
+        "hfopenllm_v2/IFEval": 0.1961,
+        "hfopenllm_v2/BBH": 0.4668,
+        "hfopenllm_v2/MATH Level 5": 0.0529,
+        "hfopenllm_v2/GPQA": 0.2861,
+        "hfopenllm_v2/MUSR": 0.3735,
+        "hfopenllm_v2/MMLU-PRO": 0.3188
+      }
+    },
+    {
+      "id": "theprint/CleverBoi-Nemo-12B-v2",
+      "name": "CleverBoi-Nemo-12B-v2",
+      "developer": "theprint",
+      "evaluator_relationship": null,
+      "benchmark_scores": {
+        "hfopenllm_v2/IFEval": 0.2046,
+        "hfopenllm_v2/BBH": 0.5241,
+        "hfopenllm_v2/MATH Level 5": 0.1035,
+        "hfopenllm_v2/GPQA": 0.3138,
+        "hfopenllm_v2/MUSR": 0.4187,
+        "hfopenllm_v2/MMLU-PRO": 0.3228
+      }
+    },
+    {
+      "id": "theprint/Code-Llama-Bagel-8B",
+      "name": "Code-Llama-Bagel-8B",
+      "developer": "theprint",
+      "evaluator_relationship": null,
+      "benchmark_scores": {
+        "hfopenllm_v2/IFEval": 0.253,
+        "hfopenllm_v2/BBH": 0.4697,
+        "hfopenllm_v2/MATH Level 5": 0.0612,
+        "hfopenllm_v2/GPQA": 0.276,
+        "hfopenllm_v2/MUSR": 0.368,
+        "hfopenllm_v2/MMLU-PRO": 0.2822
+      }
+    },
+    {
+      "id": "theprint/Conversely-Mistral-7B",
+      "name": "Conversely-Mistral-7B",
+      "developer": "theprint",
+      "evaluator_relationship": null,
+      "benchmark_scores": {
+        "hfopenllm_v2/IFEval": 0.2608,
+        "hfopenllm_v2/BBH": 0.4672,
+        "hfopenllm_v2/MATH Level 5": 0.0279,
+        "hfopenllm_v2/GPQA": 0.2852,
+        "hfopenllm_v2/MUSR": 0.4189,
+        "hfopenllm_v2/MMLU-PRO": 0.2826
+      }
+    },
+    {
+      "id": "theprint/Llama-3.2-3B-VanRossum",
+      "name": "Llama-3.2-3B-VanRossum",
+      "developer": "theprint",
+      "evaluator_relationship": null,
+      "benchmark_scores": {
+        "hfopenllm_v2/IFEval": 0.4783,
+        "hfopenllm_v2/BBH": 0.4279,
+        "hfopenllm_v2/MATH Level 5": 0.0974,
+        "hfopenllm_v2/GPQA": 0.2676,
+        "hfopenllm_v2/MUSR": 0.3442,
+        "hfopenllm_v2/MMLU-PRO": 0.277
+      }
+    },
+    {
+      "id": "theprint/ReWiz-7B",
+      "name": "ReWiz-7B",
+      "developer": "theprint",
+      "evaluator_relationship": null,
+      "benchmark_scores": {
+        "hfopenllm_v2/IFEval": 0.4048,
+        "hfopenllm_v2/BBH": 0.4564,
+        "hfopenllm_v2/MATH Level 5": 0.0408,
+        "hfopenllm_v2/GPQA": 0.2752,
+        "hfopenllm_v2/MUSR": 0.4612,
+        "hfopenllm_v2/MMLU-PRO": 0.267
+      }
+    },
+    {
+      "id": "theprint/ReWiz-Llama-3.1-8B-v2",
+      "name": "ReWiz-Llama-3.1-8B-v2",
+      "developer": "theprint",
+      "evaluator_relationship": null,
+      "benchmark_scores": {
+        "hfopenllm_v2/IFEval": 0.2379,
+        "hfopenllm_v2/BBH": 0.4632,
+        "hfopenllm_v2/MATH Level 5": 0.0574,
+        "hfopenllm_v2/GPQA": 0.3029,
+        "hfopenllm_v2/MUSR": 0.3814,
+        "hfopenllm_v2/MMLU-PRO": 0.331
+      }
+    },
+    {
+      "id": "theprint/ReWiz-Llama-3.2-3B",
+      "name": "ReWiz-Llama-3.2-3B",
+      "developer": "theprint",
+      "evaluator_relationship": null,
+      "benchmark_scores": {
+        "hfopenllm_v2/IFEval": 0.4649,
+        "hfopenllm_v2/BBH": 0.4343,
+        "hfopenllm_v2/MATH Level 5": 0.1095,
+        "hfopenllm_v2/GPQA": 0.2836,
+        "hfopenllm_v2/MUSR": 0.3614,
+        "hfopenllm_v2/MMLU-PRO": 0.2887
+      }
+    },
+    {
+      "id": "theprint/ReWiz-Nemo-12B-Instruct",
+      "name": "ReWiz-Nemo-12B-Instruct",
+      "developer": "theprint",
+      "evaluator_relationship": null,
+      "benchmark_scores": {
+        "hfopenllm_v2/IFEval": 0.1062,
+        "hfopenllm_v2/BBH": 0.5092,
+        "hfopenllm_v2/MATH Level 5": 0.1042,
+        "hfopenllm_v2/GPQA": 0.3238,
+        "hfopenllm_v2/MUSR": 0.4096,
+        "hfopenllm_v2/MMLU-PRO": 0.3339
+      }
+    },
+    {
+      "id": "theprint/ReWiz-Qwen-2.5-14B",
+      "name": "ReWiz-Qwen-2.5-14B",
+      "developer": "theprint",
+      "evaluator_relationship": null,
+      "benchmark_scores": {
+        "hfopenllm_v2/IFEval": 0.2785,
+        "hfopenllm_v2/BBH": 0.6179,
+        "hfopenllm_v2/MATH Level 5": 0.2923,
+        "hfopenllm_v2/GPQA": 0.38,
+        "hfopenllm_v2/MUSR": 0.4539,
+        "hfopenllm_v2/MMLU-PRO": 0.5092
+      }
+    },
+    {
+      "id": "theprint/ReWiz-Worldbuilder-7B",
+      "name": "ReWiz-Worldbuilder-7B",
+      "developer": "theprint",
+      "evaluator_relationship": null,
+      "benchmark_scores": {
+        "hfopenllm_v2/IFEval": 0.251,
+        "hfopenllm_v2/BBH": 0.4636,
+        "hfopenllm_v2/MATH Level 5": 0.037,
+        "hfopenllm_v2/GPQA": 0.2693,
+        "hfopenllm_v2/MUSR": 0.4572,
+        "hfopenllm_v2/MMLU-PRO": 0.2971
+      }
+    },
+    {
+      "id": "theprint/RuDolph-Hermes-7B",
+      "name": "RuDolph-Hermes-7B",
+      "developer": "theprint",
+      "evaluator_relationship": null,
+      "benchmark_scores": {
+        "hfopenllm_v2/IFEval": 0.3604,
+        "hfopenllm_v2/BBH": 0.5053,
+        "hfopenllm_v2/MATH Level 5": 0.0514,
+        "hfopenllm_v2/GPQA": 0.3121,
+        "hfopenllm_v2/MUSR": 0.4226,
+        "hfopenllm_v2/MMLU-PRO": 0.3073
+      }
+    },
+    {
+      "id": "theprint/WorldBuilder-12B",
+      "name": "WorldBuilder-12B",
+      "developer": "theprint",
+      "evaluator_relationship": null,
+      "benchmark_scores": {
+        "hfopenllm_v2/IFEval": 0.1374,
+        "hfopenllm_v2/BBH": 0.501,
+        "hfopenllm_v2/MATH Level 5": 0.0446,
+        "hfopenllm_v2/GPQA": 0.297,
+        "hfopenllm_v2/MUSR": 0.4066,
+        "hfopenllm_v2/MMLU-PRO": 0.3192
+      }
+    },
+    {
+      "id": "theprint/phi-3-mini-4k-python",
+      "name": "phi-3-mini-4k-python",
+      "developer": "theprint",
+      "evaluator_relationship": null,
+      "benchmark_scores": {
+        "hfopenllm_v2/IFEval": 0.2409,
+        "hfopenllm_v2/BBH": 0.4938,
+        "hfopenllm_v2/MATH Level 5": 0.105,
+        "hfopenllm_v2/GPQA": 0.2911,
+        "hfopenllm_v2/MUSR": 0.3922,
+        "hfopenllm_v2/MMLU-PRO": 0.3577
+      }
+    }
+  ]
+}

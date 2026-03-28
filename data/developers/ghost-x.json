@@ -1,0 +1,19 @@
+{
+  "developer": "ghost-x",
+  "models": [
+    {
+      "id": "ghost-x/ghost-8b-beta-1608",
+      "name": "ghost-8b-beta-1608",
+      "developer": "ghost-x",
+      "evaluator_relationship": null,
+      "benchmark_scores": {
+        "hfopenllm_v2/IFEval": 0.4273,
+        "hfopenllm_v2/BBH": 0.4517,
+        "hfopenllm_v2/MATH Level 5": 0.0695,
+        "hfopenllm_v2/GPQA": 0.2584,
+        "hfopenllm_v2/MUSR": 0.3516,
+        "hfopenllm_v2/MMLU-PRO": 0.284
+      }
+    }
+  ]
+}

@@ -1,0 +1,47 @@
+{
+  "developer": "TheDrunkenSnail",
+  "models": [
+    {
+      "id": "TheDrunkenSnail/Daughter-of-Rhodia-12B",
+      "name": "Daughter-of-Rhodia-12B",
+      "developer": "TheDrunkenSnail",
+      "evaluator_relationship": null,
+      "benchmark_scores": {
+        "hfopenllm_v2/IFEval": 0.6904,
+        "hfopenllm_v2/BBH": 0.5179,
+        "hfopenllm_v2/MATH Level 5": 0.1224,
+        "hfopenllm_v2/GPQA": 0.3171,
+        "hfopenllm_v2/MUSR": 0.4348,
+        "hfopenllm_v2/MMLU-PRO": 0.3641
+      }
+    },
+    {
+      "id": "TheDrunkenSnail/Mother-of-Rhodia-12B",
+      "name": "Mother-of-Rhodia-12B",
+      "developer": "TheDrunkenSnail",
+      "evaluator_relationship": null,
+      "benchmark_scores": {
+        "hfopenllm_v2/IFEval": 0.6505,
+        "hfopenllm_v2/BBH": 0.4948,
+        "hfopenllm_v2/MATH Level 5": 0.1224,
+        "hfopenllm_v2/GPQA": 0.2987,
+        "hfopenllm_v2/MUSR": 0.4124,
+        "hfopenllm_v2/MMLU-PRO": 0.3551
+      }
+    },
+    {
+      "id": "TheDrunkenSnail/Son-of-Rhodia",
+      "name": "Son-of-Rhodia",
+      "developer": "TheDrunkenSnail",
+      "evaluator_relationship": null,
+      "benchmark_scores": {
+        "hfopenllm_v2/IFEval": 0.7046,
+        "hfopenllm_v2/BBH": 0.5097,
+        "hfopenllm_v2/MATH Level 5": 0.1314,
+        "hfopenllm_v2/GPQA": 0.3129,
+        "hfopenllm_v2/MUSR": 0.4203,
+        "hfopenllm_v2/MMLU-PRO": 0.3608
+      }
+    }
+  ]
+}

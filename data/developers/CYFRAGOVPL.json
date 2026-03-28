@@ -1,0 +1,89 @@
+{
+  "developer": "CYFRAGOVPL",
+  "models": [
+    {
+      "id": "CYFRAGOVPL/Llama-PLLuM-8B-base",
+      "name": "Llama-PLLuM-8B-base",
+      "developer": "CYFRAGOVPL",
+      "evaluator_relationship": null,
+      "benchmark_scores": {
+        "hfopenllm_v2/IFEval": 0.2899,
+        "hfopenllm_v2/BBH": 0.432,
+        "hfopenllm_v2/MATH Level 5": 0.0363,
+        "hfopenllm_v2/GPQA": 0.2852,
+        "hfopenllm_v2/MUSR": 0.397,
+        "hfopenllm_v2/MMLU-PRO": 0.2757
+      }
+    },
+    {
+      "id": "CYFRAGOVPL/Llama-PLLuM-8B-chat",
+      "name": "Llama-PLLuM-8B-chat",
+      "developer": "CYFRAGOVPL",
+      "evaluator_relationship": null,
+      "benchmark_scores": {
+        "hfopenllm_v2/IFEval": 0.3515,
+        "hfopenllm_v2/BBH": 0.4077,
+        "hfopenllm_v2/MATH Level 5": 0.034,
+        "hfopenllm_v2/GPQA": 0.2643,
+        "hfopenllm_v2/MUSR": 0.4199,
+        "hfopenllm_v2/MMLU-PRO": 0.2719
+      }
+    },
+    {
+      "id": "CYFRAGOVPL/PLLuM-12B-base",
+      "name": "PLLuM-12B-base",
+      "developer": "CYFRAGOVPL",
+      "evaluator_relationship": null,
+      "benchmark_scores": {
+        "hfopenllm_v2/IFEval": 0.2821,
+        "hfopenllm_v2/BBH": 0.4391,
+        "hfopenllm_v2/MATH Level 5": 0.0287,
+        "hfopenllm_v2/GPQA": 0.2903,
+        "hfopenllm_v2/MUSR": 0.4142,
+        "hfopenllm_v2/MMLU-PRO": 0.274
+      }
+    },
+    {
+      "id": "CYFRAGOVPL/PLLuM-12B-chat",
+      "name": "PLLuM-12B-chat",
+      "developer": "CYFRAGOVPL",
+      "evaluator_relationship": null,
+      "benchmark_scores": {
+        "hfopenllm_v2/IFEval": 0.3214,
+        "hfopenllm_v2/BBH": 0.4446,
+        "hfopenllm_v2/MATH Level 5": 0.0181,
+        "hfopenllm_v2/GPQA": 0.2601,
+        "hfopenllm_v2/MUSR": 0.4115,
+        "hfopenllm_v2/MMLU-PRO": 0.2872
+      }
+    },
+    {
+      "id": "CYFRAGOVPL/PLLuM-12B-nc-base",
+      "name": "PLLuM-12B-nc-base",
+      "developer": "CYFRAGOVPL",
+      "evaluator_relationship": null,
+      "benchmark_scores": {
+        "hfopenllm_v2/IFEval": 0.2405,
+        "hfopenllm_v2/BBH": 0.4277,
+        "hfopenllm_v2/MATH Level 5": 0.0219,
+        "hfopenllm_v2/GPQA": 0.2701,
+        "hfopenllm_v2/MUSR": 0.3645,
+        "hfopenllm_v2/MMLU-PRO": 0.2559
+      }
+    },
+    {
+      "id": "CYFRAGOVPL/PLLuM-12B-nc-chat",
+      "name": "PLLuM-12B-nc-chat",
+      "developer": "CYFRAGOVPL",
+      "evaluator_relationship": null,
+      "benchmark_scores": {
+        "hfopenllm_v2/IFEval": 0.2834,
+        "hfopenllm_v2/BBH": 0.4576,
+        "hfopenllm_v2/MATH Level 5": 0.0121,
+        "hfopenllm_v2/GPQA": 0.2827,
+        "hfopenllm_v2/MUSR": 0.4354,
+        "hfopenllm_v2/MMLU-PRO": 0.2597
+      }
+    }
+  ]
+}

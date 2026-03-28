@@ -1,0 +1,47 @@
+{
+  "developer": "tanliboy",
+  "models": [
+    {
+      "id": "tanliboy/lambda-gemma-2-9b-dpo",
+      "name": "lambda-gemma-2-9b-dpo",
+      "developer": "tanliboy",
+      "evaluator_relationship": null,
+      "benchmark_scores": {
+        "hfopenllm_v2/IFEval": 0.4501,
+        "hfopenllm_v2/BBH": 0.5472,
+        "hfopenllm_v2/MATH Level 5": 0.0944,
+        "hfopenllm_v2/GPQA": 0.3138,
+        "hfopenllm_v2/MUSR": 0.4017,
+        "hfopenllm_v2/MMLU-PRO": 0.3792
+      }
+    },
+    {
+      "id": "tanliboy/lambda-qwen2.5-14b-dpo-test",
+      "name": "lambda-qwen2.5-14b-dpo-test",
+      "developer": "tanliboy",
+      "evaluator_relationship": null,
+      "benchmark_scores": {
+        "hfopenllm_v2/IFEval": 0.8231,
+        "hfopenllm_v2/BBH": 0.6394,
+        "hfopenllm_v2/MATH Level 5": 0.5461,
+        "hfopenllm_v2/GPQA": 0.3624,
+        "hfopenllm_v2/MUSR": 0.426,
+        "hfopenllm_v2/MMLU-PRO": 0.4848
+      }
+    },
+    {
+      "id": "tanliboy/lambda-qwen2.5-32b-dpo-test",
+      "name": "lambda-qwen2.5-32b-dpo-test",
+      "developer": "tanliboy",
+      "evaluator_relationship": null,
+      "benchmark_scores": {
+        "hfopenllm_v2/IFEval": 0.8084,
+        "hfopenllm_v2/BBH": 0.6764,
+        "hfopenllm_v2/MATH Level 5": 0.6103,
+        "hfopenllm_v2/GPQA": 0.3565,
+        "hfopenllm_v2/MUSR": 0.4274,
+        "hfopenllm_v2/MMLU-PRO": 0.5657
+      }
+    }
+  ]
+}

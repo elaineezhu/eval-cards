@@ -1,0 +1,19 @@
+{
+  "developer": "RWKV",
+  "models": [
+    {
+      "id": "RWKV/rwkv-raven-14b",
+      "name": "rwkv-raven-14b",
+      "developer": "RWKV",
+      "evaluator_relationship": null,
+      "benchmark_scores": {
+        "hfopenllm_v2/IFEval": 0.0768,
+        "hfopenllm_v2/BBH": 0.3307,
+        "hfopenllm_v2/MATH Level 5": 0.0045,
+        "hfopenllm_v2/GPQA": 0.229,
+        "hfopenllm_v2/MUSR": 0.3951,
+        "hfopenllm_v2/MMLU-PRO": 0.115
+      }
+    }
+  ]
+}

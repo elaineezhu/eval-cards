@@ -1,0 +1,61 @@
+{
+  "developer": "sabersalehk",
+  "models": [
+    {
+      "id": "sabersalehk/Llama3-001-300",
+      "name": "Llama3-001-300",
+      "developer": "sabersalehk",
+      "evaluator_relationship": null,
+      "benchmark_scores": {
+        "hfopenllm_v2/IFEval": 0.3179,
+        "hfopenllm_v2/BBH": 0.4745,
+        "hfopenllm_v2/MATH Level 5": 0.0529,
+        "hfopenllm_v2/GPQA": 0.2995,
+        "hfopenllm_v2/MUSR": 0.4064,
+        "hfopenllm_v2/MMLU-PRO": 0.3158
+      }
+    },
+    {
+      "id": "sabersalehk/Llama3-SimPO",
+      "name": "Llama3-SimPO",
+      "developer": "sabersalehk",
+      "evaluator_relationship": null,
+      "benchmark_scores": {
+        "hfopenllm_v2/IFEval": 0.3642,
+        "hfopenllm_v2/BBH": 0.4874,
+        "hfopenllm_v2/MATH Level 5": 0.0574,
+        "hfopenllm_v2/GPQA": 0.3079,
+        "hfopenllm_v2/MUSR": 0.4046,
+        "hfopenllm_v2/MMLU-PRO": 0.3157
+      }
+    },
+    {
+      "id": "sabersalehk/Llama3_001_200",
+      "name": "Llama3_001_200",
+      "developer": "sabersalehk",
+      "evaluator_relationship": null,
+      "benchmark_scores": {
+        "hfopenllm_v2/IFEval": 0.3218,
+        "hfopenllm_v2/BBH": 0.4728,
+        "hfopenllm_v2/MATH Level 5": 0.0514,
+        "hfopenllm_v2/GPQA": 0.3037,
+        "hfopenllm_v2/MUSR": 0.4037,
+        "hfopenllm_v2/MMLU-PRO": 0.3183
+      }
+    },
+    {
+      "id": "sabersalehk/Llama3_01_300",
+      "name": "Llama3_01_300",
+      "developer": "sabersalehk",
+      "evaluator_relationship": null,
+      "benchmark_scores": {
+        "hfopenllm_v2/IFEval": 0.2959,
+        "hfopenllm_v2/BBH": 0.4691,
+        "hfopenllm_v2/MATH Level 5": 0.0498,
+        "hfopenllm_v2/GPQA": 0.3079,
+        "hfopenllm_v2/MUSR": 0.4065,
+        "hfopenllm_v2/MMLU-PRO": 0.3124
+      }
+    }
+  ]
+}

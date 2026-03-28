@@ -1,0 +1,19 @@
+{
+  "developer": "lodrick-the-lafted",
+  "models": [
+    {
+      "id": "lodrick-the-lafted/llama-3.1-8b-instruct-ortho-v7",
+      "name": "llama-3.1-8b-instruct-ortho-v7",
+      "developer": "lodrick-the-lafted",
+      "evaluator_relationship": null,
+      "benchmark_scores": {
+        "hfopenllm_v2/IFEval": 0.3515,
+        "hfopenllm_v2/BBH": 0.3907,
+        "hfopenllm_v2/MATH Level 5": 0.0272,
+        "hfopenllm_v2/GPQA": 0.2727,
+        "hfopenllm_v2/MUSR": 0.3616,
+        "hfopenllm_v2/MMLU-PRO": 0.1974
+      }
+    }
+  ]
+}

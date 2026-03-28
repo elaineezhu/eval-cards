@@ -1,0 +1,433 @@
+{
+  "developer": "01-ai",
+  "models": [
+    {
+      "id": "01-ai/Yi-1.5-34B",
+      "name": "Yi-1.5-34B",
+      "developer": "01-ai",
+      "evaluator_relationship": null,
+      "benchmark_scores": {
+        "hfopenllm_v2/IFEval": 0.2841,
+        "hfopenllm_v2/BBH": 0.5976,
+        "hfopenllm_v2/MATH Level 5": 0.1533,
+        "hfopenllm_v2/GPQA": 0.3658,
+        "hfopenllm_v2/MUSR": 0.4236,
+        "hfopenllm_v2/MMLU-PRO": 0.4666
+      }
+    },
+    {
+      "id": "01-ai/Yi-1.5-34B-32K",
+      "name": "Yi-1.5-34B-32K",
+      "developer": "01-ai",
+      "evaluator_relationship": null,
+      "benchmark_scores": {
+        "hfopenllm_v2/IFEval": 0.3119,
+        "hfopenllm_v2/BBH": 0.6016,
+        "hfopenllm_v2/MATH Level 5": 0.1541,
+        "hfopenllm_v2/GPQA": 0.3633,
+        "hfopenllm_v2/MUSR": 0.4398,
+        "hfopenllm_v2/MMLU-PRO": 0.4709
+      }
+    },
+    {
+      "id": "01-ai/Yi-1.5-34B-Chat",
+      "name": "Yi-1.5-34B-Chat",
+      "developer": "01-ai",
+      "evaluator_relationship": null,
+      "benchmark_scores": {
+        "hfopenllm_v2/IFEval": 0.6067,
+        "hfopenllm_v2/BBH": 0.6084,
+        "hfopenllm_v2/MATH Level 5": 0.2772,
+        "hfopenllm_v2/GPQA": 0.3649,
+        "hfopenllm_v2/MUSR": 0.4282,
+        "hfopenllm_v2/MMLU-PRO": 0.452
+      }
+    },
+    {
+      "id": "01-ai/Yi-1.5-34B-Chat-16K",
+      "name": "Yi-1.5-34B-Chat-16K",
+      "developer": "01-ai",
+      "evaluator_relationship": null,
+      "benchmark_scores": {
+        "hfopenllm_v2/IFEval": 0.4564,
+        "hfopenllm_v2/BBH": 0.61,
+        "hfopenllm_v2/MATH Level 5": 0.2137,
+        "hfopenllm_v2/GPQA": 0.3381,
+        "hfopenllm_v2/MUSR": 0.4398,
+        "hfopenllm_v2/MMLU-PRO": 0.4545
+      }
+    },
+    {
+      "id": "01-ai/Yi-1.5-6B",
+      "name": "Yi-1.5-6B",
+      "developer": "01-ai",
+      "evaluator_relationship": null,
+      "benchmark_scores": {
+        "hfopenllm_v2/IFEval": 0.2617,
+        "hfopenllm_v2/BBH": 0.4493,
+        "hfopenllm_v2/MATH Level 5": 0.0665,
+        "hfopenllm_v2/GPQA": 0.3138,
+        "hfopenllm_v2/MUSR": 0.4374,
+        "hfopenllm_v2/MMLU-PRO": 0.3144
+      }
+    },
+    {
+      "id": "01-ai/Yi-1.5-6B-Chat",
+      "name": "Yi-1.5-6B-Chat",
+      "developer": "01-ai",
+      "evaluator_relationship": null,
+      "benchmark_scores": {
+        "hfopenllm_v2/IFEval": 0.5145,
+        "hfopenllm_v2/BBH": 0.4571,
+        "hfopenllm_v2/MATH Level 5": 0.1624,
+        "hfopenllm_v2/GPQA": 0.302,
+        "hfopenllm_v2/MUSR": 0.4392,
+        "hfopenllm_v2/MMLU-PRO": 0.3193
+      }
+    },
+    {
+      "id": "01-ai/Yi-1.5-9B",
+      "name": "Yi-1.5-9B",
+      "developer": "01-ai",
+      "evaluator_relationship": null,
+      "benchmark_scores": {
+        "hfopenllm_v2/IFEval": 0.2936,
+        "hfopenllm_v2/BBH": 0.5143,
+        "hfopenllm_v2/MATH Level 5": 0.114,
+        "hfopenllm_v2/GPQA": 0.3792,
+        "hfopenllm_v2/MUSR": 0.4328,
+        "hfopenllm_v2/MMLU-PRO": 0.3916
+      }
+    },
+    {
+      "id": "01-ai/Yi-1.5-9B-32K",
+      "name": "Yi-1.5-9B-32K",
+      "developer": "01-ai",
+      "evaluator_relationship": null,
+      "benchmark_scores": {
+        "hfopenllm_v2/IFEval": 0.2303,
+        "hfopenllm_v2/BBH": 0.4963,
+        "hfopenllm_v2/MATH Level 5": 0.108,
+        "hfopenllm_v2/GPQA": 0.3591,
+        "hfopenllm_v2/MUSR": 0.4186,
+        "hfopenllm_v2/MMLU-PRO": 0.3765
+      }
+    },
+    {
+      "id": "01-ai/Yi-1.5-9B-Chat",
+      "name": "Yi-1.5-9B-Chat",
+      "developer": "01-ai",
+      "evaluator_relationship": null,
+      "benchmark_scores": {
+        "hfopenllm_v2/IFEval": 0.6046,
+        "hfopenllm_v2/BBH": 0.5559,
+        "hfopenllm_v2/MATH Level 5": 0.2258,
+        "hfopenllm_v2/GPQA": 0.3347,
+        "hfopenllm_v2/MUSR": 0.4259,
+        "hfopenllm_v2/MMLU-PRO": 0.3975
+      }
+    },
+    {
+      "id": "01-ai/Yi-1.5-9B-Chat-16K",
+      "name": "Yi-1.5-9B-Chat-16K",
+      "developer": "01-ai",
+      "evaluator_relationship": null,
+      "benchmark_scores": {
+        "hfopenllm_v2/IFEval": 0.4214,
+        "hfopenllm_v2/BBH": 0.5153,
+        "hfopenllm_v2/MATH Level 5": 0.1782,
+        "hfopenllm_v2/GPQA": 0.3087,
+        "hfopenllm_v2/MUSR": 0.4099,
+        "hfopenllm_v2/MMLU-PRO": 0.3994
+      }
+    },
+    {
+      "id": "01-ai/Yi-34B",
+      "name": "Yi-34B",
+      "developer": "01-ai",
+      "evaluator_relationship": null,
+      "benchmark_scores": {
+        "hfopenllm_v2/IFEval": 0.3046,
+        "hfopenllm_v2/BBH": 0.5457,
+        "hfopenllm_v2/MATH Level 5": 0.0514,
+        "hfopenllm_v2/GPQA": 0.3666,
+        "hfopenllm_v2/MUSR": 0.4119,
+        "hfopenllm_v2/MMLU-PRO": 0.4412
+      }
+    },
+    {
+      "id": "01-ai/Yi-34B-200K",
+      "name": "Yi-34B-200K",
+      "developer": "01-ai",
+      "evaluator_relationship": null,
+      "benchmark_scores": {
+        "hfopenllm_v2/IFEval": 0.1542,
+        "hfopenllm_v2/BBH": 0.5442,
+        "hfopenllm_v2/MATH Level 5": 0.0574,
+        "hfopenllm_v2/GPQA": 0.3565,
+        "hfopenllm_v2/MUSR": 0.3817,
+        "hfopenllm_v2/MMLU-PRO": 0.4535
+      }
+    },
+    {
+      "id": "01-ai/Yi-34B-Chat",
+      "name": "Yi-34B-Chat",
+      "developer": "01-ai",
+      "evaluator_relationship": null,
+      "benchmark_scores": {
+        "hfopenllm_v2/IFEval": 0.4699,
+        "hfopenllm_v2/BBH": 0.5561,
+        "hfopenllm_v2/MATH Level 5": 0.0627,
+        "hfopenllm_v2/GPQA": 0.3381,
+        "hfopenllm_v2/MUSR": 0.3978,
+        "hfopenllm_v2/MMLU-PRO": 0.4093
+      }
+    },
+    {
+      "id": "01-ai/Yi-6B",
+      "name": "Yi-6B",
+      "developer": "01-ai",
+      "evaluator_relationship": null,
+      "benchmark_scores": {
+        "hfopenllm_v2/IFEval": 0.2893,
+        "hfopenllm_v2/BBH": 0.4309,
+        "hfopenllm_v2/MATH Level 5": 0.0159,
+        "hfopenllm_v2/GPQA": 0.2693,
+        "hfopenllm_v2/MUSR": 0.3937,
+        "hfopenllm_v2/MMLU-PRO": 0.2991
+      }
+    },
+    {
+      "id": "01-ai/Yi-6B-200K",
+      "name": "Yi-6B-200K",
+      "developer": "01-ai",
+      "evaluator_relationship": null,
+      "benchmark_scores": {
+        "hfopenllm_v2/IFEval": 0.0843,
+        "hfopenllm_v2/BBH": 0.4289,
+        "hfopenllm_v2/MATH Level 5": 0.0181,
+        "hfopenllm_v2/GPQA": 0.2819,
+        "hfopenllm_v2/MUSR": 0.4587,
+        "hfopenllm_v2/MMLU-PRO": 0.2844
+      }
+    },
+    {
+      "id": "01-ai/Yi-6B-Chat",
+      "name": "Yi-6B-Chat",
+      "developer": "01-ai",
+      "evaluator_relationship": null,
+      "benchmark_scores": {
+        "hfopenllm_v2/IFEval": 0.3395,
+        "hfopenllm_v2/BBH": 0.4133,
+        "hfopenllm_v2/MATH Level 5": 0.0136,
+        "hfopenllm_v2/GPQA": 0.2945,
+        "hfopenllm_v2/MUSR": 0.3688,
+        "hfopenllm_v2/MMLU-PRO": 0.3061
+      }
+    },
+    {
+      "id": "01-ai/Yi-9B",
+      "name": "Yi-9B",
+      "developer": "01-ai",
+      "evaluator_relationship": null,
+      "benchmark_scores": {
+        "hfopenllm_v2/IFEval": 0.2709,
+        "hfopenllm_v2/BBH": 0.494,
+        "hfopenllm_v2/MATH Level 5": 0.0559,
+        "hfopenllm_v2/GPQA": 0.318,
+        "hfopenllm_v2/MUSR": 0.4054,
+        "hfopenllm_v2/MMLU-PRO": 0.3574
+      }
+    },
+    {
+      "id": "01-ai/Yi-9B-200K",
+      "name": "Yi-9B-200K",
+      "developer": "01-ai",
+      "evaluator_relationship": null,
+      "benchmark_scores": {
+        "hfopenllm_v2/IFEval": 0.2327,
+        "hfopenllm_v2/BBH": 0.4793,
+        "hfopenllm_v2/MATH Level 5": 0.0665,
+        "hfopenllm_v2/GPQA": 0.3154,
+        "hfopenllm_v2/MUSR": 0.4294,
+        "hfopenllm_v2/MMLU-PRO": 0.3622
+      }
+    },
+    {
+      "id": "01-ai/Yi-Coder-9B-Chat",
+      "name": "Yi-Coder-9B-Chat",
+      "developer": "01-ai",
+      "evaluator_relationship": null,
+      "benchmark_scores": {
+        "hfopenllm_v2/IFEval": 0.4817,
+        "hfopenllm_v2/BBH": 0.4814,
+        "hfopenllm_v2/MATH Level 5": 0.04,
+        "hfopenllm_v2/GPQA": 0.2475,
+        "hfopenllm_v2/MUSR": 0.3992,
+        "hfopenllm_v2/MMLU-PRO": 0.2425
+      }
+    },
+    {
+      "id": "01-ai/yi-34b",
+      "name": "Yi 34B",
+      "developer": "01-ai",
+      "evaluator_relationship": null,
+      "benchmark_scores": {
+        "helm_lite/Mean win rate": 0.57,
+        "helm_lite/NarrativeQA": 0.782,
+        "helm_lite/NaturalQuestions (closed-book)": 0.443,
+        "helm_lite/OpenbookQA": 0.92,
+        "helm_lite/MMLU": 0.65,
+        "helm_lite/MATH": 0.375,
+        "helm_lite/GSM8K": 0.648,
+        "helm_lite/LegalBench": 0.618,
+        "helm_lite/MedQA": 0.656,
+        "helm_lite/WMT 2014": 0.172,
+        "helm_mmlu/MMLU All Subjects": 0.762,
+        "helm_mmlu/Abstract Algebra": 0.4,
+        "helm_mmlu/Anatomy": 0.748,
+        "helm_mmlu/College Physics": 0.5,
+        "helm_mmlu/Computer Security": 0.83,
+        "helm_mmlu/Econometrics": 0.588,
+        "helm_mmlu/Global Facts": 0.53,
+        "helm_mmlu/Jurisprudence": 0.898,
+        "helm_mmlu/Philosophy": 0.82,
+        "helm_mmlu/Professional Psychology": 0.835,
+        "helm_mmlu/Us Foreign Policy": 0.91,
+        "helm_mmlu/Astronomy": 0.901,
+        "helm_mmlu/Business Ethics": 0.75,
+        "helm_mmlu/Clinical Knowledge": 0.8,
+        "helm_mmlu/Conceptual Physics": 0.77,
+        "helm_mmlu/Electrical Engineering": 0.779,
+        "helm_mmlu/Elementary Mathematics": 0.656,
+        "helm_mmlu/Formal Logic": 0.548,
+        "helm_mmlu/High School World History": 0.907,
+        "helm_mmlu/Human Sexuality": 0.87,
+        "helm_mmlu/International Law": 0.909,
+        "helm_mmlu/Logical Fallacies": 0.883,
+        "helm_mmlu/Machine Learning": 0.58,
+        "helm_mmlu/Management": 0.893,
+        "helm_mmlu/Marketing": 0.936,
+        "helm_mmlu/Medical Genetics": 0.87,
+        "helm_mmlu/Miscellaneous": 0.902,
+        "helm_mmlu/Moral Scenarios": 0.606,
+        "helm_mmlu/Nutrition": 0.869,
+        "helm_mmlu/Prehistory": 0.877,
+        "helm_mmlu/Public Relations": 0.745,
+        "helm_mmlu/Security Studies": 0.833,
+        "helm_mmlu/Sociology": 0.9,
+        "helm_mmlu/Virology": 0.572,
+        "helm_mmlu/World Religions": 0.877,
+        "helm_mmlu/Mean win rate": 0.315
+      }
+    },
+    {
+      "id": "01-ai/yi-6b",
+      "name": "Yi 6B",
+      "developer": "01-ai",
+      "evaluator_relationship": null,
+      "benchmark_scores": {
+        "helm_lite/Mean win rate": 0.253,
+        "helm_lite/NarrativeQA": 0.702,
+        "helm_lite/NaturalQuestions (closed-book)": 0.31,
+        "helm_lite/OpenbookQA": 0.8,
+        "helm_lite/MMLU": 0.53,
+        "helm_lite/MATH": 0.126,
+        "helm_lite/GSM8K": 0.375,
+        "helm_lite/LegalBench": 0.519,
+        "helm_lite/MedQA": 0.497,
+        "helm_lite/WMT 2014": 0.117,
+        "helm_mmlu/MMLU All Subjects": 0.64,
+        "helm_mmlu/Abstract Algebra": 0.3,
+        "helm_mmlu/Anatomy": 0.6,
+        "helm_mmlu/College Physics": 0.422,
+        "helm_mmlu/Computer Security": 0.73,
+        "helm_mmlu/Econometrics": 0.351,
+        "helm_mmlu/Global Facts": 0.43,
+        "helm_mmlu/Jurisprudence": 0.796,
+        "helm_mmlu/Philosophy": 0.678,
+        "helm_mmlu/Professional Psychology": 0.668,
+        "helm_mmlu/Us Foreign Policy": 0.87,
+        "helm_mmlu/Astronomy": 0.684,
+        "helm_mmlu/Business Ethics": 0.67,
+        "helm_mmlu/Clinical Knowledge": 0.66,
+        "helm_mmlu/Conceptual Physics": 0.621,
+        "helm_mmlu/Electrical Engineering": 0.662,
+        "helm_mmlu/Elementary Mathematics": 0.452,
+        "helm_mmlu/Formal Logic": 0.452,
+        "helm_mmlu/High School World History": 0.785,
+        "helm_mmlu/Human Sexuality": 0.763,
+        "helm_mmlu/International Law": 0.769,
+        "helm_mmlu/Logical Fallacies": 0.779,
+        "helm_mmlu/Machine Learning": 0.411,
+        "helm_mmlu/Management": 0.806,
+        "helm_mmlu/Marketing": 0.893,
+        "helm_mmlu/Medical Genetics": 0.77,
+        "helm_mmlu/Miscellaneous": 0.796,
+        "helm_mmlu/Moral Scenarios": 0.335,
+        "helm_mmlu/Nutrition": 0.739,
+        "helm_mmlu/Prehistory": 0.713,
+        "helm_mmlu/Public Relations": 0.718,
+        "helm_mmlu/Security Studies": 0.735,
+        "helm_mmlu/Sociology": 0.831,
+        "helm_mmlu/Virology": 0.452,
+        "helm_mmlu/World Religions": 0.836,
+        "helm_mmlu/Mean win rate": 0.651
+      }
+    },
+    {
+      "id": "01-ai/yi-large-preview",
+      "name": "Yi Large Preview",
+      "developer": "01-ai",
+      "evaluator_relationship": null,
+      "benchmark_scores": {
+        "helm_lite/Mean win rate": 0.471,
+        "helm_lite/NarrativeQA": 0.373,
+        "helm_lite/NaturalQuestions (closed-book)": 0.428,
+        "helm_lite/OpenbookQA": 0.946,
+        "helm_lite/MMLU": 0.712,
+        "helm_lite/MATH": 0.712,
+        "helm_lite/GSM8K": 0.69,
+        "helm_lite/LegalBench": 0.519,
+        "helm_lite/MedQA": 0.66,
+        "helm_lite/WMT 2014": 0.176,
+        "helm_mmlu/MMLU All Subjects": 0.793,
+        "helm_mmlu/Abstract Algebra": 0.6,
+        "helm_mmlu/Anatomy": 0.83,
+        "helm_mmlu/College Physics": 0.569,
+        "helm_mmlu/Computer Security": 0.86,
+        "helm_mmlu/Econometrics": 0.728,
+        "helm_mmlu/Global Facts": 0.52,
+        "helm_mmlu/Jurisprudence": 0.852,
+        "helm_mmlu/Philosophy": 0.842,
+        "helm_mmlu/Professional Psychology": 0.853,
+        "helm_mmlu/Us Foreign Policy": 0.85,
+        "helm_mmlu/Astronomy": 0.914,
+        "helm_mmlu/Business Ethics": 0.8,
+        "helm_mmlu/Clinical Knowledge": 0.857,
+        "helm_mmlu/Conceptual Physics": 0.864,
+        "helm_mmlu/Electrical Engineering": 0.779,
+        "helm_mmlu/Elementary Mathematics": 0.685,
+        "helm_mmlu/Formal Logic": 0.603,
+        "helm_mmlu/High School World History": 0.928,
+        "helm_mmlu/Human Sexuality": 0.901,
+        "helm_mmlu/International Law": 0.917,
+        "helm_mmlu/Logical Fallacies": 0.865,
+        "helm_mmlu/Machine Learning": 0.616,
+        "helm_mmlu/Management": 0.903,
+        "helm_mmlu/Marketing": 0.927,
+        "helm_mmlu/Medical Genetics": 0.83,
+        "helm_mmlu/Miscellaneous": 0.916,
+        "helm_mmlu/Moral Scenarios": 0.831,
+        "helm_mmlu/Nutrition": 0.846,
+        "helm_mmlu/Prehistory": 0.892,
+        "helm_mmlu/Public Relations": 0.827,
+        "helm_mmlu/Security Studies": 0.82,
+        "helm_mmlu/Sociology": 0.881,
+        "helm_mmlu/Virology": 0.59,
+        "helm_mmlu/World Religions": 0.871,
+        "helm_mmlu/Mean win rate": 0.258
+      }
+    }
+  ]
+}

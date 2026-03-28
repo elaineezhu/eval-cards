@@ -1,0 +1,19 @@
+{
+  "developer": "netease-youdao",
+  "models": [
+    {
+      "id": "netease-youdao/Confucius-o1-14B",
+      "name": "Confucius-o1-14B",
+      "developer": "netease-youdao",
+      "evaluator_relationship": null,
+      "benchmark_scores": {
+        "hfopenllm_v2/IFEval": 0.6378,
+        "hfopenllm_v2/BBH": 0.63,
+        "hfopenllm_v2/MATH Level 5": 0.4313,
+        "hfopenllm_v2/GPQA": 0.3649,
+        "hfopenllm_v2/MUSR": 0.4338,
+        "hfopenllm_v2/MMLU-PRO": 0.5265
+      }
+    }
+  ]
+}

@@ -1,0 +1,19 @@
+{
+  "developer": "Groq",
+  "models": [
+    {
+      "id": "Groq/Llama-3-Groq-8B-Tool-Use",
+      "name": "Llama-3-Groq-8B-Tool-Use",
+      "developer": "Groq",
+      "evaluator_relationship": null,
+      "benchmark_scores": {
+        "hfopenllm_v2/IFEval": 0.6098,
+        "hfopenllm_v2/BBH": 0.4863,
+        "hfopenllm_v2/MATH Level 5": 0.0604,
+        "hfopenllm_v2/GPQA": 0.2676,
+        "hfopenllm_v2/MUSR": 0.366,
+        "hfopenllm_v2/MMLU-PRO": 0.3399
+      }
+    }
+  ]
+}

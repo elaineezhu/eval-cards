@@ -1,0 +1,20 @@
+{
+  "developer": "HFXM",
+  "models": [
+    {
+      "id": "HFXM/RAMO-Llama3.1-8B",
+      "name": "HFXM/RAMO-Llama3.1-8B",
+      "developer": "HFXM",
+      "evaluator_relationship": null,
+      "benchmark_scores": {
+        "reward-bench/Score": 0.6917,
+        "reward-bench/Factuality": 0.6547,
+        "reward-bench/Precise IF": 0.375,
+        "reward-bench/Math": 0.5628,
+        "reward-bench/Safety": 0.9756,
+        "reward-bench/Focus": 0.9071,
+        "reward-bench/Ties": 0.6752
+      }
+    }
+  ]
+}

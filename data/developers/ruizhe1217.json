@@ -1,0 +1,19 @@
+{
+  "developer": "ruizhe1217",
+  "models": [
+    {
+      "id": "ruizhe1217/sft-s1-qwen-0.5b",
+      "name": "sft-s1-qwen-0.5b",
+      "developer": "ruizhe1217",
+      "evaluator_relationship": null,
+      "benchmark_scores": {
+        "hfopenllm_v2/IFEval": 0.2749,
+        "hfopenllm_v2/BBH": 0.3301,
+        "hfopenllm_v2/MATH Level 5": 0.0619,
+        "hfopenllm_v2/GPQA": 0.271,
+        "hfopenllm_v2/MUSR": 0.3196,
+        "hfopenllm_v2/MMLU-PRO": 0.1892
+      }
+    }
+  ]
+}

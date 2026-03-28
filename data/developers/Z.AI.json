@@ -1,0 +1,16 @@
+{
+  "developer": "Z.AI",
+  "models": [
+    {
+      "id": "z-ai/glm-4.5",
+      "name": "z-ai/glm-4.5",
+      "developer": "Z.AI",
+      "evaluator_relationship": null,
+      "benchmark_scores": {
+        "livecodebenchpro/Hard Problems": 0.0,
+        "livecodebenchpro/Medium Problems": 0.028169014084507043,
+        "livecodebenchpro/Easy Problems": 0.1267605633802817
+      }
+    }
+  ]
+}
