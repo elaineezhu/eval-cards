@@ -16,7 +16,7 @@ tags:
 
 # Eval Cards
 
-This repository is a Next.js application for browsing derived model cards and evaluation views from the JSON files in `data/`. It provides a unified interface for inspecting reported AI evaluations, benchmark coverage, reporting provenance, and model-level evidence.
+This repository is a Next.js application for viewing and authoring AI evaluations. It provides a comprehensive platform for documenting and sharing AI system evaluations across multiple dimensions including capabilities and risks.
 
 ## Project Goals
 
@@ -29,15 +29,16 @@ The Eval Cards project aims to:
 
 ## For External Collaborators
 
-### Making Changes to Data and Views
+### Making Changes to Evaluation Categories and Schema
 
-The app is driven directly from the model JSON files in `data/`. Model pages, benchmark pages, and evaluation summaries are derived automatically from those files.
+All evaluation categories, form fields, and data structures are centrally managed in the `schema/` folder. **This is the primary location for making structural changes to the evaluation framework.**
 
-Key implementation areas:
-- **`data/`** - Source-of-truth model JSON files
-- **`lib/model-data.ts`** - Loads and normalizes model files
-- **`lib/eval-processing.ts`** - Derives benchmark and evaluation summaries
-- **`lib/benchmark-schema.ts`** - Shared app-facing types and summary shapes
+Key schema files:
+- **`schema/evaluation-schema.json`** - Defines all evaluation categories (capabilities and risks)
+- **`schema/output-schema.json`** - Defines the complete data structure for evaluation outputs
+- **`schema/system-info-schema.json`** - Defines form field options for system information
+- **`schema/category-details.json`** - Contains detailed descriptions and criteria for each category
+- **`schema/form-hints.json`** - Provides help text and guidance for form fields
 
 ### Standards and Frameworks Used
 
@@ -49,13 +50,13 @@ This ensures consistency with international AI governance standards and facilita
 
 ### Contributing Evaluation Data
 
-Evaluation data files are stored in `data/` as model JSON files. The frontend derives both the model view and the evaluation view automatically from those files.
+Evaluation data files are stored in `public/benchmarks/` as JSON files. Each file represents a complete evaluation of an AI system and must conform to the schema defined in `schema/output-schema.json`.
 
 To add a new evaluation:
-1. Create a new JSON file in `data/`
-2. Follow the existing model-file structure already used in `data/`
-3. Ensure `model_info` and `evaluations` are populated
-4. Reload the app to pick up the new model and derived evaluation summaries
+1. Create a new JSON file in `public/benchmarks/`
+2. Follow the structure defined in `schema/output-schema.json`
+3. Ensure all required fields are populated
+4. Validate against the schema before submission
 
 ### Development Setup
 
@@ -100,4 +101,4 @@ Visit `http://localhost:3000` to verify.
 2. Push this repository to the Space Git (or upload files through the UI). The Space will build the Docker image using the included `Dockerfile` and serve your app on port 3000.
 
 Notes:
-- If your build needs native dependencies (e.g. `sharp`), the Docker image may require extra apt packages; update the Dockerfile accordingly. 
+- If your build needs native dependencies (e.g. `sharp`), the Docker image may require extra apt packages; update the Dockerfile accordingly.
