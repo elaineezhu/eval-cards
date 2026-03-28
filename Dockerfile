@@ -36,6 +36,7 @@ COPY --from=builder /app/package*.json ./
 COPY --from=builder /app/node_modules ./node_modules
 COPY --from=builder /app/.next ./.next
 COPY --from=builder /app/public ./public
+COPY --from=builder /app/data ./data
 COPY --from=builder /app/next.config.mjs ./next.config.mjs
 
 # Expose a common port (informational). Hugging Face Spaces will inject $PORT at runtime
