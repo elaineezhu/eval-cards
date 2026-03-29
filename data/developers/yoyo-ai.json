@@ -105,12 +105,12 @@
       "developer": "YOYO-AI",
       "evaluator_relationship": null,
       "benchmark_scores": {
-        "hfopenllm_v2/IFEval": 0.5899,
-        "hfopenllm_v2/BBH": 0.654,
-        "hfopenllm_v2/MATH Level 5": 0.4509,
-        "hfopenllm_v2/GPQA": 0.3834,
-        "hfopenllm_v2/MUSR": 0.4744,
-        "hfopenllm_v2/MMLU-PRO": 0.5376
+        "hfopenllm_v2/IFEval": 0.7905,
+        "hfopenllm_v2/BBH": 0.6406,
+        "hfopenllm_v2/MATH Level 5": 0.0,
+        "hfopenllm_v2/GPQA": 0.3163,
+        "hfopenllm_v2/MUSR": 0.4181,
+        "hfopenllm_v2/MMLU-PRO": 0.4944
       }
     },
     {

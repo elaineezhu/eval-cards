@@ -77,12 +77,12 @@
       "developer": "UCLA-AGI",
       "evaluator_relationship": null,
       "benchmark_scores": {
-        "hfopenllm_v2/IFEval": 0.6703,
-        "hfopenllm_v2/BBH": 0.5076,
-        "hfopenllm_v2/MATH Level 5": 0.0718,
+        "hfopenllm_v2/IFEval": 0.6834,
+        "hfopenllm_v2/BBH": 0.508,
+        "hfopenllm_v2/MATH Level 5": 0.0959,
         "hfopenllm_v2/GPQA": 0.2651,
-        "hfopenllm_v2/MUSR": 0.3647,
-        "hfopenllm_v2/MMLU-PRO": 0.3658
+        "hfopenllm_v2/MUSR": 0.3661,
+        "hfopenllm_v2/MMLU-PRO": 0.3644
       }
     },
     {

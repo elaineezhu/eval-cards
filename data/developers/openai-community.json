@@ -7,12 +7,12 @@
       "developer": "openai-community",
       "evaluator_relationship": null,
       "benchmark_scores": {
-        "hfopenllm_v2/IFEval": 0.1793,
-        "hfopenllm_v2/BBH": 0.3036,
-        "hfopenllm_v2/MATH Level 5": 0.0023,
+        "hfopenllm_v2/IFEval": 0.178,
+        "hfopenllm_v2/BBH": 0.3017,
+        "hfopenllm_v2/MATH Level 5": 0.0053,
         "hfopenllm_v2/GPQA": 0.2584,
-        "hfopenllm_v2/MUSR": 0.4471,
-        "hfopenllm_v2/MMLU-PRO": 0.1159
+        "hfopenllm_v2/MUSR": 0.439,
+        "hfopenllm_v2/MMLU-PRO": 0.1165
       }
     },
     {

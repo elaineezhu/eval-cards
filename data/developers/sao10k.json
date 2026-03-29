@@ -35,12 +35,12 @@
       "developer": "Sao10K",
       "evaluator_relationship": null,
       "benchmark_scores": {
-        "hfopenllm_v2/IFEval": 0.7384,
-        "hfopenllm_v2/BBH": 0.6471,
-        "hfopenllm_v2/MATH Level 5": 0.2137,
+        "hfopenllm_v2/IFEval": 0.7281,
+        "hfopenllm_v2/BBH": 0.6503,
+        "hfopenllm_v2/MATH Level 5": 0.2243,
         "hfopenllm_v2/GPQA": 0.3314,
-        "hfopenllm_v2/MUSR": 0.4209,
-        "hfopenllm_v2/MMLU-PRO": 0.5104
+        "hfopenllm_v2/MUSR": 0.4196,
+        "hfopenllm_v2/MMLU-PRO": 0.5096
       }
     },
     {

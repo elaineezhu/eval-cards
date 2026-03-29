@@ -140,11 +140,11 @@
       "developer": "OpenAI",
       "evaluator_relationship": null,
       "benchmark_scores": {
+        "apex-agents/Corporate Lawyer Mean Score": 0.376,
         "ace/Overall Score": 0.551,
         "ace/DIY Score": 0.56,
         "ace/Gaming Score": 0.61,
         "ace/Shopping Score": 0.45,
-        "apex-agents/Corporate Lawyer Mean Score": 0.376,
         "apex-v1/Big Law Score": 0.77
       }
     },
@@ -163,16 +163,16 @@
       "developer": "OpenAI",
       "evaluator_relationship": null,
       "benchmark_scores": {
-        "ace/Overall Score": 0.515,
-        "ace/Food Score": 0.65,
-        "ace/Gaming Score": 0.578,
         "apex-agents/Overall Pass@1": 0.23,
         "apex-agents/Overall Pass@8": 0.4,
         "apex-agents/Overall Mean Score": 0.387,
         "apex-agents/Investment Banking Pass@1": 0.273,
         "apex-agents/Management Consulting Pass@1": 0.227,
         "apex-agents/Corporate Law Pass@1": 0.189,
-        "apex-agents/Corporate Lawyer Mean Score": 0.443
+        "apex-agents/Corporate Lawyer Mean Score": 0.443,
+        "ace/Overall Score": 0.515,
+        "ace/Food Score": 0.65,
+        "ace/Gaming Score": 0.578
       }
     },
     {
@@ -931,7 +931,7 @@
       "developer": "OpenAI",
       "evaluator_relationship": null,
       "benchmark_scores": {
-        "terminal-bench-2.0/terminal-bench-2.0": 24.0
+        "terminal-bench-2.0/terminal-bench-2.0": 22.2
       }
     },
     {
@@ -986,7 +986,7 @@
       "developer": "OpenAI",
       "evaluator_relationship": null,
       "benchmark_scores": {
-        "terminal-bench-2.0/terminal-bench-2.0": 53.5
+        "terminal-bench-2.0/terminal-bench-2.0": 36.9
       }
     },
     {
@@ -1013,7 +1013,7 @@
       "developer": "OpenAI",
       "evaluator_relationship": null,
       "benchmark_scores": {
-        "terminal-bench-2.0/terminal-bench-2.0": 60.7
+        "terminal-bench-2.0/terminal-bench-2.0": 64.9
       }
     },
     {
@@ -1022,15 +1022,15 @@
       "developer": "OpenAI",
       "evaluator_relationship": null,
       "benchmark_scores": {
-        "appworld_test_normal/appworld/test_normal": 0.22,
-        "browsecompplus/browsecompplus": 0.46,
+        "appworld_test_normal/appworld/test_normal": 0.071,
+        "browsecompplus/browsecompplus": 0.43,
         "livecodebenchpro/Hard Problems": 0.1594,
         "livecodebenchpro/Medium Problems": 0.5211,
         "livecodebenchpro/Easy Problems": 0.9014,
-        "swe-bench/swe-bench": 0.57,
-        "tau-bench-2_airline/tau-bench-2/airline": 0.6,
-        "tau-bench-2_retail/tau-bench-2/retail": 0.68,
-        "tau-bench-2_telecom/tau-bench-2/telecom": 0.55
+        "swe-bench/swe-bench": 0.58,
+        "tau-bench-2_airline/tau-bench-2/airline": 0.54,
+        "tau-bench-2_retail/tau-bench-2/retail": 0.73,
+        "tau-bench-2_telecom/tau-bench-2/telecom": 0.5354
       }
     },
     {
@@ -1048,7 +1048,7 @@
       "developer": "OpenAI",
       "evaluator_relationship": null,
       "benchmark_scores": {
-        "terminal-bench-2.0/terminal-bench-2.0": 75.1
+        "terminal-bench-2.0/terminal-bench-2.0": 74.6
       }
     },
     {
@@ -1130,7 +1130,7 @@
         "livecodebenchpro/Hard Problems": 0.0,
         "livecodebenchpro/Medium Problems": 0.056338028169014086,
         "livecodebenchpro/Easy Problems": 0.5070422535211268,
-        "terminal-bench-2.0/terminal-bench-2.0": 3.4
+        "terminal-bench-2.0/terminal-bench-2.0": 3.1
       }
     },
     {

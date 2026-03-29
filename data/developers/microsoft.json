@@ -341,12 +341,12 @@
       "developer": "microsoft",
       "evaluator_relationship": null,
       "benchmark_scores": {
-        "hfopenllm_v2/IFEval": 0.0585,
-        "hfopenllm_v2/BBH": 0.6691,
-        "hfopenllm_v2/MATH Level 5": 0.3165,
-        "hfopenllm_v2/GPQA": 0.406,
+        "hfopenllm_v2/IFEval": 0.0488,
+        "hfopenllm_v2/BBH": 0.6703,
+        "hfopenllm_v2/MATH Level 5": 0.2787,
+        "hfopenllm_v2/GPQA": 0.401,
         "hfopenllm_v2/MUSR": 0.5034,
-        "hfopenllm_v2/MMLU-PRO": 0.5287
+        "hfopenllm_v2/MMLU-PRO": 0.5295
       }
     },
     {

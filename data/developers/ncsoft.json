@@ -20,16 +20,16 @@
       "developer": "NCSOFT",
       "evaluator_relationship": null,
       "benchmark_scores": {
-        "reward-bench/Score": 0.648,
-        "reward-bench/Chat": 0.9721,
-        "reward-bench/Chat Hard": 0.818,
-        "reward-bench/Safety": 0.7222,
-        "reward-bench/Reasoning": 0.9192,
+        "reward-bench/Score": 0.8942,
         "reward-bench/Factuality": 0.6084,
         "reward-bench/Precise IF": 0.4,
         "reward-bench/Math": 0.5191,
+        "reward-bench/Safety": 0.8676,
         "reward-bench/Focus": 0.9596,
-        "reward-bench/Ties": 0.6786
+        "reward-bench/Ties": 0.6786,
+        "reward-bench/Chat": 0.9721,
+        "reward-bench/Chat Hard": 0.818,
+        "reward-bench/Reasoning": 0.9192
       }
     },
     {

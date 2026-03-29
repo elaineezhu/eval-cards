@@ -84,7 +84,7 @@
       }
     },
     {
-      "evaluation_id": "terminal-bench-2.0/gemini-cli__gemini-3-flash/1773776901.772108",
+      "evaluation_id": "terminal-bench-2.0/junie-cli__gemini-3-flash/1773776901.772108",
       "retrieved_timestamp": "1773776901.772108",
       "source_metadata": {
         "source_name": "Terminal-Bench 2.0",
@@ -117,17 +117,17 @@
             "max_score": 100.0
           },
           "score_details": {
-            "score": 51.0,
+            "score": 64.3,
             "uncertainty": {
               "standard_error": {
-                "value": 3.0
+                "value": 2.8
               },
               "num_samples": 435
             }
           },
           "generation_config": {
             "generation_args": {
-              "execution_command": "harbor run -d terminal-bench@2.0 -a \"Gemini CLI\" -m \"Gemini 3 Flash\" -k 5",
+              "execution_command": "harbor run -d terminal-bench@2.0 -a \"Junie CLI\" -m \"Gemini 3 Flash\" -k 5",
               "agentic_eval_config": {
                 "available_tools": [
                   {
@@ -144,7 +144,7 @@
       "detailed_evaluation_results": null,
       "generation_config": {
         "generation_args": {
-          "execution_command": "harbor run -d terminal-bench@2.0 -a \"Gemini CLI\" -m \"Gemini 3 Flash\" -k 5",
+          "execution_command": "harbor run -d terminal-bench@2.0 -a \"Junie CLI\" -m \"Gemini 3 Flash\" -k 5",
           "agentic_eval_config": {
             "available_tools": [
               {
@@ -232,7 +232,7 @@
       }
     },
     {
-      "evaluation_id": "terminal-bench-2.0/junie-cli__gemini-3-flash/1773776901.772108",
+      "evaluation_id": "terminal-bench-2.0/gemini-cli__gemini-3-flash/1773776901.772108",
       "retrieved_timestamp": "1773776901.772108",
       "source_metadata": {
         "source_name": "Terminal-Bench 2.0",
@@ -265,17 +265,17 @@
             "max_score": 100.0
           },
           "score_details": {
-            "score": 64.3,
+            "score": 51.0,
             "uncertainty": {
               "standard_error": {
-                "value": 2.8
+                "value": 3.0
               },
               "num_samples": 435
             }
           },
           "generation_config": {
             "generation_args": {
-              "execution_command": "harbor run -d terminal-bench@2.0 -a \"Junie CLI\" -m \"Gemini 3 Flash\" -k 5",
+              "execution_command": "harbor run -d terminal-bench@2.0 -a \"Gemini CLI\" -m \"Gemini 3 Flash\" -k 5",
               "agentic_eval_config": {
                 "available_tools": [
                   {
@@ -292,7 +292,7 @@
       "detailed_evaluation_results": null,
       "generation_config": {
         "generation_args": {
-          "execution_command": "harbor run -d terminal-bench@2.0 -a \"Junie CLI\" -m \"Gemini 3 Flash\" -k 5",
+          "execution_command": "harbor run -d terminal-bench@2.0 -a \"Gemini CLI\" -m \"Gemini 3 Flash\" -k 5",
           "agentic_eval_config": {
             "available_tools": [
               {

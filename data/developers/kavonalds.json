@@ -7,12 +7,12 @@
       "developer": "kavonalds",
       "evaluator_relationship": null,
       "benchmark_scores": {
-        "hfopenllm_v2/IFEval": 0.3283,
-        "hfopenllm_v2/BBH": 0.6651,
+        "hfopenllm_v2/IFEval": 0.2701,
+        "hfopenllm_v2/BBH": 0.5566,
         "hfopenllm_v2/MATH Level 5": 0.068,
-        "hfopenllm_v2/GPQA": 0.2609,
-        "hfopenllm_v2/MUSR": 0.3393,
-        "hfopenllm_v2/MMLU-PRO": 0.1314
+        "hfopenllm_v2/GPQA": 0.2802,
+        "hfopenllm_v2/MUSR": 0.3682,
+        "hfopenllm_v2/MMLU-PRO": 0.1449
       }
     },
     {

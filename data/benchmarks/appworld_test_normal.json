@@ -5,7 +5,7 @@
       "name": "claude-opus-4-5",
       "developer": "Anthropic",
       "scores": {
-        "appworld/test_normal": 0.61
+        "appworld/test_normal": 0.64
       }
     },
     {
@@ -21,7 +21,7 @@
       "name": "gpt-5.2-2025-12-11",
       "developer": "OpenAI",
       "scores": {
-        "appworld/test_normal": 0.22
+        "appworld/test_normal": 0.071
       }
     }
   ]

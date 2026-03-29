@@ -29,7 +29,7 @@
       "name": "Claude Opus 4.5",
       "developer": "Anthropic",
       "scores": {
-        "terminal-bench-2.0": 63.1
+        "terminal-bench-2.0": 52.1
       }
     },
     {
@@ -37,7 +37,7 @@
       "name": "Claude Opus 4.6",
       "developer": "Anthropic",
       "scores": {
-        "terminal-bench-2.0": 62.9
+        "terminal-bench-2.0": 58.0
       }
     },
     {
@@ -61,7 +61,7 @@
       "name": "Gemini 2.5 Flash",
       "developer": "Google",
       "scores": {
-        "terminal-bench-2.0": 16.4
+        "terminal-bench-2.0": 17.1
       }
     },
     {
@@ -69,7 +69,7 @@
       "name": "Gemini 2.5 Pro",
       "developer": "Google",
       "scores": {
-        "terminal-bench-2.0": 16.4
+        "terminal-bench-2.0": 26.1
       }
     },
     {
@@ -77,7 +77,7 @@
       "name": "Gemini 3 Flash",
       "developer": "Google",
       "scores": {
-        "terminal-bench-2.0": 64.3
+        "terminal-bench-2.0": 51.0
       }
     },
     {
@@ -85,7 +85,7 @@
       "name": "Gemini 3 Pro",
       "developer": "Google",
       "scores": {
-        "terminal-bench-2.0": 61.8
+        "terminal-bench-2.0": 62.2
       }
     },
     {
@@ -109,7 +109,7 @@
       "name": "MiniMax M2.1",
       "developer": "MiniMax",
       "scores": {
-        "terminal-bench-2.0": 29.2
+        "terminal-bench-2.0": 36.6
       }
     },
     {
@@ -125,7 +125,7 @@
       "name": "Kimi K2 Instruct",
       "developer": "Moonshot AI",
       "scores": {
-        "terminal-bench-2.0": 27.8
+        "terminal-bench-2.0": 26.7
       }
     },
     {
@@ -173,7 +173,7 @@
       "name": "GPT-5-Mini",
       "developer": "OpenAI",
       "scores": {
-        "terminal-bench-2.0": 24.0
+        "terminal-bench-2.0": 22.2
       }
     },
     {
@@ -197,7 +197,7 @@
       "name": "GPT-5.1-Codex",
       "developer": "OpenAI",
       "scores": {
-        "terminal-bench-2.0": 53.5
+        "terminal-bench-2.0": 36.9
       }
     },
     {
@@ -221,7 +221,7 @@
       "name": "GPT-5.2",
       "developer": "OpenAI",
       "scores": {
-        "terminal-bench-2.0": 60.7
+        "terminal-bench-2.0": 64.9
       }
     },
     {
@@ -237,7 +237,7 @@
       "name": "GPT-5.3-Codex",
       "developer": "OpenAI",
       "scores": {
-        "terminal-bench-2.0": 75.1
+        "terminal-bench-2.0": 74.6
       }
     },
     {
@@ -253,7 +253,7 @@
       "name": "GPT-OSS-20B",
       "developer": "OpenAI",
       "scores": {
-        "terminal-bench-2.0": 3.4
+        "terminal-bench-2.0": 3.1
       }
     },
     {
@@ -269,7 +269,7 @@
       "name": "Grok Code Fast 1",
       "developer": "xAI",
       "scores": {
-        "terminal-bench-2.0": 25.8
+        "terminal-bench-2.0": 14.2
       }
     },
     {

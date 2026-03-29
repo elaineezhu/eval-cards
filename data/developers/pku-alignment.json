@@ -45,17 +45,17 @@
       "developer": "PKU-Alignment",
       "evaluator_relationship": null,
       "benchmark_scores": {
-        "reward-bench/Score": 0.3326,
-        "reward-bench/Chat": 0.5726,
-        "reward-bench/Chat Hard": 0.4561,
-        "reward-bench/Safety": 0.7356,
-        "reward-bench/Reasoning": 0.6211,
-        "reward-bench/Prior Sets (0.5 weight)": 0.5397,
+        "reward-bench/Score": 0.5957,
         "reward-bench/Factuality": 0.3789,
         "reward-bench/Precise IF": 0.275,
         "reward-bench/Math": 0.3333,
+        "reward-bench/Safety": 0.7608,
         "reward-bench/Focus": 0.2828,
-        "reward-bench/Ties": -0.01
+        "reward-bench/Ties": -0.01,
+        "reward-bench/Chat": 0.5726,
+        "reward-bench/Chat Hard": 0.4561,
+        "reward-bench/Reasoning": 0.6211,
+        "reward-bench/Prior Sets (0.5 weight)": 0.5397
       }
     },
     {
@@ -64,17 +64,17 @@
       "developer": "PKU-Alignment",
       "evaluator_relationship": null,
       "benchmark_scores": {
-        "reward-bench/Score": 0.6366,
+        "reward-bench/Score": 0.2544,
+        "reward-bench/Chat": 0.8994,
+        "reward-bench/Chat Hard": 0.364,
+        "reward-bench/Safety": 0.3156,
+        "reward-bench/Reasoning": 0.6887,
+        "reward-bench/Prior Sets (0.5 weight)": 0.6171,
         "reward-bench/Factuality": 0.2168,
         "reward-bench/Precise IF": 0.2562,
         "reward-bench/Math": 0.3825,
-        "reward-bench/Safety": 0.6041,
         "reward-bench/Focus": 0.2606,
-        "reward-bench/Ties": 0.0944,
-        "reward-bench/Chat": 0.8994,
-        "reward-bench/Chat Hard": 0.364,
-        "reward-bench/Reasoning": 0.6887,
-        "reward-bench/Prior Sets (0.5 weight)": 0.6171
+        "reward-bench/Ties": 0.0944
       }
     }
   ]
