@@ -7,12 +7,12 @@
       "developer": "nisten",
       "evaluator_relationship": null,
       "benchmark_scores": {
-        "hfopenllm_v2/IFEval": 0.3914,
-        "hfopenllm_v2/BBH": 0.6591,
-        "hfopenllm_v2/MATH Level 5": 0.3044,
-        "hfopenllm_v2/GPQA": 0.3591,
-        "hfopenllm_v2/MUSR": 0.4681,
-        "hfopenllm_v2/MMLU-PRO": 0.5611
+        "hfopenllm_v2/IFEval": 0.3799,
+        "hfopenllm_v2/BBH": 0.6647,
+        "hfopenllm_v2/MATH Level 5": 0.3406,
+        "hfopenllm_v2/GPQA": 0.4035,
+        "hfopenllm_v2/MUSR": 0.494,
+        "hfopenllm_v2/MMLU-PRO": 0.5731
       }
     },
     {

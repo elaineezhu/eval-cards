@@ -133,12 +133,12 @@
       "developer": "rombodawg",
       "evaluator_relationship": null,
       "benchmark_scores": {
-        "hfopenllm_v2/IFEval": 0.2595,
-        "hfopenllm_v2/BBH": 0.3884,
-        "hfopenllm_v2/MATH Level 5": 0.0914,
-        "hfopenllm_v2/GPQA": 0.2743,
+        "hfopenllm_v2/IFEval": 0.2566,
+        "hfopenllm_v2/BBH": 0.39,
+        "hfopenllm_v2/MATH Level 5": 0.1208,
+        "hfopenllm_v2/GPQA": 0.2626,
         "hfopenllm_v2/MUSR": 0.3991,
-        "hfopenllm_v2/MMLU-PRO": 0.2719
+        "hfopenllm_v2/MMLU-PRO": 0.2741
       }
     },
     {

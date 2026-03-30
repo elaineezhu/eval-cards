@@ -7,12 +7,12 @@
       "developer": "recoilme",
       "evaluator_relationship": null,
       "benchmark_scores": {
-        "hfopenllm_v2/IFEval": 0.7649,
-        "hfopenllm_v2/BBH": 0.5974,
-        "hfopenllm_v2/MATH Level 5": 0.0174,
-        "hfopenllm_v2/GPQA": 0.3305,
-        "hfopenllm_v2/MUSR": 0.4245,
-        "hfopenllm_v2/MMLU-PRO": 0.4207
+        "hfopenllm_v2/IFEval": 0.2854,
+        "hfopenllm_v2/BBH": 0.5984,
+        "hfopenllm_v2/MATH Level 5": 0.1005,
+        "hfopenllm_v2/GPQA": 0.3297,
+        "hfopenllm_v2/MUSR": 0.4607,
+        "hfopenllm_v2/MMLU-PRO": 0.4162
       }
     },
     {

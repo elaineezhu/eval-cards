@@ -205,9 +205,9 @@
       "name": "gpt-5-2025-08-07",
       "developer": "OpenAI",
       "scores": {
-        "Hard Problems": 0.0423,
-        "Medium Problems": 0.4085,
-        "Easy Problems": 0.9014
+        "Hard Problems": 0.04225352112676056,
+        "Medium Problems": 0.4084507042253521,
+        "Easy Problems": 0.8873239436619719
       }
     },
     {
@@ -255,9 +255,9 @@
       "name": "o4-mini-2025-04-16",
       "developer": "OpenAI",
       "scores": {
-        "Hard Problems": 0.014084507042253521,
-        "Medium Problems": 0.30985915492957744,
-        "Easy Problems": 0.8873239436619719
+        "Hard Problems": 0.0143,
+        "Medium Problems": 0.2923,
+        "Easy Problems": 0.8571
       }
     },
     {

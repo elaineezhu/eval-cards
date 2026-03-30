@@ -82,17 +82,17 @@
       "developer": "allenai",
       "evaluator_relationship": null,
       "benchmark_scores": {
-        "reward-bench/Score": 0.649,
-        "reward-bench/Chat": 0.933,
-        "reward-bench/Chat Hard": 0.7785,
-        "reward-bench/Safety": 0.8267,
-        "reward-bench/Reasoning": 0.7886,
-        "reward-bench/Prior Sets (0.5 weight)": 0.0,
+        "reward-bench/Score": 0.8463,
         "reward-bench/Factuality": 0.72,
         "reward-bench/Precise IF": 0.3625,
         "reward-bench/Math": 0.612,
+        "reward-bench/Safety": 0.8851,
         "reward-bench/Focus": 0.8323,
-        "reward-bench/Ties": 0.5406
+        "reward-bench/Ties": 0.5406,
+        "reward-bench/Chat": 0.933,
+        "reward-bench/Chat Hard": 0.7785,
+        "reward-bench/Reasoning": 0.7886,
+        "reward-bench/Prior Sets (0.5 weight)": 0.0
       }
     },
     {
@@ -1532,21 +1532,6 @@
         "reward-bench/Safety": 0.8422,
         "reward-bench/Focus": 0.8404,
         "reward-bench/Ties": 0.6885
-      }
-    },
-    {
-      "id": "allenai/open_instruct_dev-rm_3e-6_1_skyworkstulu75__1__1743534417",
-      "name": "allenai/open_instruct_dev-rm_3e-6_1_skyworkstulu75__1__1743534417",
-      "developer": "allenai",
-      "evaluator_relationship": null,
-      "benchmark_scores": {
-        "reward-bench/Score": 0.586,
-        "reward-bench/Factuality": 0.6632,
-        "reward-bench/Precise IF": 0.425,
-        "reward-bench/Math": 0.6557,
-        "reward-bench/Safety": 0.7778,
-        "reward-bench/Focus": 0.5172,
-        "reward-bench/Ties": 0.477
       }
     },
     {

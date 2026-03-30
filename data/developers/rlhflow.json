@@ -13,17 +13,17 @@
         "hfopenllm_v2/GPQA": 0.2492,
         "hfopenllm_v2/MUSR": 0.3948,
         "hfopenllm_v2/MMLU-PRO": 0.1078,
-        "reward-bench/Score": 0.886,
+        "reward-bench/Score": 0.6646,
+        "reward-bench/Chat": 0.9693,
+        "reward-bench/Chat Hard": 0.7675,
+        "reward-bench/Safety": 0.8222,
+        "reward-bench/Reasoning": 0.9735,
+        "reward-bench/Prior Sets (0.5 weight)": 0.7429,
         "reward-bench/Factuality": 0.6568,
         "reward-bench/Precise IF": 0.4188,
         "reward-bench/Math": 0.6612,
-        "reward-bench/Safety": 0.9054,
         "reward-bench/Focus": 0.7657,
-        "reward-bench/Ties": 0.6629,
-        "reward-bench/Chat": 0.9693,
-        "reward-bench/Chat Hard": 0.7675,
-        "reward-bench/Reasoning": 0.9735,
-        "reward-bench/Prior Sets (0.5 weight)": 0.7429
+        "reward-bench/Ties": 0.6629
       }
     },
     {
