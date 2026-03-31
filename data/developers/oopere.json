@@ -7,12 +7,12 @@
       "developer": "oopere",
       "evaluator_relationship": null,
       "benchmark_scores": {
-        "hfopenllm_v2/IFEval": 0.2164,
-        "hfopenllm_v2/BBH": 0.3169,
-        "hfopenllm_v2/MATH Level 5": 0.0128,
-        "hfopenllm_v2/GPQA": 0.2584,
+        "hfopenllm_v2/IFEval": 0.2119,
+        "hfopenllm_v2/BBH": 0.3156,
+        "hfopenllm_v2/MATH Level 5": 0.0181,
+        "hfopenllm_v2/GPQA": 0.2567,
         "hfopenllm_v2/MUSR": 0.3832,
-        "hfopenllm_v2/MMLU-PRO": 0.1134
+        "hfopenllm_v2/MMLU-PRO": 0.113
       }
     },
     {

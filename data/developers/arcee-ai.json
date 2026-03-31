@@ -49,12 +49,12 @@
       "developer": "arcee-ai",
       "evaluator_relationship": null,
       "benchmark_scores": {
-        "hfopenllm_v2/IFEval": 0.5718,
-        "hfopenllm_v2/BBH": 0.5481,
-        "hfopenllm_v2/MATH Level 5": 0.114,
-        "hfopenllm_v2/GPQA": 0.3062,
-        "hfopenllm_v2/MUSR": 0.4008,
-        "hfopenllm_v2/MMLU-PRO": 0.3813
+        "hfopenllm_v2/IFEval": 0.5621,
+        "hfopenllm_v2/BBH": 0.5489,
+        "hfopenllm_v2/MATH Level 5": 0.2953,
+        "hfopenllm_v2/GPQA": 0.307,
+        "hfopenllm_v2/MUSR": 0.4021,
+        "hfopenllm_v2/MMLU-PRO": 0.3822
       }
     },
     {

@@ -7,17 +7,17 @@
       "developer": "CIR-AMS",
       "evaluator_relationship": null,
       "benchmark_scores": {
-        "reward-bench/Score": 0.5736,
-        "reward-bench/Chat": 0.9749,
-        "reward-bench/Chat Hard": 0.5724,
-        "reward-bench/Safety": 0.7178,
-        "reward-bench/Reasoning": 0.8775,
-        "reward-bench/Prior Sets (0.5 weight)": 0.7029,
+        "reward-bench/Score": 0.8172,
         "reward-bench/Factuality": 0.5347,
         "reward-bench/Precise IF": 0.3563,
         "reward-bench/Math": 0.6066,
+        "reward-bench/Safety": 0.9014,
         "reward-bench/Focus": 0.5737,
-        "reward-bench/Ties": 0.6527
+        "reward-bench/Ties": 0.6527,
+        "reward-bench/Chat": 0.9749,
+        "reward-bench/Chat Hard": 0.5724,
+        "reward-bench/Reasoning": 0.8775,
+        "reward-bench/Prior Sets (0.5 weight)": 0.7029
       }
     }
   ]

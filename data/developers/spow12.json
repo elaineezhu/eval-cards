@@ -49,12 +49,12 @@
       "developer": "spow12",
       "evaluator_relationship": null,
       "benchmark_scores": {
-        "hfopenllm_v2/IFEval": 0.6511,
-        "hfopenllm_v2/BBH": 0.5926,
-        "hfopenllm_v2/MATH Level 5": 0.1858,
-        "hfopenllm_v2/GPQA": 0.3247,
+        "hfopenllm_v2/IFEval": 0.6517,
+        "hfopenllm_v2/BBH": 0.5908,
+        "hfopenllm_v2/MATH Level 5": 0.2032,
+        "hfopenllm_v2/GPQA": 0.3238,
         "hfopenllm_v2/MUSR": 0.3842,
-        "hfopenllm_v2/MMLU-PRO": 0.3836
+        "hfopenllm_v2/MMLU-PRO": 0.3812
       }
     }
   ]

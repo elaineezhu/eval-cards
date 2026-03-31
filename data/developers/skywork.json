@@ -89,16 +89,16 @@
       "developer": "Skywork",
       "evaluator_relationship": null,
       "benchmark_scores": {
-        "reward-bench/Score": 0.7314,
-        "reward-bench/Chat": 0.9581,
-        "reward-bench/Chat Hard": 0.8728,
-        "reward-bench/Safety": 0.9333,
-        "reward-bench/Reasoning": 0.962,
+        "reward-bench/Score": 0.9252,
         "reward-bench/Factuality": 0.6989,
         "reward-bench/Precise IF": 0.425,
         "reward-bench/Math": 0.6284,
+        "reward-bench/Safety": 0.9081,
         "reward-bench/Focus": 0.9616,
-        "reward-bench/Ties": 0.741
+        "reward-bench/Ties": 0.741,
+        "reward-bench/Chat": 0.9581,
+        "reward-bench/Chat Hard": 0.8728,
+        "reward-bench/Reasoning": 0.962
       }
     },
     {

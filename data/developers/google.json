@@ -118,6 +118,8 @@
       "developer": "Google",
       "evaluator_relationship": null,
       "benchmark_scores": {
+        "ace/Overall Score": 0.38,
+        "ace/Gaming Score": 0.284,
         "apex-v1/Overall Score": 0.604
       }
     },
@@ -137,7 +139,6 @@
       "developer": "Google",
       "evaluator_relationship": null,
       "benchmark_scores": {
-        "ace/Gaming Score": 0.415,
         "apex-agents/Overall Pass@1": 0.24,
         "apex-agents/Overall Pass@8": 0.367,
         "apex-agents/Overall Mean Score": 0.395,
@@ -145,6 +146,7 @@
         "apex-agents/Management Consulting Pass@1": 0.193,
         "apex-agents/Corporate Law Pass@1": 0.259,
         "apex-agents/Corporate Lawyer Mean Score": 0.524,
+        "ace/Gaming Score": 0.415,
         "apex-v1/Overall Score": 0.64,
         "apex-v1/Consulting Score": 0.64
       }
@@ -155,6 +157,8 @@
       "developer": "Google",
       "evaluator_relationship": null,
       "benchmark_scores": {
+        "ace/Overall Score": 0.47,
+        "ace/Gaming Score": 0.509,
         "apex-agents/Overall Pass@1": 0.184,
         "apex-agents/Overall Pass@8": 0.373,
         "apex-agents/Overall Mean Score": 0.341,
@@ -162,8 +166,6 @@
         "apex-agents/Management Consulting Pass@1": 0.124,
         "apex-agents/Corporate Law Pass@1": 0.239,
         "apex-agents/Corporate Lawyer Mean Score": 0.487,
-        "ace/Overall Score": 0.47,
-        "ace/Gaming Score": 0.509,
         "apex-v1/Overall Score": 0.643,
         "apex-v1/Consulting Score": 0.64,
         "apex-v1/Investment Banking Score": 0.63
@@ -859,7 +861,7 @@
       "developer": "Google",
       "evaluator_relationship": null,
       "benchmark_scores": {
-        "terminal-bench-2.0/terminal-bench-2.0": 51.0
+        "terminal-bench-2.0/terminal-bench-2.0": 64.3
       }
     },
     {
@@ -868,7 +870,7 @@
       "developer": "Google",
       "evaluator_relationship": null,
       "benchmark_scores": {
-        "terminal-bench-2.0/terminal-bench-2.0": 62.2
+        "terminal-bench-2.0/terminal-bench-2.0": 56.9
       }
     },
     {
@@ -877,7 +879,7 @@
       "developer": "Google",
       "evaluator_relationship": null,
       "benchmark_scores": {
-        "appworld_test_normal/appworld/test_normal": 0.582,
+        "appworld_test_normal/appworld/test_normal": 0.505,
         "browsecompplus/browsecompplus": 0.48,
         "global-mmlu-lite/Global MMLU Lite": 0.9453,
         "global-mmlu-lite/Culturally Sensitive": 0.9397,
@@ -898,10 +900,10 @@
         "global-mmlu-lite/Yoruba": 0.9425,
         "global-mmlu-lite/Chinese": 0.9475,
         "global-mmlu-lite/Burmese": 0.9425,
-        "swe-bench/swe-bench": 0.67,
+        "swe-bench/swe-bench": 0.71,
         "tau-bench-2_airline/tau-bench-2/airline": 0.7,
-        "tau-bench-2_retail/tau-bench-2/retail": 0.73,
-        "tau-bench-2_telecom/tau-bench-2/telecom": 0.73
+        "tau-bench-2_retail/tau-bench-2/retail": 0.7805,
+        "tau-bench-2_telecom/tau-bench-2/telecom": 0.88
       }
     },
     {
@@ -910,7 +912,7 @@
       "developer": "Google",
       "evaluator_relationship": null,
       "benchmark_scores": {
-        "terminal-bench-2.0/terminal-bench-2.0": 74.8
+        "terminal-bench-2.0/terminal-bench-2.0": 78.4
       }
     },
     {
@@ -1054,12 +1056,12 @@
       "developer": "Google",
       "evaluator_relationship": null,
       "benchmark_scores": {
-        "hfopenllm_v2/IFEval": 0.5288,
-        "hfopenllm_v2/BBH": 0.4178,
-        "hfopenllm_v2/MATH Level 5": 0.0476,
-        "hfopenllm_v2/GPQA": 0.2752,
-        "hfopenllm_v2/MUSR": 0.3728,
-        "hfopenllm_v2/MMLU-PRO": 0.2467
+        "hfopenllm_v2/IFEval": 0.5078,
+        "hfopenllm_v2/BBH": 0.4226,
+        "hfopenllm_v2/MATH Level 5": 0.0347,
+        "hfopenllm_v2/GPQA": 0.2852,
+        "hfopenllm_v2/MUSR": 0.3964,
+        "hfopenllm_v2/MMLU-PRO": 0.2578
       }
     },
     {

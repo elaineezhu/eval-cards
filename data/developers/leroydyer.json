@@ -707,12 +707,12 @@
       "developer": "LeroyDyer",
       "evaluator_relationship": null,
       "benchmark_scores": {
-        "hfopenllm_v2/IFEval": 0.3798,
-        "hfopenllm_v2/BBH": 0.4483,
-        "hfopenllm_v2/MATH Level 5": 0.04,
-        "hfopenllm_v2/GPQA": 0.3129,
-        "hfopenllm_v2/MUSR": 0.4148,
-        "hfopenllm_v2/MMLU-PRO": 0.2389
+        "hfopenllm_v2/IFEval": 0.3579,
+        "hfopenllm_v2/BBH": 0.4477,
+        "hfopenllm_v2/MATH Level 5": 0.0423,
+        "hfopenllm_v2/GPQA": 0.3096,
+        "hfopenllm_v2/MUSR": 0.4134,
+        "hfopenllm_v2/MMLU-PRO": 0.2376
       }
     },
     {

@@ -28,6 +28,15 @@
       }
     },
     {
+      "model_id": "google/Gemini 2.5 Flash",
+      "name": "Gemini 2.5 Flash",
+      "developer": "Google",
+      "scores": {
+        "Overall Score": 0.38,
+        "Gaming Score": 0.284
+      }
+    },
+    {
       "model_id": "google/Gemini 2.5 Pro",
       "name": "Gemini 2.5 Pro",
       "developer": "Google",

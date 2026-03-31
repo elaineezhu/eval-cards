@@ -7,6 +7,53 @@
   },
   "evaluations": [
     {
+      "evaluation_id": "apex-agents/openai_gpt-5.1/1773260200",
+      "retrieved_timestamp": "1773260200",
+      "source_metadata": {
+        "source_name": "Mercor APEX-Agents Leaderboard",
+        "source_type": "evaluation_run",
+        "source_organization_name": "Mercor",
+        "source_organization_url": "https://www.mercor.com",
+        "evaluator_relationship": "first_party"
+      },
+      "eval_library": {
+        "name": "archipelago",
+        "version": "1.0.0"
+      },
+      "benchmark": "apex-agents",
+      "evaluation_results": [
+        {
+          "evaluation_name": "Corporate Lawyer Mean Score",
+          "source_data": {
+            "dataset_name": "apex-agents",
+            "source_type": "hf_dataset",
+            "hf_repo": "mercor/apex-agents"
+          },
+          "metric_config": {
+            "evaluation_description": "Corporate lawyer world mean score.",
+            "lower_is_better": false,
+            "score_type": "continuous",
+            "min_score": 0,
+            "max_score": 1
+          },
+          "score_details": {
+            "score": 0.376
+          },
+          "generation_config": {
+            "additional_details": {
+              "run_setting": "High"
+            }
+          }
+        }
+      ],
+      "detailed_evaluation_results": null,
+      "generation_config": {
+        "additional_details": {
+          "run_setting": "High"
+        }
+      }
+    },
+    {
       "evaluation_id": "ace/openai_gpt-5.1/1773260200",
       "retrieved_timestamp": "1773260200",
       "source_metadata": {
@@ -114,53 +161,6 @@
           },
           "score_details": {
             "score": 0.45
-          },
-          "generation_config": {
-            "additional_details": {
-              "run_setting": "High"
-            }
-          }
-        }
-      ],
-      "detailed_evaluation_results": null,
-      "generation_config": {
-        "additional_details": {
-          "run_setting": "High"
-        }
-      }
-    },
-    {
-      "evaluation_id": "apex-agents/openai_gpt-5.1/1773260200",
-      "retrieved_timestamp": "1773260200",
-      "source_metadata": {
-        "source_name": "Mercor APEX-Agents Leaderboard",
-        "source_type": "evaluation_run",
-        "source_organization_name": "Mercor",
-        "source_organization_url": "https://www.mercor.com",
-        "evaluator_relationship": "first_party"
-      },
-      "eval_library": {
-        "name": "archipelago",
-        "version": "1.0.0"
-      },
-      "benchmark": "apex-agents",
-      "evaluation_results": [
-        {
-          "evaluation_name": "Corporate Lawyer Mean Score",
-          "source_data": {
-            "dataset_name": "apex-agents",
-            "source_type": "hf_dataset",
-            "hf_repo": "mercor/apex-agents"
-          },
-          "metric_config": {
-            "evaluation_description": "Corporate lawyer world mean score.",
-            "lower_is_better": false,
-            "score_type": "continuous",
-            "min_score": 0,
-            "max_score": 1
-          },
-          "score_details": {
-            "score": 0.376
           },
           "generation_config": {
             "additional_details": {

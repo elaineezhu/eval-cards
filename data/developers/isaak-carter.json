@@ -35,12 +35,12 @@
       "developer": "Isaak-Carter",
       "evaluator_relationship": null,
       "benchmark_scores": {
-        "hfopenllm_v2/IFEval": 0.2553,
-        "hfopenllm_v2/BBH": 0.4725,
-        "hfopenllm_v2/MATH Level 5": 0.0529,
-        "hfopenllm_v2/GPQA": 0.2919,
-        "hfopenllm_v2/MUSR": 0.3654,
-        "hfopenllm_v2/MMLU-PRO": 0.3316
+        "hfopenllm_v2/IFEval": 0.2477,
+        "hfopenllm_v2/BBH": 0.4758,
+        "hfopenllm_v2/MATH Level 5": 0.0453,
+        "hfopenllm_v2/GPQA": 0.2911,
+        "hfopenllm_v2/MUSR": 0.3641,
+        "hfopenllm_v2/MMLU-PRO": 0.3292
       }
     }
   ]

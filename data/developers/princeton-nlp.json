@@ -49,12 +49,12 @@
       "developer": "princeton-nlp",
       "evaluator_relationship": null,
       "benchmark_scores": {
-        "hfopenllm_v2/IFEval": 0.3978,
-        "hfopenllm_v2/BBH": 0.4983,
-        "hfopenllm_v2/MATH Level 5": 0.0582,
-        "hfopenllm_v2/GPQA": 0.281,
-        "hfopenllm_v2/MUSR": 0.425,
-        "hfopenllm_v2/MMLU-PRO": 0.3246
+        "hfopenllm_v2/IFEval": 0.5508,
+        "hfopenllm_v2/BBH": 0.5028,
+        "hfopenllm_v2/MATH Level 5": 0.0529,
+        "hfopenllm_v2/GPQA": 0.2861,
+        "hfopenllm_v2/MUSR": 0.4266,
+        "hfopenllm_v2/MMLU-PRO": 0.3231
       }
     },
     {

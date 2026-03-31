@@ -105,12 +105,12 @@
       "developer": "Quazim0t0",
       "evaluator_relationship": null,
       "benchmark_scores": {
-        "hfopenllm_v2/IFEval": 0.6718,
-        "hfopenllm_v2/BBH": 0.6891,
-        "hfopenllm_v2/MATH Level 5": 0.4985,
-        "hfopenllm_v2/GPQA": 0.3339,
-        "hfopenllm_v2/MUSR": 0.4323,
-        "hfopenllm_v2/MMLU-PRO": 0.5408
+        "hfopenllm_v2/IFEval": 0.6654,
+        "hfopenllm_v2/BBH": 0.6901,
+        "hfopenllm_v2/MATH Level 5": 0.4698,
+        "hfopenllm_v2/GPQA": 0.3331,
+        "hfopenllm_v2/MUSR": 0.431,
+        "hfopenllm_v2/MMLU-PRO": 0.5426
       }
     },
     {
