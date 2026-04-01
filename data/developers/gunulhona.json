@@ -21,12 +21,12 @@
       "developer": "Gunulhona",
       "evaluator_relationship": null,
       "benchmark_scores": {
-        "hfopenllm_v2/IFEval": 0.4441,
-        "hfopenllm_v2/BBH": 0.4863,
+        "hfopenllm_v2/IFEval": 0.288,
+        "hfopenllm_v2/BBH": 0.5154,
         "hfopenllm_v2/MATH Level 5": 0.0,
-        "hfopenllm_v2/GPQA": 0.307,
-        "hfopenllm_v2/MUSR": 0.3986,
-        "hfopenllm_v2/MMLU-PRO": 0.3098
+        "hfopenllm_v2/GPQA": 0.3247,
+        "hfopenllm_v2/MUSR": 0.408,
+        "hfopenllm_v2/MMLU-PRO": 0.3817
       }
     }
   ]

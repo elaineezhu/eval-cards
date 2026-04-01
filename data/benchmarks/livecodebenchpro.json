@@ -255,9 +255,9 @@
       "name": "o4-mini-2025-04-16",
       "developer": "OpenAI",
       "scores": {
-        "Hard Problems": 0.0143,
-        "Medium Problems": 0.2923,
-        "Easy Problems": 0.8571
+        "Hard Problems": 0.014084507042253521,
+        "Medium Problems": 0.30985915492957744,
+        "Easy Problems": 0.8873239436619719
       }
     },
     {

@@ -43,9 +43,9 @@
       "developer": "AI2",
       "evaluator_relationship": null,
       "benchmark_scores": {
-        "reward-bench/Score": 0.6924,
-        "reward-bench/Chat": 0.9441,
-        "reward-bench/Chat Hard": 0.3575,
+        "reward-bench/Score": 0.7008,
+        "reward-bench/Chat": 0.9385,
+        "reward-bench/Chat Hard": 0.3882,
         "reward-bench/Safety": 0.7757
       }
     },

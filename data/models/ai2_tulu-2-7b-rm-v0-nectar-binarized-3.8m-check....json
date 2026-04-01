@@ -38,198 +38,6 @@
             "max_score": 1.0
           },
           "score_details": {
-            "score": 0.6895
-          },
-          "source_data": {
-            "dataset_name": "RewardBench",
-            "source_type": "hf_dataset",
-            "hf_repo": "allenai/reward-bench"
-          }
-        },
-        {
-          "evaluation_name": "Chat",
-          "metric_config": {
-            "evaluation_description": "Chat accuracy - includes easy chat subsets",
-            "lower_is_better": false,
-            "score_type": "continuous",
-            "min_score": 0.0,
-            "max_score": 1.0
-          },
-          "score_details": {
-            "score": 0.9385
-          },
-          "source_data": {
-            "dataset_name": "RewardBench",
-            "source_type": "hf_dataset",
-            "hf_repo": "allenai/reward-bench"
-          }
-        },
-        {
-          "evaluation_name": "Chat Hard",
-          "metric_config": {
-            "evaluation_description": "Chat Hard accuracy - includes hard chat subsets",
-            "lower_is_better": false,
-            "score_type": "continuous",
-            "min_score": 0.0,
-            "max_score": 1.0
-          },
-          "score_details": {
-            "score": 0.3706
-          },
-          "source_data": {
-            "dataset_name": "RewardBench",
-            "source_type": "hf_dataset",
-            "hf_repo": "allenai/reward-bench"
-          }
-        },
-        {
-          "evaluation_name": "Safety",
-          "metric_config": {
-            "evaluation_description": "Safety accuracy - includes safety subsets",
-            "lower_is_better": false,
-            "score_type": "continuous",
-            "min_score": 0.0,
-            "max_score": 1.0
-          },
-          "score_details": {
-            "score": 0.7595
-          },
-          "source_data": {
-            "dataset_name": "RewardBench",
-            "source_type": "hf_dataset",
-            "hf_repo": "allenai/reward-bench"
-          }
-        }
-      ],
-      "detailed_evaluation_results": null,
-      "generation_config": null
-    },
-    {
-      "evaluation_id": "reward-bench/ai2_tulu-2-7b-rm-v0-nectar-binarized-3.8m-check.../1766412838.146816",
-      "retrieved_timestamp": "1766412838.146816",
-      "source_metadata": {
-        "source_name": "RewardBench",
-        "source_type": "documentation",
-        "source_organization_name": "Allen Institute for AI",
-        "source_organization_url": "https://allenai.org",
-        "evaluator_relationship": "third_party"
-      },
-      "eval_library": {
-        "name": "rewardbench",
-        "version": "0.1.3",
-        "additional_details": {
-          "subsets": "Chat, Chat Hard, Safety, Reasoning",
-          "hf_space": "allenai/reward-bench"
-        }
-      },
-      "benchmark": "reward-bench",
-      "evaluation_results": [
-        {
-          "evaluation_name": "Score",
-          "metric_config": {
-            "evaluation_description": "Overall RewardBench Score",
-            "lower_is_better": false,
-            "score_type": "continuous",
-            "min_score": 0.0,
-            "max_score": 1.0
-          },
-          "score_details": {
-            "score": 0.6945
-          },
-          "source_data": {
-            "dataset_name": "RewardBench",
-            "source_type": "hf_dataset",
-            "hf_repo": "allenai/reward-bench"
-          }
-        },
-        {
-          "evaluation_name": "Chat",
-          "metric_config": {
-            "evaluation_description": "Chat accuracy - includes easy chat subsets",
-            "lower_is_better": false,
-            "score_type": "continuous",
-            "min_score": 0.0,
-            "max_score": 1.0
-          },
-          "score_details": {
-            "score": 0.9385
-          },
-          "source_data": {
-            "dataset_name": "RewardBench",
-            "source_type": "hf_dataset",
-            "hf_repo": "allenai/reward-bench"
-          }
-        },
-        {
-          "evaluation_name": "Chat Hard",
-          "metric_config": {
-            "evaluation_description": "Chat Hard accuracy - includes hard chat subsets",
-            "lower_is_better": false,
-            "score_type": "continuous",
-            "min_score": 0.0,
-            "max_score": 1.0
-          },
-          "score_details": {
-            "score": 0.3706
-          },
-          "source_data": {
-            "dataset_name": "RewardBench",
-            "source_type": "hf_dataset",
-            "hf_repo": "allenai/reward-bench"
-          }
-        },
-        {
-          "evaluation_name": "Safety",
-          "metric_config": {
-            "evaluation_description": "Safety accuracy - includes safety subsets",
-            "lower_is_better": false,
-            "score_type": "continuous",
-            "min_score": 0.0,
-            "max_score": 1.0
-          },
-          "score_details": {
-            "score": 0.7743
-          },
-          "source_data": {
-            "dataset_name": "RewardBench",
-            "source_type": "hf_dataset",
-            "hf_repo": "allenai/reward-bench"
-          }
-        }
-      ],
-      "detailed_evaluation_results": null,
-      "generation_config": null
-    },
-    {
-      "evaluation_id": "reward-bench/ai2_tulu-2-7b-rm-v0-nectar-binarized-3.8m-check.../1766412838.146816",
-      "retrieved_timestamp": "1766412838.146816",
-      "source_metadata": {
-        "source_name": "RewardBench",
-        "source_type": "documentation",
-        "source_organization_name": "Allen Institute for AI",
-        "source_organization_url": "https://allenai.org",
-        "evaluator_relationship": "third_party"
-      },
-      "eval_library": {
-        "name": "rewardbench",
-        "version": "0.1.3",
-        "additional_details": {
-          "subsets": "Chat, Chat Hard, Safety, Reasoning",
-          "hf_space": "allenai/reward-bench"
-        }
-      },
-      "benchmark": "reward-bench",
-      "evaluation_results": [
-        {
-          "evaluation_name": "Score",
-          "metric_config": {
-            "evaluation_description": "Overall RewardBench Score",
-            "lower_is_better": false,
-            "score_type": "continuous",
-            "min_score": 0.0,
-            "max_score": 1.0
-          },
-          "score_details": {
             "score": 0.6905
           },
           "source_data": {
@@ -326,7 +134,7 @@
             "max_score": 1.0
           },
           "score_details": {
-            "score": 0.7008
+            "score": 0.7004
           },
           "source_data": {
             "dataset_name": "RewardBench",
@@ -344,7 +152,7 @@
             "max_score": 1.0
           },
           "score_details": {
-            "score": 0.9385
+            "score": 0.9413
           },
           "source_data": {
             "dataset_name": "RewardBench",
@@ -380,7 +188,7 @@
             "max_score": 1.0
           },
           "score_details": {
-            "score": 0.7757
+            "score": 0.7716
           },
           "source_data": {
             "dataset_name": "RewardBench",
@@ -422,7 +230,7 @@
             "max_score": 1.0
           },
           "score_details": {
-            "score": 0.7019
+            "score": 0.6945
           },
           "source_data": {
             "dataset_name": "RewardBench",
@@ -440,7 +248,7 @@
             "max_score": 1.0
           },
           "score_details": {
-            "score": 0.9497
+            "score": 0.9385
           },
           "source_data": {
             "dataset_name": "RewardBench",
@@ -458,7 +266,7 @@
             "max_score": 1.0
           },
           "score_details": {
-            "score": 0.375
+            "score": 0.3706
           },
           "source_data": {
             "dataset_name": "RewardBench",
@@ -476,7 +284,7 @@
             "max_score": 1.0
           },
           "score_details": {
-            "score": 0.7811
+            "score": 0.7743
           },
           "source_data": {
             "dataset_name": "RewardBench",
@@ -710,7 +518,7 @@
             "max_score": 1.0
           },
           "score_details": {
-            "score": 0.7004
+            "score": 0.6924
           },
           "source_data": {
             "dataset_name": "RewardBench",
@@ -728,7 +536,7 @@
             "max_score": 1.0
           },
           "score_details": {
-            "score": 0.9413
+            "score": 0.9441
           },
           "source_data": {
             "dataset_name": "RewardBench",
@@ -746,7 +554,7 @@
             "max_score": 1.0
           },
           "score_details": {
-            "score": 0.3882
+            "score": 0.3575
           },
           "source_data": {
             "dataset_name": "RewardBench",
@@ -764,7 +572,7 @@
             "max_score": 1.0
           },
           "score_details": {
-            "score": 0.7716
+            "score": 0.7757
           },
           "source_data": {
             "dataset_name": "RewardBench",
@@ -806,7 +614,7 @@
             "max_score": 1.0
           },
           "score_details": {
-            "score": 0.6924
+            "score": 0.7019
           },
           "source_data": {
             "dataset_name": "RewardBench",
@@ -824,7 +632,7 @@
             "max_score": 1.0
           },
           "score_details": {
-            "score": 0.9441
+            "score": 0.9497
           },
           "source_data": {
             "dataset_name": "RewardBench",
@@ -842,7 +650,199 @@
             "max_score": 1.0
           },
           "score_details": {
-            "score": 0.3575
+            "score": 0.375
+          },
+          "source_data": {
+            "dataset_name": "RewardBench",
+            "source_type": "hf_dataset",
+            "hf_repo": "allenai/reward-bench"
+          }
+        },
+        {
+          "evaluation_name": "Safety",
+          "metric_config": {
+            "evaluation_description": "Safety accuracy - includes safety subsets",
+            "lower_is_better": false,
+            "score_type": "continuous",
+            "min_score": 0.0,
+            "max_score": 1.0
+          },
+          "score_details": {
+            "score": 0.7811
+          },
+          "source_data": {
+            "dataset_name": "RewardBench",
+            "source_type": "hf_dataset",
+            "hf_repo": "allenai/reward-bench"
+          }
+        }
+      ],
+      "detailed_evaluation_results": null,
+      "generation_config": null
+    },
+    {
+      "evaluation_id": "reward-bench/ai2_tulu-2-7b-rm-v0-nectar-binarized-3.8m-check.../1766412838.146816",
+      "retrieved_timestamp": "1766412838.146816",
+      "source_metadata": {
+        "source_name": "RewardBench",
+        "source_type": "documentation",
+        "source_organization_name": "Allen Institute for AI",
+        "source_organization_url": "https://allenai.org",
+        "evaluator_relationship": "third_party"
+      },
+      "eval_library": {
+        "name": "rewardbench",
+        "version": "0.1.3",
+        "additional_details": {
+          "subsets": "Chat, Chat Hard, Safety, Reasoning",
+          "hf_space": "allenai/reward-bench"
+        }
+      },
+      "benchmark": "reward-bench",
+      "evaluation_results": [
+        {
+          "evaluation_name": "Score",
+          "metric_config": {
+            "evaluation_description": "Overall RewardBench Score",
+            "lower_is_better": false,
+            "score_type": "continuous",
+            "min_score": 0.0,
+            "max_score": 1.0
+          },
+          "score_details": {
+            "score": 0.6895
+          },
+          "source_data": {
+            "dataset_name": "RewardBench",
+            "source_type": "hf_dataset",
+            "hf_repo": "allenai/reward-bench"
+          }
+        },
+        {
+          "evaluation_name": "Chat",
+          "metric_config": {
+            "evaluation_description": "Chat accuracy - includes easy chat subsets",
+            "lower_is_better": false,
+            "score_type": "continuous",
+            "min_score": 0.0,
+            "max_score": 1.0
+          },
+          "score_details": {
+            "score": 0.9385
+          },
+          "source_data": {
+            "dataset_name": "RewardBench",
+            "source_type": "hf_dataset",
+            "hf_repo": "allenai/reward-bench"
+          }
+        },
+        {
+          "evaluation_name": "Chat Hard",
+          "metric_config": {
+            "evaluation_description": "Chat Hard accuracy - includes hard chat subsets",
+            "lower_is_better": false,
+            "score_type": "continuous",
+            "min_score": 0.0,
+            "max_score": 1.0
+          },
+          "score_details": {
+            "score": 0.3706
+          },
+          "source_data": {
+            "dataset_name": "RewardBench",
+            "source_type": "hf_dataset",
+            "hf_repo": "allenai/reward-bench"
+          }
+        },
+        {
+          "evaluation_name": "Safety",
+          "metric_config": {
+            "evaluation_description": "Safety accuracy - includes safety subsets",
+            "lower_is_better": false,
+            "score_type": "continuous",
+            "min_score": 0.0,
+            "max_score": 1.0
+          },
+          "score_details": {
+            "score": 0.7595
+          },
+          "source_data": {
+            "dataset_name": "RewardBench",
+            "source_type": "hf_dataset",
+            "hf_repo": "allenai/reward-bench"
+          }
+        }
+      ],
+      "detailed_evaluation_results": null,
+      "generation_config": null
+    },
+    {
+      "evaluation_id": "reward-bench/ai2_tulu-2-7b-rm-v0-nectar-binarized-3.8m-check.../1766412838.146816",
+      "retrieved_timestamp": "1766412838.146816",
+      "source_metadata": {
+        "source_name": "RewardBench",
+        "source_type": "documentation",
+        "source_organization_name": "Allen Institute for AI",
+        "source_organization_url": "https://allenai.org",
+        "evaluator_relationship": "third_party"
+      },
+      "eval_library": {
+        "name": "rewardbench",
+        "version": "0.1.3",
+        "additional_details": {
+          "subsets": "Chat, Chat Hard, Safety, Reasoning",
+          "hf_space": "allenai/reward-bench"
+        }
+      },
+      "benchmark": "reward-bench",
+      "evaluation_results": [
+        {
+          "evaluation_name": "Score",
+          "metric_config": {
+            "evaluation_description": "Overall RewardBench Score",
+            "lower_is_better": false,
+            "score_type": "continuous",
+            "min_score": 0.0,
+            "max_score": 1.0
+          },
+          "score_details": {
+            "score": 0.7008
+          },
+          "source_data": {
+            "dataset_name": "RewardBench",
+            "source_type": "hf_dataset",
+            "hf_repo": "allenai/reward-bench"
+          }
+        },
+        {
+          "evaluation_name": "Chat",
+          "metric_config": {
+            "evaluation_description": "Chat accuracy - includes easy chat subsets",
+            "lower_is_better": false,
+            "score_type": "continuous",
+            "min_score": 0.0,
+            "max_score": 1.0
+          },
+          "score_details": {
+            "score": 0.9385
+          },
+          "source_data": {
+            "dataset_name": "RewardBench",
+            "source_type": "hf_dataset",
+            "hf_repo": "allenai/reward-bench"
+          }
+        },
+        {
+          "evaluation_name": "Chat Hard",
+          "metric_config": {
+            "evaluation_description": "Chat Hard accuracy - includes hard chat subsets",
+            "lower_is_better": false,
+            "score_type": "continuous",
+            "min_score": 0.0,
+            "max_score": 1.0
+          },
+          "score_details": {
+            "score": 0.3882
           },
           "source_data": {
             "dataset_name": "RewardBench",

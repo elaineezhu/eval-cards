@@ -7,12 +7,12 @@
       "developer": "VIRNECT",
       "evaluator_relationship": null,
       "benchmark_scores": {
-        "hfopenllm_v2/IFEval": 0.5058,
-        "hfopenllm_v2/BBH": 0.4908,
-        "hfopenllm_v2/MATH Level 5": 0.0929,
+        "hfopenllm_v2/IFEval": 0.5021,
+        "hfopenllm_v2/BBH": 0.4918,
+        "hfopenllm_v2/MATH Level 5": 0.108,
         "hfopenllm_v2/GPQA": 0.271,
-        "hfopenllm_v2/MUSR": 0.3662,
-        "hfopenllm_v2/MMLU-PRO": 0.3539
+        "hfopenllm_v2/MUSR": 0.3648,
+        "hfopenllm_v2/MMLU-PRO": 0.3536
       }
     },
     {

@@ -142,6 +142,120 @@
       "generation_config": null
     },
     {
+      "evaluation_id": "reward-bench/Skywork_Skywork-Reward-Gemma-2-27B-v0.2/1766412838.146816",
+      "retrieved_timestamp": "1766412838.146816",
+      "source_metadata": {
+        "source_name": "RewardBench",
+        "source_type": "documentation",
+        "source_organization_name": "Allen Institute for AI",
+        "source_organization_url": "https://allenai.org",
+        "evaluator_relationship": "third_party"
+      },
+      "eval_library": {
+        "name": "rewardbench",
+        "version": "0.1.3",
+        "additional_details": {
+          "subsets": "Chat, Chat Hard, Safety, Reasoning",
+          "hf_space": "allenai/reward-bench"
+        }
+      },
+      "benchmark": "reward-bench",
+      "evaluation_results": [
+        {
+          "evaluation_name": "Score",
+          "metric_config": {
+            "evaluation_description": "Overall RewardBench Score",
+            "lower_is_better": false,
+            "score_type": "continuous",
+            "min_score": 0.0,
+            "max_score": 1.0
+          },
+          "score_details": {
+            "score": 0.9426
+          },
+          "source_data": {
+            "dataset_name": "RewardBench",
+            "source_type": "hf_dataset",
+            "hf_repo": "allenai/reward-bench"
+          }
+        },
+        {
+          "evaluation_name": "Chat",
+          "metric_config": {
+            "evaluation_description": "Chat accuracy - includes easy chat subsets",
+            "lower_is_better": false,
+            "score_type": "continuous",
+            "min_score": 0.0,
+            "max_score": 1.0
+          },
+          "score_details": {
+            "score": 0.9609
+          },
+          "source_data": {
+            "dataset_name": "RewardBench",
+            "source_type": "hf_dataset",
+            "hf_repo": "allenai/reward-bench"
+          }
+        },
+        {
+          "evaluation_name": "Chat Hard",
+          "metric_config": {
+            "evaluation_description": "Chat Hard accuracy - includes hard chat subsets",
+            "lower_is_better": false,
+            "score_type": "continuous",
+            "min_score": 0.0,
+            "max_score": 1.0
+          },
+          "score_details": {
+            "score": 0.8991
+          },
+          "source_data": {
+            "dataset_name": "RewardBench",
+            "source_type": "hf_dataset",
+            "hf_repo": "allenai/reward-bench"
+          }
+        },
+        {
+          "evaluation_name": "Safety",
+          "metric_config": {
+            "evaluation_description": "Safety accuracy - includes safety subsets",
+            "lower_is_better": false,
+            "score_type": "continuous",
+            "min_score": 0.0,
+            "max_score": 1.0
+          },
+          "score_details": {
+            "score": 0.9297
+          },
+          "source_data": {
+            "dataset_name": "RewardBench",
+            "source_type": "hf_dataset",
+            "hf_repo": "allenai/reward-bench"
+          }
+        },
+        {
+          "evaluation_name": "Reasoning",
+          "metric_config": {
+            "evaluation_description": "Reasoning accuracy - includes code and math subsets",
+            "lower_is_better": false,
+            "score_type": "continuous",
+            "min_score": 0.0,
+            "max_score": 1.0
+          },
+          "score_details": {
+            "score": 0.9807
+          },
+          "source_data": {
+            "dataset_name": "RewardBench",
+            "source_type": "hf_dataset",
+            "hf_repo": "allenai/reward-bench"
+          }
+        }
+      ],
+      "detailed_evaluation_results": null,
+      "generation_config": null
+    },
+    {
       "evaluation_id": "reward-bench-2/Skywork_Skywork-Reward-Gemma-2-27B-v0.2/1766412838.146816",
       "retrieved_timestamp": "1766412838.146816",
       "source_metadata": {
@@ -285,120 +399,6 @@
             "dataset_name": "RewardBench 2",
             "source_type": "hf_dataset",
             "hf_repo": "allenai/reward-bench-2-results"
-          }
-        }
-      ],
-      "detailed_evaluation_results": null,
-      "generation_config": null
-    },
-    {
-      "evaluation_id": "reward-bench/Skywork_Skywork-Reward-Gemma-2-27B-v0.2/1766412838.146816",
-      "retrieved_timestamp": "1766412838.146816",
-      "source_metadata": {
-        "source_name": "RewardBench",
-        "source_type": "documentation",
-        "source_organization_name": "Allen Institute for AI",
-        "source_organization_url": "https://allenai.org",
-        "evaluator_relationship": "third_party"
-      },
-      "eval_library": {
-        "name": "rewardbench",
-        "version": "0.1.3",
-        "additional_details": {
-          "subsets": "Chat, Chat Hard, Safety, Reasoning",
-          "hf_space": "allenai/reward-bench"
-        }
-      },
-      "benchmark": "reward-bench",
-      "evaluation_results": [
-        {
-          "evaluation_name": "Score",
-          "metric_config": {
-            "evaluation_description": "Overall RewardBench Score",
-            "lower_is_better": false,
-            "score_type": "continuous",
-            "min_score": 0.0,
-            "max_score": 1.0
-          },
-          "score_details": {
-            "score": 0.9426
-          },
-          "source_data": {
-            "dataset_name": "RewardBench",
-            "source_type": "hf_dataset",
-            "hf_repo": "allenai/reward-bench"
-          }
-        },
-        {
-          "evaluation_name": "Chat",
-          "metric_config": {
-            "evaluation_description": "Chat accuracy - includes easy chat subsets",
-            "lower_is_better": false,
-            "score_type": "continuous",
-            "min_score": 0.0,
-            "max_score": 1.0
-          },
-          "score_details": {
-            "score": 0.9609
-          },
-          "source_data": {
-            "dataset_name": "RewardBench",
-            "source_type": "hf_dataset",
-            "hf_repo": "allenai/reward-bench"
-          }
-        },
-        {
-          "evaluation_name": "Chat Hard",
-          "metric_config": {
-            "evaluation_description": "Chat Hard accuracy - includes hard chat subsets",
-            "lower_is_better": false,
-            "score_type": "continuous",
-            "min_score": 0.0,
-            "max_score": 1.0
-          },
-          "score_details": {
-            "score": 0.8991
-          },
-          "source_data": {
-            "dataset_name": "RewardBench",
-            "source_type": "hf_dataset",
-            "hf_repo": "allenai/reward-bench"
-          }
-        },
-        {
-          "evaluation_name": "Safety",
-          "metric_config": {
-            "evaluation_description": "Safety accuracy - includes safety subsets",
-            "lower_is_better": false,
-            "score_type": "continuous",
-            "min_score": 0.0,
-            "max_score": 1.0
-          },
-          "score_details": {
-            "score": 0.9297
-          },
-          "source_data": {
-            "dataset_name": "RewardBench",
-            "source_type": "hf_dataset",
-            "hf_repo": "allenai/reward-bench"
-          }
-        },
-        {
-          "evaluation_name": "Reasoning",
-          "metric_config": {
-            "evaluation_description": "Reasoning accuracy - includes code and math subsets",
-            "lower_is_better": false,
-            "score_type": "continuous",
-            "min_score": 0.0,
-            "max_score": 1.0
-          },
-          "score_details": {
-            "score": 0.9807
-          },
-          "source_data": {
-            "dataset_name": "RewardBench",
-            "source_type": "hf_dataset",
-            "hf_repo": "allenai/reward-bench"
           }
         }
       ],

@@ -35,12 +35,12 @@
       "developer": "Magpie-Align",
       "evaluator_relationship": null,
       "benchmark_scores": {
-        "hfopenllm_v2/IFEval": 0.4118,
-        "hfopenllm_v2/BBH": 0.4811,
-        "hfopenllm_v2/MATH Level 5": 0.034,
-        "hfopenllm_v2/GPQA": 0.2752,
-        "hfopenllm_v2/MUSR": 0.3047,
-        "hfopenllm_v2/MMLU-PRO": 0.3006
+        "hfopenllm_v2/IFEval": 0.4027,
+        "hfopenllm_v2/BBH": 0.4789,
+        "hfopenllm_v2/MATH Level 5": 0.0461,
+        "hfopenllm_v2/GPQA": 0.2768,
+        "hfopenllm_v2/MUSR": 0.3087,
+        "hfopenllm_v2/MMLU-PRO": 0.3001
       }
     },
     {

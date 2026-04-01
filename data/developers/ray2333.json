@@ -61,16 +61,16 @@
       "developer": "Ray2333",
       "evaluator_relationship": null,
       "benchmark_scores": {
-        "reward-bench/Score": 0.5966,
-        "reward-bench/Chat": 0.9302,
-        "reward-bench/Chat Hard": 0.7719,
-        "reward-bench/Safety": 0.9222,
-        "reward-bench/Reasoning": 0.912,
+        "reward-bench/Score": 0.8839,
         "reward-bench/Factuality": 0.5305,
         "reward-bench/Precise IF": 0.3125,
         "reward-bench/Math": 0.5902,
+        "reward-bench/Safety": 0.9216,
         "reward-bench/Focus": 0.7455,
-        "reward-bench/Ties": 0.4788
+        "reward-bench/Ties": 0.4788,
+        "reward-bench/Chat": 0.9302,
+        "reward-bench/Chat Hard": 0.7719,
+        "reward-bench/Reasoning": 0.912
       }
     },
     {
@@ -79,17 +79,17 @@
       "developer": "Ray2333",
       "evaluator_relationship": null,
       "benchmark_scores": {
-        "reward-bench/Score": 0.8464,
+        "reward-bench/Score": 0.589,
+        "reward-bench/Chat": 0.9832,
+        "reward-bench/Chat Hard": 0.6842,
+        "reward-bench/Safety": 0.7222,
+        "reward-bench/Reasoning": 0.9133,
+        "reward-bench/Prior Sets (0.5 weight)": 0.7209,
         "reward-bench/Factuality": 0.5874,
         "reward-bench/Precise IF": 0.3875,
         "reward-bench/Math": 0.5902,
-        "reward-bench/Safety": 0.8676,
         "reward-bench/Focus": 0.6727,
-        "reward-bench/Ties": 0.5743,
-        "reward-bench/Chat": 0.9832,
-        "reward-bench/Chat Hard": 0.6842,
-        "reward-bench/Reasoning": 0.9133,
-        "reward-bench/Prior Sets (0.5 weight)": 0.7209
+        "reward-bench/Ties": 0.5743
       }
     },
     {

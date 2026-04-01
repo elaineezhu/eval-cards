@@ -7,12 +7,12 @@
       "developer": "abhishek",
       "evaluator_relationship": null,
       "benchmark_scores": {
-        "hfopenllm_v2/IFEval": 0.1957,
-        "hfopenllm_v2/BBH": 0.3135,
-        "hfopenllm_v2/MATH Level 5": 0.0,
-        "hfopenllm_v2/GPQA": 0.2517,
-        "hfopenllm_v2/MUSR": 0.365,
-        "hfopenllm_v2/MMLU-PRO": 0.1151
+        "hfopenllm_v2/IFEval": 0.1952,
+        "hfopenllm_v2/BBH": 0.3127,
+        "hfopenllm_v2/MATH Level 5": 0.0128,
+        "hfopenllm_v2/GPQA": 0.2592,
+        "hfopenllm_v2/MUSR": 0.3584,
+        "hfopenllm_v2/MMLU-PRO": 0.1144
       }
     },
     {
