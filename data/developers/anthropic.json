@@ -650,12 +650,12 @@
       "developer": "Anthropic",
       "evaluator_relationship": null,
       "benchmark_scores": {
-        "appworld_test_normal/appworld/test_normal": 0.68,
+        "appworld_test_normal/appworld/test_normal": 0.7,
         "browsecompplus/browsecompplus": 0.61,
-        "swe-bench/swe-bench": 0.65,
-        "tau-bench-2_airline/tau-bench-2/airline": 0.72,
+        "swe-bench/swe-bench": 0.6061,
+        "tau-bench-2_airline/tau-bench-2/airline": 0.66,
         "tau-bench-2_retail/tau-bench-2/retail": 0.78,
-        "tau-bench-2_telecom/tau-bench-2/telecom": 0.76
+        "tau-bench-2_telecom/tau-bench-2/telecom": 0.84
       }
     },
     {
@@ -664,7 +664,7 @@
       "developer": "Anthropic",
       "evaluator_relationship": null,
       "benchmark_scores": {
-        "terminal-bench-2.0/terminal-bench-2.0": 38.0
+        "terminal-bench-2.0/terminal-bench-2.0": 35.1
       }
     },
     {
@@ -673,7 +673,7 @@
       "developer": "Anthropic",
       "evaluator_relationship": null,
       "benchmark_scores": {
-        "terminal-bench-2.0/terminal-bench-2.0": 59.1
+        "terminal-bench-2.0/terminal-bench-2.0": 52.1
       }
     },
     {
@@ -682,7 +682,7 @@
       "developer": "Anthropic",
       "evaluator_relationship": null,
       "benchmark_scores": {
-        "terminal-bench-2.0/terminal-bench-2.0": 58.0
+        "terminal-bench-2.0/terminal-bench-2.0": 62.9
       }
     },
     {
@@ -756,7 +756,7 @@
       "developer": "Anthropic",
       "evaluator_relationship": null,
       "benchmark_scores": {
-        "terminal-bench-2.0/terminal-bench-2.0": 43.1
+        "terminal-bench-2.0/terminal-bench-2.0": 42.6
       }
     },
     {
@@ -800,8 +800,6 @@
       "developer": "Anthropic",
       "evaluator_relationship": null,
       "benchmark_scores": {
-        "ace/Overall Score": 0.478,
-        "ace/Gaming Score": 0.391,
         "apex-agents/Overall Pass@1": 0.184,
         "apex-agents/Overall Pass@8": 0.34,
         "apex-agents/Overall Mean Score": 0.348,
@@ -809,6 +807,8 @@
         "apex-agents/Management Consulting Pass@1": 0.132,
         "apex-agents/Corporate Law Pass@1": 0.202,
         "apex-agents/Corporate Lawyer Mean Score": 0.471,
+        "ace/Overall Score": 0.478,
+        "ace/Gaming Score": 0.391,
         "apex-v1/Medicine (MD) Score": 0.65
       }
     },

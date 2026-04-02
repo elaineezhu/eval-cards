@@ -4,153 +4,11 @@
     "id": "anthropic/claude-opus-4.5",
     "developer": "Anthropic",
     "additional_details": {
-      "agent_name": "Terminus 2",
-      "agent_organization": "Terminal Bench"
+      "agent_name": "OpenCode",
+      "agent_organization": "Anomaly Innovations"
     }
   },
   "evaluations": [
-    {
-      "evaluation_id": "terminal-bench-2.0/terminus-2__claude-opus-4.5/1773776901.772108",
-      "retrieved_timestamp": "1773776901.772108",
-      "source_metadata": {
-        "source_name": "Terminal-Bench 2.0",
-        "source_type": "documentation",
-        "source_organization_name": "Terminal-Bench",
-        "source_organization_url": "https://www.tbench.ai",
-        "evaluator_relationship": "third_party"
-      },
-      "eval_library": {
-        "name": "harbor",
-        "version": "unknown"
-      },
-      "benchmark": "terminal-bench-2.0",
-      "evaluation_results": [
-        {
-          "evaluation_name": "terminal-bench-2.0",
-          "source_data": {
-            "dataset_name": "terminal-bench-2.0",
-            "source_type": "url",
-            "url": [
-              "https://www.tbench.ai/leaderboard/terminal-bench/2.0"
-            ]
-          },
-          "evaluation_timestamp": "2025-11-22",
-          "metric_config": {
-            "evaluation_description": "Task resolution accuracy across 87 terminal tasks with 5 trials each",
-            "lower_is_better": false,
-            "score_type": "continuous",
-            "min_score": 0.0,
-            "max_score": 100.0
-          },
-          "score_details": {
-            "score": 57.8,
-            "uncertainty": {
-              "standard_error": {
-                "value": 2.5
-              },
-              "num_samples": 435
-            }
-          },
-          "generation_config": {
-            "generation_args": {
-              "execution_command": "harbor run -d terminal-bench@2.0 -a \"Terminus 2\" -m \"Claude Opus 4.5\" -k 5",
-              "agentic_eval_config": {
-                "available_tools": [
-                  {
-                    "name": "terminal",
-                    "description": "Full terminal/shell access"
-                  }
-                ]
-              },
-              "max_attempts": 1
-            }
-          }
-        }
-      ],
-      "detailed_evaluation_results": null,
-      "generation_config": {
-        "generation_args": {
-          "execution_command": "harbor run -d terminal-bench@2.0 -a \"Terminus 2\" -m \"Claude Opus 4.5\" -k 5",
-          "agentic_eval_config": {
-            "available_tools": [
-              {
-                "name": "terminal",
-                "description": "Full terminal/shell access"
-              }
-            ]
-          },
-          "max_attempts": 1
-        }
-      }
-    },
-    {
-      "evaluation_id": "terminal-bench-2.0/mux__claude-opus-4.5/1773776901.772108",
-      "retrieved_timestamp": "1773776901.772108",
-      "source_metadata": {
-        "source_name": "Terminal-Bench 2.0",
-        "source_type": "documentation",
-        "source_organization_name": "Terminal-Bench",
-        "source_organization_url": "https://www.tbench.ai",
-        "evaluator_relationship": "third_party"
-      },
-      "eval_library": {
-        "name": "harbor",
-        "version": "unknown"
-      },
-      "benchmark": "terminal-bench-2.0",
-      "evaluation_results": [
-        {
-          "evaluation_name": "terminal-bench-2.0",
-          "source_data": {
-            "dataset_name": "terminal-bench-2.0",
-            "source_type": "url",
-            "url": [
-              "https://www.tbench.ai/leaderboard/terminal-bench/2.0"
-            ]
-          },
-          "evaluation_timestamp": "2026-01-17",
-          "metric_config": {
-            "evaluation_description": "Task resolution accuracy across 87 terminal tasks with 5 trials each",
-            "lower_is_better": false,
-            "score_type": "continuous",
-            "min_score": 0.0,
-            "max_score": 100.0
-          },
-          "score_details": {
-            "score": 58.4
-          },
-          "generation_config": {
-            "generation_args": {
-              "execution_command": "harbor run -d terminal-bench@2.0 -a \"Mux\" -m \"Claude Opus 4.5\" -k 5",
-              "agentic_eval_config": {
-                "available_tools": [
-                  {
-                    "name": "terminal",
-                    "description": "Full terminal/shell access"
-                  }
-                ]
-              },
-              "max_attempts": 1
-            }
-          }
-        }
-      ],
-      "detailed_evaluation_results": null,
-      "generation_config": {
-        "generation_args": {
-          "execution_command": "harbor run -d terminal-bench@2.0 -a \"Mux\" -m \"Claude Opus 4.5\" -k 5",
-          "agentic_eval_config": {
-            "available_tools": [
-              {
-                "name": "terminal",
-                "description": "Full terminal/shell access"
-              }
-            ]
-          },
-          "max_attempts": 1
-        }
-      }
-    },
     {
       "evaluation_id": "terminal-bench-2.0/opencode__claude-opus-4.5/1773776901.772108",
       "retrieved_timestamp": "1773776901.772108",
@@ -220,7 +78,7 @@
       }
     },
     {
-      "evaluation_id": "terminal-bench-2.0/openhands__claude-opus-4.5/1773776901.772108",
+      "evaluation_id": "terminal-bench-2.0/terminus-2__claude-opus-4.5/1773776901.772108",
       "retrieved_timestamp": "1773776901.772108",
       "source_metadata": {
         "source_name": "Terminal-Bench 2.0",
@@ -244,7 +102,7 @@
               "https://www.tbench.ai/leaderboard/terminal-bench/2.0"
             ]
           },
-          "evaluation_timestamp": "2026-01-04",
+          "evaluation_timestamp": "2025-11-22",
           "metric_config": {
             "evaluation_description": "Task resolution accuracy across 87 terminal tasks with 5 trials each",
             "lower_is_better": false,
@@ -253,17 +111,17 @@
             "max_score": 100.0
           },
           "score_details": {
-            "score": 51.9,
+            "score": 57.8,
             "uncertainty": {
               "standard_error": {
-                "value": 2.9
+                "value": 2.5
               },
               "num_samples": 435
             }
           },
           "generation_config": {
             "generation_args": {
-              "execution_command": "harbor run -d terminal-bench@2.0 -a \"OpenHands\" -m \"Claude Opus 4.5\" -k 5",
+              "execution_command": "harbor run -d terminal-bench@2.0 -a \"Terminus 2\" -m \"Claude Opus 4.5\" -k 5",
               "agentic_eval_config": {
                 "available_tools": [
                   {
@@ -280,7 +138,7 @@
       "detailed_evaluation_results": null,
       "generation_config": {
         "generation_args": {
-          "execution_command": "harbor run -d terminal-bench@2.0 -a \"OpenHands\" -m \"Claude Opus 4.5\" -k 5",
+          "execution_command": "harbor run -d terminal-bench@2.0 -a \"Terminus 2\" -m \"Claude Opus 4.5\" -k 5",
           "agentic_eval_config": {
             "available_tools": [
               {
@@ -368,6 +226,148 @@
       }
     },
     {
+      "evaluation_id": "terminal-bench-2.0/openhands__claude-opus-4.5/1773776901.772108",
+      "retrieved_timestamp": "1773776901.772108",
+      "source_metadata": {
+        "source_name": "Terminal-Bench 2.0",
+        "source_type": "documentation",
+        "source_organization_name": "Terminal-Bench",
+        "source_organization_url": "https://www.tbench.ai",
+        "evaluator_relationship": "third_party"
+      },
+      "eval_library": {
+        "name": "harbor",
+        "version": "unknown"
+      },
+      "benchmark": "terminal-bench-2.0",
+      "evaluation_results": [
+        {
+          "evaluation_name": "terminal-bench-2.0",
+          "source_data": {
+            "dataset_name": "terminal-bench-2.0",
+            "source_type": "url",
+            "url": [
+              "https://www.tbench.ai/leaderboard/terminal-bench/2.0"
+            ]
+          },
+          "evaluation_timestamp": "2026-01-04",
+          "metric_config": {
+            "evaluation_description": "Task resolution accuracy across 87 terminal tasks with 5 trials each",
+            "lower_is_better": false,
+            "score_type": "continuous",
+            "min_score": 0.0,
+            "max_score": 100.0
+          },
+          "score_details": {
+            "score": 51.9,
+            "uncertainty": {
+              "standard_error": {
+                "value": 2.9
+              },
+              "num_samples": 435
+            }
+          },
+          "generation_config": {
+            "generation_args": {
+              "execution_command": "harbor run -d terminal-bench@2.0 -a \"OpenHands\" -m \"Claude Opus 4.5\" -k 5",
+              "agentic_eval_config": {
+                "available_tools": [
+                  {
+                    "name": "terminal",
+                    "description": "Full terminal/shell access"
+                  }
+                ]
+              },
+              "max_attempts": 1
+            }
+          }
+        }
+      ],
+      "detailed_evaluation_results": null,
+      "generation_config": {
+        "generation_args": {
+          "execution_command": "harbor run -d terminal-bench@2.0 -a \"OpenHands\" -m \"Claude Opus 4.5\" -k 5",
+          "agentic_eval_config": {
+            "available_tools": [
+              {
+                "name": "terminal",
+                "description": "Full terminal/shell access"
+              }
+            ]
+          },
+          "max_attempts": 1
+        }
+      }
+    },
+    {
+      "evaluation_id": "terminal-bench-2.0/mux__claude-opus-4.5/1773776901.772108",
+      "retrieved_timestamp": "1773776901.772108",
+      "source_metadata": {
+        "source_name": "Terminal-Bench 2.0",
+        "source_type": "documentation",
+        "source_organization_name": "Terminal-Bench",
+        "source_organization_url": "https://www.tbench.ai",
+        "evaluator_relationship": "third_party"
+      },
+      "eval_library": {
+        "name": "harbor",
+        "version": "unknown"
+      },
+      "benchmark": "terminal-bench-2.0",
+      "evaluation_results": [
+        {
+          "evaluation_name": "terminal-bench-2.0",
+          "source_data": {
+            "dataset_name": "terminal-bench-2.0",
+            "source_type": "url",
+            "url": [
+              "https://www.tbench.ai/leaderboard/terminal-bench/2.0"
+            ]
+          },
+          "evaluation_timestamp": "2026-01-17",
+          "metric_config": {
+            "evaluation_description": "Task resolution accuracy across 87 terminal tasks with 5 trials each",
+            "lower_is_better": false,
+            "score_type": "continuous",
+            "min_score": 0.0,
+            "max_score": 100.0
+          },
+          "score_details": {
+            "score": 58.4
+          },
+          "generation_config": {
+            "generation_args": {
+              "execution_command": "harbor run -d terminal-bench@2.0 -a \"Mux\" -m \"Claude Opus 4.5\" -k 5",
+              "agentic_eval_config": {
+                "available_tools": [
+                  {
+                    "name": "terminal",
+                    "description": "Full terminal/shell access"
+                  }
+                ]
+              },
+              "max_attempts": 1
+            }
+          }
+        }
+      ],
+      "detailed_evaluation_results": null,
+      "generation_config": {
+        "generation_args": {
+          "execution_command": "harbor run -d terminal-bench@2.0 -a \"Mux\" -m \"Claude Opus 4.5\" -k 5",
+          "agentic_eval_config": {
+            "available_tools": [
+              {
+                "name": "terminal",
+                "description": "Full terminal/shell access"
+              }
+            ]
+          },
+          "max_attempts": 1
+        }
+      }
+    },
+    {
       "evaluation_id": "terminal-bench-2.0/droid__claude-opus-4.5/1773776901.772108",
       "retrieved_timestamp": "1773776901.772108",
       "source_metadata": {
@@ -442,80 +442,6 @@
       }
     },
     {
-      "evaluation_id": "terminal-bench-2.0/claude-code__claude-opus-4.5/1773776901.772108",
-      "retrieved_timestamp": "1773776901.772108",
-      "source_metadata": {
-        "source_name": "Terminal-Bench 2.0",
-        "source_type": "documentation",
-        "source_organization_name": "Terminal-Bench",
-        "source_organization_url": "https://www.tbench.ai",
-        "evaluator_relationship": "third_party"
-      },
-      "eval_library": {
-        "name": "harbor",
-        "version": "unknown"
-      },
-      "benchmark": "terminal-bench-2.0",
-      "evaluation_results": [
-        {
-          "evaluation_name": "terminal-bench-2.0",
-          "source_data": {
-            "dataset_name": "terminal-bench-2.0",
-            "source_type": "url",
-            "url": [
-              "https://www.tbench.ai/leaderboard/terminal-bench/2.0"
-            ]
-          },
-          "evaluation_timestamp": "2025-12-18",
-          "metric_config": {
-            "evaluation_description": "Task resolution accuracy across 87 terminal tasks with 5 trials each",
-            "lower_is_better": false,
-            "score_type": "continuous",
-            "min_score": 0.0,
-            "max_score": 100.0
-          },
-          "score_details": {
-            "score": 52.1,
-            "uncertainty": {
-              "standard_error": {
-                "value": 2.5
-              },
-              "num_samples": 435
-            }
-          },
-          "generation_config": {
-            "generation_args": {
-              "execution_command": "harbor run -d terminal-bench@2.0 -a \"Claude Code\" -m \"Claude Opus 4.5\" -k 5",
-              "agentic_eval_config": {
-                "available_tools": [
-                  {
-                    "name": "terminal",
-                    "description": "Full terminal/shell access"
-                  }
-                ]
-              },
-              "max_attempts": 1
-            }
-          }
-        }
-      ],
-      "detailed_evaluation_results": null,
-      "generation_config": {
-        "generation_args": {
-          "execution_command": "harbor run -d terminal-bench@2.0 -a \"Claude Code\" -m \"Claude Opus 4.5\" -k 5",
-          "agentic_eval_config": {
-            "available_tools": [
-              {
-                "name": "terminal",
-                "description": "Full terminal/shell access"
-              }
-            ]
-          },
-          "max_attempts": 1
-        }
-      }
-    },
-    {
       "evaluation_id": "terminal-bench-2.0/letta-code__claude-opus-4.5/1773776901.772108",
       "retrieved_timestamp": "1773776901.772108",
       "source_metadata": {
@@ -577,6 +503,80 @@
       "generation_config": {
         "generation_args": {
           "execution_command": "harbor run -d terminal-bench@2.0 -a \"Letta Code\" -m \"Claude Opus 4.5\" -k 5",
+          "agentic_eval_config": {
+            "available_tools": [
+              {
+                "name": "terminal",
+                "description": "Full terminal/shell access"
+              }
+            ]
+          },
+          "max_attempts": 1
+        }
+      }
+    },
+    {
+      "evaluation_id": "terminal-bench-2.0/claude-code__claude-opus-4.5/1773776901.772108",
+      "retrieved_timestamp": "1773776901.772108",
+      "source_metadata": {
+        "source_name": "Terminal-Bench 2.0",
+        "source_type": "documentation",
+        "source_organization_name": "Terminal-Bench",
+        "source_organization_url": "https://www.tbench.ai",
+        "evaluator_relationship": "third_party"
+      },
+      "eval_library": {
+        "name": "harbor",
+        "version": "unknown"
+      },
+      "benchmark": "terminal-bench-2.0",
+      "evaluation_results": [
+        {
+          "evaluation_name": "terminal-bench-2.0",
+          "source_data": {
+            "dataset_name": "terminal-bench-2.0",
+            "source_type": "url",
+            "url": [
+              "https://www.tbench.ai/leaderboard/terminal-bench/2.0"
+            ]
+          },
+          "evaluation_timestamp": "2025-12-18",
+          "metric_config": {
+            "evaluation_description": "Task resolution accuracy across 87 terminal tasks with 5 trials each",
+            "lower_is_better": false,
+            "score_type": "continuous",
+            "min_score": 0.0,
+            "max_score": 100.0
+          },
+          "score_details": {
+            "score": 52.1,
+            "uncertainty": {
+              "standard_error": {
+                "value": 2.5
+              },
+              "num_samples": 435
+            }
+          },
+          "generation_config": {
+            "generation_args": {
+              "execution_command": "harbor run -d terminal-bench@2.0 -a \"Claude Code\" -m \"Claude Opus 4.5\" -k 5",
+              "agentic_eval_config": {
+                "available_tools": [
+                  {
+                    "name": "terminal",
+                    "description": "Full terminal/shell access"
+                  }
+                ]
+              },
+              "max_attempts": 1
+            }
+          }
+        }
+      ],
+      "detailed_evaluation_results": null,
+      "generation_config": {
+        "generation_args": {
+          "execution_command": "harbor run -d terminal-bench@2.0 -a \"Claude Code\" -m \"Claude Opus 4.5\" -k 5",
           "agentic_eval_config": {
             "available_tools": [
               {

@@ -140,6 +140,195 @@
       ],
       "detailed_evaluation_results": null,
       "generation_config": null
+    },
+    {
+      "evaluation_id": "theory_of_mind/hf_Qwen_Qwen2.5-3B-Instruct/1772541652.0",
+      "retrieved_timestamp": "1774793718.284365",
+      "source_metadata": {
+        "source_name": "inspect_ai",
+        "source_type": "evaluation_run",
+        "source_organization_name": "unknown",
+        "evaluator_relationship": "third_party"
+      },
+      "eval_library": {
+        "name": "inspect",
+        "version": "inspect_ai:0.3.185"
+      },
+      "benchmark": "theory_of_mind",
+      "evaluation_results": [
+        {
+          "evaluation_name": "accuracy on theory_of_mind for scorer model_graded_fact",
+          "source_data": {
+            "dataset_name": "theory_of_mind",
+            "source_type": "hf_dataset",
+            "hf_repo": "example://theory_of_mind",
+            "samples_number": 100,
+            "sample_ids": [
+              "1",
+              "2",
+              "3",
+              "4",
+              "5",
+              "6",
+              "7",
+              "8",
+              "9",
+              "10",
+              "11",
+              "12",
+              "13",
+              "14",
+              "15",
+              "16",
+              "17",
+              "18",
+              "19",
+              "20",
+              "21",
+              "22",
+              "23",
+              "24",
+              "25",
+              "26",
+              "27",
+              "28",
+              "29",
+              "30",
+              "31",
+              "32",
+              "33",
+              "34",
+              "35",
+              "36",
+              "37",
+              "38",
+              "39",
+              "40",
+              "41",
+              "42",
+              "43",
+              "44",
+              "45",
+              "46",
+              "47",
+              "48",
+              "49",
+              "50",
+              "51",
+              "52",
+              "53",
+              "54",
+              "55",
+              "56",
+              "57",
+              "58",
+              "59",
+              "60",
+              "61",
+              "62",
+              "63",
+              "64",
+              "65",
+              "66",
+              "67",
+              "68",
+              "69",
+              "70",
+              "71",
+              "72",
+              "73",
+              "74",
+              "75",
+              "76",
+              "77",
+              "78",
+              "79",
+              "80",
+              "81",
+              "82",
+              "83",
+              "84",
+              "85",
+              "86",
+              "87",
+              "88",
+              "89",
+              "90",
+              "91",
+              "92",
+              "93",
+              "94",
+              "95",
+              "96",
+              "97",
+              "98",
+              "99",
+              "100"
+            ],
+            "additional_details": {
+              "shuffled": "False"
+            }
+          },
+          "evaluation_timestamp": "1772541652.0",
+          "metric_config": {
+            "evaluation_description": "accuracy",
+            "lower_is_better": false,
+            "score_type": "continuous",
+            "min_score": 0.0,
+            "max_score": 1.0
+          },
+          "score_details": {
+            "score": 0.78,
+            "uncertainty": {
+              "standard_error": {
+                "value": 0.04163331998932266
+              },
+              "num_samples": 100
+            }
+          },
+          "generation_config": {
+            "generation_args": {
+              "reasoning": false,
+              "agentic_eval_config": {
+                "available_tools": []
+              },
+              "eval_plan": {
+                "name": "plan",
+                "steps": [
+                  "{\"solver\": \"generate\", \"params\": {\"tool_calls\": \"loop\", \"kwargs\": {}}, \"params_passed\": {}}"
+                ],
+                "config": {}
+              },
+              "eval_limits": {},
+              "sandbox": {}
+            }
+          }
+        }
+      ],
+      "detailed_evaluation_results": {
+        "format": "jsonl",
+        "file_path": "data/theory_of_mind/Qwen/Qwen2.5-3B-Instruct/30ed1a75-5bfd-4405-abce-b0fd5e0165ba_samples.jsonl",
+        "hash_algorithm": "sha256",
+        "checksum": "22c5bd6a8da6c54dfb409425283b1e136f76a225daa48c28b963f3be1f13d697",
+        "total_rows": 100
+      },
+      "generation_config": {
+        "generation_args": {
+          "reasoning": false,
+          "agentic_eval_config": {
+            "available_tools": []
+          },
+          "eval_plan": {
+            "name": "plan",
+            "steps": [
+              "{\"solver\": \"generate\", \"params\": {\"tool_calls\": \"loop\", \"kwargs\": {}}, \"params_passed\": {}}"
+            ],
+            "config": {}
+          },
+          "eval_limits": {},
+          "sandbox": {}
+        }
+      }
     }
   ]
 }

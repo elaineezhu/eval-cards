@@ -7,6 +7,53 @@
   },
   "evaluations": [
     {
+      "evaluation_id": "ace/google_gemini-3-flash/1773260200",
+      "retrieved_timestamp": "1773260200",
+      "source_metadata": {
+        "source_name": "Mercor ACE Leaderboard",
+        "source_type": "evaluation_run",
+        "source_organization_name": "Mercor",
+        "source_organization_url": "https://www.mercor.com",
+        "evaluator_relationship": "first_party"
+      },
+      "eval_library": {
+        "name": "archipelago",
+        "version": "1.0.0"
+      },
+      "benchmark": "ace",
+      "evaluation_results": [
+        {
+          "evaluation_name": "Gaming Score",
+          "source_data": {
+            "dataset_name": "ace",
+            "source_type": "hf_dataset",
+            "hf_repo": "Mercor/ACE"
+          },
+          "metric_config": {
+            "evaluation_description": "Gaming domain score.",
+            "lower_is_better": false,
+            "score_type": "continuous",
+            "min_score": 0,
+            "max_score": 1
+          },
+          "score_details": {
+            "score": 0.415
+          },
+          "generation_config": {
+            "additional_details": {
+              "run_setting": "High"
+            }
+          }
+        }
+      ],
+      "detailed_evaluation_results": null,
+      "generation_config": {
+        "additional_details": {
+          "run_setting": "High"
+        }
+      }
+    },
+    {
       "evaluation_id": "apex-agents/google_gemini-3-flash/1773260200",
       "retrieved_timestamp": "1773260200",
       "source_metadata": {
@@ -190,53 +237,6 @@
           },
           "score_details": {
             "score": 0.524
-          },
-          "generation_config": {
-            "additional_details": {
-              "run_setting": "High"
-            }
-          }
-        }
-      ],
-      "detailed_evaluation_results": null,
-      "generation_config": {
-        "additional_details": {
-          "run_setting": "High"
-        }
-      }
-    },
-    {
-      "evaluation_id": "ace/google_gemini-3-flash/1773260200",
-      "retrieved_timestamp": "1773260200",
-      "source_metadata": {
-        "source_name": "Mercor ACE Leaderboard",
-        "source_type": "evaluation_run",
-        "source_organization_name": "Mercor",
-        "source_organization_url": "https://www.mercor.com",
-        "evaluator_relationship": "first_party"
-      },
-      "eval_library": {
-        "name": "archipelago",
-        "version": "1.0.0"
-      },
-      "benchmark": "ace",
-      "evaluation_results": [
-        {
-          "evaluation_name": "Gaming Score",
-          "source_data": {
-            "dataset_name": "ace",
-            "source_type": "hf_dataset",
-            "hf_repo": "Mercor/ACE"
-          },
-          "metric_config": {
-            "evaluation_description": "Gaming domain score.",
-            "lower_is_better": false,
-            "score_type": "continuous",
-            "min_score": 0,
-            "max_score": 1
-          },
-          "score_details": {
-            "score": 0.415
           },
           "generation_config": {
             "additional_details": {

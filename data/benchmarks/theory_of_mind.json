@@ -1,0 +1,12 @@
+{
+  "models": [
+    {
+      "model_id": "Qwen/Qwen2.5-3B-Instruct",
+      "name": "Qwen2.5-3B-Instruct",
+      "developer": "Qwen",
+      "scores": {
+        "accuracy on theory_of_mind for scorer model_graded_fact": 0.78
+      }
+    }
+  ]
+}

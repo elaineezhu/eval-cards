@@ -163,16 +163,16 @@
       "developer": "OpenAI",
       "evaluator_relationship": null,
       "benchmark_scores": {
+        "ace/Overall Score": 0.515,
+        "ace/Food Score": 0.65,
+        "ace/Gaming Score": 0.578,
         "apex-agents/Overall Pass@1": 0.23,
         "apex-agents/Overall Pass@8": 0.4,
         "apex-agents/Overall Mean Score": 0.387,
         "apex-agents/Investment Banking Pass@1": 0.273,
         "apex-agents/Management Consulting Pass@1": 0.227,
         "apex-agents/Corporate Law Pass@1": 0.189,
-        "apex-agents/Corporate Lawyer Mean Score": 0.443,
-        "ace/Overall Score": 0.515,
-        "ace/Food Score": 0.65,
-        "ace/Gaming Score": 0.578
+        "apex-agents/Corporate Lawyer Mean Score": 0.443
       }
     },
     {
@@ -300,13 +300,6 @@
       "developer": "OpenAI",
       "evaluator_relationship": null,
       "benchmark_scores": {
-        "helm_instruct/Mean win rate": 0.689,
-        "helm_instruct/Anthropic RLHF dataset": 4.964,
-        "helm_instruct/Best ChatGPT Prompts": 4.986,
-        "helm_instruct/Koala test dataset": 4.987,
-        "helm_instruct/Open Assistant": 4.987,
-        "helm_instruct/Self Instruct": 4.99,
-        "helm_instruct/Vicuna": 4.992,
         "helm_classic/Mean win rate": 0.783,
         "helm_classic/MMLU": 0.391,
         "helm_classic/BoolQ": 0.87,
@@ -322,6 +315,13 @@
         "helm_classic/IMDB": 0.943,
         "helm_classic/CivilComments": 0.696,
         "helm_classic/RAFT": 0.748,
+        "helm_instruct/Mean win rate": 0.689,
+        "helm_instruct/Anthropic RLHF dataset": 4.964,
+        "helm_instruct/Best ChatGPT Prompts": 4.986,
+        "helm_instruct/Koala test dataset": 4.987,
+        "helm_instruct/Open Assistant": 4.987,
+        "helm_instruct/Self Instruct": 4.99,
+        "helm_instruct/Vicuna": 4.992,
         "helm_lite/Mean win rate": 0.358,
         "helm_lite/NarrativeQA": 0.655,
         "helm_lite/NaturalQuestions (closed-book)": 0.335,
@@ -405,6 +405,16 @@
       "developer": "OpenAI",
       "evaluator_relationship": null,
       "benchmark_scores": {
+        "helm_lite/Mean win rate": 0.867,
+        "helm_lite/NarrativeQA": 0.768,
+        "helm_lite/NaturalQuestions (closed-book)": 0.457,
+        "helm_lite/OpenbookQA": 0.96,
+        "helm_lite/MMLU": 0.735,
+        "helm_lite/MATH": 0.802,
+        "helm_lite/GSM8K": 0.932,
+        "helm_lite/LegalBench": 0.713,
+        "helm_lite/MedQA": 0.815,
+        "helm_lite/WMT 2014": 0.211,
         "helm_mmlu/MMLU All Subjects": 0.824,
         "helm_mmlu/Abstract Algebra": 0.63,
         "helm_mmlu/Anatomy": 0.8,
@@ -440,17 +450,7 @@
         "helm_mmlu/Sociology": 0.93,
         "helm_mmlu/Virology": 0.596,
         "helm_mmlu/World Religions": 0.877,
-        "helm_mmlu/Mean win rate": 0.517,
-        "helm_lite/Mean win rate": 0.867,
-        "helm_lite/NarrativeQA": 0.768,
-        "helm_lite/NaturalQuestions (closed-book)": 0.457,
-        "helm_lite/OpenbookQA": 0.96,
-        "helm_lite/MMLU": 0.735,
-        "helm_lite/MATH": 0.802,
-        "helm_lite/GSM8K": 0.932,
-        "helm_lite/LegalBench": 0.713,
-        "helm_lite/MedQA": 0.815,
-        "helm_lite/WMT 2014": 0.211
+        "helm_mmlu/Mean win rate": 0.517
       }
     },
     {
@@ -513,6 +513,16 @@
       "developer": "OpenAI",
       "evaluator_relationship": null,
       "benchmark_scores": {
+        "helm_lite/Mean win rate": 0.864,
+        "helm_lite/NarrativeQA": 0.761,
+        "helm_lite/NaturalQuestions (closed-book)": 0.482,
+        "helm_lite/OpenbookQA": 0.97,
+        "helm_lite/MMLU": 0.711,
+        "helm_lite/MATH": 0.833,
+        "helm_lite/GSM8K": 0.824,
+        "helm_lite/LegalBench": 0.727,
+        "helm_lite/MedQA": 0.783,
+        "helm_lite/WMT 2014": 0.218,
         "helm_mmlu/MMLU All Subjects": 0.813,
         "helm_mmlu/Abstract Algebra": 0.56,
         "helm_mmlu/Anatomy": 0.822,
@@ -549,16 +559,6 @@
         "helm_mmlu/Virology": 0.602,
         "helm_mmlu/World Religions": 0.848,
         "helm_mmlu/Mean win rate": 0.351,
-        "helm_lite/Mean win rate": 0.864,
-        "helm_lite/NarrativeQA": 0.761,
-        "helm_lite/NaturalQuestions (closed-book)": 0.482,
-        "helm_lite/OpenbookQA": 0.97,
-        "helm_lite/MMLU": 0.711,
-        "helm_lite/MATH": 0.833,
-        "helm_lite/GSM8K": 0.824,
-        "helm_lite/LegalBench": 0.727,
-        "helm_lite/MedQA": 0.783,
-        "helm_lite/WMT 2014": 0.218,
         "reward-bench/Score": 0.8395,
         "reward-bench/Chat": 0.9525,
         "reward-bench/Chat Hard": 0.7544,
@@ -772,16 +772,16 @@
         "helm_mmlu/Virology": 0.578,
         "helm_mmlu/World Religions": 0.883,
         "helm_mmlu/Mean win rate": 0.52,
-        "reward-bench/Score": 0.6493,
-        "reward-bench/Chat": 0.9609,
-        "reward-bench/Chat Hard": 0.761,
-        "reward-bench/Safety": 0.8619,
-        "reward-bench/Reasoning": 0.8661,
+        "reward-bench/Score": 0.8673,
         "reward-bench/Factuality": 0.5684,
         "reward-bench/Precise IF": 0.3312,
         "reward-bench/Math": 0.623,
+        "reward-bench/Safety": 0.8811,
         "reward-bench/Focus": 0.7293,
-        "reward-bench/Ties": 0.7819
+        "reward-bench/Ties": 0.7819,
+        "reward-bench/Chat": 0.9609,
+        "reward-bench/Chat Hard": 0.761,
+        "reward-bench/Reasoning": 0.8661
       }
     },
     {
@@ -877,7 +877,7 @@
       "developer": "OpenAI",
       "evaluator_relationship": null,
       "benchmark_scores": {
-        "terminal-bench-2.0/terminal-bench-2.0": 35.2
+        "terminal-bench-2.0/terminal-bench-2.0": 49.6
       }
     },
     {
@@ -911,9 +911,9 @@
         "helm_capabilities/IFEval": 0.875,
         "helm_capabilities/WildBench": 0.857,
         "helm_capabilities/Omni-MATH": 0.647,
-        "livecodebenchpro/Hard Problems": 0.0423,
-        "livecodebenchpro/Medium Problems": 0.4085,
-        "livecodebenchpro/Easy Problems": 0.9014
+        "livecodebenchpro/Hard Problems": 0.04225352112676056,
+        "livecodebenchpro/Medium Problems": 0.4084507042253521,
+        "livecodebenchpro/Easy Problems": 0.8873239436619719
       }
     },
     {
@@ -922,7 +922,7 @@
       "developer": "OpenAI",
       "evaluator_relationship": null,
       "benchmark_scores": {
-        "terminal-bench-2.0/terminal-bench-2.0": 44.3
+        "terminal-bench-2.0/terminal-bench-2.0": 43.4
       }
     },
     {
@@ -931,7 +931,7 @@
       "developer": "OpenAI",
       "evaluator_relationship": null,
       "benchmark_scores": {
-        "terminal-bench-2.0/terminal-bench-2.0": 34.8
+        "terminal-bench-2.0/terminal-bench-2.0": 24.0
       }
     },
     {
@@ -954,7 +954,7 @@
       "developer": "OpenAI",
       "evaluator_relationship": null,
       "benchmark_scores": {
-        "terminal-bench-2.0/terminal-bench-2.0": 9.9
+        "terminal-bench-2.0/terminal-bench-2.0": 11.5
       }
     },
     {
@@ -986,7 +986,7 @@
       "developer": "OpenAI",
       "evaluator_relationship": null,
       "benchmark_scores": {
-        "terminal-bench-2.0/terminal-bench-2.0": 53.5
+        "terminal-bench-2.0/terminal-bench-2.0": 57.8
       }
     },
     {
@@ -1013,7 +1013,7 @@
       "developer": "OpenAI",
       "evaluator_relationship": null,
       "benchmark_scores": {
-        "terminal-bench-2.0/terminal-bench-2.0": 60.7
+        "terminal-bench-2.0/terminal-bench-2.0": 62.9
       }
     },
     {
@@ -1023,14 +1023,14 @@
       "evaluator_relationship": null,
       "benchmark_scores": {
         "appworld_test_normal/appworld/test_normal": 0.0,
-        "browsecompplus/browsecompplus": 0.48,
+        "browsecompplus/browsecompplus": 0.43,
         "livecodebenchpro/Hard Problems": 0.1594,
         "livecodebenchpro/Medium Problems": 0.5211,
         "livecodebenchpro/Easy Problems": 0.9014,
         "swe-bench/swe-bench": 0.5455,
         "tau-bench-2_airline/tau-bench-2/airline": 0.6,
-        "tau-bench-2_retail/tau-bench-2/retail": 0.68,
-        "tau-bench-2_telecom/tau-bench-2/telecom": 0.5354
+        "tau-bench-2_retail/tau-bench-2/retail": 0.73,
+        "tau-bench-2_telecom/tau-bench-2/telecom": 0.71
       }
     },
     {
@@ -1048,7 +1048,7 @@
       "developer": "OpenAI",
       "evaluator_relationship": null,
       "benchmark_scores": {
-        "terminal-bench-2.0/terminal-bench-2.0": 64.7
+        "terminal-bench-2.0/terminal-bench-2.0": 77.3
       }
     },
     {
@@ -1112,7 +1112,7 @@
         "livecodebenchpro/Hard Problems": 0.0,
         "livecodebenchpro/Medium Problems": 0.11267605633802817,
         "livecodebenchpro/Easy Problems": 0.6619718309859155,
-        "terminal-bench-2.0/terminal-bench-2.0": 14.2
+        "terminal-bench-2.0/terminal-bench-2.0": 18.7
       }
     },
     {
@@ -1130,7 +1130,7 @@
         "livecodebenchpro/Hard Problems": 0.0,
         "livecodebenchpro/Medium Problems": 0.056338028169014086,
         "livecodebenchpro/Easy Problems": 0.5070422535211268,
-        "terminal-bench-2.0/terminal-bench-2.0": 3.1
+        "terminal-bench-2.0/terminal-bench-2.0": 3.4
       }
     },
     {

@@ -78,74 +78,6 @@
       }
     },
     {
-      "evaluation_id": "appworld/test_normal/claude-code-cli__openai_gpt-5.2-2025-12-11/1774263615.0201504",
-      "retrieved_timestamp": "1774263615.0201504",
-      "source_metadata": {
-        "source_name": "Exgentic Open Agent Leaderboard",
-        "source_type": "evaluation_run",
-        "source_organization_name": "Exgentic",
-        "source_organization_url": "https://github.com/Exgentic",
-        "evaluator_relationship": "third_party"
-      },
-      "eval_library": {
-        "name": "exgentic",
-        "version": "0.1.0"
-      },
-      "benchmark": "appworld_test_normal",
-      "evaluation_results": [
-        {
-          "evaluation_name": "appworld/test_normal",
-          "source_data": {
-            "dataset_name": "appworld/test_normal",
-            "source_type": "url",
-            "url": [
-              "https://github.com/Exgentic/exgentic"
-            ]
-          },
-          "metric_config": {
-            "evaluation_description": "AppWorld benchmark evaluation (test_normal subset)",
-            "lower_is_better": false,
-            "score_type": "continuous",
-            "min_score": 0.0,
-            "max_score": 1.0
-          },
-          "score_details": {
-            "score": 0.0,
-            "uncertainty": {
-              "num_samples": 100
-            },
-            "details": {
-              "average_agent_cost": "0.0",
-              "total_run_cost": "0.0",
-              "average_steps": "0.0",
-              "percent_finished": "0.0"
-            }
-          },
-          "generation_config": {
-            "generation_args": {
-              "agentic_eval_config": {
-                "additional_details": {
-                  "agent_name": "Claude Code CLI",
-                  "agent_framework": "claude_code"
-                }
-              }
-            }
-          }
-        }
-      ],
-      "detailed_evaluation_results": null,
-      "generation_config": {
-        "generation_args": {
-          "agentic_eval_config": {
-            "additional_details": {
-              "agent_name": "Claude Code CLI",
-              "agent_framework": "claude_code"
-            }
-          }
-        }
-      }
-    },
-    {
       "evaluation_id": "appworld/test_normal/openai-solo__openai_gpt-5.2-2025-12-11/1774263615.0201504",
       "retrieved_timestamp": "1774263615.0201504",
       "source_metadata": {
@@ -208,6 +140,74 @@
             "additional_details": {
               "agent_name": "OpenAI Solo",
               "agent_framework": "openai_solo"
+            }
+          }
+        }
+      }
+    },
+    {
+      "evaluation_id": "appworld/test_normal/litellm-tool-calling__openai_gpt-5.2-2025-12-11/1774263615.0201504",
+      "retrieved_timestamp": "1774263615.0201504",
+      "source_metadata": {
+        "source_name": "Exgentic Open Agent Leaderboard",
+        "source_type": "evaluation_run",
+        "source_organization_name": "Exgentic",
+        "source_organization_url": "https://github.com/Exgentic",
+        "evaluator_relationship": "third_party"
+      },
+      "eval_library": {
+        "name": "exgentic",
+        "version": "0.1.0"
+      },
+      "benchmark": "appworld_test_normal",
+      "evaluation_results": [
+        {
+          "evaluation_name": "appworld/test_normal",
+          "source_data": {
+            "dataset_name": "appworld/test_normal",
+            "source_type": "url",
+            "url": [
+              "https://github.com/Exgentic/exgentic"
+            ]
+          },
+          "metric_config": {
+            "evaluation_description": "AppWorld benchmark evaluation (test_normal subset)",
+            "lower_is_better": false,
+            "score_type": "continuous",
+            "min_score": 0.0,
+            "max_score": 1.0
+          },
+          "score_details": {
+            "score": 0.0,
+            "uncertainty": {
+              "num_samples": 100
+            },
+            "details": {
+              "average_agent_cost": "0.0",
+              "total_run_cost": "0.0",
+              "average_steps": "0.0",
+              "percent_finished": "0.0"
+            }
+          },
+          "generation_config": {
+            "generation_args": {
+              "agentic_eval_config": {
+                "additional_details": {
+                  "agent_name": "LiteLLM Tool Calling",
+                  "agent_framework": "tool_calling"
+                }
+              }
+            }
+          }
+        }
+      ],
+      "detailed_evaluation_results": null,
+      "generation_config": {
+        "generation_args": {
+          "agentic_eval_config": {
+            "additional_details": {
+              "agent_name": "LiteLLM Tool Calling",
+              "agent_framework": "tool_calling"
             }
           }
         }
@@ -282,7 +282,7 @@
       }
     },
     {
-      "evaluation_id": "appworld/test_normal/litellm-tool-calling__openai_gpt-5.2-2025-12-11/1774263615.0201504",
+      "evaluation_id": "appworld/test_normal/claude-code-cli__openai_gpt-5.2-2025-12-11/1774263615.0201504",
       "retrieved_timestamp": "1774263615.0201504",
       "source_metadata": {
         "source_name": "Exgentic Open Agent Leaderboard",
@@ -329,8 +329,8 @@
             "generation_args": {
               "agentic_eval_config": {
                 "additional_details": {
-                  "agent_name": "LiteLLM Tool Calling",
-                  "agent_framework": "tool_calling"
+                  "agent_name": "Claude Code CLI",
+                  "agent_framework": "claude_code"
                 }
               }
             }
@@ -342,8 +342,144 @@
         "generation_args": {
           "agentic_eval_config": {
             "additional_details": {
-              "agent_name": "LiteLLM Tool Calling",
-              "agent_framework": "tool_calling"
+              "agent_name": "Claude Code CLI",
+              "agent_framework": "claude_code"
+            }
+          }
+        }
+      }
+    },
+    {
+      "evaluation_id": "browsecompplus/openai-solo__openai_gpt-5.2-2025-12-11/1774263615.0201504",
+      "retrieved_timestamp": "1774263615.0201504",
+      "source_metadata": {
+        "source_name": "Exgentic Open Agent Leaderboard",
+        "source_type": "evaluation_run",
+        "source_organization_name": "Exgentic",
+        "source_organization_url": "https://github.com/Exgentic",
+        "evaluator_relationship": "third_party"
+      },
+      "eval_library": {
+        "name": "exgentic",
+        "version": "0.1.0"
+      },
+      "benchmark": "browsecompplus",
+      "evaluation_results": [
+        {
+          "evaluation_name": "browsecompplus",
+          "source_data": {
+            "dataset_name": "browsecompplus",
+            "source_type": "url",
+            "url": [
+              "https://github.com/Exgentic/exgentic"
+            ]
+          },
+          "metric_config": {
+            "evaluation_description": "BrowseCompPlus benchmark evaluation",
+            "lower_is_better": false,
+            "score_type": "continuous",
+            "min_score": 0.0,
+            "max_score": 1.0
+          },
+          "score_details": {
+            "score": 0.48,
+            "uncertainty": {
+              "num_samples": 100
+            },
+            "details": {
+              "average_agent_cost": "0.38",
+              "total_run_cost": "38.21",
+              "average_steps": "14.27",
+              "percent_finished": "1.0"
+            }
+          },
+          "generation_config": {
+            "generation_args": {
+              "agentic_eval_config": {
+                "additional_details": {
+                  "agent_name": "OpenAI Solo",
+                  "agent_framework": "openai_solo"
+                }
+              }
+            }
+          }
+        }
+      ],
+      "detailed_evaluation_results": null,
+      "generation_config": {
+        "generation_args": {
+          "agentic_eval_config": {
+            "additional_details": {
+              "agent_name": "OpenAI Solo",
+              "agent_framework": "openai_solo"
+            }
+          }
+        }
+      }
+    },
+    {
+      "evaluation_id": "browsecompplus/litellm-tool-calling-with-shortlisting__openai_gpt-5.2-2025-12-11/1774263615.0201504",
+      "retrieved_timestamp": "1774263615.0201504",
+      "source_metadata": {
+        "source_name": "Exgentic Open Agent Leaderboard",
+        "source_type": "evaluation_run",
+        "source_organization_name": "Exgentic",
+        "source_organization_url": "https://github.com/Exgentic",
+        "evaluator_relationship": "third_party"
+      },
+      "eval_library": {
+        "name": "exgentic",
+        "version": "0.1.0"
+      },
+      "benchmark": "browsecompplus",
+      "evaluation_results": [
+        {
+          "evaluation_name": "browsecompplus",
+          "source_data": {
+            "dataset_name": "browsecompplus",
+            "source_type": "url",
+            "url": [
+              "https://github.com/Exgentic/exgentic"
+            ]
+          },
+          "metric_config": {
+            "evaluation_description": "BrowseCompPlus benchmark evaluation",
+            "lower_is_better": false,
+            "score_type": "continuous",
+            "min_score": 0.0,
+            "max_score": 1.0
+          },
+          "score_details": {
+            "score": 0.46,
+            "uncertainty": {
+              "num_samples": 100
+            },
+            "details": {
+              "average_agent_cost": "0.3",
+              "total_run_cost": "29.78",
+              "average_steps": "8.14",
+              "percent_finished": "0.99"
+            }
+          },
+          "generation_config": {
+            "generation_args": {
+              "agentic_eval_config": {
+                "additional_details": {
+                  "agent_name": "LiteLLM Tool Calling with Shortlisting",
+                  "agent_framework": "tool_calling_with_shortlisting"
+                }
+              }
+            }
+          }
+        }
+      ],
+      "detailed_evaluation_results": null,
+      "generation_config": {
+        "generation_args": {
+          "agentic_eval_config": {
+            "additional_details": {
+              "agent_name": "LiteLLM Tool Calling with Shortlisting",
+              "agent_framework": "tool_calling_with_shortlisting"
             }
           }
         }
@@ -554,142 +690,6 @@
       }
     },
     {
-      "evaluation_id": "browsecompplus/litellm-tool-calling-with-shortlisting__openai_gpt-5.2-2025-12-11/1774263615.0201504",
-      "retrieved_timestamp": "1774263615.0201504",
-      "source_metadata": {
-        "source_name": "Exgentic Open Agent Leaderboard",
-        "source_type": "evaluation_run",
-        "source_organization_name": "Exgentic",
-        "source_organization_url": "https://github.com/Exgentic",
-        "evaluator_relationship": "third_party"
-      },
-      "eval_library": {
-        "name": "exgentic",
-        "version": "0.1.0"
-      },
-      "benchmark": "browsecompplus",
-      "evaluation_results": [
-        {
-          "evaluation_name": "browsecompplus",
-          "source_data": {
-            "dataset_name": "browsecompplus",
-            "source_type": "url",
-            "url": [
-              "https://github.com/Exgentic/exgentic"
-            ]
-          },
-          "metric_config": {
-            "evaluation_description": "BrowseCompPlus benchmark evaluation",
-            "lower_is_better": false,
-            "score_type": "continuous",
-            "min_score": 0.0,
-            "max_score": 1.0
-          },
-          "score_details": {
-            "score": 0.46,
-            "uncertainty": {
-              "num_samples": 100
-            },
-            "details": {
-              "average_agent_cost": "0.3",
-              "total_run_cost": "29.78",
-              "average_steps": "8.14",
-              "percent_finished": "0.99"
-            }
-          },
-          "generation_config": {
-            "generation_args": {
-              "agentic_eval_config": {
-                "additional_details": {
-                  "agent_name": "LiteLLM Tool Calling with Shortlisting",
-                  "agent_framework": "tool_calling_with_shortlisting"
-                }
-              }
-            }
-          }
-        }
-      ],
-      "detailed_evaluation_results": null,
-      "generation_config": {
-        "generation_args": {
-          "agentic_eval_config": {
-            "additional_details": {
-              "agent_name": "LiteLLM Tool Calling with Shortlisting",
-              "agent_framework": "tool_calling_with_shortlisting"
-            }
-          }
-        }
-      }
-    },
-    {
-      "evaluation_id": "browsecompplus/openai-solo__openai_gpt-5.2-2025-12-11/1774263615.0201504",
-      "retrieved_timestamp": "1774263615.0201504",
-      "source_metadata": {
-        "source_name": "Exgentic Open Agent Leaderboard",
-        "source_type": "evaluation_run",
-        "source_organization_name": "Exgentic",
-        "source_organization_url": "https://github.com/Exgentic",
-        "evaluator_relationship": "third_party"
-      },
-      "eval_library": {
-        "name": "exgentic",
-        "version": "0.1.0"
-      },
-      "benchmark": "browsecompplus",
-      "evaluation_results": [
-        {
-          "evaluation_name": "browsecompplus",
-          "source_data": {
-            "dataset_name": "browsecompplus",
-            "source_type": "url",
-            "url": [
-              "https://github.com/Exgentic/exgentic"
-            ]
-          },
-          "metric_config": {
-            "evaluation_description": "BrowseCompPlus benchmark evaluation",
-            "lower_is_better": false,
-            "score_type": "continuous",
-            "min_score": 0.0,
-            "max_score": 1.0
-          },
-          "score_details": {
-            "score": 0.48,
-            "uncertainty": {
-              "num_samples": 100
-            },
-            "details": {
-              "average_agent_cost": "0.38",
-              "total_run_cost": "38.21",
-              "average_steps": "14.27",
-              "percent_finished": "1.0"
-            }
-          },
-          "generation_config": {
-            "generation_args": {
-              "agentic_eval_config": {
-                "additional_details": {
-                  "agent_name": "OpenAI Solo",
-                  "agent_framework": "openai_solo"
-                }
-              }
-            }
-          }
-        }
-      ],
-      "detailed_evaluation_results": null,
-      "generation_config": {
-        "generation_args": {
-          "agentic_eval_config": {
-            "additional_details": {
-              "agent_name": "OpenAI Solo",
-              "agent_framework": "openai_solo"
-            }
-          }
-        }
-      }
-    },
-    {
       "evaluation_id": "livecodebenchpro/gpt-5.2-2025-12-11/1770683238.099205",
       "retrieved_timestamp": "1770683238.099205",
       "source_metadata": {
@@ -769,7 +769,7 @@
       "generation_config": null
     },
     {
-      "evaluation_id": "swe-bench/smolagents-code__openai_gpt-5.2-2025-12-11/1774263615.0201504",
+      "evaluation_id": "swe-bench/claude-code-cli__openai_gpt-5.2-2025-12-11/1774263615.0201504",
       "retrieved_timestamp": "1774263615.0201504",
       "source_metadata": {
         "source_name": "Exgentic Open Agent Leaderboard",
@@ -801,14 +801,14 @@
             "max_score": 1.0
           },
           "score_details": {
-            "score": 0.5253,
+            "score": 0.58,
             "uncertainty": {
-              "num_samples": 99
+              "num_samples": 100
             },
             "details": {
-              "average_agent_cost": "0.45",
-              "total_run_cost": "44.58",
-              "average_steps": "19.98",
+              "average_agent_cost": "0.94",
+              "total_run_cost": "93.98",
+              "average_steps": "23.99",
               "percent_finished": "1.0"
             }
           },
@@ -816,8 +816,8 @@
             "generation_args": {
               "agentic_eval_config": {
                 "additional_details": {
-                  "agent_name": "SmolAgents Code",
-                  "agent_framework": "smolagents_code"
+                  "agent_name": "Claude Code CLI",
+                  "agent_framework": "claude_code"
                 }
               }
             }
@@ -829,8 +829,8 @@
         "generation_args": {
           "agentic_eval_config": {
             "additional_details": {
-              "agent_name": "SmolAgents Code",
-              "agent_framework": "smolagents_code"
+              "agent_name": "Claude Code CLI",
+              "agent_framework": "claude_code"
             }
           }
         }
@@ -905,74 +905,6 @@
       }
     },
     {
-      "evaluation_id": "swe-bench/claude-code-cli__openai_gpt-5.2-2025-12-11/1774263615.0201504",
-      "retrieved_timestamp": "1774263615.0201504",
-      "source_metadata": {
-        "source_name": "Exgentic Open Agent Leaderboard",
-        "source_type": "evaluation_run",
-        "source_organization_name": "Exgentic",
-        "source_organization_url": "https://github.com/Exgentic",
-        "evaluator_relationship": "third_party"
-      },
-      "eval_library": {
-        "name": "exgentic",
-        "version": "0.1.0"
-      },
-      "benchmark": "swe-bench",
-      "evaluation_results": [
-        {
-          "evaluation_name": "swe-bench",
-          "source_data": {
-            "dataset_name": "swe-bench",
-            "source_type": "url",
-            "url": [
-              "https://github.com/Exgentic/exgentic"
-            ]
-          },
-          "metric_config": {
-            "evaluation_description": "SWE-bench benchmark evaluation",
-            "lower_is_better": false,
-            "score_type": "continuous",
-            "min_score": 0.0,
-            "max_score": 1.0
-          },
-          "score_details": {
-            "score": 0.58,
-            "uncertainty": {
-              "num_samples": 100
-            },
-            "details": {
-              "average_agent_cost": "0.94",
-              "total_run_cost": "93.98",
-              "average_steps": "23.99",
-              "percent_finished": "1.0"
-            }
-          },
-          "generation_config": {
-            "generation_args": {
-              "agentic_eval_config": {
-                "additional_details": {
-                  "agent_name": "Claude Code CLI",
-                  "agent_framework": "claude_code"
-                }
-              }
-            }
-          }
-        }
-      ],
-      "detailed_evaluation_results": null,
-      "generation_config": {
-        "generation_args": {
-          "agentic_eval_config": {
-            "additional_details": {
-              "agent_name": "Claude Code CLI",
-              "agent_framework": "claude_code"
-            }
-          }
-        }
-      }
-    },
-    {
       "evaluation_id": "swe-bench/litellm-tool-calling__openai_gpt-5.2-2025-12-11/1774263615.0201504",
       "retrieved_timestamp": "1774263615.0201504",
       "source_metadata": {
@@ -1041,6 +973,74 @@
       }
     },
     {
+      "evaluation_id": "swe-bench/smolagents-code__openai_gpt-5.2-2025-12-11/1774263615.0201504",
+      "retrieved_timestamp": "1774263615.0201504",
+      "source_metadata": {
+        "source_name": "Exgentic Open Agent Leaderboard",
+        "source_type": "evaluation_run",
+        "source_organization_name": "Exgentic",
+        "source_organization_url": "https://github.com/Exgentic",
+        "evaluator_relationship": "third_party"
+      },
+      "eval_library": {
+        "name": "exgentic",
+        "version": "0.1.0"
+      },
+      "benchmark": "swe-bench",
+      "evaluation_results": [
+        {
+          "evaluation_name": "swe-bench",
+          "source_data": {
+            "dataset_name": "swe-bench",
+            "source_type": "url",
+            "url": [
+              "https://github.com/Exgentic/exgentic"
+            ]
+          },
+          "metric_config": {
+            "evaluation_description": "SWE-bench benchmark evaluation",
+            "lower_is_better": false,
+            "score_type": "continuous",
+            "min_score": 0.0,
+            "max_score": 1.0
+          },
+          "score_details": {
+            "score": 0.5253,
+            "uncertainty": {
+              "num_samples": 99
+            },
+            "details": {
+              "average_agent_cost": "0.45",
+              "total_run_cost": "44.58",
+              "average_steps": "19.98",
+              "percent_finished": "1.0"
+            }
+          },
+          "generation_config": {
+            "generation_args": {
+              "agentic_eval_config": {
+                "additional_details": {
+                  "agent_name": "SmolAgents Code",
+                  "agent_framework": "smolagents_code"
+                }
+              }
+            }
+          }
+        }
+      ],
+      "detailed_evaluation_results": null,
+      "generation_config": {
+        "generation_args": {
+          "agentic_eval_config": {
+            "additional_details": {
+              "agent_name": "SmolAgents Code",
+              "agent_framework": "smolagents_code"
+            }
+          }
+        }
+      }
+    },
+    {
       "evaluation_id": "swe-bench/openai-solo__openai_gpt-5.2-2025-12-11/1774263615.0201504",
       "retrieved_timestamp": "1774263615.0201504",
       "source_metadata": {
@@ -1081,142 +1081,6 @@
               "average_agent_cost": "0.26",
               "total_run_cost": "25.64",
               "average_steps": "20.44",
-              "percent_finished": "1.0"
-            }
-          },
-          "generation_config": {
-            "generation_args": {
-              "agentic_eval_config": {
-                "additional_details": {
-                  "agent_name": "OpenAI Solo",
-                  "agent_framework": "openai_solo"
-                }
-              }
-            }
-          }
-        }
-      ],
-      "detailed_evaluation_results": null,
-      "generation_config": {
-        "generation_args": {
-          "agentic_eval_config": {
-            "additional_details": {
-              "agent_name": "OpenAI Solo",
-              "agent_framework": "openai_solo"
-            }
-          }
-        }
-      }
-    },
-    {
-      "evaluation_id": "tau-bench-2/airline/litellm-tool-calling-with-shortlisting__openai_gpt-5.2-2025-12-11/1774263615.0201504",
-      "retrieved_timestamp": "1774263615.0201504",
-      "source_metadata": {
-        "source_name": "Exgentic Open Agent Leaderboard",
-        "source_type": "evaluation_run",
-        "source_organization_name": "Exgentic",
-        "source_organization_url": "https://github.com/Exgentic",
-        "evaluator_relationship": "third_party"
-      },
-      "eval_library": {
-        "name": "exgentic",
-        "version": "0.1.0"
-      },
-      "benchmark": "tau-bench-2_airline",
-      "evaluation_results": [
-        {
-          "evaluation_name": "tau-bench-2/airline",
-          "source_data": {
-            "dataset_name": "tau-bench-2/airline",
-            "source_type": "url",
-            "url": [
-              "https://github.com/Exgentic/exgentic"
-            ]
-          },
-          "metric_config": {
-            "evaluation_description": "Tau Bench 2 benchmark evaluation (airline subset)",
-            "lower_is_better": false,
-            "score_type": "continuous",
-            "min_score": 0.0,
-            "max_score": 1.0
-          },
-          "score_details": {
-            "score": 0.54,
-            "uncertainty": {
-              "num_samples": 50
-            },
-            "details": {
-              "average_agent_cost": "0.13",
-              "total_run_cost": "6.96",
-              "average_steps": "11.22",
-              "percent_finished": "1.0"
-            }
-          },
-          "generation_config": {
-            "generation_args": {
-              "agentic_eval_config": {
-                "additional_details": {
-                  "agent_name": "LiteLLM Tool Calling with Shortlisting",
-                  "agent_framework": "tool_calling_with_shortlisting"
-                }
-              }
-            }
-          }
-        }
-      ],
-      "detailed_evaluation_results": null,
-      "generation_config": {
-        "generation_args": {
-          "agentic_eval_config": {
-            "additional_details": {
-              "agent_name": "LiteLLM Tool Calling with Shortlisting",
-              "agent_framework": "tool_calling_with_shortlisting"
-            }
-          }
-        }
-      }
-    },
-    {
-      "evaluation_id": "tau-bench-2/airline/openai-solo__openai_gpt-5.2-2025-12-11/1774263615.0201504",
-      "retrieved_timestamp": "1774263615.0201504",
-      "source_metadata": {
-        "source_name": "Exgentic Open Agent Leaderboard",
-        "source_type": "evaluation_run",
-        "source_organization_name": "Exgentic",
-        "source_organization_url": "https://github.com/Exgentic",
-        "evaluator_relationship": "third_party"
-      },
-      "eval_library": {
-        "name": "exgentic",
-        "version": "0.1.0"
-      },
-      "benchmark": "tau-bench-2_airline",
-      "evaluation_results": [
-        {
-          "evaluation_name": "tau-bench-2/airline",
-          "source_data": {
-            "dataset_name": "tau-bench-2/airline",
-            "source_type": "url",
-            "url": [
-              "https://github.com/Exgentic/exgentic"
-            ]
-          },
-          "metric_config": {
-            "evaluation_description": "Tau Bench 2 benchmark evaluation (airline subset)",
-            "lower_is_better": false,
-            "score_type": "continuous",
-            "min_score": 0.0,
-            "max_score": 1.0
-          },
-          "score_details": {
-            "score": 0.5,
-            "uncertainty": {
-              "num_samples": 50
-            },
-            "details": {
-              "average_agent_cost": "0.11",
-              "total_run_cost": "5.77",
-              "average_steps": "11.4",
               "percent_finished": "1.0"
             }
           },
@@ -1313,6 +1177,74 @@
       }
     },
     {
+      "evaluation_id": "tau-bench-2/airline/openai-solo__openai_gpt-5.2-2025-12-11/1774263615.0201504",
+      "retrieved_timestamp": "1774263615.0201504",
+      "source_metadata": {
+        "source_name": "Exgentic Open Agent Leaderboard",
+        "source_type": "evaluation_run",
+        "source_organization_name": "Exgentic",
+        "source_organization_url": "https://github.com/Exgentic",
+        "evaluator_relationship": "third_party"
+      },
+      "eval_library": {
+        "name": "exgentic",
+        "version": "0.1.0"
+      },
+      "benchmark": "tau-bench-2_airline",
+      "evaluation_results": [
+        {
+          "evaluation_name": "tau-bench-2/airline",
+          "source_data": {
+            "dataset_name": "tau-bench-2/airline",
+            "source_type": "url",
+            "url": [
+              "https://github.com/Exgentic/exgentic"
+            ]
+          },
+          "metric_config": {
+            "evaluation_description": "Tau Bench 2 benchmark evaluation (airline subset)",
+            "lower_is_better": false,
+            "score_type": "continuous",
+            "min_score": 0.0,
+            "max_score": 1.0
+          },
+          "score_details": {
+            "score": 0.5,
+            "uncertainty": {
+              "num_samples": 50
+            },
+            "details": {
+              "average_agent_cost": "0.11",
+              "total_run_cost": "5.77",
+              "average_steps": "11.4",
+              "percent_finished": "1.0"
+            }
+          },
+          "generation_config": {
+            "generation_args": {
+              "agentic_eval_config": {
+                "additional_details": {
+                  "agent_name": "OpenAI Solo",
+                  "agent_framework": "openai_solo"
+                }
+              }
+            }
+          }
+        }
+      ],
+      "detailed_evaluation_results": null,
+      "generation_config": {
+        "generation_args": {
+          "agentic_eval_config": {
+            "additional_details": {
+              "agent_name": "OpenAI Solo",
+              "agent_framework": "openai_solo"
+            }
+          }
+        }
+      }
+    },
+    {
       "evaluation_id": "tau-bench-2/airline/litellm-tool-calling__openai_gpt-5.2-2025-12-11/1774263615.0201504",
       "retrieved_timestamp": "1774263615.0201504",
       "source_metadata": {
@@ -1375,6 +1307,210 @@
             "additional_details": {
               "agent_name": "LiteLLM Tool Calling",
               "agent_framework": "tool_calling"
+            }
+          }
+        }
+      }
+    },
+    {
+      "evaluation_id": "tau-bench-2/airline/litellm-tool-calling-with-shortlisting__openai_gpt-5.2-2025-12-11/1774263615.0201504",
+      "retrieved_timestamp": "1774263615.0201504",
+      "source_metadata": {
+        "source_name": "Exgentic Open Agent Leaderboard",
+        "source_type": "evaluation_run",
+        "source_organization_name": "Exgentic",
+        "source_organization_url": "https://github.com/Exgentic",
+        "evaluator_relationship": "third_party"
+      },
+      "eval_library": {
+        "name": "exgentic",
+        "version": "0.1.0"
+      },
+      "benchmark": "tau-bench-2_airline",
+      "evaluation_results": [
+        {
+          "evaluation_name": "tau-bench-2/airline",
+          "source_data": {
+            "dataset_name": "tau-bench-2/airline",
+            "source_type": "url",
+            "url": [
+              "https://github.com/Exgentic/exgentic"
+            ]
+          },
+          "metric_config": {
+            "evaluation_description": "Tau Bench 2 benchmark evaluation (airline subset)",
+            "lower_is_better": false,
+            "score_type": "continuous",
+            "min_score": 0.0,
+            "max_score": 1.0
+          },
+          "score_details": {
+            "score": 0.54,
+            "uncertainty": {
+              "num_samples": 50
+            },
+            "details": {
+              "average_agent_cost": "0.13",
+              "total_run_cost": "6.96",
+              "average_steps": "11.22",
+              "percent_finished": "1.0"
+            }
+          },
+          "generation_config": {
+            "generation_args": {
+              "agentic_eval_config": {
+                "additional_details": {
+                  "agent_name": "LiteLLM Tool Calling with Shortlisting",
+                  "agent_framework": "tool_calling_with_shortlisting"
+                }
+              }
+            }
+          }
+        }
+      ],
+      "detailed_evaluation_results": null,
+      "generation_config": {
+        "generation_args": {
+          "agentic_eval_config": {
+            "additional_details": {
+              "agent_name": "LiteLLM Tool Calling with Shortlisting",
+              "agent_framework": "tool_calling_with_shortlisting"
+            }
+          }
+        }
+      }
+    },
+    {
+      "evaluation_id": "tau-bench-2/retail/smolagents-code__openai_gpt-5.2-2025-12-11/1774263615.0201504",
+      "retrieved_timestamp": "1774263615.0201504",
+      "source_metadata": {
+        "source_name": "Exgentic Open Agent Leaderboard",
+        "source_type": "evaluation_run",
+        "source_organization_name": "Exgentic",
+        "source_organization_url": "https://github.com/Exgentic",
+        "evaluator_relationship": "third_party"
+      },
+      "eval_library": {
+        "name": "exgentic",
+        "version": "0.1.0"
+      },
+      "benchmark": "tau-bench-2_retail",
+      "evaluation_results": [
+        {
+          "evaluation_name": "tau-bench-2/retail",
+          "source_data": {
+            "dataset_name": "tau-bench-2/retail",
+            "source_type": "url",
+            "url": [
+              "https://github.com/Exgentic/exgentic"
+            ]
+          },
+          "metric_config": {
+            "evaluation_description": "Tau Bench 2 benchmark evaluation (retail subset)",
+            "lower_is_better": false,
+            "score_type": "continuous",
+            "min_score": 0.0,
+            "max_score": 1.0
+          },
+          "score_details": {
+            "score": 0.68,
+            "uncertainty": {
+              "num_samples": 100
+            },
+            "details": {
+              "average_agent_cost": "0.25",
+              "total_run_cost": "26.27",
+              "average_steps": "11.08",
+              "percent_finished": "1.0"
+            }
+          },
+          "generation_config": {
+            "generation_args": {
+              "agentic_eval_config": {
+                "additional_details": {
+                  "agent_name": "SmolAgents Code",
+                  "agent_framework": "smolagents_code"
+                }
+              }
+            }
+          }
+        }
+      ],
+      "detailed_evaluation_results": null,
+      "generation_config": {
+        "generation_args": {
+          "agentic_eval_config": {
+            "additional_details": {
+              "agent_name": "SmolAgents Code",
+              "agent_framework": "smolagents_code"
+            }
+          }
+        }
+      }
+    },
+    {
+      "evaluation_id": "tau-bench-2/retail/claude-code-cli__openai_gpt-5.2-2025-12-11/1774263615.0201504",
+      "retrieved_timestamp": "1774263615.0201504",
+      "source_metadata": {
+        "source_name": "Exgentic Open Agent Leaderboard",
+        "source_type": "evaluation_run",
+        "source_organization_name": "Exgentic",
+        "source_organization_url": "https://github.com/Exgentic",
+        "evaluator_relationship": "third_party"
+      },
+      "eval_library": {
+        "name": "exgentic",
+        "version": "0.1.0"
+      },
+      "benchmark": "tau-bench-2_retail",
+      "evaluation_results": [
+        {
+          "evaluation_name": "tau-bench-2/retail",
+          "source_data": {
+            "dataset_name": "tau-bench-2/retail",
+            "source_type": "url",
+            "url": [
+              "https://github.com/Exgentic/exgentic"
+            ]
+          },
+          "metric_config": {
+            "evaluation_description": "Tau Bench 2 benchmark evaluation (retail subset)",
+            "lower_is_better": false,
+            "score_type": "continuous",
+            "min_score": 0.0,
+            "max_score": 1.0
+          },
+          "score_details": {
+            "score": 0.51,
+            "uncertainty": {
+              "num_samples": 100
+            },
+            "details": {
+              "average_agent_cost": "0.12",
+              "total_run_cost": "12.63",
+              "average_steps": "9.92",
+              "percent_finished": "0.98"
+            }
+          },
+          "generation_config": {
+            "generation_args": {
+              "agentic_eval_config": {
+                "additional_details": {
+                  "agent_name": "Claude Code CLI",
+                  "agent_framework": "claude_code"
+                }
+              }
+            }
+          }
+        }
+      ],
+      "detailed_evaluation_results": null,
+      "generation_config": {
+        "generation_args": {
+          "agentic_eval_config": {
+            "additional_details": {
+              "agent_name": "Claude Code CLI",
+              "agent_framework": "claude_code"
             }
           }
         }
@@ -1517,74 +1653,6 @@
       }
     },
     {
-      "evaluation_id": "tau-bench-2/retail/litellm-tool-calling-with-shortlisting__openai_gpt-5.2-2025-12-11/1774263615.0201504",
-      "retrieved_timestamp": "1774263615.0201504",
-      "source_metadata": {
-        "source_name": "Exgentic Open Agent Leaderboard",
-        "source_type": "evaluation_run",
-        "source_organization_name": "Exgentic",
-        "source_organization_url": "https://github.com/Exgentic",
-        "evaluator_relationship": "third_party"
-      },
-      "eval_library": {
-        "name": "exgentic",
-        "version": "0.1.0"
-      },
-      "benchmark": "tau-bench-2_retail",
-      "evaluation_results": [
-        {
-          "evaluation_name": "tau-bench-2/retail",
-          "source_data": {
-            "dataset_name": "tau-bench-2/retail",
-            "source_type": "url",
-            "url": [
-              "https://github.com/Exgentic/exgentic"
-            ]
-          },
-          "metric_config": {
-            "evaluation_description": "Tau Bench 2 benchmark evaluation (retail subset)",
-            "lower_is_better": false,
-            "score_type": "continuous",
-            "min_score": 0.0,
-            "max_score": 1.0
-          },
-          "score_details": {
-            "score": 0.73,
-            "uncertainty": {
-              "num_samples": 100
-            },
-            "details": {
-              "average_agent_cost": "0.11",
-              "total_run_cost": "12.27",
-              "average_steps": "10.33",
-              "percent_finished": "1.0"
-            }
-          },
-          "generation_config": {
-            "generation_args": {
-              "agentic_eval_config": {
-                "additional_details": {
-                  "agent_name": "LiteLLM Tool Calling with Shortlisting",
-                  "agent_framework": "tool_calling_with_shortlisting"
-                }
-              }
-            }
-          }
-        }
-      ],
-      "detailed_evaluation_results": null,
-      "generation_config": {
-        "generation_args": {
-          "agentic_eval_config": {
-            "additional_details": {
-              "agent_name": "LiteLLM Tool Calling with Shortlisting",
-              "agent_framework": "tool_calling_with_shortlisting"
-            }
-          }
-        }
-      }
-    },
-    {
       "evaluation_id": "tau-bench-2/retail/litellm-tool-calling__openai_gpt-5.2-2025-12-11/1774263615.0201504",
       "retrieved_timestamp": "1774263615.0201504",
       "source_metadata": {
@@ -1653,7 +1721,7 @@
       }
     },
     {
-      "evaluation_id": "tau-bench-2/retail/claude-code-cli__openai_gpt-5.2-2025-12-11/1774263615.0201504",
+      "evaluation_id": "tau-bench-2/retail/litellm-tool-calling-with-shortlisting__openai_gpt-5.2-2025-12-11/1774263615.0201504",
       "retrieved_timestamp": "1774263615.0201504",
       "source_metadata": {
         "source_name": "Exgentic Open Agent Leaderboard",
@@ -1685,82 +1753,14 @@
             "max_score": 1.0
           },
           "score_details": {
-            "score": 0.51,
+            "score": 0.73,
             "uncertainty": {
               "num_samples": 100
             },
             "details": {
-              "average_agent_cost": "0.12",
-              "total_run_cost": "12.63",
-              "average_steps": "9.92",
-              "percent_finished": "0.98"
-            }
-          },
-          "generation_config": {
-            "generation_args": {
-              "agentic_eval_config": {
-                "additional_details": {
-                  "agent_name": "Claude Code CLI",
-                  "agent_framework": "claude_code"
-                }
-              }
-            }
-          }
-        }
-      ],
-      "detailed_evaluation_results": null,
-      "generation_config": {
-        "generation_args": {
-          "agentic_eval_config": {
-            "additional_details": {
-              "agent_name": "Claude Code CLI",
-              "agent_framework": "claude_code"
-            }
-          }
-        }
-      }
-    },
-    {
-      "evaluation_id": "tau-bench-2/retail/smolagents-code__openai_gpt-5.2-2025-12-11/1774263615.0201504",
-      "retrieved_timestamp": "1774263615.0201504",
-      "source_metadata": {
-        "source_name": "Exgentic Open Agent Leaderboard",
-        "source_type": "evaluation_run",
-        "source_organization_name": "Exgentic",
-        "source_organization_url": "https://github.com/Exgentic",
-        "evaluator_relationship": "third_party"
-      },
-      "eval_library": {
-        "name": "exgentic",
-        "version": "0.1.0"
-      },
-      "benchmark": "tau-bench-2_retail",
-      "evaluation_results": [
-        {
-          "evaluation_name": "tau-bench-2/retail",
-          "source_data": {
-            "dataset_name": "tau-bench-2/retail",
-            "source_type": "url",
-            "url": [
-              "https://github.com/Exgentic/exgentic"
-            ]
-          },
-          "metric_config": {
-            "evaluation_description": "Tau Bench 2 benchmark evaluation (retail subset)",
-            "lower_is_better": false,
-            "score_type": "continuous",
-            "min_score": 0.0,
-            "max_score": 1.0
-          },
-          "score_details": {
-            "score": 0.68,
-            "uncertainty": {
-              "num_samples": 100
-            },
-            "details": {
-              "average_agent_cost": "0.25",
-              "total_run_cost": "26.27",
-              "average_steps": "11.08",
+              "average_agent_cost": "0.11",
+              "total_run_cost": "12.27",
+              "average_steps": "10.33",
               "percent_finished": "1.0"
             }
           },
@@ -1768,8 +1768,8 @@
             "generation_args": {
               "agentic_eval_config": {
                 "additional_details": {
-                  "agent_name": "SmolAgents Code",
-                  "agent_framework": "smolagents_code"
+                  "agent_name": "LiteLLM Tool Calling with Shortlisting",
+                  "agent_framework": "tool_calling_with_shortlisting"
                 }
               }
             }
@@ -1781,15 +1781,15 @@
         "generation_args": {
           "agentic_eval_config": {
             "additional_details": {
-              "agent_name": "SmolAgents Code",
-              "agent_framework": "smolagents_code"
+              "agent_name": "LiteLLM Tool Calling with Shortlisting",
+              "agent_framework": "tool_calling_with_shortlisting"
             }
           }
         }
       }
     },
     {
-      "evaluation_id": "tau-bench-2/telecom/smolagents-code__openai_gpt-5.2-2025-12-11/1774263615.0201504",
+      "evaluation_id": "tau-bench-2/telecom/openai-solo__openai_gpt-5.2-2025-12-11/1774263615.0201504",
       "retrieved_timestamp": "1774263615.0201504",
       "source_metadata": {
         "source_name": "Exgentic Open Agent Leaderboard",
@@ -1821,14 +1821,14 @@
             "max_score": 1.0
           },
           "score_details": {
-            "score": 0.71,
+            "score": 0.53,
             "uncertainty": {
               "num_samples": 100
             },
             "details": {
-              "average_agent_cost": "0.3",
-              "total_run_cost": "35.31",
-              "average_steps": "10.11",
+              "average_agent_cost": "0.15",
+              "total_run_cost": "18.88",
+              "average_steps": "9.92",
               "percent_finished": "1.0"
             }
           },
@@ -1836,8 +1836,8 @@
             "generation_args": {
               "agentic_eval_config": {
                 "additional_details": {
-                  "agent_name": "SmolAgents Code",
-                  "agent_framework": "smolagents_code"
+                  "agent_name": "OpenAI Solo",
+                  "agent_framework": "openai_solo"
                 }
               }
             }
@@ -1849,8 +1849,8 @@
         "generation_args": {
           "agentic_eval_config": {
             "additional_details": {
-              "agent_name": "SmolAgents Code",
-              "agent_framework": "smolagents_code"
+              "agent_name": "OpenAI Solo",
+              "agent_framework": "openai_solo"
             }
           }
         }
@@ -1993,74 +1993,6 @@
       }
     },
     {
-      "evaluation_id": "tau-bench-2/telecom/openai-solo__openai_gpt-5.2-2025-12-11/1774263615.0201504",
-      "retrieved_timestamp": "1774263615.0201504",
-      "source_metadata": {
-        "source_name": "Exgentic Open Agent Leaderboard",
-        "source_type": "evaluation_run",
-        "source_organization_name": "Exgentic",
-        "source_organization_url": "https://github.com/Exgentic",
-        "evaluator_relationship": "third_party"
-      },
-      "eval_library": {
-        "name": "exgentic",
-        "version": "0.1.0"
-      },
-      "benchmark": "tau-bench-2_telecom",
-      "evaluation_results": [
-        {
-          "evaluation_name": "tau-bench-2/telecom",
-          "source_data": {
-            "dataset_name": "tau-bench-2/telecom",
-            "source_type": "url",
-            "url": [
-              "https://github.com/Exgentic/exgentic"
-            ]
-          },
-          "metric_config": {
-            "evaluation_description": "Tau Bench 2 benchmark evaluation (telecom subset)",
-            "lower_is_better": false,
-            "score_type": "continuous",
-            "min_score": 0.0,
-            "max_score": 1.0
-          },
-          "score_details": {
-            "score": 0.53,
-            "uncertainty": {
-              "num_samples": 100
-            },
-            "details": {
-              "average_agent_cost": "0.15",
-              "total_run_cost": "18.88",
-              "average_steps": "9.92",
-              "percent_finished": "1.0"
-            }
-          },
-          "generation_config": {
-            "generation_args": {
-              "agentic_eval_config": {
-                "additional_details": {
-                  "agent_name": "OpenAI Solo",
-                  "agent_framework": "openai_solo"
-                }
-              }
-            }
-          }
-        }
-      ],
-      "detailed_evaluation_results": null,
-      "generation_config": {
-        "generation_args": {
-          "agentic_eval_config": {
-            "additional_details": {
-              "agent_name": "OpenAI Solo",
-              "agent_framework": "openai_solo"
-            }
-          }
-        }
-      }
-    },
-    {
       "evaluation_id": "tau-bench-2/telecom/litellm-tool-calling__openai_gpt-5.2-2025-12-11/1774263615.0201504",
       "retrieved_timestamp": "1774263615.0201504",
       "source_metadata": {
@@ -2123,6 +2055,74 @@
             "additional_details": {
               "agent_name": "LiteLLM Tool Calling",
               "agent_framework": "tool_calling"
+            }
+          }
+        }
+      }
+    },
+    {
+      "evaluation_id": "tau-bench-2/telecom/smolagents-code__openai_gpt-5.2-2025-12-11/1774263615.0201504",
+      "retrieved_timestamp": "1774263615.0201504",
+      "source_metadata": {
+        "source_name": "Exgentic Open Agent Leaderboard",
+        "source_type": "evaluation_run",
+        "source_organization_name": "Exgentic",
+        "source_organization_url": "https://github.com/Exgentic",
+        "evaluator_relationship": "third_party"
+      },
+      "eval_library": {
+        "name": "exgentic",
+        "version": "0.1.0"
+      },
+      "benchmark": "tau-bench-2_telecom",
+      "evaluation_results": [
+        {
+          "evaluation_name": "tau-bench-2/telecom",
+          "source_data": {
+            "dataset_name": "tau-bench-2/telecom",
+            "source_type": "url",
+            "url": [
+              "https://github.com/Exgentic/exgentic"
+            ]
+          },
+          "metric_config": {
+            "evaluation_description": "Tau Bench 2 benchmark evaluation (telecom subset)",
+            "lower_is_better": false,
+            "score_type": "continuous",
+            "min_score": 0.0,
+            "max_score": 1.0
+          },
+          "score_details": {
+            "score": 0.71,
+            "uncertainty": {
+              "num_samples": 100
+            },
+            "details": {
+              "average_agent_cost": "0.3",
+              "total_run_cost": "35.31",
+              "average_steps": "10.11",
+              "percent_finished": "1.0"
+            }
+          },
+          "generation_config": {
+            "generation_args": {
+              "agentic_eval_config": {
+                "additional_details": {
+                  "agent_name": "SmolAgents Code",
+                  "agent_framework": "smolagents_code"
+                }
+              }
+            }
+          }
+        }
+      ],
+      "detailed_evaluation_results": null,
+      "generation_config": {
+        "generation_args": {
+          "agentic_eval_config": {
+            "additional_details": {
+              "agent_name": "SmolAgents Code",
+              "agent_framework": "smolagents_code"
             }
           }
         }

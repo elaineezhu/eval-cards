@@ -7,6 +7,16 @@
       "developer": "snowflake",
       "evaluator_relationship": null,
       "benchmark_scores": {
+        "helm_lite/Mean win rate": 0.338,
+        "helm_lite/NarrativeQA": 0.654,
+        "helm_lite/NaturalQuestions (closed-book)": 0.39,
+        "helm_lite/OpenbookQA": 0.828,
+        "helm_lite/MMLU": 0.575,
+        "helm_lite/MATH": 0.519,
+        "helm_lite/GSM8K": 0.768,
+        "helm_lite/LegalBench": 0.588,
+        "helm_lite/MedQA": 0.581,
+        "helm_lite/WMT 2014": 0.172,
         "helm_mmlu/MMLU All Subjects": 0.677,
         "helm_mmlu/Abstract Algebra": 0.35,
         "helm_mmlu/Anatomy": 0.652,
@@ -42,17 +52,7 @@
         "helm_mmlu/Sociology": 0.891,
         "helm_mmlu/Virology": 0.536,
         "helm_mmlu/World Religions": 0.854,
-        "helm_mmlu/Mean win rate": 0.565,
-        "helm_lite/Mean win rate": 0.338,
-        "helm_lite/NarrativeQA": 0.654,
-        "helm_lite/NaturalQuestions (closed-book)": 0.39,
-        "helm_lite/OpenbookQA": 0.828,
-        "helm_lite/MMLU": 0.575,
-        "helm_lite/MATH": 0.519,
-        "helm_lite/GSM8K": 0.768,
-        "helm_lite/LegalBench": 0.588,
-        "helm_lite/MedQA": 0.581,
-        "helm_lite/WMT 2014": 0.172
+        "helm_mmlu/Mean win rate": 0.565
       }
     }
   ]
