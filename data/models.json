@@ -907,12 +907,12 @@
     "developer": "abhishek",
     "evaluator_relationship": null,
     "benchmark_scores": {
-      "hfopenllm_v2/IFEval": 0.1952,
-      "hfopenllm_v2/BBH": 0.3127,
-      "hfopenllm_v2/MATH Level 5": 0.0128,
-      "hfopenllm_v2/GPQA": 0.2592,
-      "hfopenllm_v2/MUSR": 0.3584,
-      "hfopenllm_v2/MMLU-PRO": 0.1144
+      "hfopenllm_v2/IFEval": 0.1957,
+      "hfopenllm_v2/BBH": 0.3135,
+      "hfopenllm_v2/MATH Level 5": 0.0,
+      "hfopenllm_v2/GPQA": 0.2517,
+      "hfopenllm_v2/MUSR": 0.365,
+      "hfopenllm_v2/MMLU-PRO": 0.1151
     }
   },
   {
@@ -1005,12 +1005,12 @@
     "developer": "adriszmar",
     "evaluator_relationship": null,
     "benchmark_scores": {
-      "hfopenllm_v2/IFEval": 0.1746,
-      "hfopenllm_v2/BBH": 0.3126,
-      "hfopenllm_v2/MATH Level 5": 0.0,
-      "hfopenllm_v2/GPQA": 0.245,
-      "hfopenllm_v2/MUSR": 0.4096,
-      "hfopenllm_v2/MMLU-PRO": 0.1087
+      "hfopenllm_v2/IFEval": 0.1685,
+      "hfopenllm_v2/BBH": 0.3124,
+      "hfopenllm_v2/MATH Level 5": 0.0015,
+      "hfopenllm_v2/GPQA": 0.2492,
+      "hfopenllm_v2/MUSR": 0.3963,
+      "hfopenllm_v2/MMLU-PRO": 0.1066
     }
   },
   {
@@ -1391,10 +1391,10 @@
     "developer": "AI2",
     "evaluator_relationship": null,
     "benchmark_scores": {
-      "reward-bench/Score": 0.6924,
-      "reward-bench/Chat": 0.9441,
-      "reward-bench/Chat Hard": 0.3575,
-      "reward-bench/Safety": 0.7757
+      "reward-bench/Score": 0.6895,
+      "reward-bench/Chat": 0.9385,
+      "reward-bench/Chat Hard": 0.3706,
+      "reward-bench/Safety": 0.7595
     }
   },
   {
@@ -2036,12 +2036,12 @@
     "developer": "akjindal53244",
     "evaluator_relationship": null,
     "benchmark_scores": {
-      "hfopenllm_v2/IFEval": 0.8033,
-      "hfopenllm_v2/BBH": 0.5196,
-      "hfopenllm_v2/MATH Level 5": 0.1624,
-      "hfopenllm_v2/GPQA": 0.3096,
+      "hfopenllm_v2/IFEval": 0.8051,
+      "hfopenllm_v2/BBH": 0.5189,
+      "hfopenllm_v2/MATH Level 5": 0.1722,
+      "hfopenllm_v2/GPQA": 0.3263,
       "hfopenllm_v2/MUSR": 0.4028,
-      "hfopenllm_v2/MMLU-PRO": 0.3812
+      "hfopenllm_v2/MMLU-PRO": 0.3803
     }
   },
   {
@@ -2243,7 +2243,7 @@
     "developer": "Alibaba",
     "evaluator_relationship": null,
     "benchmark_scores": {
-      "terminal-bench-2.0/terminal-bench-2.0": 27.2
+      "terminal-bench-2.0/terminal-bench-2.0": 25.4
     }
   },
   {
@@ -2409,17 +2409,17 @@
     "developer": "allenai",
     "evaluator_relationship": null,
     "benchmark_scores": {
-      "reward-bench/Score": 0.649,
-      "reward-bench/Chat": 0.933,
-      "reward-bench/Chat Hard": 0.7785,
-      "reward-bench/Safety": 0.8267,
-      "reward-bench/Reasoning": 0.7886,
-      "reward-bench/Prior Sets (0.5 weight)": 0.0,
+      "reward-bench/Score": 0.8463,
       "reward-bench/Factuality": 0.72,
       "reward-bench/Precise IF": 0.3625,
       "reward-bench/Math": 0.612,
+      "reward-bench/Safety": 0.8851,
       "reward-bench/Focus": 0.8323,
-      "reward-bench/Ties": 0.5406
+      "reward-bench/Ties": 0.5406,
+      "reward-bench/Chat": 0.933,
+      "reward-bench/Chat Hard": 0.7785,
+      "reward-bench/Reasoning": 0.7886,
+      "reward-bench/Prior Sets (0.5 weight)": 0.0
     }
   },
   {
@@ -2447,12 +2447,12 @@
     "developer": "allenai",
     "evaluator_relationship": null,
     "benchmark_scores": {
-      "hfopenllm_v2/IFEval": 0.8291,
-      "hfopenllm_v2/BBH": 0.6164,
-      "hfopenllm_v2/MATH Level 5": 0.4502,
+      "hfopenllm_v2/IFEval": 0.8379,
+      "hfopenllm_v2/BBH": 0.6157,
+      "hfopenllm_v2/MATH Level 5": 0.3829,
       "hfopenllm_v2/GPQA": 0.3733,
-      "hfopenllm_v2/MUSR": 0.4948,
-      "hfopenllm_v2/MMLU-PRO": 0.4645
+      "hfopenllm_v2/MUSR": 0.4988,
+      "hfopenllm_v2/MMLU-PRO": 0.4656
     }
   },
   {
@@ -2489,17 +2489,17 @@
     "developer": "allenai",
     "evaluator_relationship": null,
     "benchmark_scores": {
-      "reward-bench/Score": 0.8892,
+      "reward-bench/Score": 0.722,
+      "reward-bench/Chat": 0.9693,
+      "reward-bench/Chat Hard": 0.8268,
+      "reward-bench/Safety": 0.8689,
+      "reward-bench/Reasoning": 0.8583,
+      "reward-bench/Prior Sets (0.5 weight)": 0.0,
       "reward-bench/Factuality": 0.8084,
       "reward-bench/Precise IF": 0.3688,
       "reward-bench/Math": 0.6776,
-      "reward-bench/Safety": 0.9027,
       "reward-bench/Focus": 0.7778,
-      "reward-bench/Ties": 0.8308,
-      "reward-bench/Chat": 0.9693,
-      "reward-bench/Chat Hard": 0.8268,
-      "reward-bench/Reasoning": 0.8583,
-      "reward-bench/Prior Sets (0.5 weight)": 0.0
+      "reward-bench/Ties": 0.8308
     }
   },
   {
@@ -2508,12 +2508,12 @@
     "developer": "allenai",
     "evaluator_relationship": null,
     "benchmark_scores": {
-      "hfopenllm_v2/IFEval": 0.8267,
-      "hfopenllm_v2/BBH": 0.405,
-      "hfopenllm_v2/MATH Level 5": 0.1964,
-      "hfopenllm_v2/GPQA": 0.2987,
+      "hfopenllm_v2/IFEval": 0.8255,
+      "hfopenllm_v2/BBH": 0.4061,
+      "hfopenllm_v2/MATH Level 5": 0.2115,
+      "hfopenllm_v2/GPQA": 0.297,
       "hfopenllm_v2/MUSR": 0.4175,
-      "hfopenllm_v2/MMLU-PRO": 0.2827
+      "hfopenllm_v2/MMLU-PRO": 0.2821
     }
   },
   {
@@ -2536,17 +2536,17 @@
     "developer": "allenai",
     "evaluator_relationship": null,
     "benchmark_scores": {
-      "reward-bench/Score": 0.8431,
+      "reward-bench/Score": 0.687,
+      "reward-bench/Chat": 0.9553,
+      "reward-bench/Chat Hard": 0.761,
+      "reward-bench/Safety": 0.86,
+      "reward-bench/Reasoning": 0.7898,
+      "reward-bench/Prior Sets (0.5 weight)": 0.0,
       "reward-bench/Factuality": 0.7516,
       "reward-bench/Precise IF": 0.3875,
       "reward-bench/Math": 0.6284,
-      "reward-bench/Safety": 0.8662,
       "reward-bench/Focus": 0.8545,
-      "reward-bench/Ties": 0.6397,
-      "reward-bench/Chat": 0.9553,
-      "reward-bench/Chat Hard": 0.761,
-      "reward-bench/Reasoning": 0.7898,
-      "reward-bench/Prior Sets (0.5 weight)": 0.0
+      "reward-bench/Ties": 0.6397
     }
   },
   {
@@ -3379,21 +3379,6 @@
       "reward-bench/Safety": 0.7533,
       "reward-bench/Focus": 0.7051,
       "reward-bench/Ties": 0.3534
-    }
-  },
-  {
-    "id": "allenai/open_instruct_dev-rm_1e-6_2_30pctflipped__1__1743325094",
-    "name": "allenai/open_instruct_dev-rm_1e-6_2_30pctflipped__1__1743325094",
-    "developer": "allenai",
-    "evaluator_relationship": null,
-    "benchmark_scores": {
-      "reward-bench/Score": 0.5151,
-      "reward-bench/Factuality": 0.6484,
-      "reward-bench/Precise IF": 0.3312,
-      "reward-bench/Math": 0.5574,
-      "reward-bench/Safety": 0.7289,
-      "reward-bench/Focus": 0.4889,
-      "reward-bench/Ties": 0.3357
     }
   },
   {
@@ -7167,17 +7152,17 @@
       "helm_mmlu/Virology": 0.542,
       "helm_mmlu/World Religions": 0.871,
       "helm_mmlu/Mean win rate": 0.28,
-      "reward-bench/Score": 0.3711,
-      "reward-bench/Chat": 0.9274,
-      "reward-bench/Chat Hard": 0.5197,
-      "reward-bench/Safety": 0.595,
-      "reward-bench/Reasoning": 0.706,
-      "reward-bench/Prior Sets (0.5 weight)": 0.6635,
+      "reward-bench/Score": 0.7289,
       "reward-bench/Factuality": 0.4042,
       "reward-bench/Precise IF": 0.2812,
       "reward-bench/Math": 0.3552,
+      "reward-bench/Safety": 0.7953,
       "reward-bench/Focus": 0.501,
-      "reward-bench/Ties": 0.0899
+      "reward-bench/Ties": 0.0899,
+      "reward-bench/Chat": 0.9274,
+      "reward-bench/Chat Hard": 0.5197,
+      "reward-bench/Reasoning": 0.706,
+      "reward-bench/Prior Sets (0.5 weight)": 0.6635
     }
   },
   {
@@ -7232,16 +7217,16 @@
       "helm_mmlu/Virology": 0.578,
       "helm_mmlu/World Religions": 0.901,
       "helm_mmlu/Mean win rate": 0.014,
-      "reward-bench/Score": 0.5744,
-      "reward-bench/Chat": 0.9469,
-      "reward-bench/Chat Hard": 0.6031,
-      "reward-bench/Safety": 0.8378,
-      "reward-bench/Reasoning": 0.7868,
+      "reward-bench/Score": 0.8008,
       "reward-bench/Factuality": 0.5389,
       "reward-bench/Precise IF": 0.3312,
       "reward-bench/Math": 0.5137,
+      "reward-bench/Safety": 0.8662,
       "reward-bench/Focus": 0.6646,
-      "reward-bench/Ties": 0.5601
+      "reward-bench/Ties": 0.5601,
+      "reward-bench/Chat": 0.9469,
+      "reward-bench/Chat Hard": 0.6031,
+      "reward-bench/Reasoning": 0.7868
     }
   },
   {
@@ -7321,7 +7306,7 @@
     "developer": "Anthropic",
     "evaluator_relationship": null,
     "benchmark_scores": {
-      "terminal-bench-2.0/terminal-bench-2.0": 13.9
+      "terminal-bench-2.0/terminal-bench-2.0": 27.5
     }
   },
   {
@@ -7446,12 +7431,12 @@
     "developer": "Anthropic",
     "evaluator_relationship": null,
     "benchmark_scores": {
-      "appworld_test_normal/appworld/test_normal": 0.7,
+      "appworld_test_normal/appworld/test_normal": 0.64,
       "browsecompplus/browsecompplus": 0.61,
       "swe-bench/swe-bench": 0.6061,
-      "tau-bench-2_airline/tau-bench-2/airline": 0.66,
-      "tau-bench-2_retail/tau-bench-2/retail": 0.78,
-      "tau-bench-2_telecom/tau-bench-2/telecom": 0.84
+      "tau-bench-2_airline/tau-bench-2/airline": 0.72,
+      "tau-bench-2_retail/tau-bench-2/retail": 0.85,
+      "tau-bench-2_telecom/tau-bench-2/telecom": 0.76
     }
   },
   {
@@ -7460,7 +7445,7 @@
     "developer": "Anthropic",
     "evaluator_relationship": null,
     "benchmark_scores": {
-      "terminal-bench-2.0/terminal-bench-2.0": 35.1
+      "terminal-bench-2.0/terminal-bench-2.0": 34.8
     }
   },
   {
@@ -7478,7 +7463,7 @@
     "developer": "Anthropic",
     "evaluator_relationship": null,
     "benchmark_scores": {
-      "terminal-bench-2.0/terminal-bench-2.0": 62.9
+      "terminal-bench-2.0/terminal-bench-2.0": 74.7
     }
   },
   {
@@ -7552,7 +7537,7 @@
     "developer": "Anthropic",
     "evaluator_relationship": null,
     "benchmark_scores": {
-      "terminal-bench-2.0/terminal-bench-2.0": 42.6
+      "terminal-bench-2.0/terminal-bench-2.0": 42.5
     }
   },
   {
@@ -9843,12 +9828,12 @@
     "developer": "BoltMonkey",
     "evaluator_relationship": null,
     "benchmark_scores": {
-      "hfopenllm_v2/IFEval": 0.459,
-      "hfopenllm_v2/BBH": 0.5185,
-      "hfopenllm_v2/MATH Level 5": 0.0937,
-      "hfopenllm_v2/GPQA": 0.2743,
-      "hfopenllm_v2/MUSR": 0.4083,
-      "hfopenllm_v2/MMLU-PRO": 0.3631
+      "hfopenllm_v2/IFEval": 0.7999,
+      "hfopenllm_v2/BBH": 0.5152,
+      "hfopenllm_v2/MATH Level 5": 0.1193,
+      "hfopenllm_v2/GPQA": 0.281,
+      "hfopenllm_v2/MUSR": 0.4019,
+      "hfopenllm_v2/MMLU-PRO": 0.3733
     }
   },
   {
@@ -10599,12 +10584,12 @@
     "developer": "bunnycore",
     "evaluator_relationship": null,
     "benchmark_scores": {
-      "hfopenllm_v2/IFEval": 0.1775,
-      "hfopenllm_v2/BBH": 0.295,
-      "hfopenllm_v2/MATH Level 5": 0.0,
-      "hfopenllm_v2/GPQA": 0.2517,
-      "hfopenllm_v2/MUSR": 0.3647,
-      "hfopenllm_v2/MMLU-PRO": 0.1049
+      "hfopenllm_v2/IFEval": 0.4652,
+      "hfopenllm_v2/BBH": 0.4531,
+      "hfopenllm_v2/MATH Level 5": 0.1284,
+      "hfopenllm_v2/GPQA": 0.2643,
+      "hfopenllm_v2/MUSR": 0.3394,
+      "hfopenllm_v2/MMLU-PRO": 0.3152
     }
   },
   {
@@ -11828,17 +11813,17 @@
     "developer": "CIR-AMS",
     "evaluator_relationship": null,
     "benchmark_scores": {
-      "reward-bench/Score": 0.8172,
+      "reward-bench/Score": 0.5736,
+      "reward-bench/Chat": 0.9749,
+      "reward-bench/Chat Hard": 0.5724,
+      "reward-bench/Safety": 0.7178,
+      "reward-bench/Reasoning": 0.8775,
+      "reward-bench/Prior Sets (0.5 weight)": 0.7029,
       "reward-bench/Factuality": 0.5347,
       "reward-bench/Precise IF": 0.3563,
       "reward-bench/Math": 0.6066,
-      "reward-bench/Safety": 0.9014,
       "reward-bench/Focus": 0.5737,
-      "reward-bench/Ties": 0.6527,
-      "reward-bench/Chat": 0.9749,
-      "reward-bench/Chat Hard": 0.5724,
-      "reward-bench/Reasoning": 0.8775,
-      "reward-bench/Prior Sets (0.5 weight)": 0.7029
+      "reward-bench/Ties": 0.6527
     }
   },
   {
@@ -12852,12 +12837,12 @@
     "developer": "Columbia-NLP",
     "evaluator_relationship": null,
     "benchmark_scores": {
-      "hfopenllm_v2/IFEval": 0.3102,
-      "hfopenllm_v2/BBH": 0.3881,
-      "hfopenllm_v2/MATH Level 5": 0.0536,
-      "hfopenllm_v2/GPQA": 0.2534,
-      "hfopenllm_v2/MUSR": 0.4081,
-      "hfopenllm_v2/MMLU-PRO": 0.1665
+      "hfopenllm_v2/IFEval": 0.3278,
+      "hfopenllm_v2/BBH": 0.392,
+      "hfopenllm_v2/MATH Level 5": 0.0431,
+      "hfopenllm_v2/GPQA": 0.2492,
+      "hfopenllm_v2/MUSR": 0.412,
+      "hfopenllm_v2/MMLU-PRO": 0.1666
     }
   },
   {
@@ -14338,12 +14323,12 @@
     "developer": "Daemontatox",
     "evaluator_relationship": null,
     "benchmark_scores": {
-      "hfopenllm_v2/IFEval": 0.4855,
-      "hfopenllm_v2/BBH": 0.6627,
-      "hfopenllm_v2/MATH Level 5": 0.4841,
-      "hfopenllm_v2/GPQA": 0.3096,
-      "hfopenllm_v2/MUSR": 0.4256,
-      "hfopenllm_v2/MMLU-PRO": 0.5542
+      "hfopenllm_v2/IFEval": 0.3745,
+      "hfopenllm_v2/BBH": 0.6668,
+      "hfopenllm_v2/MATH Level 5": 0.4758,
+      "hfopenllm_v2/GPQA": 0.3943,
+      "hfopenllm_v2/MUSR": 0.4858,
+      "hfopenllm_v2/MMLU-PRO": 0.5593
     }
   },
   {
@@ -15393,12 +15378,12 @@
     "developer": "DavieLion",
     "evaluator_relationship": null,
     "benchmark_scores": {
-      "hfopenllm_v2/IFEval": 0.1507,
-      "hfopenllm_v2/BBH": 0.293,
-      "hfopenllm_v2/MATH Level 5": 0.0,
-      "hfopenllm_v2/GPQA": 0.2534,
+      "hfopenllm_v2/IFEval": 0.1549,
+      "hfopenllm_v2/BBH": 0.2937,
+      "hfopenllm_v2/MATH Level 5": 0.006,
+      "hfopenllm_v2/GPQA": 0.2576,
       "hfopenllm_v2/MUSR": 0.3565,
-      "hfopenllm_v2/MMLU-PRO": 0.1125
+      "hfopenllm_v2/MMLU-PRO": 0.1128
     }
   },
   {
@@ -15435,12 +15420,12 @@
     "developer": "DavieLion",
     "evaluator_relationship": null,
     "benchmark_scores": {
-      "hfopenllm_v2/IFEval": 0.1336,
-      "hfopenllm_v2/BBH": 0.2975,
-      "hfopenllm_v2/MATH Level 5": 0.0068,
-      "hfopenllm_v2/GPQA": 0.2534,
-      "hfopenllm_v2/MUSR": 0.35,
-      "hfopenllm_v2/MMLU-PRO": 0.1128
+      "hfopenllm_v2/IFEval": 0.1324,
+      "hfopenllm_v2/BBH": 0.2972,
+      "hfopenllm_v2/MATH Level 5": 0.0,
+      "hfopenllm_v2/GPQA": 0.2643,
+      "hfopenllm_v2/MUSR": 0.3527,
+      "hfopenllm_v2/MMLU-PRO": 0.1129
     }
   },
   {
@@ -15729,12 +15714,12 @@
     "developer": "DeepMount00",
     "evaluator_relationship": null,
     "benchmark_scores": {
-      "hfopenllm_v2/IFEval": 0.5365,
-      "hfopenllm_v2/BBH": 0.517,
-      "hfopenllm_v2/MATH Level 5": 0.1707,
-      "hfopenllm_v2/GPQA": 0.3062,
-      "hfopenllm_v2/MUSR": 0.4487,
-      "hfopenllm_v2/MMLU-PRO": 0.396
+      "hfopenllm_v2/IFEval": 0.7917,
+      "hfopenllm_v2/BBH": 0.5109,
+      "hfopenllm_v2/MATH Level 5": 0.1088,
+      "hfopenllm_v2/GPQA": 0.2878,
+      "hfopenllm_v2/MUSR": 0.4136,
+      "hfopenllm_v2/MMLU-PRO": 0.3876
     }
   },
   {
@@ -16376,12 +16361,12 @@
     "developer": "dfurman",
     "evaluator_relationship": null,
     "benchmark_scores": {
-      "hfopenllm_v2/IFEval": 0.3,
-      "hfopenllm_v2/BBH": 0.3853,
-      "hfopenllm_v2/MATH Level 5": 0.0415,
-      "hfopenllm_v2/GPQA": 0.2617,
-      "hfopenllm_v2/MUSR": 0.3579,
-      "hfopenllm_v2/MMLU-PRO": 0.2281
+      "hfopenllm_v2/IFEval": 0.2835,
+      "hfopenllm_v2/BBH": 0.3842,
+      "hfopenllm_v2/MATH Level 5": 0.0521,
+      "hfopenllm_v2/GPQA": 0.2609,
+      "hfopenllm_v2/MUSR": 0.3566,
+      "hfopenllm_v2/MMLU-PRO": 0.2298
     }
   },
   {
@@ -20340,12 +20325,12 @@
     "developer": "EpistemeAI",
     "evaluator_relationship": null,
     "benchmark_scores": {
-      "hfopenllm_v2/IFEval": 0.7305,
-      "hfopenllm_v2/BBH": 0.4649,
-      "hfopenllm_v2/MATH Level 5": 0.1397,
-      "hfopenllm_v2/GPQA": 0.2659,
-      "hfopenllm_v2/MUSR": 0.3209,
-      "hfopenllm_v2/MMLU-PRO": 0.348
+      "hfopenllm_v2/IFEval": 0.7207,
+      "hfopenllm_v2/BBH": 0.461,
+      "hfopenllm_v2/MATH Level 5": 0.1314,
+      "hfopenllm_v2/GPQA": 0.2701,
+      "hfopenllm_v2/MUSR": 0.3432,
+      "hfopenllm_v2/MMLU-PRO": 0.3354
     }
   },
   {
@@ -21040,12 +21025,12 @@
     "developer": "Etherll",
     "evaluator_relationship": null,
     "benchmark_scores": {
-      "hfopenllm_v2/IFEval": 0.6106,
-      "hfopenllm_v2/BBH": 0.5347,
-      "hfopenllm_v2/MATH Level 5": 0.1548,
-      "hfopenllm_v2/GPQA": 0.3146,
-      "hfopenllm_v2/MUSR": 0.3991,
-      "hfopenllm_v2/MMLU-PRO": 0.3752
+      "hfopenllm_v2/IFEval": 0.4672,
+      "hfopenllm_v2/BBH": 0.5013,
+      "hfopenllm_v2/MATH Level 5": 0.0279,
+      "hfopenllm_v2/GPQA": 0.2861,
+      "hfopenllm_v2/MUSR": 0.386,
+      "hfopenllm_v2/MMLU-PRO": 0.3482
     }
   },
   {
@@ -23303,12 +23288,12 @@
     "developer": "Goekdeniz-Guelmez",
     "evaluator_relationship": null,
     "benchmark_scores": {
-      "hfopenllm_v2/IFEval": 0.3472,
-      "hfopenllm_v2/BBH": 0.3268,
-      "hfopenllm_v2/MATH Level 5": 0.0891,
-      "hfopenllm_v2/GPQA": 0.2517,
-      "hfopenllm_v2/MUSR": 0.3262,
-      "hfopenllm_v2/MMLU-PRO": 0.1641
+      "hfopenllm_v2/IFEval": 0.3417,
+      "hfopenllm_v2/BBH": 0.3292,
+      "hfopenllm_v2/MATH Level 5": 0.0023,
+      "hfopenllm_v2/GPQA": 0.2576,
+      "hfopenllm_v2/MUSR": 0.3249,
+      "hfopenllm_v2/MMLU-PRO": 0.1638
     }
   },
   {
@@ -23537,8 +23522,6 @@
     "developer": "Google",
     "evaluator_relationship": null,
     "benchmark_scores": {
-      "ace/Overall Score": 0.47,
-      "ace/Gaming Score": 0.509,
       "apex-agents/Overall Pass@1": 0.184,
       "apex-agents/Overall Pass@8": 0.373,
       "apex-agents/Overall Mean Score": 0.341,
@@ -23546,6 +23529,8 @@
       "apex-agents/Management Consulting Pass@1": 0.124,
       "apex-agents/Corporate Law Pass@1": 0.239,
       "apex-agents/Corporate Lawyer Mean Score": 0.487,
+      "ace/Overall Score": 0.47,
+      "ace/Gaming Score": 0.509,
       "apex-v1/Overall Score": 0.643,
       "apex-v1/Consulting Score": 0.64,
       "apex-v1/Investment Banking Score": 0.63
@@ -24241,7 +24226,7 @@
     "developer": "Google",
     "evaluator_relationship": null,
     "benchmark_scores": {
-      "terminal-bench-2.0/terminal-bench-2.0": 47.4
+      "terminal-bench-2.0/terminal-bench-2.0": 51.0
     }
   },
   {
@@ -24250,7 +24235,7 @@
     "developer": "Google",
     "evaluator_relationship": null,
     "benchmark_scores": {
-      "terminal-bench-2.0/terminal-bench-2.0": 56.0
+      "terminal-bench-2.0/terminal-bench-2.0": 56.9
     }
   },
   {
@@ -24259,8 +24244,8 @@
     "developer": "Google",
     "evaluator_relationship": null,
     "benchmark_scores": {
-      "appworld_test_normal/appworld/test_normal": 0.55,
-      "browsecompplus/browsecompplus": 0.3333,
+      "appworld_test_normal/appworld/test_normal": 0.36,
+      "browsecompplus/browsecompplus": 0.48,
       "global-mmlu-lite/Global MMLU Lite": 0.9453,
       "global-mmlu-lite/Culturally Sensitive": 0.9397,
       "global-mmlu-lite/Culturally Agnostic": 0.9509,
@@ -24282,7 +24267,7 @@
       "global-mmlu-lite/Burmese": 0.9425,
       "swe-bench/swe-bench": 0.71,
       "tau-bench-2_airline/tau-bench-2/airline": 0.68,
-      "tau-bench-2_retail/tau-bench-2/retail": 0.73,
+      "tau-bench-2_retail/tau-bench-2/retail": 0.7805,
       "tau-bench-2_telecom/tau-bench-2/telecom": 0.73
     }
   },
@@ -25530,12 +25515,12 @@
     "developer": "GuilhermeNaturaUmana",
     "evaluator_relationship": null,
     "benchmark_scores": {
-      "hfopenllm_v2/IFEval": 0.4985,
-      "hfopenllm_v2/BBH": 0.5645,
-      "hfopenllm_v2/MATH Level 5": 0.2576,
-      "hfopenllm_v2/GPQA": 0.3003,
-      "hfopenllm_v2/MUSR": 0.4373,
-      "hfopenllm_v2/MMLU-PRO": 0.4429
+      "hfopenllm_v2/IFEval": 0.4791,
+      "hfopenllm_v2/BBH": 0.5649,
+      "hfopenllm_v2/MATH Level 5": 0.25,
+      "hfopenllm_v2/GPQA": 0.2995,
+      "hfopenllm_v2/MUSR": 0.4439,
+      "hfopenllm_v2/MMLU-PRO": 0.4408
     }
   },
   {
@@ -26814,12 +26799,12 @@
     "developer": "HuggingFaceTB",
     "evaluator_relationship": null,
     "benchmark_scores": {
-      "hfopenllm_v2/IFEval": 0.083,
-      "hfopenllm_v2/BBH": 0.3053,
-      "hfopenllm_v2/MATH Level 5": 0.0083,
-      "hfopenllm_v2/GPQA": 0.2651,
-      "hfopenllm_v2/MUSR": 0.3423,
-      "hfopenllm_v2/MMLU-PRO": 0.1126
+      "hfopenllm_v2/IFEval": 0.3842,
+      "hfopenllm_v2/BBH": 0.3144,
+      "hfopenllm_v2/MATH Level 5": 0.0151,
+      "hfopenllm_v2/GPQA": 0.255,
+      "hfopenllm_v2/MUSR": 0.3461,
+      "hfopenllm_v2/MMLU-PRO": 0.1117
     }
   },
   {
@@ -28222,20 +28207,6 @@
     }
   },
   {
-    "id": "icefog72/IceSakeV6RP-7b",
-    "name": "IceSakeV6RP-7b",
-    "developer": "icefog72",
-    "evaluator_relationship": null,
-    "benchmark_scores": {
-      "hfopenllm_v2/IFEval": 0.5033,
-      "hfopenllm_v2/BBH": 0.4976,
-      "hfopenllm_v2/MATH Level 5": 0.0619,
-      "hfopenllm_v2/GPQA": 0.2911,
-      "hfopenllm_v2/MUSR": 0.42,
-      "hfopenllm_v2/MMLU-PRO": 0.3093
-    }
-  },
-  {
     "id": "icefog72/IceSakeV8RP-7b",
     "name": "IceSakeV8RP-7b",
     "developer": "icefog72",
@@ -28507,16 +28478,16 @@
     "developer": "infly",
     "evaluator_relationship": null,
     "benchmark_scores": {
-      "reward-bench/Score": 0.9511,
+      "reward-bench/Score": 0.7648,
+      "reward-bench/Chat": 0.9665,
+      "reward-bench/Chat Hard": 0.9101,
+      "reward-bench/Safety": 0.9644,
+      "reward-bench/Reasoning": 0.9912,
       "reward-bench/Factuality": 0.7411,
       "reward-bench/Precise IF": 0.4188,
       "reward-bench/Math": 0.6995,
-      "reward-bench/Safety": 0.9365,
       "reward-bench/Focus": 0.903,
-      "reward-bench/Ties": 0.8622,
-      "reward-bench/Chat": 0.9665,
-      "reward-bench/Chat Hard": 0.9101,
-      "reward-bench/Reasoning": 0.9912
+      "reward-bench/Ties": 0.8622
     }
   },
   {
@@ -28651,16 +28622,16 @@
     "developer": "internlm",
     "evaluator_relationship": null,
     "benchmark_scores": {
-      "reward-bench/Score": 0.3902,
-      "reward-bench/Chat": 0.9358,
-      "reward-bench/Chat Hard": 0.6623,
-      "reward-bench/Safety": 0.4711,
-      "reward-bench/Reasoning": 0.8724,
+      "reward-bench/Score": 0.8217,
       "reward-bench/Factuality": 0.2758,
       "reward-bench/Precise IF": 0.3625,
       "reward-bench/Math": 0.4426,
+      "reward-bench/Safety": 0.8162,
       "reward-bench/Focus": 0.596,
-      "reward-bench/Ties": 0.1934
+      "reward-bench/Ties": 0.1934,
+      "reward-bench/Chat": 0.9358,
+      "reward-bench/Chat Hard": 0.6623,
+      "reward-bench/Reasoning": 0.8724
     }
   },
   {
@@ -28701,16 +28672,16 @@
     "developer": "internlm",
     "evaluator_relationship": null,
     "benchmark_scores": {
-      "reward-bench/Score": 0.5335,
-      "reward-bench/Chat": 0.9916,
-      "reward-bench/Chat Hard": 0.6952,
-      "reward-bench/Safety": 0.5956,
-      "reward-bench/Reasoning": 0.9453,
+      "reward-bench/Score": 0.8759,
       "reward-bench/Factuality": 0.4211,
       "reward-bench/Precise IF": 0.4,
       "reward-bench/Math": 0.5628,
+      "reward-bench/Safety": 0.8716,
       "reward-bench/Focus": 0.7051,
-      "reward-bench/Ties": 0.5164
+      "reward-bench/Ties": 0.5164,
+      "reward-bench/Chat": 0.9916,
+      "reward-bench/Chat Hard": 0.6952,
+      "reward-bench/Reasoning": 0.9453
     }
   },
   {
@@ -30623,12 +30594,12 @@
     "developer": "jaspionjader",
     "evaluator_relationship": null,
     "benchmark_scores": {
-      "hfopenllm_v2/IFEval": 0.4418,
-      "hfopenllm_v2/BBH": 0.5406,
-      "hfopenllm_v2/MATH Level 5": 0.1352,
-      "hfopenllm_v2/GPQA": 0.3062,
+      "hfopenllm_v2/IFEval": 0.4345,
+      "hfopenllm_v2/BBH": 0.5419,
+      "hfopenllm_v2/MATH Level 5": 0.1292,
+      "hfopenllm_v2/GPQA": 0.3087,
       "hfopenllm_v2/MUSR": 0.4277,
-      "hfopenllm_v2/MMLU-PRO": 0.386
+      "hfopenllm_v2/MMLU-PRO": 0.3854
     }
   },
   {
@@ -37984,12 +37955,12 @@
     "developer": "LeroyDyer",
     "evaluator_relationship": null,
     "benchmark_scores": {
-      "hfopenllm_v2/IFEval": 0.3036,
-      "hfopenllm_v2/BBH": 0.4575,
+      "hfopenllm_v2/IFEval": 0.3066,
+      "hfopenllm_v2/BBH": 0.4577,
       "hfopenllm_v2/MATH Level 5": 0.0446,
-      "hfopenllm_v2/GPQA": 0.3012,
-      "hfopenllm_v2/MUSR": 0.4253,
-      "hfopenllm_v2/MMLU-PRO": 0.2329
+      "hfopenllm_v2/GPQA": 0.2995,
+      "hfopenllm_v2/MUSR": 0.4254,
+      "hfopenllm_v2/MMLU-PRO": 0.2318
     }
   },
   {
@@ -38012,12 +37983,12 @@
     "developer": "LeroyDyer",
     "evaluator_relationship": null,
     "benchmark_scores": {
-      "hfopenllm_v2/IFEval": 0.3798,
-      "hfopenllm_v2/BBH": 0.4483,
-      "hfopenllm_v2/MATH Level 5": 0.04,
-      "hfopenllm_v2/GPQA": 0.3129,
-      "hfopenllm_v2/MUSR": 0.4148,
-      "hfopenllm_v2/MMLU-PRO": 0.2389
+      "hfopenllm_v2/IFEval": 0.3579,
+      "hfopenllm_v2/BBH": 0.4477,
+      "hfopenllm_v2/MATH Level 5": 0.0423,
+      "hfopenllm_v2/GPQA": 0.3096,
+      "hfopenllm_v2/MUSR": 0.4134,
+      "hfopenllm_v2/MMLU-PRO": 0.2376
     }
   },
   {
@@ -39569,16 +39540,16 @@
     "developer": "LxzGordon",
     "evaluator_relationship": null,
     "benchmark_scores": {
-      "reward-bench/Score": 0.7394,
-      "reward-bench/Chat": 0.9553,
-      "reward-bench/Chat Hard": 0.8816,
-      "reward-bench/Safety": 0.9178,
-      "reward-bench/Reasoning": 0.9698,
+      "reward-bench/Score": 0.9294,
       "reward-bench/Factuality": 0.6884,
       "reward-bench/Precise IF": 0.45,
       "reward-bench/Math": 0.6393,
+      "reward-bench/Safety": 0.9108,
       "reward-bench/Focus": 0.9758,
-      "reward-bench/Ties": 0.7653
+      "reward-bench/Ties": 0.7653,
+      "reward-bench/Chat": 0.9553,
+      "reward-bench/Chat Hard": 0.8816,
+      "reward-bench/Reasoning": 0.9698
     }
   },
   {
@@ -39741,12 +39712,12 @@
     "developer": "Magpie-Align",
     "evaluator_relationship": null,
     "benchmark_scores": {
-      "hfopenllm_v2/IFEval": 0.4027,
-      "hfopenllm_v2/BBH": 0.4789,
-      "hfopenllm_v2/MATH Level 5": 0.0461,
-      "hfopenllm_v2/GPQA": 0.2768,
-      "hfopenllm_v2/MUSR": 0.3087,
-      "hfopenllm_v2/MMLU-PRO": 0.3001
+      "hfopenllm_v2/IFEval": 0.4118,
+      "hfopenllm_v2/BBH": 0.4811,
+      "hfopenllm_v2/MATH Level 5": 0.034,
+      "hfopenllm_v2/GPQA": 0.2752,
+      "hfopenllm_v2/MUSR": 0.3047,
+      "hfopenllm_v2/MMLU-PRO": 0.3006
     }
   },
   {
@@ -43235,12 +43206,12 @@
     "developer": "microsoft",
     "evaluator_relationship": null,
     "benchmark_scores": {
-      "hfopenllm_v2/IFEval": 0.5477,
-      "hfopenllm_v2/BBH": 0.5491,
-      "hfopenllm_v2/MATH Level 5": 0.1639,
-      "hfopenllm_v2/GPQA": 0.3322,
-      "hfopenllm_v2/MUSR": 0.4284,
-      "hfopenllm_v2/MMLU-PRO": 0.4022
+      "hfopenllm_v2/IFEval": 0.5613,
+      "hfopenllm_v2/BBH": 0.5676,
+      "hfopenllm_v2/MATH Level 5": 0.1163,
+      "hfopenllm_v2/GPQA": 0.3196,
+      "hfopenllm_v2/MUSR": 0.395,
+      "hfopenllm_v2/MMLU-PRO": 0.3866
     }
   },
   {
@@ -43351,12 +43322,12 @@
     "developer": "microsoft",
     "evaluator_relationship": null,
     "benchmark_scores": {
-      "hfopenllm_v2/IFEval": 0.0585,
-      "hfopenllm_v2/BBH": 0.6691,
-      "hfopenllm_v2/MATH Level 5": 0.3165,
-      "hfopenllm_v2/GPQA": 0.406,
+      "hfopenllm_v2/IFEval": 0.0488,
+      "hfopenllm_v2/BBH": 0.6703,
+      "hfopenllm_v2/MATH Level 5": 0.2787,
+      "hfopenllm_v2/GPQA": 0.401,
       "hfopenllm_v2/MUSR": 0.5034,
-      "hfopenllm_v2/MMLU-PRO": 0.5287
+      "hfopenllm_v2/MMLU-PRO": 0.5295
     }
   },
   {
@@ -43667,7 +43638,7 @@
     "developer": "MiniMax",
     "evaluator_relationship": null,
     "benchmark_scores": {
-      "terminal-bench-2.0/terminal-bench-2.0": 36.6
+      "terminal-bench-2.0/terminal-bench-2.0": 29.2
     }
   },
   {
@@ -44247,12 +44218,12 @@
     "developer": "mistralai",
     "evaluator_relationship": null,
     "benchmark_scores": {
-      "hfopenllm_v2/IFEval": 0.667,
-      "hfopenllm_v2/BBH": 0.5213,
-      "hfopenllm_v2/MATH Level 5": 0.1435,
-      "hfopenllm_v2/GPQA": 0.3238,
-      "hfopenllm_v2/MUSR": 0.3632,
-      "hfopenllm_v2/MMLU-PRO": 0.396
+      "hfopenllm_v2/IFEval": 0.6283,
+      "hfopenllm_v2/BBH": 0.583,
+      "hfopenllm_v2/MATH Level 5": 0.2039,
+      "hfopenllm_v2/GPQA": 0.3331,
+      "hfopenllm_v2/MUSR": 0.4063,
+      "hfopenllm_v2/MMLU-PRO": 0.4099
     }
   },
   {
@@ -44452,12 +44423,12 @@
     "developer": "mistralai",
     "evaluator_relationship": null,
     "benchmark_scores": {
-      "hfopenllm_v2/IFEval": 0.2415,
-      "hfopenllm_v2/BBH": 0.5087,
-      "hfopenllm_v2/MATH Level 5": 0.102,
-      "hfopenllm_v2/GPQA": 0.3138,
-      "hfopenllm_v2/MUSR": 0.4321,
-      "hfopenllm_v2/MMLU-PRO": 0.385
+      "hfopenllm_v2/IFEval": 0.2326,
+      "hfopenllm_v2/BBH": 0.5098,
+      "hfopenllm_v2/MATH Level 5": 0.0937,
+      "hfopenllm_v2/GPQA": 0.3205,
+      "hfopenllm_v2/MUSR": 0.4413,
+      "hfopenllm_v2/MMLU-PRO": 0.3871
     }
   },
   {
@@ -44758,12 +44729,12 @@
     "developer": "mlabonne",
     "evaluator_relationship": null,
     "benchmark_scores": {
-      "hfopenllm_v2/IFEval": 0.7561,
-      "hfopenllm_v2/BBH": 0.5111,
-      "hfopenllm_v2/MATH Level 5": 0.0906,
-      "hfopenllm_v2/GPQA": 0.3062,
-      "hfopenllm_v2/MUSR": 0.4019,
-      "hfopenllm_v2/MMLU-PRO": 0.3841
+      "hfopenllm_v2/IFEval": 0.4162,
+      "hfopenllm_v2/BBH": 0.5124,
+      "hfopenllm_v2/MATH Level 5": 0.0853,
+      "hfopenllm_v2/GPQA": 0.3029,
+      "hfopenllm_v2/MUSR": 0.415,
+      "hfopenllm_v2/MMLU-PRO": 0.3802
     }
   },
   {
@@ -44996,7 +44967,7 @@
     "developer": "Moonshot AI",
     "evaluator_relationship": null,
     "benchmark_scores": {
-      "terminal-bench-2.0/terminal-bench-2.0": 27.8
+      "terminal-bench-2.0/terminal-bench-2.0": 26.7
     }
   },
   {
@@ -45317,7 +45288,7 @@
     "developer": "Multiple",
     "evaluator_relationship": null,
     "benchmark_scores": {
-      "terminal-bench-2.0/terminal-bench-2.0": 72.4
+      "terminal-bench-2.0/terminal-bench-2.0": 71.0
     }
   },
   {
@@ -48273,16 +48244,16 @@
     "developer": "nicolinho",
     "evaluator_relationship": null,
     "benchmark_scores": {
-      "reward-bench/Score": 0.7667,
-      "reward-bench/Chat": 0.9665,
-      "reward-bench/Chat Hard": 0.9013,
-      "reward-bench/Safety": 0.9578,
-      "reward-bench/Reasoning": 0.9826,
+      "reward-bench/Score": 0.9444,
       "reward-bench/Factuality": 0.7853,
       "reward-bench/Precise IF": 0.3719,
       "reward-bench/Math": 0.6995,
+      "reward-bench/Safety": 0.927,
       "reward-bench/Focus": 0.9535,
-      "reward-bench/Ties": 0.8321
+      "reward-bench/Ties": 0.8321,
+      "reward-bench/Chat": 0.9665,
+      "reward-bench/Chat Hard": 0.9013,
+      "reward-bench/Reasoning": 0.9826
     }
   },
   {
@@ -48317,16 +48288,16 @@
     "developer": "nicolinho",
     "evaluator_relationship": null,
     "benchmark_scores": {
-      "reward-bench/Score": 0.7074,
-      "reward-bench/Chat": 0.9637,
-      "reward-bench/Chat Hard": 0.8684,
-      "reward-bench/Safety": 0.9467,
-      "reward-bench/Reasoning": 0.9677,
+      "reward-bench/Score": 0.9314,
       "reward-bench/Factuality": 0.6653,
       "reward-bench/Precise IF": 0.4062,
       "reward-bench/Math": 0.612,
+      "reward-bench/Safety": 0.9257,
       "reward-bench/Focus": 0.8909,
-      "reward-bench/Ties": 0.7234
+      "reward-bench/Ties": 0.7234,
+      "reward-bench/Chat": 0.9637,
+      "reward-bench/Chat Hard": 0.8684,
+      "reward-bench/Reasoning": 0.9677
     }
   },
   {
@@ -49324,6 +49295,20 @@
       "hfopenllm_v2/GPQA": 0.2584,
       "hfopenllm_v2/MUSR": 0.3458,
       "hfopenllm_v2/MMLU-PRO": 0.232
+    }
+  },
+  {
+    "id": "NousResearch/Yarn-Llama-2-7b-128k",
+    "name": "Yarn-Llama-2-7b-128k",
+    "developer": "NousResearch",
+    "evaluator_relationship": null,
+    "benchmark_scores": {
+      "hfopenllm_v2/IFEval": 0.1485,
+      "hfopenllm_v2/BBH": 0.3248,
+      "hfopenllm_v2/MATH Level 5": 0.0151,
+      "hfopenllm_v2/GPQA": 0.2601,
+      "hfopenllm_v2/MUSR": 0.3967,
+      "hfopenllm_v2/MMLU-PRO": 0.1791
     }
   },
   {
@@ -50379,12 +50364,12 @@
     "developer": "ontocord",
     "evaluator_relationship": null,
     "benchmark_scores": {
-      "hfopenllm_v2/IFEval": 0.1162,
-      "hfopenllm_v2/BBH": 0.3184,
-      "hfopenllm_v2/MATH Level 5": 0.0076,
-      "hfopenllm_v2/GPQA": 0.2634,
-      "hfopenllm_v2/MUSR": 0.3447,
-      "hfopenllm_v2/MMLU-PRO": 0.1124
+      "hfopenllm_v2/IFEval": 0.1128,
+      "hfopenllm_v2/BBH": 0.3171,
+      "hfopenllm_v2/MATH Level 5": 0.0113,
+      "hfopenllm_v2/GPQA": 0.2685,
+      "hfopenllm_v2/MUSR": 0.346,
+      "hfopenllm_v2/MMLU-PRO": 0.1129
     }
   },
   {
@@ -51606,16 +51591,16 @@
       "helm_mmlu/Virology": 0.578,
       "helm_mmlu/World Religions": 0.883,
       "helm_mmlu/Mean win rate": 0.52,
-      "reward-bench/Score": 0.8673,
+      "reward-bench/Score": 0.6493,
+      "reward-bench/Chat": 0.9609,
+      "reward-bench/Chat Hard": 0.761,
+      "reward-bench/Safety": 0.8619,
+      "reward-bench/Reasoning": 0.8661,
       "reward-bench/Factuality": 0.5684,
       "reward-bench/Precise IF": 0.3312,
       "reward-bench/Math": 0.623,
-      "reward-bench/Safety": 0.8811,
       "reward-bench/Focus": 0.7293,
-      "reward-bench/Ties": 0.7819,
-      "reward-bench/Chat": 0.9609,
-      "reward-bench/Chat Hard": 0.761,
-      "reward-bench/Reasoning": 0.8661
+      "reward-bench/Ties": 0.7819
     }
   },
   {
@@ -51693,16 +51678,16 @@
       "helm_mmlu/Virology": 0.536,
       "helm_mmlu/World Religions": 0.86,
       "helm_mmlu/Mean win rate": 0.774,
-      "reward-bench/Score": 0.8007,
+      "reward-bench/Score": 0.5796,
+      "reward-bench/Chat": 0.9497,
+      "reward-bench/Chat Hard": 0.6075,
+      "reward-bench/Safety": 0.7667,
+      "reward-bench/Reasoning": 0.8374,
       "reward-bench/Factuality": 0.4105,
       "reward-bench/Precise IF": 0.3438,
       "reward-bench/Math": 0.5191,
-      "reward-bench/Safety": 0.8081,
       "reward-bench/Focus": 0.7414,
-      "reward-bench/Ties": 0.6962,
-      "reward-bench/Chat": 0.9497,
-      "reward-bench/Chat Hard": 0.6075,
-      "reward-bench/Reasoning": 0.8374
+      "reward-bench/Ties": 0.6962
     }
   },
   {
@@ -51745,9 +51730,9 @@
       "helm_capabilities/IFEval": 0.875,
       "helm_capabilities/WildBench": 0.857,
       "helm_capabilities/Omni-MATH": 0.647,
-      "livecodebenchpro/Hard Problems": 0.04225352112676056,
-      "livecodebenchpro/Medium Problems": 0.4084507042253521,
-      "livecodebenchpro/Easy Problems": 0.8873239436619719
+      "livecodebenchpro/Hard Problems": 0.0423,
+      "livecodebenchpro/Medium Problems": 0.4085,
+      "livecodebenchpro/Easy Problems": 0.9014
     }
   },
   {
@@ -51765,7 +51750,7 @@
     "developer": "OpenAI",
     "evaluator_relationship": null,
     "benchmark_scores": {
-      "terminal-bench-2.0/terminal-bench-2.0": 24.0
+      "terminal-bench-2.0/terminal-bench-2.0": 31.9
     }
   },
   {
@@ -51788,7 +51773,7 @@
     "developer": "OpenAI",
     "evaluator_relationship": null,
     "benchmark_scores": {
-      "terminal-bench-2.0/terminal-bench-2.0": 11.5
+      "terminal-bench-2.0/terminal-bench-2.0": 7.0
     }
   },
   {
@@ -51820,7 +51805,7 @@
     "developer": "OpenAI",
     "evaluator_relationship": null,
     "benchmark_scores": {
-      "terminal-bench-2.0/terminal-bench-2.0": 57.8
+      "terminal-bench-2.0/terminal-bench-2.0": 53.5
     }
   },
   {
@@ -51847,7 +51832,7 @@
     "developer": "OpenAI",
     "evaluator_relationship": null,
     "benchmark_scores": {
-      "terminal-bench-2.0/terminal-bench-2.0": 62.9
+      "terminal-bench-2.0/terminal-bench-2.0": 60.7
     }
   },
   {
@@ -51857,14 +51842,14 @@
     "evaluator_relationship": null,
     "benchmark_scores": {
       "appworld_test_normal/appworld/test_normal": 0.0,
-      "browsecompplus/browsecompplus": 0.43,
+      "browsecompplus/browsecompplus": 0.26,
       "livecodebenchpro/Hard Problems": 0.1594,
       "livecodebenchpro/Medium Problems": 0.5211,
       "livecodebenchpro/Easy Problems": 0.9014,
-      "swe-bench/swe-bench": 0.5455,
+      "swe-bench/swe-bench": 0.57,
       "tau-bench-2_airline/tau-bench-2/airline": 0.6,
-      "tau-bench-2_retail/tau-bench-2/retail": 0.73,
-      "tau-bench-2_telecom/tau-bench-2/telecom": 0.71
+      "tau-bench-2_retail/tau-bench-2/retail": 0.68,
+      "tau-bench-2_telecom/tau-bench-2/telecom": 0.5354
     }
   },
   {
@@ -51882,7 +51867,7 @@
     "developer": "OpenAI",
     "evaluator_relationship": null,
     "benchmark_scores": {
-      "terminal-bench-2.0/terminal-bench-2.0": 77.3
+      "terminal-bench-2.0/terminal-bench-2.0": 74.6
     }
   },
   {
@@ -51946,7 +51931,7 @@
       "livecodebenchpro/Hard Problems": 0.0,
       "livecodebenchpro/Medium Problems": 0.11267605633802817,
       "livecodebenchpro/Easy Problems": 0.6619718309859155,
-      "terminal-bench-2.0/terminal-bench-2.0": 18.7
+      "terminal-bench-2.0/terminal-bench-2.0": 14.2
     }
   },
   {
@@ -52067,9 +52052,9 @@
       "helm_capabilities/IFEval": 0.929,
       "helm_capabilities/WildBench": 0.854,
       "helm_capabilities/Omni-MATH": 0.72,
-      "livecodebenchpro/Hard Problems": 0.014084507042253521,
-      "livecodebenchpro/Medium Problems": 0.30985915492957744,
-      "livecodebenchpro/Easy Problems": 0.8873239436619719
+      "livecodebenchpro/Hard Problems": 0.0143,
+      "livecodebenchpro/Medium Problems": 0.2923,
+      "livecodebenchpro/Easy Problems": 0.8571
     }
   },
   {
@@ -52213,17 +52198,17 @@
     "developer": "OpenAssistant",
     "evaluator_relationship": null,
     "benchmark_scores": {
-      "reward-bench/Score": 0.2653,
-      "reward-bench/Chat": 0.9246,
-      "reward-bench/Chat Hard": 0.3728,
-      "reward-bench/Safety": 0.3289,
-      "reward-bench/Reasoning": 0.5855,
-      "reward-bench/Prior Sets (0.5 weight)": 0.6801,
+      "reward-bench/Score": 0.615,
       "reward-bench/Factuality": 0.3979,
       "reward-bench/Precise IF": 0.2875,
       "reward-bench/Math": 0.377,
+      "reward-bench/Safety": 0.5446,
       "reward-bench/Focus": 0.1535,
-      "reward-bench/Ties": 0.047
+      "reward-bench/Ties": 0.047,
+      "reward-bench/Chat": 0.9246,
+      "reward-bench/Chat Hard": 0.3728,
+      "reward-bench/Reasoning": 0.5855,
+      "reward-bench/Prior Sets (0.5 weight)": 0.6801
     }
   },
   {
@@ -52345,17 +52330,17 @@
     "developer": "openbmb",
     "evaluator_relationship": null,
     "benchmark_scores": {
-      "reward-bench/Score": 0.4683,
-      "reward-bench/Chat": 0.9637,
-      "reward-bench/Chat Hard": 0.5548,
-      "reward-bench/Safety": 0.5089,
-      "reward-bench/Reasoning": 0.6244,
-      "reward-bench/Prior Sets (0.5 weight)": 0.7294,
+      "reward-bench/Score": 0.6903,
       "reward-bench/Factuality": 0.5063,
       "reward-bench/Precise IF": 0.3312,
       "reward-bench/Math": 0.5519,
+      "reward-bench/Safety": 0.5986,
       "reward-bench/Focus": 0.6081,
-      "reward-bench/Ties": 0.3036
+      "reward-bench/Ties": 0.3036,
+      "reward-bench/Chat": 0.9637,
+      "reward-bench/Chat Hard": 0.5548,
+      "reward-bench/Reasoning": 0.6244,
+      "reward-bench/Prior Sets (0.5 weight)": 0.7294
     }
   },
   {
@@ -53816,17 +53801,17 @@
     "developer": "PKU-Alignment",
     "evaluator_relationship": null,
     "benchmark_scores": {
-      "reward-bench/Score": 0.5798,
+      "reward-bench/Score": 0.3332,
+      "reward-bench/Chat": 0.6173,
+      "reward-bench/Chat Hard": 0.4232,
+      "reward-bench/Safety": 0.7589,
+      "reward-bench/Reasoning": 0.5482,
+      "reward-bench/Prior Sets (0.5 weight)": 0.57,
       "reward-bench/Factuality": 0.3263,
       "reward-bench/Precise IF": 0.2313,
       "reward-bench/Math": 0.3989,
-      "reward-bench/Safety": 0.7351,
       "reward-bench/Focus": 0.2939,
-      "reward-bench/Ties": -0.01,
-      "reward-bench/Chat": 0.6173,
-      "reward-bench/Chat Hard": 0.4232,
-      "reward-bench/Reasoning": 0.5482,
-      "reward-bench/Prior Sets (0.5 weight)": 0.57
+      "reward-bench/Ties": -0.01
     }
   },
   {
@@ -53835,17 +53820,17 @@
     "developer": "PKU-Alignment",
     "evaluator_relationship": null,
     "benchmark_scores": {
-      "reward-bench/Score": 0.1606,
-      "reward-bench/Chat": 0.8184,
-      "reward-bench/Chat Hard": 0.2873,
-      "reward-bench/Safety": 0.1422,
-      "reward-bench/Reasoning": 0.346,
-      "reward-bench/Prior Sets (0.5 weight)": 0.5993,
+      "reward-bench/Score": 0.4727,
       "reward-bench/Factuality": 0.2105,
       "reward-bench/Precise IF": 0.2938,
       "reward-bench/Math": 0.2623,
+      "reward-bench/Safety": 0.3757,
       "reward-bench/Focus": 0.0646,
-      "reward-bench/Ties": -0.01
+      "reward-bench/Ties": -0.01,
+      "reward-bench/Chat": 0.8184,
+      "reward-bench/Chat Hard": 0.2873,
+      "reward-bench/Reasoning": 0.346,
+      "reward-bench/Prior Sets (0.5 weight)": 0.5993
     }
   },
   {
@@ -53873,17 +53858,17 @@
     "developer": "PKU-Alignment",
     "evaluator_relationship": null,
     "benchmark_scores": {
-      "reward-bench/Score": 0.2544,
-      "reward-bench/Chat": 0.8994,
-      "reward-bench/Chat Hard": 0.364,
-      "reward-bench/Safety": 0.3156,
-      "reward-bench/Reasoning": 0.6887,
-      "reward-bench/Prior Sets (0.5 weight)": 0.6171,
+      "reward-bench/Score": 0.6366,
       "reward-bench/Factuality": 0.2168,
       "reward-bench/Precise IF": 0.2562,
       "reward-bench/Math": 0.3825,
+      "reward-bench/Safety": 0.6041,
       "reward-bench/Focus": 0.2606,
-      "reward-bench/Ties": 0.0944
+      "reward-bench/Ties": 0.0944,
+      "reward-bench/Chat": 0.8994,
+      "reward-bench/Chat Hard": 0.364,
+      "reward-bench/Reasoning": 0.6887,
+      "reward-bench/Prior Sets (0.5 weight)": 0.6171
     }
   },
   {
@@ -54158,11 +54143,11 @@
     "evaluator_relationship": null,
     "benchmark_scores": {
       "hfopenllm_v2/IFEval": 0.1757,
-      "hfopenllm_v2/BBH": 0.274,
+      "hfopenllm_v2/BBH": 0.276,
       "hfopenllm_v2/MATH Level 5": 0.0,
-      "hfopenllm_v2/GPQA": 0.25,
-      "hfopenllm_v2/MUSR": 0.3753,
-      "hfopenllm_v2/MMLU-PRO": 0.112
+      "hfopenllm_v2/GPQA": 0.2534,
+      "hfopenllm_v2/MUSR": 0.3339,
+      "hfopenllm_v2/MMLU-PRO": 0.1123
     }
   },
   {
@@ -54241,12 +54226,12 @@
     "developer": "princeton-nlp",
     "evaluator_relationship": null,
     "benchmark_scores": {
-      "hfopenllm_v2/IFEval": 0.3978,
-      "hfopenllm_v2/BBH": 0.4983,
-      "hfopenllm_v2/MATH Level 5": 0.0582,
-      "hfopenllm_v2/GPQA": 0.281,
-      "hfopenllm_v2/MUSR": 0.425,
-      "hfopenllm_v2/MMLU-PRO": 0.3246
+      "hfopenllm_v2/IFEval": 0.5508,
+      "hfopenllm_v2/BBH": 0.5028,
+      "hfopenllm_v2/MATH Level 5": 0.0529,
+      "hfopenllm_v2/GPQA": 0.2861,
+      "hfopenllm_v2/MUSR": 0.4266,
+      "hfopenllm_v2/MMLU-PRO": 0.3231
     }
   },
   {
@@ -54969,12 +54954,12 @@
     "developer": "prithivMLmods",
     "evaluator_relationship": null,
     "benchmark_scores": {
-      "hfopenllm_v2/IFEval": 0.6052,
-      "hfopenllm_v2/BBH": 0.6317,
-      "hfopenllm_v2/MATH Level 5": 0.4789,
-      "hfopenllm_v2/GPQA": 0.3742,
-      "hfopenllm_v2/MUSR": 0.486,
-      "hfopenllm_v2/MMLU-PRO": 0.5302
+      "hfopenllm_v2/IFEval": 0.6064,
+      "hfopenllm_v2/BBH": 0.6296,
+      "hfopenllm_v2/MATH Level 5": 0.3708,
+      "hfopenllm_v2/GPQA": 0.3733,
+      "hfopenllm_v2/MUSR": 0.4873,
+      "hfopenllm_v2/MMLU-PRO": 0.5307
     }
   },
   {
@@ -56591,12 +56576,12 @@
     "developer": "qingy2019",
     "evaluator_relationship": null,
     "benchmark_scores": {
-      "hfopenllm_v2/IFEval": 0.6005,
-      "hfopenllm_v2/BBH": 0.6356,
-      "hfopenllm_v2/MATH Level 5": 0.2764,
-      "hfopenllm_v2/GPQA": 0.3691,
+      "hfopenllm_v2/IFEval": 0.6066,
+      "hfopenllm_v2/BBH": 0.635,
+      "hfopenllm_v2/MATH Level 5": 0.3716,
+      "hfopenllm_v2/GPQA": 0.3725,
       "hfopenllm_v2/MUSR": 0.4757,
-      "hfopenllm_v2/MMLU-PRO": 0.5339
+      "hfopenllm_v2/MMLU-PRO": 0.5331
     }
   },
   {
@@ -56997,12 +56982,12 @@
     "developer": "Quazim0t0",
     "evaluator_relationship": null,
     "benchmark_scores": {
-      "hfopenllm_v2/IFEval": 0.6654,
-      "hfopenllm_v2/BBH": 0.6901,
-      "hfopenllm_v2/MATH Level 5": 0.4698,
-      "hfopenllm_v2/GPQA": 0.3331,
-      "hfopenllm_v2/MUSR": 0.431,
-      "hfopenllm_v2/MMLU-PRO": 0.5426
+      "hfopenllm_v2/IFEval": 0.6718,
+      "hfopenllm_v2/BBH": 0.6891,
+      "hfopenllm_v2/MATH Level 5": 0.4985,
+      "hfopenllm_v2/GPQA": 0.3339,
+      "hfopenllm_v2/MUSR": 0.4323,
+      "hfopenllm_v2/MMLU-PRO": 0.5408
     }
   },
   {
@@ -57529,12 +57514,12 @@
     "developer": "Quazim0t0",
     "evaluator_relationship": null,
     "benchmark_scores": {
-      "hfopenllm_v2/IFEval": 0.2922,
-      "hfopenllm_v2/BBH": 0.6559,
-      "hfopenllm_v2/MATH Level 5": 0.2545,
-      "hfopenllm_v2/GPQA": 0.2659,
-      "hfopenllm_v2/MUSR": 0.3929,
-      "hfopenllm_v2/MMLU-PRO": 0.5207
+      "hfopenllm_v2/IFEval": 0.7016,
+      "hfopenllm_v2/BBH": 0.6942,
+      "hfopenllm_v2/MATH Level 5": 0.4116,
+      "hfopenllm_v2/GPQA": 0.3624,
+      "hfopenllm_v2/MUSR": 0.4571,
+      "hfopenllm_v2/MMLU-PRO": 0.5411
     }
   },
   {
@@ -58633,12 +58618,12 @@
     "developer": "Qwen",
     "evaluator_relationship": null,
     "benchmark_scores": {
-      "hfopenllm_v2/IFEval": 0.3071,
-      "hfopenllm_v2/BBH": 0.3341,
-      "hfopenllm_v2/MATH Level 5": 0.0,
-      "hfopenllm_v2/GPQA": 0.2576,
-      "hfopenllm_v2/MUSR": 0.3329,
-      "hfopenllm_v2/MMLU-PRO": 0.1697
+      "hfopenllm_v2/IFEval": 0.3153,
+      "hfopenllm_v2/BBH": 0.3322,
+      "hfopenllm_v2/MATH Level 5": 0.1035,
+      "hfopenllm_v2/GPQA": 0.2592,
+      "hfopenllm_v2/MUSR": 0.3342,
+      "hfopenllm_v2/MMLU-PRO": 0.172
     }
   },
   {
@@ -59368,16 +59353,16 @@
     "developer": "Ray2333",
     "evaluator_relationship": null,
     "benchmark_scores": {
-      "reward-bench/Score": 0.5966,
-      "reward-bench/Chat": 0.9302,
-      "reward-bench/Chat Hard": 0.7719,
-      "reward-bench/Safety": 0.9222,
-      "reward-bench/Reasoning": 0.912,
+      "reward-bench/Score": 0.8839,
       "reward-bench/Factuality": 0.5305,
       "reward-bench/Precise IF": 0.3125,
       "reward-bench/Math": 0.5902,
+      "reward-bench/Safety": 0.9216,
       "reward-bench/Focus": 0.7455,
-      "reward-bench/Ties": 0.4788
+      "reward-bench/Ties": 0.4788,
+      "reward-bench/Chat": 0.9302,
+      "reward-bench/Chat Hard": 0.7719,
+      "reward-bench/Reasoning": 0.912
     }
   },
   {
@@ -59405,16 +59390,16 @@
     "developer": "Ray2333",
     "evaluator_relationship": null,
     "benchmark_scores": {
-      "reward-bench/Score": 0.6766,
-      "reward-bench/Chat": 0.9553,
-      "reward-bench/Chat Hard": 0.8618,
-      "reward-bench/Safety": 0.9222,
-      "reward-bench/Reasoning": 0.9362,
+      "reward-bench/Score": 0.9154,
       "reward-bench/Factuality": 0.6274,
       "reward-bench/Precise IF": 0.35,
       "reward-bench/Math": 0.5847,
+      "reward-bench/Safety": 0.9081,
       "reward-bench/Focus": 0.8929,
-      "reward-bench/Ties": 0.6824
+      "reward-bench/Ties": 0.6824,
+      "reward-bench/Chat": 0.9553,
+      "reward-bench/Chat Hard": 0.8618,
+      "reward-bench/Reasoning": 0.9362
     }
   },
   {
@@ -59423,17 +59408,17 @@
     "developer": "Ray2333",
     "evaluator_relationship": null,
     "benchmark_scores": {
-      "reward-bench/Score": 0.8542,
+      "reward-bench/Score": 0.6089,
+      "reward-bench/Chat": 0.986,
+      "reward-bench/Chat Hard": 0.6776,
+      "reward-bench/Safety": 0.7867,
+      "reward-bench/Reasoning": 0.9229,
+      "reward-bench/Prior Sets (0.5 weight)": 0.7309,
       "reward-bench/Factuality": 0.6189,
       "reward-bench/Precise IF": 0.3875,
       "reward-bench/Math": 0.5792,
-      "reward-bench/Safety": 0.8919,
       "reward-bench/Focus": 0.6828,
-      "reward-bench/Ties": 0.5981,
-      "reward-bench/Chat": 0.986,
-      "reward-bench/Chat Hard": 0.6776,
-      "reward-bench/Reasoning": 0.9229,
-      "reward-bench/Prior Sets (0.5 weight)": 0.7309
+      "reward-bench/Ties": 0.5981
     }
   },
   {
@@ -59525,12 +59510,12 @@
     "developer": "recoilme",
     "evaluator_relationship": null,
     "benchmark_scores": {
-      "hfopenllm_v2/IFEval": 0.7592,
-      "hfopenllm_v2/BBH": 0.6026,
-      "hfopenllm_v2/MATH Level 5": 0.0529,
-      "hfopenllm_v2/GPQA": 0.3289,
-      "hfopenllm_v2/MUSR": 0.4099,
-      "hfopenllm_v2/MMLU-PRO": 0.4163
+      "hfopenllm_v2/IFEval": 0.2747,
+      "hfopenllm_v2/BBH": 0.6031,
+      "hfopenllm_v2/MATH Level 5": 0.0831,
+      "hfopenllm_v2/GPQA": 0.3305,
+      "hfopenllm_v2/MUSR": 0.4686,
+      "hfopenllm_v2/MMLU-PRO": 0.4122
     }
   },
   {
@@ -59539,12 +59524,12 @@
     "developer": "recoilme",
     "evaluator_relationship": null,
     "benchmark_scores": {
-      "hfopenllm_v2/IFEval": 0.5761,
-      "hfopenllm_v2/BBH": 0.602,
-      "hfopenllm_v2/MATH Level 5": 0.1888,
-      "hfopenllm_v2/GPQA": 0.3372,
-      "hfopenllm_v2/MUSR": 0.4632,
-      "hfopenllm_v2/MMLU-PRO": 0.4039
+      "hfopenllm_v2/IFEval": 0.7439,
+      "hfopenllm_v2/BBH": 0.5993,
+      "hfopenllm_v2/MATH Level 5": 0.0876,
+      "hfopenllm_v2/GPQA": 0.3238,
+      "hfopenllm_v2/MUSR": 0.4204,
+      "hfopenllm_v2/MMLU-PRO": 0.4072
     }
   },
   {
@@ -59707,12 +59692,12 @@
     "developer": "Replete-AI",
     "evaluator_relationship": null,
     "benchmark_scores": {
-      "hfopenllm_v2/IFEval": 0.0905,
-      "hfopenllm_v2/BBH": 0.2985,
+      "hfopenllm_v2/IFEval": 0.0932,
+      "hfopenllm_v2/BBH": 0.2977,
       "hfopenllm_v2/MATH Level 5": 0.0,
-      "hfopenllm_v2/GPQA": 0.2534,
-      "hfopenllm_v2/MUSR": 0.3848,
-      "hfopenllm_v2/MMLU-PRO": 0.1158
+      "hfopenllm_v2/GPQA": 0.2475,
+      "hfopenllm_v2/MUSR": 0.3941,
+      "hfopenllm_v2/MMLU-PRO": 0.1157
     }
   },
   {
@@ -62478,17 +62463,17 @@
     "developer": "sfairXC",
     "evaluator_relationship": null,
     "benchmark_scores": {
-      "reward-bench/Score": 0.8338,
+      "reward-bench/Score": 0.6292,
+      "reward-bench/Chat": 0.9944,
+      "reward-bench/Chat Hard": 0.6513,
+      "reward-bench/Safety": 0.7667,
+      "reward-bench/Reasoning": 0.8644,
+      "reward-bench/Prior Sets (0.5 weight)": 0.7492,
       "reward-bench/Factuality": 0.5916,
       "reward-bench/Precise IF": 0.4188,
       "reward-bench/Math": 0.6284,
-      "reward-bench/Safety": 0.8676,
       "reward-bench/Focus": 0.7051,
-      "reward-bench/Ties": 0.6647,
-      "reward-bench/Chat": 0.9944,
-      "reward-bench/Chat Hard": 0.6513,
-      "reward-bench/Reasoning": 0.8644,
-      "reward-bench/Prior Sets (0.5 weight)": 0.7492
+      "reward-bench/Ties": 0.6647
     }
   },
   {
@@ -62567,16 +62552,16 @@
     "developer": "ShikaiChen",
     "evaluator_relationship": null,
     "benchmark_scores": {
-      "reward-bench/Score": 0.9499,
+      "reward-bench/Score": 0.7249,
+      "reward-bench/Chat": 0.9637,
+      "reward-bench/Chat Hard": 0.9079,
+      "reward-bench/Safety": 0.9222,
+      "reward-bench/Reasoning": 0.9903,
       "reward-bench/Factuality": 0.7558,
       "reward-bench/Precise IF": 0.35,
       "reward-bench/Math": 0.6448,
-      "reward-bench/Safety": 0.9378,
       "reward-bench/Focus": 0.9131,
-      "reward-bench/Ties": 0.7633,
-      "reward-bench/Chat": 0.9637,
-      "reward-bench/Chat Hard": 0.9079,
-      "reward-bench/Reasoning": 0.9903
+      "reward-bench/Ties": 0.7633
     }
   },
   {
@@ -63269,16 +63254,16 @@
     "developer": "Skywork",
     "evaluator_relationship": null,
     "benchmark_scores": {
-      "reward-bench/Score": 0.7576,
-      "reward-bench/Chat": 0.9581,
-      "reward-bench/Chat Hard": 0.9145,
-      "reward-bench/Safety": 0.9422,
-      "reward-bench/Reasoning": 0.9606,
+      "reward-bench/Score": 0.938,
       "reward-bench/Factuality": 0.7368,
       "reward-bench/Precise IF": 0.4031,
       "reward-bench/Math": 0.7049,
+      "reward-bench/Safety": 0.9189,
       "reward-bench/Focus": 0.9323,
-      "reward-bench/Ties": 0.8261
+      "reward-bench/Ties": 0.8261,
+      "reward-bench/Chat": 0.9581,
+      "reward-bench/Chat Hard": 0.9145,
+      "reward-bench/Reasoning": 0.9606
     }
   },
   {
@@ -63452,16 +63437,16 @@
     "developer": "Skywork",
     "evaluator_relationship": null,
     "benchmark_scores": {
-      "reward-bench/Score": 0.6885,
-      "reward-bench/Chat": 0.8994,
-      "reward-bench/Chat Hard": 0.875,
-      "reward-bench/Safety": 0.8911,
-      "reward-bench/Reasoning": 0.9176,
+      "reward-bench/Score": 0.9007,
       "reward-bench/Factuality": 0.6063,
       "reward-bench/Precise IF": 0.35,
       "reward-bench/Math": 0.6339,
+      "reward-bench/Safety": 0.9108,
       "reward-bench/Focus": 0.8909,
-      "reward-bench/Ties": 0.7586
+      "reward-bench/Ties": 0.7586,
+      "reward-bench/Chat": 0.8994,
+      "reward-bench/Chat Hard": 0.875,
+      "reward-bench/Reasoning": 0.9176
     }
   },
   {
@@ -64308,12 +64293,12 @@
     "developer": "sometimesanotion",
     "evaluator_relationship": null,
     "benchmark_scores": {
-      "hfopenllm_v2/IFEval": 0.5367,
-      "hfopenllm_v2/BBH": 0.6561,
-      "hfopenllm_v2/MATH Level 5": 0.358,
-      "hfopenllm_v2/GPQA": 0.3867,
-      "hfopenllm_v2/MUSR": 0.474,
-      "hfopenllm_v2/MMLU-PRO": 0.5395
+      "hfopenllm_v2/IFEval": 0.5278,
+      "hfopenllm_v2/BBH": 0.6557,
+      "hfopenllm_v2/MATH Level 5": 0.3119,
+      "hfopenllm_v2/GPQA": 0.3842,
+      "hfopenllm_v2/MUSR": 0.4754,
+      "hfopenllm_v2/MMLU-PRO": 0.5396
     }
   },
   {
@@ -66770,12 +66755,12 @@
     "developer": "tanliboy",
     "evaluator_relationship": null,
     "benchmark_scores": {
-      "hfopenllm_v2/IFEval": 0.4501,
-      "hfopenllm_v2/BBH": 0.5472,
-      "hfopenllm_v2/MATH Level 5": 0.0944,
-      "hfopenllm_v2/GPQA": 0.3138,
-      "hfopenllm_v2/MUSR": 0.4017,
-      "hfopenllm_v2/MMLU-PRO": 0.3792
+      "hfopenllm_v2/IFEval": 0.1829,
+      "hfopenllm_v2/BBH": 0.5488,
+      "hfopenllm_v2/MATH Level 5": 0.0,
+      "hfopenllm_v2/GPQA": 0.3104,
+      "hfopenllm_v2/MUSR": 0.4056,
+      "hfopenllm_v2/MMLU-PRO": 0.3805
     }
   },
   {
@@ -70986,12 +70971,12 @@
     "developer": "ValiantLabs",
     "evaluator_relationship": null,
     "benchmark_scores": {
-      "hfopenllm_v2/IFEval": 0.7168,
-      "hfopenllm_v2/BBH": 0.4911,
-      "hfopenllm_v2/MATH Level 5": 0.1533,
-      "hfopenllm_v2/GPQA": 0.2861,
-      "hfopenllm_v2/MUSR": 0.3512,
-      "hfopenllm_v2/MMLU-PRO": 0.3663
+      "hfopenllm_v2/IFEval": 0.3496,
+      "hfopenllm_v2/BBH": 0.4947,
+      "hfopenllm_v2/MATH Level 5": 0.1269,
+      "hfopenllm_v2/GPQA": 0.3037,
+      "hfopenllm_v2/MUSR": 0.3959,
+      "hfopenllm_v2/MMLU-PRO": 0.3644
     }
   },
   {
@@ -71672,17 +71657,17 @@
     "developer": "weqweasdas",
     "evaluator_relationship": null,
     "benchmark_scores": {
-      "reward-bench/Score": 0.5027,
+      "reward-bench/Score": 0.2498,
+      "reward-bench/Chat": 0.8184,
+      "reward-bench/Chat Hard": 0.3728,
+      "reward-bench/Safety": 0.24,
+      "reward-bench/Reasoning": 0.3281,
+      "reward-bench/Prior Sets (0.5 weight)": 0.6564,
       "reward-bench/Factuality": 0.3642,
       "reward-bench/Precise IF": 0.275,
       "reward-bench/Math": 0.3497,
-      "reward-bench/Safety": 0.4149,
       "reward-bench/Focus": 0.2384,
-      "reward-bench/Ties": 0.0315,
-      "reward-bench/Chat": 0.8184,
-      "reward-bench/Chat Hard": 0.3728,
-      "reward-bench/Reasoning": 0.3281,
-      "reward-bench/Prior Sets (0.5 weight)": 0.6564
+      "reward-bench/Ties": 0.0315
     }
   },
   {
@@ -71691,17 +71676,17 @@
     "developer": "weqweasdas",
     "evaluator_relationship": null,
     "benchmark_scores": {
-      "reward-bench/Score": 0.6549,
+      "reward-bench/Score": 0.3057,
+      "reward-bench/Chat": 0.9441,
+      "reward-bench/Chat Hard": 0.4079,
+      "reward-bench/Safety": 0.3311,
+      "reward-bench/Reasoning": 0.7637,
+      "reward-bench/Prior Sets (0.5 weight)": 0.6652,
       "reward-bench/Factuality": 0.3705,
       "reward-bench/Precise IF": 0.2812,
       "reward-bench/Math": 0.4317,
-      "reward-bench/Safety": 0.4986,
       "reward-bench/Focus": 0.2343,
-      "reward-bench/Ties": 0.1851,
-      "reward-bench/Chat": 0.9441,
-      "reward-bench/Chat Hard": 0.4079,
-      "reward-bench/Reasoning": 0.7637,
-      "reward-bench/Prior Sets (0.5 weight)": 0.6652
+      "reward-bench/Ties": 0.1851
     }
   },
   {
@@ -71743,17 +71728,17 @@
     "developer": "weqweasdas",
     "evaluator_relationship": null,
     "benchmark_scores": {
-      "reward-bench/Score": 0.7982,
+      "reward-bench/Score": 0.596,
+      "reward-bench/Chat": 0.9665,
+      "reward-bench/Chat Hard": 0.6053,
+      "reward-bench/Safety": 0.6911,
+      "reward-bench/Reasoning": 0.7736,
+      "reward-bench/Prior Sets (0.5 weight)": 0.753,
       "reward-bench/Factuality": 0.5937,
       "reward-bench/Precise IF": 0.3438,
       "reward-bench/Math": 0.5956,
-      "reward-bench/Safety": 0.8703,
       "reward-bench/Focus": 0.7293,
-      "reward-bench/Ties": 0.6226,
-      "reward-bench/Chat": 0.9665,
-      "reward-bench/Chat Hard": 0.6053,
-      "reward-bench/Reasoning": 0.7736,
-      "reward-bench/Prior Sets (0.5 weight)": 0.753
+      "reward-bench/Ties": 0.6226
     }
   },
   {
@@ -73033,12 +73018,12 @@
     "developer": "yam-peleg",
     "evaluator_relationship": null,
     "benchmark_scores": {
-      "hfopenllm_v2/IFEval": 0.1856,
-      "hfopenllm_v2/BBH": 0.4149,
-      "hfopenllm_v2/MATH Level 5": 0.0234,
-      "hfopenllm_v2/GPQA": 0.276,
-      "hfopenllm_v2/MUSR": 0.3765,
-      "hfopenllm_v2/MMLU-PRO": 0.2573
+      "hfopenllm_v2/IFEval": 0.177,
+      "hfopenllm_v2/BBH": 0.3411,
+      "hfopenllm_v2/MATH Level 5": 0.031,
+      "hfopenllm_v2/GPQA": 0.2534,
+      "hfopenllm_v2/MUSR": 0.374,
+      "hfopenllm_v2/MMLU-PRO": 0.2529
     }
   },
   {
@@ -75535,7 +75520,7 @@
     "developer": "Z-AI",
     "evaluator_relationship": null,
     "benchmark_scores": {
-      "terminal-bench-2.0/terminal-bench-2.0": 33.3
+      "terminal-bench-2.0/terminal-bench-2.0": 33.4
     }
   },
   {

@@ -7,17 +7,17 @@
       "developer": "OpenAssistant",
       "evaluator_relationship": null,
       "benchmark_scores": {
-        "reward-bench/Score": 0.2653,
-        "reward-bench/Chat": 0.9246,
-        "reward-bench/Chat Hard": 0.3728,
-        "reward-bench/Safety": 0.3289,
-        "reward-bench/Reasoning": 0.5855,
-        "reward-bench/Prior Sets (0.5 weight)": 0.6801,
+        "reward-bench/Score": 0.615,
         "reward-bench/Factuality": 0.3979,
         "reward-bench/Precise IF": 0.2875,
         "reward-bench/Math": 0.377,
+        "reward-bench/Safety": 0.5446,
         "reward-bench/Focus": 0.1535,
-        "reward-bench/Ties": 0.047
+        "reward-bench/Ties": 0.047,
+        "reward-bench/Chat": 0.9246,
+        "reward-bench/Chat Hard": 0.3728,
+        "reward-bench/Reasoning": 0.5855,
+        "reward-bench/Prior Sets (0.5 weight)": 0.6801
       }
     },
     {

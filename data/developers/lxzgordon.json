@@ -20,16 +20,16 @@
       "developer": "LxzGordon",
       "evaluator_relationship": null,
       "benchmark_scores": {
-        "reward-bench/Score": 0.7394,
-        "reward-bench/Chat": 0.9553,
-        "reward-bench/Chat Hard": 0.8816,
-        "reward-bench/Safety": 0.9178,
-        "reward-bench/Reasoning": 0.9698,
+        "reward-bench/Score": 0.9294,
         "reward-bench/Factuality": 0.6884,
         "reward-bench/Precise IF": 0.45,
         "reward-bench/Math": 0.6393,
+        "reward-bench/Safety": 0.9108,
         "reward-bench/Focus": 0.9758,
-        "reward-bench/Ties": 0.7653
+        "reward-bench/Ties": 0.7653,
+        "reward-bench/Chat": 0.9553,
+        "reward-bench/Chat Hard": 0.8816,
+        "reward-bench/Reasoning": 0.9698
       }
     }
   ]

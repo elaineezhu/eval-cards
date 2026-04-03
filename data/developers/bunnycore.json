@@ -287,12 +287,12 @@
       "developer": "bunnycore",
       "evaluator_relationship": null,
       "benchmark_scores": {
-        "hfopenllm_v2/IFEval": 0.1775,
-        "hfopenllm_v2/BBH": 0.295,
-        "hfopenllm_v2/MATH Level 5": 0.0,
-        "hfopenllm_v2/GPQA": 0.2517,
-        "hfopenllm_v2/MUSR": 0.3647,
-        "hfopenllm_v2/MMLU-PRO": 0.1049
+        "hfopenllm_v2/IFEval": 0.4652,
+        "hfopenllm_v2/BBH": 0.4531,
+        "hfopenllm_v2/MATH Level 5": 0.1284,
+        "hfopenllm_v2/GPQA": 0.2643,
+        "hfopenllm_v2/MUSR": 0.3394,
+        "hfopenllm_v2/MMLU-PRO": 0.3152
       }
     },
     {

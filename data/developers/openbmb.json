@@ -68,17 +68,17 @@
       "developer": "openbmb",
       "evaluator_relationship": null,
       "benchmark_scores": {
-        "reward-bench/Score": 0.4683,
-        "reward-bench/Chat": 0.9637,
-        "reward-bench/Chat Hard": 0.5548,
-        "reward-bench/Safety": 0.5089,
-        "reward-bench/Reasoning": 0.6244,
-        "reward-bench/Prior Sets (0.5 weight)": 0.7294,
+        "reward-bench/Score": 0.6903,
         "reward-bench/Factuality": 0.5063,
         "reward-bench/Precise IF": 0.3312,
         "reward-bench/Math": 0.5519,
+        "reward-bench/Safety": 0.5986,
         "reward-bench/Focus": 0.6081,
-        "reward-bench/Ties": 0.3036
+        "reward-bench/Ties": 0.3036,
+        "reward-bench/Chat": 0.9637,
+        "reward-bench/Chat Hard": 0.5548,
+        "reward-bench/Reasoning": 0.6244,
+        "reward-bench/Prior Sets (0.5 weight)": 0.7294
       }
     }
   ]

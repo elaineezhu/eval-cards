@@ -775,12 +775,12 @@
       "developer": "Qwen",
       "evaluator_relationship": null,
       "benchmark_scores": {
-        "hfopenllm_v2/IFEval": 0.3071,
-        "hfopenllm_v2/BBH": 0.3341,
-        "hfopenllm_v2/MATH Level 5": 0.0,
-        "hfopenllm_v2/GPQA": 0.2576,
-        "hfopenllm_v2/MUSR": 0.3329,
-        "hfopenllm_v2/MMLU-PRO": 0.1697
+        "hfopenllm_v2/IFEval": 0.3153,
+        "hfopenllm_v2/BBH": 0.3322,
+        "hfopenllm_v2/MATH Level 5": 0.1035,
+        "hfopenllm_v2/GPQA": 0.2592,
+        "hfopenllm_v2/MUSR": 0.3342,
+        "hfopenllm_v2/MMLU-PRO": 0.172
       }
     },
     {

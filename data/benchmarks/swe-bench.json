@@ -21,7 +21,7 @@
       "name": "gpt-5.2-2025-12-11",
       "developer": "OpenAI",
       "scores": {
-        "swe-bench": 0.5455
+        "swe-bench": 0.57
       }
     }
   ]

@@ -5,7 +5,7 @@
       "name": "claude-opus-4-5",
       "developer": "Anthropic",
       "scores": {
-        "tau-bench-2/airline": 0.66
+        "tau-bench-2/airline": 0.72
       }
     },
     {

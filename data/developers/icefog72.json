@@ -814,20 +814,6 @@
       }
     },
     {
-      "id": "icefog72/IceSakeV6RP-7b",
-      "name": "IceSakeV6RP-7b",
-      "developer": "icefog72",
-      "evaluator_relationship": null,
-      "benchmark_scores": {
-        "hfopenllm_v2/IFEval": 0.5033,
-        "hfopenllm_v2/BBH": 0.4976,
-        "hfopenllm_v2/MATH Level 5": 0.0619,
-        "hfopenllm_v2/GPQA": 0.2911,
-        "hfopenllm_v2/MUSR": 0.42,
-        "hfopenllm_v2/MMLU-PRO": 0.3093
-      }
-    },
-    {
       "id": "icefog72/IceSakeV8RP-7b",
       "name": "IceSakeV8RP-7b",
       "developer": "icefog72",

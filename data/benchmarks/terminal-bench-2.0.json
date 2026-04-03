@@ -5,7 +5,7 @@
       "name": "Qwen 3 Coder 480B",
       "developer": "Alibaba",
       "scores": {
-        "terminal-bench-2.0": 27.2
+        "terminal-bench-2.0": 25.4
       }
     },
     {
@@ -13,7 +13,7 @@
       "name": "Claude Haiku 4.5",
       "developer": "Anthropic",
       "scores": {
-        "terminal-bench-2.0": 13.9
+        "terminal-bench-2.0": 27.5
       }
     },
     {
@@ -21,7 +21,7 @@
       "name": "Claude Opus 4.1",
       "developer": "Anthropic",
       "scores": {
-        "terminal-bench-2.0": 35.1
+        "terminal-bench-2.0": 34.8
       }
     },
     {
@@ -37,7 +37,7 @@
       "name": "Claude Opus 4.6",
       "developer": "Anthropic",
       "scores": {
-        "terminal-bench-2.0": 62.9
+        "terminal-bench-2.0": 74.7
       }
     },
     {
@@ -45,7 +45,7 @@
       "name": "Claude Sonnet 4.5",
       "developer": "Anthropic",
       "scores": {
-        "terminal-bench-2.0": 42.6
+        "terminal-bench-2.0": 42.5
       }
     },
     {
@@ -77,7 +77,7 @@
       "name": "Gemini 3 Flash",
       "developer": "Google",
       "scores": {
-        "terminal-bench-2.0": 47.4
+        "terminal-bench-2.0": 51.0
       }
     },
     {
@@ -85,7 +85,7 @@
       "name": "Gemini 3 Pro",
       "developer": "Google",
       "scores": {
-        "terminal-bench-2.0": 56.0
+        "terminal-bench-2.0": 56.9
       }
     },
     {
@@ -109,7 +109,7 @@
       "name": "MiniMax M2.1",
       "developer": "MiniMax",
       "scores": {
-        "terminal-bench-2.0": 36.6
+        "terminal-bench-2.0": 29.2
       }
     },
     {
@@ -125,7 +125,7 @@
       "name": "Kimi K2 Instruct",
       "developer": "Moonshot AI",
       "scores": {
-        "terminal-bench-2.0": 27.8
+        "terminal-bench-2.0": 26.7
       }
     },
     {
@@ -149,7 +149,7 @@
       "name": "Multiple",
       "developer": "Multiple",
       "scores": {
-        "terminal-bench-2.0": 72.4
+        "terminal-bench-2.0": 71.0
       }
     },
     {
@@ -173,7 +173,7 @@
       "name": "GPT-5-Mini",
       "developer": "OpenAI",
       "scores": {
-        "terminal-bench-2.0": 24.0
+        "terminal-bench-2.0": 31.9
       }
     },
     {
@@ -181,7 +181,7 @@
       "name": "GPT-5-Nano",
       "developer": "OpenAI",
       "scores": {
-        "terminal-bench-2.0": 11.5
+        "terminal-bench-2.0": 7.0
       }
     },
     {
@@ -197,7 +197,7 @@
       "name": "GPT-5.1-Codex",
       "developer": "OpenAI",
       "scores": {
-        "terminal-bench-2.0": 57.8
+        "terminal-bench-2.0": 53.5
       }
     },
     {
@@ -221,7 +221,7 @@
       "name": "GPT-5.2",
       "developer": "OpenAI",
       "scores": {
-        "terminal-bench-2.0": 62.9
+        "terminal-bench-2.0": 60.7
       }
     },
     {
@@ -237,7 +237,7 @@
       "name": "GPT-5.3-Codex",
       "developer": "OpenAI",
       "scores": {
-        "terminal-bench-2.0": 77.3
+        "terminal-bench-2.0": 74.6
       }
     },
     {
@@ -245,7 +245,7 @@
       "name": "GPT-OSS-120B",
       "developer": "OpenAI",
       "scores": {
-        "terminal-bench-2.0": 18.7
+        "terminal-bench-2.0": 14.2
       }
     },
     {
@@ -285,7 +285,7 @@
       "name": "GLM 4.7",
       "developer": "Z-AI",
       "scores": {
-        "terminal-bench-2.0": 33.3
+        "terminal-bench-2.0": 33.4
       }
     },
     {

@@ -57,7 +57,7 @@
   },
   {
     "benchmark": "reward-bench",
-    "model_count": 328
+    "model_count": 327
   },
   {
     "benchmark": "swe-bench",

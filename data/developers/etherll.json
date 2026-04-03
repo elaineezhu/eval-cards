@@ -35,12 +35,12 @@
       "developer": "Etherll",
       "evaluator_relationship": null,
       "benchmark_scores": {
-        "hfopenllm_v2/IFEval": 0.6106,
-        "hfopenllm_v2/BBH": 0.5347,
-        "hfopenllm_v2/MATH Level 5": 0.1548,
-        "hfopenllm_v2/GPQA": 0.3146,
-        "hfopenllm_v2/MUSR": 0.3991,
-        "hfopenllm_v2/MMLU-PRO": 0.3752
+        "hfopenllm_v2/IFEval": 0.4672,
+        "hfopenllm_v2/BBH": 0.5013,
+        "hfopenllm_v2/MATH Level 5": 0.0279,
+        "hfopenllm_v2/GPQA": 0.2861,
+        "hfopenllm_v2/MUSR": 0.386,
+        "hfopenllm_v2/MMLU-PRO": 0.3482
       }
     },
     {

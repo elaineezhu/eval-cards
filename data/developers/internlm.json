@@ -21,16 +21,16 @@
       "developer": "internlm",
       "evaluator_relationship": null,
       "benchmark_scores": {
-        "reward-bench/Score": 0.3902,
-        "reward-bench/Chat": 0.9358,
-        "reward-bench/Chat Hard": 0.6623,
-        "reward-bench/Safety": 0.4711,
-        "reward-bench/Reasoning": 0.8724,
+        "reward-bench/Score": 0.8217,
         "reward-bench/Factuality": 0.2758,
         "reward-bench/Precise IF": 0.3625,
         "reward-bench/Math": 0.4426,
+        "reward-bench/Safety": 0.8162,
         "reward-bench/Focus": 0.596,
-        "reward-bench/Ties": 0.1934
+        "reward-bench/Ties": 0.1934,
+        "reward-bench/Chat": 0.9358,
+        "reward-bench/Chat Hard": 0.6623,
+        "reward-bench/Reasoning": 0.8724
       }
     },
     {
@@ -71,16 +71,16 @@
       "developer": "internlm",
       "evaluator_relationship": null,
       "benchmark_scores": {
-        "reward-bench/Score": 0.5335,
-        "reward-bench/Chat": 0.9916,
-        "reward-bench/Chat Hard": 0.6952,
-        "reward-bench/Safety": 0.5956,
-        "reward-bench/Reasoning": 0.9453,
+        "reward-bench/Score": 0.8759,
         "reward-bench/Factuality": 0.4211,
         "reward-bench/Precise IF": 0.4,
         "reward-bench/Math": 0.5628,
+        "reward-bench/Safety": 0.8716,
         "reward-bench/Focus": 0.7051,
-        "reward-bench/Ties": 0.5164
+        "reward-bench/Ties": 0.5164,
+        "reward-bench/Chat": 0.9916,
+        "reward-bench/Chat Hard": 0.6952,
+        "reward-bench/Reasoning": 0.9453
       }
     },
     {

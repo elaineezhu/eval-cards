@@ -1,18 +1,18 @@
 {
   "model_info": {
-    "name": "IceSakeV6RP-7b",
-    "id": "icefog72/IceSakeV6RP-7b",
-    "developer": "icefog72",
+    "name": "Yarn-Llama-2-7b-128k",
+    "id": "NousResearch/Yarn-Llama-2-7b-128k",
+    "developer": "NousResearch",
     "inference_platform": "unknown",
     "additional_details": {
-      "precision": "float16",
-      "architecture": "MistralForCausalLM",
-      "params_billions": "7.242"
+      "precision": "bfloat16",
+      "architecture": "LlamaForCausalLM",
+      "params_billions": "7.0"
     }
   },
   "evaluations": [
     {
-      "evaluation_id": "hfopenllm_v2/icefog72_IceSakeV6RP-7b/1773936498.240187",
+      "evaluation_id": "hfopenllm_v2/NousResearch_Yarn-Llama-2-7b-128k/1773936498.240187",
       "retrieved_timestamp": "1773936498.240187",
       "source_metadata": {
         "source_name": "HF Open LLM v2",
@@ -44,7 +44,7 @@
             "max_score": 1.0
           },
           "score_details": {
-            "score": 0.5033
+            "score": 0.1485
           }
         },
         {
@@ -62,7 +62,7 @@
             "max_score": 1.0
           },
           "score_details": {
-            "score": 0.4976
+            "score": 0.3248
           }
         },
         {
@@ -80,7 +80,7 @@
             "max_score": 1.0
           },
           "score_details": {
-            "score": 0.0619
+            "score": 0.0151
           }
         },
         {
@@ -98,7 +98,7 @@
             "max_score": 1.0
           },
           "score_details": {
-            "score": 0.2911
+            "score": 0.2601
           }
         },
         {
@@ -116,7 +116,7 @@
             "max_score": 1.0
           },
           "score_details": {
-            "score": 0.42
+            "score": 0.3967
           }
         },
         {
@@ -134,7 +134,7 @@
             "max_score": 1.0
           },
           "score_details": {
-            "score": 0.3093
+            "score": 0.1791
           }
         }
       ],

@@ -201,6 +201,20 @@
       }
     },
     {
+      "id": "NousResearch/Yarn-Llama-2-7b-128k",
+      "name": "Yarn-Llama-2-7b-128k",
+      "developer": "NousResearch",
+      "evaluator_relationship": null,
+      "benchmark_scores": {
+        "hfopenllm_v2/IFEval": 0.1485,
+        "hfopenllm_v2/BBH": 0.3248,
+        "hfopenllm_v2/MATH Level 5": 0.0151,
+        "hfopenllm_v2/GPQA": 0.2601,
+        "hfopenllm_v2/MUSR": 0.3967,
+        "hfopenllm_v2/MMLU-PRO": 0.1791
+      }
+    },
+    {
       "id": "NousResearch/Yarn-Llama-2-7b-64k",
       "name": "Yarn-Llama-2-7b-64k",
       "developer": "NousResearch",

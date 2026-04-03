@@ -63,12 +63,12 @@
       "developer": "Goekdeniz-Guelmez",
       "evaluator_relationship": null,
       "benchmark_scores": {
-        "hfopenllm_v2/IFEval": 0.3472,
-        "hfopenllm_v2/BBH": 0.3268,
-        "hfopenllm_v2/MATH Level 5": 0.0891,
-        "hfopenllm_v2/GPQA": 0.2517,
-        "hfopenllm_v2/MUSR": 0.3262,
-        "hfopenllm_v2/MMLU-PRO": 0.1641
+        "hfopenllm_v2/IFEval": 0.3417,
+        "hfopenllm_v2/BBH": 0.3292,
+        "hfopenllm_v2/MATH Level 5": 0.0023,
+        "hfopenllm_v2/GPQA": 0.2576,
+        "hfopenllm_v2/MUSR": 0.3249,
+        "hfopenllm_v2/MMLU-PRO": 0.1638
       }
     },
     {
