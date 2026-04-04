@@ -51,16 +51,16 @@
       "developer": "nicolinho",
       "evaluator_relationship": null,
       "benchmark_scores": {
-        "reward-bench/Score": 0.9314,
+        "reward-bench/Score": 0.7074,
+        "reward-bench/Chat": 0.9637,
+        "reward-bench/Chat Hard": 0.8684,
+        "reward-bench/Safety": 0.9467,
+        "reward-bench/Reasoning": 0.9677,
         "reward-bench/Factuality": 0.6653,
         "reward-bench/Precise IF": 0.4062,
         "reward-bench/Math": 0.612,
-        "reward-bench/Safety": 0.9257,
         "reward-bench/Focus": 0.8909,
-        "reward-bench/Ties": 0.7234,
-        "reward-bench/Chat": 0.9637,
-        "reward-bench/Chat Hard": 0.8684,
-        "reward-bench/Reasoning": 0.9677
+        "reward-bench/Ties": 0.7234
       }
     }
   ]

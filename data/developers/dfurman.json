@@ -35,12 +35,12 @@
       "developer": "dfurman",
       "evaluator_relationship": null,
       "benchmark_scores": {
-        "hfopenllm_v2/IFEval": 0.2835,
-        "hfopenllm_v2/BBH": 0.3842,
-        "hfopenllm_v2/MATH Level 5": 0.0521,
-        "hfopenllm_v2/GPQA": 0.2609,
-        "hfopenllm_v2/MUSR": 0.3566,
-        "hfopenllm_v2/MMLU-PRO": 0.2298
+        "hfopenllm_v2/IFEval": 0.3,
+        "hfopenllm_v2/BBH": 0.3853,
+        "hfopenllm_v2/MATH Level 5": 0.0415,
+        "hfopenllm_v2/GPQA": 0.2617,
+        "hfopenllm_v2/MUSR": 0.3579,
+        "hfopenllm_v2/MMLU-PRO": 0.2281
       }
     },
     {

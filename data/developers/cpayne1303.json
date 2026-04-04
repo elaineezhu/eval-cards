@@ -35,12 +35,12 @@
       "developer": "cpayne1303",
       "evaluator_relationship": null,
       "benchmark_scores": {
-        "hfopenllm_v2/IFEval": 0.1949,
-        "hfopenllm_v2/BBH": 0.2965,
-        "hfopenllm_v2/MATH Level 5": 0.0045,
+        "hfopenllm_v2/IFEval": 0.1916,
+        "hfopenllm_v2/BBH": 0.2977,
+        "hfopenllm_v2/MATH Level 5": 0.0,
         "hfopenllm_v2/GPQA": 0.2685,
-        "hfopenllm_v2/MUSR": 0.3885,
-        "hfopenllm_v2/MMLU-PRO": 0.1111
+        "hfopenllm_v2/MUSR": 0.3872,
+        "hfopenllm_v2/MMLU-PRO": 0.1132
       }
     },
     {

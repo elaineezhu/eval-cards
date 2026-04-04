@@ -21,12 +21,12 @@
       "developer": "BoltMonkey",
       "evaluator_relationship": null,
       "benchmark_scores": {
-        "hfopenllm_v2/IFEval": 0.7999,
-        "hfopenllm_v2/BBH": 0.5152,
-        "hfopenllm_v2/MATH Level 5": 0.1193,
-        "hfopenllm_v2/GPQA": 0.281,
-        "hfopenllm_v2/MUSR": 0.4019,
-        "hfopenllm_v2/MMLU-PRO": 0.3733
+        "hfopenllm_v2/IFEval": 0.459,
+        "hfopenllm_v2/BBH": 0.5185,
+        "hfopenllm_v2/MATH Level 5": 0.0937,
+        "hfopenllm_v2/GPQA": 0.2743,
+        "hfopenllm_v2/MUSR": 0.4083,
+        "hfopenllm_v2/MMLU-PRO": 0.3631
       }
     },
     {

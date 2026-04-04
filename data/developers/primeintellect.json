@@ -8,11 +8,11 @@
       "evaluator_relationship": null,
       "benchmark_scores": {
         "hfopenllm_v2/IFEval": 0.1757,
-        "hfopenllm_v2/BBH": 0.276,
+        "hfopenllm_v2/BBH": 0.274,
         "hfopenllm_v2/MATH Level 5": 0.0,
-        "hfopenllm_v2/GPQA": 0.2534,
-        "hfopenllm_v2/MUSR": 0.3339,
-        "hfopenllm_v2/MMLU-PRO": 0.1123
+        "hfopenllm_v2/GPQA": 0.25,
+        "hfopenllm_v2/MUSR": 0.3753,
+        "hfopenllm_v2/MMLU-PRO": 0.112
       }
     },
     {

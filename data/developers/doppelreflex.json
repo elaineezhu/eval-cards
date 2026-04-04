@@ -175,12 +175,12 @@
       "developer": "DoppelReflEx",
       "evaluator_relationship": null,
       "benchmark_scores": {
-        "hfopenllm_v2/IFEval": 0.436,
-        "hfopenllm_v2/BBH": 0.4956,
-        "hfopenllm_v2/MATH Level 5": 0.0589,
-        "hfopenllm_v2/GPQA": 0.3205,
-        "hfopenllm_v2/MUSR": 0.3843,
-        "hfopenllm_v2/MMLU-PRO": 0.3237
+        "hfopenllm_v2/IFEval": 0.451,
+        "hfopenllm_v2/BBH": 0.4944,
+        "hfopenllm_v2/MATH Level 5": 0.1156,
+        "hfopenllm_v2/GPQA": 0.3196,
+        "hfopenllm_v2/MUSR": 0.3896,
+        "hfopenllm_v2/MMLU-PRO": 0.3256
       }
     },
     {

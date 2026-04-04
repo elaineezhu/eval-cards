@@ -5,7 +5,7 @@
       "name": "claude-opus-4-5",
       "developer": "Anthropic",
       "scores": {
-        "browsecompplus": 0.61
+        "browsecompplus": 0.49
       }
     },
     {
@@ -21,7 +21,7 @@
       "name": "gpt-5.2-2025-12-11",
       "developer": "OpenAI",
       "scores": {
-        "browsecompplus": 0.26
+        "browsecompplus": 0.48
       }
     }
   ]

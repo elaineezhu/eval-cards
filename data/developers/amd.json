@@ -7,11 +7,11 @@
       "developer": "amd",
       "evaluator_relationship": null,
       "benchmark_scores": {
-        "hfopenllm_v2/IFEval": 0.1842,
-        "hfopenllm_v2/BBH": 0.2974,
-        "hfopenllm_v2/MATH Level 5": 0.0053,
-        "hfopenllm_v2/GPQA": 0.2525,
-        "hfopenllm_v2/MUSR": 0.378,
+        "hfopenllm_v2/IFEval": 0.1918,
+        "hfopenllm_v2/BBH": 0.2969,
+        "hfopenllm_v2/MATH Level 5": 0.0076,
+        "hfopenllm_v2/GPQA": 0.2584,
+        "hfopenllm_v2/MUSR": 0.3846,
         "hfopenllm_v2/MMLU-PRO": 0.1169
       }
     }

@@ -45,7 +45,7 @@
   },
   {
     "benchmark": "hfopenllm_v2",
-    "model_count": 4493
+    "model_count": 4494
   },
   {
     "benchmark": "la_leaderboard",
@@ -57,7 +57,7 @@
   },
   {
     "benchmark": "reward-bench",
-    "model_count": 327
+    "model_count": 328
   },
   {
     "benchmark": "swe-bench",
