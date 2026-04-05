@@ -139,6 +139,7 @@
       "developer": "Google",
       "evaluator_relationship": null,
       "benchmark_scores": {
+        "ace/Gaming Score": 0.415,
         "apex-agents/Overall Pass@1": 0.24,
         "apex-agents/Overall Pass@8": 0.367,
         "apex-agents/Overall Mean Score": 0.395,
@@ -146,7 +147,6 @@
         "apex-agents/Management Consulting Pass@1": 0.193,
         "apex-agents/Corporate Law Pass@1": 0.259,
         "apex-agents/Corporate Lawyer Mean Score": 0.524,
-        "ace/Gaming Score": 0.415,
         "apex-v1/Overall Score": 0.64,
         "apex-v1/Consulting Score": 0.64
       }
@@ -723,7 +723,7 @@
         "reward-bench/Safety": 0.909,
         "reward-bench/Focus": 0.841,
         "reward-bench/Ties": 0.809,
-        "terminal-bench-2.0/terminal-bench-2.0": 17.1
+        "terminal-bench-2.0/terminal-bench-2.0": 15.4
       }
     },
     {
@@ -823,7 +823,7 @@
         "reward-bench/Safety": 0.881,
         "reward-bench/Focus": 0.805,
         "reward-bench/Ties": 0.811,
-        "terminal-bench-2.0/terminal-bench-2.0": 19.6
+        "terminal-bench-2.0/terminal-bench-2.0": 16.4
       }
     },
     {
@@ -879,7 +879,7 @@
       "developer": "Google",
       "evaluator_relationship": null,
       "benchmark_scores": {
-        "appworld_test_normal/appworld/test_normal": 0.13,
+        "appworld_test_normal/appworld/test_normal": 0.36,
         "browsecompplus/browsecompplus": 0.48,
         "global-mmlu-lite/Global MMLU Lite": 0.9453,
         "global-mmlu-lite/Culturally Sensitive": 0.9397,
@@ -901,9 +901,9 @@
         "global-mmlu-lite/Chinese": 0.9475,
         "global-mmlu-lite/Burmese": 0.9425,
         "swe-bench/swe-bench": 0.7234,
-        "tau-bench-2_airline/tau-bench-2/airline": 0.7,
-        "tau-bench-2_retail/tau-bench-2/retail": 0.7805,
-        "tau-bench-2_telecom/tau-bench-2/telecom": 0.6852
+        "tau-bench-2_airline/tau-bench-2/airline": 0.68,
+        "tau-bench-2_retail/tau-bench-2/retail": 0.82,
+        "tau-bench-2_telecom/tau-bench-2/telecom": 0.73
       }
     },
     {
@@ -912,7 +912,7 @@
       "developer": "Google",
       "evaluator_relationship": null,
       "benchmark_scores": {
-        "terminal-bench-2.0/terminal-bench-2.0": 78.4
+        "terminal-bench-2.0/terminal-bench-2.0": 74.8
       }
     },
     {

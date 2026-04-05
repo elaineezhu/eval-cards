@@ -161,12 +161,12 @@
       "developer": "mlabonne",
       "evaluator_relationship": null,
       "benchmark_scores": {
-        "hfopenllm_v2/IFEval": 0.7561,
-        "hfopenllm_v2/BBH": 0.5111,
-        "hfopenllm_v2/MATH Level 5": 0.0906,
-        "hfopenllm_v2/GPQA": 0.3062,
-        "hfopenllm_v2/MUSR": 0.4019,
-        "hfopenllm_v2/MMLU-PRO": 0.3841
+        "hfopenllm_v2/IFEval": 0.4162,
+        "hfopenllm_v2/BBH": 0.5124,
+        "hfopenllm_v2/MATH Level 5": 0.0853,
+        "hfopenllm_v2/GPQA": 0.3029,
+        "hfopenllm_v2/MUSR": 0.415,
+        "hfopenllm_v2/MMLU-PRO": 0.3802
       }
     },
     {

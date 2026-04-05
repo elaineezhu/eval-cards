@@ -10,8 +10,8 @@
   },
   "evaluations": [
     {
-      "evaluation_id": "global-mmlu-lite/cohere_command-a-03-2025/1773936583.743359",
-      "retrieved_timestamp": "1773936583.743359",
+      "evaluation_id": "global-mmlu-lite/cohere_command-a-03-2025/1773936496.366405",
+      "retrieved_timestamp": "1773936496.366405",
       "source_metadata": {
         "source_name": "Global MMLU Lite Leaderboard",
         "source_type": "documentation",
@@ -525,8 +525,8 @@
       "generation_config": null
     },
     {
-      "evaluation_id": "global-mmlu-lite/cohere_command-a-03-2025/1773936496.366405",
-      "retrieved_timestamp": "1773936496.366405",
+      "evaluation_id": "global-mmlu-lite/cohere_command-a-03-2025/1773936583.743359",
+      "retrieved_timestamp": "1773936583.743359",
       "source_metadata": {
         "source_name": "Global MMLU Lite Leaderboard",
         "source_type": "documentation",

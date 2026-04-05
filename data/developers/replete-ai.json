@@ -91,12 +91,12 @@
       "developer": "Replete-AI",
       "evaluator_relationship": null,
       "benchmark_scores": {
-        "hfopenllm_v2/IFEval": 0.0932,
-        "hfopenllm_v2/BBH": 0.2977,
+        "hfopenllm_v2/IFEval": 0.0905,
+        "hfopenllm_v2/BBH": 0.2985,
         "hfopenllm_v2/MATH Level 5": 0.0,
-        "hfopenllm_v2/GPQA": 0.2475,
-        "hfopenllm_v2/MUSR": 0.3941,
-        "hfopenllm_v2/MMLU-PRO": 0.1157
+        "hfopenllm_v2/GPQA": 0.2534,
+        "hfopenllm_v2/MUSR": 0.3848,
+        "hfopenllm_v2/MMLU-PRO": 0.1158
       }
     },
     {

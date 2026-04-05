@@ -436,16 +436,16 @@
         "helm_mmlu/Virology": 0.578,
         "helm_mmlu/World Religions": 0.901,
         "helm_mmlu/Mean win rate": 0.014,
-        "reward-bench/Score": 0.5744,
-        "reward-bench/Chat": 0.9469,
-        "reward-bench/Chat Hard": 0.6031,
-        "reward-bench/Safety": 0.8378,
-        "reward-bench/Reasoning": 0.7868,
+        "reward-bench/Score": 0.8008,
         "reward-bench/Factuality": 0.5389,
         "reward-bench/Precise IF": 0.3312,
         "reward-bench/Math": 0.5137,
+        "reward-bench/Safety": 0.8662,
         "reward-bench/Focus": 0.6646,
-        "reward-bench/Ties": 0.5601
+        "reward-bench/Ties": 0.5601,
+        "reward-bench/Chat": 0.9469,
+        "reward-bench/Chat Hard": 0.6031,
+        "reward-bench/Reasoning": 0.7868
       }
     },
     {
@@ -525,7 +525,7 @@
       "developer": "Anthropic",
       "evaluator_relationship": null,
       "benchmark_scores": {
-        "terminal-bench-2.0/terminal-bench-2.0": 35.5
+        "terminal-bench-2.0/terminal-bench-2.0": 13.9
       }
     },
     {
@@ -650,10 +650,10 @@
       "developer": "Anthropic",
       "evaluator_relationship": null,
       "benchmark_scores": {
+        "appworld_test_normal/appworld/test_normal": 0.66,
         "browsecompplus/browsecompplus": 0.49,
-        "appworld_test_normal/appworld/test_normal": 0.64,
-        "swe-bench/swe-bench": 0.8072,
-        "tau-bench-2_airline/tau-bench-2/airline": 0.66,
+        "swe-bench/swe-bench": 0.65,
+        "tau-bench-2_airline/tau-bench-2/airline": 0.72,
         "tau-bench-2_retail/tau-bench-2/retail": 0.85,
         "tau-bench-2_telecom/tau-bench-2/telecom": 0.84
       }
@@ -664,7 +664,7 @@
       "developer": "Anthropic",
       "evaluator_relationship": null,
       "benchmark_scores": {
-        "terminal-bench-2.0/terminal-bench-2.0": 38.0
+        "terminal-bench-2.0/terminal-bench-2.0": 36.9
       }
     },
     {
@@ -673,7 +673,7 @@
       "developer": "Anthropic",
       "evaluator_relationship": null,
       "benchmark_scores": {
-        "terminal-bench-2.0/terminal-bench-2.0": 59.1
+        "terminal-bench-2.0/terminal-bench-2.0": 51.9
       }
     },
     {
@@ -682,7 +682,7 @@
       "developer": "Anthropic",
       "evaluator_relationship": null,
       "benchmark_scores": {
-        "terminal-bench-2.0/terminal-bench-2.0": 66.9
+        "terminal-bench-2.0/terminal-bench-2.0": 74.7
       }
     },
     {
@@ -756,7 +756,7 @@
       "developer": "Anthropic",
       "evaluator_relationship": null,
       "benchmark_scores": {
-        "terminal-bench-2.0/terminal-bench-2.0": 40.1
+        "terminal-bench-2.0/terminal-bench-2.0": 42.6
       }
     },
     {

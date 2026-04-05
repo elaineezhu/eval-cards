@@ -231,12 +231,12 @@
       "developer": "EpistemeAI",
       "evaluator_relationship": null,
       "benchmark_scores": {
-        "hfopenllm_v2/IFEval": 0.7207,
-        "hfopenllm_v2/BBH": 0.461,
-        "hfopenllm_v2/MATH Level 5": 0.1314,
-        "hfopenllm_v2/GPQA": 0.2701,
-        "hfopenllm_v2/MUSR": 0.3432,
-        "hfopenllm_v2/MMLU-PRO": 0.3354
+        "hfopenllm_v2/IFEval": 0.7305,
+        "hfopenllm_v2/BBH": 0.4649,
+        "hfopenllm_v2/MATH Level 5": 0.1397,
+        "hfopenllm_v2/GPQA": 0.2659,
+        "hfopenllm_v2/MUSR": 0.3209,
+        "hfopenllm_v2/MMLU-PRO": 0.348
       }
     },
     {

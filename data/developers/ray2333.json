@@ -79,17 +79,17 @@
       "developer": "Ray2333",
       "evaluator_relationship": null,
       "benchmark_scores": {
-        "reward-bench/Score": 0.8464,
+        "reward-bench/Score": 0.589,
+        "reward-bench/Chat": 0.9832,
+        "reward-bench/Chat Hard": 0.6842,
+        "reward-bench/Safety": 0.7222,
+        "reward-bench/Reasoning": 0.9133,
+        "reward-bench/Prior Sets (0.5 weight)": 0.7209,
         "reward-bench/Factuality": 0.5874,
         "reward-bench/Precise IF": 0.3875,
         "reward-bench/Math": 0.5902,
-        "reward-bench/Safety": 0.8676,
         "reward-bench/Focus": 0.6727,
-        "reward-bench/Ties": 0.5743,
-        "reward-bench/Chat": 0.9832,
-        "reward-bench/Chat Hard": 0.6842,
-        "reward-bench/Reasoning": 0.9133,
-        "reward-bench/Prior Sets (0.5 weight)": 0.7209
+        "reward-bench/Ties": 0.5743
       }
     },
     {
@@ -98,16 +98,16 @@
       "developer": "Ray2333",
       "evaluator_relationship": null,
       "benchmark_scores": {
-        "reward-bench/Score": 0.9154,
+        "reward-bench/Score": 0.6766,
+        "reward-bench/Chat": 0.9553,
+        "reward-bench/Chat Hard": 0.8618,
+        "reward-bench/Safety": 0.9222,
+        "reward-bench/Reasoning": 0.9362,
         "reward-bench/Factuality": 0.6274,
         "reward-bench/Precise IF": 0.35,
         "reward-bench/Math": 0.5847,
-        "reward-bench/Safety": 0.9081,
         "reward-bench/Focus": 0.8929,
-        "reward-bench/Ties": 0.6824,
-        "reward-bench/Chat": 0.9553,
-        "reward-bench/Chat Hard": 0.8618,
-        "reward-bench/Reasoning": 0.9362
+        "reward-bench/Ties": 0.6824
       }
     },
     {
@@ -116,17 +116,17 @@
       "developer": "Ray2333",
       "evaluator_relationship": null,
       "benchmark_scores": {
-        "reward-bench/Score": 0.8542,
+        "reward-bench/Score": 0.6089,
+        "reward-bench/Chat": 0.986,
+        "reward-bench/Chat Hard": 0.6776,
+        "reward-bench/Safety": 0.7867,
+        "reward-bench/Reasoning": 0.9229,
+        "reward-bench/Prior Sets (0.5 weight)": 0.7309,
         "reward-bench/Factuality": 0.6189,
         "reward-bench/Precise IF": 0.3875,
         "reward-bench/Math": 0.5792,
-        "reward-bench/Safety": 0.8919,
         "reward-bench/Focus": 0.6828,
-        "reward-bench/Ties": 0.5981,
-        "reward-bench/Chat": 0.986,
-        "reward-bench/Chat Hard": 0.6776,
-        "reward-bench/Reasoning": 0.9229,
-        "reward-bench/Prior Sets (0.5 weight)": 0.7309
+        "reward-bench/Ties": 0.5981
       }
     },
     {

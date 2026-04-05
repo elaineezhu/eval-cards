@@ -7,17 +7,17 @@
       "developer": "weqweasdas",
       "evaluator_relationship": null,
       "benchmark_scores": {
-        "reward-bench/Score": 0.2498,
-        "reward-bench/Chat": 0.8184,
-        "reward-bench/Chat Hard": 0.3728,
-        "reward-bench/Safety": 0.24,
-        "reward-bench/Reasoning": 0.3281,
-        "reward-bench/Prior Sets (0.5 weight)": 0.6564,
+        "reward-bench/Score": 0.5027,
         "reward-bench/Factuality": 0.3642,
         "reward-bench/Precise IF": 0.275,
         "reward-bench/Math": 0.3497,
+        "reward-bench/Safety": 0.4149,
         "reward-bench/Focus": 0.2384,
-        "reward-bench/Ties": 0.0315
+        "reward-bench/Ties": 0.0315,
+        "reward-bench/Chat": 0.8184,
+        "reward-bench/Chat Hard": 0.3728,
+        "reward-bench/Reasoning": 0.3281,
+        "reward-bench/Prior Sets (0.5 weight)": 0.6564
       }
     },
     {
@@ -45,17 +45,17 @@
       "developer": "weqweasdas",
       "evaluator_relationship": null,
       "benchmark_scores": {
-        "reward-bench/Score": 0.4826,
-        "reward-bench/Chat": 0.9693,
-        "reward-bench/Chat Hard": 0.4978,
-        "reward-bench/Safety": 0.4822,
-        "reward-bench/Reasoning": 0.7362,
-        "reward-bench/Prior Sets (0.5 weight)": 0.7069,
+        "reward-bench/Score": 0.6967,
         "reward-bench/Factuality": 0.4926,
         "reward-bench/Precise IF": 0.3937,
         "reward-bench/Math": 0.6066,
+        "reward-bench/Safety": 0.5784,
         "reward-bench/Focus": 0.497,
-        "reward-bench/Ties": 0.4232
+        "reward-bench/Ties": 0.4232,
+        "reward-bench/Chat": 0.9693,
+        "reward-bench/Chat Hard": 0.4978,
+        "reward-bench/Reasoning": 0.7362,
+        "reward-bench/Prior Sets (0.5 weight)": 0.7069
       }
     },
     {

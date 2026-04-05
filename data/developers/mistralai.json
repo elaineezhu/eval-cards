@@ -513,12 +513,12 @@
       "developer": "mistralai",
       "evaluator_relationship": null,
       "benchmark_scores": {
-        "hfopenllm_v2/IFEval": 0.6283,
-        "hfopenllm_v2/BBH": 0.583,
-        "hfopenllm_v2/MATH Level 5": 0.2039,
-        "hfopenllm_v2/GPQA": 0.3331,
-        "hfopenllm_v2/MUSR": 0.4063,
-        "hfopenllm_v2/MMLU-PRO": 0.4099
+        "hfopenllm_v2/IFEval": 0.667,
+        "hfopenllm_v2/BBH": 0.5213,
+        "hfopenllm_v2/MATH Level 5": 0.1435,
+        "hfopenllm_v2/GPQA": 0.3238,
+        "hfopenllm_v2/MUSR": 0.3632,
+        "hfopenllm_v2/MMLU-PRO": 0.396
       }
     },
     {
