@@ -6,18 +6,22 @@ import { useRouter } from "next/navigation"
 import {
   Award,
   BookOpenText,
+  ChevronDown,
+  CheckCircle2,
   ExternalLink,
   Eye,
   FlaskConical,
   LibraryBig,
   MoreHorizontal,
-  Scale,
+  ShieldCheck,
+  TriangleAlert,
 } from "lucide-react"
 
 import type { CategoryType } from "@/lib/benchmark-schema"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible"
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu"
 import { Progress } from "@/components/ui/progress"
 
@@ -74,6 +78,8 @@ interface BenchmarkEvaluationCardProps {
   data: BenchmarkEvaluationCardData
   onDelete?: (id: string) => void
   delayMs?: number
+  selectedForCompare?: boolean
+  onToggleCompare?: (id: string) => void
 }
 
 function formatDate(isoString: string) {
@@ -138,7 +144,50 @@ function getReportingSummaryLabel(data: BenchmarkEvaluationCardData) {
   return "Aggregated reporting view"
 }
 
-export function BenchmarkEvaluationCard({ data, onDelete, delayMs = 0 }: BenchmarkEvaluationCardProps) {
+function getReproducibilitySummary(data: BenchmarkEvaluationCardData) {
+  switch (data.reproducibility_status) {
+    case "complete":
+      return {
+        label: "Full config coverage",
+        tone: "secondary" as const,
+        icon: CheckCircle2,
+      }
+    case "partial":
+      return {
+        label: "Partial config coverage",
+        tone: "outline" as const,
+        icon: FlaskConical,
+      }
+    default:
+      return {
+        label: "Config mostly missing",
+        tone: "destructive" as const,
+        icon: TriangleAlert,
+      }
+  }
+}
+
+function getIndependentSummary(data: BenchmarkEvaluationCardData) {
+  const percent = Math.round(data.independent_verification_ratio * 100)
+
+  if (data.independent_verification_ratio >= 0.75) {
+    return `${percent}% independent`
+  }
+
+  if (data.independent_verification_ratio > 0) {
+    return `${percent}% independent`
+  }
+
+  return "Self-reported only"
+}
+
+export function BenchmarkEvaluationCard({
+  data,
+  onDelete,
+  delayMs = 0,
+  selectedForCompare = false,
+  onToggleCompare,
+}: BenchmarkEvaluationCardProps) {
   const router = useRouter()
   const { mode } = useAudienceMode()
   const isResearchView = mode === "research"
@@ -146,6 +195,8 @@ export function BenchmarkEvaluationCard({ data, onDelete, delayMs = 0 }: Benchma
   const library = data.eval_libraries[0]
   const paramsBillions = formatParamsBillions(data.params_billions)
   const reportingSummaryLabel = getReportingSummaryLabel(data)
+  const reproducibility = getReproducibilitySummary(data)
+  const independentSummary = getIndependentSummary(data)
 
   return (
     <Card
@@ -179,46 +230,63 @@ export function BenchmarkEvaluationCard({ data, onDelete, delayMs = 0 }: Benchma
                 <Badge variant="secondary">{data.variant_count} versions</Badge>
               )}
               {paramsBillions && <Badge variant="secondary">{paramsBillions} parameters</Badge>}
-              {data.architecture && <Badge variant="outline">{data.architecture}</Badge>}
-              {data.input_modalities && data.input_modalities.length > 1 && (
-                <Badge variant="secondary">Multimodal</Badge>
-              )}
-              {data.evaluator_count > 0 ? (
-                <Badge variant="secondary">{reportingSummaryLabel}</Badge>
-              ) : null}
+              <Badge variant={reproducibility.tone}>
+                <reproducibility.icon className="h-3.5 w-3.5" />
+                {reproducibility.label}
+              </Badge>
+              <Badge variant={data.independent_verification_ratio > 0 ? "secondary" : "outline"}>
+                <ShieldCheck className="h-3.5 w-3.5" />
+                {independentSummary}
+              </Badge>
             </div>
           </div>
 
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
+          <div className="flex items-center gap-2">
+            {onToggleCompare ? (
               <Button
-                variant="ghost"
-                size="icon"
-                className="motion-academic-button opacity-0 transition-opacity group-hover:opacity-100"
-                onClick={(event) => event.stopPropagation()}
+                variant={selectedForCompare ? "default" : "outline"}
+                size="sm"
+                className="shrink-0"
+                onClick={(event) => {
+                  event.stopPropagation()
+                  onToggleCompare(data.id)
+                }}
               >
-                <MoreHorizontal className="h-4 w-4" />
+                {selectedForCompare ? "Selected" : "Compare"}
               </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent align="end">
-              <DropdownMenuItem onClick={() => router.push(`/models/${data.route_id}`)}>
-                <Eye className="mr-2 h-4 w-4" />
-                View Details
-              </DropdownMenuItem>
-              {data.source_urls.length > 0 && (
-                <DropdownMenuItem onClick={() => window.open(data.source_urls[0], "_blank")}>
-                  <ExternalLink className="mr-2 h-4 w-4" />
-                  View Source
+            ) : null}
+
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  className="motion-academic-button opacity-0 transition-opacity group-hover:opacity-100"
+                  onClick={(event) => event.stopPropagation()}
+                >
+                  <MoreHorizontal className="h-4 w-4" />
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end">
+                <DropdownMenuItem onClick={() => router.push(`/models/${data.route_id}`)}>
+                  <Eye className="mr-2 h-4 w-4" />
+                  View Details
                 </DropdownMenuItem>
-              )}
-              {onDelete && (
-                <DropdownMenuItem onClick={() => onDelete(data.id)} className="text-destructive">
-                  <Award className="mr-2 h-4 w-4" />
-                  Remove
-                </DropdownMenuItem>
-              )}
-            </DropdownMenuContent>
-          </DropdownMenu>
+                {data.source_urls.length > 0 && (
+                  <DropdownMenuItem onClick={() => window.open(data.source_urls[0], "_blank")}>
+                    <ExternalLink className="mr-2 h-4 w-4" />
+                    View Source
+                  </DropdownMenuItem>
+                )}
+                {onDelete && (
+                  <DropdownMenuItem onClick={() => onDelete(data.id)} className="text-destructive">
+                    <Award className="mr-2 h-4 w-4" />
+                    Remove
+                  </DropdownMenuItem>
+                )}
+              </DropdownMenuContent>
+            </DropdownMenu>
+          </div>
         </div>
       </CardHeader>
 
@@ -241,105 +309,103 @@ export function BenchmarkEvaluationCard({ data, onDelete, delayMs = 0 }: Benchma
           />
         </div>
 
-        {isResearchView ? (
-          <div className="grid gap-4 xl:grid-cols-[minmax(240px,0.92fr)_minmax(0,1.08fr)]">
-            <section className="space-y-3">
-              <div className="text-[11px] font-semibold uppercase tracking-[0.18em] text-muted-foreground">Method + Provenance</div>
-              <div className="rounded-2xl border border-border/70 bg-muted/10 p-3 shadow-[inset_0_1px_0_rgba(255,255,255,0.35)] dark:shadow-none">
-                <div className="space-y-0 text-sm">
-                  <KeyValueRow label="Reporting sources" value={reportingSummaryLabel} />
-                  {library && (
-                    <KeyValueRow label="Library" value={`${library.name}${library.version ? ` ${library.version}` : ""}`} />
-                  )}
-                  {data.latest_source_name && (
-                    <KeyValueRow label="Latest report" value={data.latest_source_name} />
-                  )}
-                  <KeyValueRow label="Updated" value={formatDate(data.latest_timestamp)} />
-                  {data.source_types.length > 0 && (
-                    <KeyValueRow label="Source types" value={data.source_types.map(s => s.replace(/_/g, " ")).join(", ")} />
-                  )}
-                  {data.missing_generation_config_count > 0 && (
-                    <KeyValueRow label="Missing config" value={`${data.missing_generation_config_count} result${data.missing_generation_config_count !== 1 ? "s" : ""}`} />
-                  )}
-                  {library?.fork && (
-                    <div className="flex items-start gap-2 rounded-xl bg-amber-50/80 px-3 py-2 text-xs text-amber-900 dark:bg-amber-950/20 dark:text-amber-200">
-                      <LibraryBig className="mt-0.5 h-3.5 w-3.5 shrink-0 text-amber-600 dark:text-amber-300" />
-                      <span>Non-standard eval library fork</span>
-                    </div>
-                  )}
+        <div className="rounded-2xl border border-border/70 bg-muted/10 px-4 py-3">
+          <div className="flex flex-wrap items-center gap-2">
+            <Badge variant="outline">{reportingSummaryLabel}</Badge>
+            <Badge variant={reproducibility.tone}>
+              <reproducibility.icon className="h-3.5 w-3.5" />
+              {reproducibility.label}
+            </Badge>
+            <Badge variant={data.independent_verification_ratio > 0 ? "secondary" : "outline"}>
+              <ShieldCheck className="h-3.5 w-3.5" />
+              {independentSummary}
+            </Badge>
+          </div>
+          <div className="mt-2 text-sm text-muted-foreground">
+            {isResearchView
+              ? "Most useful signals first: benchmark coverage, reproducibility, and benchmark-level performance. Open the details panel only when you need methodology or provenance."
+              : "Most useful signals first: benchmark coverage, reporting posture, and what was actually tested. Open the details panel if you need source or methodology context."}
+          </div>
+        </div>
+
+        {highlights.length > 0 ? (
+          <section className="space-y-3">
+            <div className="flex items-center gap-2 text-[11px] font-semibold uppercase tracking-[0.18em] text-muted-foreground">
+              {isResearchView ? (
+                <FlaskConical className="h-3.5 w-3.5" />
+              ) : (
+                <BookOpenText className="h-3.5 w-3.5" />
+              )}
+              {isResearchView ? "Most Relevant Benchmarks" : "What Was Tested"}
+            </div>
+            <div className="overflow-hidden rounded-2xl border border-border/70">
+              {highlights.map((item, index) => (
+                <SignalRow
+                  key={item.benchmark}
+                  rank={index + 1}
+                  label={isResearchView ? item.benchmark : getPolicyBenchmarkLabel(item.benchmark)}
+                  rawLabel={
+                    isResearchView
+                      ? item.metric !== item.benchmark
+                        ? item.metric
+                        : undefined
+                      : item.benchmark
+                  }
+                  scoreLabel={formatHighlightScore(item.score, item.unit)}
+                  scorePercent={scoreToPercent(item.score, item.unit)}
+                  isLast={index === highlights.length - 1}
+                />
+              ))}
+            </div>
+          </section>
+        ) : null}
+
+        <Collapsible className="rounded-2xl border border-border/70 bg-background">
+          <CollapsibleTrigger asChild>
+            <button
+              type="button"
+              onClick={(event) => event.stopPropagation()}
+              className="flex w-full items-center justify-between px-4 py-3 text-left"
+            >
+              <div>
+                <div className="text-[11px] font-semibold uppercase tracking-[0.18em] text-muted-foreground">
+                  Dive Deeper
+                </div>
+                <div className="mt-1 text-sm font-semibold text-foreground">
+                  Show reporting and methodology details
                 </div>
               </div>
-            </section>
-
-            {highlights.length > 0 && (
-              <section className="space-y-3">
-                <div className="flex items-center gap-2 text-[11px] font-semibold uppercase tracking-[0.18em] text-muted-foreground">
-                  <FlaskConical className="h-3.5 w-3.5" />
-                  Benchmark Signals
+              <ChevronDown className="h-4 w-4 text-muted-foreground" />
+            </button>
+          </CollapsibleTrigger>
+          <CollapsibleContent onClick={(event) => event.stopPropagation()} className="border-t border-border/60 px-4 py-4">
+            <div className="space-y-0 text-sm">
+              <KeyValueRow label="Reporting sources" value={reportingSummaryLabel} />
+              {library && (
+                <KeyValueRow label="Library" value={`${library.name}${library.version ? ` ${library.version}` : ""}`} />
+              )}
+              {data.latest_source_name && (
+                <KeyValueRow label="Latest report" value={data.latest_source_name} />
+              )}
+              <KeyValueRow label="Updated" value={formatDate(data.latest_timestamp)} />
+              <KeyValueRow label="Reproducibility" value={reproducibility.label} />
+              <KeyValueRow label="Independence" value={independentSummary} />
+              {data.source_types.length > 0 && (
+                <KeyValueRow label="Source types" value={data.source_types.map((s) => s.replace(/_/g, " ")).join(", ")} />
+              )}
+              {data.architecture && <KeyValueRow label="Architecture" value={data.architecture} />}
+              {data.missing_generation_config_count > 0 && (
+                <KeyValueRow label="Missing config" value={`${data.missing_generation_config_count} result${data.missing_generation_config_count !== 1 ? "s" : ""}`} />
+              )}
+              {library?.fork && (
+                <div className="mt-3 flex items-start gap-2 rounded-xl bg-amber-50/80 px-3 py-2 text-xs text-amber-900 dark:bg-amber-950/20 dark:text-amber-200">
+                  <LibraryBig className="mt-0.5 h-3.5 w-3.5 shrink-0 text-amber-600 dark:text-amber-300" />
+                  <span>Non-standard eval library fork</span>
                 </div>
-                <div className="overflow-hidden rounded-2xl border border-border/70">
-                  {highlights.map((item, index) => (
-                    <SignalRow
-                      key={item.benchmark}
-                      rank={index + 1}
-                      label={item.benchmark}
-                      rawLabel={item.metric !== item.benchmark ? item.metric : undefined}
-                      scoreLabel={formatHighlightScore(item.score, item.unit)}
-                      scorePercent={scoreToPercent(item.score, item.unit)}
-                      isLast={index === highlights.length - 1}
-                    />
-                  ))}
-                </div>
-              </section>
-            )}
-          </div>
-        ) : (
-          <div className="grid gap-4 md:grid-cols-[0.92fr_1.08fr]">
-            <section className="space-y-3">
-              <div className="text-[11px] font-semibold uppercase tracking-[0.18em] text-muted-foreground">Reporting Context</div>
-              <div className="rounded-2xl border border-amber-200/70 bg-amber-50/70 p-3 dark:border-amber-900/40 dark:bg-amber-950/15">
-                <div className="flex items-start gap-2">
-                  <Scale className="mt-0.5 h-4 w-4 shrink-0 text-amber-600" />
-                  <div className="space-y-2">
-                    <div className="text-sm font-semibold">Reporting summary</div>
-                    <div className="text-sm text-muted-foreground">
-                      This model has reported results from {reportingSummaryLabel.toLowerCase()} across {data.benchmarks_count} benchmark{data.benchmarks_count !== 1 ? "s" : ""}. Benchmark detail pages break out reporting provenance benchmark by benchmark.
-                    </div>
-                    <div className="flex flex-wrap gap-2 pt-1">
-                      {data.evaluator_names.slice(0, 2).map((evaluator) => (
-                        <Badge key={evaluator} variant="secondary" className="font-normal">
-                          {evaluator}
-                        </Badge>
-                      ))}
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </section>
-
-            {highlights.length > 0 && (
-              <section className="space-y-3">
-                <div className="flex items-center gap-2 text-[11px] font-semibold uppercase tracking-[0.18em] text-muted-foreground">
-                  <BookOpenText className="h-3.5 w-3.5" />
-                  What Was Tested
-                </div>
-                <div className="overflow-hidden rounded-2xl border border-border/70">
-                  {highlights.map((item, index) => (
-                    <SignalRow
-                      key={item.benchmark}
-                      rank={index + 1}
-                      label={getPolicyBenchmarkLabel(item.benchmark)}
-                      rawLabel={item.benchmark}
-                      scoreLabel={formatHighlightScore(item.score, item.unit)}
-                      scorePercent={scoreToPercent(item.score, item.unit)}
-                      isLast={index === highlights.length - 1}
-                    />
-                  ))}
-                </div>
-              </section>
-            )}
-          </div>
-        )}
+              )}
+            </div>
+          </CollapsibleContent>
+        </Collapsible>
       </CardContent>
     </Card>
   )

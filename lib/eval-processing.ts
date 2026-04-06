@@ -29,6 +29,15 @@ const GENERIC_EVALUATION_NAMES = new Set([
   "pass@1",
 ])
 
+const BENCHMARK_PRIORITY_RULES: Array<{ pattern: RegExp; priority: number }> = [
+  { pattern: /\b(swe-bench|terminal-bench|tau-bench|agent|browsecomp)\b/, priority: 10 },
+  { pattern: /\b(gpqa|mmlu-pro|mmlu|bbh|ifeval|math|aime|gsm8k|minerva)\b/, priority: 9 },
+  { pattern: /\b(humaneval|livecodebench|mbpp|codecontests|apps)\b/, priority: 8 },
+  { pattern: /\b(mmmu|mmmu-pro|seed-bench|vision|vqa|multimodal)\b/, priority: 7 },
+  { pattern: /\b(mt-bench|arena-hard|alpacaeval|reward-bench|truthfulqa)\b/, priority: 6 },
+  { pattern: /\b(fairness|bias|safety|toxic|harmful|robust|privacy)\b/, priority: 5 },
+]
+
 function slugify(value: string): string {
   return value.toLowerCase().replace(/[^a-z0-9]+/g, "_").replace(/^_|_$/g, "")
 }
@@ -78,6 +87,18 @@ function getEvaluationSummaryId(
 ): string {
   const benchmarkKey = evaluation.benchmark || getBenchmarkName(evaluation, result)
   return slugify(`${benchmarkKey}__${result.evaluation_name}`)
+}
+
+function getBenchmarkPriority(value: string): number {
+  const normalized = value.toLowerCase()
+
+  for (const rule of BENCHMARK_PRIORITY_RULES) {
+    if (rule.pattern.test(normalized)) {
+      return rule.priority
+    }
+  }
+
+  return 0
 }
 
 // ── Eval-centric (per-benchmark) types ────────────────────────────────────────
@@ -339,6 +360,7 @@ export function createEvaluationCard(
   const benchmarksSet = new Set<string>()
   const allScores: Array<{
     benchmark: string
+    benchmarkKey: string
     score: number
     metric: string
     unit?: string
@@ -426,6 +448,7 @@ export function createEvaluationCard(
         
         allScores.push({
           benchmark: getEvaluationDisplayName(eval_, result),
+          benchmarkKey: getBenchmarkName(eval_, result),
           score: result.score_details.score,
           metric: result.metric_config.evaluation_description || result.evaluation_name,
           unit: result.metric_config.unit
@@ -435,7 +458,10 @@ export function createEvaluationCard(
   }
   
   // Deduplicate by benchmark name, keeping highest score for each
-  const scoresByBenchmark = new Map<string, { benchmark: string; score: number; metric: string; unit?: string }>()
+  const scoresByBenchmark = new Map<
+    string,
+    { benchmark: string; benchmarkKey: string; score: number; metric: string; unit?: string }
+  >()
   for (const scoreData of allScores) {
     const existing = scoresByBenchmark.get(scoreData.benchmark)
     if (!existing || scoreData.score > existing.score) {
@@ -492,8 +518,25 @@ export function createEvaluationCard(
 
   // Get top 5 unique benchmarks by score
   const topScores = Array.from(scoresByBenchmark.values())
-    .sort((a, b) => b.score - a.score)
+    .sort((a, b) => {
+      const priorityDiff = getBenchmarkPriority(b.benchmarkKey) - getBenchmarkPriority(a.benchmarkKey)
+      if (priorityDiff !== 0) {
+        return priorityDiff
+      }
+
+      if (b.score !== a.score) {
+        return b.score - a.score
+      }
+
+      return a.benchmark.localeCompare(b.benchmark)
+    })
     .slice(0, 5)
+    .map(({ benchmark, score, metric, unit }) => ({
+      benchmark,
+      score,
+      metric,
+      unit,
+    }))
 
   const paramsBillionsRaw = summary.model_info.additional_details?.params_billions
   const paramsBillions =
