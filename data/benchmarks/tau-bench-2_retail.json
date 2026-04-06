@@ -5,7 +5,7 @@
       "name": "claude-opus-4-5",
       "developer": "Anthropic",
       "scores": {
-        "tau-bench-2/retail": 0.85
+        "tau-bench-2/retail": 0.83
       }
     },
     {
@@ -13,7 +13,7 @@
       "name": "gemini-3-pro-preview",
       "developer": "Google",
       "scores": {
-        "tau-bench-2/retail": 0.82
+        "tau-bench-2/retail": 0.73
       }
     },
     {

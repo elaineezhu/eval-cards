@@ -162,17 +162,17 @@
       "developer": "allenai",
       "evaluator_relationship": null,
       "benchmark_scores": {
-        "reward-bench/Score": 0.722,
-        "reward-bench/Chat": 0.9693,
-        "reward-bench/Chat Hard": 0.8268,
-        "reward-bench/Safety": 0.8689,
-        "reward-bench/Reasoning": 0.8583,
-        "reward-bench/Prior Sets (0.5 weight)": 0.0,
+        "reward-bench/Score": 0.8892,
         "reward-bench/Factuality": 0.8084,
         "reward-bench/Precise IF": 0.3688,
         "reward-bench/Math": 0.6776,
+        "reward-bench/Safety": 0.9027,
         "reward-bench/Focus": 0.7778,
-        "reward-bench/Ties": 0.8308
+        "reward-bench/Ties": 0.8308,
+        "reward-bench/Chat": 0.9693,
+        "reward-bench/Chat Hard": 0.8268,
+        "reward-bench/Reasoning": 0.8583,
+        "reward-bench/Prior Sets (0.5 weight)": 0.0
       }
     },
     {
@@ -181,12 +181,12 @@
       "developer": "allenai",
       "evaluator_relationship": null,
       "benchmark_scores": {
-        "hfopenllm_v2/IFEval": 0.8255,
-        "hfopenllm_v2/BBH": 0.4061,
-        "hfopenllm_v2/MATH Level 5": 0.2115,
-        "hfopenllm_v2/GPQA": 0.297,
+        "hfopenllm_v2/IFEval": 0.8267,
+        "hfopenllm_v2/BBH": 0.405,
+        "hfopenllm_v2/MATH Level 5": 0.1964,
+        "hfopenllm_v2/GPQA": 0.2987,
         "hfopenllm_v2/MUSR": 0.4175,
-        "hfopenllm_v2/MMLU-PRO": 0.2821
+        "hfopenllm_v2/MMLU-PRO": 0.2827
       }
     },
     {
@@ -209,17 +209,17 @@
       "developer": "allenai",
       "evaluator_relationship": null,
       "benchmark_scores": {
-        "reward-bench/Score": 0.8431,
+        "reward-bench/Score": 0.687,
+        "reward-bench/Chat": 0.9553,
+        "reward-bench/Chat Hard": 0.761,
+        "reward-bench/Safety": 0.86,
+        "reward-bench/Reasoning": 0.7898,
+        "reward-bench/Prior Sets (0.5 weight)": 0.0,
         "reward-bench/Factuality": 0.7516,
         "reward-bench/Precise IF": 0.3875,
         "reward-bench/Math": 0.6284,
-        "reward-bench/Safety": 0.8662,
         "reward-bench/Focus": 0.8545,
-        "reward-bench/Ties": 0.6397,
-        "reward-bench/Chat": 0.9553,
-        "reward-bench/Chat Hard": 0.761,
-        "reward-bench/Reasoning": 0.7898,
-        "reward-bench/Prior Sets (0.5 weight)": 0.0
+        "reward-bench/Ties": 0.6397
       }
     },
     {

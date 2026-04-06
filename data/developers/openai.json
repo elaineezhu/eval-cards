@@ -859,16 +859,16 @@
         "helm_mmlu/Virology": 0.536,
         "helm_mmlu/World Religions": 0.86,
         "helm_mmlu/Mean win rate": 0.774,
-        "reward-bench/Score": 0.5796,
-        "reward-bench/Chat": 0.9497,
-        "reward-bench/Chat Hard": 0.6075,
-        "reward-bench/Safety": 0.7667,
-        "reward-bench/Reasoning": 0.8374,
+        "reward-bench/Score": 0.8007,
         "reward-bench/Factuality": 0.4105,
         "reward-bench/Precise IF": 0.3438,
         "reward-bench/Math": 0.5191,
+        "reward-bench/Safety": 0.8081,
         "reward-bench/Focus": 0.7414,
-        "reward-bench/Ties": 0.6962
+        "reward-bench/Ties": 0.6962,
+        "reward-bench/Chat": 0.9497,
+        "reward-bench/Chat Hard": 0.6075,
+        "reward-bench/Reasoning": 0.8374
       }
     },
     {
@@ -877,7 +877,7 @@
       "developer": "OpenAI",
       "evaluator_relationship": null,
       "benchmark_scores": {
-        "terminal-bench-2.0/terminal-bench-2.0": 49.6
+        "terminal-bench-2.0/terminal-bench-2.0": 35.2
       }
     },
     {
@@ -922,7 +922,7 @@
       "developer": "OpenAI",
       "evaluator_relationship": null,
       "benchmark_scores": {
-        "terminal-bench-2.0/terminal-bench-2.0": 43.4
+        "terminal-bench-2.0/terminal-bench-2.0": 44.3
       }
     },
     {
@@ -931,7 +931,7 @@
       "developer": "OpenAI",
       "evaluator_relationship": null,
       "benchmark_scores": {
-        "terminal-bench-2.0/terminal-bench-2.0": 34.8
+        "terminal-bench-2.0/terminal-bench-2.0": 24.0
       }
     },
     {
@@ -954,7 +954,7 @@
       "developer": "OpenAI",
       "evaluator_relationship": null,
       "benchmark_scores": {
-        "terminal-bench-2.0/terminal-bench-2.0": 7.0
+        "terminal-bench-2.0/terminal-bench-2.0": 7.9
       }
     },
     {
@@ -1013,7 +1013,7 @@
       "developer": "OpenAI",
       "evaluator_relationship": null,
       "benchmark_scores": {
-        "terminal-bench-2.0/terminal-bench-2.0": 60.7
+        "terminal-bench-2.0/terminal-bench-2.0": 54.0
       }
     },
     {
@@ -1022,15 +1022,15 @@
       "developer": "OpenAI",
       "evaluator_relationship": null,
       "benchmark_scores": {
-        "appworld_test_normal/appworld/test_normal": 0.071,
-        "browsecompplus/browsecompplus": 0.46,
+        "appworld_test_normal/appworld/test_normal": 0.0,
+        "browsecompplus/browsecompplus": 0.43,
         "livecodebenchpro/Hard Problems": 0.1594,
         "livecodebenchpro/Medium Problems": 0.5211,
         "livecodebenchpro/Easy Problems": 0.9014,
-        "swe-bench/swe-bench": 0.57,
+        "swe-bench/swe-bench": 0.5455,
         "tau-bench-2_airline/tau-bench-2/airline": 0.6,
         "tau-bench-2_retail/tau-bench-2/retail": 0.73,
-        "tau-bench-2_telecom/tau-bench-2/telecom": 0.55
+        "tau-bench-2_telecom/tau-bench-2/telecom": 0.5354
       }
     },
     {
@@ -1233,9 +1233,9 @@
         "helm_capabilities/IFEval": 0.929,
         "helm_capabilities/WildBench": 0.854,
         "helm_capabilities/Omni-MATH": 0.72,
-        "livecodebenchpro/Hard Problems": 0.014084507042253521,
-        "livecodebenchpro/Medium Problems": 0.30985915492957744,
-        "livecodebenchpro/Easy Problems": 0.8873239436619719
+        "livecodebenchpro/Hard Problems": 0.0143,
+        "livecodebenchpro/Medium Problems": 0.2923,
+        "livecodebenchpro/Easy Problems": 0.8571
       }
     },
     {

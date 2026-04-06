@@ -21,12 +21,12 @@
       "developer": "nazimali",
       "evaluator_relationship": null,
       "benchmark_scores": {
-        "hfopenllm_v2/IFEval": 0.4964,
-        "hfopenllm_v2/BBH": 0.4699,
-        "hfopenllm_v2/MATH Level 5": 0.0045,
-        "hfopenllm_v2/GPQA": 0.2827,
-        "hfopenllm_v2/MUSR": 0.3979,
-        "hfopenllm_v2/MMLU-PRO": 0.3063
+        "hfopenllm_v2/IFEval": 0.486,
+        "hfopenllm_v2/BBH": 0.4721,
+        "hfopenllm_v2/MATH Level 5": 0.0846,
+        "hfopenllm_v2/GPQA": 0.2844,
+        "hfopenllm_v2/MUSR": 0.4006,
+        "hfopenllm_v2/MMLU-PRO": 0.3087
       }
     }
   ]

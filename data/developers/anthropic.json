@@ -371,17 +371,17 @@
         "helm_mmlu/Virology": 0.542,
         "helm_mmlu/World Religions": 0.871,
         "helm_mmlu/Mean win rate": 0.28,
-        "reward-bench/Score": 0.3711,
-        "reward-bench/Chat": 0.9274,
-        "reward-bench/Chat Hard": 0.5197,
-        "reward-bench/Safety": 0.595,
-        "reward-bench/Reasoning": 0.706,
-        "reward-bench/Prior Sets (0.5 weight)": 0.6635,
+        "reward-bench/Score": 0.7289,
         "reward-bench/Factuality": 0.4042,
         "reward-bench/Precise IF": 0.2812,
         "reward-bench/Math": 0.3552,
+        "reward-bench/Safety": 0.7953,
         "reward-bench/Focus": 0.501,
-        "reward-bench/Ties": 0.0899
+        "reward-bench/Ties": 0.0899,
+        "reward-bench/Chat": 0.9274,
+        "reward-bench/Chat Hard": 0.5197,
+        "reward-bench/Reasoning": 0.706,
+        "reward-bench/Prior Sets (0.5 weight)": 0.6635
       }
     },
     {
@@ -436,16 +436,16 @@
         "helm_mmlu/Virology": 0.578,
         "helm_mmlu/World Religions": 0.901,
         "helm_mmlu/Mean win rate": 0.014,
-        "reward-bench/Score": 0.8008,
+        "reward-bench/Score": 0.5744,
+        "reward-bench/Chat": 0.9469,
+        "reward-bench/Chat Hard": 0.6031,
+        "reward-bench/Safety": 0.8378,
+        "reward-bench/Reasoning": 0.7868,
         "reward-bench/Factuality": 0.5389,
         "reward-bench/Precise IF": 0.3312,
         "reward-bench/Math": 0.5137,
-        "reward-bench/Safety": 0.8662,
         "reward-bench/Focus": 0.6646,
-        "reward-bench/Ties": 0.5601,
-        "reward-bench/Chat": 0.9469,
-        "reward-bench/Chat Hard": 0.6031,
-        "reward-bench/Reasoning": 0.7868
+        "reward-bench/Ties": 0.5601
       }
     },
     {
@@ -525,7 +525,7 @@
       "developer": "Anthropic",
       "evaluator_relationship": null,
       "benchmark_scores": {
-        "terminal-bench-2.0/terminal-bench-2.0": 13.9
+        "terminal-bench-2.0/terminal-bench-2.0": 28.3
       }
     },
     {
@@ -650,11 +650,11 @@
       "developer": "Anthropic",
       "evaluator_relationship": null,
       "benchmark_scores": {
-        "appworld_test_normal/appworld/test_normal": 0.66,
+        "appworld_test_normal/appworld/test_normal": 0.68,
         "browsecompplus/browsecompplus": 0.49,
-        "swe-bench/swe-bench": 0.65,
-        "tau-bench-2_airline/tau-bench-2/airline": 0.72,
-        "tau-bench-2_retail/tau-bench-2/retail": 0.85,
+        "swe-bench/swe-bench": 0.8072,
+        "tau-bench-2_airline/tau-bench-2/airline": 0.66,
+        "tau-bench-2_retail/tau-bench-2/retail": 0.83,
         "tau-bench-2_telecom/tau-bench-2/telecom": 0.84
       }
     },
@@ -664,7 +664,7 @@
       "developer": "Anthropic",
       "evaluator_relationship": null,
       "benchmark_scores": {
-        "terminal-bench-2.0/terminal-bench-2.0": 36.9
+        "terminal-bench-2.0/terminal-bench-2.0": 34.8
       }
     },
     {
@@ -682,7 +682,7 @@
       "developer": "Anthropic",
       "evaluator_relationship": null,
       "benchmark_scores": {
-        "terminal-bench-2.0/terminal-bench-2.0": 74.7
+        "terminal-bench-2.0/terminal-bench-2.0": 62.9
       }
     },
     {

@@ -63,12 +63,12 @@
       "developer": "DeepMount00",
       "evaluator_relationship": null,
       "benchmark_scores": {
-        "hfopenllm_v2/IFEval": 0.5365,
-        "hfopenllm_v2/BBH": 0.517,
-        "hfopenllm_v2/MATH Level 5": 0.1707,
-        "hfopenllm_v2/GPQA": 0.3062,
-        "hfopenllm_v2/MUSR": 0.4487,
-        "hfopenllm_v2/MMLU-PRO": 0.396
+        "hfopenllm_v2/IFEval": 0.7917,
+        "hfopenllm_v2/BBH": 0.5109,
+        "hfopenllm_v2/MATH Level 5": 0.1088,
+        "hfopenllm_v2/GPQA": 0.2878,
+        "hfopenllm_v2/MUSR": 0.4136,
+        "hfopenllm_v2/MMLU-PRO": 0.3876
       }
     },
     {

@@ -3047,12 +3047,12 @@
       "name": "AetherTOT",
       "developer": "Daemontatox",
       "scores": {
-        "IFEval": 0.4383,
-        "BBH": 0.5034,
-        "MATH Level 5": 0.1443,
+        "IFEval": 0.4398,
+        "BBH": 0.5066,
+        "MATH Level 5": 0.1488,
         "GPQA": 0.3238,
-        "MUSR": 0.4052,
-        "MMLU-PRO": 0.3778
+        "MUSR": 0.4079,
+        "MMLU-PRO": 0.3804
       }
     },
     {
@@ -3125,12 +3125,12 @@
       "name": "DocumentCogito",
       "developer": "Daemontatox",
       "scores": {
-        "IFEval": 0.5064,
-        "BBH": 0.5112,
-        "MATH Level 5": 0.1631,
-        "GPQA": 0.3163,
-        "MUSR": 0.3973,
-        "MMLU-PRO": 0.3802
+        "IFEval": 0.777,
+        "BBH": 0.5187,
+        "MATH Level 5": 0.2198,
+        "GPQA": 0.2936,
+        "MUSR": 0.3911,
+        "MMLU-PRO": 0.3738
       }
     },
     {
@@ -4009,12 +4009,12 @@
       "name": "Llama-3.2-1B-SPIN-iter0",
       "developer": "DavieLion",
       "scores": {
-        "IFEval": 0.1507,
-        "BBH": 0.293,
-        "MATH Level 5": 0.0,
-        "GPQA": 0.2534,
+        "IFEval": 0.1549,
+        "BBH": 0.2937,
+        "MATH Level 5": 0.006,
+        "GPQA": 0.2576,
         "MUSR": 0.3565,
-        "MMLU-PRO": 0.1125
+        "MMLU-PRO": 0.1128
       }
     },
     {
@@ -4321,12 +4321,12 @@
       "name": "Llama-3.1-8b-ITA",
       "developer": "DeepMount00",
       "scores": {
-        "IFEval": 0.5365,
-        "BBH": 0.517,
-        "MATH Level 5": 0.1707,
-        "GPQA": 0.3062,
-        "MUSR": 0.4487,
-        "MMLU-PRO": 0.396
+        "IFEval": 0.7917,
+        "BBH": 0.5109,
+        "MATH Level 5": 0.1088,
+        "GPQA": 0.2878,
+        "MUSR": 0.4136,
+        "MMLU-PRO": 0.3876
       }
     },
     {
@@ -7025,12 +7025,12 @@
       "name": "Fireball-Meta-Llama-3.1-8B-Instruct-Agent-0.003-128K-code-ds-auto",
       "developer": "EpistemeAI",
       "scores": {
-        "IFEval": 0.7305,
-        "BBH": 0.4649,
-        "MATH Level 5": 0.1397,
-        "GPQA": 0.2659,
-        "MUSR": 0.3209,
-        "MMLU-PRO": 0.348
+        "IFEval": 0.7207,
+        "BBH": 0.461,
+        "MATH Level 5": 0.1314,
+        "GPQA": 0.2701,
+        "MUSR": 0.3432,
+        "MMLU-PRO": 0.3354
       }
     },
     {
@@ -7675,12 +7675,12 @@
       "name": "Herplete-LLM-Llama-3.1-8b",
       "developer": "Etherll",
       "scores": {
-        "IFEval": 0.6106,
-        "BBH": 0.5347,
-        "MATH Level 5": 0.1548,
-        "GPQA": 0.3146,
-        "MUSR": 0.3991,
-        "MMLU-PRO": 0.3752
+        "IFEval": 0.4672,
+        "BBH": 0.5013,
+        "MATH Level 5": 0.0279,
+        "GPQA": 0.2861,
+        "MUSR": 0.386,
+        "MMLU-PRO": 0.3482
       }
     },
     {
@@ -8455,12 +8455,12 @@
       "name": "Josiefied-Qwen2.5-0.5B-Instruct-abliterated-v1",
       "developer": "Goekdeniz-Guelmez",
       "scores": {
-        "IFEval": 0.3417,
-        "BBH": 0.3292,
-        "MATH Level 5": 0.0023,
-        "GPQA": 0.2576,
-        "MUSR": 0.3249,
-        "MMLU-PRO": 0.1638
+        "IFEval": 0.3472,
+        "BBH": 0.3268,
+        "MATH Level 5": 0.0891,
+        "GPQA": 0.2517,
+        "MUSR": 0.3262,
+        "MMLU-PRO": 0.1641
       }
     },
     {
@@ -8572,12 +8572,12 @@
       "name": "josie-7b-v6.0-step2000",
       "developer": "Goekdeniz-Guelmez",
       "scores": {
-        "IFEval": 0.7628,
-        "BBH": 0.5098,
-        "MATH Level 5": 0.0,
-        "GPQA": 0.2802,
-        "MUSR": 0.4579,
-        "MMLU-PRO": 0.4033
+        "IFEval": 0.7598,
+        "BBH": 0.5107,
+        "MATH Level 5": 0.4237,
+        "GPQA": 0.2768,
+        "MUSR": 0.4539,
+        "MMLU-PRO": 0.4012
       }
     },
     {
@@ -8728,12 +8728,12 @@
       "name": "Gemma-Ko-Merge-PEFT",
       "developer": "Gunulhona",
       "scores": {
-        "IFEval": 0.288,
-        "BBH": 0.5154,
+        "IFEval": 0.4441,
+        "BBH": 0.4863,
         "MATH Level 5": 0.0,
-        "GPQA": 0.3247,
-        "MUSR": 0.408,
-        "MMLU-PRO": 0.3817
+        "GPQA": 0.307,
+        "MUSR": 0.3986,
+        "MMLU-PRO": 0.3098
       }
     },
     {
@@ -9170,12 +9170,12 @@
       "name": "SmolLM2-360M-Instruct",
       "developer": "HuggingFaceTB",
       "scores": {
-        "IFEval": 0.083,
-        "BBH": 0.3053,
-        "MATH Level 5": 0.0083,
-        "GPQA": 0.2651,
-        "MUSR": 0.3423,
-        "MMLU-PRO": 0.1126
+        "IFEval": 0.3842,
+        "BBH": 0.3144,
+        "MATH Level 5": 0.0151,
+        "GPQA": 0.255,
+        "MUSR": 0.3461,
+        "MMLU-PRO": 0.1117
       }
     },
     {
@@ -13057,12 +13057,12 @@
       "name": "SpydazWeb_AI_HumanAI_012_INSTRUCT_XA",
       "developer": "LeroyDyer",
       "scores": {
-        "IFEval": 0.3579,
-        "BBH": 0.4477,
-        "MATH Level 5": 0.0423,
-        "GPQA": 0.3096,
-        "MUSR": 0.4134,
-        "MMLU-PRO": 0.2376
+        "IFEval": 0.3798,
+        "BBH": 0.4483,
+        "MATH Level 5": 0.04,
+        "GPQA": 0.3129,
+        "MUSR": 0.4148,
+        "MMLU-PRO": 0.2389
       }
     },
     {
@@ -14305,12 +14305,12 @@
       "name": "Llama-3-8B-Magpie-Align-v0.1",
       "developer": "Magpie-Align",
       "scores": {
-        "IFEval": 0.4027,
-        "BBH": 0.4789,
-        "MATH Level 5": 0.0461,
-        "GPQA": 0.2768,
-        "MUSR": 0.3087,
-        "MMLU-PRO": 0.3001
+        "IFEval": 0.4118,
+        "BBH": 0.4811,
+        "MATH Level 5": 0.034,
+        "GPQA": 0.2752,
+        "MUSR": 0.3047,
+        "MMLU-PRO": 0.3006
       }
     },
     {
@@ -17204,12 +17204,12 @@
       "name": "code-yi",
       "developer": "Omkar1102",
       "scores": {
-        "IFEval": 0.2148,
-        "BBH": 0.276,
+        "IFEval": 0.2254,
+        "BBH": 0.275,
         "MATH Level 5": 0.0,
-        "GPQA": 0.2508,
-        "MUSR": 0.3802,
-        "MMLU-PRO": 0.1126
+        "GPQA": 0.2576,
+        "MUSR": 0.3762,
+        "MMLU-PRO": 0.1123
       }
     },
     {
@@ -18141,11 +18141,11 @@
       "developer": "PrimeIntellect",
       "scores": {
         "IFEval": 0.1757,
-        "BBH": 0.274,
+        "BBH": 0.276,
         "MATH Level 5": 0.0,
-        "GPQA": 0.25,
-        "MUSR": 0.3753,
-        "MMLU-PRO": 0.112
+        "GPQA": 0.2534,
+        "MUSR": 0.3339,
+        "MMLU-PRO": 0.1123
       }
     },
     {
@@ -19986,12 +19986,12 @@
       "name": "Replete-LLM-Qwen2-7b",
       "developer": "Replete-AI",
       "scores": {
-        "IFEval": 0.0905,
-        "BBH": 0.2985,
+        "IFEval": 0.0932,
+        "BBH": 0.2977,
         "MATH Level 5": 0.0,
-        "GPQA": 0.2534,
-        "MUSR": 0.3848,
-        "MMLU-PRO": 0.1158
+        "GPQA": 0.2475,
+        "MUSR": 0.3941,
+        "MMLU-PRO": 0.1157
       }
     },
     {
@@ -21130,12 +21130,12 @@
       "name": "L3-70B-Euryale-v2.1",
       "developer": "Sao10K",
       "scores": {
-        "IFEval": 0.7384,
-        "BBH": 0.6471,
-        "MATH Level 5": 0.2137,
+        "IFEval": 0.7281,
+        "BBH": 0.6503,
+        "MATH Level 5": 0.2243,
         "GPQA": 0.3314,
-        "MUSR": 0.4209,
-        "MMLU-PRO": 0.5104
+        "MUSR": 0.4196,
+        "MMLU-PRO": 0.5096
       }
     },
     {
@@ -25069,12 +25069,12 @@
       "name": "Llama3.1-8B-Cobalt",
       "developer": "ValiantLabs",
       "scores": {
-        "IFEval": 0.7168,
-        "BBH": 0.4911,
-        "MATH Level 5": 0.1533,
-        "GPQA": 0.2861,
-        "MUSR": 0.3512,
-        "MMLU-PRO": 0.3663
+        "IFEval": 0.3496,
+        "BBH": 0.4947,
+        "MATH Level 5": 0.1269,
+        "GPQA": 0.3037,
+        "MUSR": 0.3959,
+        "MMLU-PRO": 0.3644
       }
     },
     {
@@ -25121,12 +25121,12 @@
       "name": "Llama3.1-8B-ShiningValiant2",
       "developer": "ValiantLabs",
       "scores": {
-        "IFEval": 0.2678,
-        "BBH": 0.4429,
-        "MATH Level 5": 0.0521,
-        "GPQA": 0.302,
-        "MUSR": 0.3959,
-        "MMLU-PRO": 0.2927
+        "IFEval": 0.6496,
+        "BBH": 0.4774,
+        "MATH Level 5": 0.0566,
+        "GPQA": 0.3104,
+        "MUSR": 0.3909,
+        "MMLU-PRO": 0.3382
       }
     },
     {
@@ -25654,12 +25654,12 @@
       "name": "Qwen2.5-14B-YOYO-1010",
       "developer": "YOYO-AI",
       "scores": {
-        "IFEval": 0.7905,
-        "BBH": 0.6406,
-        "MATH Level 5": 0.0,
-        "GPQA": 0.3163,
-        "MUSR": 0.4181,
-        "MMLU-PRO": 0.4944
+        "IFEval": 0.5899,
+        "BBH": 0.654,
+        "MATH Level 5": 0.4509,
+        "GPQA": 0.3834,
+        "MUSR": 0.4744,
+        "MMLU-PRO": 0.5376
       }
     },
     {
@@ -26889,12 +26889,12 @@
       "name": "Llama-3.1-Storm-8B",
       "developer": "akjindal53244",
       "scores": {
-        "IFEval": 0.8051,
-        "BBH": 0.5189,
-        "MATH Level 5": 0.1722,
-        "GPQA": 0.3263,
+        "IFEval": 0.8033,
+        "BBH": 0.5196,
+        "MATH Level 5": 0.1624,
+        "GPQA": 0.3096,
         "MUSR": 0.4028,
-        "MMLU-PRO": 0.3803
+        "MMLU-PRO": 0.3812
       }
     },
     {
@@ -26954,12 +26954,12 @@
       "name": "Llama-3.1-Tulu-3-8B",
       "developer": "allenai",
       "scores": {
-        "IFEval": 0.8255,
-        "BBH": 0.4061,
-        "MATH Level 5": 0.2115,
-        "GPQA": 0.297,
+        "IFEval": 0.8267,
+        "BBH": 0.405,
+        "MATH Level 5": 0.1964,
+        "GPQA": 0.2987,
         "MUSR": 0.4175,
-        "MMLU-PRO": 0.2821
+        "MMLU-PRO": 0.2827
       }
     },
     {
@@ -28449,11 +28449,11 @@
       "name": "AMD-Llama-135m",
       "developer": "amd",
       "scores": {
-        "IFEval": 0.1842,
-        "BBH": 0.2974,
-        "MATH Level 5": 0.0053,
-        "GPQA": 0.2525,
-        "MUSR": 0.378,
+        "IFEval": 0.1918,
+        "BBH": 0.2969,
+        "MATH Level 5": 0.0076,
+        "GPQA": 0.2584,
+        "MUSR": 0.3846,
         "MMLU-PRO": 0.1169
       }
     },
@@ -28709,12 +28709,12 @@
       "name": "Arcee-Spark",
       "developer": "arcee-ai",
       "scores": {
-        "IFEval": 0.5718,
-        "BBH": 0.5481,
-        "MATH Level 5": 0.114,
-        "GPQA": 0.3062,
-        "MUSR": 0.4008,
-        "MMLU-PRO": 0.3813
+        "IFEval": 0.5621,
+        "BBH": 0.5489,
+        "MATH Level 5": 0.2953,
+        "GPQA": 0.307,
+        "MUSR": 0.4021,
+        "MMLU-PRO": 0.3822
       }
     },
     {
@@ -30360,12 +30360,12 @@
       "name": "Llama-3.2-3B-Deep-Test",
       "developer": "bunnycore",
       "scores": {
-        "IFEval": 0.1775,
-        "BBH": 0.295,
-        "MATH Level 5": 0.0,
-        "GPQA": 0.2517,
-        "MUSR": 0.3647,
-        "MMLU-PRO": 0.1049
+        "IFEval": 0.4652,
+        "BBH": 0.4531,
+        "MATH Level 5": 0.1284,
+        "GPQA": 0.2643,
+        "MUSR": 0.3394,
+        "MMLU-PRO": 0.3152
       }
     },
     {
@@ -31647,12 +31647,12 @@
       "name": "dolphin-2.9.2-Phi-3-Medium-abliterated",
       "developer": "cognitivecomputations",
       "scores": {
-        "IFEval": 0.4124,
-        "BBH": 0.6383,
-        "MATH Level 5": 0.182,
-        "GPQA": 0.3289,
-        "MUSR": 0.4349,
-        "MMLU-PRO": 0.4525
+        "IFEval": 0.3613,
+        "BBH": 0.6123,
+        "MATH Level 5": 0.1239,
+        "GPQA": 0.328,
+        "MUSR": 0.4112,
+        "MMLU-PRO": 0.4494
       }
     },
     {
@@ -34663,12 +34663,12 @@
       "name": "gemma-2-2b",
       "developer": "Google",
       "scores": {
-        "IFEval": 0.1993,
-        "BBH": 0.3656,
-        "MATH Level 5": 0.0287,
+        "IFEval": 0.2018,
+        "BBH": 0.3709,
+        "MATH Level 5": 0.0302,
         "GPQA": 0.2626,
-        "MUSR": 0.4232,
-        "MMLU-PRO": 0.218
+        "MUSR": 0.4219,
+        "MMLU-PRO": 0.2217
       }
     },
     {
@@ -37705,12 +37705,12 @@
       "name": "Kosmos-EVAA-Fusion-8B",
       "developer": "jaspionjader",
       "scores": {
-        "IFEval": 0.4418,
-        "BBH": 0.5406,
-        "MATH Level 5": 0.1352,
-        "GPQA": 0.3062,
+        "IFEval": 0.4345,
+        "BBH": 0.5419,
+        "MATH Level 5": 0.1292,
+        "GPQA": 0.3087,
         "MUSR": 0.4277,
-        "MMLU-PRO": 0.386
+        "MMLU-PRO": 0.3854
       }
     },
     {
@@ -42359,12 +42359,12 @@
       "name": "Mistral-v0.3-7B-ORPO",
       "developer": "llmat",
       "scores": {
-        "IFEval": 0.364,
-        "BBH": 0.4005,
-        "MATH Level 5": 0.0015,
-        "GPQA": 0.2693,
-        "MUSR": 0.3529,
-        "MMLU-PRO": 0.2301
+        "IFEval": 0.377,
+        "BBH": 0.3978,
+        "MATH Level 5": 0.0242,
+        "GPQA": 0.2668,
+        "MUSR": 0.3555,
+        "MMLU-PRO": 0.2278
       }
     },
     {
@@ -43893,12 +43893,12 @@
       "name": "Meta-Llama-3-8B-Instruct",
       "developer": "meta-llama",
       "scores": {
-        "IFEval": 0.7408,
-        "BBH": 0.4989,
-        "MATH Level 5": 0.0869,
-        "GPQA": 0.2592,
-        "MUSR": 0.3568,
-        "MMLU-PRO": 0.3664
+        "IFEval": 0.4782,
+        "BBH": 0.491,
+        "MATH Level 5": 0.0914,
+        "GPQA": 0.2928,
+        "MUSR": 0.3805,
+        "MMLU-PRO": 0.3591
       }
     },
     {
@@ -43984,12 +43984,12 @@
       "name": "Phi-3-mini-4k-instruct",
       "developer": "microsoft",
       "scores": {
-        "IFEval": 0.5477,
-        "BBH": 0.5491,
-        "MATH Level 5": 0.1639,
-        "GPQA": 0.3322,
-        "MUSR": 0.4284,
-        "MMLU-PRO": 0.4022
+        "IFEval": 0.5613,
+        "BBH": 0.5676,
+        "MATH Level 5": 0.1163,
+        "GPQA": 0.3196,
+        "MUSR": 0.395,
+        "MMLU-PRO": 0.3866
       }
     },
     {
@@ -45076,12 +45076,12 @@
       "name": "Mistral-Nemo-Kurdish-Instruct",
       "developer": "nazimali",
       "scores": {
-        "IFEval": 0.4964,
-        "BBH": 0.4699,
-        "MATH Level 5": 0.0045,
-        "GPQA": 0.2827,
-        "MUSR": 0.3979,
-        "MMLU-PRO": 0.3063
+        "IFEval": 0.486,
+        "BBH": 0.4721,
+        "MATH Level 5": 0.0846,
+        "GPQA": 0.2844,
+        "MUSR": 0.4006,
+        "MMLU-PRO": 0.3087
       }
     },
     {
@@ -47611,12 +47611,12 @@
       "name": "wide_3b_sft_stage1.1-ss1-with_generics_intr_math_stories.no_issue",
       "developer": "ontocord",
       "scores": {
-        "IFEval": 0.1128,
-        "BBH": 0.3171,
-        "MATH Level 5": 0.0113,
-        "GPQA": 0.2685,
-        "MUSR": 0.346,
-        "MMLU-PRO": 0.1129
+        "IFEval": 0.1162,
+        "BBH": 0.3184,
+        "MATH Level 5": 0.0076,
+        "GPQA": 0.2634,
+        "MUSR": 0.3447,
+        "MMLU-PRO": 0.1124
       }
     },
     {
@@ -50861,12 +50861,12 @@
       "name": "Oracle-14B",
       "developer": "qingy2019",
       "scores": {
-        "IFEval": 0.2358,
-        "BBH": 0.4612,
-        "MATH Level 5": 0.0642,
-        "GPQA": 0.2576,
-        "MUSR": 0.3717,
-        "MMLU-PRO": 0.2382
+        "IFEval": 0.2401,
+        "BBH": 0.4622,
+        "MATH Level 5": 0.0725,
+        "GPQA": 0.2609,
+        "MUSR": 0.3703,
+        "MMLU-PRO": 0.2379
       }
     },
     {
@@ -50874,12 +50874,12 @@
       "name": "Qwen2.5-Math-14B-Instruct",
       "developer": "qingy2019",
       "scores": {
-        "IFEval": 0.6066,
-        "BBH": 0.635,
-        "MATH Level 5": 0.3716,
-        "GPQA": 0.3725,
+        "IFEval": 0.6005,
+        "BBH": 0.6356,
+        "MATH Level 5": 0.2764,
+        "GPQA": 0.3691,
         "MUSR": 0.4757,
-        "MMLU-PRO": 0.5331
+        "MMLU-PRO": 0.5339
       }
     },
     {
@@ -51459,12 +51459,12 @@
       "name": "FineLlama-3.1-8B",
       "developer": "riaz",
       "scores": {
-        "IFEval": 0.4137,
-        "BBH": 0.4565,
-        "MATH Level 5": 0.0453,
-        "GPQA": 0.276,
-        "MUSR": 0.3776,
-        "MMLU-PRO": 0.2978
+        "IFEval": 0.4373,
+        "BBH": 0.4586,
+        "MATH Level 5": 0.0514,
+        "GPQA": 0.2752,
+        "MUSR": 0.3763,
+        "MMLU-PRO": 0.2964
       }
     },
     {
@@ -53201,12 +53201,12 @@
       "name": "Qwenvergence-14B-v3-Reason",
       "developer": "sometimesanotion",
       "scores": {
-        "IFEval": 0.5278,
-        "BBH": 0.6557,
-        "MATH Level 5": 0.3119,
-        "GPQA": 0.3842,
-        "MUSR": 0.4754,
-        "MMLU-PRO": 0.5396
+        "IFEval": 0.5367,
+        "BBH": 0.6561,
+        "MATH Level 5": 0.358,
+        "GPQA": 0.3867,
+        "MUSR": 0.474,
+        "MMLU-PRO": 0.5395
       }
     },
     {
@@ -53500,12 +53500,12 @@
       "name": "ChatWaifu_v2.0_22B",
       "developer": "spow12",
       "scores": {
-        "IFEval": 0.6511,
-        "BBH": 0.5926,
-        "MATH Level 5": 0.1858,
-        "GPQA": 0.3247,
+        "IFEval": 0.6517,
+        "BBH": 0.5908,
+        "MATH Level 5": 0.2032,
+        "GPQA": 0.3238,
         "MUSR": 0.3842,
-        "MMLU-PRO": 0.3836
+        "MMLU-PRO": 0.3812
       }
     },
     {
@@ -54345,12 +54345,12 @@
       "name": "lambda-gemma-2-9b-dpo",
       "developer": "tanliboy",
       "scores": {
-        "IFEval": 0.1829,
-        "BBH": 0.5488,
-        "MATH Level 5": 0.0,
-        "GPQA": 0.3104,
-        "MUSR": 0.4056,
-        "MMLU-PRO": 0.3805
+        "IFEval": 0.4501,
+        "BBH": 0.5472,
+        "MATH Level 5": 0.0944,
+        "GPQA": 0.3138,
+        "MUSR": 0.4017,
+        "MMLU-PRO": 0.3792
       }
     },
     {
@@ -56997,12 +56997,12 @@
       "name": "BagelMIsteryTour-v2-8x7B",
       "developer": "ycros",
       "scores": {
-        "IFEval": 0.6262,
-        "BBH": 0.5142,
-        "MATH Level 5": 0.0937,
-        "GPQA": 0.3079,
-        "MUSR": 0.4138,
-        "MMLU-PRO": 0.3481
+        "IFEval": 0.5994,
+        "BBH": 0.5159,
+        "MATH Level 5": 0.0785,
+        "GPQA": 0.3045,
+        "MUSR": 0.4203,
+        "MMLU-PRO": 0.3473
       }
     },
     {

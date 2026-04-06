@@ -47,16 +47,16 @@
       "developer": "Skywork",
       "evaluator_relationship": null,
       "benchmark_scores": {
-        "reward-bench/Score": 0.938,
+        "reward-bench/Score": 0.7576,
+        "reward-bench/Chat": 0.9581,
+        "reward-bench/Chat Hard": 0.9145,
+        "reward-bench/Safety": 0.9422,
+        "reward-bench/Reasoning": 0.9606,
         "reward-bench/Factuality": 0.7368,
         "reward-bench/Precise IF": 0.4031,
         "reward-bench/Math": 0.7049,
-        "reward-bench/Safety": 0.9189,
         "reward-bench/Focus": 0.9323,
-        "reward-bench/Ties": 0.8261,
-        "reward-bench/Chat": 0.9581,
-        "reward-bench/Chat Hard": 0.9145,
-        "reward-bench/Reasoning": 0.9606
+        "reward-bench/Ties": 0.8261
       }
     },
     {
@@ -89,16 +89,16 @@
       "developer": "Skywork",
       "evaluator_relationship": null,
       "benchmark_scores": {
-        "reward-bench/Score": 0.7314,
-        "reward-bench/Chat": 0.9581,
-        "reward-bench/Chat Hard": 0.8728,
-        "reward-bench/Safety": 0.9333,
-        "reward-bench/Reasoning": 0.962,
+        "reward-bench/Score": 0.9252,
         "reward-bench/Factuality": 0.6989,
         "reward-bench/Precise IF": 0.425,
         "reward-bench/Math": 0.6284,
+        "reward-bench/Safety": 0.9081,
         "reward-bench/Focus": 0.9616,
-        "reward-bench/Ties": 0.741
+        "reward-bench/Ties": 0.741,
+        "reward-bench/Chat": 0.9581,
+        "reward-bench/Chat Hard": 0.8728,
+        "reward-bench/Reasoning": 0.962
       }
     },
     {
@@ -230,16 +230,16 @@
       "developer": "Skywork",
       "evaluator_relationship": null,
       "benchmark_scores": {
-        "reward-bench/Score": 0.9007,
+        "reward-bench/Score": 0.6885,
+        "reward-bench/Chat": 0.8994,
+        "reward-bench/Chat Hard": 0.875,
+        "reward-bench/Safety": 0.8911,
+        "reward-bench/Reasoning": 0.9176,
         "reward-bench/Factuality": 0.6063,
         "reward-bench/Precise IF": 0.35,
         "reward-bench/Math": 0.6339,
-        "reward-bench/Safety": 0.9108,
         "reward-bench/Focus": 0.8909,
-        "reward-bench/Ties": 0.7586,
-        "reward-bench/Chat": 0.8994,
-        "reward-bench/Chat Hard": 0.875,
-        "reward-bench/Reasoning": 0.9176
+        "reward-bench/Ties": 0.7586
       }
     }
   ]
