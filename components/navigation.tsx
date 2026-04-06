@@ -2,7 +2,7 @@
 
 import { useAudienceMode } from "@/components/audience-mode-provider"
 import { Button } from "@/components/ui/button"
-import { FlaskConical, Moon, Scale, Sun, Home, Info, BarChart3, LayoutGrid } from "lucide-react"
+import { FlaskConical, Moon, Scale, Sun, Home, Info, BarChart3, LayoutGrid, FileText } from "lucide-react"
 import { useTheme } from "next-themes"
 import Link from "next/link"
 import { usePathname } from "next/navigation"
@@ -34,6 +34,12 @@ export function Navigation() {
       label: "Evaluations",
       icon: BarChart3,
       isActive: pathname === "/evals" || pathname?.startsWith("/evals/")
+    },
+    {
+      href: "/survey",
+      label: "Survey",
+      icon: FileText,
+      isActive: pathname === "/survey" || pathname?.startsWith("/survey/")
     },
     {
       href: "/about",
