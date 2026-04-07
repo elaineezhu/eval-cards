@@ -1,5 +1,6 @@
 import type { BenchmarkEvaluationCardData } from "@/components/benchmark-evaluation-card"
 import type {
+  BenchmarkCard,
   BenchmarkEvalListItem,
   BenchmarkEvalSummary,
   ModelEvaluationSummary,
@@ -82,4 +83,8 @@ export function fetchDeveloperSummary(developerId: string) {
   return fetchJson<DeveloperSummaryResponse>(
     `/api/developer-summary?id=${encodeURIComponent(developerId)}`
   )
+}
+
+export function fetchBenchmarkMetadata() {
+  return fetchJson<Record<string, BenchmarkCard>>("/api/benchmark-metadata")
 }

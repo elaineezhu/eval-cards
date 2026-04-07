@@ -168,11 +168,35 @@ export const EVALUATION_CATEGORIES = [
 export type CategoryType = typeof EVALUATION_CATEGORIES[number]
 
 /**
+ * Returns Tailwind badge classes for a given category
+ */
+export function getCategoryColor(category: CategoryType): string {
+  switch (category) {
+    case 'Safety':
+      return 'bg-rose-100 text-rose-800 border-rose-200 dark:bg-rose-950/40 dark:text-rose-200'
+    case 'Fairness':
+      return 'bg-amber-100 text-amber-800 border-amber-200 dark:bg-amber-950/40 dark:text-amber-200'
+    case 'Adversarial':
+      return 'bg-orange-100 text-orange-800 border-orange-200 dark:bg-orange-950/40 dark:text-orange-200'
+    case 'Privacy':
+      return 'bg-violet-100 text-violet-800 border-violet-200 dark:bg-violet-950/40 dark:text-violet-200'
+    case 'Robustness':
+      return 'bg-emerald-100 text-emerald-800 border-emerald-200 dark:bg-emerald-950/40 dark:text-emerald-200'
+    case 'Leakage/Contamination':
+      return 'bg-red-100 text-red-800 border-red-200 dark:bg-red-950/40 dark:text-red-200'
+    case 'Core Performance':
+      return 'bg-sky-100 text-sky-800 border-sky-200 dark:bg-sky-950/40 dark:text-sky-200'
+    default:
+      return 'bg-muted text-muted-foreground border-border'
+  }
+}
+
+/**
  * Helper to determine category from benchmark name
  */
 export function inferCategoryFromBenchmark(benchmarkName: string): CategoryType {
   const name = benchmarkName.toLowerCase()
-  
+
   // Category mappings
   if (name.includes('advglue') || name.includes('jailbreak') || name.includes('attack') || name.includes('adversarial') || name.includes('red-team')) {
     return 'Adversarial'
@@ -180,7 +204,9 @@ export function inferCategoryFromBenchmark(benchmarkName: string): CategoryType 
   if (name.includes('fairness') || name.includes('bias') || name.includes('stereo') || name.includes('bbq') || name.includes('celeb') || name.includes('winobias')) {
     return 'Fairness'
   }
-  if (name.includes('safety') || name.includes('harmful') || name.includes('toxic') || name.includes('truthful') || name.includes('unsafe')) {
+  // CivilComments is a toxicity/bias classification benchmark → Safety
+  if (name.includes('safety') || name.includes('harmful') || name.includes('toxic') || name.includes('truthful') || name.includes('unsafe')
+      || name === 'civilcomments' || name.includes('civil_comments') || name.includes('civil comments')) {
     return 'Safety'
   }
   if (name.includes('leakage') || name.includes('contamination')) {
@@ -207,10 +233,10 @@ export function inferCategoryFromBenchmark(benchmarkName: string): CategoryType 
   if (name.includes('retrain') || name.includes('forgetting')) {
     return 'Retrainability'
   }
-  if (name.includes('meta') || name.includes('few-shot') || name.includes('learning')) {
+  if (name.includes('meta-learning') || name.includes('meta learning') || name.includes('metalearning') || name.includes('few-shot') || name.includes('in-context')) {
     return 'Meta-Learning'
   }
-  if (name.includes('mt-bench') || name.includes('quality') || name.includes('human') || name.includes('fact') || name.includes('hallucination')) {
+  if (name.includes('mt-bench') || name.includes('quality') || name.includes('humaneval') || name.includes('hallucination') || name.includes('factuality') || name.includes('factscore')) {
     return 'Core Quality Dimensions'
   }
   
@@ -313,4 +339,68 @@ export interface EvaluationCardData {
   params?: string
   inference_engine?: string
   inference_platform?: string
+}
+
+// ── Benchmark Card types (from metadata/benchmark_card_*.json) ────────────────
+
+export interface BenchmarkCardDetails {
+  name: string
+  overview: string
+  data_type: string
+  domains: string[]
+  languages: string[]
+  similar_benchmarks: string[] | string
+  resources: string[]
+}
+
+export interface BenchmarkCardPurpose {
+  goal: string
+  audience: string[] | string
+  tasks: string[]
+  limitations: string
+  out_of_scope_uses: string[] | string
+}
+
+export interface BenchmarkCardData {
+  source: string
+  size: string
+  format: string
+  annotation: string
+}
+
+export interface BenchmarkCardMethodology {
+  methods: string[]
+  metrics: string[]
+  calculation: string
+  interpretation: string
+  baseline_results: string
+  validation: string
+}
+
+export interface BenchmarkCardEthical {
+  privacy_and_anonymity: string
+  data_licensing: string
+  consent_procedures: string
+  compliance_with_regulations: string
+}
+
+export interface BenchmarkCardRisk {
+  category: string
+  description: string[]
+  url: string
+}
+
+export interface BenchmarkCard {
+  benchmark_details: BenchmarkCardDetails
+  purpose_and_intended_users: BenchmarkCardPurpose
+  data: BenchmarkCardData
+  methodology: BenchmarkCardMethodology
+  ethical_and_legal_considerations: BenchmarkCardEthical
+  possible_risks: BenchmarkCardRisk[]
+  flagged_fields: Record<string, string>
+  missing_fields: string[]
+  card_info: {
+    created_at: string
+    llm: string
+  }
 }

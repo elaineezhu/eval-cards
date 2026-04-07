@@ -13,7 +13,10 @@ import { ModelCompareDialog } from "@/components/model-compare-dialog"
 import { Navigation } from "@/components/navigation"
 import { PageHeader } from "@/components/page-header"
 import { Badge } from "@/components/ui/badge"
-import { fetchDevelopers, fetchModelCards, type DeveloperListItem } from "@/lib/dashboard-data-client"
+import { fetchDevelopers, fetchModelCards, fetchBenchmarkMetadata, type DeveloperListItem } from "@/lib/dashboard-data-client"
+import type { BenchmarkCard } from "@/lib/benchmark-schema"
+import { getCategoryColor, type CategoryType } from "@/lib/benchmark-schema"
+import { cn } from "@/lib/utils"
 
 const PAGE_SIZE = 40
 const MAX_COMPARE_MODELS = 4
@@ -57,6 +60,7 @@ export default function ModelsPage() {
   const { mode } = useAudienceMode()
   const [evaluations, setEvaluations] = useState<BenchmarkEvaluationCardData[]>([])
   const [developers, setDevelopers] = useState<DeveloperListItem[]>([])
+  const [benchmarkCards, setBenchmarkCards] = useState<Record<string, BenchmarkCard>>({})
   const [loadingModels, setLoadingModels] = useState(true)
   const [loadingDevelopers, setLoadingDevelopers] = useState(true)
   const [groupByDeveloper, setGroupByDeveloper] = useState(false)
@@ -66,12 +70,16 @@ export default function ModelsPage() {
   const [minParamStep, setMinParamStep] = useState(0)
   const [maxParamStep, setMaxParamStep] = useState(PARAM_RANGE_VALUES.length - 1)
   const [selectedModelIds, setSelectedModelIds] = useState<string[]>([])
+  const [selectedCategories, setSelectedCategories] = useState<string[]>([])
   const [compareOpen, setCompareOpen] = useState(false)
   const [page, setPage] = useState(1)
 
   useEffect(() => {
-    fetchModelCards()
-      .then(setEvaluations)
+    Promise.all([fetchModelCards(), fetchBenchmarkMetadata()])
+      .then(([cards, metadata]) => {
+        setEvaluations(cards)
+        setBenchmarkCards(metadata)
+      })
       .catch((error) => {
         console.error("Failed to load evaluations:", error)
       })
@@ -116,6 +124,16 @@ export default function ModelsPage() {
     return PARAM_RANGE_VALUES[maxParamStep] ?? null
   }, [maxParamStep])
 
+  const allCategories = useMemo(() => {
+    const catSet = new Set<string>()
+    for (const evaluation of evaluations) {
+      for (const cat of evaluation.categories ?? []) {
+        catSet.add(cat)
+      }
+    }
+    return Array.from(catSet).sort((a, b) => a.localeCompare(b))
+  }, [evaluations])
+
   const filteredEvaluations = useMemo(() => {
     const query = searchQuery.trim().toLowerCase()
 
@@ -128,6 +146,12 @@ export default function ModelsPage() {
 
       if (numericMaxParams != null) {
         if (evaluation.params_billions == null || evaluation.params_billions > numericMaxParams) {
+          return false
+        }
+      }
+
+      if (selectedCategories.length > 0) {
+        if (!evaluation.categories.some((c) => selectedCategories.includes(c))) {
           return false
         }
       }
@@ -149,7 +173,7 @@ export default function ModelsPage() {
 
       return haystacks.some((value) => value?.toLowerCase().includes(query))
     })
-  }, [evaluations, numericMaxParams, numericMinParams, searchQuery])
+  }, [evaluations, numericMaxParams, numericMinParams, searchQuery, selectedCategories])
 
   const sortedEvaluations = useMemo(() => {
     const sorted = [...filteredEvaluations]
@@ -247,7 +271,7 @@ export default function ModelsPage() {
 
   useEffect(() => {
     setPage(1)
-  }, [developerSortBy, groupByDeveloper, maxParamStep, minParamStep, modelSortBy, searchQuery])
+  }, [developerSortBy, groupByDeveloper, maxParamStep, minParamStep, modelSortBy, searchQuery, selectedCategories])
 
   const pagedEvaluations = useMemo(
     () => sortedEvaluations.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE),
@@ -343,6 +367,7 @@ export default function ModelsPage() {
             !groupByDeveloper
               ? { label: "Compare tray", value: selectedModels.length.toString() }
               : { label: "View", value: "Developer" },
+            ...(selectedCategories.length > 0 ? [{ label: "Category filter", value: selectedCategories.join(", ") }] : []),
           ]}
         />
 
@@ -367,20 +392,21 @@ export default function ModelsPage() {
           </div>
         ) : null}
 
-        <div className="mb-8 flex flex-col gap-4 border-b border-border/50 pb-6 sm:flex-row sm:flex-wrap sm:items-center">
-          <div className="relative w-full sm:max-w-sm">
-            <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-            <Input
-              value={searchQuery}
-              onChange={(event) => setSearchQuery(event.target.value)}
-              placeholder={
-                groupByDeveloper
-                  ? "Search developers or popular evals"
-                  : "Search models, developers, or benchmarks"
-              }
-              className="pl-9"
-            />
-          </div>
+        <div className="mb-8 flex flex-col gap-4 border-b border-border/50 pb-6">
+          <div className="flex flex-col gap-3 sm:flex-row sm:flex-wrap sm:items-center">
+            <div className="relative w-full sm:max-w-sm">
+              <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+              <Input
+                value={searchQuery}
+                onChange={(event) => setSearchQuery(event.target.value)}
+                placeholder={
+                  groupByDeveloper
+                    ? "Search developers or popular evals"
+                    : "Search models, developers, or benchmarks"
+                }
+                className="pl-9"
+              />
+            </div>
           {!groupByDeveloper ? (
             <div className="rounded-xl border border-border/70 bg-muted/15 px-4 py-2">
               <div className="flex items-center gap-3">
@@ -524,6 +550,48 @@ export default function ModelsPage() {
               )}
             </SelectContent>
           </Select>
+          </div>
+
+          {/* Category filter chips — only shown for model view */}
+          {!groupByDeveloper && allCategories.length > 0 && (
+            <div className="flex flex-wrap items-center gap-1.5">
+              <span className="text-[11px] font-semibold uppercase tracking-[0.2em] text-muted-foreground mr-1">
+                Category
+              </span>
+              {allCategories.map((cat) => {
+                const isActive = selectedCategories.includes(cat)
+                return (
+                  <button
+                    key={cat}
+                    type="button"
+                    onClick={() =>
+                      setSelectedCategories((prev) =>
+                        prev.includes(cat) ? prev.filter((c) => c !== cat) : [...prev, cat]
+                      )
+                    }
+                    className={cn(
+                      "rounded-full border px-3 py-1 text-xs font-medium transition-colors",
+                      isActive
+                        ? getCategoryColor(cat as CategoryType) + " border-2"
+                        : "border-border/60 bg-background text-muted-foreground hover:text-foreground"
+                    )}
+                  >
+                    {cat}
+                  </button>
+                )
+              })}
+              {selectedCategories.length > 0 && (
+                <button
+                  type="button"
+                  onClick={() => setSelectedCategories([])}
+                  className="ml-1 flex items-center gap-1 text-xs text-muted-foreground hover:text-foreground"
+                >
+                  <X className="h-3 w-3" />
+                  Clear
+                </button>
+              )}
+            </div>
+          )}
         </div>
 
         {(groupByDeveloper ? filteredDevelopers.length === 0 : sortedEvaluations.length === 0) ? (
@@ -559,6 +627,7 @@ export default function ModelsPage() {
                   <BenchmarkEvaluationCard
                     key={evaluation.id}
                     data={evaluation}
+                    benchmarkCards={benchmarkCards}
                     onDelete={handleDelete}
                     selectedForCompare={selectedModelIds.includes(evaluation.id)}
                     onToggleCompare={toggleModelSelection}

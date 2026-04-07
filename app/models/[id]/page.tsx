@@ -6,8 +6,8 @@ import { Button } from "@/components/ui/button"
 import { ArrowLeft } from "lucide-react"
 import { Navigation } from "@/components/navigation"
 import { BenchmarkDetail } from "@/components/benchmark-detail"
-import type { ModelEvaluationSummary } from "@/lib/eval-processing"
-import { fetchModelSummary } from "@/lib/dashboard-data-client"
+import type { BenchmarkCard, ModelEvaluationSummary } from "@/lib/eval-processing"
+import { fetchBenchmarkMetadata, fetchModelSummary } from "@/lib/dashboard-data-client"
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs"
 
 export default function ModelDetailPage() {
@@ -15,6 +15,7 @@ export default function ModelDetailPage() {
   const router = useRouter()
   const searchParams = useSearchParams()
   const [summary, setSummary] = useState<ModelEvaluationSummary | null>(null)
+  const [benchmarkCards, setBenchmarkCards] = useState<Record<string, BenchmarkCard>>({})
   const [selectedVariantId, setSelectedVariantId] = useState<string | null>(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
@@ -95,12 +96,16 @@ export default function ModelDetailPage() {
 
     const loadData = async () => {
       try {
-        const modelSummary = await fetchModelSummary(routeId)
+        const [modelSummary, cards] = await Promise.all([
+          fetchModelSummary(routeId),
+          fetchBenchmarkMetadata(),
+        ])
         if (isCancelled) {
           return
         }
 
         setSummary(modelSummary)
+        setBenchmarkCards(cards)
         setSelectedVariantId((current) => current ?? modelSummary.variants[0]?.variant_id ?? null)
       } catch (err) {
         if (isCancelled) {
@@ -259,7 +264,7 @@ export default function ModelDetailPage() {
         </div>
       </div>
       <main className="container mx-auto px-4 py-8">
-        <BenchmarkDetail summary={detailSummary} />
+        <BenchmarkDetail summary={detailSummary} benchmarkCards={benchmarkCards} />
       </main>
     </div>
   )

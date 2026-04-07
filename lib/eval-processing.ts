@@ -3,6 +3,7 @@
  */
 
 import type {
+  BenchmarkCard,
   BenchmarkEvaluation,
   EvaluationCardData,
   CategoryType,
@@ -16,6 +17,8 @@ import type {
 import type { ModelEvaluationSummary } from './benchmark-schema'
 import type { ModelSummaryCore } from './benchmark-schema'
 import { inferCategoryFromBenchmark, EVALUATION_CATEGORIES } from './benchmark-schema'
+
+export type { BenchmarkCard }
 import { getCanonicalModelIdentity, getModelFamilyRouteId } from './model-family'
 
 export type { ModelEvaluationSummary }
@@ -111,6 +114,18 @@ export interface ModelResultForBenchmark {
   source_metadata: SourceMetadata
   source_data: BenchmarkEvaluation['source_data']
   result: EvaluationResult
+  aggregate_components?: Array<{
+    evaluation_id: string
+    composite_benchmark_key: string
+    composite_benchmark_name: string
+    score: number
+    normalized_score: number
+    evaluation_timestamp: string
+    source_name?: string
+    source_type: SourceMetadata["source_type"]
+    source_organization_name: string
+    evaluator_relationship: SourceMetadata["evaluator_relationship"]
+  }>
 }
 
 export interface BenchmarkEvalSummary {
@@ -135,6 +150,16 @@ export interface BenchmarkEvalSummary {
   avg_score: number
   /** avg_score normalised to 0-1 using metric_config.min/max_score */
   avg_score_norm: number
+  /** Rich benchmark card from the metadata/ folder, when available */
+  benchmark_card?: BenchmarkCard
+  is_aggregated?: boolean
+  aggregate_sources?: Array<{
+    evaluation_id: string
+    composite_benchmark_key: string
+    composite_benchmark_name: string
+    models_count: number
+    avg_score_norm: number
+  }>
 }
 
 export type BenchmarkEvalListItem = Omit<BenchmarkEvalSummary, "model_results">

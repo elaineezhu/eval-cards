@@ -2,7 +2,7 @@
 
 import { useCallback, useEffect, useMemo, useState } from "react"
 import { useParams, useRouter } from "next/navigation"
-import { ArrowLeft, ArrowUpDown, Search } from "lucide-react"
+import { ArrowLeft, ArrowUpDown, Search, Tag } from "lucide-react"
 
 import { BenchmarkEvaluationCard, type BenchmarkEvaluationCardData } from "@/components/benchmark-evaluation-card"
 import { ListPagination } from "@/components/list-pagination"
@@ -11,7 +11,9 @@ import { PageHeader } from "@/components/page-header"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { fetchDeveloperSummary } from "@/lib/dashboard-data-client"
+import type { BenchmarkCard } from "@/lib/benchmark-schema"
+import { lookupBenchmarkCard } from "@/lib/benchmark-metadata-utils"
+import { fetchDeveloperSummary, fetchBenchmarkMetadata } from "@/lib/dashboard-data-client"
 
 const PAGE_SIZE = 40
 
@@ -20,6 +22,7 @@ export default function DeveloperDetailPage() {
   const router = useRouter()
   const [developer, setDeveloper] = useState<string>("")
   const [models, setModels] = useState<BenchmarkEvaluationCardData[]>([])
+  const [benchmarkCards, setBenchmarkCards] = useState<Record<string, BenchmarkCard>>({})
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const [searchQuery, setSearchQuery] = useState("")
@@ -33,10 +36,14 @@ export default function DeveloperDetailPage() {
   }, [router])
 
   useEffect(() => {
-    fetchDeveloperSummary(routeId)
-      .then((summary) => {
+    Promise.all([
+      fetchDeveloperSummary(routeId),
+      fetchBenchmarkMetadata(),
+    ])
+      .then(([summary, cards]) => {
         setDeveloper(summary.developer)
         setModels(summary.models)
+        setBenchmarkCards(cards)
       })
       .catch((err) => {
         console.error(err)
@@ -44,6 +51,24 @@ export default function DeveloperDetailPage() {
       })
       .finally(() => setLoading(false))
   }, [routeId])
+
+  // Collect all unique domains from benchmarks this developer's models are evaluated on
+  const domainCoverage = useMemo(() => {
+    const domainMap = new Map<string, Set<string>>() // domain → set of benchmark names
+    for (const model of models) {
+      for (const { benchmark } of model.top_scores) {
+        const card = lookupBenchmarkCard(benchmarkCards, benchmark)
+        for (const domain of card?.benchmark_details?.domains ?? []) {
+          const existing = domainMap.get(domain) ?? new Set()
+          existing.add(benchmark)
+          domainMap.set(domain, existing)
+        }
+      }
+    }
+    return Array.from(domainMap.entries())
+      .map(([domain, benchmarks]) => ({ domain, count: benchmarks.size }))
+      .sort((a, b) => b.count - a.count)
+  }, [models, benchmarkCards])
 
   const filteredModels = useMemo(() => {
     const query = searchQuery.trim().toLowerCase()
@@ -125,13 +150,16 @@ export default function DeveloperDetailPage() {
         <PageHeader
           eyebrow="Developer"
           title={developer}
-          description="Model cards loaded from this developer’s index and detail files, without scanning the entire corpus."
+          description={`Evaluation coverage across ${models.length} model${models.length !== 1 ? "s" : ""} from this developer, including benchmark domain coverage where metadata is available.`}
           metaItems={[
             { label: "Models", value: models.length.toString() },
             {
               label: "Reported Results",
               value: models.reduce((sum, model) => sum + model.evaluations_count, 0).toString(),
             },
+            ...(domainCoverage.length > 0
+              ? [{ label: "Domains covered", value: domainCoverage.length.toString() }]
+              : []),
           ]}
         >
           <Button variant="outline" onClick={handleBack}>
@@ -139,6 +167,29 @@ export default function DeveloperDetailPage() {
             Back
           </Button>
         </PageHeader>
+
+        {/* Domain coverage strip */}
+        {domainCoverage.length > 0 && (
+          <div className="mb-4 mt-6 rounded-[1.5rem] border border-border/70 bg-muted/10 p-4">
+            <div className="mb-2 flex items-center gap-2 text-[11px] font-semibold uppercase tracking-[0.2em] text-muted-foreground">
+              <Tag className="h-3.5 w-3.5" />
+              Benchmark domain coverage
+            </div>
+            <div className="flex flex-wrap gap-2">
+              {domainCoverage.map(({ domain, count }) => (
+                <span
+                  key={domain}
+                  className="inline-flex items-center gap-1.5 rounded-full border border-border/60 bg-background px-3 py-1 text-xs font-medium capitalize"
+                >
+                  {domain}
+                  <span className="rounded-full bg-muted px-1.5 py-0.5 text-[10px] font-semibold text-muted-foreground">
+                    {count}
+                  </span>
+                </span>
+              ))}
+            </div>
+          </div>
+        )}
 
         <div className="mb-8 mt-8 flex flex-col gap-4 border-b border-border/50 pb-6 sm:flex-row">
           <div className="relative w-full sm:max-w-sm">
@@ -173,6 +224,7 @@ export default function DeveloperDetailPage() {
               <BenchmarkEvaluationCard
                 key={model.id}
                 data={model}
+                benchmarkCards={benchmarkCards}
                 delayMs={Math.min(index * 45, 240)}
               />
             ))}

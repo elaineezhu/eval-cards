@@ -1,6 +1,7 @@
 "use client"
 
 // Force recompile
+import Link from "next/link"
 import { useAudienceMode } from "@/components/audience-mode-provider"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
@@ -17,14 +18,16 @@ import {
   ChevronDown, ChevronUp, BarChart3, Award, AlertTriangle,
   Cpu, Tag, Globe, Network, Activity, MessageSquare, Clock, Hash, Layers, Search, FlaskConical, Scale, BookOpenText
 } from "lucide-react"
-import type { BenchmarkEvaluation, CategoryType, EvaluationResult } from "@/lib/benchmark-schema"
-import { inferCategoryFromBenchmark } from "@/lib/benchmark-schema"
+import type { BenchmarkCard, BenchmarkEvaluation, CategoryType, EvaluationResult } from "@/lib/benchmark-schema"
+import { getCategoryColor as getCategoryTone, inferCategoryFromBenchmark } from "@/lib/benchmark-schema"
 import { formatScore, getBenchmarkDisplayName } from "@/lib/eval-processing"
 import type { ModelSummaryCore } from "@/lib/benchmark-schema"
+import { lookupBenchmarkCard } from "@/lib/benchmark-metadata-utils"
 import { Fragment, useState, useEffect, useMemo, type CSSProperties } from "react"
 
 interface BenchmarkDetailProps {
   summary: ModelSummaryCore
+  benchmarkCards?: Record<string, BenchmarkCard>
 }
 
 interface BenchmarkVariant {
@@ -41,10 +44,14 @@ interface BenchmarkVariant {
 interface BenchmarkGroup {
   key: string
   title: string
+  evalDetailHref: string
+  category: CategoryType
   description: string
   scoreType: EvaluationResult["metric_config"]["score_type"] | "mixed"
   avgNormalizedScore: number
   avgDisplayScore: string
+  domains: string[]
+  benchmarkCard?: BenchmarkCard
   variants: BenchmarkVariant[]
 }
 
@@ -450,6 +457,16 @@ function normalizeScoreForDisplay(result: EvaluationResult) {
   return Math.max(0, Math.min(1, normalized))
 }
 
+function slugifyEvalSummaryId(value: string) {
+  return value.toLowerCase().replace(/[^a-z0-9]+/g, "_").replace(/^_|_$/g, "")
+}
+
+function getEvalDetailHref(evaluation: BenchmarkEvaluation, result: EvaluationResult) {
+  const benchmarkKey = evaluation.benchmark || getResultBenchmarkName(evaluation, result)
+  const evalSummaryId = slugifyEvalSummaryId(`${benchmarkKey}__${result.evaluation_name}`)
+  return `/evals/${evalSummaryId}`
+}
+
 function formatResultDisplayScore(result: EvaluationResult) {
   return formatScore(
     result.score_details.score,
@@ -492,12 +509,16 @@ function getVariantDedupKey(variant: BenchmarkVariant) {
 }
 
 function buildBenchmarkGroups(
-  entries: Array<{ evaluation: BenchmarkEvaluation; result: EvaluationResult }>
+  entries: Array<{ evaluation: BenchmarkEvaluation; result: EvaluationResult; category: CategoryType }>,
+  benchmarkCards?: Record<string, BenchmarkCard>
 ): BenchmarkGroup[] {
   const groups = new Map<string, BenchmarkGroup>()
 
   for (const entry of entries) {
     const title = getBenchmarkDisplayName(getResultBenchmarkName(entry.evaluation, entry.result))
+    const card = benchmarkCards
+      ? lookupBenchmarkCard(benchmarkCards, getResultBenchmarkName(entry.evaluation, entry.result))
+      : undefined
     const normalizedScore = normalizeScoreForDisplay(entry.result)
     const displayScore = formatResultDisplayScore(entry.result)
     const descriptor = getVariantDescriptor(entry.evaluation, entry.result)
@@ -518,10 +539,14 @@ function buildBenchmarkGroups(
       groups.set(title, {
         key: title,
         title,
+        evalDetailHref: getEvalDetailHref(entry.evaluation, entry.result),
+        category: entry.category,
         description: entry.result.metric_config.evaluation_description,
         scoreType: entry.result.metric_config.score_type,
         avgNormalizedScore: normalizedScore,
         avgDisplayScore: `${(normalizedScore * 100).toFixed(1)}%`,
+        domains: card?.benchmark_details?.domains ?? [],
+        benchmarkCard: card,
         variants: [variant],
       })
       continue
@@ -593,12 +618,14 @@ function getEvaluationVariantLabel(evaluation: BenchmarkEvaluation) {
   return evaluationPrefix.split("/").filter(Boolean).pop() || null
 }
 
-export function BenchmarkDetail({ summary }: BenchmarkDetailProps) {
+export function BenchmarkDetail({ summary, benchmarkCards }: BenchmarkDetailProps) {
   const { mode } = useAudienceMode()
   const isResearchView = mode === "research"
   const [benchmarkSearch, setBenchmarkSearch] = useState("")
   const [benchmarkSort, setBenchmarkSort] = useState<"score" | "name" | "variants" | "spread">("score")
+  const [selectedCategories, setSelectedCategories] = useState<CategoryType[]>([])
   const [expandedBenchmarkKey, setExpandedBenchmarkKey] = useState<string | null>(null)
+  const [showWithoutMetadata, setShowWithoutMetadata] = useState(false)
   const allEvaluations = useMemo(
     () => Object.values(summary.evaluations_by_category).flat(),
     [summary.evaluations_by_category]
@@ -655,7 +682,9 @@ export function BenchmarkDetail({ summary }: BenchmarkDetailProps) {
               }
             }
 
-            return resultCategory === category ? [{ evaluation, result }] : []
+            return resultCategory === category
+              ? [{ evaluation, result, category: category as CategoryType }]
+              : []
           })
         )
       ),
@@ -663,7 +692,7 @@ export function BenchmarkDetail({ summary }: BenchmarkDetailProps) {
   )
 
   const policyHighlights = useMemo(() => {
-    const groups = buildBenchmarkGroups(allCategoryResults)
+    const groups = buildBenchmarkGroups(allCategoryResults, benchmarkCards)
     const seenLabels = new Set<string>()
 
     return groups
@@ -691,7 +720,7 @@ export function BenchmarkDetail({ summary }: BenchmarkDetailProps) {
         level,
       }
     })
-  }, [allCategoryResults])
+  }, [allCategoryResults, benchmarkCards])
 
   const policySummary = useMemo(() => {
     const benchmarkCount = new Set(
@@ -751,22 +780,22 @@ export function BenchmarkDetail({ summary }: BenchmarkDetailProps) {
     summary.total_evaluations,
   ])
 
-  const benchmarkGroups = useMemo(() => buildBenchmarkGroups(allCategoryResults), [allCategoryResults])
-
-  const bestBenchmark = benchmarkGroups[0]
-  const weakestBenchmark = benchmarkGroups[benchmarkGroups.length - 1]
-  const widestBenchmark = [...benchmarkGroups].sort((a, b) => getBenchmarkSpread(b) - getBenchmarkSpread(a))[0]
-  const repeatedBenchmarkCount = benchmarkGroups.filter((group) => group.variants.length > 1).length
-  const setupDrivenBenchmarkCount = benchmarkGroups.filter((group) =>
-    group.variants.some((variant) => variant.variantType === "setup" || variant.variantType === "setup+subtask")
-  ).length
-  const subtaskDrivenBenchmarkCount = benchmarkGroups.filter((group) =>
-    group.variants.some((variant) => variant.variantType === "subtask" || variant.variantType === "setup+subtask")
-  ).length
+  const benchmarkGroups = useMemo(
+    () => buildBenchmarkGroups(allCategoryResults, benchmarkCards),
+    [allCategoryResults, benchmarkCards]
+  )
+  const availableCategories = useMemo(() => {
+    const presentCategories = new Set(benchmarkGroups.map((group) => group.category))
+    return summary.categories_covered.filter((category) => presentCategories.has(category))
+  }, [benchmarkGroups, summary.categories_covered])
 
   const filteredBenchmarkGroups = useMemo(() => {
     const query = benchmarkSearch.trim().toLowerCase()
     const filtered = benchmarkGroups.filter((group) => {
+      if (selectedCategories.length > 0 && !selectedCategories.includes(group.category)) {
+        return false
+      }
+
       if (!query) {
         return true
       }
@@ -778,25 +807,54 @@ export function BenchmarkDetail({ summary }: BenchmarkDetailProps) {
       )
     })
 
-    const sorted = [...filtered]
-    switch (benchmarkSort) {
-      case "name":
-        sorted.sort((a, b) => a.title.localeCompare(b.title))
-        break
-      case "variants":
-        sorted.sort((a, b) => b.variants.length - a.variants.length || b.avgNormalizedScore - a.avgNormalizedScore)
-        break
-      case "spread":
-        sorted.sort((a, b) => getBenchmarkSpread(b) - getBenchmarkSpread(a) || b.avgNormalizedScore - a.avgNormalizedScore)
-        break
-      case "score":
-      default:
-        sorted.sort((a, b) => b.avgNormalizedScore - a.avgNormalizedScore)
-        break
+    // Metadata-first: always put groups with a benchmarkCard at the top
+    const withCard = filtered.filter((g) => !!g.benchmarkCard)
+    const withoutCard = filtered.filter((g) => !g.benchmarkCard)
+
+    const sortFn = (a: BenchmarkGroup, b: BenchmarkGroup) => {
+      switch (benchmarkSort) {
+        case "name": return a.title.localeCompare(b.title)
+        case "variants": return b.variants.length - a.variants.length || b.avgNormalizedScore - a.avgNormalizedScore
+        case "spread": return getBenchmarkSpread(b) - getBenchmarkSpread(a) || b.avgNormalizedScore - a.avgNormalizedScore
+        default: return b.avgNormalizedScore - a.avgNormalizedScore
+      }
     }
 
-    return sorted
-  }, [benchmarkGroups, benchmarkSearch, benchmarkSort])
+    withCard.sort(sortFn)
+    withoutCard.sort(sortFn)
+
+    return showWithoutMetadata ? [...withCard, ...withoutCard] : withCard
+  }, [benchmarkGroups, benchmarkSearch, benchmarkSort, selectedCategories, showWithoutMetadata])
+
+  const groupedFilteredBenchmarkGroups = useMemo(() => {
+    const order = new Map(summary.categories_covered.map((category, index) => [category, index]))
+    const groups = new Map<CategoryType, BenchmarkGroup[]>()
+
+    for (const benchmarkGroup of filteredBenchmarkGroups) {
+      const bucket = groups.get(benchmarkGroup.category) ?? []
+      bucket.push(benchmarkGroup)
+      groups.set(benchmarkGroup.category, bucket)
+    }
+
+    return Array.from(groups.entries())
+      .sort((a, b) => (order.get(a[0]) ?? 999) - (order.get(b[0]) ?? 999))
+      .map(([category, groups]) => ({ category, groups }))
+  }, [filteredBenchmarkGroups, summary.categories_covered])
+
+  const overviewBenchmarkGroups =
+    selectedCategories.length > 0 || benchmarkSearch.trim()
+      ? filteredBenchmarkGroups
+      : benchmarkGroups
+
+  const bestBenchmark = overviewBenchmarkGroups[0]
+  const widestBenchmark = [...overviewBenchmarkGroups].sort((a, b) => getBenchmarkSpread(b) - getBenchmarkSpread(a))[0]
+  const repeatedBenchmarkCount = overviewBenchmarkGroups.filter((group) => group.variants.length > 1).length
+  const setupDrivenBenchmarkCount = overviewBenchmarkGroups.filter((group) =>
+    group.variants.some((variant) => variant.variantType === "setup" || variant.variantType === "setup+subtask")
+  ).length
+  const subtaskDrivenBenchmarkCount = overviewBenchmarkGroups.filter((group) =>
+    group.variants.some((variant) => variant.variantType === "subtask" || variant.variantType === "setup+subtask")
+  ).length
 
   useEffect(() => {
     if (!expandedBenchmarkKey) {
@@ -808,6 +866,12 @@ export function BenchmarkDetail({ summary }: BenchmarkDetailProps) {
       setExpandedBenchmarkKey(null)
     }
   }, [expandedBenchmarkKey, filteredBenchmarkGroups])
+
+  useEffect(() => {
+    setSelectedCategories((current) =>
+      current.filter((category) => availableCategories.includes(category))
+    )
+  }, [availableCategories])
 
   const formatDate = (isoString: string) => {
     try {
@@ -824,11 +888,11 @@ export function BenchmarkDetail({ summary }: BenchmarkDetailProps) {
   }
   
   return (
-    <div className="space-y-6">
+    <div className="space-y-4">
       <Card className="overflow-hidden">
-        <CardContent className="space-y-5 p-5 sm:p-6">
-          <div className="flex flex-col gap-5 xl:flex-row xl:items-start xl:justify-between">
-            <div className="space-y-3">
+        <CardContent className="space-y-4 p-4 sm:p-5">
+          <div className="flex flex-col gap-4 xl:flex-row xl:items-start xl:justify-between">
+            <div className="space-y-2.5">
               <div className="flex flex-wrap items-center gap-2">
                 <Badge variant="outline" className="border-border/60 bg-background/80 text-[11px] uppercase tracking-[0.18em]">
                   Model Metadata
@@ -858,16 +922,16 @@ export function BenchmarkDetail({ summary }: BenchmarkDetailProps) {
               )}
             </div>
 
-            <div className="grid w-full gap-3 sm:grid-cols-2 xl:w-[560px] xl:grid-cols-4">
-              <div className="rounded-2xl border border-sky-200/80 bg-sky-50/80 px-4 py-3 shadow-[inset_0_1px_0_rgba(255,255,255,0.45)] dark:border-sky-900/40 dark:bg-sky-950/20 dark:shadow-none">
+            <div className="grid w-full gap-2.5 sm:grid-cols-2 xl:w-[620px] xl:grid-cols-4">
+              <div className="rounded-2xl border border-sky-200/80 bg-sky-50/80 px-3.5 py-2.5 dark:border-sky-900/40 dark:bg-sky-950/20 dark:shadow-none">
                 <div className="text-[10px] font-semibold tracking-[0.12em] text-sky-700 dark:text-sky-200 whitespace-nowrap">Benchmarks</div>
                 <div className="mt-1 text-[1.8rem] font-semibold leading-none text-sky-950 dark:text-sky-50">{benchmarkGroups.length}</div>
               </div>
-              <div className="rounded-2xl border border-border/70 bg-muted/20 px-4 py-3 shadow-[inset_0_1px_0_rgba(255,255,255,0.3)] dark:shadow-none">
+              <div className="rounded-2xl border border-border/70 bg-muted/20 px-3.5 py-2.5 dark:shadow-none">
                 <div className="text-[10px] font-semibold tracking-[0.12em] text-muted-foreground whitespace-nowrap">Results</div>
                 <div className="mt-1 text-[1.8rem] font-semibold leading-none">{summary.total_evaluations}</div>
               </div>
-              <div className="rounded-2xl border border-emerald-200/80 bg-emerald-50/80 px-4 py-3 shadow-[inset_0_1px_0_rgba(255,255,255,0.45)] dark:border-emerald-900/40 dark:bg-emerald-950/20 dark:shadow-none">
+              <div className="rounded-2xl border border-emerald-200/80 bg-emerald-50/80 px-3.5 py-2.5 dark:border-emerald-900/40 dark:bg-emerald-950/20 dark:shadow-none">
                 <div className="text-[10px] font-semibold tracking-[0.12em] text-emerald-700 dark:text-emerald-200 whitespace-nowrap">
                   Reporting orgs
                 </div>
@@ -875,7 +939,7 @@ export function BenchmarkDetail({ summary }: BenchmarkDetailProps) {
                   {reportingStats.organizationCount}
                 </div>
               </div>
-              <div className="rounded-2xl border border-amber-200/80 bg-amber-50/80 px-4 py-3 shadow-[inset_0_1px_0_rgba(255,255,255,0.45)] dark:border-amber-900/40 dark:bg-amber-950/20 dark:shadow-none">
+              <div className="rounded-2xl border border-amber-200/80 bg-amber-50/80 px-3.5 py-2.5 dark:border-amber-900/40 dark:bg-amber-950/20 dark:shadow-none">
                 <div className="text-[10px] font-semibold tracking-[0.12em] text-amber-700 dark:text-amber-200 whitespace-nowrap">
                   Source types
                 </div>
@@ -886,7 +950,7 @@ export function BenchmarkDetail({ summary }: BenchmarkDetailProps) {
             </div>
           </div>
 
-          <div className="grid gap-4 xl:grid-cols-[minmax(0,1fr)_minmax(320px,0.92fr)]">
+          <div className="grid gap-3 xl:grid-cols-[minmax(0,1fr)_minmax(320px,0.92fr)]">
             <div className="rounded-[1.5rem] border bg-muted/10 p-4">
               <div className="text-[11px] font-semibold uppercase tracking-[0.2em] text-muted-foreground">
                 System and evidence context
@@ -974,7 +1038,7 @@ export function BenchmarkDetail({ summary }: BenchmarkDetailProps) {
                 </div>
               </div>
             ) : (
-              <div className="rounded-[1.5rem] border bg-gradient-to-br from-amber-50/80 via-background to-rose-50/60 p-4 dark:from-amber-950/20 dark:via-background dark:to-rose-950/20">
+              <div className="rounded-[1.5rem] border bg-amber-50/60 p-4 dark:bg-amber-950/20">
                 <div className="flex items-center gap-2">
                   <Scale className="h-4 w-4 text-primary" />
                   <div className="text-sm font-semibold">Public reading</div>
@@ -1013,8 +1077,8 @@ export function BenchmarkDetail({ summary }: BenchmarkDetailProps) {
         </CardContent>
       </Card>
 
-      <section className="space-y-5">
-        <div className="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
+      <section className="space-y-4">
+        <div className="flex flex-col gap-3 lg:flex-row lg:items-end lg:justify-between">
           <div className="space-y-1">
             <h3 className="text-xl font-semibold">
               {isResearchView ? "Benchmark Explorer" : "Reported Benchmark Signals"}
@@ -1026,8 +1090,8 @@ export function BenchmarkDetail({ summary }: BenchmarkDetailProps) {
             </p>
           </div>
 
-          <div className="flex flex-col gap-3 sm:flex-row">
-            <div className="relative w-full sm:w-[280px]">
+          <div className="flex flex-col gap-2.5 sm:flex-row sm:flex-wrap sm:justify-end">
+            <div className="relative w-full sm:w-[260px]">
               <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
               <Input
                 value={benchmarkSearch}
@@ -1038,55 +1102,126 @@ export function BenchmarkDetail({ summary }: BenchmarkDetailProps) {
             </div>
 
             <Select value={benchmarkSort} onValueChange={(value) => setBenchmarkSort(value as typeof benchmarkSort)}>
-              <SelectTrigger className="w-full sm:w-[220px]">
+              <SelectTrigger className="w-full sm:w-[200px]">
                 <SelectValue placeholder="Sort benchmarks" />
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value="score">Highest score first</SelectItem>
                 <SelectItem value="name">Name (A-Z)</SelectItem>
-                <SelectItem value="variants">Most comparison slices</SelectItem>
+                <SelectItem value="variants">Most subtasks</SelectItem>
                 <SelectItem value="spread">Largest setup swing</SelectItem>
               </SelectContent>
             </Select>
           </div>
         </div>
 
-        <div className={`grid gap-4 ${isResearchView ? "md:grid-cols-3" : "md:grid-cols-2 xl:grid-cols-3"}`}>
+        {availableCategories.length > 0 && (
+          <div className="flex flex-wrap items-center gap-2">
+            <span className="text-[11px] font-semibold uppercase tracking-[0.18em] text-muted-foreground">
+              Category
+            </span>
+            <button
+              type="button"
+              onClick={() => setSelectedCategories([])}
+              className={`inline-flex items-center rounded-full border px-3 py-1 text-sm font-medium transition-colors ${
+                selectedCategories.length === 0
+                  ? "border-foreground bg-foreground text-background"
+                  : "border-border/70 bg-background text-muted-foreground hover:text-foreground"
+              }`}
+            >
+              All
+            </button>
+            {availableCategories.map((category) => {
+              const isSelected = selectedCategories.includes(category)
+
+              return (
+                <button
+                  key={category}
+                  type="button"
+                  onClick={() =>
+                    setSelectedCategories((current) =>
+                      current.includes(category)
+                        ? current.filter((item) => item !== category)
+                        : [...current, category]
+                    )
+                  }
+                  className={`inline-flex items-center rounded-full border px-3 py-1 text-sm font-medium transition-colors ${
+                    isSelected
+                      ? getCategoryTone(category)
+                      : "border-border/70 bg-background text-muted-foreground hover:text-foreground"
+                  }`}
+                >
+                  {category}
+                </button>
+              )
+            })}
+          </div>
+        )}
+
+        {/* Metadata toggle */}
+        {benchmarkGroups.some((g) => !g.benchmarkCard) && (
+          <div className="flex items-center gap-2 text-sm">
+            <label className="flex cursor-pointer items-center gap-2 select-none">
+              <input
+                type="checkbox"
+                checked={showWithoutMetadata}
+                onChange={(e) => setShowWithoutMetadata(e.target.checked)}
+                className="h-4 w-4 rounded border-border accent-primary"
+              />
+              <span className="text-muted-foreground">
+                Show {benchmarkGroups.filter((g) => !g.benchmarkCard).length} benchmarks without rich metadata
+              </span>
+            </label>
+            <span className="rounded-full border border-border/60 bg-muted/30 px-2 py-0.5 text-[10px] font-medium text-muted-foreground">
+              {benchmarkGroups.filter((g) => !!g.benchmarkCard).length} with metadata
+            </span>
+          </div>
+        )}
+
+        <div className={`grid gap-3 ${isResearchView ? "md:grid-cols-3" : "md:grid-cols-2 xl:grid-cols-3"}`}>
           {bestBenchmark && (
-            <div className="rounded-[1.5rem] border bg-emerald-50/70 p-4 dark:bg-emerald-950/20">
+            <div className="rounded-2xl border bg-emerald-50/70 p-3.5 dark:bg-emerald-950/20">
               <div className="text-[10px] font-semibold uppercase tracking-[0.16em] text-emerald-700/90 dark:text-emerald-300">
                 Strongest Reported Benchmark
               </div>
-              <div className="mt-2 text-base font-semibold tracking-tight">{bestBenchmark.title}</div>
-              <div className="mt-1 text-[13px] leading-5 text-muted-foreground">{bestBenchmark.description}</div>
-              <div className="mt-3 text-[1.75rem] font-semibold tracking-tight text-emerald-700 dark:text-emerald-300">{bestBenchmark.avgDisplayScore}</div>
+              <div className="mt-1.5 text-sm font-semibold tracking-tight">
+                <Link href={bestBenchmark.evalDetailHref} className="underline decoration-dotted underline-offset-4 hover:text-primary">
+                  {bestBenchmark.title}
+                </Link>
+              </div>
+              <div className="mt-1 text-xs leading-5 text-muted-foreground">{bestBenchmark.description}</div>
+              <div className="mt-2 text-[1.45rem] font-semibold tracking-tight text-emerald-700 dark:text-emerald-300">{bestBenchmark.avgDisplayScore}</div>
             </div>
           )}
 
           {widestBenchmark && (
-            <div className="rounded-[1.5rem] border bg-amber-50/70 p-4 dark:bg-amber-950/20">
+            <div className="rounded-2xl border bg-amber-50/70 p-3.5 dark:bg-amber-950/20">
               <div className="text-[10px] font-semibold uppercase tracking-[0.16em] text-amber-700/90 dark:text-amber-300">
                 Widest score gap
               </div>
-              <div className="mt-2 text-base font-semibold tracking-tight">{widestBenchmark.title}</div>
-              <div className="mt-1 text-[13px] leading-5 text-muted-foreground">
-                {widestBenchmark.variants.length} reported slice{widestBenchmark.variants.length === 1 ? "" : "s"} with the biggest spread between highest and lowest scores
+              <div className="mt-1.5 text-sm font-semibold tracking-tight">
+                <Link href={widestBenchmark.evalDetailHref} className="underline decoration-dotted underline-offset-4 hover:text-primary">
+                  {widestBenchmark.title}
+                </Link>
               </div>
-              <div className="mt-3 text-[1.75rem] font-semibold tracking-tight text-amber-700 dark:text-amber-300">
+              <div className="mt-1 text-xs leading-5 text-muted-foreground">
+                {widestBenchmark.variants.length} subtask{widestBenchmark.variants.length === 1 ? "" : "s"} with the biggest spread between highest and lowest scores
+              </div>
+              <div className="mt-2 text-[1.45rem] font-semibold tracking-tight text-amber-700 dark:text-amber-300">
                 {(getBenchmarkSpread(widestBenchmark) * 100).toFixed(1)} pts
               </div>
             </div>
           )}
 
-              <div className="rounded-[1.5rem] border bg-sky-50/70 p-4 dark:bg-sky-950/20">
+              <div className="rounded-2xl border bg-sky-50/70 p-3.5 dark:bg-sky-950/20">
             <div className="text-[10px] font-semibold uppercase tracking-[0.16em] text-sky-700/90 dark:text-sky-300">
               Coverage Snapshot
             </div>
-            <div className="mt-2 text-base font-semibold tracking-tight">{benchmarkGroups.length} benchmarks</div>
-                <div className="mt-1 text-[13px] leading-5 text-muted-foreground">
-              {repeatedBenchmarkCount} benchmark{repeatedBenchmarkCount === 1 ? "" : "s"} include multiple comparison slices.
+            <div className="mt-1.5 text-sm font-semibold tracking-tight">{benchmarkGroups.length} benchmarks</div>
+                <div className="mt-1 text-xs leading-5 text-muted-foreground">
+              {repeatedBenchmarkCount} benchmark{repeatedBenchmarkCount === 1 ? "" : "s"} include multiple subtasks.
                 </div>
-            <div className="mt-3 text-[13px] font-medium text-sky-700 dark:text-sky-300">
+            <div className="mt-2 text-xs font-medium text-sky-700 dark:text-sky-300">
               {filteredBenchmarkGroups.length} shown after filters
             </div>
           </div>
@@ -1094,26 +1229,41 @@ export function BenchmarkDetail({ summary }: BenchmarkDetailProps) {
 
         {filteredBenchmarkGroups.length === 0 ? (
           <div className="rounded-2xl border border-dashed p-8 text-center text-sm text-muted-foreground">
-            No benchmarks match the current search.
+            No benchmarks match the current search or category filters.
           </div>
         ) : (
-          <div className="grid gap-4 xl:grid-cols-2">
-            {filteredBenchmarkGroups.map((group, index) => (
-              <AggregatedBenchmarkCard
-                key={group.key}
-                group={group}
-                isOpen={expandedBenchmarkKey === group.key}
-                motionIndex={index}
-                onOpenChange={(open) =>
-                  setExpandedBenchmarkKey((current) => {
-                    if (open) {
-                      return group.key
-                    }
+          <div className="space-y-5">
+            {groupedFilteredBenchmarkGroups.map(({ category, groups }, sectionIndex) => (
+              <section key={category} className="space-y-3">
+                <div className="flex items-center gap-3">
+                  <span className={`inline-flex items-center rounded-full border px-3 py-1 text-xs font-semibold ${getCategoryTone(category)}`}>
+                    {category}
+                  </span>
+                  <div className="text-sm text-muted-foreground">
+                    {groups.length} benchmark{groups.length === 1 ? "" : "s"}
+                  </div>
+                </div>
 
-                    return current === group.key ? null : current
-                  })
-                }
-              />
+                <div className="space-y-2.5">
+                  {groups.map((group, index) => (
+                    <AggregatedBenchmarkCard
+                      key={`${category}-${group.key}`}
+                      group={group}
+                      isOpen={expandedBenchmarkKey === group.key}
+                      motionIndex={sectionIndex * 6 + index}
+                      onOpenChange={(open) =>
+                        setExpandedBenchmarkKey((current) => {
+                          if (open) {
+                            return group.key
+                          }
+
+                          return current === group.key ? null : current
+                        })
+                      }
+                    />
+                  ))}
+                </div>
+              </section>
             ))}
           </div>
         )}
@@ -1861,6 +2011,8 @@ function AggregatedBenchmarkCard({
   }, Number.NEGATIVE_INFINITY)
   const latestReportedLabel =
     Number.isFinite(latestTimestamp) ? formatCompactDate(String(latestTimestamp)) : formatCompactDate(group.variants[0]?.evaluation.retrieved_timestamp ?? "")
+  const compactDomains = group.domains.slice(0, 2)
+  const progressWidth = Math.max(4, Math.min(100, group.avgNormalizedScore * 100))
 
   const toggleRow = (rowKey: string) => {
     setExpandedRows((current) => ({
@@ -1871,118 +2023,150 @@ function AggregatedBenchmarkCard({
 
   return (
     <div
-      className={`motion-academic-enter ${isOpen ? "xl:col-span-2" : ""}`}
+      className="motion-academic-enter"
       style={{ "--enter-delay": `${Math.min(motionIndex * 55, 260)}ms` } as CSSProperties}
     >
       <Collapsible open={isOpen} onOpenChange={onOpenChange}>
-      <Card className="motion-academic-surface overflow-hidden border border-border/70 bg-card shadow-[0_1px_0_rgba(255,255,255,0.3),0_12px_30px_rgba(15,23,42,0.04)] dark:shadow-[0_1px_0_rgba(255,255,255,0.02)]">
-        <div className="p-5 sm:p-6">
-          <div className="flex flex-col gap-5 lg:flex-row lg:items-start lg:justify-between">
-            <div className="min-w-0 flex-1 space-y-3">
-              <div className="flex flex-wrap items-center gap-2">
-                <Badge variant="outline" className="border-border/60 bg-background/70 text-[11px] font-medium text-foreground/85 shadow-none">
-                  Benchmark summary
-                </Badge>
-                <Badge variant="outline" className="border-border/60 bg-background/70 text-[11px] font-normal text-muted-foreground">
-                  {group.scoreType}
-                </Badge>
-                <Badge variant="secondary" className="bg-muted/60 text-[11px] font-normal text-muted-foreground">
-                  {group.variants.length > 1
-                    ? `${group.variants.length} comparison slices`
-                    : "1 reported result"}
-                </Badge>
-                {sourceOrganizations.size > 1 && (
-                  <Badge variant="outline" className="border-border/60 bg-background/70 text-[11px] font-normal text-muted-foreground">
-                    {sourceOrganizations.size} reporting orgs
-                  </Badge>
-                )}
-              </div>
+      <Card className="motion-academic-surface overflow-hidden border border-border/70 bg-card shadow-[0_1px_0_rgba(255,255,255,0.3),0_8px_24px_rgba(15,23,42,0.04)] dark:shadow-[0_1px_0_rgba(255,255,255,0.02)]">
+        <div
+          role="button"
+          tabIndex={0}
+          onClick={() => onOpenChange(!isOpen)}
+          onKeyDown={(event) => {
+            if (event.key === "Enter" || event.key === " ") {
+              event.preventDefault()
+              onOpenChange(!isOpen)
+            }
+          }}
+          className="block w-full cursor-pointer px-3.5 py-2.5 text-left transition-colors hover:bg-muted/20 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
+        >
+            {/* Compact single-row layout */}
+            <div className="flex items-center gap-3">
+              {/* Category dot */}
+              <span className={`shrink-0 inline-flex items-center rounded-full border px-2 py-0.5 text-[10px] font-semibold ${getCategoryTone(group.category)}`}>
+                {group.category}
+              </span>
 
-              <div>
-                <h3 className="text-[1.35rem] font-semibold tracking-tight text-foreground/95 sm:text-[1.45rem]">{group.title}</h3>
-                <p className="mt-1 max-w-3xl text-[13px] leading-5 text-muted-foreground">{group.description}</p>
-              </div>
-
-              <div className="rounded-2xl border border-border/60 bg-muted/[0.22] p-3 shadow-[inset_0_1px_0_rgba(255,255,255,0.45)] dark:bg-muted/10 dark:shadow-none">
-                <div className="grid gap-3 md:grid-cols-[minmax(0,1.6fr)_minmax(140px,.8fr)_minmax(140px,.85fr)]">
-                  <div>
-                    <div className="text-[10px] font-semibold uppercase tracking-[0.14em] text-muted-foreground">
-                      {group.variants.length > 1
-                        ? isResearchView
-                          ? "Top comparison slice"
-                          : "Top reported slice"
-                        : "Reported result"}
-                    </div>
-                    <div className="mt-1 flex flex-wrap items-center gap-2">
-                      <span className="min-w-0 truncate text-[13px] font-medium text-foreground/90">
-                        {group.variants[0]?.label ?? "Default run"}
-                      </span>
-                      {group.variants[0] && (
-                        <Badge className={`${getVariantTypeTone(group.variants[0].variantType)} shadow-none`}>
-                          {getVariantTypeLabel(group.variants[0].variantType)}
-                        </Badge>
-                      )}
-                    </div>
-                  </div>
-                  <div className="md:border-l md:border-border/50 md:pl-3">
-                    <div className="text-[10px] font-semibold uppercase tracking-[0.14em] text-muted-foreground">
-                      {group.variants.length > 1
-                        ? isResearchView
-                          ? "Cross-slice spread"
-                          : "Score spread"
-                        : "Comparison status"}
-                    </div>
-                    <div className="mt-1 text-[13px] font-medium text-foreground/90">
-                      {group.variants.length > 1 ? `${(spread * 100).toFixed(1)} pts` : "No comparison set"}
-                    </div>
-                  </div>
-                  <div className="md:border-l md:border-border/50 md:pl-3">
-                    <div className="text-[10px] font-semibold uppercase tracking-[0.14em] text-muted-foreground">
-                      Latest report
-                    </div>
-                    <div className="mt-1 text-[13px] font-medium text-foreground/90">{latestReportedLabel}</div>
-                  </div>
+              {/* Name + domains */}
+              <div className="min-w-0 flex-1">
+                <div className="flex flex-wrap items-center gap-2">
+                  <Link
+                    href={group.evalDetailHref}
+                    onClick={(event) => event.stopPropagation()}
+                    className="text-sm font-semibold tracking-tight text-foreground/95 underline decoration-dotted underline-offset-4 hover:text-primary"
+                  >
+                    {group.title}
+                  </Link>
+                  {group.benchmarkCard && (
+                    <span className="shrink-0 rounded-full border border-border/50 bg-muted/30 px-1.5 py-0.5 text-[9px] font-semibold uppercase tracking-[0.12em] text-muted-foreground">
+                      card
+                    </span>
+                  )}
+                  {compactDomains.map((domain) => (
+                    <span
+                      key={`${group.key}-${domain}`}
+                      className="hidden sm:inline-flex items-center rounded-full border border-border/50 bg-background/60 px-2 py-0.5 text-[10px] font-medium capitalize text-muted-foreground"
+                    >
+                      {domain}
+                    </span>
+                  ))}
+                  {group.domains.length > compactDomains.length && (
+                    <span className="hidden sm:inline text-[10px] text-muted-foreground/70">+{group.domains.length - compactDomains.length}</span>
+                  )}
                 </div>
               </div>
-            </div>
 
-            <div className="flex items-center gap-3 lg:min-w-[210px] lg:justify-end lg:pl-4">
-              <div className="min-w-[152px] text-right">
-                <div className="text-[2rem] font-semibold tracking-tight text-foreground/95">{group.avgDisplayScore}</div>
-                <div className="mt-1 text-[12px] text-muted-foreground">
-                  {isResearchView ? "Average normalized score" : "Average reported score"}
+              {/* Score bar + score — right side */}
+              <div className="hidden md:flex shrink-0 items-center gap-2.5 w-[180px] lg:w-[190px]">
+                <div className="flex-1 h-1.5 overflow-hidden rounded-full bg-muted/60">
+                  <div
+                    className="h-full rounded-full bg-foreground/70 transition-[width] duration-300"
+                    style={{ width: `${progressWidth}%` }}
+                  />
                 </div>
-                <div className="mt-3 flex justify-end">
-                  <div className="h-1.5 w-28 overflow-hidden rounded-full bg-muted">
-                    <div
-                      className="h-full rounded-full bg-foreground/90 transition-[width] duration-300"
-                      style={{ width: `${Math.max(0, Math.min(100, group.avgNormalizedScore * 100))}%` }}
-                    />
-                  </div>
-                </div>
+                <span className="w-12 shrink-0 text-right text-sm font-semibold tabular-nums text-foreground/90">
+                  {group.avgDisplayScore}
+                </span>
               </div>
-              <CollapsibleTrigger asChild>
-                <Button variant="ghost" size="sm" className="motion-academic-button h-9 w-9 rounded-full border border-border/60 bg-background/80 p-0 shadow-sm">
-                  {isOpen ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
-                  <span className="sr-only">Toggle benchmark details</span>
-                </Button>
-              </CollapsibleTrigger>
-            </div>
+
+              {/* Subtask count */}
+              <span className="shrink-0 text-[11px] text-muted-foreground w-16 text-right hidden sm:block">
+                {group.variants.length} {group.variants.length === 1 ? "subtask" : "subtasks"}
+              </span>
+
+              {/* Expand toggle */}
+              <div className="shrink-0 text-muted-foreground">
+                {isOpen ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
+              </div>
           </div>
         </div>
 
         <CollapsibleContent>
           <Separator />
-          <CardContent className="p-6 bg-muted/5">
-            <div className="space-y-3">
+          <CardContent className="bg-muted/5 p-4 sm:p-5">
+            <div className="space-y-2.5">
+              {group.benchmarkCard && (
+                <div className="rounded-2xl border border-border/70 bg-background/90 p-3.5">
+                  <div className="flex flex-wrap items-start justify-between gap-3">
+                    <div className="min-w-0 space-y-1">
+                      <div className="text-xs font-semibold uppercase tracking-[0.2em] text-muted-foreground">
+                        Benchmark context
+                      </div>
+                      <div className="text-base font-semibold">
+                        {group.benchmarkCard.benchmark_details.name}
+                      </div>
+                      <p className="max-w-3xl text-sm leading-6 text-muted-foreground">
+                        {group.benchmarkCard.benchmark_details.overview}
+                      </p>
+                    </div>
+                    <div className="flex flex-wrap gap-1.5">
+                      <Badge variant="outline" className="font-normal">
+                        {group.benchmarkCard.benchmark_details.data_type}
+                      </Badge>
+                      {group.benchmarkCard.methodology.metrics.slice(0, 2).map((metric) => (
+                        <Badge key={`${group.key}-${metric}`} variant="secondary" className="font-normal">
+                          {metric}
+                        </Badge>
+                      ))}
+                    </div>
+                  </div>
+                  <div className="mt-3 grid gap-3 lg:grid-cols-3">
+                    <div className="rounded-xl border bg-muted/10 p-3">
+                      <div className="text-[11px] font-semibold uppercase tracking-[0.16em] text-muted-foreground">
+                        Goal
+                      </div>
+                      <div className="mt-1 text-sm text-foreground/90">
+                        {group.benchmarkCard.purpose_and_intended_users.goal}
+                      </div>
+                    </div>
+                    <div className="rounded-xl border bg-muted/10 p-3">
+                      <div className="text-[11px] font-semibold uppercase tracking-[0.16em] text-muted-foreground">
+                        Methods
+                      </div>
+                      <div className="mt-1 text-sm text-foreground/90">
+                        {group.benchmarkCard.methodology.methods.slice(0, 2).join(", ") || "Not specified"}
+                      </div>
+                    </div>
+                    <div className="rounded-xl border bg-muted/10 p-3">
+                      <div className="text-[11px] font-semibold uppercase tracking-[0.16em] text-muted-foreground">
+                        Caveat
+                      </div>
+                      <div className="mt-1 text-sm text-foreground/90">
+                        {group.benchmarkCard.purpose_and_intended_users.limitations}
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              )}
+
               <div>
                 <div className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">
-                  Comparison Slices
+                  Subtasks
                 </div>
                 <div className="text-xs text-muted-foreground mt-1">
                   {isResearchView
                     ? "Setup changes and benchmark subtasks are shown separately so you can tell methodological differences from benchmark decomposition."
-                    : "Different setups and benchmark subtasks are visually separated so policy review does not confuse reporting choices with task slices."}
+                    : "Different setups and benchmark subtasks are visually separated so policy review does not confuse reporting choices with benchmark decomposition."}
                 </div>
               </div>
 
@@ -2073,7 +2257,11 @@ function AggregatedBenchmarkCard({
                         className="motion-academic-enter-soft overflow-hidden rounded-xl border bg-background"
                         style={{ "--enter-delay": `${Math.min(index * 40, 180)}ms` } as CSSProperties}
                       >
-                        <div className="p-4">
+                        <button
+                          type="button"
+                          className="block w-full p-4 text-left transition-colors hover:bg-muted/20 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
+                          onClick={() => toggleRow(rowKey)}
+                        >
                           <div className="flex flex-col gap-3">
                             <div className="flex items-start justify-between gap-3">
                               <div className="flex min-w-0 items-start gap-3">
@@ -2096,76 +2284,69 @@ function AggregatedBenchmarkCard({
                                 </div>
                               </div>
 
-                              <Button
-                                variant="ghost"
-                                size="sm"
-                                className="h-9 w-9 shrink-0 p-0"
-                                onClick={() => toggleRow(rowKey)}
-                              >
+                              <span className="inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-full border border-border/60 bg-background/80">
                                 {isRowOpen ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
                                 <span className="sr-only">Toggle variant details</span>
-                              </Button>
+                              </span>
                             </div>
 
-                            <div className="grid gap-2 border-t border-border/50 pt-3 md:grid-cols-4">
-                              <SummaryRailItem
-                                label={isResearchView ? "Config" : "Setup"}
-                                tone="bg-sky-50/80 border-sky-200/70 shadow-[inset_0_1px_0_rgba(255,255,255,0.7)] dark:bg-sky-950/20 dark:border-sky-900/40"
-                              >
-                                <Badge
-                                  variant="outline"
-                                  className="max-w-full truncate border-sky-200/70 bg-background/90 px-2 py-0.5 font-normal dark:border-sky-900/40 dark:bg-background/70"
-                                  title={getTableConfigLabel(row)}
-                                >
+                            <div className="grid gap-3 border-t border-border/50 pt-3 lg:grid-cols-[minmax(0,1.1fr)_minmax(180px,1fr)_110px_150px]">
+                              <div className="min-w-0">
+                                <div className="text-[11px] font-semibold uppercase tracking-[0.16em] text-muted-foreground">
+                                  {isResearchView ? "Config" : "Setup"}
+                                </div>
+                                <div className="mt-1 text-sm font-medium text-foreground/90" title={getTableConfigLabel(row)}>
                                   {getConfigDisplayValue(getTableConfigLabel(row))}
-                                </Badge>
-                              </SummaryRailItem>
+                                </div>
+                              </div>
 
-                              <SummaryRailItem
-                                label={isResearchView ? "Gap" : "Relationship"}
-                                tone="bg-stone-100/80 border-stone-200/80 shadow-[inset_0_1px_0_rgba(255,255,255,0.7)] dark:bg-stone-900/35 dark:border-stone-800/70"
-                              >
+                              <div className="min-w-0">
+                                <div className="flex items-center justify-between text-[11px] font-semibold uppercase tracking-[0.16em] text-muted-foreground">
+                                  <span>{isResearchView ? "Relative score" : "Evidence context"}</span>
+                                  <span>{index === 0 ? "Leader" : `-${(gapToLeader * 100).toFixed(1)} pts`}</span>
+                                </div>
                                 {isResearchView ? (
-                                  <div className="flex items-center gap-2">
-                                    <div className="min-w-0 text-sm font-semibold">
-                                      {index === 0 ? "Leader" : `-${(gapToLeader * 100).toFixed(1)} pts`}
+                                  <>
+                                    <div className="mt-2 h-2 overflow-hidden rounded-full bg-muted">
+                                      <div
+                                        className="h-full rounded-full bg-foreground/70"
+                                        style={{
+                                          width: `${leaderNormalizedScore > 0 ? Math.max(4, (variant.normalizedScore / leaderNormalizedScore) * 100) : 100}%`,
+                                        }}
+                                      />
                                     </div>
-                                    <Progress
-                                      value={leaderNormalizedScore > 0 ? (variant.normalizedScore / leaderNormalizedScore) * 100 : 100}
-                                      className="h-2 w-14 shrink-0"
-                                    />
-                                  </div>
+                                    <div className="mt-1 text-[12px] text-muted-foreground">
+                                      {variant.evaluation.source_metadata.evaluator_relationship.replace(/_/g, " ")}
+                                    </div>
+                                  </>
                                 ) : (
-                                  <div className="text-sm capitalize text-muted-foreground">
+                                  <div className="mt-1 text-sm capitalize text-muted-foreground">
                                     {variant.evaluation.source_metadata.evaluator_relationship.replace(/_/g, " ")}
                                   </div>
                                 )}
-                              </SummaryRailItem>
+                              </div>
 
-                              <SummaryRailItem
-                                label="Score"
-                                tone="bg-amber-50/85 border-amber-200/70 shadow-[inset_0_1px_0_rgba(255,255,255,0.7)] dark:bg-amber-950/20 dark:border-amber-900/40"
-                              >
-                                <span className="text-base font-semibold">{variant.displayScore}</span>
-                              </SummaryRailItem>
-
-                              <SummaryRailItem
-                                label={isResearchView ? "Source" : "Evidence"}
-                                tone="bg-emerald-50/80 border-emerald-200/70 shadow-[inset_0_1px_0_rgba(255,255,255,0.7)] dark:bg-emerald-950/20 dark:border-emerald-900/40"
-                              >
-                                <div className="flex items-center gap-1.5 whitespace-nowrap text-sm text-muted-foreground">
-                                  <span className="min-w-0 max-w-[6.25rem] truncate">
-                                    {variant.evaluation.source_metadata.source_organization_name}
-                                  </span>
-                                  <span className="text-border">/</span>
-                                  <span className="shrink-0">
-                                    {evidenceStatus}
-                                  </span>
+                              <div>
+                                <div className="text-[11px] font-semibold uppercase tracking-[0.16em] text-muted-foreground">
+                                  Score
                                 </div>
-                              </SummaryRailItem>
+                                <div className="mt-1 text-lg font-semibold tracking-tight">{variant.displayScore}</div>
+                              </div>
+
+                              <div className="min-w-0">
+                                <div className="text-[11px] font-semibold uppercase tracking-[0.16em] text-muted-foreground">
+                                  {isResearchView ? "Source" : "Evidence"}
+                                </div>
+                                <div className="mt-1 truncate text-sm font-medium text-foreground/90">
+                                  {variant.evaluation.source_metadata.source_organization_name}
+                                </div>
+                                <div className="text-[12px] text-muted-foreground">
+                                  {evidenceStatus}
+                                </div>
+                              </div>
                             </div>
                           </div>
-                        </div>
+                        </button>
 
                         {isRowOpen && (
                           <div className="border-t bg-muted/10 p-4">
@@ -2182,7 +2363,7 @@ function AggregatedBenchmarkCard({
 
                   {filteredRows.length === 0 && (
                     <div className="rounded-xl border bg-background p-6 text-center text-sm text-muted-foreground">
-                      No comparison slices match the current filters.
+                      No subtasks match the current filters.
                     </div>
                   )}
                 </div>
@@ -2372,25 +2553,6 @@ function InlineMeta({ label, value }: { label: string; value: React.ReactNode })
         {label}
       </div>
       <div className="text-sm font-medium break-words">{value}</div>
-    </div>
-  )
-}
-
-function SummaryRailItem({
-  label,
-  tone,
-  children,
-}: {
-  label: string
-  tone: string
-  children: React.ReactNode
-}) {
-  return (
-    <div className={`min-w-0 rounded-2xl border px-3 py-2.5 ${tone}`}>
-      <div className="text-[11px] font-semibold uppercase tracking-[0.16em] text-muted-foreground">
-        {label}
-      </div>
-      <div className="mt-1.5 min-w-0 overflow-hidden">{children}</div>
     </div>
   )
 }

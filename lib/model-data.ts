@@ -4,6 +4,7 @@ import { promises as fs } from "fs"
 import path from "path"
 
 import type {
+  BenchmarkCard,
   BenchmarkEvaluation,
   EvalLibrary,
   EvaluationResult,
@@ -15,8 +16,11 @@ import type {
   SourceMetadata,
 } from "@/lib/benchmark-schema"
 import { inferCategoryFromBenchmark } from "@/lib/benchmark-schema"
+import { lookupBenchmarkCard } from "@/lib/benchmark-metadata-utils"
 import {
   type BenchmarkEvalListItem,
+  type BenchmarkEvalSummary,
+  type ModelResultForBenchmark,
   createEvaluationCard,
   createModelFamilySummary,
   groupEvaluationsByBenchmark,
@@ -25,6 +29,7 @@ import {
   toBenchmarkEvalListItem,
 } from "@/lib/eval-processing"
 import { getCanonicalModelIdentity, getModelFamilyRouteId, normalizeModelInfo } from "@/lib/model-family"
+import { getBenchmarkCard, normalizeBenchmarkKey } from "@/lib/benchmark-metadata"
 
 interface RawModelFile {
   model_info: ModelInfo
@@ -48,6 +53,86 @@ interface RawEvaluationResult
   evaluation_timestamp?: string
 }
 
+function getSourceDataSignature(sourceData?: string[] | SourceData) {
+  if (!sourceData) {
+    return ""
+  }
+
+  if (Array.isArray(sourceData)) {
+    return sourceData.join("|")
+  }
+
+  return [
+    sourceData.dataset_name,
+    sourceData.source_type,
+    sourceData.hf_repo,
+    sourceData.external_link,
+  ]
+    .filter(Boolean)
+    .join("|")
+}
+
+function getRawEvaluationResultKey(result: RawEvaluationResult) {
+  return [result.evaluation_name.trim().toLowerCase(), getSourceDataSignature(result.source_data)].join("::")
+}
+
+function mergeRawEvaluationResults(results: RawEvaluationResult[]) {
+  const merged = new Map<string, RawEvaluationResult>()
+
+  for (const result of results) {
+    merged.set(getRawEvaluationResultKey(result), result)
+  }
+
+  return Array.from(merged.values())
+}
+
+function getRawEvaluationKey(evaluation: RawEvaluation) {
+  return [
+    evaluation.evaluation_id,
+    evaluation.retrieved_timestamp,
+    evaluation.benchmark,
+    evaluation.source_metadata.source_name,
+    evaluation.source_metadata.source_type,
+    evaluation.source_metadata.source_organization_name,
+    evaluation.source_metadata.evaluator_relationship,
+  ]
+    .filter(Boolean)
+    .join("::")
+}
+
+function dedupeRawEvaluations(evaluations: RawEvaluation[]) {
+  const merged = new Map<string, RawEvaluation>()
+
+  for (const evaluation of evaluations) {
+    const key = getRawEvaluationKey(evaluation)
+    const existing = merged.get(key)
+
+    if (!existing) {
+      merged.set(key, {
+        ...evaluation,
+        evaluation_results: mergeRawEvaluationResults(evaluation.evaluation_results),
+      })
+      continue
+    }
+
+    merged.set(key, {
+      ...existing,
+      ...evaluation,
+      source_data: evaluation.source_data ?? existing.source_data,
+      eval_library: evaluation.eval_library ?? existing.eval_library,
+      detailed_evaluation_results:
+        evaluation.detailed_evaluation_results ?? existing.detailed_evaluation_results,
+      generation_config: evaluation.generation_config ?? existing.generation_config,
+      evaluation_results: mergeRawEvaluationResults([
+        ...existing.evaluation_results,
+        ...evaluation.evaluation_results,
+      ]),
+    })
+  }
+
+  return Array.from(merged.values())
+}
+
 interface IndexedModelSummary {
   id: string
   name: string
@@ -62,6 +147,7 @@ interface IndexedBenchmarkEntry {
 }
 
 interface IndexedBenchmarkDetail {
+  benchmark_cards?: Record<string, BenchmarkCard>
   models: Array<{
     model_id: string
     name: string
@@ -254,6 +340,223 @@ function slugifyEvalId(value: string) {
   return value.toLowerCase().replace(/[^a-z0-9]+/g, "_").replace(/^_|_$/g, "")
 }
 
+function getAggregateEvalId(value: string) {
+  return `aggregate__${slugifyEvalId(value)}`
+}
+
+function normalizeEvalTimestamp(value: string) {
+  const numericTimestamp = Number(value)
+  return !Number.isNaN(numericTimestamp) && !value.includes("-")
+    ? numericTimestamp * 1000
+    : new Date(value).getTime()
+}
+
+function normalizeSummaryScore(summary: BenchmarkEvalSummary, score: number) {
+  const maxScore = summary.metric_config.max_score ?? 1
+  const minScore = summary.metric_config.min_score ?? 0
+  const range = maxScore - minScore
+  return range > 0 ? (score - minScore) / range : score
+}
+
+async function attachBenchmarkCardToSummary(summary: BenchmarkEvalSummary): Promise<BenchmarkEvalSummary> {
+  if (summary.benchmark_card) {
+    return summary
+  }
+
+  const cardCandidates = [
+    summary.evaluation_name,
+    summary.composite_benchmark_name,
+    summary.composite_benchmark_key,
+  ]
+
+  for (const candidate of cardCandidates) {
+    const card = await getBenchmarkCard(candidate)
+    if (card) {
+      return { ...summary, benchmark_card: card }
+    }
+  }
+
+  return summary
+}
+
+function aggregateBenchmarkSummaries(
+  summaries: BenchmarkEvalSummary[],
+  aggregationKey: string
+): BenchmarkEvalSummary | null {
+  if (summaries.length === 0) {
+    return null
+  }
+
+  const first = summaries[0]
+  const card = first.benchmark_card
+  const aggregateSources = Array.from(
+    new Map(
+      summaries.map((summary) => [
+        summary.evaluation_id,
+        {
+          evaluation_id: summary.evaluation_id,
+          composite_benchmark_key: summary.composite_benchmark_key,
+          composite_benchmark_name: summary.composite_benchmark_name,
+          models_count: summary.models_count,
+          avg_score_norm: summary.avg_score_norm,
+        },
+      ])
+    ).values()
+  ).sort((a, b) => a.composite_benchmark_name.localeCompare(b.composite_benchmark_name))
+
+  const modelBuckets = new Map<
+    string,
+    {
+      model_info: ModelResultForBenchmark["model_info"]
+      components: Array<{
+        summary: BenchmarkEvalSummary
+        modelResult: ModelResultForBenchmark
+      }>
+    }
+  >()
+
+  for (const summary of summaries) {
+    for (const modelResult of summary.model_results) {
+      const existing = modelBuckets.get(modelResult.model_info.id) ?? {
+        model_info: modelResult.model_info,
+        components: [],
+      }
+      existing.components.push({ summary, modelResult })
+      modelBuckets.set(modelResult.model_info.id, existing)
+    }
+  }
+
+  const aggregateMetricConfig = {
+    ...first.metric_config,
+    evaluation_description:
+      aggregateSources.length > 1
+        ? `Average normalized score across ${aggregateSources
+            .map((source) => source.composite_benchmark_name)
+            .join(", ")}`
+        : first.metric_config.evaluation_description,
+    min_score: 0,
+    max_score: 1,
+    unit: "normalized average",
+  } as const
+
+  const aggregatedModelResults: ModelResultForBenchmark[] = Array.from(modelBuckets.values()).map(
+    ({ model_info, components }) => {
+      const normalizedScores = components.map(({ summary, modelResult }) =>
+        normalizeSummaryScore(summary, modelResult.score)
+      )
+      const avgNormalizedScore =
+        normalizedScores.reduce((sum, score) => sum + score, 0) / normalizedScores.length
+
+      const latestComponent = [...components].sort(
+        (a, b) =>
+          normalizeEvalTimestamp(b.modelResult.evaluation_timestamp) -
+          normalizeEvalTimestamp(a.modelResult.evaluation_timestamp)
+      )[0]
+
+      const aggregateComponents = components
+        .map(({ summary, modelResult }) => ({
+          evaluation_id: summary.evaluation_id,
+          composite_benchmark_key: summary.composite_benchmark_key,
+          composite_benchmark_name: summary.composite_benchmark_name,
+          score: modelResult.score,
+          normalized_score: normalizeSummaryScore(summary, modelResult.score),
+          evaluation_timestamp: modelResult.evaluation_timestamp,
+          source_name: modelResult.source_metadata.source_name,
+          source_type: modelResult.source_metadata.source_type,
+          source_organization_name: modelResult.source_metadata.source_organization_name,
+          evaluator_relationship: modelResult.source_metadata.evaluator_relationship,
+        }))
+        .sort((a, b) => a.composite_benchmark_name.localeCompare(b.composite_benchmark_name))
+
+      return {
+        model_info,
+        score: avgNormalizedScore,
+        score_details: {
+          score: avgNormalizedScore,
+          sample_size: components.reduce(
+            (sum, { modelResult }) => sum + (modelResult.score_details.sample_size ?? 0),
+            0
+          ) || undefined,
+        },
+        evaluation_timestamp: latestComponent.modelResult.evaluation_timestamp,
+        source_metadata: latestComponent.modelResult.source_metadata,
+        source_data: latestComponent.modelResult.source_data,
+        result: {
+          ...latestComponent.modelResult.result,
+          evaluation_name: card?.benchmark_details?.name ?? first.evaluation_name,
+          metric_config: aggregateMetricConfig,
+          score_details: {
+            score: avgNormalizedScore,
+          },
+        },
+        aggregate_components: aggregateComponents,
+      }
+    }
+  )
+
+  const lowerIsBetter = first.metric_config.lower_is_better
+  aggregatedModelResults.sort((a, b) => (lowerIsBetter ? a.score - b.score : b.score - a.score))
+
+  const avgScore =
+    aggregatedModelResults.reduce((sum, modelResult) => sum + modelResult.score, 0) /
+    aggregatedModelResults.length
+
+  const evaluatorNames = Array.from(
+    new Set(summaries.flatMap((summary) => summary.evaluator_names))
+  ).sort((a, b) => a.localeCompare(b))
+
+  const sourceTypes = Array.from(
+    new Set(summaries.flatMap((summary) => summary.source_types))
+  ).sort((a, b) => a.localeCompare(b))
+
+  const totalUnderlyingResults = summaries.reduce((sum, summary) => sum + summary.model_results.length, 0)
+  const totalThirdPartyResults = summaries.reduce(
+    (sum, summary) => sum + summary.model_results.filter((result) => result.source_metadata.evaluator_relationship === "third_party").length,
+    0
+  )
+
+  return {
+    evaluation_name: card?.benchmark_details?.name ?? first.evaluation_name,
+    evaluation_id: getAggregateEvalId(aggregationKey),
+    composite_benchmark_key:
+      aggregateSources.length === 1 ? aggregateSources[0].composite_benchmark_key : "multiple",
+    composite_benchmark_name:
+      aggregateSources.length === 1
+        ? aggregateSources[0].composite_benchmark_name
+        : `${aggregateSources.length} composite benchmarks`,
+    category: first.category,
+    metric_config: aggregateMetricConfig,
+    factsheet: first.factsheet,
+    model_results: aggregatedModelResults,
+    models_count: aggregatedModelResults.length,
+    evaluator_names: evaluatorNames,
+    source_types: sourceTypes,
+    latest_source_name:
+      aggregateSources.length === 1 ? aggregateSources[0].composite_benchmark_name : "Multiple sources",
+    third_party_ratio: totalUnderlyingResults > 0 ? totalThirdPartyResults / totalUnderlyingResults : 0,
+    missing_generation_config_count: summaries.reduce(
+      (sum, summary) => sum + summary.missing_generation_config_count,
+      0
+    ),
+    best_model:
+      aggregatedModelResults.length > 0
+        ? { name: aggregatedModelResults[0].model_info.name, score: aggregatedModelResults[0].score }
+        : null,
+    worst_model:
+      aggregatedModelResults.length > 0
+        ? {
+            name: aggregatedModelResults[aggregatedModelResults.length - 1].model_info.name,
+            score: aggregatedModelResults[aggregatedModelResults.length - 1].score,
+          }
+        : null,
+    avg_score: avgScore,
+    avg_score_norm: avgScore,
+    benchmark_card: card,
+    is_aggregated: true,
+    aggregate_sources: aggregateSources,
+  }
+}
+
 function inferMetricConfig(scores: number[], benchmark: string, metric: string): MetricConfig {
   const finiteScores = scores.filter((score) => Number.isFinite(score))
   const maxScore = finiteScores.length > 0 ? Math.max(...finiteScores) : 1
@@ -343,6 +646,7 @@ async function buildEvalListDataFromBenchmarkIndexes(): Promise<{
         worst_model: null,
         avg_score: avgScore,
         avg_score_norm: range > 0 ? (avgScore - minScore) / range : 0,
+        benchmark_card: lookupBenchmarkCard(detail.benchmark_cards ?? {}, metric),
       })
     }
   }
@@ -420,7 +724,7 @@ async function loadEvaluationsForModelId(modelId: string) {
       continue
     }
 
-    return raw.evaluations.map((evaluation) =>
+    return dedupeRawEvaluations(raw.evaluations).map((evaluation) =>
       normalizeEvaluation(raw.model_info, evaluation)
     )
   }
@@ -591,7 +895,7 @@ async function readAllEvaluationsFromDataDirectory(): Promise<BenchmarkEvaluatio
           return []
         }
 
-        return raw.evaluations.map((evaluation) =>
+        return dedupeRawEvaluations(raw.evaluations).map((evaluation) =>
           normalizeEvaluation(raw.model_info, evaluation)
         )
       } catch (error) {
@@ -630,6 +934,7 @@ export async function getModelCards() {
 
 export async function getEvalListData() {
   const indexed = await buildEvalListDataFromBenchmarkIndexes()
+
   if (indexed) {
     return indexed
   }
@@ -638,10 +943,16 @@ export async function getEvalListData() {
   const summaries = Object.values(groupEvaluationsByBenchmark(evaluations))
   const totalModels = Object.keys(groupEvaluationsByModelFamily(evaluations)).length
 
-  return {
-    evals: summaries.map(toBenchmarkEvalListItem),
-    totalModels,
-  }
+  // Attach benchmark_card to each summary
+  const evalsWithCards = await Promise.all(
+    summaries.map(async (summary) => {
+      const card = await getBenchmarkCard(summary.composite_benchmark_key)
+      const listItem = toBenchmarkEvalListItem(summary)
+      return card ? { ...listItem, benchmark_card: card } : listItem
+    })
+  )
+
+  return { evals: evalsWithCards, totalModels }
 }
 
 export async function getEvalList() {
@@ -758,10 +1069,10 @@ export async function getDeveloperSummaryById(routeId: string) {
     benchmark_scores: Object.fromEntries(
       items.flatMap((evaluation) =>
         evaluation.evaluation_results
-          .map((result) => {
+          .flatMap((result) => {
             const score = result.score_details?.score
             if (!Number.isFinite(score)) {
-              return null
+              return []
             }
 
             const benchmarkName =
@@ -769,9 +1080,8 @@ export async function getDeveloperSummaryById(routeId: string) {
                 ? result.source_data.dataset_name
                 : evaluation.benchmark ?? result.evaluation_name
 
-            return [[`${benchmarkName}/${result.evaluation_name}`, score]] as const
+            return [[`${benchmarkName}/${result.evaluation_name}`, score] as const]
           })
-          .filter((entry): entry is readonly [string, number][] => entry !== null)
       ),
     ),
   }))
@@ -839,6 +1149,23 @@ export async function getModelSummaryById(modelId: string) {
 export async function getEvalSummaryById(evalId: string) {
   const evaluations = await loadAllEvaluationsFromDataDirectory()
   const grouped = groupEvaluationsByBenchmark(evaluations)
+  const summariesWithCards = await Promise.all(
+    Object.values(grouped).map((summary) => attachBenchmarkCardToSummary(summary))
+  )
 
-  return Object.values(grouped).find((summary) => summary.evaluation_id === evalId) ?? null
+  if (evalId.startsWith("aggregate__")) {
+    const aggregateKey = evalId.replace(/^aggregate__/, "")
+    const aggregateMembers = summariesWithCards.filter((summary) => {
+      const cardName = summary.benchmark_card?.benchmark_details?.name
+      return cardName ? slugifyEvalId(normalizeBenchmarkKey(cardName)) === aggregateKey : false
+    })
+
+    return aggregateBenchmarkSummaries(aggregateMembers, aggregateKey)
+  }
+
+  const summary = summariesWithCards.find((item) => item.evaluation_id === evalId) ?? null
+
+  if (!summary) return null
+
+  return summary
 }

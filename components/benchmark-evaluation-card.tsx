@@ -1,11 +1,11 @@
 "use client"
 
 import type { CSSProperties } from "react"
+import { useMemo } from "react"
 import { useAudienceMode } from "@/components/audience-mode-provider"
 import { useRouter } from "next/navigation"
 import {
   Award,
-  BookOpenText,
   ChevronDown,
   CheckCircle2,
   ExternalLink,
@@ -18,12 +18,14 @@ import {
 } from "lucide-react"
 
 import type { CategoryType } from "@/lib/benchmark-schema"
+import { getCategoryColor } from "@/lib/benchmark-schema"
+import type { BenchmarkCard } from "@/lib/benchmark-schema"
+import { lookupBenchmarkCard } from "@/lib/benchmark-metadata-utils"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible"
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu"
-import { Progress } from "@/components/ui/progress"
 
 export type BenchmarkEvaluationCardData = {
   id: string
@@ -76,6 +78,7 @@ export type BenchmarkEvaluationCardData = {
 
 interface BenchmarkEvaluationCardProps {
   data: BenchmarkEvaluationCardData
+  benchmarkCards?: Record<string, BenchmarkCard>
   onDelete?: (id: string) => void
   delayMs?: number
   selectedForCompare?: boolean
@@ -98,32 +101,6 @@ function formatDate(isoString: string) {
   } catch {
     return isoString
   }
-}
-
-function formatHighlightScore(score: number, unit?: string) {
-  if (unit === "accuracy" || unit === "pass@1" || (!unit && score >= 0 && score <= 1)) {
-    return `${(score * 100).toFixed(1)}%`
-  }
-  if (unit === "points") return score.toFixed(1)
-  return score.toFixed(2)
-}
-
-function scoreToPercent(score: number, unit?: string): number {
-  if (score >= 0 && score <= 1) return score * 100
-  return Math.min(Math.max(score, 0), 100)
-}
-
-function getPolicyBenchmarkLabel(name: string) {
-  const value = name.toLowerCase()
-  if (value.includes("ifeval")) return "Following instructions"
-  if (value.includes("bbh")) return "Reasoning and logic"
-  if (value.includes("math")) return "Advanced mathematics"
-  if (value.includes("gpqa")) return "Expert knowledge"
-  if (value.includes("musr")) return "Narrative reasoning"
-  if (value.includes("mmlu")) return "Broad knowledge"
-  if (value.includes("tau-bench")) return "Agentic task completion"
-  if (value.includes("swe-bench")) return "Software engineering"
-  return name
 }
 
 function formatParamsBillions(value: number | null | undefined) {
@@ -181,8 +158,84 @@ function getIndependentSummary(data: BenchmarkEvaluationCardData) {
   return "Self-reported only"
 }
 
+const CATEGORY_PLOT_COLORS: Record<string, string> = {
+  "Core Performance": "#2563eb",
+  "Core Quality Dimensions": "#7c3aed",
+  "Robustness": "#0f766e",
+  "Calibration": "#0891b2",
+  "Adversarial": "#dc2626",
+  "Memorization": "#9333ea",
+  "Fairness": "#ea580c",
+  "Safety": "#16a34a",
+  "Leakage/Contamination": "#be123c",
+  "Privacy": "#0d9488",
+  "Interpretability": "#6366f1",
+  "Efficiency": "#ca8a04",
+  "Retrainability": "#1d4ed8",
+  "Meta-Learning": "#9333ea",
+}
+
+function getCategoryPlotColor(category: string) {
+  return CATEGORY_PLOT_COLORS[category] ?? "#64748b"
+}
+
+function CategoryCoveragePlot({
+  coverage,
+}: {
+  coverage: Array<{ category: CategoryType; count: number }>
+}) {
+  if (coverage.length === 0) {
+    return (
+      <div className="rounded-xl border border-dashed border-border/60 px-3 py-4 text-sm text-muted-foreground">
+        No category coverage recorded.
+      </div>
+    )
+  }
+
+  const totalCount = coverage.reduce((sum, item) => sum + item.count, 0)
+
+  return (
+    <div className="space-y-2">
+      <div
+        className="flex h-3 w-full items-stretch gap-1 rounded-full bg-muted/70"
+        aria-label="Category coverage distribution"
+        role="img"
+      >
+        {coverage.map((item) => (
+          <div
+            key={item.category}
+            className="min-w-2 rounded-full"
+            style={{
+              width: `${(item.count / totalCount) * 100}%`,
+              backgroundColor: getCategoryPlotColor(item.category),
+            }}
+            title={`${item.category}: ${item.count} benchmark${item.count !== 1 ? "s" : ""}`}
+          />
+        ))}
+      </div>
+
+      <div className="flex flex-wrap gap-1.5">
+        {coverage.slice(0, 4).map((item) => (
+          <span
+            key={item.category}
+            className={`inline-flex items-center gap-1 rounded-full border px-2 py-0.5 text-[10px] font-semibold ${getCategoryColor(item.category)}`}
+          >
+            <span
+              className="h-1.5 w-1.5 rounded-full"
+              style={{ backgroundColor: getCategoryPlotColor(item.category) }}
+            />
+            {item.category}
+            <span className="opacity-70">{item.count}</span>
+          </span>
+        ))}
+      </div>
+    </div>
+  )
+}
+
 export function BenchmarkEvaluationCard({
   data,
+  benchmarkCards,
   onDelete,
   delayMs = 0,
   selectedForCompare = false,
@@ -191,7 +244,32 @@ export function BenchmarkEvaluationCard({
   const router = useRouter()
   const { mode } = useAudienceMode()
   const isResearchView = mode === "research"
-  const highlights = data.top_scores.slice(0, 3)
+
+  // Collect unique domains from this model's benchmarks using metadata cards
+  const modelDomains = useMemo(() => {
+    if (!benchmarkCards) return []
+    const domainCounts = new Map<string, number>()
+    for (const { benchmark } of data.top_scores) {
+      const card = lookupBenchmarkCard(benchmarkCards, benchmark)
+      for (const domain of card?.benchmark_details?.domains ?? []) {
+        domainCounts.set(domain, (domainCounts.get(domain) ?? 0) + 1)
+      }
+    }
+    return Array.from(domainCounts.entries())
+      .sort((a, b) => b[1] - a[1] || a[0].localeCompare(b[0]))
+      .map(([domain]) => domain)
+  }, [benchmarkCards, data.top_scores])
+  const categoryCoverage = useMemo(
+    () =>
+      Object.entries(data.category_stats)
+        .filter(([, count]) => count > 0)
+        .sort((a, b) => b[1] - a[1] || a[0].localeCompare(b[0]))
+        .map(([category, count]) => ({
+          category: category as CategoryType,
+          count,
+        })),
+    [data.category_stats]
+  )
   const library = data.eval_libraries[0]
   const paramsBillions = formatParamsBillions(data.params_billions)
   const reportingSummaryLabel = getReportingSummaryLabel(data)
@@ -291,74 +369,49 @@ export function BenchmarkEvaluationCard({
       </CardHeader>
 
       <CardContent className="space-y-4 pt-4">
-        <div className="grid grid-cols-3 gap-2">
-          <CompactStat
-            label={isResearchView ? "Benchmarks" : "Coverage"}
-            value={data.benchmarks_count.toString()}
-            tone="bg-sky-50 text-sky-900 ring-1 ring-sky-200/70 dark:bg-sky-950/25 dark:text-sky-100 dark:ring-sky-900/50"
-          />
-          <CompactStat
-            label={isResearchView ? "Results" : "Reported"}
-            value={data.evaluations_count.toString()}
-            tone="bg-stone-100 text-stone-900 ring-1 ring-stone-200/80 dark:bg-stone-900/40 dark:text-stone-100 dark:ring-stone-800/70"
-          />
-          <CompactStat
-            label="Reporting Orgs"
-            value={data.evaluator_count.toString()}
-            tone="bg-emerald-50 text-emerald-900 ring-1 ring-emerald-200/70 dark:bg-emerald-950/25 dark:text-emerald-100 dark:ring-emerald-900/50"
-          />
-        </div>
-
         <div className="rounded-2xl border border-border/70 bg-muted/10 px-4 py-3">
-          <div className="flex flex-wrap items-center gap-2">
-            <Badge variant="outline">{reportingSummaryLabel}</Badge>
-            <Badge variant={reproducibility.tone}>
-              <reproducibility.icon className="h-3.5 w-3.5" />
-              {reproducibility.label}
-            </Badge>
-            <Badge variant={data.independent_verification_ratio > 0 ? "secondary" : "outline"}>
-              <ShieldCheck className="h-3.5 w-3.5" />
-              {independentSummary}
-            </Badge>
+          <div className="flex flex-wrap items-center justify-between gap-3">
+            <div>
+              <div className="text-[11px] font-semibold uppercase tracking-[0.18em] text-muted-foreground">
+                Category coverage
+              </div>
+              <div className="mt-1 text-sm text-muted-foreground">
+                {categoryCoverage.length} {categoryCoverage.length === 1 ? "category" : "categories"}
+              </div>
+            </div>
+            <div className="text-right">
+              <div className="text-lg font-semibold tabular-nums text-foreground">{data.evaluator_count}</div>
+              <div className="text-[11px] uppercase tracking-[0.18em] text-muted-foreground">reporting orgs</div>
+            </div>
           </div>
-          <div className="mt-2 text-sm text-muted-foreground">
-            {isResearchView
-              ? "Most useful signals first: benchmark coverage, reproducibility, and benchmark-level performance. Open the details panel only when you need methodology or provenance."
-              : "Most useful signals first: benchmark coverage, reporting posture, and what was actually tested. Open the details panel if you need source or methodology context."}
+
+          <div className="mt-3">
+            <CategoryCoveragePlot coverage={categoryCoverage} />
           </div>
         </div>
 
-        {highlights.length > 0 ? (
-          <section className="space-y-3">
-            <div className="flex items-center gap-2 text-[11px] font-semibold uppercase tracking-[0.18em] text-muted-foreground">
-              {isResearchView ? (
-                <FlaskConical className="h-3.5 w-3.5" />
-              ) : (
-                <BookOpenText className="h-3.5 w-3.5" />
-              )}
-              {isResearchView ? "Most Relevant Benchmarks" : "What Was Tested"}
+        {modelDomains.length > 0 && (
+          <div className="space-y-2">
+            <div className="text-[11px] font-semibold uppercase tracking-[0.18em] text-muted-foreground">
+              Top domain coverage
             </div>
-            <div className="overflow-hidden rounded-2xl border border-border/70">
-              {highlights.map((item, index) => (
-                <SignalRow
-                  key={item.benchmark}
-                  rank={index + 1}
-                  label={isResearchView ? item.benchmark : getPolicyBenchmarkLabel(item.benchmark)}
-                  rawLabel={
-                    isResearchView
-                      ? item.metric !== item.benchmark
-                        ? item.metric
-                        : undefined
-                      : item.benchmark
-                  }
-                  scoreLabel={formatHighlightScore(item.score, item.unit)}
-                  scorePercent={scoreToPercent(item.score, item.unit)}
-                  isLast={index === highlights.length - 1}
-                />
-              ))}
+            <div className="flex flex-wrap gap-1.5">
+            {modelDomains.slice(0, 5).map((domain) => (
+              <span
+                key={domain}
+                className="inline-flex items-center rounded-full border border-border/50 bg-muted/40 px-2.5 py-0.5 text-[11px] font-medium capitalize text-muted-foreground"
+              >
+                {domain}
+              </span>
+            ))}
+            {modelDomains.length > 5 && (
+              <span className="inline-flex items-center rounded-full border border-border/50 bg-muted/40 px-2.5 py-0.5 text-[11px] font-medium text-muted-foreground">
+                +{modelDomains.length - 5} more
+              </span>
+            )}
             </div>
-          </section>
-        ) : null}
+          </div>
+        )}
 
         <Collapsible className="rounded-2xl border border-border/70 bg-background">
           <CollapsibleTrigger asChild>
@@ -372,7 +425,7 @@ export function BenchmarkEvaluationCard({
                   Dive Deeper
                 </div>
                 <div className="mt-1 text-sm font-semibold text-foreground">
-                  Show reporting and methodology details
+                  {isResearchView ? "Methodology & provenance details" : "Reporting & accountability details"}
                 </div>
               </div>
               <ChevronDown className="h-4 w-4 text-muted-foreground" />
@@ -380,51 +433,57 @@ export function BenchmarkEvaluationCard({
           </CollapsibleTrigger>
           <CollapsibleContent onClick={(event) => event.stopPropagation()} className="border-t border-border/60 px-4 py-4">
             <div className="space-y-0 text-sm">
-              <KeyValueRow label="Reporting sources" value={reportingSummaryLabel} />
-              {library && (
-                <KeyValueRow label="Library" value={`${library.name}${library.version ? ` ${library.version}` : ""}`} />
-              )}
-              {data.latest_source_name && (
-                <KeyValueRow label="Latest report" value={data.latest_source_name} />
-              )}
-              <KeyValueRow label="Updated" value={formatDate(data.latest_timestamp)} />
-              <KeyValueRow label="Reproducibility" value={reproducibility.label} />
-              <KeyValueRow label="Independence" value={independentSummary} />
-              {data.source_types.length > 0 && (
-                <KeyValueRow label="Source types" value={data.source_types.map((s) => s.replace(/_/g, " ")).join(", ")} />
-              )}
-              {data.architecture && <KeyValueRow label="Architecture" value={data.architecture} />}
-              {data.missing_generation_config_count > 0 && (
-                <KeyValueRow label="Missing config" value={`${data.missing_generation_config_count} result${data.missing_generation_config_count !== 1 ? "s" : ""}`} />
-              )}
-              {library?.fork && (
-                <div className="mt-3 flex items-start gap-2 rounded-xl bg-amber-50/80 px-3 py-2 text-xs text-amber-900 dark:bg-amber-950/20 dark:text-amber-200">
-                  <LibraryBig className="mt-0.5 h-3.5 w-3.5 shrink-0 text-amber-600 dark:text-amber-300" />
-                  <span>Non-standard eval library fork</span>
-                </div>
+              {isResearchView ? (
+                <>
+                  <KeyValueRow label="Reporting sources" value={reportingSummaryLabel} />
+                  {library && (
+                    <KeyValueRow label="Library" value={`${library.name}${library.version ? ` ${library.version}` : ""}`} />
+                  )}
+                  {data.latest_source_name && (
+                    <KeyValueRow label="Latest report" value={data.latest_source_name} />
+                  )}
+                  <KeyValueRow label="Updated" value={formatDate(data.latest_timestamp)} />
+                  <KeyValueRow label="Reproducibility" value={reproducibility.label} />
+                  <KeyValueRow label="Independence" value={independentSummary} />
+                  {data.source_types.length > 0 && (
+                    <KeyValueRow label="Source types" value={data.source_types.map((s) => s.replace(/_/g, " ")).join(", ")} />
+                  )}
+                  {data.architecture && <KeyValueRow label="Architecture" value={data.architecture} />}
+                  {data.missing_generation_config_count > 0 && (
+                    <KeyValueRow label="Missing config" value={`${data.missing_generation_config_count} result${data.missing_generation_config_count !== 1 ? "s" : ""}`} />
+                  )}
+                  {library?.fork && (
+                    <div className="mt-3 flex items-start gap-2 rounded-xl bg-amber-50/80 px-3 py-2 text-xs text-amber-900 dark:bg-amber-950/20 dark:text-amber-200">
+                      <LibraryBig className="mt-0.5 h-3.5 w-3.5 shrink-0 text-amber-600 dark:text-amber-300" />
+                      <span>Non-standard eval library fork</span>
+                    </div>
+                  )}
+                </>
+              ) : (
+                <>
+                  <KeyValueRow label="Who reported" value={reportingSummaryLabel} />
+                  <KeyValueRow label="Independence" value={independentSummary} />
+                  <KeyValueRow label="Reproducibility" value={reproducibility.label} />
+                  {data.latest_source_name && (
+                    <KeyValueRow label="Latest source" value={data.latest_source_name} />
+                  )}
+                  <KeyValueRow label="Updated" value={formatDate(data.latest_timestamp)} />
+                  {data.source_types.length > 0 && (
+                    <KeyValueRow label="Evidence types" value={data.source_types.map((s) => s.replace(/_/g, " ")).join(", ")} />
+                  )}
+                  {data.missing_generation_config_count > 0 && (
+                    <div className="mt-3 flex items-start gap-2 rounded-xl bg-amber-50/80 px-3 py-2 text-xs text-amber-900 dark:bg-amber-950/20 dark:text-amber-200">
+                      <LibraryBig className="mt-0.5 h-3.5 w-3.5 shrink-0 text-amber-600 dark:text-amber-300" />
+                      <span>{data.missing_generation_config_count} result{data.missing_generation_config_count !== 1 ? "s" : ""} lack documented generation settings — comparisons should be read with care.</span>
+                    </div>
+                  )}
+                </>
               )}
             </div>
           </CollapsibleContent>
         </Collapsible>
       </CardContent>
     </Card>
-  )
-}
-
-function CompactStat({
-  label,
-  value,
-  tone,
-}: {
-  label: string
-  value: string
-  tone: string
-}) {
-  return (
-    <div className={`rounded-2xl px-3 py-2.5 ${tone}`}>
-      <div className="text-[10px] font-semibold uppercase tracking-[0.2em] opacity-80">{label}</div>
-      <div className="mt-1 text-base font-bold tabular-nums">{value}</div>
-    </div>
   )
 }
 
@@ -435,42 +494,6 @@ function KeyValueRow({ label, value }: { label: string; value: string }) {
       <span className="min-w-0 max-w-full justify-self-end text-right font-medium leading-tight text-foreground break-words">
         {value}
       </span>
-    </div>
-  )
-}
-
-function SignalRow({
-  rank,
-  label,
-  rawLabel,
-  scoreLabel,
-  scorePercent,
-  isLast,
-}: {
-  rank: number
-  label: string
-  rawLabel?: string
-  scoreLabel: string
-  scorePercent: number
-  isLast?: boolean
-}) {
-  return (
-    <div className={`px-3 py-3 ${isLast ? "" : "border-b border-border/60"}`}>
-      <div className="flex items-start gap-3">
-        <div className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-muted text-[11px] font-semibold text-muted-foreground">
-          {rank}
-        </div>
-        <div className="min-w-0 flex-1">
-          <div className="flex items-start justify-between gap-3">
-            <div className="min-w-0">
-              <div className="truncate text-sm font-semibold">{label}</div>
-              {rawLabel && <div className="truncate text-xs text-muted-foreground">{rawLabel}</div>}
-            </div>
-            <div className="shrink-0 text-sm font-semibold tabular-nums">{scoreLabel}</div>
-          </div>
-          <Progress value={scorePercent} className="mt-2 h-1.5" />
-        </div>
-      </div>
     </div>
   )
 }
