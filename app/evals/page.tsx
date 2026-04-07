@@ -2,7 +2,6 @@
 
 import { useEffect, useMemo, useState } from "react"
 import Link from "next/link"
-import { useSearchParams } from "next/navigation"
 import { Search, X } from "lucide-react"
 
 import { useAudienceMode } from "@/components/audience-mode-provider"
@@ -52,7 +51,6 @@ function slugifyAggregateId(value: string) {
 
 export default function EvalsPage() {
   const { mode } = useAudienceMode()
-  const searchParams = useSearchParams()
 
   const [summaries, setSummaries] = useState<BenchmarkEvalListItem[]>([])
   const [benchmarkCards, setBenchmarkCards] = useState<Record<string, BenchmarkCard>>({})
@@ -76,11 +74,23 @@ export default function EvalsPage() {
   }, [])
 
   useEffect(() => {
-    const incomingSearch = searchParams.get("search") ?? ""
-    if (incomingSearch) {
+    if (typeof window === "undefined") {
+      return
+    }
+
+    const syncSearchFromUrl = () => {
+      const params = new URLSearchParams(window.location.search)
+      const incomingSearch = params.get("search") ?? ""
       setSearchQuery(incomingSearch)
     }
-  }, [searchParams])
+
+    syncSearchFromUrl()
+    window.addEventListener("popstate", syncSearchFromUrl)
+
+    return () => {
+      window.removeEventListener("popstate", syncSearchFromUrl)
+    }
+  }, [])
 
   const summariesWithCards = useMemo(() => {
     return summaries.map((summary) => {

@@ -208,8 +208,33 @@ function collectConfigEntries(
   return entries
 }
 
+function unquoteJsonString(value: string): string {
+  // Values like "\"true\"" or "\"2048\"" are JSON-encoded strings — unwrap them
+  const trimmed = value.trim()
+  if (trimmed.startsWith('"') && trimmed.endsWith('"')) {
+    try {
+      const parsed = JSON.parse(trimmed)
+      if (typeof parsed === "string") return parsed
+    } catch { /* fall through */ }
+  }
+  return value
+}
+
 function getConfigDisplayValue(value: string) {
-  return value.length > 36 ? `${value.slice(0, 33)}...` : value
+  const unquoted = unquoteJsonString(value)
+  return unquoted.length > 40 ? `${unquoted.slice(0, 37)}…` : unquoted
+}
+
+/** Parse a HELM-style nested detail entry like '{"tab":"Efficiency","score":"106.9"}' */
+function parseHelmDetailEntry(value: unknown): { tab?: string; score?: string; description?: string } | null {
+  if (typeof value !== "string") return null
+  try {
+    const parsed = JSON.parse(value)
+    if (parsed && typeof parsed === "object" && ("score" in parsed || "tab" in parsed)) {
+      return parsed as { tab?: string; score?: string; description?: string }
+    }
+  } catch { /* not JSON */ }
+  return null
 }
 
 function getTableConfigLabel(row: VariantRowData) {
@@ -532,10 +557,26 @@ function buildVariantStructuredSections(variant: BenchmarkVariant) {
     ? Object.entries(variant.result.score_details.details)
     : []
 
-  return {
-    numericBreakdown: detailEntries.filter(([, value]) => typeof value === "number"),
-    structuredBreakdown: detailEntries.filter(([, value]) => typeof value !== "number"),
+  const numericBreakdown: Array<[string, unknown]> = []
+  const helmMetrics: Array<{ label: string; tab: string; score: string }> = []
+  const structuredBreakdown: Array<[string, unknown]> = []
+
+  for (const [key, value] of detailEntries) {
+    if (typeof value === "number") {
+      numericBreakdown.push([key, value])
+      continue
+    }
+    const parsed = parseHelmDetailEntry(value)
+    if (parsed?.score != null && parsed.score !== "") {
+      helmMetrics.push({ label: key, tab: parsed.tab ?? "", score: parsed.score })
+      continue
+    }
+    // Skip internal HELM meta-fields that add no user value
+    if (key === "description" || key === "tab") continue
+    structuredBreakdown.push([key, value])
   }
+
+  return { numericBreakdown, helmMetrics, structuredBreakdown }
 }
 
 function formatConfigLabel(key: string) {
@@ -3029,7 +3070,7 @@ function VariantExpandedDetail({
 }) {
   const isResearchView = mode === "research"
   const { variant, configEntries, sampleCount } = row
-  const { numericBreakdown, structuredBreakdown } = buildVariantStructuredSections(variant)
+  const { numericBreakdown, helmMetrics, structuredBreakdown } = buildVariantStructuredSections(variant)
   const purpose = variant.result.factsheet?.purpose
   const principles = variant.result.factsheet?.principles_tested
   const sourceTypeLabel = variant.evaluation.source_metadata.source_type.replace(/_/g, " ")
@@ -3037,12 +3078,23 @@ function VariantExpandedDetail({
     ? (variant.result.source_data ?? variant.evaluation.source_data) as import("@/lib/benchmark-schema").SourceData
     : null
   const evalLibrary = variant.evaluation.eval_library
+  const uncertainty = (variant.result.score_details as any).uncertainty as { standard_error?: { value: number }; num_samples?: number } | undefined
   const confidenceInterval = variant.result.score_details.confidence_interval
-  const sampleSize = variant.result.score_details.sample_size ?? sourceData?.samples_number ?? sampleCount
+  const numSamples = uncertainty?.num_samples ?? variant.result.score_details.sample_size ?? sourceData?.samples_number ?? sampleCount
+  const stdError = uncertainty?.standard_error?.value
+  const inferencePlatform = variant.evaluation.model_info.inference_platform
   const factsheet = variant.result.factsheet
   const allFactsheetFields: Array<[string, string]> = factsheet
     ? (Object.entries(factsheet).filter(([, v]) => v != null && v !== "" && typeof v !== "boolean") as Array<[string, string]>)
     : []
+  // Source URLs for linking
+  const sourceUrls: string[] = Array.isArray(sourceData?.url)
+    ? (sourceData.url as string[])
+    : sourceData?.url
+      ? [sourceData.url as string]
+      : sourceData?.dataset_url
+        ? [sourceData.dataset_url]
+        : []
 
   return (
     <div className="space-y-4 rounded-xl border bg-background/80 p-4">
@@ -3068,7 +3120,7 @@ function VariantExpandedDetail({
           <Badge variant="outline" className="capitalize">
             {variant.evaluation.source_metadata.evaluator_relationship.replace(/_/g, " ")}
           </Badge>
-          {sampleSize != null && <Badge variant="outline">{Number(sampleSize).toLocaleString()} samples</Badge>}
+          {numSamples != null && <Badge variant="outline">{Number(numSamples).toLocaleString()} samples</Badge>}
           {evalLibrary && (
             <Badge variant="outline">
               {evalLibrary.name}{evalLibrary.version ? ` ${evalLibrary.version}` : ""}
@@ -3085,27 +3137,45 @@ function VariantExpandedDetail({
           <div className="grid gap-3 md:grid-cols-2 text-sm">
             <InlineMeta label="Organization" value={variant.evaluation.source_metadata.source_organization_name} />
             <InlineMeta label="Source Type" value={sourceTypeLabel} />
-            <InlineMeta label="Subtask Type" value={getVariantTypeLabel(variant.variantType)} />
+            <InlineMeta label="Relationship" value={variant.evaluation.source_metadata.evaluator_relationship.replace(/_/g, " ")} />
             <InlineMeta
               label={isResearchView ? "Dataset" : "Benchmark"}
               value={sourceData?.dataset_name ?? group.title}
             />
-            {sourceData?.dataset_version && <InlineMeta label="Version" value={sourceData.dataset_version} />}
-            {sourceData?.hf_repo && <InlineMeta label="HF Repo" value={sourceData.hf_repo} />}
+            {sourceData?.hf_repo && (
+              <InlineMeta label="HF Repo" value={
+                <a href={`https://huggingface.co/datasets/${sourceData.hf_repo}`} target="_blank" rel="noopener noreferrer"
+                   className="text-primary hover:underline">{sourceData.hf_repo}</a>
+              } />
+            )}
+            {sourceData?.dataset_version && <InlineMeta label="Dataset Version" value={sourceData.dataset_version} />}
             {sourceData?.hf_split && <InlineMeta label="Split" value={sourceData.hf_split} />}
             {variant.subtaskLabel && <InlineMeta label="Subtask" value={variant.subtaskLabel} />}
             {variant.setupLabel && <InlineMeta label="Setup" value={variant.setupLabel} />}
+            {inferencePlatform && <InlineMeta label="Inference Platform" value={inferencePlatform} />}
             {variant.evaluation.source_metadata.source_name && (
               <InlineMeta label="Source Name" value={variant.evaluation.source_metadata.source_name} />
             )}
-            <InlineMeta label="Relationship" value={variant.evaluation.source_metadata.evaluator_relationship.replace(/_/g, " ")} />
             <InlineMeta label="Reported" value={formatCompactDate(variant.evaluation.retrieved_timestamp)} />
             <InlineMeta label="Score" value={variant.displayScore} />
+            {numSamples != null && <InlineMeta label="Sample Count" value={Number(numSamples).toLocaleString()} />}
+            {stdError != null && <InlineMeta label="Std Error" value={`±${stdError}`} />}
             {confidenceInterval && (
               <InlineMeta
                 label="Confidence Interval"
                 value={`[${confidenceInterval.lower.toFixed(3)}, ${confidenceInterval.upper.toFixed(3)}] @ ${(confidenceInterval.confidence_level * 100).toFixed(0)}%`}
               />
+            )}
+            {sourceUrls.length > 0 && (
+              <InlineMeta label="Source URL" value={
+                <div className="flex flex-col gap-0.5">
+                  {sourceUrls.map((url, i) => (
+                    <a key={i} href={url} target="_blank" rel="noopener noreferrer"
+                       className="truncate text-primary hover:underline text-xs"
+                       title={url}>{url.replace(/^https?:\/\//, "").slice(0, 50)}{url.length > 57 ? "…" : ""}</a>
+                  ))}
+                </div>
+              } />
             )}
           </div>
         </div>
@@ -3170,10 +3240,43 @@ function VariantExpandedDetail({
         </div>
       )}
 
+      {helmMetrics.length > 0 && (
+        <div className="space-y-3">
+          <div className="text-xs font-semibold uppercase tracking-[0.2em] text-muted-foreground">
+            Additional Metrics
+          </div>
+          <div className="rounded-xl border overflow-hidden">
+            <Table>
+              <TableHeader>
+                <TableRow className="hover:bg-transparent">
+                  <TableHead>Metric</TableHead>
+                  <TableHead className="w-[100px]">Category</TableHead>
+                  <TableHead className="text-right w-[100px]">Value</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {helmMetrics.map(({ label, tab, score }) => {
+                  const numericScore = Number.parseFloat(score)
+                  return (
+                    <TableRow key={label}>
+                      <TableCell className="whitespace-normal text-sm">{label}</TableCell>
+                      <TableCell className="text-xs text-muted-foreground capitalize">{tab}</TableCell>
+                      <TableCell className="text-right font-medium tabular-nums text-sm">
+                        {Number.isFinite(numericScore) ? numericScore.toFixed(3) : score}
+                      </TableCell>
+                    </TableRow>
+                  )
+                })}
+              </TableBody>
+            </Table>
+          </div>
+        </div>
+      )}
+
       {structuredBreakdown.length > 0 && (
         <div className="space-y-3">
           <div className="text-xs font-semibold uppercase tracking-[0.2em] text-muted-foreground">
-            {isResearchView ? "Structured Detail Fields" : "Supporting Detail"}
+            Supporting Detail
           </div>
           <div className="rounded-xl border overflow-hidden">
             <Table>
