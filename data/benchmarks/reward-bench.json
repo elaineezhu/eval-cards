@@ -81,17 +81,17 @@
       "name": "CIR-AMS/BTRM_Qwen2_7b_0613",
       "developer": "CIR-AMS",
       "scores": {
-        "Score": 0.5736,
-        "Chat": 0.9749,
-        "Chat Hard": 0.5724,
-        "Safety": 0.7178,
-        "Reasoning": 0.8775,
-        "Prior Sets (0.5 weight)": 0.7029,
+        "Score": 0.8172,
         "Factuality": 0.5347,
         "Precise IF": 0.3563,
         "Math": 0.6066,
+        "Safety": 0.9014,
         "Focus": 0.5737,
-        "Ties": 0.6527
+        "Ties": 0.6527,
+        "Chat": 0.9749,
+        "Chat Hard": 0.5724,
+        "Reasoning": 0.8775,
+        "Prior Sets (0.5 weight)": 0.7029
       }
     },
     {
@@ -482,16 +482,16 @@
       "name": "NCSOFT/Llama-3-OffsetBias-RM-8B",
       "developer": "NCSOFT",
       "scores": {
-        "Score": 0.648,
-        "Chat": 0.9721,
-        "Chat Hard": 0.818,
-        "Safety": 0.7222,
-        "Reasoning": 0.9192,
+        "Score": 0.8942,
         "Factuality": 0.6084,
         "Precise IF": 0.4,
         "Math": 0.5191,
+        "Safety": 0.8676,
         "Focus": 0.9596,
-        "Ties": 0.6786
+        "Ties": 0.6786,
+        "Chat": 0.9721,
+        "Chat Hard": 0.818,
+        "Reasoning": 0.9192
       }
     },
     {
@@ -609,17 +609,17 @@
       "name": "PKU-Alignment/beaver-7b-v1.0-cost",
       "developer": "PKU-Alignment",
       "scores": {
-        "Score": 0.3332,
-        "Chat": 0.6173,
-        "Chat Hard": 0.4232,
-        "Safety": 0.7589,
-        "Reasoning": 0.5482,
-        "Prior Sets (0.5 weight)": 0.57,
+        "Score": 0.5798,
         "Factuality": 0.3263,
         "Precise IF": 0.2313,
         "Math": 0.3989,
+        "Safety": 0.7351,
         "Focus": 0.2939,
-        "Ties": -0.01
+        "Ties": -0.01,
+        "Chat": 0.6173,
+        "Chat Hard": 0.4232,
+        "Reasoning": 0.5482,
+        "Prior Sets (0.5 weight)": 0.57
       }
     },
     {
@@ -627,17 +627,17 @@
       "name": "PKU-Alignment/beaver-7b-v1.0-reward",
       "developer": "PKU-Alignment",
       "scores": {
-        "Score": 0.1606,
-        "Chat": 0.8184,
-        "Chat Hard": 0.2873,
-        "Safety": 0.1422,
-        "Reasoning": 0.346,
-        "Prior Sets (0.5 weight)": 0.5993,
+        "Score": 0.4727,
         "Factuality": 0.2105,
         "Precise IF": 0.2938,
         "Math": 0.2623,
+        "Safety": 0.3757,
         "Focus": 0.0646,
-        "Ties": -0.01
+        "Ties": -0.01,
+        "Chat": 0.8184,
+        "Chat Hard": 0.2873,
+        "Reasoning": 0.346,
+        "Prior Sets (0.5 weight)": 0.5993
       }
     },
     {
@@ -921,16 +921,16 @@
       "name": "Ray2333/GRM-gemma2-2B-rewardmodel-ft",
       "developer": "Ray2333",
       "scores": {
-        "Score": 0.8839,
+        "Score": 0.5966,
+        "Chat": 0.9302,
+        "Chat Hard": 0.7719,
+        "Safety": 0.9222,
+        "Reasoning": 0.912,
         "Factuality": 0.5305,
         "Precise IF": 0.3125,
         "Math": 0.5902,
-        "Safety": 0.9216,
         "Focus": 0.7455,
-        "Ties": 0.4788,
-        "Chat": 0.9302,
-        "Chat Hard": 0.7719,
-        "Reasoning": 0.912
+        "Ties": 0.4788
       }
     },
     {
@@ -938,17 +938,17 @@
       "name": "Ray2333/GRM-llama3-8B-distill",
       "developer": "Ray2333",
       "scores": {
-        "Score": 0.8464,
+        "Score": 0.589,
+        "Chat": 0.9832,
+        "Chat Hard": 0.6842,
+        "Safety": 0.7222,
+        "Reasoning": 0.9133,
+        "Prior Sets (0.5 weight)": 0.7209,
         "Factuality": 0.5874,
         "Precise IF": 0.3875,
         "Math": 0.5902,
-        "Safety": 0.8676,
         "Focus": 0.6727,
-        "Ties": 0.5743,
-        "Chat": 0.9832,
-        "Chat Hard": 0.6842,
-        "Reasoning": 0.9133,
-        "Prior Sets (0.5 weight)": 0.7209
+        "Ties": 0.5743
       }
     },
     {
@@ -1098,16 +1098,16 @@
       "name": "ShikaiChen/LDL-Reward-Gemma-2-27B-v0.1",
       "developer": "ShikaiChen",
       "scores": {
-        "Score": 0.7249,
-        "Chat": 0.9637,
-        "Chat Hard": 0.9079,
-        "Safety": 0.9222,
-        "Reasoning": 0.9903,
+        "Score": 0.9499,
         "Factuality": 0.7558,
         "Precise IF": 0.35,
         "Math": 0.6448,
+        "Safety": 0.9378,
         "Focus": 0.9131,
-        "Ties": 0.7633
+        "Ties": 0.7633,
+        "Chat": 0.9637,
+        "Chat Hard": 0.9079,
+        "Reasoning": 0.9903
       }
     },
     {
@@ -1139,16 +1139,16 @@
       "name": "Skywork/Skywork-Reward-Gemma-2-27B",
       "developer": "Skywork",
       "scores": {
-        "Score": 0.7576,
-        "Chat": 0.9581,
-        "Chat Hard": 0.9145,
-        "Safety": 0.9422,
-        "Reasoning": 0.9606,
+        "Score": 0.938,
         "Factuality": 0.7368,
         "Precise IF": 0.4031,
         "Math": 0.7049,
+        "Safety": 0.9189,
         "Focus": 0.9323,
-        "Ties": 0.8261
+        "Ties": 0.8261,
+        "Chat": 0.9581,
+        "Chat Hard": 0.9145,
+        "Reasoning": 0.9606
       }
     },
     {
@@ -1173,16 +1173,16 @@
       "name": "Skywork/Skywork-Reward-Llama-3.1-8B",
       "developer": "Skywork",
       "scores": {
-        "Score": 0.9252,
+        "Score": 0.7314,
+        "Chat": 0.9581,
+        "Chat Hard": 0.8728,
+        "Safety": 0.9333,
+        "Reasoning": 0.962,
         "Factuality": 0.6989,
         "Precise IF": 0.425,
         "Math": 0.6284,
-        "Safety": 0.9081,
         "Focus": 0.9616,
-        "Ties": 0.741,
-        "Chat": 0.9581,
-        "Chat Hard": 0.8728,
-        "Reasoning": 0.962
+        "Ties": 0.741
       }
     },
     {
@@ -1305,16 +1305,16 @@
       "name": "Skywork/Skywork-VL-Reward-7B",
       "developer": "Skywork",
       "scores": {
-        "Score": 0.6885,
-        "Chat": 0.8994,
-        "Chat Hard": 0.875,
-        "Safety": 0.8911,
-        "Reasoning": 0.9176,
+        "Score": 0.9007,
         "Factuality": 0.6063,
         "Precise IF": 0.35,
         "Math": 0.6339,
+        "Safety": 0.9108,
         "Focus": 0.8909,
-        "Ties": 0.7586
+        "Ties": 0.7586,
+        "Chat": 0.8994,
+        "Chat Hard": 0.875,
+        "Reasoning": 0.9176
       }
     },
     {
@@ -1379,10 +1379,10 @@
       "name": "ai2/tulu-2-7b-rm-v0-nectar-binarized-3.8m-check...",
       "developer": "AI2",
       "scores": {
-        "Score": 0.6895,
+        "Score": 0.7008,
         "Chat": 0.9385,
-        "Chat Hard": 0.3706,
-        "Safety": 0.7595
+        "Chat Hard": 0.3882,
+        "Safety": 0.7757
       }
     },
     {
@@ -1423,17 +1423,17 @@
       "name": "allenai/Llama-3.1-70B-Instruct-RM-RB2",
       "developer": "allenai",
       "scores": {
-        "Score": 0.7606,
-        "Chat": 0.9665,
-        "Chat Hard": 0.8355,
-        "Safety": 0.8844,
-        "Reasoning": 0.8969,
-        "Prior Sets (0.5 weight)": 0.0,
+        "Score": 0.9021,
         "Factuality": 0.8126,
         "Precise IF": 0.4188,
         "Math": 0.6995,
+        "Safety": 0.9095,
         "Focus": 0.8646,
-        "Ties": 0.8835
+        "Ties": 0.8835,
+        "Chat": 0.9665,
+        "Chat Hard": 0.8355,
+        "Reasoning": 0.8969,
+        "Prior Sets (0.5 weight)": 0.0
       }
     },
     {
@@ -1441,17 +1441,17 @@
       "name": "allenai/Llama-3.1-8B-Base-RM-RB2",
       "developer": "allenai",
       "scores": {
-        "Score": 0.8463,
+        "Score": 0.649,
+        "Chat": 0.933,
+        "Chat Hard": 0.7785,
+        "Safety": 0.8267,
+        "Reasoning": 0.7886,
+        "Prior Sets (0.5 weight)": 0.0,
         "Factuality": 0.72,
         "Precise IF": 0.3625,
         "Math": 0.612,
-        "Safety": 0.8851,
         "Focus": 0.8323,
-        "Ties": 0.5406,
-        "Chat": 0.933,
-        "Chat Hard": 0.7785,
-        "Reasoning": 0.7886,
-        "Prior Sets (0.5 weight)": 0.0
+        "Ties": 0.5406
       }
     },
     {
@@ -1459,17 +1459,17 @@
       "name": "allenai/Llama-3.1-8B-Instruct-RM-RB2",
       "developer": "allenai",
       "scores": {
-        "Score": 0.7285,
-        "Chat": 0.9581,
-        "Chat Hard": 0.8158,
-        "Safety": 0.8956,
-        "Reasoning": 0.887,
-        "Prior Sets (0.5 weight)": 0.0,
+        "Score": 0.8885,
         "Factuality": 0.7432,
         "Precise IF": 0.4437,
         "Math": 0.6175,
+        "Safety": 0.8932,
         "Focus": 0.9071,
-        "Ties": 0.7638
+        "Ties": 0.7638,
+        "Chat": 0.9581,
+        "Chat Hard": 0.8158,
+        "Reasoning": 0.887,
+        "Prior Sets (0.5 weight)": 0.0
       }
     },
     {
@@ -1477,17 +1477,17 @@
       "name": "allenai/Llama-3.1-Tulu-3-70B-SFT-RM-RB2",
       "developer": "allenai",
       "scores": {
-        "Score": 0.8892,
+        "Score": 0.722,
+        "Chat": 0.9693,
+        "Chat Hard": 0.8268,
+        "Safety": 0.8689,
+        "Reasoning": 0.8583,
+        "Prior Sets (0.5 weight)": 0.0,
         "Factuality": 0.8084,
         "Precise IF": 0.3688,
         "Math": 0.6776,
-        "Safety": 0.9027,
         "Focus": 0.7778,
-        "Ties": 0.8308,
-        "Chat": 0.9693,
-        "Chat Hard": 0.8268,
-        "Reasoning": 0.8583,
-        "Prior Sets (0.5 weight)": 0.0
+        "Ties": 0.8308
       }
     },
     {
@@ -1495,17 +1495,17 @@
       "name": "allenai/Llama-3.1-Tulu-3-8B-DPO-RM-RB2",
       "developer": "allenai",
       "scores": {
-        "Score": 0.687,
-        "Chat": 0.9553,
-        "Chat Hard": 0.761,
-        "Safety": 0.86,
-        "Reasoning": 0.7898,
-        "Prior Sets (0.5 weight)": 0.0,
+        "Score": 0.8431,
         "Factuality": 0.7516,
         "Precise IF": 0.3875,
         "Math": 0.6284,
+        "Safety": 0.8662,
         "Focus": 0.8545,
-        "Ties": 0.6397
+        "Ties": 0.6397,
+        "Chat": 0.9553,
+        "Chat Hard": 0.761,
+        "Reasoning": 0.7898,
+        "Prior Sets (0.5 weight)": 0.0
       }
     },
     {
@@ -3455,16 +3455,16 @@
       "name": "Claude 3.5 Sonnet 20240620",
       "developer": "Anthropic",
       "scores": {
-        "Score": 0.8417,
+        "Score": 0.6466,
+        "Chat": 0.9637,
+        "Chat Hard": 0.7401,
+        "Safety": 0.8519,
+        "Reasoning": 0.8469,
         "Factuality": 0.5284,
         "Precise IF": 0.3875,
         "Math": 0.5683,
-        "Safety": 0.8162,
         "Focus": 0.8697,
-        "Ties": 0.674,
-        "Chat": 0.9637,
-        "Chat Hard": 0.7401,
-        "Reasoning": 0.8469
+        "Ties": 0.674
       }
     },
     {
@@ -3486,17 +3486,17 @@
       "name": "Claude 3 Haiku 20240307",
       "developer": "Anthropic",
       "scores": {
-        "Score": 0.7289,
+        "Score": 0.3711,
+        "Chat": 0.9274,
+        "Chat Hard": 0.5197,
+        "Safety": 0.595,
+        "Reasoning": 0.706,
+        "Prior Sets (0.5 weight)": 0.6635,
         "Factuality": 0.4042,
         "Precise IF": 0.2812,
         "Math": 0.3552,
-        "Safety": 0.7953,
         "Focus": 0.501,
-        "Ties": 0.0899,
-        "Chat": 0.9274,
-        "Chat Hard": 0.5197,
-        "Reasoning": 0.706,
-        "Prior Sets (0.5 weight)": 0.6635
+        "Ties": 0.0899
       }
     },
     {
@@ -3766,17 +3766,17 @@
       "name": "hendrydong/Mistral-RM-for-RAFT-GSHF-v0",
       "developer": "hendrydong",
       "scores": {
-        "Score": 0.5851,
-        "Chat": 0.9832,
-        "Chat Hard": 0.5789,
-        "Safety": 0.6956,
-        "Reasoning": 0.7434,
-        "Prior Sets (0.5 weight)": 0.7508,
+        "Score": 0.7847,
         "Factuality": 0.5779,
         "Precise IF": 0.3625,
         "Math": 0.6011,
+        "Safety": 0.85,
         "Focus": 0.6747,
-        "Ties": 0.5988
+        "Ties": 0.5988,
+        "Chat": 0.9832,
+        "Chat Hard": 0.5789,
+        "Reasoning": 0.7434,
+        "Prior Sets (0.5 weight)": 0.7508
       }
     },
     {
@@ -3784,16 +3784,16 @@
       "name": "infly/INF-ORM-Llama3.1-70B",
       "developer": "infly",
       "scores": {
-        "Score": 0.9511,
+        "Score": 0.7648,
+        "Chat": 0.9665,
+        "Chat Hard": 0.9101,
+        "Safety": 0.9644,
+        "Reasoning": 0.9912,
         "Factuality": 0.7411,
         "Precise IF": 0.4188,
         "Math": 0.6995,
-        "Safety": 0.9365,
         "Focus": 0.903,
-        "Ties": 0.8622,
-        "Chat": 0.9665,
-        "Chat Hard": 0.9101,
-        "Reasoning": 0.9912
+        "Ties": 0.8622
       }
     },
     {
@@ -3818,16 +3818,16 @@
       "name": "internlm/internlm2-20b-reward",
       "developer": "internlm",
       "scores": {
-        "Score": 0.5628,
-        "Chat": 0.9888,
-        "Chat Hard": 0.7654,
-        "Safety": 0.6111,
-        "Reasoning": 0.9576,
+        "Score": 0.9016,
         "Factuality": 0.5558,
         "Precise IF": 0.3625,
         "Math": 0.5738,
+        "Safety": 0.8946,
         "Focus": 0.7253,
-        "Ties": 0.5483
+        "Ties": 0.5483,
+        "Chat": 0.9888,
+        "Chat Hard": 0.7654,
+        "Reasoning": 0.9576
       }
     },
     {
@@ -4014,16 +4014,16 @@
       "name": "nicolinho/QRM-Gemma-2-27B",
       "developer": "nicolinho",
       "scores": {
-        "Score": 0.7667,
-        "Chat": 0.9665,
-        "Chat Hard": 0.9013,
-        "Safety": 0.9578,
-        "Reasoning": 0.9826,
+        "Score": 0.9444,
         "Factuality": 0.7853,
         "Precise IF": 0.3719,
         "Math": 0.6995,
+        "Safety": 0.927,
         "Focus": 0.9535,
-        "Ties": 0.8321
+        "Ties": 0.8321,
+        "Chat": 0.9665,
+        "Chat Hard": 0.9013,
+        "Reasoning": 0.9826
       }
     },
     {
@@ -4249,17 +4249,17 @@
       "name": "openbmb/Eurus-RM-7b",
       "developer": "openbmb",
       "scores": {
-        "Score": 0.5806,
-        "Chat": 0.9804,
-        "Chat Hard": 0.6557,
-        "Safety": 0.6267,
-        "Reasoning": 0.8633,
-        "Prior Sets (0.5 weight)": 0.7172,
+        "Score": 0.8159,
         "Factuality": 0.6,
         "Precise IF": 0.3438,
         "Math": 0.5683,
+        "Safety": 0.8135,
         "Focus": 0.7475,
-        "Ties": 0.5972
+        "Ties": 0.5972,
+        "Chat": 0.9804,
+        "Chat Hard": 0.6557,
+        "Reasoning": 0.8633,
+        "Prior Sets (0.5 weight)": 0.7172
       }
     },
     {
@@ -4280,17 +4280,17 @@
       "name": "openbmb/UltraRM-13b",
       "developer": "openbmb",
       "scores": {
-        "Score": 0.6903,
+        "Score": 0.4683,
+        "Chat": 0.9637,
+        "Chat Hard": 0.5548,
+        "Safety": 0.5089,
+        "Reasoning": 0.6244,
+        "Prior Sets (0.5 weight)": 0.7294,
         "Factuality": 0.5063,
         "Precise IF": 0.3312,
         "Math": 0.5519,
-        "Safety": 0.5986,
         "Focus": 0.6081,
-        "Ties": 0.3036,
-        "Chat": 0.9637,
-        "Chat Hard": 0.5548,
-        "Reasoning": 0.6244,
-        "Prior Sets (0.5 weight)": 0.7294
+        "Ties": 0.3036
       }
     },
     {

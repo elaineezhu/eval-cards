@@ -119,12 +119,12 @@
       "developer": "Daemontatox",
       "evaluator_relationship": null,
       "benchmark_scores": {
-        "hfopenllm_v2/IFEval": 0.777,
-        "hfopenllm_v2/BBH": 0.5187,
-        "hfopenllm_v2/MATH Level 5": 0.2198,
-        "hfopenllm_v2/GPQA": 0.2936,
-        "hfopenllm_v2/MUSR": 0.3911,
-        "hfopenllm_v2/MMLU-PRO": 0.3738
+        "hfopenllm_v2/IFEval": 0.5064,
+        "hfopenllm_v2/BBH": 0.5112,
+        "hfopenllm_v2/MATH Level 5": 0.1631,
+        "hfopenllm_v2/GPQA": 0.3163,
+        "hfopenllm_v2/MUSR": 0.3973,
+        "hfopenllm_v2/MMLU-PRO": 0.3802
       }
     },
     {

@@ -14,6 +14,44 @@
         "helm_capabilities/WildBench": 0.862,
         "helm_capabilities/Omni-MATH": 0.654
       }
+    },
+    {
+      "id": "moonshotai/moonshotai-kimi-k2-instruct-fc",
+      "name": "Moonshotai-Kimi-K2-Instruct (FC)",
+      "developer": "moonshotai",
+      "evaluator_relationship": null,
+      "benchmark_scores": {
+        "bfcl/bfcl.overall.rank": 11.0,
+        "bfcl/bfcl.overall.overall_accuracy": 59.06,
+        "bfcl/bfcl.overall.total_cost_usd": 6.19,
+        "bfcl/bfcl.overall.latency_mean_s": 6.4,
+        "bfcl/bfcl.overall.latency_std_s": 9.38,
+        "bfcl/bfcl.overall.latency_p95_s": 13.78,
+        "bfcl/bfcl.non_live.ast_accuracy": 81.6,
+        "bfcl/bfcl.non_live.simple_ast_accuracy": 69.42,
+        "bfcl/bfcl.non_live.multiple_ast_accuracy": 92.0,
+        "bfcl/bfcl.non_live.parallel_ast_accuracy": 82.0,
+        "bfcl/bfcl.non_live.parallel_multiple_ast_accuracy": 83.0,
+        "bfcl/bfcl.live.live_accuracy": 78.68,
+        "bfcl/bfcl.live.live_simple_ast_accuracy": 81.78,
+        "bfcl/bfcl.live.live_multiple_ast_accuracy": 78.06,
+        "bfcl/bfcl.live.live_parallel_ast_accuracy": 87.5,
+        "bfcl/bfcl.live.live_parallel_multiple_ast_accuracy": 66.67,
+        "bfcl/bfcl.multi_turn.accuracy": 50.63,
+        "bfcl/bfcl.multi_turn.base_accuracy": 62.0,
+        "bfcl/bfcl.multi_turn.miss_function_accuracy": 41.0,
+        "bfcl/bfcl.multi_turn.miss_parameter_accuracy": 44.5,
+        "bfcl/bfcl.multi_turn.long_context_accuracy": 55.0,
+        "bfcl/bfcl.web_search.accuracy": 66.5,
+        "bfcl/bfcl.web_search.base_accuracy": 72.0,
+        "bfcl/bfcl.web_search.no_snippet_accuracy": 61.0,
+        "bfcl/bfcl.memory.accuracy": 29.03,
+        "bfcl/bfcl.memory.kv_accuracy": 21.94,
+        "bfcl/bfcl.memory.vector_accuracy": 20.0,
+        "bfcl/bfcl.memory.recursive_summarization_accuracy": 45.16,
+        "bfcl/bfcl.relevance.relevance_detection_accuracy": 75.0,
+        "bfcl/bfcl.relevance.irrelevance_detection_accuracy": 87.34
+      }
     }
   ]
 }

@@ -105,12 +105,12 @@
       "developer": "migtissera",
       "evaluator_relationship": null,
       "benchmark_scores": {
-        "hfopenllm_v2/IFEval": 0.4345,
-        "hfopenllm_v2/BBH": 0.5686,
-        "hfopenllm_v2/MATH Level 5": 0.0838,
-        "hfopenllm_v2/GPQA": 0.3003,
-        "hfopenllm_v2/MUSR": 0.4045,
-        "hfopenllm_v2/MMLU-PRO": 0.334
+        "hfopenllm_v2/IFEval": 0.443,
+        "hfopenllm_v2/BBH": 0.5706,
+        "hfopenllm_v2/MATH Level 5": 0.0869,
+        "hfopenllm_v2/GPQA": 0.3079,
+        "hfopenllm_v2/MUSR": 0.4031,
+        "hfopenllm_v2/MMLU-PRO": 0.3354
       }
     }
   ]

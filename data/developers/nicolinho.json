@@ -7,16 +7,16 @@
       "developer": "nicolinho",
       "evaluator_relationship": null,
       "benchmark_scores": {
-        "reward-bench/Score": 0.7667,
-        "reward-bench/Chat": 0.9665,
-        "reward-bench/Chat Hard": 0.9013,
-        "reward-bench/Safety": 0.9578,
-        "reward-bench/Reasoning": 0.9826,
+        "reward-bench/Score": 0.9444,
         "reward-bench/Factuality": 0.7853,
         "reward-bench/Precise IF": 0.3719,
         "reward-bench/Math": 0.6995,
+        "reward-bench/Safety": 0.927,
         "reward-bench/Focus": 0.9535,
-        "reward-bench/Ties": 0.8321
+        "reward-bench/Ties": 0.8321,
+        "reward-bench/Chat": 0.9665,
+        "reward-bench/Chat Hard": 0.9013,
+        "reward-bench/Reasoning": 0.9826
       }
     },
     {

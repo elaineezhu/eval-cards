@@ -7,12 +7,12 @@
       "developer": "Columbia-NLP",
       "evaluator_relationship": null,
       "benchmark_scores": {
-        "hfopenllm_v2/IFEval": 0.3102,
-        "hfopenllm_v2/BBH": 0.3881,
-        "hfopenllm_v2/MATH Level 5": 0.0536,
-        "hfopenllm_v2/GPQA": 0.2534,
-        "hfopenllm_v2/MUSR": 0.4081,
-        "hfopenllm_v2/MMLU-PRO": 0.1665
+        "hfopenllm_v2/IFEval": 0.3278,
+        "hfopenllm_v2/BBH": 0.392,
+        "hfopenllm_v2/MATH Level 5": 0.0431,
+        "hfopenllm_v2/GPQA": 0.2492,
+        "hfopenllm_v2/MUSR": 0.412,
+        "hfopenllm_v2/MMLU-PRO": 0.1666
       }
     },
     {

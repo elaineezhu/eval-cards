@@ -7,12 +7,12 @@
       "developer": "riaz",
       "evaluator_relationship": null,
       "benchmark_scores": {
-        "hfopenllm_v2/IFEval": 0.4373,
-        "hfopenllm_v2/BBH": 0.4586,
-        "hfopenllm_v2/MATH Level 5": 0.0514,
-        "hfopenllm_v2/GPQA": 0.2752,
-        "hfopenllm_v2/MUSR": 0.3763,
-        "hfopenllm_v2/MMLU-PRO": 0.2964
+        "hfopenllm_v2/IFEval": 0.4137,
+        "hfopenllm_v2/BBH": 0.4565,
+        "hfopenllm_v2/MATH Level 5": 0.0453,
+        "hfopenllm_v2/GPQA": 0.276,
+        "hfopenllm_v2/MUSR": 0.3776,
+        "hfopenllm_v2/MMLU-PRO": 0.2978
       }
     }
   ]

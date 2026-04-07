@@ -205,7 +205,7 @@
   },
   {
     "developer": "amazon",
-    "model_count": 5
+    "model_count": 8
   },
   {
     "developer": "amd",
@@ -225,7 +225,7 @@
   },
   {
     "developer": "Anthropic",
-    "model_count": 28
+    "model_count": 34
   },
   {
     "developer": "apple",
@@ -412,6 +412,10 @@
     "model_count": 7
   },
   {
+    "developer": "bittensor",
+    "model_count": 1
+  },
+  {
     "developer": "BlackBeenie",
     "model_count": 9
   },
@@ -537,7 +541,7 @@
   },
   {
     "developer": "cohere",
-    "model_count": 15
+    "model_count": 18
   },
   {
     "developer": "CohereForAI",
@@ -673,7 +677,7 @@
   },
   {
     "developer": "DeepSeek",
-    "model_count": 7
+    "model_count": 9
   },
   {
     "developer": "deepseek-ai",
@@ -949,7 +953,7 @@
   },
   {
     "developer": "Google",
-    "model_count": 68
+    "model_count": 78
   },
   {
     "developer": "GoToCompany",
@@ -1060,6 +1064,10 @@
     "model_count": 3
   },
   {
+    "developer": "huawei-noah-ustc",
+    "model_count": 1
+  },
+  {
     "developer": "HuggingFaceH4",
     "model_count": 5
   },
@@ -1089,7 +1097,7 @@
   },
   {
     "developer": "ibm",
-    "model_count": 4
+    "model_count": 8
   },
   {
     "developer": "ibm-granite",
@@ -1294,6 +1302,10 @@
   {
     "developer": "kaist-ai",
     "model_count": 4
+  },
+  {
+    "developer": "katanemo",
+    "model_count": 3
   },
   {
     "developer": "kavonalds",
@@ -1540,6 +1552,10 @@
     "model_count": 3
   },
   {
+    "developer": "madeagents",
+    "model_count": 4
+  },
+  {
     "developer": "magnifi",
     "model_count": 1
   },
@@ -1613,7 +1629,7 @@
   },
   {
     "developer": "Meta",
-    "model_count": 20
+    "model_count": 26
   },
   {
     "developer": "meta-llama",
@@ -1629,7 +1645,7 @@
   },
   {
     "developer": "microsoft",
-    "model_count": 18
+    "model_count": 19
   },
   {
     "developer": "mightbe",
@@ -1665,7 +1681,7 @@
   },
   {
     "developer": "mistralai",
-    "model_count": 27
+    "model_count": 36
   },
   {
     "developer": "mixtao",
@@ -1729,7 +1745,7 @@
   },
   {
     "developer": "moonshotai",
-    "model_count": 1
+    "model_count": 2
   },
   {
     "developer": "mosaicml",
@@ -1778,6 +1794,10 @@
   {
     "developer": "my_model",
     "model_count": 1
+  },
+  {
+    "developer": "nanbeige",
+    "model_count": 2
   },
   {
     "developer": "NAPS-ai",
@@ -1841,7 +1861,7 @@
   },
   {
     "developer": "Nexesenex",
-    "model_count": 45
+    "model_count": 44
   },
   {
     "developer": "Nexusflow",
@@ -1933,7 +1953,7 @@
   },
   {
     "developer": "nvidia",
-    "model_count": 21
+    "model_count": 22
   },
   {
     "developer": "nxmwxm",
@@ -2009,7 +2029,7 @@
   },
   {
     "developer": "OpenAI",
-    "model_count": 59
+    "model_count": 75
   },
   {
     "developer": "openai-community",
@@ -2021,7 +2041,7 @@
   },
   {
     "developer": "openbmb",
-    "model_count": 5
+    "model_count": 7
   },
   {
     "developer": "OpenBuddy",
@@ -2093,6 +2113,10 @@
   },
   {
     "developer": "paulml",
+    "model_count": 1
+  },
+  {
+    "developer": "phronetic-ai",
     "model_count": 1
   },
   {
@@ -2197,7 +2221,7 @@
   },
   {
     "developer": "Qwen",
-    "model_count": 65
+    "model_count": 80
   },
   {
     "developer": "R-I-S-E",
@@ -2348,8 +2372,8 @@
     "model_count": 1
   },
   {
-    "developer": "Salesforce",
-    "model_count": 4
+    "developer": "salesforce",
+    "model_count": 9
   },
   {
     "developer": "saltlux",
@@ -2534,6 +2558,10 @@
   {
     "developer": "speakleash",
     "model_count": 5
+  },
+  {
+    "developer": "speakleash-ack-cyfronet-agh",
+    "model_count": 1
   },
   {
     "developer": "Spestly",
@@ -2728,6 +2756,10 @@
     "model_count": 6
   },
   {
+    "developer": "tii-uae",
+    "model_count": 4
+  },
+  {
     "developer": "tiiuae",
     "model_count": 18
   },
@@ -2798,6 +2830,10 @@
   {
     "developer": "UCLA-AGI",
     "model_count": 10
+  },
+  {
+    "developer": "uiuc-oumi",
+    "model_count": 2
   },
   {
     "developer": "UKzExecution",
@@ -2937,7 +2973,7 @@
   },
   {
     "developer": "writer",
-    "model_count": 7
+    "model_count": 8
   },
   {
     "developer": "wzhouad",
@@ -2949,7 +2985,7 @@
   },
   {
     "developer": "xAI",
-    "model_count": 7
+    "model_count": 11
   },
   {
     "developer": "Xclbr7",
@@ -3097,7 +3133,7 @@
   },
   {
     "developer": "zhipu",
-    "model_count": 2
+    "model_count": 3
   },
   {
     "developer": "zhipu-ai",
