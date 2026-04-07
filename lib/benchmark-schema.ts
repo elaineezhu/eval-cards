@@ -8,11 +8,12 @@ export interface BenchmarkEvaluation {
   evaluation_id: string
   retrieved_timestamp: string
   benchmark?: string
-  
+
   source_data: string[] | SourceData
   source_metadata: SourceMetadata
   eval_library?: EvalLibrary
   model_info: ModelInfo
+  generation_config?: GenerationConfig
   evaluation_results: EvaluationResult[]
   detailed_evaluation_results_per_samples?: SampleResult[]
 }
@@ -123,7 +124,7 @@ export interface ScoreDetails {
 }
 
 export interface GenerationConfig {
-  generation_args: {
+  generation_args?: {
     temperature?: number
     top_p?: number
     top_k?: number
@@ -131,7 +132,7 @@ export interface GenerationConfig {
     reasoning?: boolean
     [key: string]: any
   }
-  additional_details?: string
+  additional_details?: string | Record<string, any>
   prompt_template?: string
 }
 

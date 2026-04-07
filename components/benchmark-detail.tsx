@@ -20,7 +20,7 @@ import {
 } from "lucide-react"
 import type { BenchmarkCard, BenchmarkEvaluation, CategoryType, EvaluationResult } from "@/lib/benchmark-schema"
 import { getCategoryColor as getCategoryTone, inferCategoryFromBenchmark } from "@/lib/benchmark-schema"
-import { formatScore, getBenchmarkDisplayName } from "@/lib/eval-processing"
+import { formatScore, getBenchmarkDisplayName, type BenchmarkEvalSummary } from "@/lib/eval-processing"
 import type { ModelSummaryCore } from "@/lib/benchmark-schema"
 import { lookupBenchmarkCard } from "@/lib/benchmark-metadata-utils"
 import { Fragment, useState, useEffect, useMemo, type CSSProperties } from "react"
@@ -39,6 +39,9 @@ interface BenchmarkVariant {
   subtaskLabel: string | null
   displayScore: string
   normalizedScore: number
+  rankPosition: number | null
+  rankTotal: number | null
+  rankRatio: number | null
 }
 
 interface BenchmarkGroup {
@@ -50,6 +53,9 @@ interface BenchmarkGroup {
   scoreType: EvaluationResult["metric_config"]["score_type"] | "mixed"
   avgNormalizedScore: number
   avgDisplayScore: string
+  bestRankPosition: number | null
+  bestRankTotal: number | null
+  bestRankRatio: number | null
   domains: string[]
   benchmarkCard?: BenchmarkCard
   variants: BenchmarkVariant[]
@@ -378,6 +384,10 @@ function getBenchmarkSpread(group: BenchmarkGroup) {
   return group.variants[0].normalizedScore - group.variants[group.variants.length - 1].normalizedScore
 }
 
+function getBenchmarkSourceCount(group: BenchmarkGroup) {
+  return new Set(group.variants.map((variant) => variant.evaluation.source_metadata.source_organization_name)).size
+}
+
 function getVariantTypeTone(variantType: BenchmarkVariant["variantType"]) {
   switch (variantType) {
     case "setup":
@@ -402,6 +412,119 @@ function getVariantTypeLabel(variantType: BenchmarkVariant["variantType"]) {
     default:
       return "Single run"
   }
+}
+
+function parseNumericRank(value: unknown) {
+  if (typeof value === "number") {
+    return Number.isFinite(value) ? value : null
+  }
+
+  if (typeof value === "string") {
+    const parsed = Number.parseFloat(value.replace(/[^0-9.]/g, ""))
+    return Number.isFinite(parsed) ? parsed : null
+  }
+
+  return null
+}
+
+function parseRankFraction(value: unknown) {
+  if (typeof value !== "string") {
+    return null
+  }
+
+  const match = value.match(/(\d+)\s*\/\s*(\d+)/)
+  if (!match) {
+    return null
+  }
+
+  const position = Number.parseInt(match[1], 10)
+  const total = Number.parseInt(match[2], 10)
+  if (!Number.isFinite(position) || !Number.isFinite(total) || total <= 0) {
+    return null
+  }
+
+  return { position, total }
+}
+
+function findRankFromObject(value: unknown, depth = 0): { position: number; total: number | null } | null {
+  if (depth > 4 || value == null) {
+    return null
+  }
+
+  const fraction = parseRankFraction(value)
+  if (fraction) {
+    return fraction
+  }
+
+  if (typeof value !== "object" || Array.isArray(value)) {
+    return null
+  }
+
+  const record = value as Record<string, unknown>
+  const keys = Object.keys(record)
+  const lowered = Object.fromEntries(keys.map((key) => [key.toLowerCase(), record[key]]))
+
+  const positionCandidates = ["rank", "position", "place", "standing"]
+  const totalCandidates = ["total", "out_of", "num_models", "model_count", "total_models", "population"]
+
+  let position: number | null = null
+  let total: number | null = null
+
+  for (const key of positionCandidates) {
+    if (key in lowered) {
+      position = parseNumericRank(lowered[key])
+      if (position != null) {
+        break
+      }
+    }
+  }
+
+  for (const key of totalCandidates) {
+    if (key in lowered) {
+      total = parseNumericRank(lowered[key])
+      if (total != null) {
+        break
+      }
+    }
+  }
+
+  if (position != null) {
+    return { position, total }
+  }
+
+  for (const nestedValue of Object.values(record)) {
+    const nested = findRankFromObject(nestedValue, depth + 1)
+    if (nested) {
+      return nested
+    }
+  }
+
+  return null
+}
+
+function getVariantPeerRank(result: EvaluationResult) {
+  const fromDetails = findRankFromObject(result.score_details.details)
+  if (fromDetails?.position != null) {
+    return fromDetails
+  }
+
+  const fromSource = findRankFromObject(result.source_data)
+  if (fromSource?.position != null) {
+    return fromSource
+  }
+
+  if (result.evaluation_name.toLowerCase().includes("rank")) {
+    const scoreRank = parseNumericRank(result.score_details.score)
+    if (scoreRank != null) {
+      return { position: scoreRank, total: null }
+    }
+  }
+
+  return null
+}
+
+function getDeepDiveAnchorId(groupKey: string) {
+  return `deep-dive-${groupKey.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "")}`
 }
 
 function buildVariantStructuredSections(variant: BenchmarkVariant) {
@@ -432,12 +555,28 @@ function getVariantConfigMap(variant: BenchmarkVariant) {
     configMap.setup = setup
   }
 
-  const generationArgs = variant.result.generation_config?.generation_args
+  // Prefer result-level generation config, fall back to eval-level
+  const genConfig = variant.result.generation_config ?? variant.evaluation.generation_config
 
-  if (generationArgs) {
-    for (const [key, value] of collectConfigEntries(generationArgs)) {
+  if (genConfig?.generation_args) {
+    for (const [key, value] of collectConfigEntries(genConfig.generation_args)) {
       configMap[key] = value
     }
+  }
+
+  if (genConfig?.additional_details) {
+    const ad = genConfig.additional_details
+    if (typeof ad === "string") {
+      configMap.additional_details = ad
+    } else if (typeof ad === "object") {
+      for (const [key, value] of collectConfigEntries(ad)) {
+        configMap[key] = value
+      }
+    }
+  }
+
+  if (genConfig?.prompt_template) {
+    configMap.prompt_template = genConfig.prompt_template
   }
 
   return configMap
@@ -465,6 +604,58 @@ function getEvalDetailHref(evaluation: BenchmarkEvaluation, result: EvaluationRe
   const benchmarkKey = evaluation.benchmark || getResultBenchmarkName(evaluation, result)
   const evalSummaryId = slugifyEvalSummaryId(`${benchmarkKey}__${result.evaluation_name}`)
   return `/evals/${evalSummaryId}`
+}
+
+function getEvalSummaryIdFromHref(href: string) {
+  const [, id = ""] = href.split("/evals/")
+  return id
+}
+
+function getGroupPeerRank(
+  group: BenchmarkGroup,
+  modelId: string,
+  peerRanks: PeerRanksMap
+): { position: number; total: number } | null {
+  let best: { position: number; total: number } | null = null
+
+  for (const variant of group.variants) {
+    const evalSummaryId = getEvalSummaryIdFromHref(
+      getEvalDetailHref(variant.evaluation, variant.result)
+    )
+    const rank = peerRanks[evalSummaryId]?.[modelId]
+    if (rank == null) continue
+
+    if (best == null) {
+      best = rank
+      continue
+    }
+
+    const rankRatio = rank.total > 0 ? rank.position / rank.total : rank.position
+    const bestRatio = best.total > 0 ? best.position / best.total : best.position
+    if (rankRatio < bestRatio) {
+      best = rank
+    }
+  }
+
+  return best ?? (group.bestRankPosition != null ? { position: group.bestRankPosition, total: group.bestRankTotal ?? 0 } : null)
+}
+
+type PeerRanksMap = Record<string, Record<string, { position: number; total: number }>>
+
+let peerRanksPromise: Promise<PeerRanksMap> | null = null
+
+function loadPeerRanks(): Promise<PeerRanksMap> {
+  if (!peerRanksPromise) {
+    peerRanksPromise = fetch("/peer-ranks.json")
+      .then((r) => (r.ok ? r.json() : {}))
+      .catch(() => ({}))
+  }
+  return peerRanksPromise
+}
+
+async function fetchPeerRankForModel(evalSummaryId: string, modelId: string) {
+  const ranks = await loadPeerRanks()
+  return ranks[evalSummaryId]?.[modelId] ?? null
 }
 
 function formatResultDisplayScore(result: EvaluationResult) {
@@ -521,6 +712,15 @@ function buildBenchmarkGroups(
       : undefined
     const normalizedScore = normalizeScoreForDisplay(entry.result)
     const displayScore = formatResultDisplayScore(entry.result)
+    const rankInfo = getVariantPeerRank(entry.result)
+    const rankPosition = rankInfo?.position ?? null
+    const rankTotal = rankInfo?.total ?? null
+    const rankRatio =
+      rankPosition != null && rankTotal != null && rankTotal > 0
+        ? rankPosition / rankTotal
+        : rankPosition != null
+          ? rankPosition
+          : null
     const descriptor = getVariantDescriptor(entry.evaluation, entry.result)
     const variant: BenchmarkVariant = {
       evaluation: entry.evaluation,
@@ -531,6 +731,9 @@ function buildBenchmarkGroups(
       subtaskLabel: descriptor.subtaskLabel,
       displayScore,
       normalizedScore,
+      rankPosition,
+      rankTotal,
+      rankRatio,
     }
 
     const existing = groups.get(title)
@@ -545,6 +748,9 @@ function buildBenchmarkGroups(
         scoreType: entry.result.metric_config.score_type,
         avgNormalizedScore: normalizedScore,
         avgDisplayScore: `${(normalizedScore * 100).toFixed(1)}%`,
+        bestRankPosition: rankPosition,
+        bestRankTotal: rankTotal,
+        bestRankRatio: rankRatio,
         domains: card?.benchmark_details?.domains ?? [],
         benchmarkCard: card,
         variants: [variant],
@@ -587,6 +793,14 @@ function buildBenchmarkGroups(
       group.avgNormalizedScore =
         group.variants.reduce((sum, variant) => sum + variant.normalizedScore, 0) / group.variants.length
       group.avgDisplayScore = `${(group.avgNormalizedScore * 100).toFixed(1)}%`
+
+      const rankedVariants = group.variants
+        .filter((variant) => variant.rankRatio != null)
+        .sort((a, b) => (a.rankRatio ?? Number.POSITIVE_INFINITY) - (b.rankRatio ?? Number.POSITIVE_INFINITY))
+
+      group.bestRankPosition = rankedVariants[0]?.rankPosition ?? null
+      group.bestRankTotal = rankedVariants[0]?.rankTotal ?? null
+      group.bestRankRatio = rankedVariants[0]?.rankRatio ?? null
       return group
     })
     .sort((a, b) => b.avgNormalizedScore - a.avgNormalizedScore)
@@ -622,10 +836,18 @@ export function BenchmarkDetail({ summary, benchmarkCards }: BenchmarkDetailProp
   const { mode } = useAudienceMode()
   const isResearchView = mode === "research"
   const [benchmarkSearch, setBenchmarkSearch] = useState("")
-  const [benchmarkSort, setBenchmarkSort] = useState<"score" | "name" | "variants" | "spread">("score")
+  const [benchmarkSort, setBenchmarkSort] = useState<"rank" | "score" | "name" | "variants" | "spread">("rank")
   const [selectedCategories, setSelectedCategories] = useState<CategoryType[]>([])
-  const [expandedBenchmarkKey, setExpandedBenchmarkKey] = useState<string | null>(null)
   const [showWithoutMetadata, setShowWithoutMetadata] = useState(false)
+  const modelId = summary.model_info.id
+
+  const [peerRanks, setPeerRanks] = useState<PeerRanksMap>({})
+
+  // Load peer-ranks.json once and store in state so the table can use them
+  useEffect(() => {
+    loadPeerRanks().then(setPeerRanks)
+  }, [])
+
   const allEvaluations = useMemo(
     () => Object.values(summary.evaluations_by_category).flat(),
     [summary.evaluations_by_category]
@@ -813,6 +1035,17 @@ export function BenchmarkDetail({ summary, benchmarkCards }: BenchmarkDetailProp
 
     const sortFn = (a: BenchmarkGroup, b: BenchmarkGroup) => {
       switch (benchmarkSort) {
+        case "rank": {
+          const aRank = getGroupPeerRank(a, modelId, peerRanks)
+          const bRank = getGroupPeerRank(b, modelId, peerRanks)
+          // Unranked groups go to the bottom
+          if (aRank == null && bRank == null) return b.avgNormalizedScore - a.avgNormalizedScore
+          if (aRank == null) return 1
+          if (bRank == null) return -1
+          const aRatio = aRank.total > 0 ? aRank.position / aRank.total : aRank.position
+          const bRatio = bRank.total > 0 ? bRank.position / bRank.total : bRank.position
+          return aRatio - bRatio || b.avgNormalizedScore - a.avgNormalizedScore
+        }
         case "name": return a.title.localeCompare(b.title)
         case "variants": return b.variants.length - a.variants.length || b.avgNormalizedScore - a.avgNormalizedScore
         case "spread": return getBenchmarkSpread(b) - getBenchmarkSpread(a) || b.avgNormalizedScore - a.avgNormalizedScore
@@ -824,7 +1057,7 @@ export function BenchmarkDetail({ summary, benchmarkCards }: BenchmarkDetailProp
     withoutCard.sort(sortFn)
 
     return showWithoutMetadata ? [...withCard, ...withoutCard] : withCard
-  }, [benchmarkGroups, benchmarkSearch, benchmarkSort, selectedCategories, showWithoutMetadata])
+  }, [benchmarkGroups, benchmarkSearch, benchmarkSort, selectedCategories, showWithoutMetadata, modelId, peerRanks])
 
   const groupedFilteredBenchmarkGroups = useMemo(() => {
     const order = new Map(summary.categories_covered.map((category, index) => [category, index]))
@@ -841,13 +1074,42 @@ export function BenchmarkDetail({ summary, benchmarkCards }: BenchmarkDetailProp
       .map(([category, groups]) => ({ category, groups }))
   }, [filteredBenchmarkGroups, summary.categories_covered])
 
+
   const overviewBenchmarkGroups =
     selectedCategories.length > 0 || benchmarkSearch.trim()
       ? filteredBenchmarkGroups
       : benchmarkGroups
 
-  const bestBenchmark = overviewBenchmarkGroups[0]
-  const widestBenchmark = [...overviewBenchmarkGroups].sort((a, b) => getBenchmarkSpread(b) - getBenchmarkSpread(a))[0]
+  const rankedBenchmarkGroups = useMemo(
+    () => overviewBenchmarkGroups.filter((group) => getGroupPeerRank(group, modelId, peerRanks) != null),
+    [overviewBenchmarkGroups, modelId, peerRanks]
+  )
+  const strongRankedBenchmarks = useMemo(
+    () =>
+      [...rankedBenchmarkGroups]
+        .sort((a, b) => {
+          const aRank = getGroupPeerRank(a, modelId, peerRanks)
+          const bRank = getGroupPeerRank(b, modelId, peerRanks)
+          const aRatio = aRank ? aRank.position / (aRank.total || aRank.position) : Number.POSITIVE_INFINITY
+          const bRatio = bRank ? bRank.position / (bRank.total || bRank.position) : Number.POSITIVE_INFINITY
+          return aRatio - bRatio
+        })
+        .slice(0, 3),
+    [rankedBenchmarkGroups, modelId, peerRanks]
+  )
+  const weakRankedBenchmarks = useMemo(
+    () =>
+      [...rankedBenchmarkGroups]
+        .sort((a, b) => {
+          const aRank = getGroupPeerRank(a, modelId, peerRanks)
+          const bRank = getGroupPeerRank(b, modelId, peerRanks)
+          const aRatio = aRank ? aRank.position / (aRank.total || aRank.position) : Number.NEGATIVE_INFINITY
+          const bRatio = bRank ? bRank.position / (bRank.total || bRank.position) : Number.NEGATIVE_INFINITY
+          return bRatio - aRatio
+        })
+        .slice(0, 3),
+    [rankedBenchmarkGroups, modelId, peerRanks]
+  )
   const repeatedBenchmarkCount = overviewBenchmarkGroups.filter((group) => group.variants.length > 1).length
   const setupDrivenBenchmarkCount = overviewBenchmarkGroups.filter((group) =>
     group.variants.some((variant) => variant.variantType === "setup" || variant.variantType === "setup+subtask")
@@ -855,17 +1117,6 @@ export function BenchmarkDetail({ summary, benchmarkCards }: BenchmarkDetailProp
   const subtaskDrivenBenchmarkCount = overviewBenchmarkGroups.filter((group) =>
     group.variants.some((variant) => variant.variantType === "subtask" || variant.variantType === "setup+subtask")
   ).length
-
-  useEffect(() => {
-    if (!expandedBenchmarkKey) {
-      return
-    }
-
-    const stillVisible = filteredBenchmarkGroups.some((group) => group.key === expandedBenchmarkKey)
-    if (!stillVisible) {
-      setExpandedBenchmarkKey(null)
-    }
-  }, [expandedBenchmarkKey, filteredBenchmarkGroups])
 
   useEffect(() => {
     setSelectedCategories((current) =>
@@ -885,6 +1136,13 @@ export function BenchmarkDetail({ summary, benchmarkCards }: BenchmarkDetailProp
     } catch {
       return isoString
     }
+  }
+
+  const jumpToDeepDive = (groupKey: string) => {
+    const anchorId = getDeepDiveAnchorId(groupKey)
+    requestAnimationFrame(() => {
+      document.getElementById(anchorId)?.scrollIntoView({ behavior: "smooth", block: "start" })
+    })
   }
   
   return (
@@ -1106,6 +1364,7 @@ export function BenchmarkDetail({ summary, benchmarkCards }: BenchmarkDetailProp
                 <SelectValue placeholder="Sort benchmarks" />
               </SelectTrigger>
               <SelectContent>
+                <SelectItem value="rank">Best rank first</SelectItem>
                 <SelectItem value="score">Highest score first</SelectItem>
                 <SelectItem value="name">Name (A-Z)</SelectItem>
                 <SelectItem value="variants">Most subtasks</SelectItem>
@@ -1179,41 +1438,67 @@ export function BenchmarkDetail({ summary, benchmarkCards }: BenchmarkDetailProp
         )}
 
         <div className={`grid gap-3 ${isResearchView ? "md:grid-cols-3" : "md:grid-cols-2 xl:grid-cols-3"}`}>
-          {bestBenchmark && (
-            <div className="rounded-2xl border bg-emerald-50/70 p-3.5 dark:bg-emerald-950/20">
-              <div className="text-[10px] font-semibold uppercase tracking-[0.16em] text-emerald-700/90 dark:text-emerald-300">
-                Strongest Reported Benchmark
-              </div>
-              <div className="mt-1.5 text-sm font-semibold tracking-tight">
-                <Link href={bestBenchmark.evalDetailHref} className="underline decoration-dotted underline-offset-4 hover:text-primary">
-                  {bestBenchmark.title}
-                </Link>
-              </div>
-              <div className="mt-1 text-xs leading-5 text-muted-foreground">{bestBenchmark.description}</div>
-              <div className="mt-2 text-[1.45rem] font-semibold tracking-tight text-emerald-700 dark:text-emerald-300">{bestBenchmark.avgDisplayScore}</div>
+          <div className="rounded-2xl border bg-emerald-50/70 p-3.5 dark:bg-emerald-950/20">
+            <div className="text-[10px] font-semibold uppercase tracking-[0.16em] text-emerald-700/90 dark:text-emerald-300">
+              Strong scores
             </div>
-          )}
-
-          {widestBenchmark && (
-            <div className="rounded-2xl border bg-amber-50/70 p-3.5 dark:bg-amber-950/20">
-              <div className="text-[10px] font-semibold uppercase tracking-[0.16em] text-amber-700/90 dark:text-amber-300">
-                Widest score gap
-              </div>
-              <div className="mt-1.5 text-sm font-semibold tracking-tight">
-                <Link href={widestBenchmark.evalDetailHref} className="underline decoration-dotted underline-offset-4 hover:text-primary">
-                  {widestBenchmark.title}
-                </Link>
-              </div>
-              <div className="mt-1 text-xs leading-5 text-muted-foreground">
-                {widestBenchmark.variants.length} subtask{widestBenchmark.variants.length === 1 ? "" : "s"} with the biggest spread between highest and lowest scores
-              </div>
-              <div className="mt-2 text-[1.45rem] font-semibold tracking-tight text-amber-700 dark:text-amber-300">
-                {(getBenchmarkSpread(widestBenchmark) * 100).toFixed(1)} pts
-              </div>
+            <div className="mt-2 flex flex-wrap gap-1.5">
+              {strongRankedBenchmarks.length > 0 ? (
+                strongRankedBenchmarks.map((group) => {
+                  const rank = getGroupPeerRank(group, modelId, peerRanks)
+                  return (
+                    <button
+                      key={`strong-${group.key}`}
+                      type="button"
+                      onClick={() => jumpToDeepDive(group.key)}
+                      className="inline-flex items-center gap-1.5 rounded-full border border-emerald-200/80 bg-background px-2.5 py-1 text-xs font-medium text-emerald-900 hover:border-emerald-300 dark:border-emerald-900/60 dark:text-emerald-100"
+                    >
+                      <span className="truncate max-w-[14rem]">{group.title}</span>
+                      {rank && (
+                        <span className="tabular-nums text-emerald-700/80 dark:text-emerald-300/80">
+                          #{rank.position}{rank.total ? `/${rank.total}` : ""}
+                        </span>
+                      )}
+                    </button>
+                  )
+                })
+              ) : (
+                <div className="text-xs text-muted-foreground">No ranked benchmarks available for this model yet.</div>
+              )}
             </div>
-          )}
+          </div>
 
-              <div className="rounded-2xl border bg-sky-50/70 p-3.5 dark:bg-sky-950/20">
+          <div className="rounded-2xl border bg-rose-50/70 p-3.5 dark:bg-rose-950/20">
+            <div className="text-[10px] font-semibold uppercase tracking-[0.16em] text-rose-700/90 dark:text-rose-300">
+              Weak scores
+            </div>
+            <div className="mt-2 flex flex-wrap gap-1.5">
+              {weakRankedBenchmarks.length > 0 ? (
+                weakRankedBenchmarks.map((group) => {
+                  const rank = getGroupPeerRank(group, modelId, peerRanks)
+                  return (
+                    <button
+                      key={`weak-${group.key}`}
+                      type="button"
+                      onClick={() => jumpToDeepDive(group.key)}
+                      className="inline-flex items-center gap-1.5 rounded-full border border-rose-200/80 bg-background px-2.5 py-1 text-xs font-medium text-rose-900 hover:border-rose-300 dark:border-rose-900/60 dark:text-rose-100"
+                    >
+                      <span className="truncate max-w-[14rem]">{group.title}</span>
+                      {rank && (
+                        <span className="tabular-nums text-rose-700/80 dark:text-rose-300/80">
+                          #{rank.position}{rank.total ? `/${rank.total}` : ""}
+                        </span>
+                      )}
+                    </button>
+                  )
+                })
+              ) : (
+                <div className="text-xs text-muted-foreground">No ranked benchmarks available for this model yet.</div>
+              )}
+            </div>
+          </div>
+
+          <div className="rounded-2xl border bg-sky-50/70 p-3.5 dark:bg-sky-950/20">
             <div className="text-[10px] font-semibold uppercase tracking-[0.16em] text-sky-700/90 dark:text-sky-300">
               Coverage Snapshot
             </div>
@@ -1233,6 +1518,68 @@ export function BenchmarkDetail({ summary, benchmarkCards }: BenchmarkDetailProp
           </div>
         ) : (
           <div className="space-y-5">
+            <div className="overflow-hidden rounded-2xl border border-border/70 bg-card">
+              <div className="grid grid-cols-[minmax(0,1.55fr)_minmax(180px,1fr)_84px] items-center border-b bg-muted/20 px-3 py-2 text-[11px] font-semibold uppercase tracking-[0.16em] text-muted-foreground">
+                <div>Benchmark</div>
+                <div className="text-right">Accuracy</div>
+                <div className="text-right">Rank</div>
+              </div>
+
+              <div className="divide-y">
+                {groupedFilteredBenchmarkGroups.map(({ category, groups }) => (
+                  <div key={`matrix-cat-${category}`}>
+                    <div className="bg-muted/10 px-3 py-1.5 text-[10px] font-semibold uppercase tracking-[0.16em] text-muted-foreground">
+                      {category}
+                    </div>
+                    {groups.map((group) => {
+                      const scorePercent = Math.max(4, Math.min(100, group.avgNormalizedScore * 100))
+                      const rank = getGroupPeerRank(group, modelId, peerRanks)
+
+                      return (
+                        <div key={`compact-${group.key}`} className="grid grid-cols-[minmax(0,1.55fr)_minmax(180px,1fr)_84px] items-center gap-3 px-3 py-2.5">
+                          <div className="min-w-0">
+                            <button
+                              type="button"
+                              onClick={() => jumpToDeepDive(group.key)}
+                              className="truncate text-left text-sm font-semibold underline decoration-dotted underline-offset-4 hover:text-primary"
+                            >
+                              {group.title}
+                            </button>
+                          </div>
+
+                          <div className="min-w-0">
+                            <div className="flex items-center gap-2.5">
+                              <div className="h-1.5 flex-1 overflow-hidden rounded-full bg-muted">
+                                <div className="h-full rounded-full bg-foreground/80" style={{ width: `${scorePercent}%` }} />
+                              </div>
+                              <span className="w-14 shrink-0 text-right text-sm font-semibold tabular-nums">
+                                {group.avgDisplayScore}
+                              </span>
+                            </div>
+                          </div>
+
+                          <div className="text-right text-xs tabular-nums text-muted-foreground">
+                            {rank != null
+                              ? `#${rank.position}${rank.total ? `/${rank.total}` : ""}`
+                              : Object.keys(peerRanks).length === 0 ? "…" : "—"}
+                          </div>
+                        </div>
+                      )
+                    })}
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            <div className="flex items-center justify-between">
+              <div className="text-xs font-semibold uppercase tracking-[0.18em] text-muted-foreground">
+                Deep dive by category
+              </div>
+              <div className="text-xs text-muted-foreground">
+                Open details to inspect setup, provenance, and sample-level evidence
+              </div>
+            </div>
+
             {groupedFilteredBenchmarkGroups.map(({ category, groups }, sectionIndex) => (
               <section key={category} className="space-y-3">
                 <div className="flex items-center gap-3">
@@ -1244,22 +1591,13 @@ export function BenchmarkDetail({ summary, benchmarkCards }: BenchmarkDetailProp
                   </div>
                 </div>
 
-                <div className="space-y-2.5">
+                <div className="grid gap-2.5 md:grid-cols-2 xl:grid-cols-3">
                   {groups.map((group, index) => (
-                    <AggregatedBenchmarkCard
+                    <BenchmarkDeepDiveCardModal
                       key={`${category}-${group.key}`}
                       group={group}
-                      isOpen={expandedBenchmarkKey === group.key}
+                      anchorId={getDeepDiveAnchorId(group.key)}
                       motionIndex={sectionIndex * 6 + index}
-                      onOpenChange={(open) =>
-                        setExpandedBenchmarkKey((current) => {
-                          if (open) {
-                            return group.key
-                          }
-
-                          return current === group.key ? null : current
-                        })
-                      }
                     />
                   ))}
                 </div>
@@ -1928,11 +2266,13 @@ function BenchmarkResultCard({
 
 function AggregatedBenchmarkCard({
   group,
+  anchorId,
   isOpen,
   onOpenChange,
   motionIndex = 0,
 }: {
   group: BenchmarkGroup
+  anchorId: string
   isOpen: boolean
   onOpenChange: (open: boolean) => void
   motionIndex?: number
@@ -2023,6 +2363,7 @@ function AggregatedBenchmarkCard({
 
   return (
     <div
+      id={anchorId}
       className="motion-academic-enter"
       style={{ "--enter-delay": `${Math.min(motionIndex * 55, 260)}ms` } as CSSProperties}
     >
@@ -2076,17 +2417,15 @@ function AggregatedBenchmarkCard({
                 </div>
               </div>
 
-              {/* Score bar + score — right side */}
-              <div className="hidden md:flex shrink-0 items-center gap-2.5 w-[180px] lg:w-[190px]">
-                <div className="flex-1 h-1.5 overflow-hidden rounded-full bg-muted/60">
-                  <div
-                    className="h-full rounded-full bg-foreground/70 transition-[width] duration-300"
-                    style={{ width: `${progressWidth}%` }}
-                  />
-                </div>
-                <span className="w-12 shrink-0 text-right text-sm font-semibold tabular-nums text-foreground/90">
+              <div className="hidden sm:flex shrink-0 items-center gap-2 text-xs">
+                <span className="rounded-full border border-border/60 bg-muted/30 px-2 py-0.5 font-medium text-muted-foreground">
                   {group.avgDisplayScore}
                 </span>
+                {group.bestRankPosition != null && (
+                  <span className="rounded-full border border-border/60 bg-background px-2 py-0.5 font-medium text-muted-foreground">
+                    {`#${group.bestRankPosition}${group.bestRankTotal ? `/${group.bestRankTotal}` : ""}`}
+                  </span>
+                )}
               </div>
 
               {/* Subtask count */}
@@ -2105,6 +2444,14 @@ function AggregatedBenchmarkCard({
           <Separator />
           <CardContent className="bg-muted/5 p-4 sm:p-5">
             <div className="space-y-2.5">
+              <div className="flex items-center justify-end">
+                <Link href={group.evalDetailHref}>
+                  <Button size="sm" variant="outline" className="h-8">
+                    View full leaderboard
+                  </Button>
+                </Link>
+              </div>
+
               {group.benchmarkCard && (
                 <div className="rounded-2xl border border-border/70 bg-background/90 p-3.5">
                   <div className="flex flex-wrap items-start justify-between gap-3">
@@ -2377,6 +2724,300 @@ function AggregatedBenchmarkCard({
   )
 }
 
+function BenchmarkDeepDiveCardModal({
+  group,
+  anchorId,
+  motionIndex = 0,
+}: {
+  group: BenchmarkGroup
+  anchorId: string
+  motionIndex?: number
+}) {
+  const { mode } = useAudienceMode()
+  const isResearchView = mode === "research"
+  const [open, setOpen] = useState(false)
+  const [resolvedRanks, setResolvedRanks] = useState<Record<string, { position: number; total: number | null }>>({})
+  const [isResolvingRanks, setIsResolvingRanks] = useState(false)
+  const compactDomains = group.domains.slice(0, 2)
+  const sourceOrganizations = useMemo(
+    () => new Set(group.variants.map((variant) => variant.evaluation.source_metadata.source_organization_name)),
+    [group.variants]
+  )
+  const rankedVariants = useMemo(
+    () =>
+      [...group.variants].sort((a, b) => {
+        const aRank = a.rankRatio ?? Number.POSITIVE_INFINITY
+        const bRank = b.rankRatio ?? Number.POSITIVE_INFINITY
+
+        if (aRank !== bRank) {
+          return aRank - bRank
+        }
+
+        return b.normalizedScore - a.normalizedScore
+      }),
+    [group.variants]
+  )
+
+  const variantRows = useMemo(
+    () =>
+      rankedVariants.map((variant, index) => {
+        const rowKey = `${variant.evaluation.evaluation_id}-${index}`
+        const evalHref = getEvalDetailHref(variant.evaluation, variant.result)
+        const evalSummaryId = getEvalSummaryIdFromHref(evalHref)
+        const configMap = getVariantConfigMap(variant)
+
+        return {
+          rowKey,
+          variant,
+          evalSummaryId,
+          configEntries: Object.entries(configMap),
+        }
+      }),
+    [rankedVariants]
+  )
+
+  const bestResolvedRank = useMemo(() => {
+    const candidates = variantRows
+      .map((row) => {
+        const resolved = resolvedRanks[row.rowKey]
+        if (resolved) return resolved
+        if (row.variant.rankPosition != null) {
+          return { position: row.variant.rankPosition, total: row.variant.rankTotal }
+        }
+        return null
+      })
+      .filter((r): r is { position: number; total: number | null } => r != null)
+      .sort((a, b) => {
+        const aRatio = a.total != null && a.total > 0 ? a.position / a.total : a.position
+        const bRatio = b.total != null && b.total > 0 ? b.position / b.total : b.position
+        return aRatio - bRatio
+      })
+    return candidates[0] ?? null
+  }, [resolvedRanks, variantRows])
+
+  useEffect(() => {
+    if (!open) {
+      return
+    }
+
+    const pendingRows = variantRows.filter(
+      (row) => row.variant.rankPosition == null && !resolvedRanks[row.rowKey] && row.evalSummaryId
+    )
+
+    if (pendingRows.length === 0) {
+      return
+    }
+
+    let isCancelled = false
+
+    const resolveRanks = async () => {
+      setIsResolvingRanks(true)
+
+      const nextResolvedEntries = await Promise.all(
+        pendingRows.map(async (row) => {
+          const rank = await fetchPeerRankForModel(row.evalSummaryId, row.variant.evaluation.model_info.id)
+          return rank ? ([row.rowKey, rank] as const) : null
+        })
+      )
+
+      if (isCancelled) {
+        return
+      }
+
+      setResolvedRanks((current) => {
+        const patch: Record<string, { position: number; total: number | null }> = {}
+
+        for (const entry of nextResolvedEntries) {
+          if (!entry) {
+            continue
+          }
+
+          patch[entry[0]] = entry[1]
+        }
+
+        return Object.keys(patch).length > 0 ? { ...current, ...patch } : current
+      })
+
+      setIsResolvingRanks(false)
+    }
+
+    resolveRanks()
+
+    return () => {
+      isCancelled = true
+    }
+  }, [open, resolvedRanks, variantRows])
+
+  return (
+    <div
+      id={anchorId}
+      className="motion-academic-enter"
+      style={{ "--enter-delay": `${Math.min(motionIndex * 55, 260)}ms` } as CSSProperties}
+    >
+      <Card className="h-full overflow-hidden border border-border/70 bg-card transition-colors hover:border-border">
+        <CardContent className="space-y-3 p-4">
+          <div className="flex items-start justify-between gap-3">
+            <div className="min-w-0">
+              <div className="flex items-center gap-1.5">
+                <span className={`inline-flex items-center rounded-full border px-2 py-0.5 text-[10px] font-semibold ${getCategoryTone(group.category)}`}>
+                  {group.category}
+                </span>
+                {group.benchmarkCard && (
+                  <span className="rounded-full border border-border/50 bg-muted/20 px-1.5 py-0.5 text-[9px] font-semibold uppercase tracking-[0.12em] text-muted-foreground">
+                    Card
+                  </span>
+                )}
+              </div>
+              <h4 className="mt-2 line-clamp-2 text-sm font-semibold leading-5">{group.title}</h4>
+            </div>
+
+            <div className="text-right">
+              <div className="text-sm font-semibold tabular-nums">{group.avgDisplayScore}</div>
+              {group.bestRankPosition != null && (
+                <div className="text-[11px] tabular-nums text-muted-foreground">
+                  {`#${group.bestRankPosition}${group.bestRankTotal ? `/${group.bestRankTotal}` : ""}`}
+                </div>
+              )}
+            </div>
+          </div>
+
+          {compactDomains.length > 0 && (
+            <div className="flex flex-wrap gap-1">
+              {compactDomains.map((domain) => (
+                <span
+                  key={`${group.key}-${domain}`}
+                  className="inline-flex items-center rounded-full border border-border/50 bg-background/70 px-2 py-0.5 text-[10px] font-medium capitalize text-muted-foreground"
+                >
+                  {domain}
+                </span>
+              ))}
+              {group.domains.length > compactDomains.length && (
+                <span className="inline-flex items-center rounded-full border border-border/50 bg-background/70 px-2 py-0.5 text-[10px] font-medium text-muted-foreground">
+                  +{group.domains.length - compactDomains.length}
+                </span>
+              )}
+            </div>
+          )}
+
+          <div className="flex items-center justify-between text-[11px] text-muted-foreground">
+            <span>{group.variants.length} {group.variants.length === 1 ? "subtask" : "subtasks"}</span>
+            <span>{sourceOrganizations.size} source{sourceOrganizations.size === 1 ? "" : "s"}</span>
+          </div>
+
+          <div className="flex items-center gap-2 pt-1">
+            <Dialog open={open} onOpenChange={setOpen}>
+              <DialogTrigger asChild>
+                <Button size="sm" className="h-8">Open details</Button>
+              </DialogTrigger>
+              <DialogContent className="h-[80vh] max-w-[92vw] overflow-hidden sm:max-w-5xl">
+                <DialogHeader>
+                  <DialogTitle>{group.title}</DialogTitle>
+                  <DialogDescription>
+                    {isResearchView
+                      ? "Inspect setup subtasks, score details, and source provenance in one focused view."
+                      : "Inspect reporting setup and evidence details before interpreting benchmark position."}
+                  </DialogDescription>
+                </DialogHeader>
+
+                <div className="grid h-[calc(80vh-7rem)] gap-4 overflow-hidden">
+                  <div className="grid gap-3 sm:grid-cols-3">
+                    <div className="rounded-xl border bg-muted/10 p-3">
+                      <div className="text-[11px] font-semibold uppercase tracking-[0.16em] text-muted-foreground">Avg score</div>
+                      <div className="mt-1 text-lg font-semibold tabular-nums">{group.avgDisplayScore}</div>
+                    </div>
+                    <div className="rounded-xl border bg-muted/10 p-3">
+                      <div className="text-[11px] font-semibold uppercase tracking-[0.16em] text-muted-foreground">Best rank</div>
+                      <div className="mt-1 text-lg font-semibold tabular-nums">
+                        {bestResolvedRank != null
+                          ? `#${bestResolvedRank.position}${bestResolvedRank.total ? `/${bestResolvedRank.total}` : ""}`
+                          : isResolvingRanks
+                            ? "…"
+                            : "N/A"}
+                      </div>
+                      {isResolvingRanks && (
+                        <div className="mt-1 text-[11px] text-muted-foreground">Resolving peer rank…</div>
+                      )}
+                    </div>
+                    <div className="rounded-xl border bg-muted/10 p-3">
+                      <div className="text-[11px] font-semibold uppercase tracking-[0.16em] text-muted-foreground">Sources</div>
+                      <div className="mt-1 text-lg font-semibold tabular-nums">{sourceOrganizations.size}</div>
+                    </div>
+                  </div>
+
+                  {group.benchmarkCard && (
+                    <div className="rounded-xl border bg-background p-3">
+                      <div className="text-[11px] font-semibold uppercase tracking-[0.16em] text-muted-foreground">Benchmark context</div>
+                      <p className="mt-1 text-sm text-muted-foreground line-clamp-3">{group.benchmarkCard.benchmark_details.overview}</p>
+                    </div>
+                  )}
+
+                  <div className="min-h-0 overflow-auto rounded-xl border">
+                    <Table>
+                      <TableHeader>
+                        <TableRow className="hover:bg-transparent">
+                          <TableHead>Subtask</TableHead>
+                          <TableHead>Setup</TableHead>
+                          <TableHead className="text-right">Score</TableHead>
+                          <TableHead className="text-right">Rank</TableHead>
+                          <TableHead>Source</TableHead>
+                        </TableRow>
+                      </TableHeader>
+                      <TableBody>
+                        {variantRows.map((row) => {
+                          const { rowKey, variant, configEntries } = row
+                          const resolvedRank = resolvedRanks[rowKey]
+
+                          return (
+                          <TableRow key={rowKey}>
+                            <TableCell className="whitespace-normal">
+                              <div className="font-medium">{variant.label}</div>
+                              <div className="text-xs text-muted-foreground">{variant.variantType === "default" ? "Single run" : getVariantTypeLabel(variant.variantType)}</div>
+                            </TableCell>
+                            <TableCell className="whitespace-normal">
+                              <div className="text-sm font-medium">{variant.setupLabel ?? "Default setup"}</div>
+                              {configEntries.length > 0 && (
+                                <div className="mt-1 text-xs text-muted-foreground">
+                                  {configEntries
+                                    .slice(0, 2)
+                                    .map(([key, value]) => `${formatConfigLabel(key)}=${getConfigDisplayValue(value)}`)
+                                    .join(" · ")}
+                                </div>
+                              )}
+                            </TableCell>
+                            <TableCell className="text-right font-semibold tabular-nums">{variant.displayScore}</TableCell>
+                            <TableCell className="text-right tabular-nums text-muted-foreground">
+                              {(variant.rankPosition != null || resolvedRank)
+                                ? `#${resolvedRank?.position ?? variant.rankPosition}${(resolvedRank?.total ?? variant.rankTotal) ? `/${resolvedRank?.total ?? variant.rankTotal}` : ""}`
+                                : "N/A"}
+                            </TableCell>
+                            <TableCell className="whitespace-normal text-muted-foreground">
+                              {variant.evaluation.source_metadata.source_organization_name}
+                            </TableCell>
+                          </TableRow>
+                        )})}
+                      </TableBody>
+                    </Table>
+                  </div>
+
+                  <div className="flex justify-end">
+                    <Link href={group.evalDetailHref}>
+                      <Button variant="outline">View full leaderboard</Button>
+                    </Link>
+                  </div>
+                </div>
+              </DialogContent>
+            </Dialog>
+
+            <Link href={group.evalDetailHref} className="text-xs font-medium text-muted-foreground underline decoration-dotted underline-offset-4 hover:text-primary">
+              Full leaderboard
+            </Link>
+          </div>
+        </CardContent>
+      </Card>
+    </div>
+  )
+}
+
 function VariantExpandedDetail({
   row,
   group,
@@ -2392,6 +3033,16 @@ function VariantExpandedDetail({
   const purpose = variant.result.factsheet?.purpose
   const principles = variant.result.factsheet?.principles_tested
   const sourceTypeLabel = variant.evaluation.source_metadata.source_type.replace(/_/g, " ")
+  const sourceData = !Array.isArray(variant.result.source_data ?? variant.evaluation.source_data)
+    ? (variant.result.source_data ?? variant.evaluation.source_data) as import("@/lib/benchmark-schema").SourceData
+    : null
+  const evalLibrary = variant.evaluation.eval_library
+  const confidenceInterval = variant.result.score_details.confidence_interval
+  const sampleSize = variant.result.score_details.sample_size ?? sourceData?.samples_number ?? sampleCount
+  const factsheet = variant.result.factsheet
+  const allFactsheetFields: Array<[string, string]> = factsheet
+    ? (Object.entries(factsheet).filter(([, v]) => v != null && v !== "" && typeof v !== "boolean") as Array<[string, string]>)
+    : []
 
   return (
     <div className="space-y-4 rounded-xl border bg-background/80 p-4">
@@ -2417,7 +3068,12 @@ function VariantExpandedDetail({
           <Badge variant="outline" className="capitalize">
             {variant.evaluation.source_metadata.evaluator_relationship.replace(/_/g, " ")}
           </Badge>
-          {sampleCount != null && <Badge variant="outline">{sampleCount.toLocaleString()} samples</Badge>}
+          {sampleSize != null && <Badge variant="outline">{Number(sampleSize).toLocaleString()} samples</Badge>}
+          {evalLibrary && (
+            <Badge variant="outline">
+              {evalLibrary.name}{evalLibrary.version ? ` ${evalLibrary.version}` : ""}
+            </Badge>
+          )}
         </div>
       </div>
 
@@ -2429,16 +3085,28 @@ function VariantExpandedDetail({
           <div className="grid gap-3 md:grid-cols-2 text-sm">
             <InlineMeta label="Organization" value={variant.evaluation.source_metadata.source_organization_name} />
             <InlineMeta label="Source Type" value={sourceTypeLabel} />
-            <InlineMeta label="Slice Type" value={getVariantTypeLabel(variant.variantType)} />
+            <InlineMeta label="Subtask Type" value={getVariantTypeLabel(variant.variantType)} />
             <InlineMeta
               label={isResearchView ? "Dataset" : "Benchmark"}
-              value={Array.isArray(variant.evaluation.source_data) ? group.title : variant.evaluation.source_data.dataset_name}
+              value={sourceData?.dataset_name ?? group.title}
             />
+            {sourceData?.dataset_version && <InlineMeta label="Version" value={sourceData.dataset_version} />}
+            {sourceData?.hf_repo && <InlineMeta label="HF Repo" value={sourceData.hf_repo} />}
+            {sourceData?.hf_split && <InlineMeta label="Split" value={sourceData.hf_split} />}
             {variant.subtaskLabel && <InlineMeta label="Subtask" value={variant.subtaskLabel} />}
             {variant.setupLabel && <InlineMeta label="Setup" value={variant.setupLabel} />}
+            {variant.evaluation.source_metadata.source_name && (
+              <InlineMeta label="Source Name" value={variant.evaluation.source_metadata.source_name} />
+            )}
             <InlineMeta label="Relationship" value={variant.evaluation.source_metadata.evaluator_relationship.replace(/_/g, " ")} />
             <InlineMeta label="Reported" value={formatCompactDate(variant.evaluation.retrieved_timestamp)} />
             <InlineMeta label="Score" value={variant.displayScore} />
+            {confidenceInterval && (
+              <InlineMeta
+                label="Confidence Interval"
+                value={`[${confidenceInterval.lower.toFixed(3)}, ${confidenceInterval.upper.toFixed(3)}] @ ${(confidenceInterval.confidence_level * 100).toFixed(0)}%`}
+              />
+            )}
           </div>
         </div>
 
@@ -2463,10 +3131,15 @@ function VariantExpandedDetail({
             )}
           </div>
 
-          {!isResearchView && (purpose || principles) && (
+          {(purpose || principles || allFactsheetFields.length > 0) && (
             <div className="mt-4 space-y-2 rounded-lg border bg-background/70 p-3">
               {purpose && <InlineMeta label="Purpose" value={purpose} />}
-              {principles && <InlineMeta label="Principles" value={principles} />}
+              {principles && <InlineMeta label="Principles Tested" value={principles} />}
+              {allFactsheetFields
+                .filter(([k]) => k !== "purpose" && k !== "principles_tested" && k !== "functional_props")
+                .map(([key, value]) => (
+                  <InlineMeta key={key} label={formatConfigLabel(key)} value={String(value)} />
+                ))}
             </div>
           )}
         </div>

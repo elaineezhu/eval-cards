@@ -4,9 +4,10 @@
   "private": true,
   "packageManager": "pnpm@10.25.0",
   "scripts": {
-    "build": "next build",
+    "build": "node scripts/precompute-ranks.mjs && next build",
     "dev": "next dev",
     "lint": "next lint",
+    "precompute-ranks": "node scripts/precompute-ranks.mjs",
     "start": "next start",
     "test": "vitest"
   },
