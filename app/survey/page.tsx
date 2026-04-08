@@ -1,7 +1,7 @@
 "use client"
 
 import { useEffect, useMemo, useState } from "react"
-import { ArrowDown, ArrowUp, Copy, Download, RotateCcw, Search, X } from "lucide-react"
+import { ArrowDown, ArrowUp, Copy, Download, RotateCcw, Search, Send, X } from "lucide-react"
 import fieldLibraryJson from "@/data/survey/eval-schema-fields.json"
 import { Navigation } from "@/components/navigation"
 import { PageHeader } from "@/components/page-header"
@@ -33,7 +33,6 @@ interface SurveyState {
   participantName: string
   organization: string
   roleTitle: string
-  interviewDate: string
   stakeholderTag: StakeholderTag
   stakeholderGroupingNotes: string
   answers: Record<string, string>
@@ -61,7 +60,6 @@ function createInitialState(): SurveyState {
     participantName: "",
     organization: "",
     roleTitle: "",
-    interviewDate: getTodayString(),
     stakeholderTag: "researcher",
     stakeholderGroupingNotes: "",
     answers: {},
@@ -101,10 +99,10 @@ function buildSummaryText(state: SurveyState, fieldMap: Map<string, SurveyField>
   const lines: string[] = [
     "Eval Cards Survey",
     `Stakeholder tag: ${stakeholderLabel}`,
-    `Interview date: ${state.interviewDate || "[Not set]"}`,
-    `Participant: ${state.participantName || "[Not set]"}`,
-    `Organization: ${state.organization || "[Not set]"}`,
-    `Role: ${state.roleTitle || "[Not set]"}`,
+    `Date: ${getTodayString()}`,
+    `Participant: ${state.participantName || "Anonymous"}`,
+    `Organization: ${state.organization || "Not provided"}`,
+    `Role: ${state.roleTitle || "Not provided"}`,
   ]
 
   if (state.stakeholderGroupingNotes.trim()) {
@@ -162,6 +160,7 @@ export default function SurveyPage() {
   const [fieldQuery, setFieldQuery] = useState("")
   const [sourceFilter, setSourceFilter] = useState<(typeof SOURCE_FILTERS)[number]["id"]>("all")
   const [copyState, setCopyState] = useState<"idle" | "copied" | "error">("idle")
+  const [submitState, setSubmitState] = useState<"idle" | "submitting" | "submitted" | "error">("idle")
 
   useEffect(() => {
     const storedValue = window.localStorage.getItem(STORAGE_KEY)
@@ -303,7 +302,7 @@ export default function SurveyPage() {
 
   const downloadSummary = () => {
     const participantSlug = slugifySegment(surveyState.participantName) || "participant"
-    const dateSlug = surveyState.interviewDate || "undated"
+    const dateSlug = getTodayString()
     const filename = `eval-cards-survey-${participantSlug}-${dateSlug}.md`
     const blob = new Blob([summaryText], { type: "text/markdown;charset=utf-8" })
     const url = window.URL.createObjectURL(blob)
@@ -316,13 +315,39 @@ export default function SurveyPage() {
     window.URL.revokeObjectURL(url)
   }
 
+  const submitSurvey = async () => {
+    setSubmitState("submitting")
+    try {
+      const res = await fetch("/api/survey-submit", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          ...surveyState,
+          submittedAt: new Date().toISOString(),
+          date: getTodayString(),
+          summaryText,
+        }),
+      })
+      if (!res.ok) {
+        const data = await res.json().catch(() => ({}))
+        console.error("Survey submission failed:", data)
+        setSubmitState("error")
+        return
+      }
+      setSubmitState("submitted")
+    } catch (err) {
+      console.error("Survey submission error:", err)
+      setSubmitState("error")
+    }
+  }
+
   return (
     <div className="min-h-screen bg-background">
       <Navigation />
       <PageHeader
         eyebrow="Survey"
         title={SURVEY_CONFIG.title}
-        description="One shared interview guide for stakeholders who work with model evaluations, plus a schema-field ranking workspace."
+        description="A public survey for stakeholders who work with model evaluations, plus a schema-field ranking workspace."
         metaItems={[
           { label: "Schema fields", value: FIELD_LIBRARY.length.toString() },
           { label: "Ranked now", value: surveyState.rankedFieldIds.length.toString() },
@@ -333,26 +358,9 @@ export default function SurveyPage() {
               surveyState.stakeholderTag,
           },
         ]}
-      >
-        <Button variant="outline" size="sm" className="gap-2" onClick={copySummary}>
-          <Copy className="h-4 w-4" />
-          {copyState === "copied"
-            ? "Copied"
-            : copyState === "error"
-              ? "Copy failed"
-              : "Copy to clipboard"}
-        </Button>
-        <Button variant="outline" size="sm" className="gap-2" onClick={downloadSummary}>
-          <Download className="h-4 w-4" />
-          Download
-        </Button>
-        <Button variant="ghost" size="sm" className="gap-2" onClick={resetSurvey}>
-          <RotateCcw className="h-4 w-4" />
-          Reset survey
-        </Button>
-      </PageHeader>
+      />
 
-      <main className="container mx-auto px-4 py-8">
+      <main className="container mx-auto px-4 py-8 pb-24">
         <section className="mb-8 grid gap-4 lg:grid-cols-[1.15fr_0.85fr]">
           <div className="rounded-[1.5rem] border border-border/70 bg-muted/10 p-5">
             <div className="mb-3 text-[11px] font-semibold uppercase tracking-[0.22em] text-muted-foreground">
@@ -362,7 +370,7 @@ export default function SurveyPage() {
               <p>{SURVEY_CONFIG.audienceSummary}</p>
               <p>{SURVEY_CONFIG.goalsSummary}</p>
               <p>
-                Use the stakeholder tag only as a grouping aid for later analysis, not as a reason to branch into different interview scripts.
+                Use the stakeholder tag only as a grouping aid for later analysis.
               </p>
             </div>
           </div>
@@ -390,7 +398,7 @@ export default function SurveyPage() {
         <section className="mb-6 grid gap-6 xl:grid-cols-[1.1fr_0.9fr]">
           <div className="rounded-[1.5rem] border border-border/70 bg-background p-5">
             <div className="mb-3 flex flex-wrap items-center gap-2">
-              <Badge variant="outline">Single interview guide</Badge>
+              <Badge variant="outline">Public survey</Badge>
               <Badge variant="secondary">Group later</Badge>
             </div>
             <h2 className="text-xl font-bold tracking-tight">{SURVEY_CONFIG.title}</h2>
@@ -400,12 +408,15 @@ export default function SurveyPage() {
           </div>
 
           <div className="rounded-[1.5rem] border border-border/70 bg-muted/10 p-5">
-            <div className="mb-4 text-[11px] font-semibold uppercase tracking-[0.22em] text-muted-foreground">
-              Session Details
+            <div className="mb-1 text-[11px] font-semibold uppercase tracking-[0.22em] text-muted-foreground">
+              About You
             </div>
-            <div className="grid gap-4 sm:grid-cols-2">
-              <label className="space-y-2">
-                <span className="text-sm font-medium">Participant</span>
+            <p className="mb-4 text-sm text-muted-foreground">
+              This is a public survey — all fields below are optional. Responses are saved anonymously if left blank.
+            </p>
+            <div className="grid gap-4 sm:grid-cols-3">
+              <label className="block">
+                <span className="mb-2 block text-sm"><span className="font-medium">Name</span> <span className="text-muted-foreground">(optional)</span></span>
                 <Input
                   value={surveyState.participantName}
                   onChange={(event) =>
@@ -414,11 +425,11 @@ export default function SurveyPage() {
                       participantName: event.target.value,
                     }))
                   }
-                  placeholder="Name"
+                  placeholder="Anonymous"
                 />
               </label>
-              <label className="space-y-2">
-                <span className="text-sm font-medium">Organization / Team</span>
+              <label className="block">
+                <span className="mb-2 block text-sm"><span className="font-medium">Organization</span> <span className="text-muted-foreground">(optional)</span></span>
                 <Input
                   value={surveyState.organization}
                   onChange={(event) =>
@@ -430,8 +441,8 @@ export default function SurveyPage() {
                   placeholder="Org or team"
                 />
               </label>
-              <label className="space-y-2">
-                <span className="text-sm font-medium">Role</span>
+              <label className="block">
+                <span className="mb-2 block text-sm"><span className="font-medium">Role</span> <span className="text-muted-foreground">(optional)</span></span>
                 <Input
                   value={surveyState.roleTitle}
                   onChange={(event) =>
@@ -441,19 +452,6 @@ export default function SurveyPage() {
                     }))
                   }
                   placeholder="Role title"
-                />
-              </label>
-              <label className="space-y-2">
-                <span className="text-sm font-medium">Interview date</span>
-                <Input
-                  type="date"
-                  value={surveyState.interviewDate}
-                  onChange={(event) =>
-                    setSurveyState((current) => ({
-                      ...current,
-                      interviewDate: event.target.value,
-                    }))
-                  }
                 />
               </label>
             </div>
@@ -468,7 +466,7 @@ export default function SurveyPage() {
               </div>
               <h3 className="mt-1 text-xl font-bold tracking-tight">Tag for later analysis</h3>
               <p className="mt-2 text-sm leading-6 text-muted-foreground">
-                Pick the closest fit, but keep the interview itself shared.
+                Pick the closest fit for grouping purposes.
               </p>
             </div>
             <Badge variant="outline">Optional segmentation layer</Badge>
@@ -804,6 +802,43 @@ export default function SurveyPage() {
           </label>
         </section>
       </main>
+
+      {/* Floating action bar */}
+      <div className="fixed bottom-0 inset-x-0 z-50 border-t bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/80">
+        <div className="container mx-auto flex items-center justify-end gap-3 px-4 py-3">
+          <Button variant="ghost" size="sm" className="gap-2" onClick={resetSurvey}>
+            <RotateCcw className="h-4 w-4" />
+            Reset
+          </Button>
+          <Button variant="outline" size="sm" className="gap-2" onClick={downloadSummary}>
+            <Download className="h-4 w-4" />
+            Download
+          </Button>
+          <Button variant="outline" size="sm" className="gap-2" onClick={copySummary}>
+            <Copy className="h-4 w-4" />
+            {copyState === "copied"
+              ? "Copied"
+              : copyState === "error"
+                ? "Copy failed"
+                : "Copy to clipboard"}
+          </Button>
+          <Button
+            size="sm"
+            className="gap-2"
+            onClick={submitSurvey}
+            disabled={submitState === "submitting" || submitState === "submitted"}
+          >
+            <Send className="h-4 w-4" />
+            {submitState === "submitting"
+              ? "Submitting..."
+              : submitState === "submitted"
+                ? "Submitted"
+                : submitState === "error"
+                  ? "Retry Submit"
+                  : "Submit"}
+          </Button>
+        </div>
+      </div>
     </div>
   )
 }

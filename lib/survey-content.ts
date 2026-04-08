@@ -37,13 +37,13 @@ export const SURVEY_SOURCE_LABELS: Record<string, string> = {
 const shortAnswer = "Short answer"
 
 export const SURVEY_CONFIG: SurveyConfig = {
-  title: "Shared Stakeholder Interview Survey",
+  title: "Shared Stakeholder Survey",
   audienceSummary:
-    "A single interview guide for people who work with model evaluations, whether they identify more as eval researchers, policymakers, or span both contexts.",
+    "A survey for people who work with model evaluations, whether they identify more as eval researchers, policymakers, or span both contexts.",
   goalsSummary:
-    "Use one shared instrument, then group responses afterward using the stakeholder tag and role notes. The goal is to capture what people need from evaluations, what makes them trust the evidence, and which schema fields matter most.",
+    "Responses are grouped afterward using the stakeholder tag and role notes. The goal is to capture what people need from evaluations, what makes them trust the evidence, and which schema fields matter most.",
   usabilityPrompt:
-    "We're testing the interface, not you. Please think out loud as you explore. I may ask what you're thinking.",
+    "We're evaluating the interface, not you. Feel free to share as much or as little as you like.",
   stakeholderTags: [
     { id: "researcher", label: "Eval Researcher" },
     { id: "policymaker", label: "Policymaker" },
@@ -70,7 +70,7 @@ export const SURVEY_CONFIG: SurveyConfig = {
     {
       id: "introduction",
       title: "Introduction",
-      description: "Start by grounding the interview in the participant's role, workflow, and downstream audience.",
+      description: "Start by describing your role, workflow, and who relies on your evaluation work.",
       questions: [
         {
           id: "role_scope",
@@ -95,7 +95,7 @@ export const SURVEY_CONFIG: SurveyConfig = {
     {
       id: "goals",
       title: "Goals, Needs & Decision-Making",
-      description: "Focus on what the participant is trying to learn and what makes an evaluation genuinely useful.",
+      description: "What are you trying to learn from evaluations, and what makes them genuinely useful?",
       questions: [
         {
           id: "core_decisions",
@@ -162,7 +162,7 @@ export const SURVEY_CONFIG: SurveyConfig = {
     {
       id: "usability",
       title: "Usability Testing",
-      description: "Use while the participant explores the current Eval Cards prototype.",
+      description: "Share your feedback after exploring the Eval Cards tool.",
       questions: [
         {
           id: "tool_rating",
