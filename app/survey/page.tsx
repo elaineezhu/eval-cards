@@ -332,12 +332,15 @@ export default function SurveyPage() {
         const data = await res.json().catch(() => ({}))
         console.error("Survey submission failed:", data)
         setSubmitState("error")
+        alert("Survey submission failed. Please try again.")
         return
       }
       setSubmitState("submitted")
+      alert("Thank you! Your survey response has been submitted successfully.")
     } catch (err) {
       console.error("Survey submission error:", err)
       setSubmitState("error")
+      alert("Survey submission failed due to a network error. Please try again.")
     }
   }
 
