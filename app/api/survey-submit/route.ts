@@ -34,24 +34,31 @@ export async function POST(request: Request) {
   const content = JSON.stringify(surveyData, null, 2)
 
   try {
-    // Use the HuggingFace Hub API to upload a file
-    const uploadUrl = `${HF_API}/${HF_REPO}/upload/main/${filename}`
-    const blob = new Blob([content], { type: "application/json" })
+    // Use the HuggingFace Hub commit API to create/upload a file
+    const commitUrl = `${HF_API}/${HF_REPO}/commit/main`
 
-    const formData = new FormData()
-    formData.append("file", blob, filename)
-
-    const res = await fetch(uploadUrl, {
+    const res = await fetch(commitUrl, {
       method: "POST",
       headers: {
         Authorization: `Bearer ${token}`,
+        "Content-Type": "application/json",
       },
-      body: formData,
+      body: JSON.stringify({
+        commit_message: `Survey response from ${participant} at ${timestamp}`,
+        operations: [
+          {
+            operation: "create",
+            path: filename,
+            content: Buffer.from(content).toString("base64"),
+            encoding: "base64",
+          },
+        ],
+      }),
     })
 
     if (!res.ok) {
       const errorText = await res.text()
-      console.error(`[survey-submit] HF upload failed: ${res.status}`, errorText)
+      console.error(`[survey-submit] HF commit failed: ${res.status}`, errorText)
       return NextResponse.json(
         { error: `Failed to save survey data (${res.status})` },
         { status: 502 }
