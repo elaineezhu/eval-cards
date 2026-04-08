@@ -44,7 +44,7 @@ export async function POST(request: Request) {
         "Content-Type": "application/json",
       },
       body: JSON.stringify({
-        commit_message: `Survey response from ${participant} at ${timestamp}`,
+        summary: `Survey response from ${participant} at ${timestamp}`,
         operations: [
           {
             operation: "create",
