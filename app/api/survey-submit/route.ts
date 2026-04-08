@@ -34,26 +34,26 @@ export async function POST(request: Request) {
   const content = JSON.stringify(surveyData, null, 2)
 
   try {
-    // Use the HuggingFace Hub commit API with multipart form data.
-    // The API expects: a header part (JSON with summary + operations metadata)
-    // followed by the file content, all in one multipart request.
+    // Use the HuggingFace Hub commit API (legacy JSON format)
     const commitUrl = `${HF_API}/${HF_REPO}/commit/main`
-
-    const header = JSON.stringify({
-      summary: `Survey response from ${participant} at ${timestamp}`,
-      operations: [{ operation: "create", path: filename }],
-    })
-
-    const formData = new FormData()
-    formData.append("header", new Blob([header], { type: "application/json" }))
-    formData.append("file", new Blob([content], { type: "application/json" }), filename)
 
     const res = await fetch(commitUrl, {
       method: "POST",
       headers: {
         Authorization: `Bearer ${token}`,
+        "Content-Type": "application/json",
       },
-      body: formData,
+      body: JSON.stringify({
+        summary: `Survey response from ${participant} at ${timestamp}`,
+        description: "",
+        files: [
+          {
+            path: filename,
+            content: content,
+            encoding: "utf-8",
+          },
+        ],
+      }),
     })
 
     if (!res.ok) {
