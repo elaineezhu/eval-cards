@@ -325,13 +325,17 @@ export function EvalDetail({ summary }: EvalDetailProps) {
   const avgNorm = formatPercent(summary.avg_score_norm)
   const scoreDirectionLabel = summary.metric_config.lower_is_better ? "Lower scores rank higher" : "Higher scores rank higher"
   const leaderboardTitle = isResearchView ? "Leaderboard" : "Reporting Comparison"
+  const sourceDatasetLabel = summary.source_data?.hf_repo ?? summary.source_data?.dataset_name ?? "Backend summary"
+  const instanceDataLabel = summary.instance_data?.available
+    ? `${summary.instance_data.url_count.toLocaleString()} linked URL${summary.instance_data.url_count === 1 ? "" : "s"}`
+    : "Not linked"
   const leaderboardDescription = isResearchView
     ? summary.is_aggregated
       ? "Models ranked by average normalized score across the contributing composite benchmarks."
       : "Models ranked by normalized score for this benchmark."
     : summary.is_aggregated
       ? "Averaged model results across the contributing composite benchmarks, with drill-down to each component score."
-      : "Model results with stronger emphasis on reporting context and evaluator provenance."
+      : "Model results with benchmark context, source dataset detail, and optional instance-data links."
 
   const toggleRow = (key: string) =>
     setExpandedRows((current) => ({
@@ -364,9 +368,11 @@ export function EvalDetail({ summary }: EvalDetailProps) {
                 <Badge variant="secondary" className="font-normal">
                   {summary.metric_config.lower_is_better ? "Lower is better" : "Higher is better"}
                 </Badge>
-                <Badge variant="secondary" className="font-normal">
-                  {(summary.factsheet?.input_modality ?? "text")}/{(summary.factsheet?.output_modality ?? "text")}
-                </Badge>
+                {summary.tags?.languages && summary.tags.languages.length > 0 && (
+                  <Badge variant="secondary" className="font-normal">
+                    {summary.tags.languages.join(", ")}
+                  </Badge>
+                )}
               </div>
 
               <div className="space-y-1">
@@ -378,28 +384,28 @@ export function EvalDetail({ summary }: EvalDetailProps) {
 
               {!isResearchView && (
                 <p className="max-w-3xl text-sm leading-6 text-muted-foreground">
-                  {`${summary.factsheet?.purpose ?? "This benchmark provides a public-facing capability signal."} Scores should be read alongside reporting context and evaluator independence.`}
+                  {`${summary.benchmark_card?.purpose_and_intended_users?.goal ?? "This benchmark provides a public-facing capability signal."} Scores should be read alongside benchmark scope, metric definitions, and the source dataset context.`}
                 </p>
               )}
             </div>
 
-            <div className="grid w-full gap-3 sm:grid-cols-2 xl:w-[460px] xl:grid-cols-4">
+            <div className="grid w-full gap-3 grid-cols-2 xl:grid-cols-4">
               <div className="rounded-2xl border border-sky-200/80 bg-sky-50/80 px-4 py-3 dark:border-sky-900/40 dark:bg-sky-950/20">
                 <div className="text-[11px] font-semibold uppercase tracking-[0.18em] text-sky-700 dark:text-sky-200">Models</div>
                 <div className="mt-1 text-2xl font-semibold text-sky-950 dark:text-sky-50">{summary.models_count}</div>
               </div>
               <div className="rounded-2xl border border-border/70 bg-muted/20 px-4 py-3">
                 <div className="text-[11px] font-semibold uppercase tracking-[0.18em] text-muted-foreground">
-                  {isResearchView ? "Avg norm" : "Reporting orgs"}
+                  {isResearchView ? "Avg norm" : "Metrics"}
                 </div>
-                <div className="mt-1 text-2xl font-semibold">{isResearchView ? avgNorm : summary.evaluator_names.length}</div>
+                <div className="mt-1 text-2xl font-semibold">{isResearchView ? avgNorm : summary.metrics_count ?? 1}</div>
               </div>
               <div className="rounded-2xl border border-emerald-200/80 bg-emerald-50/80 px-4 py-3 dark:border-emerald-900/40 dark:bg-emerald-950/20">
                 <div className="text-[11px] font-semibold uppercase tracking-[0.18em] text-emerald-700 dark:text-emerald-200">
-                  {isResearchView ? "Top model" : "Score rule"}
+                  {isResearchView ? "Top model" : "Source dataset"}
                 </div>
-                <div className="mt-1 min-w-0 truncate text-sm font-semibold text-emerald-950 dark:text-emerald-50">
-                  {isResearchView && summary.best_model ? summary.best_model.name : scoreDirectionLabel}
+                <div className="mt-1 text-sm font-semibold text-emerald-950 dark:text-emerald-50">
+                  {isResearchView && summary.best_model ? summary.best_model.name : sourceDatasetLabel}
                 </div>
                 {isResearchView && summary.best_model && (
                   <div className="mt-1 text-xs text-emerald-700/80 dark:text-emerald-200/80">
@@ -409,12 +415,12 @@ export function EvalDetail({ summary }: EvalDetailProps) {
               </div>
               <div className="rounded-2xl border border-amber-200/80 bg-amber-50/80 px-4 py-3 dark:border-amber-900/40 dark:bg-amber-950/20">
                 <div className="text-[11px] font-semibold uppercase tracking-[0.18em] text-amber-700 dark:text-amber-200">
-                  {isResearchView ? "Bottom model" : "Purpose"}
+                  {isResearchView ? "Bottom model" : "Instance data"}
                 </div>
-                <div className="mt-1 min-w-0 truncate text-sm font-semibold text-amber-950 dark:text-amber-50">
+                <div className="mt-1 text-sm font-semibold text-amber-950 dark:text-amber-50">
                   {isResearchView && summary.worst_model
                     ? summary.worst_model.name
-                    : summary.factsheet?.purpose ?? "General evaluation reporting"}
+                    : instanceDataLabel}
                 </div>
                 {isResearchView && summary.worst_model && (
                   <div className="mt-1 text-xs text-amber-700/80 dark:text-amber-200/80">
@@ -462,30 +468,20 @@ export function EvalDetail({ summary }: EvalDetailProps) {
                     : scoreDirectionLabel}
                 </dd>
               </div>
-              <div>
-                <dt className="text-[11px] font-semibold uppercase tracking-[0.16em] text-muted-foreground">Modalities</dt>
-                <dd className="mt-1 font-medium">
-                  {(summary.factsheet?.input_modality ?? "text")}/{(summary.factsheet?.output_modality ?? "text")}
-                </dd>
-              </div>
+              {summary.tags?.domains && summary.tags.domains.length > 0 && (
+                <div>
+                  <dt className="text-[11px] font-semibold uppercase tracking-[0.16em] text-muted-foreground">Domains</dt>
+                  <dd className="mt-1 font-medium capitalize">
+                    {summary.tags.domains.slice(0, 4).join(", ")}
+                  </dd>
+                </div>
+              )}
               <div>
                 <dt className="text-[11px] font-semibold uppercase tracking-[0.16em] text-muted-foreground">
-                  {summary.factsheet?.design ? "Documentation" : isResearchView ? "Reporting orgs" : "Evidence sources"}
+                  {isResearchView ? "Source dataset" : "Instance data"}
                 </dt>
                 <dd className="mt-1 font-medium">
-                  {summary.factsheet?.design ? (
-                    <a
-                      className="inline-flex max-w-full items-center gap-1 break-all text-primary underline decoration-dotted underline-offset-4 hover:text-primary/80"
-                      href={summary.factsheet.design}
-                      target="_blank"
-                      rel="noreferrer"
-                    >
-                      {summary.factsheet.design.replace(/^https?:\/\//, "")}
-                      <ExternalLink className="h-3.5 w-3.5 shrink-0" />
-                    </a>
-                  ) : (
-                    `${summary.evaluator_names.length} reporting org${summary.evaluator_names.length === 1 ? "" : "s"}`
-                  )}
+                  {isResearchView ? sourceDatasetLabel : instanceDataLabel}
                 </dd>
               </div>
             </dl>
@@ -729,7 +725,7 @@ export function EvalDetail({ summary }: EvalDetailProps) {
                           <div className="text-sm text-muted-foreground capitalize">
                             {modelResult.aggregate_components && modelResult.aggregate_components.length > 1
                               ? `average of ${modelResult.aggregate_components.length} composite scores`
-                              : modelResult.source_metadata.evaluator_relationship.replace(/_/g, " ")}
+                              : datasetName ?? "Backend detail artifact"}
                           </div>
                         </TableCell>
                       )}
@@ -748,9 +744,11 @@ export function EvalDetail({ summary }: EvalDetailProps) {
                           </div>
                         ) : (
                           <div className="space-y-1">
-                            <div className="font-medium">{modelResult.source_metadata.source_organization_name}</div>
+                            <div className="font-medium">{datasetName ?? sourceDatasetLabel}</div>
                             <div className="text-xs text-muted-foreground">
-                              {modelResult.source_metadata.evaluator_relationship.replace(/_/g, " ")}
+                              {Array.isArray(modelResult.source_data)
+                                ? "Backend detail artifact"
+                                : modelResult.source_data.hf_repo ?? modelResult.source_data.source_type ?? "Backend detail artifact"}
                             </div>
                           </div>
                         )}

@@ -78,8 +78,8 @@ function mergeSurveyState(value: Partial<SurveyState> | undefined): SurveyState 
   return {
     ...fallback,
     ...value,
-    stakeholderTag: validStakeholderTags.has(value?.stakeholderTag ?? "")
-      ? (value?.stakeholderTag as StakeholderTag)
+    stakeholderTag: value?.stakeholderTag && validStakeholderTags.has(value.stakeholderTag)
+      ? value.stakeholderTag
       : fallback.stakeholderTag,
     answers: {
       ...fallback.answers,

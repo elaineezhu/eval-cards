@@ -10,13 +10,14 @@ import type {
   ModelInfo,
   ModelVariantSummary,
   SourceMetadata,
+  SourceData,
   ScoreDetails,
   MetricConfig,
   EvaluationResult,
 } from './benchmark-schema'
 import type { ModelEvaluationSummary } from './benchmark-schema'
 import type { ModelSummaryCore } from './benchmark-schema'
-import { inferCategoryFromBenchmark, EVALUATION_CATEGORIES } from './benchmark-schema'
+import { inferCategoryFromBenchmark } from './benchmark-schema'
 
 export type { BenchmarkCard }
 import { getCanonicalModelIdentity, getModelFamilyRouteId } from './model-family'
@@ -108,6 +109,7 @@ function getBenchmarkPriority(value: string): number {
 
 export interface ModelResultForBenchmark {
   model_info: ModelInfo
+  model_route_id?: string
   score: number
   score_details: ScoreDetails
   evaluation_timestamp: string
@@ -136,7 +138,6 @@ export interface BenchmarkEvalSummary {
   composite_benchmark_name: string
   category: CategoryType
   metric_config: MetricConfig
-  factsheet: EvaluationResult['factsheet'] | undefined
   model_results: ModelResultForBenchmark[]
   models_count: number
   /** Unique evaluator organisation names */
@@ -160,6 +161,28 @@ export interface BenchmarkEvalSummary {
     models_count: number
     avg_score_norm: number
   }>
+  /** Tags from the pipeline (domains, languages, tasks) */
+  tags?: { domains: string[]; languages: string[]; tasks: string[] }
+  /** Number of distinct metrics for this benchmark */
+  metrics_count?: number
+  /** Names of all metrics */
+  metric_names?: string[]
+  /** Instance-level data availability */
+  instance_data?: { available: boolean; url_count: number; sample_urls: string[]; models_with_loaded_instances: number }
+  /** Benchmark family grouping key */
+  benchmark_family_key?: string
+  /** Leaf benchmark key */
+  benchmark_leaf_key?: string
+  /** Source dataset metadata from the pipeline */
+  source_data?: SourceData
+  /** Best raw score reported in the eval summary list */
+  top_score?: number
+  /** Count of nested subtasks reported for the benchmark */
+  subtasks_count?: number
+  /** Whether this row is a summary/rollup score for a composite */
+  is_summary_score?: boolean
+  /** Related summary-score sibling ids for this benchmark */
+  summary_eval_ids?: string[]
 }
 
 export type BenchmarkEvalListItem = Omit<BenchmarkEvalSummary, "model_results">
@@ -216,34 +239,19 @@ export function createModelSummary(
   // Group by category - track which categories each evaluation belongs to
   for (const eval_ of evaluations) {
     const evalCategories = new Set<CategoryType>()
-    
-    for (const result of eval_.evaluation_results) {
-      // Try to get category from factsheet first
-      let category: CategoryType | undefined;
-      
-      if (result.factsheet?.functional_props) {
-        // The factsheet might contain multiple categories separated by semicolon
-        // We'll pick the first one that matches our known categories
-        const props = result.factsheet.functional_props.split(';').map(p => p.trim());
-        for (const prop of props) {
-          if (EVALUATION_CATEGORIES.includes(prop as CategoryType)) {
-            category = prop as CategoryType;
-            break;
-          }
-        }
-      }
 
-      // Infer category from evaluation name if not found in factsheet
-      if (!category) {
-        category = inferCategoryFromBenchmark(result.evaluation_name)
-      }
-      
-      // Fallback to dataset name if source_data is an object
-      if (!category && !Array.isArray(eval_.source_data)) {
-        category = inferCategoryFromBenchmark(eval_.source_data.dataset_name)
-      }
-      
-      if (category) {
+    if (eval_.category) {
+      evalCategories.add(eval_.category)
+      categoriesSet.add(eval_.category)
+    } else {
+      for (const result of eval_.evaluation_results) {
+        let category: CategoryType = inferCategoryFromBenchmark(result.evaluation_name)
+
+        // Fallback to dataset name if source_data is an object
+        if (category === 'General' && !Array.isArray(eval_.source_data)) {
+          category = inferCategoryFromBenchmark(eval_.source_data.dataset_name)
+        }
+
         evalCategories.add(category)
         categoriesSet.add(category)
       }
@@ -502,40 +510,8 @@ export function createEvaluationCard(
     const categoryBenchmarks = new Set<string>()
     
     for (const eval_ of evals) {
-      if (Array.isArray(eval_.source_data)) {
-        for (const result of eval_.evaluation_results) {
-          // Only count if this result actually belongs to this category
-          const resultCategory = inferCategoryFromBenchmark(result.evaluation_name)
-          if (resultCategory === category) {
-            categoryBenchmarks.add(getBenchmarkName(eval_, result))
-          }
-        }
-      } else {
-        // For single-benchmark files, check if the file's main benchmark belongs to category
-        // But wait, inferCategoryFromBenchmark might have been used to categorize the whole file
-        // Let's just count the benchmarks in this file that match the category
-        for (const result of eval_.evaluation_results) {
-           // Determine category using the same logic as createModelSummary
-           let resultCategory: CategoryType | undefined;
-           
-           if (result.factsheet?.functional_props) {
-             const props = result.factsheet.functional_props.split(';').map(p => p.trim());
-             for (const prop of props) {
-               if (EVALUATION_CATEGORIES.includes(prop as CategoryType)) {
-                 resultCategory = prop as CategoryType;
-                 break;
-               }
-             }
-           }
-           
-           if (!resultCategory) {
-             resultCategory = inferCategoryFromBenchmark(result.evaluation_name)
-           }
-           
-           if (resultCategory === category) {
-             categoryBenchmarks.add(getBenchmarkName(eval_, result))
-           }
-        }
+      for (const result of eval_.evaluation_results) {
+        categoryBenchmarks.add(getBenchmarkName(eval_, result))
       }
     }
     categoryStats[category] = categoryBenchmarks.size
@@ -630,31 +606,11 @@ export function getCategoryStats(
   for (const category of summary.categories_covered) {
     const evals = summary.evaluations_by_category[category] || []
     const allScores: number[] = []
-    
+
     // Collect all scores from all results in this category
     for (const eval_ of evals) {
       for (const result of eval_.evaluation_results) {
-        // Verify this result actually belongs to this category
-        let resultCategory: CategoryType | undefined;
-        
-        if (result.factsheet?.functional_props) {
-          const props = result.factsheet.functional_props.split(';').map(p => p.trim());
-          for (const prop of props) {
-            if (EVALUATION_CATEGORIES.includes(prop as CategoryType)) {
-              resultCategory = prop as CategoryType;
-              break;
-            }
-          }
-        }
-        
-        if (!resultCategory) {
-          resultCategory = inferCategoryFromBenchmark(result.evaluation_name)
-        }
-        
-        // Only include scores for results that actually belong to this category
-        if (resultCategory === category) {
-          allScores.push(result.score_details.score)
-        }
+        allScores.push(result.score_details.score)
       }
     }
     
@@ -799,18 +755,7 @@ export function groupEvaluationsByBenchmark(
       const compositeBenchmarkName = getBenchmarkDisplayName(compositeBenchmarkKey)
 
       if (!summaries[evalId]) {
-        // Determine category from factsheet first, then infer
-        let category: CategoryType | undefined
-        if (result.factsheet?.functional_props) {
-          const props = result.factsheet.functional_props.split(';').map(p => p.trim())
-          for (const prop of props) {
-            if (EVALUATION_CATEGORIES.includes(prop as CategoryType)) {
-              category = prop as CategoryType
-              break
-            }
-          }
-        }
-        if (!category) category = inferCategoryFromBenchmark(displayName)
+        const category = inferCategoryFromBenchmark(displayName)
 
         summaries[evalId] = {
           evaluation_name: displayName,
@@ -819,7 +764,6 @@ export function groupEvaluationsByBenchmark(
           composite_benchmark_name: compositeBenchmarkName,
           category,
           metric_config: result.metric_config,
-          factsheet: result.factsheet,
           model_results: [],
           models_count: 0,
           evaluator_names: [],

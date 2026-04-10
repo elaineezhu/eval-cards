@@ -6,13 +6,26 @@ interface PageHeaderProps {
     label: string
     value: string
   }>
+  size?: "default" | "wide"
   children?: React.ReactNode
 }
 
-export function PageHeader({ title, description, eyebrow, metaItems = [], children }: PageHeaderProps) {
+export function PageHeader({
+  title,
+  description,
+  eyebrow,
+  metaItems = [],
+  size = "default",
+  children,
+}: PageHeaderProps) {
+  const wrapperClass =
+    size === "wide"
+      ? "mx-auto w-full max-w-[92rem] px-4 py-6 sm:px-6 lg:px-8"
+      : "container mx-auto px-4 py-6 sm:px-6"
+
   return (
     <div className="motion-academic-enter border-b border-border/60 bg-background">
-      <div className="container mx-auto px-4 py-6 sm:px-6">
+      <div className={wrapperClass}>
         <div className="grid gap-5 lg:grid-cols-[minmax(0,1fr)_auto] lg:items-end">
           <div className="space-y-3">
             {eyebrow && (

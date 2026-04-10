@@ -243,7 +243,7 @@ export default function ModelDetailPage() {
                 Versions
               </div>
               <Tabs
-                value={selectedVariant?.variant_id ?? summary.variants[0].variant_id}
+                value={selectedVariantId ?? summary.variants[0].variant_id}
                 onValueChange={handleVariantChange}
                 className="gap-0"
               >

@@ -10,7 +10,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Separator } from "@/components/ui/separator"
 import { Progress } from "@/components/ui/progress"
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible"
-import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog"
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog"
 import { Input } from "@/components/ui/input"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import { 
@@ -23,7 +23,7 @@ import { getCategoryColor as getCategoryTone, inferCategoryFromBenchmark } from 
 import { formatScore, getBenchmarkDisplayName, type BenchmarkEvalSummary } from "@/lib/eval-processing"
 import type { ModelSummaryCore } from "@/lib/benchmark-schema"
 import { lookupBenchmarkCard } from "@/lib/benchmark-metadata-utils"
-import { Fragment, useState, useEffect, useMemo, type CSSProperties } from "react"
+import { type CSSProperties, Fragment, useState, useEffect, useMemo } from "react"
 
 interface BenchmarkDetailProps {
   summary: ModelSummaryCore
@@ -61,6 +61,118 @@ interface BenchmarkGroup {
   variants: BenchmarkVariant[]
 }
 
+interface SuiteGroup {
+  suiteKey: string
+  suiteName: string
+  benchmarks: BenchmarkGroup[]
+  avgNormalizedScore: number
+  avgDisplayScore: string
+  bestRank: { position: number; total: number } | null
+}
+
+const SUITE_DISPLAY_NAMES: Record<string, string> = {
+  hfopenllm_v2: "HF Open LLM v2",
+  helm_lite: "HELM Lite",
+  helm_capabilities: "HELM Capabilities",
+  helm_classic: "HELM Classic",
+  helm_instruct: "HELM Instruct",
+  helm_mmlu: "HELM MMLU",
+  reward_bench: "RewardBench",
+  reward_bench_2: "RewardBench 2",
+  bfcl: "BFCL",
+  global_mmlu_lite: "Global MMLU Lite",
+  swe_bench: "SWE-bench",
+  arc_agi: "ARC-AGI",
+  tau_bench_2: "TAU-Bench 2",
+  ace: "ACE",
+  apex_agents: "APEX Agents",
+  apex_v1: "APEX v1",
+  appworld: "AppWorld",
+  browsecompplus: "BrowseComp+",
+  livecodebenchpro: "LiveCodeBench Pro",
+  sciarena: "SciArena",
+  terminal_bench_2_0: "Terminal Bench 2.0",
+  la_leaderboard: "LA Leaderboard",
+  theory_of_mind: "Theory of Mind",
+  fibble_arena: "Fibble Arena",
+  fibble1_arena: "Fibble Arena v1",
+  fibble2_arena: "Fibble Arena v2",
+  fibble3_arena: "Fibble Arena v3",
+  fibble4_arena: "Fibble Arena v4",
+  fibble5_arena: "Fibble Arena v5",
+  wordle_arena: "Wordle Arena",
+}
+
+function normalizeSuiteKey(key: string): string {
+  const k = key.toLowerCase().replace(/[-.\s]+/g, "_").replace(/^_+|_+$/g, "")
+  if (/^fibble\d*_arena$/.test(k)) return "fibble_arena"
+  if (/^arc_agi_v\d+/.test(k)) return "arc_agi"
+  if (/^apex_v\d+$/.test(k)) return "apex"
+  return k
+}
+
+function getSuiteKey(group: BenchmarkGroup): string {
+  const evaluation = group.variants[0]?.evaluation
+  const backendSuiteKey =
+    evaluation?.benchmark_family_key ||
+    evaluation?.benchmark_parent_key ||
+    evaluation?.benchmark
+
+  return normalizeSuiteKey(backendSuiteKey ?? group.key)
+}
+
+function getSuiteDisplayName(key: string): string {
+  const normalized = key.toLowerCase().replace(/[-.\s]+/g, "_").replace(/^_+|_+$/g, "")
+  return SUITE_DISPLAY_NAMES[normalized] ?? key.split(/[_-]+/).filter(Boolean).map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(" ")
+}
+
+function groupBySuite(
+  groups: BenchmarkGroup[],
+  modelIds: string[],
+  peerRanks: PeerRanksMap
+): SuiteGroup[] {
+  const suites = new Map<string, BenchmarkGroup[]>()
+  for (const group of groups) {
+    const key = getSuiteKey(group)
+    const existing = suites.get(key) ?? []
+    existing.push(group)
+    suites.set(key, existing)
+  }
+
+  return Array.from(suites.entries()).map(([suiteKey, benchmarks]) => {
+    const backendSuiteName =
+      benchmarks[0]?.variants[0]?.evaluation?.benchmark_family_name ||
+      benchmarks[0]?.variants[0]?.evaluation?.benchmark_parent_name
+    const scores = benchmarks.map(b => b.avgNormalizedScore).filter(Number.isFinite)
+    const avgScore = scores.length > 0 ? scores.reduce((a, b) => a + b, 0) / scores.length : 0
+
+    // Find best rank across all benchmarks in suite
+    let bestRank: { position: number; total: number } | null = null
+    for (const b of benchmarks) {
+      const rank = getGroupPeerRank(b, modelIds, peerRanks)
+      if (!rank) continue
+      if (!bestRank || (rank.position / rank.total) < (bestRank.position / bestRank.total)) {
+        bestRank = rank
+      }
+    }
+
+    return {
+      suiteKey,
+      suiteName: backendSuiteName || getSuiteDisplayName(suiteKey),
+      benchmarks,
+      avgNormalizedScore: avgScore,
+      avgDisplayScore: `${(avgScore * 100).toFixed(1)}%`,
+      bestRank,
+    }
+  }).sort((a, b) => {
+    // Sort by best peer rank ratio (lower = better); unranked suites go to the bottom
+    const aRatio = a.bestRank ? a.bestRank.position / (a.bestRank.total || a.bestRank.position) : Infinity
+    const bRatio = b.bestRank ? b.bestRank.position / (b.bestRank.total || b.bestRank.position) : Infinity
+    if (aRatio !== bRatio) return aRatio - bRatio
+    return b.avgNormalizedScore - a.avgNormalizedScore
+  })
+}
+
 interface VariantRowData {
   rowKey: string
   variant: BenchmarkVariant
@@ -82,6 +194,10 @@ function getResultBenchmarkName(
   evaluation: BenchmarkEvaluation,
   result: EvaluationResult
 ) {
+  if (evaluation.slice_name) {
+    return evaluation.slice_name
+  }
+
   if (result.source_data && !Array.isArray(result.source_data) && result.source_data.dataset_name) {
     return result.source_data.dataset_name
   }
@@ -439,6 +555,41 @@ function getVariantTypeLabel(variantType: BenchmarkVariant["variantType"]) {
   }
 }
 
+function formatSetupDisplayLabel(setupLabel: string | null) {
+  if (!setupLabel) {
+    return "Default setup"
+  }
+
+  const normalized = setupLabel.trim()
+  if (!normalized || normalized.toLowerCase() === "default" || normalized.endsWith("__default")) {
+    return "Default setup"
+  }
+
+  const cleaned = normalized
+    .replace(/^setup[:=]\s*/i, "")
+    .replace(/[_-]+/g, " ")
+    .replace(/\s+/g, " ")
+    .trim()
+
+  if (!cleaned) {
+    return "Default setup"
+  }
+
+  return cleaned.replace(/\b\w/g, (letter) => letter.toUpperCase())
+}
+
+function getVariantPrimaryLabel(variant: BenchmarkVariant, groupTitle: string) {
+  if (variant.subtaskLabel) {
+    return variant.subtaskLabel
+  }
+
+  if (variant.variantType === "default" || variant.variantType === "setup") {
+    return groupTitle
+  }
+
+  return variant.label
+}
+
 function parseNumericRank(value: unknown) {
   if (typeof value === "number") {
     return Number.isFinite(value) ? value : null
@@ -548,10 +699,6 @@ function getVariantPeerRank(result: EvaluationResult) {
   return null
 }
 
-function getDeepDiveAnchorId(groupKey: string) {
-  return `deep-dive-${groupKey.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "")}`
-}
-
 function buildVariantStructuredSections(variant: BenchmarkVariant) {
   const detailEntries = variant.result.score_details.details
     ? Object.entries(variant.result.score_details.details)
@@ -642,6 +789,10 @@ function slugifyEvalSummaryId(value: string) {
 }
 
 function getEvalDetailHref(evaluation: BenchmarkEvaluation, result: EvaluationResult) {
+  if (evaluation.eval_summary_id) {
+    return `/evals/${evaluation.eval_summary_id}`
+  }
+
   const benchmarkKey = evaluation.benchmark || getResultBenchmarkName(evaluation, result)
   const evalSummaryId = slugifyEvalSummaryId(`${benchmarkKey}__${result.evaluation_name}`)
   return `/evals/${evalSummaryId}`
@@ -654,27 +805,32 @@ function getEvalSummaryIdFromHref(href: string) {
 
 function getGroupPeerRank(
   group: BenchmarkGroup,
-  modelId: string,
+  modelIds: string[],
   peerRanks: PeerRanksMap
 ): { position: number; total: number } | null {
   let best: { position: number; total: number } | null = null
 
   for (const variant of group.variants) {
-    const evalSummaryId = getEvalSummaryIdFromHref(
-      getEvalDetailHref(variant.evaluation, variant.result)
-    )
-    const rank = peerRanks[evalSummaryId]?.[modelId]
-    if (rank == null) continue
+    const evalSummaryId =
+      variant.evaluation.eval_summary_id ??
+      getEvalSummaryIdFromHref(getEvalDetailHref(variant.evaluation, variant.result))
+    const evalRanks = peerRanks[evalSummaryId]
+    if (!evalRanks) continue
 
-    if (best == null) {
-      best = rank
-      continue
-    }
+    // Try all known model IDs for this model family
+    for (const mid of modelIds) {
+      const rank = evalRanks[mid]
+      if (rank == null) continue
 
-    const rankRatio = rank.total > 0 ? rank.position / rank.total : rank.position
-    const bestRatio = best.total > 0 ? best.position / best.total : best.position
-    if (rankRatio < bestRatio) {
-      best = rank
+      if (best == null) {
+        best = rank
+      } else {
+        const rankRatio = rank.total > 0 ? rank.position / rank.total : rank.position
+        const bestRatio = best.total > 0 ? best.position / best.total : best.position
+        if (rankRatio < bestRatio) {
+          best = rank
+        }
+      }
     }
   }
 
@@ -685,9 +841,12 @@ type PeerRanksMap = Record<string, Record<string, { position: number; total: num
 
 let peerRanksPromise: Promise<PeerRanksMap> | null = null
 
+const DATASET_PEER_RANKS_URL =
+  "https://huggingface.co/datasets/evaleval/card_backend/resolve/main/peer-ranks.json"
+
 function loadPeerRanks(): Promise<PeerRanksMap> {
   if (!peerRanksPromise) {
-    peerRanksPromise = fetch("/peer-ranks.json")
+    peerRanksPromise = fetch(DATASET_PEER_RANKS_URL)
       .then((r) => (r.ok ? r.json() : {}))
       .catch(() => ({}))
   }
@@ -785,8 +944,8 @@ function buildBenchmarkGroups(
         title,
         evalDetailHref: getEvalDetailHref(entry.evaluation, entry.result),
         category: entry.category,
-        description: entry.result.metric_config.evaluation_description,
-        scoreType: entry.result.metric_config.score_type,
+        description: entry.result.metric_config.evaluation_description ?? "",
+        scoreType: entry.result.metric_config.score_type ?? "continuous",
         avgNormalizedScore: normalizedScore,
         avgDisplayScore: `${(normalizedScore * 100).toFixed(1)}%`,
         bestRankPosition: rankPosition,
@@ -800,8 +959,9 @@ function buildBenchmarkGroups(
     }
 
     existing.variants.push(variant)
-    if (existing.description.length < entry.result.metric_config.evaluation_description.length) {
-      existing.description = entry.result.metric_config.evaluation_description
+    const newDesc = entry.result.metric_config.evaluation_description ?? ""
+    if ((existing.description ?? "").length < newDesc.length) {
+      existing.description = newDesc
     }
     if (existing.scoreType !== entry.result.metric_config.score_type) {
       existing.scoreType = "mixed"
@@ -877,10 +1037,29 @@ export function BenchmarkDetail({ summary, benchmarkCards }: BenchmarkDetailProp
   const { mode } = useAudienceMode()
   const isResearchView = mode === "research"
   const [benchmarkSearch, setBenchmarkSearch] = useState("")
-  const [benchmarkSort, setBenchmarkSort] = useState<"rank" | "score" | "name" | "variants" | "spread">("rank")
+  const [benchmarkSort, setBenchmarkSort] = useState<"relevance" | "rank" | "score" | "name" | "variants" | "spread">("relevance")
   const [selectedCategories, setSelectedCategories] = useState<CategoryType[]>([])
-  const [showWithoutMetadata, setShowWithoutMetadata] = useState(false)
+  const [expandedSuites, setExpandedSuites] = useState<Set<string>>(new Set())
+  const [activeBenchmarkGroupKey, setActiveBenchmarkGroupKey] = useState<string | null>(null)
   const modelId = summary.model_info.id
+  // Collect all known model IDs for peer rank lookup (family ID + raw variant IDs)
+  const modelIds = useMemo(() => {
+    const ids = new Set<string>([modelId])
+    if ('raw_model_ids' in summary) {
+      for (const id of (summary as any).raw_model_ids ?? []) {
+        ids.add(id)
+      }
+    }
+    // Also add IDs from individual evaluations, including pipeline-computed family_id
+    for (const evals of Object.values(summary.evaluations_by_category)) {
+      for (const e of evals) {
+        if (e.model_info?.id) ids.add(e.model_info.id)
+        const familyId = (e.model_info as any)?.family_id
+        if (familyId) ids.add(familyId)
+      }
+    }
+    return Array.from(ids)
+  }, [modelId, summary])
 
   const [peerRanks, setPeerRanks] = useState<PeerRanksMap>({})
 
@@ -888,6 +1067,53 @@ export function BenchmarkDetail({ summary, benchmarkCards }: BenchmarkDetailProp
   useEffect(() => {
     loadPeerRanks().then(setPeerRanks)
   }, [])
+
+  // Composite relevance score for benchmark ordering
+  // relevance = population × 0.4 + rank_extremity × 0.3 + has_metadata × 0.2 + recency × 0.1
+  const getRelevanceScore = useMemo(() => {
+    // Find max population across all peer-ranked benchmarks
+    let maxPop = 1
+    for (const evalRanks of Object.values(peerRanks)) {
+      const pop = Object.keys(evalRanks).length
+      if (pop > maxPop) maxPop = pop
+    }
+
+    // Find latest timestamp across all evaluations for recency normalization
+    const allTimestamps: number[] = []
+    for (const evals of Object.values(summary.evaluations_by_category)) {
+      for (const e of evals) {
+        const ts = parseFloat(e.retrieved_timestamp)
+        if (Number.isFinite(ts)) allTimestamps.push(ts)
+      }
+    }
+    const maxTs = allTimestamps.length > 0 ? Math.max(...allTimestamps) : 0
+    const minTs = allTimestamps.length > 0 ? Math.min(...allTimestamps) : 0
+    const tsRange = maxTs - minTs || 1
+
+    return (group: BenchmarkGroup): number => {
+      const rank = getGroupPeerRank(group, modelIds, peerRanks)
+
+      // Population: how many models were compared (0-1)
+      const population = rank ? Math.min(rank.total / maxPop, 1) : 0
+
+      // Rank extremity: how far from median — |0.5 - percentile| × 2 (0-1)
+      const percentile = rank ? rank.position / rank.total : 0.5
+      const rankExtremity = Math.abs(0.5 - percentile) * 2
+
+      // Rich metadata: has benchmark card (0 or 1)
+      const hasMetadata = group.benchmarkCard ? 1 : 0
+
+      // Recency: how recent is the latest evaluation (0-1)
+      let latestTs = 0
+      for (const v of group.variants) {
+        const ts = parseFloat(v.evaluation.retrieved_timestamp)
+        if (Number.isFinite(ts) && ts > latestTs) latestTs = ts
+      }
+      const recency = maxTs > minTs ? (latestTs - minTs) / tsRange : 0.5
+
+      return population * 0.4 + rankExtremity * 0.3 + hasMetadata * 0.2 + recency * 0.1
+    }
+  }, [peerRanks, modelIds, summary.evaluations_by_category])
 
   const allEvaluations = useMemo(
     () => Object.values(summary.evaluations_by_category).flat(),
@@ -928,27 +1154,11 @@ export function BenchmarkDetail({ summary, benchmarkCards }: BenchmarkDetailProp
     () =>
       Object.entries(summary.evaluations_by_category).flatMap(([category, evals]) =>
         evals.flatMap((evaluation) =>
-          evaluation.evaluation_results.flatMap((result) => {
-            let resultCategory: CategoryType | undefined
-
-            if (result.factsheet?.functional_props) {
-              const props = result.factsheet.functional_props.split(";").map((prop) => prop.trim())
-              if (props.includes(category)) {
-                resultCategory = category as CategoryType
-              }
-            }
-
-            if (!resultCategory) {
-              const inferred = inferCategoryFromBenchmark(result.evaluation_name)
-              if (inferred === category) {
-                resultCategory = inferred
-              }
-            }
-
-            return resultCategory === category
-              ? [{ evaluation, result, category: category as CategoryType }]
-              : []
-          })
+          evaluation.evaluation_results.map((result) => ({
+            evaluation,
+            result,
+            category: category as CategoryType,
+          }))
         )
       ),
     [summary.evaluations_by_category]
@@ -1070,15 +1280,13 @@ export function BenchmarkDetail({ summary, benchmarkCards }: BenchmarkDetailProp
       )
     })
 
-    // Metadata-first: always put groups with a benchmarkCard at the top
-    const withCard = filtered.filter((g) => !!g.benchmarkCard)
-    const withoutCard = filtered.filter((g) => !g.benchmarkCard)
-
     const sortFn = (a: BenchmarkGroup, b: BenchmarkGroup) => {
       switch (benchmarkSort) {
+        case "relevance":
+          return getRelevanceScore(b) - getRelevanceScore(a)
         case "rank": {
-          const aRank = getGroupPeerRank(a, modelId, peerRanks)
-          const bRank = getGroupPeerRank(b, modelId, peerRanks)
+          const aRank = getGroupPeerRank(a, modelIds, peerRanks)
+          const bRank = getGroupPeerRank(b, modelIds, peerRanks)
           // Unranked groups go to the bottom
           if (aRank == null && bRank == null) return b.avgNormalizedScore - a.avgNormalizedScore
           if (aRank == null) return 1
@@ -1094,11 +1302,10 @@ export function BenchmarkDetail({ summary, benchmarkCards }: BenchmarkDetailProp
       }
     }
 
-    withCard.sort(sortFn)
-    withoutCard.sort(sortFn)
+    filtered.sort(sortFn)
 
-    return showWithoutMetadata ? [...withCard, ...withoutCard] : withCard
-  }, [benchmarkGroups, benchmarkSearch, benchmarkSort, selectedCategories, showWithoutMetadata, modelId, peerRanks])
+    return filtered
+  }, [benchmarkGroups, benchmarkSearch, benchmarkSort, selectedCategories, modelId, peerRanks])
 
   const groupedFilteredBenchmarkGroups = useMemo(() => {
     const order = new Map(summary.categories_covered.map((category, index) => [category, index]))
@@ -1115,6 +1322,47 @@ export function BenchmarkDetail({ summary, benchmarkCards }: BenchmarkDetailProp
       .map(([category, groups]) => ({ category, groups }))
   }, [filteredBenchmarkGroups, summary.categories_covered])
 
+  const suiteGroups = useMemo(() => {
+    const groups = groupBySuite(filteredBenchmarkGroups, modelIds, peerRanks)
+    // Re-sort suites by max relevance of their benchmarks
+    return groups.sort((a, b) => {
+      const aMax = Math.max(...a.benchmarks.map(getRelevanceScore))
+      const bMax = Math.max(...b.benchmarks.map(getRelevanceScore))
+      return bMax - aMax
+    })
+  }, [filteredBenchmarkGroups, modelIds, peerRanks, getRelevanceScore])
+
+  const categorySuiteSections = useMemo(
+    () =>
+      groupedFilteredBenchmarkGroups
+        .map(({ category, groups }) => ({
+          category,
+          suites: groupBySuite(groups, modelIds, peerRanks).sort((a, b) => {
+            const aMax = Math.max(...a.benchmarks.map(getRelevanceScore))
+            const bMax = Math.max(...b.benchmarks.map(getRelevanceScore))
+            return bMax - aMax
+          }),
+        }))
+        .filter((section) => section.suites.length > 0),
+    [groupedFilteredBenchmarkGroups, modelIds, peerRanks, getRelevanceScore]
+  )
+
+  const benchmarkGroupLookup = useMemo(
+    () => new Map(benchmarkGroups.map((group) => [group.key, group] as const)),
+    [benchmarkGroups]
+  )
+  const activeBenchmarkGroup = activeBenchmarkGroupKey
+    ? benchmarkGroupLookup.get(activeBenchmarkGroupKey) ?? null
+    : null
+
+  const toggleSuite = (suiteKey: string) => {
+    setExpandedSuites((prev) => {
+      const next = new Set(prev)
+      if (next.has(suiteKey)) next.delete(suiteKey)
+      else next.add(suiteKey)
+      return next
+    })
+  }
 
   const overviewBenchmarkGroups =
     selectedCategories.length > 0 || benchmarkSearch.trim()
@@ -1122,15 +1370,15 @@ export function BenchmarkDetail({ summary, benchmarkCards }: BenchmarkDetailProp
       : benchmarkGroups
 
   const rankedBenchmarkGroups = useMemo(
-    () => overviewBenchmarkGroups.filter((group) => getGroupPeerRank(group, modelId, peerRanks) != null),
+    () => overviewBenchmarkGroups.filter((group) => getGroupPeerRank(group, modelIds, peerRanks) != null),
     [overviewBenchmarkGroups, modelId, peerRanks]
   )
   const strongRankedBenchmarks = useMemo(
     () =>
       [...rankedBenchmarkGroups]
         .sort((a, b) => {
-          const aRank = getGroupPeerRank(a, modelId, peerRanks)
-          const bRank = getGroupPeerRank(b, modelId, peerRanks)
+          const aRank = getGroupPeerRank(a, modelIds, peerRanks)
+          const bRank = getGroupPeerRank(b, modelIds, peerRanks)
           const aRatio = aRank ? aRank.position / (aRank.total || aRank.position) : Number.POSITIVE_INFINITY
           const bRatio = bRank ? bRank.position / (bRank.total || bRank.position) : Number.POSITIVE_INFINITY
           return aRatio - bRatio
@@ -1142,8 +1390,8 @@ export function BenchmarkDetail({ summary, benchmarkCards }: BenchmarkDetailProp
     () =>
       [...rankedBenchmarkGroups]
         .sort((a, b) => {
-          const aRank = getGroupPeerRank(a, modelId, peerRanks)
-          const bRank = getGroupPeerRank(b, modelId, peerRanks)
+          const aRank = getGroupPeerRank(a, modelIds, peerRanks)
+          const bRank = getGroupPeerRank(b, modelIds, peerRanks)
           const aRatio = aRank ? aRank.position / (aRank.total || aRank.position) : Number.NEGATIVE_INFINITY
           const bRatio = bRank ? bRank.position / (bRank.total || bRank.position) : Number.NEGATIVE_INFINITY
           return bRatio - aRatio
@@ -1180,10 +1428,9 @@ export function BenchmarkDetail({ summary, benchmarkCards }: BenchmarkDetailProp
   }
 
   const jumpToDeepDive = (groupKey: string) => {
-    const anchorId = getDeepDiveAnchorId(groupKey)
-    requestAnimationFrame(() => {
-      document.getElementById(anchorId)?.scrollIntoView({ behavior: "smooth", block: "start" })
-    })
+    if (benchmarkGroupLookup.has(groupKey)) {
+      setActiveBenchmarkGroupKey(groupKey)
+    }
   }
   
   return (
@@ -1405,6 +1652,7 @@ export function BenchmarkDetail({ summary, benchmarkCards }: BenchmarkDetailProp
                 <SelectValue placeholder="Sort benchmarks" />
               </SelectTrigger>
               <SelectContent>
+                <SelectItem value="relevance">Most relevant</SelectItem>
                 <SelectItem value="rank">Best rank first</SelectItem>
                 <SelectItem value="score">Highest score first</SelectItem>
                 <SelectItem value="name">Name (A-Z)</SelectItem>
@@ -1458,26 +1706,6 @@ export function BenchmarkDetail({ summary, benchmarkCards }: BenchmarkDetailProp
           </div>
         )}
 
-        {/* Metadata toggle */}
-        {benchmarkGroups.some((g) => !g.benchmarkCard) && (
-          <div className="flex items-center gap-2 text-sm">
-            <label className="flex cursor-pointer items-center gap-2 select-none">
-              <input
-                type="checkbox"
-                checked={showWithoutMetadata}
-                onChange={(e) => setShowWithoutMetadata(e.target.checked)}
-                className="h-4 w-4 rounded border-border accent-primary"
-              />
-              <span className="text-muted-foreground">
-                Show {benchmarkGroups.filter((g) => !g.benchmarkCard).length} benchmarks without rich metadata
-              </span>
-            </label>
-            <span className="rounded-full border border-border/60 bg-muted/30 px-2 py-0.5 text-[10px] font-medium text-muted-foreground">
-              {benchmarkGroups.filter((g) => !!g.benchmarkCard).length} with metadata
-            </span>
-          </div>
-        )}
-
         <div className={`grid gap-3 ${isResearchView ? "md:grid-cols-3" : "md:grid-cols-2 xl:grid-cols-3"}`}>
           <div className="rounded-2xl border bg-emerald-50/70 p-3.5 dark:bg-emerald-950/20">
             <div className="text-[10px] font-semibold uppercase tracking-[0.16em] text-emerald-700/90 dark:text-emerald-300">
@@ -1486,7 +1714,7 @@ export function BenchmarkDetail({ summary, benchmarkCards }: BenchmarkDetailProp
             <div className="mt-2 flex flex-wrap gap-1.5">
               {strongRankedBenchmarks.length > 0 ? (
                 strongRankedBenchmarks.map((group) => {
-                  const rank = getGroupPeerRank(group, modelId, peerRanks)
+                  const rank = getGroupPeerRank(group, modelIds, peerRanks)
                   return (
                     <button
                       key={`strong-${group.key}`}
@@ -1516,7 +1744,7 @@ export function BenchmarkDetail({ summary, benchmarkCards }: BenchmarkDetailProp
             <div className="mt-2 flex flex-wrap gap-1.5">
               {weakRankedBenchmarks.length > 0 ? (
                 weakRankedBenchmarks.map((group) => {
-                  const rank = getGroupPeerRank(group, modelId, peerRanks)
+                  const rank = getGroupPeerRank(group, modelIds, peerRanks)
                   return (
                     <button
                       key={`weak-${group.key}`}
@@ -1559,115 +1787,212 @@ export function BenchmarkDetail({ summary, benchmarkCards }: BenchmarkDetailProp
           </div>
         ) : (
           <div className="space-y-5">
-            <div className="overflow-hidden rounded-2xl border border-border/70 bg-card">
-              <div className="grid grid-cols-[minmax(0,1.55fr)_minmax(180px,1fr)_84px] items-center border-b bg-muted/20 px-3 py-2 text-[11px] font-semibold uppercase tracking-[0.16em] text-muted-foreground">
-                <div>Benchmark</div>
-                <div className="text-right">Accuracy</div>
-                <div className="text-right">Rank</div>
-              </div>
-
-              <div className="divide-y">
-                {groupedFilteredBenchmarkGroups.map(({ category, groups }) => (
-                  <div key={`matrix-cat-${category}`}>
-                    <div className="bg-muted/10 px-3 py-1.5 text-[10px] font-semibold uppercase tracking-[0.16em] text-muted-foreground">
-                      {category}
+            <div className="space-y-4">
+              {categorySuiteSections.map((section) => (
+                <section key={`suite-section-${section.category}`} className="space-y-2.5">
+                  <div className="flex items-center justify-between gap-3">
+                    <div className="flex items-center gap-2">
+                      <span className={`inline-flex items-center rounded-full border px-3 py-1 text-xs font-semibold ${getCategoryTone(section.category)}`}>
+                        {section.category}
+                      </span>
+                      <span className="text-xs text-muted-foreground">
+                        {section.suites.length} suite{section.suites.length === 1 ? "" : "s"}
+                      </span>
                     </div>
-                    {groups.map((group) => {
-                      const scorePercent = Math.max(4, Math.min(100, group.avgNormalizedScore * 100))
-                      const rank = getGroupPeerRank(group, modelId, peerRanks)
+                    <div className="text-xs text-muted-foreground">
+                      Click benchmark names to open detailed evidence.
+                    </div>
+                  </div>
 
-                      return (
-                        <div key={`compact-${group.key}`} className="grid grid-cols-[minmax(0,1.55fr)_minmax(180px,1fr)_84px] items-center gap-3 px-3 py-2.5">
-                          <div className="min-w-0">
-                            <button
-                              type="button"
-                              onClick={() => jumpToDeepDive(group.key)}
-                              className="truncate text-left text-sm font-semibold underline decoration-dotted underline-offset-4 hover:text-primary"
-                            >
-                              {group.title}
-                            </button>
-                          </div>
+                  <div className="overflow-hidden rounded-2xl border border-border/70 bg-card">
+                    <div className="grid grid-cols-[minmax(0,1.55fr)_minmax(180px,1fr)_84px] items-center border-b bg-muted/20 px-3 py-2 text-[11px] font-semibold uppercase tracking-[0.16em] text-muted-foreground">
+                      <div>Benchmark Suite</div>
+                      <div className="text-right">Score</div>
+                      <div className="text-right">Rank</div>
+                    </div>
 
-                          <div className="min-w-0">
-                            <div className="flex items-center gap-2.5">
-                              <div className="h-1.5 flex-1 overflow-hidden rounded-full bg-muted">
-                                <div className="h-full rounded-full bg-foreground/80" style={{ width: `${scorePercent}%` }} />
+                    <div className="divide-y">
+                      {section.suites.map((suite) => {
+                        const isSingle = suite.benchmarks.length === 1
+                        const isExpanded = expandedSuites.has(suite.suiteKey)
+                        const suiteScorePercent = Math.max(4, Math.min(100, suite.avgNormalizedScore * 100))
+                        const singleGroup = isSingle ? suite.benchmarks[0] : null
+                        const singleRank = singleGroup ? getGroupPeerRank(singleGroup, modelIds, peerRanks) : null
+
+                        return (
+                          <div key={`suite-${section.category}-${suite.suiteKey}`}>
+                            {isSingle ? (
+                              <div className="grid grid-cols-[minmax(0,1.55fr)_minmax(180px,1fr)_84px] items-center gap-3 px-3 py-3">
+                                <div className="min-w-0 pl-[1.625rem]">
+                                  <button
+                                    type="button"
+                                    onClick={() => singleGroup && jumpToDeepDive(singleGroup.key)}
+                                    className="truncate text-left text-sm font-semibold underline decoration-dotted underline-offset-4 hover:text-primary"
+                                  >
+                                    {suite.suiteName}
+                                  </button>
+                                </div>
+
+                                <div className="min-w-0">
+                                  <div className="flex items-center gap-2.5">
+                                    <div className="h-1.5 flex-1 overflow-hidden rounded-full bg-muted">
+                                      <div className="h-full rounded-full bg-foreground/80" style={{ width: `${suiteScorePercent}%` }} />
+                                    </div>
+                                    <span className="w-14 shrink-0 text-right text-sm font-semibold tabular-nums">
+                                      {singleGroup!.avgDisplayScore}
+                                    </span>
+                                  </div>
+                                </div>
+
+                                <div className="text-right text-xs tabular-nums text-muted-foreground">
+                                  {singleRank != null
+                                    ? `#${singleRank.position}${singleRank.total ? `/${singleRank.total}` : ""}`
+                                    : Object.keys(peerRanks).length === 0 ? "…" : "—"}
+                                </div>
                               </div>
-                              <span className="w-14 shrink-0 text-right text-sm font-semibold tabular-nums">
-                                {group.avgDisplayScore}
-                              </span>
-                            </div>
+                            ) : (
+                              <>
+                                <div className="grid grid-cols-[minmax(0,1.55fr)_minmax(180px,1fr)_84px] items-center gap-3 px-3 py-3 transition-colors hover:bg-muted/20">
+                                  <div className="flex min-w-0 items-center gap-2">
+                                    <button
+                                      type="button"
+                                      onClick={() => toggleSuite(suite.suiteKey)}
+                                      className="inline-flex h-6 w-6 shrink-0 items-center justify-center rounded-full text-muted-foreground transition-colors hover:bg-muted"
+                                      aria-expanded={isExpanded}
+                                      aria-label={isExpanded ? `Collapse ${suite.suiteName}` : `Expand ${suite.suiteName}`}
+                                    >
+                                      <svg
+                                        className={`h-3.5 w-3.5 shrink-0 transition-transform ${isExpanded ? "rotate-90" : ""}`}
+                                        fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}
+                                      >
+                                        <path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" />
+                                      </svg>
+                                    </button>
+                                    <button
+                                      type="button"
+                                      onClick={() => toggleSuite(suite.suiteKey)}
+                                      className="truncate text-left text-sm font-semibold hover:text-primary"
+                                      aria-expanded={isExpanded}
+                                    >
+                                      {suite.suiteName}
+                                    </button>
+                                    <span className="shrink-0 rounded-full border border-border/60 bg-muted/40 px-2 py-0.5 text-[10px] font-medium text-muted-foreground">
+                                      {suite.benchmarks.length} metrics
+                                    </span>
+                                  </div>
+
+                                  <div className="min-w-0">
+                                    <div className="flex items-center gap-2.5">
+                                      <div className="h-1.5 flex-1 overflow-hidden rounded-full bg-muted">
+                                        <div className="h-full rounded-full bg-foreground/80" style={{ width: `${suiteScorePercent}%` }} />
+                                      </div>
+                                      <span className="w-14 shrink-0 text-right text-sm font-semibold tabular-nums">
+                                        {suite.avgDisplayScore}
+                                      </span>
+                                    </div>
+                                  </div>
+
+                                  <div className="text-right text-xs tabular-nums text-muted-foreground">
+                                    {suite.bestRank != null
+                                      ? `#${suite.bestRank.position}${suite.bestRank.total ? `/${suite.bestRank.total}` : ""}`
+                                      : Object.keys(peerRanks).length === 0 ? "…" : "—"}
+                                  </div>
+                                </div>
+
+                                {isExpanded && (
+                                  <div className="border-t border-border/40 bg-muted/5">
+                                    {suite.benchmarks.map((group) => {
+                                      const scorePercent = Math.max(4, Math.min(100, group.avgNormalizedScore * 100))
+                                      const rank = getGroupPeerRank(group, modelIds, peerRanks)
+
+                                      return (
+                                        <div key={`sub-${group.key}`} className="grid grid-cols-[minmax(0,1.55fr)_minmax(180px,1fr)_84px] items-center gap-3 px-3 py-2 pl-9">
+                                          <div className="min-w-0">
+                                            <button
+                                              type="button"
+                                              onClick={() => jumpToDeepDive(group.key)}
+                                              className="truncate text-left text-[13px] text-muted-foreground underline decoration-dotted underline-offset-4 hover:text-primary"
+                                            >
+                                              {group.title}
+                                            </button>
+                                          </div>
+
+                                          <div className="min-w-0">
+                                            <div className="flex items-center gap-2.5">
+                                              <div className="h-1 flex-1 overflow-hidden rounded-full bg-muted">
+                                                <div className="h-full rounded-full bg-foreground/50" style={{ width: `${scorePercent}%` }} />
+                                              </div>
+                                              <span className="w-14 shrink-0 text-right text-[13px] tabular-nums text-muted-foreground">
+                                                {group.avgDisplayScore}
+                                              </span>
+                                            </div>
+                                          </div>
+
+                                          <div className="text-right text-xs tabular-nums text-muted-foreground">
+                                            {rank != null
+                                              ? `#${rank.position}${rank.total ? `/${rank.total}` : ""}`
+                                              : "—"}
+                                          </div>
+                                        </div>
+                                      )
+                                    })}
+                                  </div>
+                                )}
+                              </>
+                            )}
                           </div>
-
-                          <div className="text-right text-xs tabular-nums text-muted-foreground">
-                            {rank != null
-                              ? `#${rank.position}${rank.total ? `/${rank.total}` : ""}`
-                              : Object.keys(peerRanks).length === 0 ? "…" : "—"}
-                          </div>
-                        </div>
-                      )
-                    })}
+                        )
+                      })}
+                    </div>
                   </div>
-                ))}
-              </div>
+                </section>
+              ))}
             </div>
-
-            <div className="flex items-center justify-between">
-              <div className="text-xs font-semibold uppercase tracking-[0.18em] text-muted-foreground">
-                Deep dive by category
-              </div>
-              <div className="text-xs text-muted-foreground">
-                Open details to inspect setup, provenance, and sample-level evidence
-              </div>
-            </div>
-
-            {groupedFilteredBenchmarkGroups.map(({ category, groups }, sectionIndex) => (
-              <section key={category} className="space-y-3">
-                <div className="flex items-center gap-3">
-                  <span className={`inline-flex items-center rounded-full border px-3 py-1 text-xs font-semibold ${getCategoryTone(category)}`}>
-                    {category}
-                  </span>
-                  <div className="text-sm text-muted-foreground">
-                    {groups.length} benchmark{groups.length === 1 ? "" : "s"}
-                  </div>
-                </div>
-
-                <div className="grid gap-2.5 md:grid-cols-2 xl:grid-cols-3">
-                  {groups.map((group, index) => (
-                    <BenchmarkDeepDiveCardModal
-                      key={`${category}-${group.key}`}
-                      group={group}
-                      anchorId={getDeepDiveAnchorId(group.key)}
-                      motionIndex={sectionIndex * 6 + index}
-                    />
-                  ))}
-                </div>
-              </section>
-            ))}
           </div>
         )}
       </section>
+
+      <Dialog
+        open={activeBenchmarkGroup != null}
+        onOpenChange={(open) => {
+          if (!open) {
+            setActiveBenchmarkGroupKey(null)
+          }
+        }}
+      >
+        <DialogContent className="max-h-[88vh] max-w-[94vw] overflow-hidden p-0 sm:max-w-5xl">
+          {activeBenchmarkGroup && <BenchmarkDeepDiveDialogPanel group={activeBenchmarkGroup} />}
+        </DialogContent>
+      </Dialog>
     </div>
   )
 }
 
-function SampleDataDialog({ 
-  samples, 
-  evaluationName 
-}: { 
-  samples: any[], 
-  evaluationName: string 
+function SampleDataDialog({
+  samples: initialSamples,
+  evaluationName,
+  fullDataUrl,
+}: {
+  samples: any[],
+  evaluationName: string
+  fullDataUrl?: string
 }) {
   const [open, setOpen] = useState(false)
   const [searchTerm, setSearchTerm] = useState("")
   const [currentPage, setCurrentPage] = useState(1)
+  const [allSamples, setAllSamples] = useState<any[]>(initialSamples)
+  const [isLoadingAll, setIsLoadingAll] = useState(false)
+  const [hasLoadedAll, setHasLoadedAll] = useState(false)
   const itemsPerPage = 10
 
-  const filteredSamples = samples.filter(sample => 
-    sample.input.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    sample.response.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    sample.ground_truth.toLowerCase().includes(searchTerm.toLowerCase())
-  )
+  const filteredSamples = allSamples.filter(sample => {
+    const term = searchTerm.toLowerCase()
+    return (
+      (sample.input ?? "").toLowerCase().includes(term) ||
+      (sample.response ?? "").toLowerCase().includes(term) ||
+      (sample.ground_truth ?? "").toLowerCase().includes(term)
+    )
+  })
 
   const totalPages = Math.ceil(filteredSamples.length / itemsPerPage)
   const startIndex = (currentPage - 1) * itemsPerPage
@@ -1678,23 +2003,52 @@ function SampleDataDialog({
     setCurrentPage(1)
   }, [searchTerm])
 
+  const [loadError, setLoadError] = useState<string | null>(null)
+
+  const handleLoadAll = async () => {
+    if (!fullDataUrl) {
+      setLoadError("No data URL available for this benchmark")
+      return
+    }
+    if (hasLoadedAll) return
+    setIsLoadingAll(true)
+    setLoadError(null)
+    try {
+      const res = await fetch(`/api/instance-data?url=${encodeURIComponent(fullDataUrl)}`)
+      const data = await res.json()
+      if (data.error) {
+        setLoadError(data.error)
+      } else if (data.samples && data.samples.length > 0) {
+        setAllSamples(data.samples)
+        setHasLoadedAll(true)
+      } else {
+        setLoadError("No samples found in the full dataset")
+      }
+    } catch (err) {
+      setLoadError(`Failed to load: ${err instanceof Error ? err.message : "unknown error"}`)
+    } finally {
+      setIsLoadingAll(false)
+    }
+  }
+
   return (
-    <Dialog open={open} onOpenChange={setOpen}>
-      <DialogTrigger asChild>
-        <Button variant="outline" size="sm" className="gap-2">
-          <Database className="h-4 w-4" />
-          View All {samples.length} Samples
-        </Button>
-      </DialogTrigger>
-      <DialogContent className="max-w-[90vw] h-[80vh] flex flex-col">
-        <DialogHeader>
-          <DialogTitle>Sample Level Data</DialogTitle>
-          <DialogDescription>
-            Detailed results for {samples.length} samples from {evaluationName}
-          </DialogDescription>
-        </DialogHeader>
-        
-        <div className="flex items-center py-4">
+    <>
+      <Button variant="outline" size="sm" className="gap-2" onClick={() => setOpen(!open)}>
+        <Database className="h-4 w-4" />
+        {open ? "Hide" : "View All"} {allSamples.length} Samples
+      </Button>
+      {open && (
+      <div className="rounded-xl border bg-background p-4 space-y-3">
+        <div>
+          <div className="font-semibold">Sample Level Data</div>
+          <div className="text-sm text-muted-foreground">
+            {hasLoadedAll
+              ? `All ${allSamples.length} samples from ${evaluationName}`
+              : `Showing ${allSamples.length} preview samples from ${evaluationName}`}
+          </div>
+        </div>
+
+        <div className="flex items-center gap-4 py-4">
           <div className="relative w-full max-w-sm">
             <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
             <Input
@@ -1704,8 +2058,29 @@ function SampleDataDialog({
               className="pl-8"
             />
           </div>
-          <div className="ml-auto text-sm text-muted-foreground">
-            Showing {startIndex + 1}-{Math.min(startIndex + itemsPerPage, filteredSamples.length)} of {filteredSamples.length}
+          {fullDataUrl && !hasLoadedAll && (
+            <Button
+              variant="secondary"
+              size="sm"
+              onClick={handleLoadAll}
+              disabled={isLoadingAll}
+              className="gap-2 whitespace-nowrap"
+            >
+              {isLoadingAll ? (
+                <>Loading...</>
+              ) : (
+                <>
+                  <Database className="h-3 w-3" />
+                  Load Full Dataset
+                </>
+              )}
+            </Button>
+          )}
+          {loadError && (
+            <div className="text-xs text-destructive">{loadError}</div>
+          )}
+          <div className="ml-auto text-sm text-muted-foreground whitespace-nowrap">
+            Showing {filteredSamples.length > 0 ? startIndex + 1 : 0}-{Math.min(startIndex + itemsPerPage, filteredSamples.length)} of {filteredSamples.length}
           </div>
         </div>
 
@@ -1752,7 +2127,7 @@ function SampleDataDialog({
                   ))
                 ) : (
                   <TableRow>
-                    <TableCell colSpan={4} className="h-24 text-center">
+                    <TableCell colSpan={5} className="h-24 text-center">
                       No results found.
                     </TableCell>
                   </TableRow>
@@ -1783,32 +2158,33 @@ function SampleDataDialog({
             Next
           </Button>
         </div>
-      </DialogContent>
-    </Dialog>
+      </div>
+      )}
+    </>
   )
 }
 
-function BenchmarkResultCard({ 
-  evaluation, 
+function BenchmarkResultCard({
+  evaluation,
   result,
   titleOverride,
   showSetupBadge = true,
-}: { 
-  evaluation: BenchmarkEvaluation, 
-  result: EvaluationResult 
+}: {
+  evaluation: BenchmarkEvaluation,
+  result: EvaluationResult
   titleOverride?: string
   showSetupBadge?: boolean
 }) {
   const [isOpen, setIsOpen] = useState(false)
+  // Inline samples from the dataset are shown immediately
+  const inlineSamples = evaluation.detailed_evaluation_results_per_samples
+  const detailedUrl = result.detailed_evaluation_results_url
 
   const randomSample = useMemo(() => {
-    const samples = evaluation.detailed_evaluation_results_per_samples;
-    if (!samples || samples.length === 0) return null;
-    // Use a simple hash of the evaluation ID to pick a consistent "random" sample for this session
-    // or just Math.random() if we don't mind it changing on refresh
-    const randomIndex = Math.floor(Math.random() * samples.length);
-    return samples[randomIndex];
-  }, [evaluation.detailed_evaluation_results_per_samples]);
+    if (!inlineSamples || inlineSamples.length === 0) return null;
+    const randomIndex = Math.floor(Math.random() * inlineSamples.length);
+    return inlineSamples[randomIndex];
+  }, [inlineSamples]);
 
   const formatDate = (timestamp: string) => {
     try {
@@ -2075,130 +2451,6 @@ function BenchmarkResultCard({
               </div>
             </div>
 
-            {/* Factsheet Information */}
-            {result.factsheet && (
-              <div>
-                <div className="flex items-center gap-2 mb-3">
-                  <FileCode className="h-4 w-4 text-primary" />
-                  <div className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">Benchmark Factsheet</div>
-                </div>
-                
-                <div className="grid grid-cols-1 gap-6 bg-background p-6 rounded-lg border">
-                  {/* General Info */}
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-4">
-                    {result.factsheet.purpose && (
-                      <div className="col-span-full">
-                        <span className="font-semibold text-sm block mb-1">Purpose</span>
-                        <p className="text-sm text-muted-foreground">{result.factsheet.purpose}</p>
-                      </div>
-                    )}
-                    {result.factsheet.principles_tested && (
-                      <div className="col-span-full">
-                        <span className="font-semibold text-sm block mb-1">Principles Tested</span>
-                        <p className="text-sm text-muted-foreground">{result.factsheet.principles_tested}</p>
-                      </div>
-                    )}
-                  </div>
-
-                  <Separator />
-
-                  {/* Methodology */}
-                  <div>
-                    <h4 className="text-sm font-semibold mb-3 text-primary/80">Methodology</h4>
-                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm">
-                      {result.factsheet.judge && (
-                        <div>
-                          <span className="font-medium block text-xs text-muted-foreground uppercase mb-1">Judge</span>
-                          <span>{result.factsheet.judge}</span>
-                        </div>
-                      )}
-                      {result.factsheet.protocol && (
-                        <div>
-                          <span className="font-medium block text-xs text-muted-foreground uppercase mb-1">Protocol</span>
-                          <span>{result.factsheet.protocol}</span>
-                        </div>
-                      )}
-                      {result.factsheet.model_access && (
-                        <div>
-                          <span className="font-medium block text-xs text-muted-foreground uppercase mb-1">Model Access</span>
-                          <span>{result.factsheet.model_access}</span>
-                        </div>
-                      )}
-                      {result.factsheet.input_modality && (
-                        <div>
-                          <span className="font-medium block text-xs text-muted-foreground uppercase mb-1">Input Modality</span>
-                          <span>{result.factsheet.input_modality}</span>
-                        </div>
-                      )}
-                      {result.factsheet.output_modality && (
-                        <div>
-                          <span className="font-medium block text-xs text-muted-foreground uppercase mb-1">Output Modality</span>
-                          <span>{result.factsheet.output_modality}</span>
-                        </div>
-                      )}
-                      {result.factsheet.design && (
-                        <div>
-                          <span className="font-medium block text-xs text-muted-foreground uppercase mb-1">Design</span>
-                          <span>{result.factsheet.design}</span>
-                        </div>
-                      )}
-                    </div>
-                  </div>
-
-                  <Separator />
-
-                  {/* Data & Validation */}
-                  <div>
-                    <h4 className="text-sm font-semibold mb-3 text-primary/80">Data & Validation</h4>
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
-                      {result.factsheet.size && (
-                        <div>
-                          <span className="font-medium block text-xs text-muted-foreground uppercase mb-1">Size</span>
-                          <span>{result.factsheet.size}</span>
-                        </div>
-                      )}
-                      {result.factsheet.splits && (
-                        <div>
-                          <span className="font-medium block text-xs text-muted-foreground uppercase mb-1">Splits</span>
-                          <span>{result.factsheet.splits}</span>
-                        </div>
-                      )}
-                      {result.factsheet.has_heldout !== undefined && (
-                        <div>
-                          <span className="font-medium block text-xs text-muted-foreground uppercase mb-1">Held-out Set</span>
-                          <Badge variant={result.factsheet.has_heldout ? "default" : "secondary"}>
-                            {result.factsheet.has_heldout ? "Yes" : "No"}
-                          </Badge>
-                        </div>
-                      )}
-                      {result.factsheet.is_valid !== undefined && (
-                        <div>
-                          <span className="font-medium block text-xs text-muted-foreground uppercase mb-1">Valid</span>
-                          <Badge variant={result.factsheet.is_valid ? "outline" : "destructive"}>
-                            {result.factsheet.is_valid ? "Yes" : "No"}
-                          </Badge>
-                        </div>
-                      )}
-                    </div>
-                  </div>
-
-                  {/* Limitations */}
-                  {result.factsheet.known_limitations && (
-                    <>
-                      <Separator />
-                      <div className="bg-red-50 dark:bg-red-900/10 p-4 rounded border border-red-100 dark:border-red-900/20">
-                        <div className="flex items-center gap-2 text-red-700 dark:text-red-400 mb-2">
-                          <AlertTriangle className="h-4 w-4" />
-                          <span className="font-semibold text-sm">Known Limitations</span>
-                        </div>
-                        <p className="text-sm text-red-600/90 dark:text-red-400/90">{result.factsheet.known_limitations}</p>
-                      </div>
-                    </>
-                  )}
-                </div>
-              </div>
-            )}
-
             {/* Generation Configuration */}
             {result.generation_config && (
               <div>
@@ -2233,8 +2485,8 @@ function BenchmarkResultCard({
               </div>
             )}
 
-            {/* Sample Level Data */}
-            {evaluation.detailed_evaluation_results_per_samples && evaluation.detailed_evaluation_results_per_samples.length > 0 && randomSample && (
+            {/* Sample Level Data — inline samples from the dataset show immediately */}
+            {inlineSamples && inlineSamples.length > 0 && randomSample && (
               <div>
                 <Separator className="my-6" />
                 <div className="flex items-center justify-between mb-3">
@@ -2242,7 +2494,7 @@ function BenchmarkResultCard({
                     <FileCode className="h-4 w-4 text-primary" />
                     <div className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">Sample Level Data (Random Sample)</div>
                   </div>
-                  <Badge variant="outline">{evaluation.detailed_evaluation_results_per_samples.length} Samples</Badge>
+                  <Badge variant="outline">{inlineSamples.length} Samples</Badge>
                 </div>
 
                 <div className="space-y-4">
@@ -2250,34 +2502,35 @@ function BenchmarkResultCard({
                     <div className="flex justify-between items-start mb-2">
                       <Badge variant="secondary" className="font-mono text-xs">ID: {randomSample.sample_id}</Badge>
                     </div>
-                    
+
                     <div className="grid gap-4">
                       <div>
                         <div className="text-xs font-semibold text-muted-foreground uppercase mb-1">Input</div>
-                        <div className="bg-muted/30 p-3 rounded whitespace-pre-wrap font-mono text-xs">{randomSample.input}</div>
+                        <div className="bg-muted/30 p-3 rounded whitespace-pre-wrap font-mono text-xs max-h-60 overflow-y-auto">{randomSample.input}</div>
                       </div>
-                      
+
                       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                         <div>
                           <div className="text-xs font-semibold text-muted-foreground uppercase mb-1">Model Response</div>
-                          <div className="bg-blue-50/50 dark:bg-blue-900/10 p-3 rounded whitespace-pre-wrap text-blue-900 dark:text-blue-100">
+                          <div className="bg-blue-50/50 dark:bg-blue-900/10 p-3 rounded whitespace-pre-wrap text-blue-900 dark:text-blue-100 max-h-60 overflow-y-auto">
                             {randomSample.response}
                           </div>
                         </div>
                         <div>
                           <div className="text-xs font-semibold text-muted-foreground uppercase mb-1">Ground Truth</div>
-                          <div className="bg-green-50/50 dark:bg-green-900/10 p-3 rounded whitespace-pre-wrap text-green-900 dark:text-green-100">
+                          <div className="bg-green-50/50 dark:bg-green-900/10 p-3 rounded whitespace-pre-wrap text-green-900 dark:text-green-100 max-h-60 overflow-y-auto">
                             {randomSample.ground_truth}
                           </div>
                         </div>
                       </div>
                     </div>
                   </div>
-                  
+
                   <div className="text-center pt-2">
-                    <SampleDataDialog 
-                      samples={evaluation.detailed_evaluation_results_per_samples}
+                    <SampleDataDialog
+                      samples={inlineSamples}
                       evaluationName={result.evaluation_name}
+                      fullDataUrl={detailedUrl}
                     />
                   </div>
                 </div>
@@ -2474,12 +2727,11 @@ function AggregatedBenchmarkCard({
                 {group.variants.length} {group.variants.length === 1 ? "subtask" : "subtasks"}
               </span>
 
-              {/* Expand toggle */}
               <div className="shrink-0 text-muted-foreground">
                 {isOpen ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
               </div>
+            </div>
           </div>
-        </div>
 
         <CollapsibleContent>
           <Separator />
@@ -2765,18 +3017,13 @@ function AggregatedBenchmarkCard({
   )
 }
 
-function BenchmarkDeepDiveCardModal({
+function BenchmarkDeepDiveDialogPanel({
   group,
-  anchorId,
-  motionIndex = 0,
 }: {
   group: BenchmarkGroup
-  anchorId: string
-  motionIndex?: number
 }) {
   const { mode } = useAudienceMode()
   const isResearchView = mode === "research"
-  const [open, setOpen] = useState(false)
   const [resolvedRanks, setResolvedRanks] = useState<Record<string, { position: number; total: number | null }>>({})
   const [isResolvingRanks, setIsResolvingRanks] = useState(false)
   const compactDomains = group.domains.slice(0, 2)
@@ -2804,7 +3051,7 @@ function BenchmarkDeepDiveCardModal({
       rankedVariants.map((variant, index) => {
         const rowKey = `${variant.evaluation.evaluation_id}-${index}`
         const evalHref = getEvalDetailHref(variant.evaluation, variant.result)
-        const evalSummaryId = getEvalSummaryIdFromHref(evalHref)
+        const evalSummaryId = variant.evaluation.eval_summary_id ?? getEvalSummaryIdFromHref(evalHref)
         const configMap = getVariantConfigMap(variant)
 
         return {
@@ -2837,10 +3084,6 @@ function BenchmarkDeepDiveCardModal({
   }, [resolvedRanks, variantRows])
 
   useEffect(() => {
-    if (!open) {
-      return
-    }
-
     const pendingRows = variantRows.filter(
       (row) => row.variant.rankPosition == null && !resolvedRanks[row.rowKey] && row.evalSummaryId
     )
@@ -2887,43 +3130,22 @@ function BenchmarkDeepDiveCardModal({
     return () => {
       isCancelled = true
     }
-  }, [open, resolvedRanks, variantRows])
+  }, [resolvedRanks, variantRows])
 
   return (
-    <div
-      id={anchorId}
-      className="motion-academic-enter"
-      style={{ "--enter-delay": `${Math.min(motionIndex * 55, 260)}ms` } as CSSProperties}
-    >
-      <Card className="h-full overflow-hidden border border-border/70 bg-card transition-colors hover:border-border">
-        <CardContent className="space-y-3 p-4">
-          <div className="flex items-start justify-between gap-3">
-            <div className="min-w-0">
-              <div className="flex items-center gap-1.5">
-                <span className={`inline-flex items-center rounded-full border px-2 py-0.5 text-[10px] font-semibold ${getCategoryTone(group.category)}`}>
-                  {group.category}
+    <>
+      <DialogHeader className="gap-3 border-b border-border/60 px-5 py-4 text-left sm:px-6">
+        <div className="flex items-start justify-between gap-3 pr-8">
+          <div className="min-w-0">
+            <div className="flex flex-wrap items-center gap-1.5">
+              <span className={`inline-flex items-center rounded-full border px-2 py-0.5 text-[10px] font-semibold ${getCategoryTone(group.category)}`}>
+                {group.category}
+              </span>
+              {group.benchmarkCard && (
+                <span className="rounded-full border border-border/50 bg-muted/20 px-1.5 py-0.5 text-[9px] font-semibold uppercase tracking-[0.12em] text-muted-foreground">
+                  Card
                 </span>
-                {group.benchmarkCard && (
-                  <span className="rounded-full border border-border/50 bg-muted/20 px-1.5 py-0.5 text-[9px] font-semibold uppercase tracking-[0.12em] text-muted-foreground">
-                    Card
-                  </span>
-                )}
-              </div>
-              <h4 className="mt-2 line-clamp-2 text-sm font-semibold leading-5">{group.title}</h4>
-            </div>
-
-            <div className="text-right">
-              <div className="text-sm font-semibold tabular-nums">{group.avgDisplayScore}</div>
-              {group.bestRankPosition != null && (
-                <div className="text-[11px] tabular-nums text-muted-foreground">
-                  {`#${group.bestRankPosition}${group.bestRankTotal ? `/${group.bestRankTotal}` : ""}`}
-                </div>
               )}
-            </div>
-          </div>
-
-          {compactDomains.length > 0 && (
-            <div className="flex flex-wrap gap-1">
               {compactDomains.map((domain) => (
                 <span
                   key={`${group.key}-${domain}`}
@@ -2938,124 +3160,191 @@ function BenchmarkDeepDiveCardModal({
                 </span>
               )}
             </div>
-          )}
+            <DialogTitle className="mt-2 pr-4">{group.title}</DialogTitle>
+            <DialogDescription>
+              {isResearchView
+                ? "Inspect setup subtasks, score details, and source provenance in one focused view."
+                : "Inspect reporting setup and evidence details before interpreting benchmark position."}
+            </DialogDescription>
+          </div>
 
-          <div className="flex items-center justify-between text-[11px] text-muted-foreground">
-            <span>{group.variants.length} {group.variants.length === 1 ? "subtask" : "subtasks"}</span>
+          <div className="text-right">
+            <div className="text-sm font-semibold tabular-nums">{group.avgDisplayScore}</div>
+            {group.bestRankPosition != null && (
+              <div className="text-[11px] tabular-nums text-muted-foreground">
+                {`#${group.bestRankPosition}${group.bestRankTotal ? `/${group.bestRankTotal}` : ""}`}
+              </div>
+            )}
+          </div>
+        </div>
+
+        <div className="flex flex-wrap items-center justify-between gap-x-4 gap-y-1 text-[11px] text-muted-foreground">
+          <span>{group.variants.length} {group.variants.length === 1 ? "subtask" : "subtasks"}</span>
+          <span className="flex flex-wrap items-center gap-2">
+            {group.variants.some(v => v.evaluation.detailed_evaluation_results_per_samples && v.evaluation.detailed_evaluation_results_per_samples.length > 0) && (
+              <span className="rounded-full border border-sky-200/80 bg-sky-50/60 px-1.5 py-0.5 text-[9px] font-semibold text-sky-700 dark:border-sky-900/60 dark:bg-sky-950/30 dark:text-sky-300">
+                Has samples
+              </span>
+            )}
             <span>{sourceOrganizations.size} source{sourceOrganizations.size === 1 ? "" : "s"}</span>
+          </span>
+        </div>
+      </DialogHeader>
+
+      <div className="flex min-h-0 flex-col gap-4 overflow-y-auto px-5 py-4 sm:px-6">
+        <div className="grid gap-3 sm:grid-cols-3">
+          <div className="rounded-xl border bg-muted/10 p-3">
+            <div className="text-[11px] font-semibold uppercase tracking-[0.16em] text-muted-foreground">Avg score</div>
+            <div className="mt-1 text-lg font-semibold tabular-nums">{group.avgDisplayScore}</div>
+          </div>
+          <div className="rounded-xl border bg-muted/10 p-3">
+            <div className="text-[11px] font-semibold uppercase tracking-[0.16em] text-muted-foreground">Best rank</div>
+            <div className="mt-1 text-lg font-semibold tabular-nums">
+              {bestResolvedRank != null
+                ? `#${bestResolvedRank.position}${bestResolvedRank.total ? `/${bestResolvedRank.total}` : ""}`
+                : isResolvingRanks
+                  ? "…"
+                  : "N/A"}
+            </div>
+            {isResolvingRanks && (
+              <div className="mt-1 text-[11px] text-muted-foreground">Resolving peer rank…</div>
+            )}
+          </div>
+          <div className="rounded-xl border bg-muted/10 p-3">
+            <div className="text-[11px] font-semibold uppercase tracking-[0.16em] text-muted-foreground">Sources</div>
+            <div className="mt-1 text-lg font-semibold tabular-nums">{sourceOrganizations.size}</div>
+          </div>
+        </div>
+
+        {group.benchmarkCard && (
+          <div className="rounded-xl border bg-background p-3">
+            <div className="text-[11px] font-semibold uppercase tracking-[0.16em] text-muted-foreground">Benchmark context</div>
+            <p className="mt-1 text-sm text-muted-foreground line-clamp-3">{group.benchmarkCard.benchmark_details.overview}</p>
+          </div>
+        )}
+
+        <section className="space-y-2">
+          <div className="flex items-center justify-between gap-3">
+            <div>
+              <h4 className="text-sm font-semibold">Subtask breakdown</h4>
+              <p className="text-xs text-muted-foreground">Primary row labels show the benchmark slice or subtask. Setup and source details sit alongside each row.</p>
+            </div>
           </div>
 
-          <div className="flex items-center gap-2 pt-1">
-            <Dialog open={open} onOpenChange={setOpen}>
-              <DialogTrigger asChild>
-                <Button size="sm" className="h-8">Open details</Button>
-              </DialogTrigger>
-              <DialogContent className="h-[80vh] max-w-[92vw] overflow-hidden sm:max-w-5xl">
-                <DialogHeader>
-                  <DialogTitle>{group.title}</DialogTitle>
-                  <DialogDescription>
-                    {isResearchView
-                      ? "Inspect setup subtasks, score details, and source provenance in one focused view."
-                      : "Inspect reporting setup and evidence details before interpreting benchmark position."}
-                  </DialogDescription>
-                </DialogHeader>
+          <div className="min-h-0 overflow-auto rounded-xl border border-border/70 bg-background">
+          <Table className="table-fixed">
+            <TableHeader className="bg-muted/20">
+              <TableRow className="hover:bg-transparent">
+                <TableHead className="w-[34%] px-4 py-3 text-[11px] font-semibold uppercase tracking-[0.14em] text-muted-foreground">Subtask</TableHead>
+                <TableHead className="w-[42%] px-4 py-3 text-[11px] font-semibold uppercase tracking-[0.14em] text-muted-foreground">Reporting setup</TableHead>
+                <TableHead className="w-[12%] px-4 py-3 text-right text-[11px] font-semibold uppercase tracking-[0.14em] text-muted-foreground">Score</TableHead>
+                <TableHead className="w-[12%] px-4 py-3 text-right text-[11px] font-semibold uppercase tracking-[0.14em] text-muted-foreground">Rank</TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {variantRows.map((row) => {
+                const { rowKey, variant, configEntries } = row
+                const resolvedRank = resolvedRanks[rowKey]
+                const primaryLabel = getVariantPrimaryLabel(variant, group.title)
+                const setupDisplayLabel = formatSetupDisplayLabel(variant.setupLabel)
+                const rawVariantLabel = variant.label !== primaryLabel ? variant.label : null
 
-                <div className="grid h-[calc(80vh-7rem)] gap-4 overflow-hidden">
-                  <div className="grid gap-3 sm:grid-cols-3">
-                    <div className="rounded-xl border bg-muted/10 p-3">
-                      <div className="text-[11px] font-semibold uppercase tracking-[0.16em] text-muted-foreground">Avg score</div>
-                      <div className="mt-1 text-lg font-semibold tabular-nums">{group.avgDisplayScore}</div>
-                    </div>
-                    <div className="rounded-xl border bg-muted/10 p-3">
-                      <div className="text-[11px] font-semibold uppercase tracking-[0.16em] text-muted-foreground">Best rank</div>
-                      <div className="mt-1 text-lg font-semibold tabular-nums">
-                        {bestResolvedRank != null
-                          ? `#${bestResolvedRank.position}${bestResolvedRank.total ? `/${bestResolvedRank.total}` : ""}`
-                          : isResolvingRanks
-                            ? "…"
-                            : "N/A"}
+                return (
+                  <TableRow key={rowKey} className="align-top hover:bg-muted/20">
+                    <TableCell className="px-4 py-3 align-top whitespace-normal">
+                      <div className="space-y-1">
+                        <div className="font-medium leading-5">{primaryLabel}</div>
+                        <div className="flex flex-wrap items-center gap-2 text-xs text-muted-foreground">
+                          <span className={`inline-flex items-center rounded-full px-2 py-0.5 font-medium ${getVariantTypeTone(variant.variantType)}`}>
+                            {getVariantTypeLabel(variant.variantType)}
+                          </span>
+                          {rawVariantLabel && <span className="line-clamp-1">{rawVariantLabel}</span>}
+                        </div>
                       </div>
-                      {isResolvingRanks && (
-                        <div className="mt-1 text-[11px] text-muted-foreground">Resolving peer rank…</div>
-                      )}
-                    </div>
-                    <div className="rounded-xl border bg-muted/10 p-3">
-                      <div className="text-[11px] font-semibold uppercase tracking-[0.16em] text-muted-foreground">Sources</div>
-                      <div className="mt-1 text-lg font-semibold tabular-nums">{sourceOrganizations.size}</div>
-                    </div>
-                  </div>
-
-                  {group.benchmarkCard && (
-                    <div className="rounded-xl border bg-background p-3">
-                      <div className="text-[11px] font-semibold uppercase tracking-[0.16em] text-muted-foreground">Benchmark context</div>
-                      <p className="mt-1 text-sm text-muted-foreground line-clamp-3">{group.benchmarkCard.benchmark_details.overview}</p>
-                    </div>
-                  )}
-
-                  <div className="min-h-0 overflow-auto rounded-xl border">
-                    <Table>
-                      <TableHeader>
-                        <TableRow className="hover:bg-transparent">
-                          <TableHead>Subtask</TableHead>
-                          <TableHead>Setup</TableHead>
-                          <TableHead className="text-right">Score</TableHead>
-                          <TableHead className="text-right">Rank</TableHead>
-                          <TableHead>Source</TableHead>
-                        </TableRow>
-                      </TableHeader>
-                      <TableBody>
-                        {variantRows.map((row) => {
-                          const { rowKey, variant, configEntries } = row
-                          const resolvedRank = resolvedRanks[rowKey]
-
-                          return (
-                          <TableRow key={rowKey}>
-                            <TableCell className="whitespace-normal">
-                              <div className="font-medium">{variant.label}</div>
-                              <div className="text-xs text-muted-foreground">{variant.variantType === "default" ? "Single run" : getVariantTypeLabel(variant.variantType)}</div>
-                            </TableCell>
-                            <TableCell className="whitespace-normal">
-                              <div className="text-sm font-medium">{variant.setupLabel ?? "Default setup"}</div>
-                              {configEntries.length > 0 && (
-                                <div className="mt-1 text-xs text-muted-foreground">
-                                  {configEntries
-                                    .slice(0, 2)
-                                    .map(([key, value]) => `${formatConfigLabel(key)}=${getConfigDisplayValue(value)}`)
-                                    .join(" · ")}
-                                </div>
-                              )}
-                            </TableCell>
-                            <TableCell className="text-right font-semibold tabular-nums">{variant.displayScore}</TableCell>
-                            <TableCell className="text-right tabular-nums text-muted-foreground">
-                              {(variant.rankPosition != null || resolvedRank)
-                                ? `#${resolvedRank?.position ?? variant.rankPosition}${(resolvedRank?.total ?? variant.rankTotal) ? `/${resolvedRank?.total ?? variant.rankTotal}` : ""}`
-                                : "N/A"}
-                            </TableCell>
-                            <TableCell className="whitespace-normal text-muted-foreground">
-                              {variant.evaluation.source_metadata.source_organization_name}
-                            </TableCell>
-                          </TableRow>
-                        )})}
-                      </TableBody>
-                    </Table>
-                  </div>
-
-                  <div className="flex justify-end">
-                    <Link href={group.evalDetailHref}>
-                      <Button variant="outline">View full leaderboard</Button>
-                    </Link>
-                  </div>
-                </div>
-              </DialogContent>
-            </Dialog>
-
-            <Link href={group.evalDetailHref} className="text-xs font-medium text-muted-foreground underline decoration-dotted underline-offset-4 hover:text-primary">
-              Full leaderboard
-            </Link>
+                    </TableCell>
+                    <TableCell className="px-4 py-3 align-top whitespace-normal">
+                      <div className="space-y-1">
+                        <div className="text-sm font-medium leading-5">{setupDisplayLabel}</div>
+                        <div className="text-xs text-muted-foreground">
+                          {variant.evaluation.source_metadata.source_organization_name}
+                        </div>
+                        {configEntries.length > 0 && (
+                          <div className="text-xs text-muted-foreground line-clamp-2">
+                          {configEntries
+                            .slice(0, 3)
+                            .map(([key, value]) => `${formatConfigLabel(key)}=${getConfigDisplayValue(value)}`)
+                            .join(" · ")}
+                          </div>
+                        )}
+                      </div>
+                    </TableCell>
+                    <TableCell className="px-4 py-3 text-right align-top font-semibold tabular-nums">{variant.displayScore}</TableCell>
+                    <TableCell className="px-4 py-3 text-right align-top tabular-nums text-muted-foreground">
+                      {(variant.rankPosition != null || resolvedRank)
+                        ? `#${resolvedRank?.position ?? variant.rankPosition}${(resolvedRank?.total ?? variant.rankTotal) ? `/${resolvedRank?.total ?? variant.rankTotal}` : ""}`
+                        : "N/A"}
+                    </TableCell>
+                  </TableRow>
+                )
+              })}
+            </TableBody>
+          </Table>
           </div>
-        </CardContent>
-      </Card>
-    </div>
+        </section>
+
+        {(() => {
+          const variantWithSamples = group.variants.find(v => v.evaluation.detailed_evaluation_results_per_samples && v.evaluation.detailed_evaluation_results_per_samples.length > 0)
+          if (!variantWithSamples) return null
+          const samples = variantWithSamples.evaluation.detailed_evaluation_results_per_samples!
+          const fullDataUrl = variantWithSamples.result.detailed_evaluation_results_url
+            ?? variantWithSamples.evaluation.evaluation_results.find(r => r.detailed_evaluation_results_url)?.detailed_evaluation_results_url
+          return (
+            <div className="space-y-2 rounded-xl border border-sky-200/60 bg-sky-50/30 p-3 dark:border-sky-900/40 dark:bg-sky-950/20">
+              <div className="text-[11px] font-semibold uppercase tracking-[0.18em] text-sky-700 dark:text-sky-300">
+                Sample data preview ({samples.length} examples)
+              </div>
+              <div className="space-y-2">
+                {samples.slice(0, 2).map((sample, idx) => (
+                  <div key={idx} className="rounded-lg border bg-background/80 p-3 text-sm">
+                    {sample.input && (
+                      <div className="mb-2">
+                        <span className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">Input</span>
+                        <div className="mt-0.5 max-h-28 overflow-y-auto whitespace-pre-wrap text-xs">{sample.input.slice(0, 400)}{sample.input.length > 400 ? "..." : ""}</div>
+                      </div>
+                    )}
+                    {sample.response && (
+                      <div className="mb-2">
+                        <span className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">Response</span>
+                        <div className="mt-0.5 max-h-20 overflow-y-auto whitespace-pre-wrap text-xs">{sample.response.slice(0, 300)}{sample.response.length > 300 ? "..." : ""}</div>
+                      </div>
+                    )}
+                    {sample.ground_truth && (
+                      <div>
+                        <span className="text-[10px] font-semibold uppercase tracking-wider text-green-700 dark:text-green-400">Ground truth</span>
+                        <div className="mt-0.5 whitespace-pre-wrap text-xs text-green-900 dark:text-green-100">{sample.ground_truth.slice(0, 200)}</div>
+                      </div>
+                    )}
+                  </div>
+                ))}
+              </div>
+              {samples.length > 2 && (
+                <SampleDataDialog
+                  samples={samples}
+                  evaluationName={variantWithSamples.result.evaluation_name}
+                  fullDataUrl={fullDataUrl}
+                />
+              )}
+            </div>
+          )
+        })()}
+
+        <div className="flex justify-end">
+          <Link href={group.evalDetailHref}>
+            <Button variant="outline">View full leaderboard</Button>
+          </Link>
+        </div>
+      </div>
+    </>
   )
 }
 
@@ -3071,8 +3360,6 @@ function VariantExpandedDetail({
   const isResearchView = mode === "research"
   const { variant, configEntries, sampleCount } = row
   const { numericBreakdown, helmMetrics, structuredBreakdown } = buildVariantStructuredSections(variant)
-  const purpose = variant.result.factsheet?.purpose
-  const principles = variant.result.factsheet?.principles_tested
   const sourceTypeLabel = variant.evaluation.source_metadata.source_type.replace(/_/g, " ")
   const sourceData = !Array.isArray(variant.result.source_data ?? variant.evaluation.source_data)
     ? (variant.result.source_data ?? variant.evaluation.source_data) as import("@/lib/benchmark-schema").SourceData
@@ -3083,10 +3370,6 @@ function VariantExpandedDetail({
   const numSamples = uncertainty?.num_samples ?? variant.result.score_details.sample_size ?? sourceData?.samples_number ?? sampleCount
   const stdError = uncertainty?.standard_error?.value
   const inferencePlatform = variant.evaluation.model_info.inference_platform
-  const factsheet = variant.result.factsheet
-  const allFactsheetFields: Array<[string, string]> = factsheet
-    ? (Object.entries(factsheet).filter(([, v]) => v != null && v !== "" && typeof v !== "boolean") as Array<[string, string]>)
-    : []
   // Source URLs for linking
   const sourceUrls: string[] = Array.isArray(sourceData?.url)
     ? (sourceData.url as string[])
@@ -3201,17 +3484,6 @@ function VariantExpandedDetail({
             )}
           </div>
 
-          {(purpose || principles || allFactsheetFields.length > 0) && (
-            <div className="mt-4 space-y-2 rounded-lg border bg-background/70 p-3">
-              {purpose && <InlineMeta label="Purpose" value={purpose} />}
-              {principles && <InlineMeta label="Principles Tested" value={principles} />}
-              {allFactsheetFields
-                .filter(([k]) => k !== "purpose" && k !== "principles_tested" && k !== "functional_props")
-                .map(([key, value]) => (
-                  <InlineMeta key={key} label={formatConfigLabel(key)} value={String(value)} />
-                ))}
-            </div>
-          )}
         </div>
       </div>
 
@@ -3302,6 +3574,52 @@ function VariantExpandedDetail({
               </TableBody>
             </Table>
           </div>
+        </div>
+      )}
+
+      {/* Instance-level sample data */}
+      {variant.evaluation.detailed_evaluation_results_per_samples &&
+        variant.evaluation.detailed_evaluation_results_per_samples.length > 0 && (
+        <div className="space-y-2">
+          <div className="text-[11px] font-semibold uppercase tracking-[0.18em] text-muted-foreground">
+            Sample data ({variant.evaluation.detailed_evaluation_results_per_samples.length} examples)
+          </div>
+          <div className="space-y-2">
+            {variant.evaluation.detailed_evaluation_results_per_samples.slice(0, 3).map((sample, idx) => (
+              <div key={idx} className="rounded-lg border bg-muted/10 p-3 text-sm">
+                {sample.input && (
+                  <div className="mb-2">
+                    <span className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">Input</span>
+                    <div className="mt-0.5 max-h-32 overflow-y-auto whitespace-pre-wrap text-xs">{sample.input.slice(0, 500)}</div>
+                  </div>
+                )}
+                {sample.response && (
+                  <div className="mb-2">
+                    <span className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">Response</span>
+                    <div className="mt-0.5 max-h-24 overflow-y-auto whitespace-pre-wrap text-xs">{sample.response.slice(0, 500)}</div>
+                  </div>
+                )}
+                {sample.ground_truth && (
+                  <div className="mb-2">
+                    <span className="text-[10px] font-semibold uppercase tracking-wider text-green-700 dark:text-green-400">Ground truth</span>
+                    <div className="mt-0.5 max-h-20 overflow-y-auto whitespace-pre-wrap text-xs text-green-900 dark:text-green-100">{sample.ground_truth.slice(0, 300)}</div>
+                  </div>
+                )}
+                {sample.is_correct != null && (
+                  <div className="mt-1 text-[10px] font-medium text-muted-foreground">
+                    {sample.is_correct ? "Correct" : "Incorrect"}
+                  </div>
+                )}
+              </div>
+            ))}
+          </div>
+          {variant.evaluation.detailed_evaluation_results_per_samples.length > 3 && (
+            <SampleDataDialog
+              samples={variant.evaluation.detailed_evaluation_results_per_samples}
+              evaluationName={variant.result.evaluation_name}
+              fullDataUrl={variant.result.detailed_evaluation_results_url ?? variant.evaluation.evaluation_results.find(r => r.detailed_evaluation_results_url)?.detailed_evaluation_results_url}
+            />
+          )}
         </div>
       )}
 

@@ -45,17 +45,6 @@ function formatParamBoundLabel(step: number, bound: "min" | "max") {
   return value != null ? `${value}B` : "Not reported"
 }
 
-function getReproducibilitySortValue(status: BenchmarkEvaluationCardData["reproducibility_status"]) {
-  switch (status) {
-    case "complete":
-      return 2
-    case "partial":
-      return 1
-    default:
-      return 0
-  }
-}
-
 export default function ModelsPage() {
   const { mode } = useAudienceMode()
   const [evaluations, setEvaluations] = useState<BenchmarkEvaluationCardData[]>([])
@@ -64,7 +53,7 @@ export default function ModelsPage() {
   const [loadingModels, setLoadingModels] = useState(true)
   const [loadingDevelopers, setLoadingDevelopers] = useState(true)
   const [groupByDeveloper, setGroupByDeveloper] = useState(false)
-  const [modelSortBy, setModelSortBy] = useState<"date" | "name" | "benchmarks" | "reporting" | "reproducibility" | "size">("benchmarks")
+  const [modelSortBy, setModelSortBy] = useState<"date" | "name" | "benchmarks" | "variants" | "size">("benchmarks")
   const [developerSortBy, setDeveloperSortBy] = useState<"coverage" | "evaluated" | "models" | "name">("coverage")
   const [searchQuery, setSearchQuery] = useState("")
   const [minParamStep, setMinParamStep] = useState(0)
@@ -166,8 +155,7 @@ export default function ModelsPage() {
         evaluation.developer,
         evaluation.architecture,
         evaluation.latest_source_name,
-        evaluation.reproducibility_status,
-        ...evaluation.evaluator_names,
+        ...(evaluation.benchmark_names ?? []),
         ...evaluation.top_scores.map((score) => score.benchmark),
       ]
 
@@ -190,27 +178,10 @@ export default function ModelsPage() {
       case "benchmarks":
         sorted.sort((a, b) => b.benchmarks_count - a.benchmarks_count)
         break
-      case "reporting":
+      case "variants":
         sorted.sort((a, b) => {
-          if (b.evaluator_count !== a.evaluator_count) {
-            return b.evaluator_count - a.evaluator_count
-          }
-          if (b.independent_verification_ratio !== a.independent_verification_ratio) {
-            return b.independent_verification_ratio - a.independent_verification_ratio
-          }
-          return b.benchmarks_count - a.benchmarks_count
-        })
-        break
-      case "reproducibility":
-        sorted.sort((a, b) => {
-          const reproducibilityDiff =
-            getReproducibilitySortValue(b.reproducibility_status) -
-            getReproducibilitySortValue(a.reproducibility_status)
-          if (reproducibilityDiff !== 0) {
-            return reproducibilityDiff
-          }
-          if (b.independent_verification_ratio !== a.independent_verification_ratio) {
-            return b.independent_verification_ratio - a.independent_verification_ratio
+          if (b.variant_count !== a.variant_count) {
+            return b.variant_count - a.variant_count
           }
           return b.benchmarks_count - a.benchmarks_count
         })
@@ -363,7 +334,7 @@ export default function ModelsPage() {
                   label: "Benchmarks",
                   value: filteredDevelopers.reduce((sum, developer) => sum + developer.benchmark_count, 0).toString(),
                 }
-              : { label: "Reporting orgs", value: new Set(sortedEvaluations.flatMap((e) => e.evaluator_names)).size.toString() },
+              : { label: "Developers", value: new Set(sortedEvaluations.map((e) => e.developer)).size.toString() },
             !groupByDeveloper
               ? { label: "Compare tray", value: selectedModels.length.toString() }
               : { label: "View", value: "Developer" },
@@ -380,13 +351,13 @@ export default function ModelsPage() {
                   Compare Workflow
                 </div>
                 <div className="mt-2 text-sm text-muted-foreground">
-                  Show the most useful information first: narrow to a similar parameter range, scan key benchmarks, then select up to {MAX_COMPARE_MODELS} models for a table comparison.
+                  Narrow to a similar parameter range, scan benchmark coverage and top surfaced scores, then select up to {MAX_COMPARE_MODELS} models for a table comparison.
                 </div>
               </div>
               <div className="flex flex-wrap gap-2">
                 <Badge variant="outline">Parameter range filter</Badge>
+                <Badge variant="outline">Benchmark coverage</Badge>
                 <Badge variant="outline">Table comparison</Badge>
-                <Badge variant="outline">Trust signals first</Badge>
               </div>
             </div>
           </div>
@@ -541,8 +512,7 @@ export default function ModelsPage() {
               ) : (
                 <>
                   <SelectItem value="benchmarks">Most Benchmark Coverage</SelectItem>
-                  <SelectItem value="reporting">Most Reporting Context</SelectItem>
-                  <SelectItem value="reproducibility">Best Reproducibility</SelectItem>
+                  <SelectItem value="variants">Most Versions</SelectItem>
                   <SelectItem value="size">Largest Models</SelectItem>
                   <SelectItem value="date">Latest First</SelectItem>
                   <SelectItem value="name">Name (A-Z)</SelectItem>

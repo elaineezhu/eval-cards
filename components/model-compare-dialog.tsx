@@ -5,9 +5,6 @@ import Link from "next/link"
 import {
   ChevronDown,
   ExternalLink,
-  FlaskConical,
-  ShieldCheck,
-  TriangleAlert,
 } from "lucide-react"
 import type { BenchmarkEvaluationCardData } from "@/components/benchmark-evaluation-card"
 import { Badge } from "@/components/ui/badge"
@@ -83,25 +80,11 @@ function formatBenchmarkScore(score: number, unit?: string) {
   return score.toFixed(2)
 }
 
-function getReproducibilityLabel(status: BenchmarkEvaluationCardData["reproducibility_status"]) {
-  switch (status) {
-    case "complete":
-      return "Full config coverage"
-    case "partial":
-      return "Partial config coverage"
-    default:
-      return "Config mostly missing"
-  }
-}
-
-function getIndependentLabel(model: BenchmarkEvaluationCardData) {
-  if (model.independent_verification_ratio >= 0.75) return "Mostly third-party"
-  if (model.independent_verification_ratio > 0) return "Mixed reporting"
-  return "Self-reported only"
-}
-
-function getIndependentValue(model: BenchmarkEvaluationCardData) {
-  return `${Math.round(model.independent_verification_ratio * 100)}% independent`
+function formatSummaryScore(value: number | null | undefined) {
+  if (value == null || !Number.isFinite(value)) return "Not summarized"
+  if (value >= 0 && value <= 1) return `${(value * 100).toFixed(1)}%`
+  if (Math.abs(value) >= 100) return value.toFixed(0)
+  return value.toFixed(2)
 }
 
 function getBenchmarkSection(name: string) {
@@ -148,10 +131,9 @@ const CONTEXT_ROWS = [
   { key: "developer", label: "Developer" },
   { key: "params", label: "Parameter range" },
   { key: "benchmarks", label: "Benchmark coverage" },
-  { key: "reporting", label: "Reporting orgs" },
-  { key: "independence", label: "Reporting posture" },
-  { key: "reproducibility", label: "Reproducibility" },
-  { key: "latest", label: "Latest report" },
+  { key: "variants", label: "Versions" },
+  { key: "score_summary", label: "Score summary" },
+  { key: "latest", label: "Backend summary" },
   { key: "updated", label: "Updated" },
 ] as const
 
@@ -234,7 +216,7 @@ export function ModelCompareDialog({
             </div>
             <DialogTitle>Compare Selected Models</DialogTitle>
             <DialogDescription>
-              Start with the benchmark table. Use the context table only when you need reporting, reproducibility, or provenance detail.
+              Start with the benchmark table. Use the context table when you need coverage breadth, version spread, or score range detail.
             </DialogDescription>
           </DialogHeader>
 
@@ -338,7 +320,7 @@ export function ModelCompareDialog({
                         Dive Deeper
                       </div>
                       <div className="mt-1 font-semibold text-foreground">
-                        Show reporting and reproducibility context
+                        Show coverage and score summary context
                       </div>
                     </div>
                     <ChevronDown className="h-4 w-4 text-muted-foreground" />
@@ -371,63 +353,33 @@ export function ModelCompareDialog({
                                   <div className="space-y-1">
                                     <div className="font-medium">{model.benchmarks_count} covered benchmarks</div>
                                     <div className="text-sm text-muted-foreground">
-                                      {model.evaluations_count} reported result{model.evaluations_count !== 1 ? "s" : ""}
+                                      {(model.benchmark_names ?? []).slice(0, 4).join(", ") || `${model.evaluations_count} reported result${model.evaluations_count !== 1 ? "s" : ""}`}
                                     </div>
                                   </div>
                                 ) : null}
-                                {row.key === "reporting" ? (
+                                {row.key === "variants" ? (
                                   <div className="space-y-1">
                                     <div className="font-medium">
-                                      {model.evaluator_count} reporting org{model.evaluator_count !== 1 ? "s" : ""}
+                                      {model.variant_count} version{model.variant_count !== 1 ? "s" : ""}
                                     </div>
                                     <div className="text-sm text-muted-foreground">
-                                      {model.evaluator_names.slice(0, 3).join(", ") || "Not named"}
-                                    </div>
-                                  </div>
-                                ) : null}
-                                {row.key === "independence" ? (
-                                  <div className="space-y-2">
-                                    <Badge
-                                      variant={model.independent_verification_ratio > 0 ? "secondary" : "outline"}
-                                      className="font-medium"
-                                    >
-                                      <ShieldCheck className="h-3.5 w-3.5" />
-                                      {getIndependentLabel(model)}
-                                    </Badge>
-                                    <div className="text-sm text-muted-foreground">
-                                      {getIndependentValue(model)}
+                                      {model.variant_count > 1 ? "Family-level summary spans multiple published variants" : "Single summarized variant"}
                                     </div>
                                   </div>
                                 ) : null}
-                                {row.key === "reproducibility" ? (
+                                {row.key === "score_summary" ? (
                                   <div className="space-y-2">
-                                    <Badge
-                                      variant={
-                                        model.reproducibility_status === "complete"
-                                          ? "secondary"
-                                          : model.reproducibility_status === "partial"
-                                            ? "outline"
-                                            : "destructive"
-                                      }
-                                      className="font-medium"
-                                    >
-                                      {model.reproducibility_status === "missing" ? (
-                                        <TriangleAlert className="h-3.5 w-3.5" />
-                                      ) : (
-                                        <FlaskConical className="h-3.5 w-3.5" />
-                                      )}
-                                      {getReproducibilityLabel(model.reproducibility_status)}
+                                    <Badge variant="outline" className="font-medium">
+                                      Avg {formatSummaryScore(model.score_summary?.average ?? null)}
                                     </Badge>
                                     <div className="text-sm text-muted-foreground">
-                                      {model.missing_generation_config_count > 0
-                                        ? `${model.missing_generation_config_count} result${model.missing_generation_config_count !== 1 ? "s" : ""} without generation config`
-                                        : "No missing generation config in current corpus"}
+                                      Range {formatSummaryScore(model.score_summary?.min ?? null)} to {formatSummaryScore(model.score_summary?.max ?? null)} across {model.score_summary?.count ?? 0} surfaced scores
                                     </div>
                                   </div>
                                 ) : null}
                                 {row.key === "latest" ? (
                                   <div className="flex items-center gap-2">
-                                    <span>{model.latest_source_name || "No named source"}</span>
+                                    <span>{model.latest_source_name || `${model.benchmarks_count} benchmark suites summarized`}</span>
                                     {model.source_urls[0] ? (
                                       <a
                                         href={model.source_urls[0]}

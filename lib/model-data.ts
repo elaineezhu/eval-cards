@@ -1,22 +1,17 @@
 import "server-only"
 
-import { promises as fs } from "fs"
-import path from "path"
-
 import type {
   BenchmarkCard,
   BenchmarkEvaluation,
-  EvalLibrary,
+  CategoryType,
+  EvaluationCardData,
   EvaluationResult,
-  GenerationConfig,
-  MetricConfig,
   ModelInfo,
-  SampleResult,
   SourceData,
   SourceMetadata,
 } from "@/lib/benchmark-schema"
+import type { BackendManifest, EvalHierarchy } from "@/lib/backend-artifacts"
 import { inferCategoryFromBenchmark } from "@/lib/benchmark-schema"
-import { lookupBenchmarkCard } from "@/lib/benchmark-metadata-utils"
 import {
   type BenchmarkEvalListItem,
   type BenchmarkEvalSummary,
@@ -28,313 +23,28 @@ import {
   groupEvaluationsByModel,
   toBenchmarkEvalListItem,
 } from "@/lib/eval-processing"
-import { getCanonicalModelIdentity, getModelFamilyRouteId, normalizeModelInfo } from "@/lib/model-family"
+import { getCanonicalModelIdentity, getModelFamilyRouteId } from "@/lib/model-family"
 import { getBenchmarkCard, normalizeBenchmarkKey } from "@/lib/benchmark-metadata"
+import {
+  type HFEvalDetail,
+  type HFEvalModelResult,
+  type HFModelCardEntry,
+  type HFModelDetail,
+  fetchBackendManifest,
+  fetchEvalHierarchy,
+  fetchModelCardsList,
+  fetchEvalList as fetchHFEvalList,
+  fetchDevelopersList,
+  fetchDeveloperDetail as fetchHFDeveloperDetail,
+  fetchModelDetail as fetchHFModelDetail,
+  fetchEvalDetail as fetchHFEvalDetail,
+  flattenModelEvaluations,
+  mapHFCategories,
+} from "@/lib/hf-data"
 
-interface RawModelFile {
-  model_info: ModelInfo
-  evaluations: RawEvaluation[]
-}
-
-interface RawEvaluation {
-  evaluation_id: string
-  retrieved_timestamp: string
-  benchmark?: string
-  source_metadata: SourceMetadata
-  eval_library?: EvalLibrary
-  evaluation_results: RawEvaluationResult[]
-  detailed_evaluation_results?: SampleResult[] | null
-  generation_config?: GenerationConfig | null
-  source_data?: string[] | SourceData
-}
-
-interface RawEvaluationResult
-  extends Omit<EvaluationResult, "evaluation_timestamp"> {
-  evaluation_timestamp?: string
-}
-
-function getSourceDataSignature(sourceData?: string[] | SourceData) {
-  if (!sourceData) {
-    return ""
-  }
-
-  if (Array.isArray(sourceData)) {
-    return sourceData.join("|")
-  }
-
-  return [
-    sourceData.dataset_name,
-    sourceData.source_type,
-    sourceData.hf_repo,
-    sourceData.external_link,
-  ]
-    .filter(Boolean)
-    .join("|")
-}
-
-function getRawEvaluationResultKey(result: RawEvaluationResult) {
-  return [result.evaluation_name.trim().toLowerCase(), getSourceDataSignature(result.source_data)].join("::")
-}
-
-function mergeRawEvaluationResults(results: RawEvaluationResult[]) {
-  const merged = new Map<string, RawEvaluationResult>()
-
-  for (const result of results) {
-    merged.set(getRawEvaluationResultKey(result), result)
-  }
-
-  return Array.from(merged.values())
-}
-
-function getRawEvaluationKey(evaluation: RawEvaluation) {
-  return [
-    evaluation.evaluation_id,
-    evaluation.retrieved_timestamp,
-    evaluation.benchmark,
-    evaluation.source_metadata.source_name,
-    evaluation.source_metadata.source_type,
-    evaluation.source_metadata.source_organization_name,
-    evaluation.source_metadata.evaluator_relationship,
-  ]
-    .filter(Boolean)
-    .join("::")
-}
-
-function dedupeRawEvaluations(evaluations: RawEvaluation[]) {
-  const merged = new Map<string, RawEvaluation>()
-
-  for (const evaluation of evaluations) {
-    const key = getRawEvaluationKey(evaluation)
-    const existing = merged.get(key)
-
-    if (!existing) {
-      merged.set(key, {
-        ...evaluation,
-        evaluation_results: mergeRawEvaluationResults(evaluation.evaluation_results),
-      })
-      continue
-    }
-
-    merged.set(key, {
-      ...existing,
-      ...evaluation,
-      source_data: evaluation.source_data ?? existing.source_data,
-      eval_library: evaluation.eval_library ?? existing.eval_library,
-      detailed_evaluation_results:
-        evaluation.detailed_evaluation_results ?? existing.detailed_evaluation_results,
-      generation_config: evaluation.generation_config ?? existing.generation_config,
-      evaluation_results: mergeRawEvaluationResults([
-        ...existing.evaluation_results,
-        ...evaluation.evaluation_results,
-      ]),
-    })
-  }
-
-  return Array.from(merged.values())
-}
-
-interface IndexedModelSummary {
-  id: string
-  name: string
-  developer?: string
-  evaluator_relationship?: string | null
-  benchmark_scores?: Record<string, number>
-}
-
-interface IndexedBenchmarkEntry {
-  benchmark: string
-  model_count: number
-}
-
-interface IndexedBenchmarkDetail {
-  benchmark_cards?: Record<string, BenchmarkCard>
-  models: Array<{
-    model_id: string
-    name: string
-    developer?: string
-    scores?: Record<string, number>
-  }>
-}
-
-interface IndexedDeveloperEntry {
-  developer: string
-  model_count: number
-}
-
-interface IndexedDeveloperDetail {
-  developer: string
-  models: IndexedModelSummary[]
-}
-
-interface DeveloperAggregateSummary {
-  model_count: number
-  benchmark_count: number
-  evaluation_count: number
-  popular_evals: Array<{
-    benchmark: string
-    model_count: number
-  }>
-}
-
-function getDataDirectory() {
-  return path.join(process.cwd(), "data")
-}
-
-function getModelSubdirectory() {
-  return path.join(getDataDirectory(), "models")
-}
-
-function getBenchmarkSubdirectory() {
-  return path.join(getDataDirectory(), "benchmarks")
-}
-
-function getModelsIndexPath() {
-  return path.join(getDataDirectory(), "models.json")
-}
-
-function getBenchmarksIndexPath() {
-  return path.join(getDataDirectory(), "benchmarks.json")
-}
-
-function getDeveloperSubdirectory() {
-  return path.join(getDataDirectory(), "developers")
-}
-
-function getDevelopersIndexPath() {
-  return path.join(getDataDirectory(), "developers.json")
-}
-
-function shouldCacheModelData() {
-  return process.env.NODE_ENV === "production"
-}
-
-function shouldCacheIndexes() {
-  return process.env.NODE_ENV === "production"
-}
-
-async function listJsonFiles(directory: string): Promise<string[]> {
-  try {
-    const entries = await fs.readdir(directory, { withFileTypes: true })
-
-    return entries
-      .filter((entry) => entry.isFile() && entry.name.endsWith(".json"))
-      .map((entry) => path.join(directory, entry.name))
-  } catch {
-    return []
-  }
-}
-
-async function listModelDataFiles(): Promise<string[]> {
-  const [rootFiles, modelFiles] = await Promise.all([
-    listJsonFiles(getDataDirectory()),
-    listJsonFiles(getModelSubdirectory()),
-  ])
-
-  // Prefer the pipeline layout:
-  //   data/models/*.json
-  // Fall back to the legacy flat layout:
-  //   data/*.json
-  // Root-level index files such as data/models.json are not raw model detail files.
-  const preferredFiles = modelFiles.length > 0 ? modelFiles : rootFiles
-
-  return preferredFiles.sort((a, b) => a.localeCompare(b))
-}
-
-async function readJsonFile<T>(filePath: string): Promise<T | null> {
-  try {
-    return JSON.parse(await fs.readFile(filePath, "utf8")) as T
-  } catch {
-    return null
-  }
-}
-
-let cachedModelIndexPromise: Promise<IndexedModelSummary[] | null> | null = null
-
-async function readModelsIndex() {
-  const load = async () => {
-    const parsed = await readJsonFile<IndexedModelSummary[]>(getModelsIndexPath())
-    return Array.isArray(parsed) ? parsed : null
-  }
-
-  if (!shouldCacheIndexes()) {
-    return load()
-  }
-
-  if (!cachedModelIndexPromise) {
-    cachedModelIndexPromise = load()
-  }
-
-  return cachedModelIndexPromise
-}
-
-let cachedBenchmarkIndexPromise: Promise<IndexedBenchmarkEntry[] | null> | null = null
-
-async function readBenchmarksIndex() {
-  const load = async () => {
-    const parsed = await readJsonFile<IndexedBenchmarkEntry[]>(getBenchmarksIndexPath())
-    return Array.isArray(parsed) ? parsed : null
-  }
-
-  if (!shouldCacheIndexes()) {
-    return load()
-  }
-
-  if (!cachedBenchmarkIndexPromise) {
-    cachedBenchmarkIndexPromise = load()
-  }
-
-  return cachedBenchmarkIndexPromise
-}
-
-let cachedDeveloperIndexPromise: Promise<IndexedDeveloperEntry[] | null> | null = null
-
-async function readDevelopersIndex() {
-  const load = async () => {
-    const parsed = await readJsonFile<IndexedDeveloperEntry[]>(getDevelopersIndexPath())
-    return Array.isArray(parsed) ? parsed : null
-  }
-
-  if (!shouldCacheIndexes()) {
-    return load()
-  }
-
-  if (!cachedDeveloperIndexPromise) {
-    cachedDeveloperIndexPromise = load()
-  }
-
-  return cachedDeveloperIndexPromise
-}
-
-function humanizeToken(token: string) {
-  return token
-    .split(/[_-]+/g)
-    .filter(Boolean)
-    .map((part) => part.charAt(0).toUpperCase() + part.slice(1))
-    .join(" ")
-}
-
-function getBenchmarkDisplayName(benchmark: string) {
-  if (benchmark === "hfopenllm_v2") return "HF Open LLM v2"
-  return humanizeToken(benchmark)
-}
-
-function getBenchmarkMetricDisplayName(benchmark: string, metric: string) {
-  const normalized = metric.trim()
-  const genericMetrics = new Set([
-    "score",
-    "accuracy",
-    "mean win rate",
-    "exact match",
-    "f1",
-    "pass@1",
-  ])
-
-  if (genericMetrics.has(normalized.toLowerCase())) {
-    return `${getBenchmarkDisplayName(benchmark)} - ${normalized}`
-  }
-
-  return normalized
-}
+// ---------------------------------------------------------------------------
+// Helpers
+// ---------------------------------------------------------------------------
 
 function slugifyEvalId(value: string) {
   return value.toLowerCase().replace(/[^a-z0-9]+/g, "_").replace(/^_|_$/g, "")
@@ -358,22 +68,513 @@ function normalizeSummaryScore(summary: BenchmarkEvalSummary, score: number) {
   return range > 0 ? (score - minScore) / range : score
 }
 
-async function attachBenchmarkCardToSummary(summary: BenchmarkEvalSummary): Promise<BenchmarkEvalSummary> {
-  if (summary.benchmark_card) {
-    return summary
+function humanizeToken(token: string) {
+  return token
+    .split(/[_-]+/g)
+    .filter(Boolean)
+    .map((part) => part.charAt(0).toUpperCase() + part.slice(1))
+    .join(" ")
+}
+
+function getCanonicalInstanceResultsUrl(value: unknown) {
+  if (typeof value !== "string") {
+    return undefined
   }
 
-  const cardCandidates = [
+  return value.includes("/datasets/evaleval/card_backend/") && value.includes("/instances/")
+    ? value
+    : undefined
+}
+
+// Canonical display names — keyed by normalized form (lowercase, hyphens→underscores)
+const BENCHMARK_NAMES: Record<string, string> = {
+  hfopenllm_v2: "HF Open LLM v2",
+  helm_lite: "HELM Lite",
+  helm_capabilities: "HELM Capabilities",
+  helm_classic: "HELM Classic",
+  helm_instruct: "HELM Instruct",
+  helm_mmlu: "HELM MMLU",
+  reward_bench: "RewardBench",
+  reward_bench_2: "RewardBench 2",
+  bfcl: "BFCL",
+  global_mmlu_lite: "Global MMLU Lite",
+  swe_bench: "SWE-bench",
+  arc_agi: "ARC-AGI",
+  tau_bench_2: "TAU-Bench 2",
+  ace: "ACE",
+  apex_agents: "APEX Agents",
+  apex_v1: "APEX v1",
+  appworld: "AppWorld",
+  browsecompplus: "BrowseComp+",
+  livecodebenchpro: "LiveCodeBench Pro",
+  sciarena: "SciArena",
+  terminal_bench_2_0: "Terminal Bench 2.0",
+  la_leaderboard: "LA Leaderboard",
+  theory_of_mind: "Theory of Mind",
+  fibble_arena: "Fibble Arena",
+  fibble1_arena: "Fibble Arena v1",
+  fibble2_arena: "Fibble Arena v2",
+  fibble3_arena: "Fibble Arena v3",
+  fibble4_arena: "Fibble Arena v4",
+  fibble5_arena: "Fibble Arena v5",
+  wordle_arena: "Wordle Arena",
+}
+
+function normalizeBenchmarkKeyForLookup(key: string) {
+  return key.toLowerCase().replace(/[-.\s]+/g, "_").replace(/^_+|_+$/g, "")
+}
+
+function getBenchmarkDisplayName(benchmark: string) {
+  return BENCHMARK_NAMES[normalizeBenchmarkKeyForLookup(benchmark)] ?? humanizeToken(benchmark)
+}
+
+function pipelineSlugify(text: string) {
+  return (
+    text
+      .replace(/[\x00-\x1f\x7f]/g, "")
+      .replace(/[^a-zA-Z0-9._-]/g, "_")
+      .replace(/^_+|_+$/g, "") || "unknown"
+  )
+}
+
+function getDeveloperRouteId(developer: string) {
+  return pipelineSlugify(developer.trim().toLowerCase())
+}
+
+// ---------------------------------------------------------------------------
+// Model detail slug candidates (for HF file lookup)
+// ---------------------------------------------------------------------------
+
+function getModelDetailSlugCandidates(modelId: string): string[] {
+  const normalized = modelId.trim()
+  // The HF dataset uses "__" to separate namespace/model in filenames
+  // e.g., "openai/gpt-4o" → "openai__gpt-4o"
+  // It also replaces dots with hyphens: "gpt-3.5" → "gpt-3-5"
+  const candidates = new Set<string>()
+
+  const withSlash = normalized.replace(/\//g, "__")
+  const withDots = withSlash.replace(/\./g, "-")
+
+  candidates.add(pipelineSlugify(withSlash))
+  candidates.add(pipelineSlugify(withSlash.toLowerCase()))
+  candidates.add(pipelineSlugify(withDots))
+  candidates.add(pipelineSlugify(withDots.toLowerCase()))
+  candidates.add(pipelineSlugify(normalized))
+  candidates.add(pipelineSlugify(normalized.toLowerCase()))
+
+  return Array.from(candidates)
+}
+
+function getDeveloperSlugCandidates(developerOrRouteId: string): string[] {
+  const normalized = developerOrRouteId.trim()
+  const candidates = new Set<string>()
+  const lowercase = normalized.toLowerCase()
+  const underscoreSlug = pipelineSlugify(normalized)
+  const lowercaseUnderscoreSlug = pipelineSlugify(lowercase)
+  const hyphenSlug = lowercase
+    .replace(/[\x00-\x1f\x7f]/g, "")
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/^-+|-+$/g, "")
+  const compactSlug = lowercase.replace(/[^a-z0-9]+/g, "")
+
+  candidates.add(underscoreSlug)
+  candidates.add(lowercaseUnderscoreSlug)
+  candidates.add(underscoreSlug.replace(/_/g, "-"))
+  candidates.add(lowercaseUnderscoreSlug.replace(/_/g, "-"))
+  if (hyphenSlug) {
+    candidates.add(hyphenSlug)
+  }
+  if (compactSlug) {
+    candidates.add(compactSlug)
+  }
+
+  return Array.from(candidates)
+}
+
+// ---------------------------------------------------------------------------
+// Developer name normalization
+// ---------------------------------------------------------------------------
+
+const KNOWN_DEVELOPER_NAMES: Record<string, string> = {
+  openai: "OpenAI",
+  google: "Google",
+  anthropic: "Anthropic",
+  meta: "Meta",
+  microsoft: "Microsoft",
+  mistralai: "Mistral AI",
+  deepseek: "DeepSeek",
+  "deepseek-ai": "DeepSeek",
+  cohere: "Cohere",
+  nvidia: "NVIDIA",
+  alibaba: "Alibaba",
+  amazon: "Amazon",
+  apple: "Apple",
+  ibm: "IBM",
+  xai: "xAI",
+  "x-ai": "xAI",
+}
+
+function normalizeDeveloperName(name: string): string {
+  const key = name.trim().toLowerCase()
+  if (KNOWN_DEVELOPER_NAMES[key]) return KNOWN_DEVELOPER_NAMES[key]
+  // Title-case if the name is all-lowercase and not a compound like "01-ai"
+  if (name === name.toLowerCase() && /^[a-z]/.test(name)) {
+    return name.charAt(0).toUpperCase() + name.slice(1)
+  }
+  return name
+}
+
+function getModelCardAverageScore(entry: HFModelCardEntry) {
+  if (typeof entry.score_summary?.average === "number") {
+    return entry.score_summary.average
+  }
+
+  if (typeof entry.score_summary?.avg === "number") {
+    return entry.score_summary.avg
+  }
+
+  return null
+}
+
+function getModelCardLatestTimestamp(entry: HFModelCardEntry) {
+  const candidateTimestamps = [entry.last_updated, ...entry.variants.map((variant) => variant.last_updated)]
+    .filter((value): value is string => Boolean(value))
+
+  if (candidateTimestamps.length === 0) {
+    return entry.last_updated
+  }
+
+  return candidateTimestamps.sort((a, b) => normalizeEvalTimestamp(b) - normalizeEvalTimestamp(a))[0]
+}
+
+function getModelCardTopScores(entry: HFModelCardEntry): EvaluationCardData["top_scores"] {
+  if (Array.isArray(entry.top_benchmark_scores) && entry.top_benchmark_scores.length > 0) {
+    return entry.top_benchmark_scores
+      .filter((score) => Number.isFinite(score.score))
+      .map((score) => ({
+        benchmark: getBenchmarkDisplayName(score.benchmark),
+        benchmarkKey: score.benchmarkKey,
+        score: score.score,
+        metric: score.evaluation_name || score.metric,
+      }))
+  }
+
+  const averageScore = getModelCardAverageScore(entry)
+  if (averageScore == null || entry.score_summary.count <= 0) {
+    return []
+  }
+
+  return [
+    {
+      benchmark: "Average",
+      score: averageScore,
+      metric: "Cross-benchmark average",
+    },
+  ]
+}
+
+function getDeveloperBenchmarkStats(models: HFModelCardEntry[]) {
+  const benchmarkCounts = new Map<string, number>()
+
+  for (const model of models) {
+    const benchmarkNames = (model.benchmark_names ?? []).filter(Boolean)
+    const uniqueBenchmarks = new Set(
+      benchmarkNames.length > 0 ? benchmarkNames : model.top_benchmark_scores?.map((score) => score.benchmark).filter(Boolean)
+    )
+
+    for (const benchmark of uniqueBenchmarks) {
+      benchmarkCounts.set(benchmark, (benchmarkCounts.get(benchmark) ?? 0) + 1)
+    }
+  }
+
+  return benchmarkCounts
+}
+
+// ---------------------------------------------------------------------------
+// HF model-cards.json → EvaluationCardData
+// ---------------------------------------------------------------------------
+
+function hfModelCardToEvaluationCardData(entry: HFModelCardEntry): EvaluationCardData {
+  const categories = mapHFCategories(entry.categories_covered) as CategoryType[]
+  const averageScore = getModelCardAverageScore(entry)
+  const topScores = getModelCardTopScores(entry)
+
+  // Distribute total evaluations across categories proportionally
+  const categoryStats: Record<string, number> = {}
+  const perCat = categories.length > 0
+    ? Math.max(1, Math.floor(entry.total_evaluations / categories.length))
+    : 0
+  let remaining = entry.total_evaluations
+  for (let i = 0; i < categories.length; i++) {
+    const count = i === categories.length - 1 ? remaining : Math.min(perCat, remaining)
+    categoryStats[categories[i]] = count
+    remaining -= count
+  }
+
+  return {
+    id: entry.model_family_id,
+    route_id: entry.model_route_id,
+    model_name: entry.model_family_name,
+    model_id: entry.model_family_id,
+    canonical_model_name: entry.model_family_name,
+    developer: normalizeDeveloperName(entry.developer),
+    evaluations_count: entry.total_evaluations,
+    benchmarks_count: entry.benchmark_count,
+    variant_count: entry.variants.length,
+    categories,
+    category_stats: categoryStats as Record<CategoryType, number>,
+    latest_timestamp: getModelCardLatestTimestamp(entry),
+    // These fields aren't available in the summary — use values that
+    // avoid misleading "missing" / "self-reported only" badges.
+    evaluator_count: 0,
+    evaluator_names: [],
+    source_type_count: 1,
+    source_types: ["documentation"],
+    evidence_count: entry.total_evaluations,
+    missing_generation_config_count: 0,
+    third_party_eval_count: 0,
+    independent_verification_ratio: 0,
+    reproducibility_status: "partial",
+    eval_libraries: [],
+    latest_source_name: entry.benchmark_names?.length
+      ? `${entry.benchmark_names.length} benchmark${entry.benchmark_names.length === 1 ? "" : "s"}`
+      : undefined,
+    params_billions: null,
+    benchmark_names: (entry.benchmark_names ?? []).map((name) => getBenchmarkDisplayName(name)),
+    score_summary: {
+      count: entry.score_summary.count,
+      min: entry.score_summary.min,
+      max: entry.score_summary.max,
+      average: averageScore,
+    },
+    top_scores: topScores,
+    source_urls: [],
+    detail_urls: [],
+  }
+}
+
+// ---------------------------------------------------------------------------
+// HF eval-list.json → BenchmarkEvalListItem
+// ---------------------------------------------------------------------------
+
+function hfEvalEntryToListItem(entry: {
+  eval_summary_id: string
+  benchmark: string
+  benchmark_family_key: string
+  benchmark_family_name: string
+  benchmark_parent_name?: string
+  benchmark_leaf_key: string
+  benchmark_leaf_name: string
+  evaluation_name?: string
+  display_name: string
+  is_summary_score?: boolean
+  summary_eval_ids?: string[]
+  category: string
+  tags: { domains: string[]; languages: string[]; tasks: string[] }
+  models_count: number
+  metrics_count: number
+  subtasks_count?: number
+  metric_names: string[]
+  primary_metric_name: string
+  benchmark_card: BenchmarkCard | null
+  source_data?: SourceData
+  top_score: number
+  instance_data: { available: boolean; url_count: number; sample_urls: string[]; models_with_loaded_instances: number }
+  metrics: Array<{ metric_summary_id: string; metric_name: string; lower_is_better: boolean; models_count: number; top_score: number }>
+}): BenchmarkEvalListItem {
+  // Use the pipeline's category directly, mapped to our CategoryType
+  const category = mapHFCategories([entry.category])[0] ?? "General" as CategoryType
+
+  // Build a metric_config from the primary metric
+  const metrics = entry.metrics ?? []
+  const primaryMetric = metrics.find((m) => m.metric_name === entry.primary_metric_name) ?? metrics[0]
+
+  const benchmarkDisplayName = getBenchmarkDisplayName(entry.benchmark_parent_name || entry.benchmark || "")
+  const rawDisplayName = entry.evaluation_name || entry.display_name || entry.benchmark_leaf_name || entry.eval_summary_id
+  const normalizedDisplayName = rawDisplayName.trim().toLowerCase()
+  const prefersBenchmarkName =
+    Boolean(benchmarkDisplayName) &&
+    (normalizedDisplayName.startsWith("accuracy on ") ||
+      normalizedDisplayName.startsWith("score on ") ||
+      normalizedDisplayName.includes("for scorer") ||
+      normalizedDisplayName.includes("model_graded"))
+
+  return {
+    evaluation_name: prefersBenchmarkName ? benchmarkDisplayName : rawDisplayName,
+    evaluation_id: entry.eval_summary_id,
+    composite_benchmark_key: entry.benchmark ?? "",
+    composite_benchmark_name: benchmarkDisplayName,
+    category,
+    metric_config: {
+      evaluation_description: entry.primary_metric_name,
+      lower_is_better: primaryMetric?.lower_is_better ?? false,
+      score_type: "continuous",
+      min_score: 0,
+      max_score: 1,
+    },
+    models_count: entry.models_count,
+    evaluator_names: [],
+    source_types: [],
+    latest_source_name: getBenchmarkDisplayName(entry.benchmark),
+    third_party_ratio: 0,
+    missing_generation_config_count: 0,
+    best_model: entry.top_score != null ? { name: "", score: entry.top_score } : null,
+    worst_model: null,
+    avg_score: 0,
+    avg_score_norm: 0,
+    benchmark_card: entry.benchmark_card ?? undefined,
+    // New fields from the pipeline
+    tags: entry.tags,
+    metrics_count: entry.metrics_count,
+    metric_names: entry.metric_names,
+    instance_data: entry.instance_data,
+    benchmark_family_key: entry.benchmark_family_key,
+    benchmark_leaf_key: entry.benchmark_leaf_key,
+    source_data: entry.source_data,
+    top_score: entry.top_score,
+    subtasks_count: entry.subtasks_count ?? 0,
+    is_summary_score: entry.is_summary_score ?? false,
+    summary_eval_ids: entry.summary_eval_ids ?? [],
+  }
+}
+
+// ---------------------------------------------------------------------------
+// HF eval detail → BenchmarkEvalSummary
+// ---------------------------------------------------------------------------
+
+function hfEvalDetailToSummary(detail: HFEvalDetail): BenchmarkEvalSummary {
+  // New structure: detail.metrics is an array of metric objects, each with model_results
+  // Use the first metric as the primary for the summary leaderboard
+  const evalName = detail.benchmark_leaf_name || detail.eval_summary_id || "Unknown"
+  const benchmarkKey = detail.benchmark ?? ""
+  const allMetrics = detail.metrics ?? []
+  const primaryMetric = allMetrics[0]
+  if (!primaryMetric) {
+    return {
+      evaluation_name: evalName,
+      evaluation_id: detail.eval_summary_id,
+      composite_benchmark_key: benchmarkKey,
+      composite_benchmark_name: getBenchmarkDisplayName(benchmarkKey),
+      category: inferCategoryFromBenchmark(evalName),
+      metric_config: { evaluation_description: "", lower_is_better: false, score_type: "continuous" },
+      model_results: [],
+      models_count: 0,
+      evaluator_names: [],
+      source_types: [],
+      latest_source_name: getBenchmarkDisplayName(benchmarkKey),
+      third_party_ratio: 0,
+      missing_generation_config_count: 0,
+      best_model: null,
+      worst_model: null,
+      avg_score: 0,
+      avg_score_norm: 0,
+      benchmark_card: detail.benchmark_card ?? undefined,
+    }
+  }
+
+  const modelResults: ModelResultForBenchmark[] = (primaryMetric.model_results ?? []).map((mr) => {
+    const sourceName = detail.source_data?.dataset_name || benchmarkKey
+    const sourceOrganization = detail.source_data?.hf_repo || sourceName
+    const modelInfo: ModelInfo = {
+      name: mr.model_name ?? "",
+      id: mr.model_id ?? "",
+      developer: mr.developer ?? "",
+    }
+
+    const evaluationResult: EvaluationResult = {
+      evaluation_name: primaryMetric.metric_name ?? "",
+      evaluation_timestamp: "",
+      metric_config: {
+        evaluation_description: primaryMetric.metric_name ?? "",
+        lower_is_better: primaryMetric.lower_is_better ?? false,
+        score_type: "continuous",
+        min_score: 0,
+        max_score: 1,
+      },
+      score_details: { score: mr.score ?? 0 },
+      detailed_evaluation_results_url: getCanonicalInstanceResultsUrl(
+        mr.detailed_evaluation_results
+      ),
+    }
+
+    return {
+      model_info: modelInfo,
+      model_route_id: mr.model_route_id,
+      score: mr.score ?? 0,
+      score_details: { score: mr.score ?? 0 },
+      evaluation_timestamp: "",
+      source_metadata: {
+        source_type: "documentation" as const,
+        source_name: sourceName,
+        source_organization_name: sourceOrganization,
+        evaluator_relationship: "other" as const,
+      },
+      source_data: detail.source_data ?? { dataset_name: benchmarkKey },
+      result: evaluationResult,
+    }
+  })
+
+  // Sort by score
+  const lowerIsBetter = primaryMetric.lower_is_better ?? false
+  modelResults.sort((a, b) => (lowerIsBetter ? a.score - b.score : b.score - a.score))
+
+  const scores = modelResults.map((r) => r.score).filter(Number.isFinite)
+  const avgScore = scores.length > 0 ? scores.reduce((s, v) => s + v, 0) / scores.length : 0
+
+  // Build metric_config from primary metric
+  const metricConfig = {
+    evaluation_description: primaryMetric.metric_name ?? "",
+    lower_is_better: lowerIsBetter,
+    score_type: "continuous" as const,
+    min_score: 0,
+    max_score: 1,
+  }
+
+  return {
+    evaluation_name: evalName,
+    evaluation_id: detail.eval_summary_id,
+    composite_benchmark_key: benchmarkKey,
+    composite_benchmark_name: getBenchmarkDisplayName(benchmarkKey),
+    category: inferCategoryFromBenchmark(evalName),
+    metric_config: metricConfig,
+    model_results: modelResults,
+    models_count: modelResults.length,
+    evaluator_names: [],
+    source_types: [],
+    latest_source_name: getBenchmarkDisplayName(benchmarkKey),
+    third_party_ratio: 0,
+    missing_generation_config_count: 0,
+    best_model: modelResults.length > 0
+      ? { name: modelResults[0].model_info.name, score: modelResults[0].score }
+      : null,
+    worst_model: modelResults.length > 0
+      ? { name: modelResults[modelResults.length - 1].model_info.name, score: modelResults[modelResults.length - 1].score }
+      : null,
+    avg_score: avgScore,
+    avg_score_norm: avgScore, // scores are already 0-1 from the pipeline
+    benchmark_card: detail.benchmark_card ?? undefined,
+    // Include all metrics info for the detail view
+    metric_names: allMetrics.map((m) => m.metric_name),
+    metrics_count: allMetrics.length,
+  }
+}
+
+// ---------------------------------------------------------------------------
+// Aggregation (for aggregate eval summaries)
+// ---------------------------------------------------------------------------
+
+async function attachBenchmarkCardToSummary(summary: BenchmarkEvalSummary): Promise<BenchmarkEvalSummary> {
+  if (summary.benchmark_card) return summary
+
+  const candidates = [
     summary.evaluation_name,
     summary.composite_benchmark_name,
     summary.composite_benchmark_key,
   ]
 
-  for (const candidate of cardCandidates) {
+  for (const candidate of candidates) {
     const card = await getBenchmarkCard(candidate)
-    if (card) {
-      return { ...summary, benchmark_card: card }
-    }
+    if (card) return { ...summary, benchmark_card: card }
   }
 
   return summary
@@ -383,12 +584,12 @@ function aggregateBenchmarkSummaries(
   summaries: BenchmarkEvalSummary[],
   aggregationKey: string
 ): BenchmarkEvalSummary | null {
-  if (summaries.length === 0) {
-    return null
-  }
+  if (summaries.length === 0) return null
 
   const first = summaries[0]
   const card = first.benchmark_card
+
+  // Use each sub-eval's own name (not the suite name) so sub-cards show distinct titles
   const aggregateSources = Array.from(
     new Map(
       summaries.map((summary) => [
@@ -396,7 +597,7 @@ function aggregateBenchmarkSummaries(
         {
           evaluation_id: summary.evaluation_id,
           composite_benchmark_key: summary.composite_benchmark_key,
-          composite_benchmark_name: summary.composite_benchmark_name,
+          composite_benchmark_name: summary.evaluation_name,
           models_count: summary.models_count,
           avg_score_norm: summary.avg_score_norm,
         },
@@ -404,14 +605,14 @@ function aggregateBenchmarkSummaries(
     ).values()
   ).sort((a, b) => a.composite_benchmark_name.localeCompare(b.composite_benchmark_name))
 
+  // The display name for the aggregate should be the suite name, not a sub-eval name
+  const suiteDisplayName = getBenchmarkDisplayName(aggregationKey)
+
   const modelBuckets = new Map<
     string,
     {
       model_info: ModelResultForBenchmark["model_info"]
-      components: Array<{
-        summary: BenchmarkEvalSummary
-        modelResult: ModelResultForBenchmark
-      }>
+      components: Array<{ summary: BenchmarkEvalSummary; modelResult: ModelResultForBenchmark }>
     }
   >()
 
@@ -430,9 +631,7 @@ function aggregateBenchmarkSummaries(
     ...first.metric_config,
     evaluation_description:
       aggregateSources.length > 1
-        ? `Average normalized score across ${aggregateSources
-            .map((source) => source.composite_benchmark_name)
-            .join(", ")}`
+        ? `Average normalized score across ${aggregateSources.map((s) => s.composite_benchmark_name).join(", ")}`
         : first.metric_config.evaluation_description,
     min_score: 0,
     max_score: 1,
@@ -445,7 +644,7 @@ function aggregateBenchmarkSummaries(
         normalizeSummaryScore(summary, modelResult.score)
       )
       const avgNormalizedScore =
-        normalizedScores.reduce((sum, score) => sum + score, 0) / normalizedScores.length
+        normalizedScores.reduce((sum, s) => sum + s, 0) / normalizedScores.length
 
       const latestComponent = [...components].sort(
         (a, b) =>
@@ -473,10 +672,9 @@ function aggregateBenchmarkSummaries(
         score: avgNormalizedScore,
         score_details: {
           score: avgNormalizedScore,
-          sample_size: components.reduce(
-            (sum, { modelResult }) => sum + (modelResult.score_details.sample_size ?? 0),
-            0
-          ) || undefined,
+          sample_size:
+            components.reduce((sum, { modelResult }) => sum + (modelResult.score_details.sample_size ?? 0), 0) ||
+            undefined,
         },
         evaluation_timestamp: latestComponent.modelResult.evaluation_timestamp,
         source_metadata: latestComponent.modelResult.source_metadata,
@@ -485,9 +683,7 @@ function aggregateBenchmarkSummaries(
           ...latestComponent.modelResult.result,
           evaluation_name: card?.benchmark_details?.name ?? first.evaluation_name,
           metric_config: aggregateMetricConfig,
-          score_details: {
-            score: avgNormalizedScore,
-          },
+          score_details: { score: avgNormalizedScore },
         },
         aggregate_components: aggregateComponents,
       }
@@ -498,45 +694,41 @@ function aggregateBenchmarkSummaries(
   aggregatedModelResults.sort((a, b) => (lowerIsBetter ? a.score - b.score : b.score - a.score))
 
   const avgScore =
-    aggregatedModelResults.reduce((sum, modelResult) => sum + modelResult.score, 0) /
-    aggregatedModelResults.length
+    aggregatedModelResults.reduce((sum, r) => sum + r.score, 0) / aggregatedModelResults.length
 
   const evaluatorNames = Array.from(
-    new Set(summaries.flatMap((summary) => summary.evaluator_names))
-  ).sort((a, b) => a.localeCompare(b))
+    new Set(summaries.flatMap((s) => s.evaluator_names))
+  ).sort()
 
   const sourceTypes = Array.from(
-    new Set(summaries.flatMap((summary) => summary.source_types))
-  ).sort((a, b) => a.localeCompare(b))
+    new Set(summaries.flatMap((s) => s.source_types))
+  ).sort()
 
-  const totalUnderlyingResults = summaries.reduce((sum, summary) => sum + summary.model_results.length, 0)
-  const totalThirdPartyResults = summaries.reduce(
-    (sum, summary) => sum + summary.model_results.filter((result) => result.source_metadata.evaluator_relationship === "third_party").length,
+  const totalUnderlying = summaries.reduce((sum, s) => sum + s.model_results.length, 0)
+  const totalThirdParty = summaries.reduce(
+    (sum, s) =>
+      sum + s.model_results.filter((r) => r.source_metadata.evaluator_relationship === "third_party").length,
     0
   )
 
   return {
-    evaluation_name: card?.benchmark_details?.name ?? first.evaluation_name,
+    // Use the suite display name for the aggregate, never a sub-metric name
+    evaluation_name: suiteDisplayName,
     evaluation_id: getAggregateEvalId(aggregationKey),
     composite_benchmark_key:
-      aggregateSources.length === 1 ? aggregateSources[0].composite_benchmark_key : "multiple",
-    composite_benchmark_name:
-      aggregateSources.length === 1
-        ? aggregateSources[0].composite_benchmark_name
-        : `${aggregateSources.length} composite benchmarks`,
+      aggregateSources.length === 1 ? aggregateSources[0].composite_benchmark_key : aggregationKey,
+    composite_benchmark_name: suiteDisplayName,
     category: first.category,
     metric_config: aggregateMetricConfig,
-    factsheet: first.factsheet,
     model_results: aggregatedModelResults,
     models_count: aggregatedModelResults.length,
     evaluator_names: evaluatorNames,
     source_types: sourceTypes,
     latest_source_name:
       aggregateSources.length === 1 ? aggregateSources[0].composite_benchmark_name : "Multiple sources",
-    third_party_ratio: totalUnderlyingResults > 0 ? totalThirdPartyResults / totalUnderlyingResults : 0,
+    third_party_ratio: totalUnderlying > 0 ? totalThirdParty / totalUnderlying : 0,
     missing_generation_config_count: summaries.reduce(
-      (sum, summary) => sum + summary.missing_generation_config_count,
-      0
+      (sum, s) => sum + s.missing_generation_config_count, 0
     ),
     best_model:
       aggregatedModelResults.length > 0
@@ -557,402 +749,68 @@ function aggregateBenchmarkSummaries(
   }
 }
 
-function inferMetricConfig(scores: number[], benchmark: string, metric: string): MetricConfig {
-  const finiteScores = scores.filter((score) => Number.isFinite(score))
-  const maxScore = finiteScores.length > 0 ? Math.max(...finiteScores) : 1
-  const minScore = finiteScores.length > 0 ? Math.min(...finiteScores) : 0
-  const appearsNormalized = minScore >= 0 && maxScore <= 1.05
-
-  return {
-    evaluation_description: `${metric} on ${getBenchmarkDisplayName(benchmark)}`,
-    lower_is_better: false,
-    score_type: "continuous",
-    min_score: appearsNormalized ? 0 : Math.min(0, minScore),
-    max_score: appearsNormalized ? 1 : Math.max(100, maxScore),
-    unit: appearsNormalized ? "accuracy" : undefined,
-  }
-}
-
-async function buildEvalListDataFromBenchmarkIndexes(): Promise<{
-  evals: BenchmarkEvalListItem[]
-  totalModels: number
-} | null> {
-  const [benchmarkIndex, modelIndex] = await Promise.all([
-    readBenchmarksIndex(),
-    readModelsIndex(),
-  ])
-
-  if (!benchmarkIndex?.length) {
-    return null
-  }
-
-  const benchmarkDetails = await Promise.all(
-    benchmarkIndex.map(async ({ benchmark }) => ({
-      benchmark,
-      detail: await readJsonFile<IndexedBenchmarkDetail>(
-        path.join(getBenchmarkSubdirectory(), `${benchmark}.json`)
-      ),
-    }))
-  )
-
-  const evals: BenchmarkEvalListItem[] = []
-
-  for (const { benchmark, detail } of benchmarkDetails) {
-    if (!detail?.models?.length) {
-      continue
-    }
-
-    const metricScores = new Map<string, number[]>()
-
-    for (const model of detail.models) {
-      for (const [metric, score] of Object.entries(model.scores ?? {})) {
-        if (!Number.isFinite(score)) {
-          continue
-        }
-
-        const bucket = metricScores.get(metric) ?? []
-        bucket.push(score)
-        metricScores.set(metric, bucket)
-      }
-    }
-
-    for (const [metric, scores] of metricScores) {
-      if (scores.length === 0) {
-        continue
-      }
-
-      const displayName = getBenchmarkMetricDisplayName(benchmark, metric)
-      const metricConfig = inferMetricConfig(scores, benchmark, metric)
-      const avgScore = scores.reduce((sum, score) => sum + score, 0) / scores.length
-      const maxScore = metricConfig.max_score ?? 1
-      const minScore = metricConfig.min_score ?? 0
-      const range = maxScore - minScore
-
-      evals.push({
-        evaluation_name: displayName,
-        evaluation_id: slugifyEvalId(`${benchmark}__${metric}`),
-        composite_benchmark_key: benchmark,
-        composite_benchmark_name: getBenchmarkDisplayName(benchmark),
-        category: inferCategoryFromBenchmark(displayName),
-        metric_config: metricConfig,
-        factsheet: undefined,
-        models_count: scores.length,
-        evaluator_names: [],
-        source_types: [],
-        latest_source_name: getBenchmarkDisplayName(benchmark),
-        third_party_ratio: 0,
-        missing_generation_config_count: 0,
-        best_model: null,
-        worst_model: null,
-        avg_score: avgScore,
-        avg_score_norm: range > 0 ? (avgScore - minScore) / range : 0,
-        benchmark_card: lookupBenchmarkCard(detail.benchmark_cards ?? {}, metric),
-      })
-    }
-  }
-
-  return {
-    evals: evals.sort((a, b) => a.evaluation_name.localeCompare(b.evaluation_name)),
-    totalModels: modelIndex?.length ?? 0,
-  }
-}
-
-function createIndexedModelInfo(summary: IndexedModelSummary): ModelInfo {
-  return {
-    id: summary.id,
-    name: summary.name || summary.id,
-    developer: summary.developer,
-  }
-}
-
-function pipelineSlugify(text: string) {
-  return (
-    text
-      .replace(/[\x00-\x1f\x7f]/g, "")
-      .replace(/[^a-zA-Z0-9._-]/g, "_")
-      .replace(/^_+|_+$/g, "") || "unknown"
-  )
-}
-
-function getDeveloperRouteId(developer: string) {
-  return pipelineSlugify(developer.trim().toLowerCase())
-}
-
-function getDeveloperSlugCandidates(developerOrRouteId: string) {
-  const normalized = developerOrRouteId.trim()
-  const lowercased = normalized.toLowerCase()
-  const candidates = new Set([
-    pipelineSlugify(normalized),
-    pipelineSlugify(lowercased),
-  ])
-
-  return Array.from(candidates)
-}
-
-async function readDeveloperDetailFile(developerOrRouteId: string) {
-  for (const slug of getDeveloperSlugCandidates(developerOrRouteId)) {
-    const detail = await readJsonFile<IndexedDeveloperDetail>(
-      path.join(getDeveloperSubdirectory(), `${slug}.json`)
-    )
-
-    if (detail?.developer && Array.isArray(detail.models)) {
-      return detail
-    }
-  }
-
-  return null
-}
-
-function getModelDetailSlugCandidates(modelId: string) {
-  const normalized = modelId.trim()
-  const lowercased = normalized.toLowerCase()
-  const candidates = new Set([
-    pipelineSlugify(normalized),
-    pipelineSlugify(lowercased),
-  ])
-
-  return Array.from(candidates)
-}
-
-async function loadEvaluationsForModelId(modelId: string) {
-  for (const slug of getModelDetailSlugCandidates(modelId)) {
-    const raw = await readJsonFile<RawModelFile>(
-      path.join(getModelSubdirectory(), `${slug}.json`)
-    )
-
-    if (!raw?.model_info || !Array.isArray(raw.evaluations)) {
-      continue
-    }
-
-    return dedupeRawEvaluations(raw.evaluations).map((evaluation) =>
-      normalizeEvaluation(raw.model_info, evaluation)
-    )
-  }
-
-  return []
-}
-
-async function loadEvaluationsForModelIds(modelIds: string[]) {
-  const loaded = await Promise.all(modelIds.map((modelId) => loadEvaluationsForModelId(modelId)))
-  return loaded.flat()
-}
-
-function buildModelCardsFromEvaluations(evaluations: BenchmarkEvaluation[]) {
-  const groupedByModel = groupEvaluationsByModelFamily(evaluations)
-
-  return Object.values(groupedByModel)
-    .map((modelEvaluations) =>
-      createEvaluationCard(createModelFamilySummary(modelEvaluations))
-    )
-    .sort(
-      (a, b) =>
-        new Date(b.latest_timestamp).getTime() - new Date(a.latest_timestamp).getTime()
-    )
-}
-
-function buildDeveloperListFromModelsIndex(models: IndexedModelSummary[]) {
-  const counts = new Map<string, number>()
-
-  for (const model of models) {
-    const developer = model.developer?.trim() || "unknown"
-    counts.set(developer, (counts.get(developer) ?? 0) + 1)
-  }
-
-  return Array.from(counts.entries())
-    .map(([developer, model_count]) => ({
-      developer,
-      route_id: getDeveloperRouteId(developer),
-      model_count,
-    }))
-    .sort((a, b) => a.developer.localeCompare(b.developer))
-}
-
-function summarizeDeveloperModels(models: IndexedModelSummary[]): DeveloperAggregateSummary {
-  const benchmarkCounts = new Map<string, number>()
-  let evaluationCount = 0
-
-  for (const model of models) {
-    const seenBenchmarks = new Set<string>()
-
-    for (const key of Object.keys(model.benchmark_scores ?? {})) {
-      evaluationCount += 1
-
-      const [benchmark] = key.split("/", 1)
-      if (!benchmark || seenBenchmarks.has(benchmark)) {
-        continue
-      }
-
-      seenBenchmarks.add(benchmark)
-      benchmarkCounts.set(benchmark, (benchmarkCounts.get(benchmark) ?? 0) + 1)
-    }
-  }
-
-  const popularEvals = Array.from(benchmarkCounts.entries())
-    .sort((a, b) => {
-      if (b[1] !== a[1]) {
-        return b[1] - a[1]
-      }
-
-      return a[0].localeCompare(b[0])
-    })
-    .slice(0, 3)
-    .map(([benchmark, model_count]) => ({
-      benchmark: getBenchmarkDisplayName(benchmark),
-      model_count,
-    }))
-
-  return {
-    model_count: models.length,
-    benchmark_count: benchmarkCounts.size,
-    evaluation_count: evaluationCount,
-    popular_evals: popularEvals,
-  }
-}
-
-async function readDeveloperDetail(routeId: string) {
-  const direct = await readDeveloperDetailFile(routeId)
-
-  if (direct?.developer && Array.isArray(direct.models)) {
-    return direct
-  }
-
-  const developersIndex = await readDevelopersIndex()
-  const matchedDeveloper = developersIndex?.find(
-    (entry) =>
-      entry.developer === routeId || getDeveloperRouteId(entry.developer) === routeId
-  )
-
-  if (!matchedDeveloper) {
-    return null
-  }
-
-  const resolved = await readDeveloperDetailFile(matchedDeveloper.developer)
-
-  if (resolved?.developer && Array.isArray(resolved.models)) {
-    return resolved
-  }
-
-  return null
-}
-
-function getFallbackSourceData(
-  evaluation: RawEvaluation,
-  result?: RawEvaluationResult
-): string[] | SourceData {
-  if (result?.source_data) {
-    return result.source_data
-  }
-
-  if (evaluation.source_data) {
-    return evaluation.source_data
-  }
-
-  if (evaluation.benchmark) {
-    return {
-      dataset_name: evaluation.benchmark,
-    }
-  }
-
-  return {
-    dataset_name: result?.evaluation_name ?? "Unknown Dataset",
-  }
-}
-
-function normalizeEvaluation(
-  modelInfo: ModelInfo,
-  evaluation: RawEvaluation
-): BenchmarkEvaluation {
-  const normalizedModelInfo = normalizeModelInfo(modelInfo)
-
-  return {
-    schema_version: "model-data-v1",
-    evaluation_id: evaluation.evaluation_id,
-    retrieved_timestamp: evaluation.retrieved_timestamp,
-    benchmark: evaluation.benchmark,
-    source_data: getFallbackSourceData(evaluation, evaluation.evaluation_results[0]),
-    source_metadata: evaluation.source_metadata,
-    eval_library: evaluation.eval_library,
-    model_info: normalizedModelInfo,
-    evaluation_results: evaluation.evaluation_results.map((result) => ({
-      ...result,
-      evaluation_timestamp: result.evaluation_timestamp ?? evaluation.retrieved_timestamp,
-      source_data: getFallbackSourceData(evaluation, result),
-      generation_config: result.generation_config ?? evaluation.generation_config ?? undefined,
-    })),
-    detailed_evaluation_results_per_samples:
-      evaluation.detailed_evaluation_results ?? undefined,
-  }
-}
-
-async function readAllEvaluationsFromDataDirectory(): Promise<BenchmarkEvaluation[]> {
-  const filePaths = await listModelDataFiles()
-  const evaluations = await Promise.all(
-    filePaths.map(async (filePath) => {
-      try {
-        const raw = JSON.parse(await fs.readFile(filePath, "utf8")) as RawModelFile
-
-        if (!raw?.model_info || !Array.isArray(raw.evaluations)) {
-          return []
-        }
-
-        return dedupeRawEvaluations(raw.evaluations).map((evaluation) =>
-          normalizeEvaluation(raw.model_info, evaluation)
-        )
-      } catch (error) {
-        console.warn(`Failed to load model data from ${filePath}:`, error)
-        return []
-      }
-    })
-  )
-
-  return evaluations.flat()
-}
-
-let cachedEvaluationsPromise: Promise<BenchmarkEvaluation[]> | null = null
-
-export async function loadAllEvaluationsFromDataDirectory(): Promise<BenchmarkEvaluation[]> {
-  if (!shouldCacheModelData()) {
-    return readAllEvaluationsFromDataDirectory()
-  }
-
-  if (!cachedEvaluationsPromise) {
-    cachedEvaluationsPromise = readAllEvaluationsFromDataDirectory()
-  }
-
-  return cachedEvaluationsPromise
-}
+// ---------------------------------------------------------------------------
+// Public API
+// ---------------------------------------------------------------------------
 
 export async function getDashboardData() {
   const [models, evals] = await Promise.all([getModelCards(), getEvalList()])
   return { models, evals }
 }
 
-export async function getModelCards() {
-  const evaluations = await loadAllEvaluationsFromDataDirectory()
-  return buildModelCardsFromEvaluations(evaluations)
+export async function getBackendManifestData(): Promise<BackendManifest> {
+  return fetchBackendManifest()
 }
 
-export async function getEvalListData() {
-  const indexed = await buildEvalListDataFromBenchmarkIndexes()
+export async function getEvalHierarchyData(): Promise<EvalHierarchy> {
+  return fetchEvalHierarchy()
+}
 
-  if (indexed) {
-    return indexed
-  }
+export async function getModelCards(): Promise<EvaluationCardData[]> {
+  const entries = await fetchModelCardsList()
+  return entries.map(hfModelCardToEvaluationCardData).sort(
+    (a, b) => new Date(b.latest_timestamp).getTime() - new Date(a.latest_timestamp).getTime()
+  )
+}
 
-  const evaluations = await loadAllEvaluationsFromDataDirectory()
-  const summaries = Object.values(groupEvaluationsByBenchmark(evaluations))
-  const totalModels = Object.keys(groupEvaluationsByModelFamily(evaluations)).length
+export async function getEvalListData(): Promise<{
+  evals: BenchmarkEvalListItem[]
+  totalModels: number
+}> {
+  const [evalData, modelCards] = await Promise.all([
+    fetchHFEvalList(),
+    fetchModelCardsList(),
+  ])
 
-  // Attach benchmark_card to each summary
+  const evals = evalData.evals
+    .filter((entry) => !(typeof entry.source_data?.hf_repo === "string" && entry.source_data.hf_repo.startsWith("example://")))
+    .map(hfEvalEntryToListItem)
+
+  // Attach benchmark cards where available
   const evalsWithCards = await Promise.all(
-    summaries.map(async (summary) => {
-      const card = await getBenchmarkCard(summary.composite_benchmark_key)
-      const listItem = toBenchmarkEvalListItem(summary)
-      return card ? { ...listItem, benchmark_card: card } : listItem
+    evals.map(async (item) => {
+      let updated = item
+
+      // Attach benchmark card if not already provided by the pipeline
+      if (!updated.benchmark_card) {
+        const candidates = [item.evaluation_name, item.composite_benchmark_key, item.composite_benchmark_name].filter(Boolean)
+        for (const name of candidates) {
+          const card = await getBenchmarkCard(name)
+          if (card) {
+            updated = { ...updated, benchmark_card: card }
+            break
+          }
+        }
+      }
+
+      return updated
     })
   )
 
-  return { evals: evalsWithCards, totalModels }
+  return {
+    evals: evalsWithCards.sort((a, b) => (a.evaluation_name ?? "").localeCompare(b.evaluation_name ?? "")),
+    totalModels: modelCards.length,
+  }
 }
 
 export async function getEvalList() {
@@ -961,211 +819,244 @@ export async function getEvalList() {
 }
 
 export async function getDeveloperList() {
-  const [developersIndex, modelsIndex] = await Promise.all([
-    readDevelopersIndex(),
-    readModelsIndex(),
-  ])
+  const developerIndex = await fetchDevelopersList()
 
-  if (developersIndex?.length) {
-    const details = await Promise.all(
-      developersIndex.map(async (entry) => ({
-        developer: entry.developer,
-        detail: await readDeveloperDetailFile(entry.developer),
-      }))
-    )
-
-    return details
-      .map(({ developer, detail }) => {
-        const aggregate = summarizeDeveloperModels(detail?.models ?? [])
-
-        return {
-          developer,
-          route_id: getDeveloperRouteId(developer),
-          model_count: detail?.models?.length ?? aggregate.model_count ?? 0,
-          benchmark_count: aggregate.benchmark_count,
-          evaluation_count: aggregate.evaluation_count,
-          popular_evals: aggregate.popular_evals,
-        }
+  // Deduplicate by route_id (handles case variations like "google" vs "Google")
+  const deduped = new Map<string, { developer: string; model_count: number }>()
+  for (const entry of developerIndex) {
+    const routeId = getDeveloperRouteId(entry.developer)
+    const existing = deduped.get(routeId)
+    if (!existing || entry.model_count > existing.model_count) {
+      // Keep the variant with the most models (likely the canonical name)
+      deduped.set(routeId, {
+        developer: existing && existing.model_count > entry.model_count
+          ? existing.developer
+          : entry.developer,
+        model_count: (existing?.model_count ?? 0) + entry.model_count,
       })
-      .sort((a, b) => a.developer.localeCompare(b.developer))
-  }
-
-  if (modelsIndex?.length) {
-    return buildDeveloperListFromModelsIndex(modelsIndex).map((entry) => {
-      const developerModels = modelsIndex.filter(
-        (model) => (model.developer?.trim() || "unknown") === entry.developer
-      )
-      const aggregate = summarizeDeveloperModels(developerModels)
-
-      return {
-        ...entry,
-        benchmark_count: aggregate.benchmark_count,
-        evaluation_count: aggregate.evaluation_count,
-        popular_evals: aggregate.popular_evals,
-      }
-    })
-  }
-
-  const evaluations = await loadAllEvaluationsFromDataDirectory()
-  const groupedByModel = groupEvaluationsByModel(evaluations)
-  const counts = new Map<string, number>()
-
-  for (const modelEvaluations of Object.values(groupedByModel)) {
-    const developer = modelEvaluations[0]?.model_info.developer?.trim() || "unknown"
-    counts.set(developer, (counts.get(developer) ?? 0) + 1)
-  }
-
-  return Array.from(counts.entries())
-    .map(([developer, model_count]) => ({
-      developer,
-      route_id: getDeveloperRouteId(developer),
-      model_count,
-      benchmark_count: 0,
-      evaluation_count: 0,
-      popular_evals: [],
-    }))
-    .sort((a, b) => a.developer.localeCompare(b.developer))
-}
-
-export async function getDeveloperSummaryById(routeId: string) {
-  const detail = await readDeveloperDetail(routeId)
-
-  if (detail) {
-    const evaluations = await loadEvaluationsForModelIds(
-      detail.models.map((model) => model.id)
-    )
-    const aggregate = summarizeDeveloperModels(detail.models)
-
-    return {
-      developer: detail.developer,
-      route_id: getDeveloperRouteId(detail.developer),
-      model_count: aggregate.model_count,
-      benchmark_count: aggregate.benchmark_count,
-      evaluation_count: aggregate.evaluation_count,
-      popular_evals: aggregate.popular_evals,
-      models: buildModelCardsFromEvaluations(evaluations),
+    } else {
+      // Accumulate model count
+      deduped.set(routeId, {
+        developer: existing.developer,
+        model_count: existing.model_count + entry.model_count,
+      })
     }
   }
 
-  const evaluations = await loadAllEvaluationsFromDataDirectory()
-  const groupedByModel = groupEvaluationsByModel(evaluations)
-  const matchedEvaluations = Object.values(groupedByModel)
-    .filter((modelEvaluations) => {
-      const developer = modelEvaluations[0]?.model_info.developer?.trim() || "unknown"
-      return developer === routeId || getDeveloperRouteId(developer) === routeId
+  // Enrich with detail files for aggregate stats
+  const details = await Promise.all(
+    Array.from(deduped.values()).map(async (entry) => {
+      let detail = null
+      for (const slug of getDeveloperSlugCandidates(entry.developer)) {
+        detail = await fetchHFDeveloperDetail(slug)
+        if (detail?.developer && Array.isArray(detail.models)) {
+          break
+        }
+      }
+
+      const models = detail?.models ?? []
+      const benchmarkCounts = getDeveloperBenchmarkStats(models)
+      let evaluationCount = 0
+
+      for (const model of models) {
+        evaluationCount += model.total_evaluations
+      }
+
+      const popularEvals = Array.from(benchmarkCounts.entries())
+        .sort((a, b) => b[1] - a[1])
+        .slice(0, 3)
+        .map(([benchmark, model_count]) => ({
+          benchmark: getBenchmarkDisplayName(benchmark),
+          model_count,
+        }))
+
+      return {
+        developer: normalizeDeveloperName(detail?.developer ?? entry.developer),
+        route_id: getDeveloperRouteId(entry.developer),
+        // Use accumulated count from developers.json (handles case variants)
+        // rather than detail file which may be incomplete due to slug collisions
+        model_count: entry.model_count,
+        benchmark_count: benchmarkCounts.size,
+        evaluation_count: evaluationCount,
+        popular_evals: popularEvals,
+      }
     })
-    .flat()
+  )
 
-  if (matchedEvaluations.length === 0) {
-    return null
+  return details.sort((a, b) => a.developer.localeCompare(b.developer))
+}
+
+export async function getDeveloperSummaryById(routeId: string) {
+  // Try direct slug lookup
+  for (const slug of getDeveloperSlugCandidates(routeId)) {
+    const detail = await fetchHFDeveloperDetail(slug)
+    if (detail?.developer && Array.isArray(detail.models)) {
+      const modelCards = detail.models.map(hfModelCardToEvaluationCardData)
+
+      // Calculate aggregate stats
+      let evaluationCount = 0
+      const benchmarkCounts = getDeveloperBenchmarkStats(detail.models)
+      for (const m of detail.models) {
+        evaluationCount += m.total_evaluations
+      }
+
+      const popularEvals = Array.from(benchmarkCounts.entries())
+        .sort((a, b) => b[1] - a[1])
+        .slice(0, 3)
+        .map(([benchmark, model_count]) => ({
+          benchmark: getBenchmarkDisplayName(benchmark),
+          model_count,
+        }))
+
+      return {
+        developer: normalizeDeveloperName(detail.developer),
+        route_id: getDeveloperRouteId(detail.developer),
+        model_count: detail.models.length,
+        benchmark_count: benchmarkCounts.size,
+        evaluation_count: evaluationCount,
+        popular_evals: popularEvals,
+        models: modelCards,
+      }
+    }
   }
 
-  const developer = matchedEvaluations[0]?.model_info.developer?.trim() || "unknown"
-  const groupedModels = groupEvaluationsByModel(matchedEvaluations)
-  const fallbackModels: IndexedModelSummary[] = Object.values(groupedModels).map((items) => ({
-    id: items[0]?.model_info.id ?? "unknown",
-    name: items[0]?.model_info.name ?? items[0]?.model_info.id ?? "unknown",
-    developer,
-    benchmark_scores: Object.fromEntries(
-      items.flatMap((evaluation) =>
-        evaluation.evaluation_results
-          .flatMap((result) => {
-            const score = result.score_details?.score
-            if (!Number.isFinite(score)) {
-              return []
-            }
+  // Try looking up through the developer index
+  const developerIndex = await fetchDevelopersList()
+  const matchedDev = developerIndex.find(
+    (e) => e.developer === routeId || getDeveloperRouteId(e.developer) === routeId
+  )
 
-            const benchmarkName =
-              !Array.isArray(result.source_data) && result.source_data?.dataset_name
-                ? result.source_data.dataset_name
-                : evaluation.benchmark ?? result.evaluation_name
+  if (matchedDev) {
+    for (const slug of getDeveloperSlugCandidates(matchedDev.developer)) {
+      const detail = await fetchHFDeveloperDetail(slug)
+      if (detail?.developer && Array.isArray(detail.models)) {
+        const modelCards = detail.models.map(hfModelCardToEvaluationCardData)
 
-            return [[`${benchmarkName}/${result.evaluation_name}`, score] as const]
-          })
-      ),
-    ),
-  }))
-  const aggregate = summarizeDeveloperModels(fallbackModels)
+        let evaluationCount = 0
+        const benchmarkCounts = new Map<string, number>()
+        for (const m of detail.models) {
+          evaluationCount += m.total_evaluations
+          for (const cat of m.categories_covered) {
+            benchmarkCounts.set(cat, (benchmarkCounts.get(cat) ?? 0) + 1)
+          }
+        }
 
-  return {
-    developer,
-    route_id: getDeveloperRouteId(developer),
-    model_count: aggregate.model_count,
-    benchmark_count: aggregate.benchmark_count,
-    evaluation_count: aggregate.evaluation_count,
-    popular_evals: aggregate.popular_evals,
-    models: buildModelCardsFromEvaluations(matchedEvaluations),
+        const popularEvals = Array.from(benchmarkCounts.entries())
+          .sort((a, b) => b[1] - a[1])
+          .slice(0, 3)
+          .map(([benchmark, model_count]) => ({
+            benchmark: getBenchmarkDisplayName(benchmark),
+            model_count,
+          }))
+
+        return {
+          developer: detail.developer,
+          route_id: getDeveloperRouteId(detail.developer),
+          model_count: detail.models.length,
+          benchmark_count: benchmarkCounts.size,
+          evaluation_count: evaluationCount,
+          popular_evals: popularEvals,
+          models: modelCards,
+        }
+      }
+    }
   }
+
+  return null
 }
 
 export async function getModelSummaryById(modelId: string) {
-  const indexedModels = await readModelsIndex()
-
-  if (indexedModels?.length) {
-    const matchingModelIds = indexedModels
-      .filter((summary) => {
-        const familyId = getCanonicalModelIdentity(createIndexedModelInfo(summary)).familyId
-        return familyId === modelId || getModelFamilyRouteId(familyId) === modelId || summary.id === modelId
-      })
-      .map((summary) => summary.id)
-
-    if (matchingModelIds.length > 0) {
-      const evaluations = await loadEvaluationsForModelIds(matchingModelIds)
+  // Try fetching from HF model detail files
+  for (const slug of getModelDetailSlugCandidates(modelId)) {
+    const detail = await fetchHFModelDetail(slug)
+    if (detail) {
+      const evaluations = flattenModelEvaluations(detail)
       if (evaluations.length > 0) {
         return createModelFamilySummary(evaluations)
       }
     }
   }
 
-  const evaluations = await loadAllEvaluationsFromDataDirectory()
-  const groupedByFamily = groupEvaluationsByModelFamily(evaluations)
-  const directFamilyMatch = groupedByFamily[modelId]
-
-  if (directFamilyMatch?.length) {
-    return createModelFamilySummary(directFamilyMatch)
-  }
-
-  const routeMatchedFamilyId = Object.keys(groupedByFamily).find(
-    (familyId) => getModelFamilyRouteId(familyId) === modelId
+  // Try model-cards.json to find the right slug
+  const modelCards = await fetchModelCardsList()
+  const matchedCard = modelCards.find(
+    (card) =>
+      card.model_family_id === modelId ||
+      card.model_route_id === modelId ||
+      getModelFamilyRouteId(card.model_family_id) === modelId
   )
 
-  if (routeMatchedFamilyId) {
-    return createModelFamilySummary(groupedByFamily[routeMatchedFamilyId])
+  if (matchedCard) {
+    // Try fetching by the model_route_id (which uses __ separator)
+    const detail = await fetchHFModelDetail(matchedCard.model_route_id)
+    if (detail) {
+      const evaluations = flattenModelEvaluations(detail)
+      if (evaluations.length > 0) {
+        return createModelFamilySummary(evaluations)
+      }
+    }
+
+    // Try all raw model IDs from all variants
+    for (const variant of matchedCard.variants) {
+      for (const rawId of variant.raw_model_ids) {
+        for (const slug of getModelDetailSlugCandidates(rawId)) {
+          const variantDetail = await fetchHFModelDetail(slug)
+          if (variantDetail) {
+            const evaluations = flattenModelEvaluations(variantDetail)
+            if (evaluations.length > 0) {
+              return createModelFamilySummary(evaluations)
+            }
+          }
+        }
+      }
+    }
   }
 
-  const rawGrouped = groupEvaluationsByModel(evaluations)
-  const rawModelEvaluations = rawGrouped[modelId]
-
-  if (!rawModelEvaluations?.length) {
-    return null
-  }
-
-  const familyId = getCanonicalModelIdentity(rawModelEvaluations[0].model_info).familyId
-  const familyEvaluations = groupedByFamily[familyId] ?? rawModelEvaluations
-
-  return createModelFamilySummary(familyEvaluations)
+  return null
 }
 
 export async function getEvalSummaryById(evalId: string) {
-  const evaluations = await loadAllEvaluationsFromDataDirectory()
-  const grouped = groupEvaluationsByBenchmark(evaluations)
-  const summariesWithCards = await Promise.all(
-    Object.values(grouped).map((summary) => attachBenchmarkCardToSummary(summary))
-  )
-
+  // Handle aggregate eval IDs (grouped by composite_benchmark_key)
   if (evalId.startsWith("aggregate__")) {
     const aggregateKey = evalId.replace(/^aggregate__/, "")
-    const aggregateMembers = summariesWithCards.filter((summary) => {
-      const cardName = summary.benchmark_card?.benchmark_details?.name
-      return cardName ? slugifyEvalId(normalizeBenchmarkKey(cardName)) === aggregateKey : false
+
+    // Find all evals in this benchmark suite by matching composite_benchmark_key
+    const { evals } = await fetchHFEvalList()
+    const matchingEvals = evals.filter((e) => {
+      const normalizedBenchmark = e.benchmark.toLowerCase().replace(/[-.\s]+/g, "_").replace(/^_+|_+$/g, "")
+      return normalizedBenchmark === aggregateKey || e.benchmark === aggregateKey
     })
 
-    return aggregateBenchmarkSummaries(aggregateMembers, aggregateKey)
+    if (matchingEvals.length === 0) return null
+
+    // Fetch full eval details for each sub-eval
+    const detailSummaries = await Promise.all(
+      matchingEvals.map(async (e) => {
+        const detail = await fetchHFEvalDetail(e.eval_summary_id)
+        if (!detail) return null
+        return await attachBenchmarkCardToSummary(hfEvalDetailToSummary(detail))
+      })
+    )
+
+    const validSummaries = detailSummaries.filter((s): s is BenchmarkEvalSummary => s !== null)
+    return aggregateBenchmarkSummaries(validSummaries, aggregateKey)
   }
 
-  const summary = summariesWithCards.find((item) => item.evaluation_id === evalId) ?? null
+  // Direct eval lookup
+  const detail = await fetchHFEvalDetail(evalId)
+  if (detail) {
+    const summary = hfEvalDetailToSummary(detail)
+    return attachBenchmarkCardToSummary(summary)
+  }
 
-  if (!summary) return null
+  return null
+}
 
-  return summary
+// Keep this export for compatibility — but it now fetches from HF model-cards
+// and returns evaluation card data (not raw BenchmarkEvaluation[])
+export async function loadAllEvaluationsFromDataDirectory(): Promise<BenchmarkEvaluation[]> {
+  // This function is kept for backward compatibility but should be avoided.
+  // It returns an empty array since we no longer load all raw evaluations at once.
+  console.warn("[model-data] loadAllEvaluationsFromDataDirectory() is deprecated with HF backend")
+  return []
 }

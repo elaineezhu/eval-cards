@@ -55,9 +55,8 @@ export function EvalCard({ summary, delayMs = 0 }: EvalCardProps) {
   const { mode } = useAudienceMode()
   const isResearchView = mode === "research"
   const scorePercent = `${Math.round(summary.avg_score_norm * 100)}%`
-  const purpose = summary.factsheet?.purpose ?? "General single-benchmark evaluation"
   const card = summary.benchmark_card
-  const domains: string[] = card?.benchmark_details?.domains ?? []
+  const domains: string[] = summary.tags?.domains ?? card?.benchmark_details?.domains ?? []
   const license = card?.ethical_and_legal_considerations?.data_licensing ?? ""
   const shortLicense = shortenLicense(license)
   // Use the benchmark overview as a richer description when available
@@ -165,8 +164,8 @@ export function EvalCard({ summary, delayMs = 0 }: EvalCardProps) {
             <div className="rounded-xl border bg-muted/10 p-3">
               <div className="mb-2 text-xs font-semibold uppercase tracking-wider text-muted-foreground">Methodology</div>
               <div className="space-y-1.5 text-sm">
-                {summary.factsheet?.principles_tested && summary.factsheet.principles_tested !== "Not specified" && (
-                  <DataRow label="Principles" value={summary.factsheet.principles_tested} />
+                {summary.tags?.tasks && summary.tags.tasks.length > 0 && (
+                  <DataRow label="Tasks" value={summary.tags.tasks.join(", ")} />
                 )}
                 {summary.latest_source_name && (
                   <DataRow label="Source" value={summary.latest_source_name} />
@@ -188,14 +187,14 @@ export function EvalCard({ summary, delayMs = 0 }: EvalCardProps) {
           </>
         ) : (
           <>
-            {/* Policy: goal (from metadata card if available, otherwise factsheet purpose) */}
+            {/* Policy: goal from metadata card */}
             <div className="rounded-xl border border-amber-200/70 bg-amber-50/75 p-3 dark:border-amber-900/40 dark:bg-amber-950/15">
               <div className="flex items-start gap-2">
                 <Scale className="mt-0.5 h-4 w-4 shrink-0 text-amber-600" />
                 <div>
                   <div className="text-sm font-semibold">Purpose</div>
                   <div className="text-sm text-muted-foreground line-clamp-3">
-                    {policyGoal ?? purpose}
+                    {policyGoal ?? "General single-benchmark evaluation"}
                   </div>
                 </div>
               </div>

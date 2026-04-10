@@ -5,9 +5,19 @@
 
 export interface BenchmarkEvaluation {
   schema_version: string
+  eval_summary_id?: string
   evaluation_id: string
   retrieved_timestamp: string
   benchmark?: string
+  category?: CategoryType
+  benchmark_family_key?: string
+  benchmark_family_name?: string
+  benchmark_parent_key?: string
+  benchmark_parent_name?: string
+  benchmark_leaf_key?: string
+  benchmark_leaf_name?: string
+  slice_key?: string
+  slice_name?: string
 
   source_data: string[] | SourceData
   source_metadata: SourceMetadata
@@ -77,29 +87,6 @@ export interface EvaluationResult {
   score_details: ScoreDetails
   detailed_evaluation_results_url?: string
   generation_config?: GenerationConfig
-  factsheet?: {
-    purpose?: string
-    principles_tested?: string
-    functional_props?: string
-    input_modality?: string
-    output_modality?: string
-    input_source?: string
-    output_source?: string
-    size?: string
-    splits?: string
-    design?: string
-    judge?: string
-    protocol?: string
-    model_access?: string
-    has_heldout?: boolean
-    heldout_details?: string
-    alignment_validation?: string
-    is_valid?: boolean
-    baseline_models?: string
-    robustness_measures?: string
-    known_limitations?: string
-    benchmarks_list?: string
-  }
 }
 
 export interface MetricConfig {
@@ -147,23 +134,14 @@ export interface SampleResult {
 }
 
 /**
- * Evaluation categories for classification
+ * Evaluation categories — aligned with the pipeline's category labels.
  */
 export const EVALUATION_CATEGORIES = [
-  'Core Performance',
-  'Core Quality Dimensions',
-  'Robustness',
-  'Calibration',
-  'Adversarial',
-  'Memorization',
-  'Fairness',
+  'General',
+  'Reasoning',
+  'Agentic',
   'Safety',
-  'Leakage/Contamination',
-  'Privacy',
-  'Interpretability',
-  'Efficiency',
-  'Retrainability',
-  'Meta-Learning',
+  'Knowledge',
 ] as const
 
 export type CategoryType = typeof EVALUATION_CATEGORIES[number]
@@ -171,89 +149,51 @@ export type CategoryType = typeof EVALUATION_CATEGORIES[number]
 /**
  * Returns Tailwind badge classes for a given category
  */
-export function getCategoryColor(category: CategoryType): string {
+export function getCategoryColor(category: CategoryType | string): string {
   switch (category) {
+    case 'General':
+      return 'bg-sky-100 text-sky-800 border-sky-200 dark:bg-sky-950/40 dark:text-sky-200'
+    case 'Reasoning':
+      return 'bg-violet-100 text-violet-800 border-violet-200 dark:bg-violet-950/40 dark:text-violet-200'
+    case 'Agentic':
+      return 'bg-amber-100 text-amber-800 border-amber-200 dark:bg-amber-950/40 dark:text-amber-200'
     case 'Safety':
       return 'bg-rose-100 text-rose-800 border-rose-200 dark:bg-rose-950/40 dark:text-rose-200'
-    case 'Fairness':
-      return 'bg-amber-100 text-amber-800 border-amber-200 dark:bg-amber-950/40 dark:text-amber-200'
-    case 'Adversarial':
-      return 'bg-orange-100 text-orange-800 border-orange-200 dark:bg-orange-950/40 dark:text-orange-200'
-    case 'Privacy':
-      return 'bg-violet-100 text-violet-800 border-violet-200 dark:bg-violet-950/40 dark:text-violet-200'
-    case 'Robustness':
+    case 'Knowledge':
       return 'bg-emerald-100 text-emerald-800 border-emerald-200 dark:bg-emerald-950/40 dark:text-emerald-200'
-    case 'Leakage/Contamination':
-      return 'bg-red-100 text-red-800 border-red-200 dark:bg-red-950/40 dark:text-red-200'
-    case 'Core Performance':
-      return 'bg-sky-100 text-sky-800 border-sky-200 dark:bg-sky-950/40 dark:text-sky-200'
     default:
       return 'bg-muted text-muted-foreground border-border'
   }
 }
 
 /**
- * Helper to determine category from benchmark name
+ * Helper to determine category from benchmark name.
+ * The pipeline now provides categories directly, so this is only used as a fallback.
  */
 export function inferCategoryFromBenchmark(benchmarkName: string): CategoryType {
   const name = benchmarkName.toLowerCase()
 
-  // Category mappings
-  if (name.includes('advglue') || name.includes('jailbreak') || name.includes('attack') || name.includes('adversarial') || name.includes('red-team')) {
-    return 'Adversarial'
-  }
-  if (name.includes('fairness') || name.includes('bias') || name.includes('stereo') || name.includes('bbq') || name.includes('celeb') || name.includes('winobias')) {
-    return 'Fairness'
-  }
-  // CivilComments is a toxicity/bias classification benchmark → Safety
-  if (name.includes('safety') || name.includes('harmful') || name.includes('toxic') || name.includes('truthful') || name.includes('unsafe')
-      || name === 'civilcomments' || name.includes('civil_comments') || name.includes('civil comments')) {
+  if (name.includes('safety') || name.includes('harmful') || name.includes('toxic') || name.includes('truthful') ||
+      name.includes('unsafe') || name.includes('civilcomments') || name.includes('civil_comments') ||
+      name.includes('jailbreak') || name.includes('red-team') || name.includes('adversarial')) {
     return 'Safety'
   }
-  if (name.includes('leakage') || name.includes('contamination')) {
-    return 'Leakage/Contamination'
+  if (name.includes('agent') || name.includes('swe-bench') || name.includes('swe_bench') ||
+      name.includes('terminal-bench') || name.includes('tau-bench') || name.includes('tau_bench') ||
+      name.includes('appworld') || name.includes('browsecomp')) {
+    return 'Agentic'
   }
-  if (name.includes('privacy') || name.includes('pii') || name.includes('gdpr') || name.includes('private')) {
-    return 'Privacy'
+  if (name.includes('reasoning') || name.includes('bbh') || name.includes('math') || name.includes('gsm') ||
+      name.includes('gpqa') || name.includes('musr') || name.includes('code') || name.includes('humaneval') ||
+      name.includes('livecodebench')) {
+    return 'Reasoning'
   }
-  if (name.includes('robust')) {
-    return 'Robustness'
+  if (name.includes('mmlu') || name.includes('knowledge') || name.includes('trivia') || name.includes('medqa') ||
+      name.includes('legalbench') || name.includes('theory_of_mind')) {
+    return 'Knowledge'
   }
-  if (name.includes('calibration') || name.includes('confidence')) {
-    return 'Calibration'
-  }
-  if (name.includes('memoriz') || name.includes('copyright')) {
-    return 'Memorization'
-  }
-  if (name.includes('interpret') || name.includes('explain')) {
-    return 'Interpretability'
-  }
-  if (name.includes('efficien') || name.includes('latency') || name.includes('throughput') || name.includes('speed')) {
-    return 'Efficiency'
-  }
-  if (name.includes('retrain') || name.includes('forgetting')) {
-    return 'Retrainability'
-  }
-  if (name.includes('meta-learning') || name.includes('meta learning') || name.includes('metalearning') || name.includes('few-shot') || name.includes('in-context')) {
-    return 'Meta-Learning'
-  }
-  if (name.includes('mt-bench') || name.includes('quality') || name.includes('humaneval') || name.includes('hallucination') || name.includes('factuality') || name.includes('factscore')) {
-    return 'Core Quality Dimensions'
-  }
-  
-  // Default to Core Performance for standard benchmarks
-  if (name.includes('mmlu') || name.includes('arc') || name.includes('hellaswag') || name.includes('winogrande') || name.includes('gpqa') ||
-      name.includes('gsm') || name.includes('math') || name.includes('minerva') || name.includes('mgsm') ||
-      name.includes('humaneval') || name.includes('mbpp') || name.includes('code') || name.includes('apps') ||
-      name.includes('vision') || name.includes('vqa') || name.includes('image') || name.includes('coco') ||
-      name.includes('multimodal') || name.includes('mmmu') || name.includes('seed-bench') ||
-      name.includes('bbh') || name.includes('reasoning') || name.includes('musr') ||
-      name.includes('xsum') || name.includes('summariz') || name.includes('dialog') || name.includes('translation') || name.includes('ifeval') ||
-      name.includes('creative') || name.includes('social') || name.includes('agent')) {
-    return 'Core Performance'
-  }
-  
-  return 'Core Performance'
+
+  return 'General'
 }
 
 /**
@@ -319,10 +259,18 @@ export interface EvaluationCardData {
   }>
   latest_source_name?: string
   params_billions?: number | null
+  benchmark_names?: string[]
+  score_summary?: {
+    count: number
+    min: number
+    max: number
+    average: number | null
+  }
   
   // Quick stats
   top_scores: Array<{
     benchmark: string
+    benchmarkKey?: string
     score: number
     metric: string
   }>

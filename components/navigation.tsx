@@ -62,8 +62,11 @@ export function Navigation() {
               />
             </Link>
 
-            <Link href="/" className="motion-academic-button font-bold text-lg tracking-tight hover:text-primary/80 transition-colors">
-                Eval Cards
+            <Link href="/" className="motion-academic-button flex items-center gap-2 font-bold text-lg tracking-tight hover:text-primary/80 transition-colors">
+              <span>Eval Cards</span>
+              <span className="rounded-full border border-amber-200/80 bg-amber-50 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-[0.16em] text-amber-800 dark:border-amber-900/50 dark:bg-amber-950/30 dark:text-amber-300">
+                Beta
+              </span>
             </Link>
           </div>
 

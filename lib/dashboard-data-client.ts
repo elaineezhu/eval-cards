@@ -1,3 +1,4 @@
+import type { BackendManifest, EvalHierarchy } from "@/lib/backend-artifacts"
 import type { BenchmarkEvaluationCardData } from "@/components/benchmark-evaluation-card"
 import type {
   BenchmarkCard,
@@ -87,4 +88,12 @@ export function fetchDeveloperSummary(developerId: string) {
 
 export function fetchBenchmarkMetadata() {
   return fetchJson<Record<string, BenchmarkCard>>("/api/benchmark-metadata")
+}
+
+export function fetchBackendManifest() {
+  return fetchJson<BackendManifest>("/api/backend-manifest")
+}
+
+export function fetchEvalHierarchy() {
+  return fetchJson<EvalHierarchy>("/api/eval-hierarchy")
 }

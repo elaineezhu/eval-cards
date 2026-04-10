@@ -3,20 +3,35 @@
 import Link from "next/link"
 import { useEffect, useMemo, useState } from "react"
 import { useAudienceMode } from "@/components/audience-mode-provider"
-import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
-import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
-import { ArrowRight, BadgeCheck, BarChart3, Database, Info, LayoutGrid, Clock3, Scale } from "lucide-react"
+import { ArrowRight, BookOpenText, Database, MessageSquare, Scale } from "lucide-react"
 import type { BenchmarkEvaluationCardData } from "@/components/benchmark-evaluation-card"
 import { Navigation } from "@/components/navigation"
-import { PageHeader } from "@/components/page-header"
+import type { BackendManifest, EvalHierarchy } from "@/lib/backend-artifacts"
 import type { BenchmarkEvalListItem } from "@/lib/eval-processing"
-import { fetchEvalList, fetchModelCards } from "@/lib/dashboard-data-client"
+import { fetchBackendManifest, fetchEvalHierarchy, fetchEvalList, fetchModelCards } from "@/lib/dashboard-data-client"
+
+function formatGeneratedAt(value: string | null | undefined) {
+  if (!value) return "Unknown"
+
+  try {
+    return new Date(value).toLocaleString("en-US", {
+      month: "short",
+      day: "numeric",
+      hour: "numeric",
+      minute: "2-digit",
+    })
+  } catch {
+    return value
+  }
+}
 
 export default function HomePage() {
   const { mode } = useAudienceMode()
   const [models, setModels] = useState<BenchmarkEvaluationCardData[]>([])
   const [evalSummaries, setEvalSummaries] = useState<BenchmarkEvalListItem[]>([])
+  const [manifest, setManifest] = useState<BackendManifest | null>(null)
+  const [hierarchy, setHierarchy] = useState<EvalHierarchy | null>(null)
   const [modelsLoading, setModelsLoading] = useState(true)
   const [evalsLoading, setEvalsLoading] = useState(true)
 
@@ -30,12 +45,20 @@ export default function HomePage() {
       .then((data) => setEvalSummaries(data.evals))
       .catch(console.error)
       .finally(() => setEvalsLoading(false))
+
+    fetchBackendManifest()
+      .then(setManifest)
+      .catch(console.error)
+
+    fetchEvalHierarchy()
+      .then(setHierarchy)
+      .catch(console.error)
   }, [])
 
   const loading = modelsLoading || evalsLoading
 
-  const reportingOrgCount = useMemo(
-    () => new Set(models.flatMap((entry) => entry.evaluator_names)).size,
+  const developerCount = useMemo(
+    () => new Set(models.map((entry) => entry.developer).filter(Boolean)).size,
     [models]
   )
 
@@ -48,47 +71,6 @@ export default function HomePage() {
     () => models.reduce((sum, entry) => sum + entry.evaluations_count, 0),
     [models]
   )
-
-  const broadestModels = useMemo(() => {
-    return [...models]
-      .sort((a, b) => {
-        if (b.benchmarks_count !== a.benchmarks_count) {
-          return b.benchmarks_count - a.benchmarks_count
-        }
-
-        return new Date(b.latest_timestamp).getTime() - new Date(a.latest_timestamp).getTime()
-      })
-      .slice(0, 6)
-  }, [models])
-
-  const widestEvaluations = useMemo(() => {
-    return [...evalSummaries]
-      .sort((a, b) => {
-        if (b.models_count !== a.models_count) {
-          return b.models_count - a.models_count
-        }
-
-        return b.avg_score_norm - a.avg_score_norm
-      })
-      .slice(0, 6)
-  }, [evalSummaries])
-
-  const latestModels = useMemo(() => {
-    return [...models]
-      .sort((a, b) => new Date(b.latest_timestamp).getTime() - new Date(a.latest_timestamp).getTime())
-      .slice(0, 6)
-  }, [models])
-
-  const mostReportedModels = useMemo(() => {
-    return [...models]
-      .sort((a, b) => {
-        if (b.evaluator_count !== a.evaluator_count) {
-          return b.evaluator_count - a.evaluator_count
-        }
-        return b.benchmarks_count - a.benchmarks_count
-      })
-      .slice(0, 6)
-  }, [models])
 
   if (loading) {
     return (
@@ -106,352 +88,238 @@ export default function HomePage() {
   return (
     <div className="min-h-screen bg-background">
       <Navigation />
-      <PageHeader
-        eyebrow="Overview"
-        title="Eval Cards Overview"
-        description={
-          mode === "research"
-            ? "A benchmark-first overview of reported model evidence, methodological breadth, and evaluation coverage."
-            : "A public-interest overview of reported model evidence, accountability signals, and benchmark coverage."
-        }
-        metaItems={[
-          { label: "Models", value: models.length.toString() },
-          { label: "Evaluations", value: evalSummaries.length.toString() },
-          { label: "View", value: mode === "research" ? "Research" : "Policy" },
-        ]}
-      />
+      <main className="relative overflow-hidden">
+        <div className="absolute inset-x-0 top-0 -z-10 h-[24rem] bg-[radial-gradient(circle_at_top,rgba(196,167,96,0.12),transparent_60%)]" />
+        <div className="absolute inset-y-0 right-0 -z-10 hidden w-[36rem] bg-[radial-gradient(circle_at_center,rgba(71,129,177,0.08),transparent_66%)] lg:block" />
 
-      <main className="container mx-auto px-4 py-8">
-        <Alert className="mb-8 border-amber-200 bg-amber-50 text-amber-900 dark:border-amber-900/50 dark:bg-amber-900/20 dark:text-amber-200">
-          <Info className="h-4 w-4 text-amber-600 dark:text-amber-400" />
-          <AlertTitle>Demo Environment</AlertTitle>
-          <AlertDescription>
-            This is a research preview with sample data for demonstration purposes.
-          </AlertDescription>
-        </Alert>
+        <section className="mx-auto flex min-h-[calc(100vh-4.25rem)] w-full max-w-[92rem] flex-col justify-between px-4 pb-10 pt-12 sm:px-6 sm:pt-16 lg:px-8 lg:pb-12">
+          <div className="grid gap-8 xl:grid-cols-[minmax(0,1.24fr)_minmax(360px,0.76fr)] xl:items-stretch">
+            <div className="grid content-start gap-8">
+              <div className="flex flex-wrap items-center gap-x-4 gap-y-2 text-[11px] font-semibold uppercase tracking-[0.24em] text-muted-foreground">
+                <span className="rounded-full border border-border/70 bg-background px-3 py-1">Beta preview</span>
+                <span>{mode === "research" ? "Research-first reading mode" : "Policy-first reading mode"}</span>
+                {manifest ? <span>Updated {formatGeneratedAt(manifest.generated_at)}</span> : null}
+              </div>
 
-        <section className="mb-10 grid gap-4 md:grid-cols-2 xl:grid-cols-4">
-          <OverviewStat
-            icon={LayoutGrid}
-            label="Models"
-            value={models.length.toString()}
-            description="Model cards aggregated into one evidence layer"
-            tone="bg-sky-50 text-sky-950 ring-sky-200/70 dark:bg-sky-950/20 dark:text-sky-100 dark:ring-sky-900/50"
-          />
-          <OverviewStat
-            icon={BarChart3}
-            label="Evaluations"
-            value={evalSummaries.length.toString()}
-            description="Benchmark views derived from reported model results"
-            tone="bg-stone-100 text-stone-950 ring-stone-200/80 dark:bg-stone-900/40 dark:text-stone-100 dark:ring-stone-800/70"
-          />
-          <OverviewStat
-            icon={Database}
-            label="Reported Results"
-            value={totalReportedResults.toString()}
-            description="Individual benchmark result entries across the corpus"
-            tone="bg-amber-50 text-amber-950 ring-amber-200/70 dark:bg-amber-950/20 dark:text-amber-100 dark:ring-amber-900/50"
-          />
-          <OverviewStat
-            icon={BadgeCheck}
-            label="Reporting Orgs"
-            value={reportingOrgCount.toString()}
-            description="Distinct organizations contributing evidence"
-            tone="bg-emerald-50 text-emerald-950 ring-emerald-200/70 dark:bg-emerald-950/20 dark:text-emerald-100 dark:ring-emerald-900/50"
-          />
-        </section>
+              <div className="space-y-5">
+                <h1 className="max-w-4xl text-balance text-4xl font-semibold tracking-[-0.05em] text-foreground sm:text-5xl lg:text-[4.25rem] lg:leading-[1.02]">
+                  Public reporting for AI evaluations.
+                </h1>
+                <p className="max-w-3xl text-lg leading-8 text-muted-foreground sm:text-xl">
+                  Browse reported benchmark evidence across models, evaluators, and benchmarks without flattening the record into a single score table.
+                </p>
+              </div>
 
-        <section className="mb-10 grid gap-4 lg:grid-cols-[1.15fr_0.85fr]">
-          <div className="rounded-[1.5rem] border border-border/70 bg-muted/10 p-5">
-            <div className="mb-3 text-[11px] font-semibold uppercase tracking-[0.22em] text-muted-foreground">
-              State Of The Corpus
+              <div className="flex flex-wrap gap-3 pt-1">
+                <Link href="/models">
+                  <Button size="lg" className="gap-2 rounded-full px-6">
+                    Browse models
+                    <ArrowRight className="h-4 w-4" />
+                  </Button>
+                </Link>
+                <Link href="/evals">
+                  <Button size="lg" variant="outline" className="gap-2 rounded-full px-6">
+                    Browse evaluations
+                    <ArrowRight className="h-4 w-4" />
+                  </Button>
+                </Link>
+                <Link href="/survey">
+                  <Button size="lg" variant="ghost" className="gap-2 rounded-full px-4 text-foreground">
+                    Leave feedback
+                    <ArrowRight className="h-4 w-4" />
+                  </Button>
+                </Link>
+              </div>
+
+              <div className="overflow-hidden rounded-[1.65rem] border border-border/70 bg-muted/10">
+                <div className="grid md:grid-cols-3 md:divide-x md:divide-border/60">
+                  <SignalCard
+                    icon={<Database className="h-4 w-4" />}
+                    title="Coverage"
+                    body="Benchmark breadth, setup details, and provenance stay visible."
+                    tone="sky"
+                  />
+                  <SignalCard
+                    icon={<Scale className="h-4 w-4" />}
+                    title="Comparability"
+                    body="Configuration gaps and evaluator relationships remain part of the reading."
+                    tone="amber"
+                  />
+                  <SignalCard
+                    icon={<BookOpenText className="h-4 w-4" />}
+                    title="Reading modes"
+                    body="Research and policy views shift emphasis without hiding the record."
+                    tone="emerald"
+                  />
+                </div>
+              </div>
             </div>
-            <div className="space-y-3 text-sm leading-6 text-muted-foreground">
-              <p>
-                Eval Cards brings together reported evaluation evidence from many sources into one benchmark-first reading surface.
-              </p>
-              <p>
-                On average, each model currently has <span className="font-medium text-foreground">{avgBenchmarksPerModel.toFixed(1)}</span> benchmark views and the corpus spans <span className="font-medium text-foreground">{reportingOrgCount}</span> distinct reporting organizations.
-              </p>
-              <p>
-                {mode === "research"
-                  ? "Research mode is best for reading methodological spread, coverage breadth, and source comparability before drilling into the dedicated model or evaluation pages."
-                  : "Policy mode is best for reading accountability, evidence coverage, and the breadth of public reporting before drilling into dedicated model or evaluation pages."}
-              </p>
-            </div>
+
+            <aside className="flex h-full flex-col rounded-[2rem] border border-border/70 bg-card/80 p-5 shadow-[0_18px_50px_rgba(15,23,42,0.06)]">
+              <div className="flex items-center justify-between gap-3 border-b border-border/60 pb-4">
+                <div>
+                  <div className="text-[11px] font-semibold uppercase tracking-[0.18em] text-muted-foreground">
+                    Current public corpus
+                  </div>
+                  <div className="mt-1 text-sm leading-6 text-muted-foreground">
+                    Structured records currently available to inspect.
+                  </div>
+                </div>
+                <Database className="h-4 w-4 text-muted-foreground" />
+              </div>
+
+              <div className="mt-5 grid auto-rows-fr gap-3 sm:grid-cols-2 xl:grid-cols-1 2xl:grid-cols-2">
+                <QuietStat label="Models" value={models.length.toString()} detail="Tracked in the current corpus" tone="amber" />
+                <QuietStat label="Evaluations" value={evalSummaries.length.toString()} detail="Benchmark views with linked details" tone="sky" />
+                <QuietStat label="Developers" value={developerCount.toString()} detail="Organizations represented" tone="emerald" />
+                <QuietStat
+                  label="Families"
+                  value={hierarchy ? hierarchy.stats.family_count.toString() : "—"}
+                  detail="Backend taxonomy families"
+                  tone="rose"
+                />
+                <QuietStat
+                  label="Reported results"
+                  value={totalReportedResults.toLocaleString()}
+                  detail="Model-linked results currently indexed"
+                  tone="slate"
+                />
+                <QuietStat
+                  label="Benchmarks per model"
+                  value={avgBenchmarksPerModel.toFixed(1)}
+                  detail="Average reported benchmark breadth"
+                  tone="amber"
+                />
+              </div>
+            </aside>
           </div>
 
-          <div className="rounded-[1.5rem] border border-border/70 bg-background p-5">
-            <div className="mb-3 text-[11px] font-semibold uppercase tracking-[0.22em] text-muted-foreground">
-              Quick Actions
+          <div className="mt-10 grid gap-6 border-t border-border/60 pt-8 lg:grid-cols-[minmax(0,1.35fr)_minmax(280px,0.65fr)] lg:items-stretch">
+            <div className="grid auto-rows-fr gap-4 md:grid-cols-3">
+              <RoutePanel
+                href="/models"
+                icon={<Database className="h-4 w-4" />}
+                title="Model-first reading"
+                body="See the reported benchmark footprint of a model, including where evidence is broad, narrow, or missing."
+              />
+              <RoutePanel
+                href="/evals"
+                icon={<BookOpenText className="h-4 w-4" />}
+                title="Benchmark-first reading"
+                body="Inspect how a benchmark is reported across models, with room to compare slices, setups, and sources."
+              />
+              <RoutePanel
+                href="/about"
+                icon={<Scale className="h-4 w-4" />}
+                title="Project framing"
+                body="Read the rationale behind the reporting model, the schema direction, and the intended research and policy use."
+              />
             </div>
-            <div className="flex flex-col gap-3">
-              <Link href="/models">
-                <Button variant="outline" className="w-full justify-between">
-                  Browse model evidence
+
+            <div className="flex h-full flex-col rounded-[1.75rem] border border-border/70 bg-muted/20 p-5">
+              <div className="flex items-center gap-2 text-sm font-semibold text-foreground">
+                <MessageSquare className="h-4 w-4 text-rose-600" />
+                Feedback
+              </div>
+              <p className="mt-3 text-sm leading-7 text-muted-foreground">
+                Use the survey to flag unclear terminology, missing fields, or comparison flows that need work.
+              </p>
+              <div className="mt-4">
+                <Link href="/survey" className="inline-flex items-center gap-2 text-sm font-semibold text-foreground underline underline-offset-4">
+                  Open feedback survey
                   <ArrowRight className="h-4 w-4" />
-                </Button>
-              </Link>
-              <Link href="/evals">
-                <Button variant="outline" className="w-full justify-between">
-                  Browse evaluation leaderboards
-                  <ArrowRight className="h-4 w-4" />
-                </Button>
-              </Link>
+                </Link>
+              </div>
             </div>
           </div>
-        </section>
-
-        <section className="mb-10 grid gap-6 xl:grid-cols-2">
-          <OverviewPanel
-            eyebrow="Coverage"
-            title="Broadest model evidence"
-            description="Models with the widest reported benchmark coverage in the current corpus."
-            href="/models"
-            cta="All models"
-          >
-            <div className="space-y-1">
-              {broadestModels.map((model, index) => (
-                <ModelOverviewRow
-                  key={model.id}
-                  rank={index + 1}
-                  model={model}
-                  metricLabel="Benchmarks"
-                  metricValue={model.benchmarks_count.toString()}
-                  secondaryLabel={`${model.evaluator_count} orgs`}
-                />
-              ))}
-            </div>
-          </OverviewPanel>
-
-          <OverviewPanel
-            eyebrow="Benchmarks"
-            title="Widest benchmark coverage"
-            description="Evaluations that currently compare the most models."
-            href="/evals"
-            cta="All evaluations"
-          >
-            <div className="space-y-1">
-              {widestEvaluations.map((evaluation, index) => (
-                <EvalOverviewRow
-                  key={evaluation.evaluation_id}
-                  rank={index + 1}
-                  evaluation={evaluation}
-                  metricLabel="Models"
-                  metricValue={evaluation.models_count.toString()}
-                  secondaryLabel={`${Math.round(evaluation.third_party_ratio * 100)}% third-party`}
-                />
-              ))}
-            </div>
-          </OverviewPanel>
-        </section>
-
-        <section className="grid gap-6 xl:grid-cols-2">
-          <OverviewPanel
-            eyebrow="Reporting"
-            title="Most reporting organizations"
-            description="Models with the broadest spread of reporting organizations in the current corpus."
-            href="/models"
-            cta="Browse models"
-          >
-            <div className="space-y-1">
-              {mostReportedModels.map((model, index) => (
-                <ModelOverviewRow
-                  key={model.id}
-                  rank={index + 1}
-                  model={model}
-                  metricLabel="Reporting orgs"
-                  metricValue={model.evaluator_count.toString()}
-                  secondaryLabel={`${model.benchmarks_count} benchmarks`}
-                  highlight={model.evaluator_count > 1}
-                />
-              ))}
-            </div>
-          </OverviewPanel>
-
-          <OverviewPanel
-            eyebrow="Recent Activity"
-            title="Latest reporting updates"
-            description="Recently updated model evidence entries across the corpus."
-            href="/models"
-            cta="See latest models"
-          >
-            <div className="space-y-1">
-              {latestModels.map((model, index) => (
-                <ModelOverviewRow
-                  key={model.id}
-                  rank={index + 1}
-                  model={model}
-                  metricLabel="Updated"
-                  metricValue={formatCompactDate(model.latest_timestamp)}
-                  secondaryLabel={`${model.benchmarks_count} benchmarks`}
-                />
-              ))}
-            </div>
-          </OverviewPanel>
         </section>
       </main>
     </div>
   )
 }
 
-function formatCompactDate(value: string) {
-  const numeric = Number(value)
-  const parsed =
-    !Number.isNaN(numeric) && !value.includes("-")
-      ? new Date(numeric * 1000)
-      : new Date(value)
-
-  try {
-    return parsed.toLocaleDateString("en-US", {
-      month: "short",
-      day: "numeric",
-    })
-  } catch {
-    return value
-  }
-}
-
-function OverviewStat({
-  icon: Icon,
+function QuietStat({
   label,
   value,
-  description,
+  detail,
   tone,
 }: {
-  icon: React.ComponentType<{ className?: string }>
   label: string
   value: string
-  description: string
-  tone: string
+  detail: string
+  tone: "amber" | "emerald" | "rose" | "sky" | "slate"
 }) {
+  const toneClasses = {
+    amber: "border-amber-200/80 bg-amber-50/70 dark:border-amber-900/50 dark:bg-amber-950/20",
+    emerald: "border-emerald-200/80 bg-emerald-50/70 dark:border-emerald-900/50 dark:bg-emerald-950/20",
+    rose: "border-rose-200/80 bg-rose-50/70 dark:border-rose-900/50 dark:bg-rose-950/20",
+    sky: "border-sky-200/80 bg-sky-50/70 dark:border-sky-900/50 dark:bg-sky-950/20",
+    slate: "border-border/70 bg-muted/25",
+  }[tone]
+
   return (
-    <div className={`rounded-[1.5rem] p-4 ring-1 ${tone}`}>
-      <div className="flex items-start justify-between gap-3">
-        <div>
-          <div className="text-[11px] font-semibold uppercase tracking-[0.2em] opacity-80">{label}</div>
-          <div className="mt-2 text-3xl font-bold tracking-tight tabular-nums">{value}</div>
-        </div>
-        <Icon className="mt-0.5 h-5 w-5 opacity-75" />
-      </div>
-      <div className="mt-3 text-sm leading-6 opacity-80">{description}</div>
+    <div className={`flex h-full flex-col rounded-[1.35rem] border p-4 ${toneClasses}`}>
+      <div className="text-[10px] font-semibold uppercase tracking-[0.18em] text-muted-foreground">{label}</div>
+      <div className="mt-2 text-2xl font-semibold tracking-tight text-foreground tabular-nums">{value}</div>
+      <p className="text-sm leading-6 text-muted-foreground">{detail}</p>
     </div>
   )
 }
 
-function OverviewPanel({
-  eyebrow,
+function SignalCard({
+  icon,
   title,
-  description,
-  href,
-  cta,
-  children,
+  body,
+  tone,
 }: {
-  eyebrow: string
+  icon: React.ReactNode
   title: string
-  description: string
+  body: string
+  tone: "amber" | "emerald" | "sky"
+}) {
+  const toneClasses = {
+    amber: "bg-amber-50 text-amber-800 dark:bg-amber-950/30 dark:text-amber-300",
+    emerald: "bg-emerald-50 text-emerald-800 dark:bg-emerald-950/30 dark:text-emerald-300",
+    sky: "bg-sky-50 text-sky-800 dark:bg-sky-950/30 dark:text-sky-300",
+  }[tone]
+
+  return (
+    <div className="flex h-full flex-col gap-3 px-4 py-4 md:px-5 md:py-5">
+      <div className="flex items-center gap-2 text-sm font-semibold text-foreground">
+        <span className={`rounded-full p-2 ${toneClasses}`}>{icon}</span>
+        {title}
+      </div>
+      <p className="max-w-[28ch] text-sm leading-6 text-muted-foreground">{body}</p>
+    </div>
+  )
+}
+
+function RoutePanel({
+  href,
+  icon,
+  title,
+  body,
+}: {
   href: string
-  cta: string
-  children: React.ReactNode
+  icon: React.ReactNode
+  title: string
+  body: string
 }) {
   return (
-    <section className="rounded-[1.5rem] border border-border/70 bg-background p-5">
-      <div className="mb-4 flex items-end justify-between gap-4 border-b border-border/60 pb-4">
-        <div>
-          <div className="text-[11px] font-semibold uppercase tracking-[0.22em] text-muted-foreground">
-            {eyebrow}
-          </div>
-          <h2 className="mt-1 text-xl font-bold tracking-tight">{title}</h2>
-          <p className="mt-1 text-sm text-muted-foreground">{description}</p>
-        </div>
-        <Link href={href}>
-          <Button variant="ghost" className="gap-2">
-            {cta}
-            <ArrowRight className="h-4 w-4" />
-          </Button>
-        </Link>
+    <Link
+      href={href}
+      className="group flex h-full flex-col rounded-[1.5rem] border border-border/70 bg-background/80 p-5 transition-colors hover:bg-muted/20"
+    >
+      <div className="flex items-center gap-2 text-sm font-semibold text-foreground">
+        <span className="rounded-full bg-muted/60 p-2 text-muted-foreground transition-colors group-hover:text-foreground">
+          {icon}
+        </span>
+        {title}
       </div>
-      {children}
-    </section>
-  )
-}
-
-function ModelOverviewRow({
-  rank,
-  model,
-  metricLabel,
-  metricValue,
-  secondaryLabel,
-  highlight = false,
-}: {
-  rank: number
-  model: BenchmarkEvaluationCardData
-  metricLabel: string
-  metricValue: string
-  secondaryLabel: string
-  highlight?: boolean
-}) {
-  return (
-    <Link href={`/models/${model.route_id}`} className="block">
-      <div className="flex items-center gap-4 rounded-2xl px-3 py-3 transition-colors hover:bg-muted/30">
-        <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full border text-xs font-semibold">
-          {rank}
-        </div>
-        <div className="min-w-0 flex-1">
-          <div className="truncate text-sm font-semibold">{model.model_name}</div>
-          <div className="truncate text-xs text-muted-foreground">
-            {model.developer} · {secondaryLabel}
-          </div>
-        </div>
-        <div className="text-right">
-          <div className="text-[10px] font-semibold uppercase tracking-[0.16em] text-muted-foreground">
-            {metricLabel}
-          </div>
-          <div className="mt-1 flex items-center justify-end gap-2">
-            {highlight && (
-              <Badge className="bg-emerald-100 text-emerald-800 dark:bg-emerald-950/50 dark:text-emerald-300">
-                Strong
-              </Badge>
-            )}
-            <span className="text-sm font-bold tabular-nums">{metricValue}</span>
-          </div>
-        </div>
-      </div>
-    </Link>
-  )
-}
-
-function EvalOverviewRow({
-  rank,
-  evaluation,
-  metricLabel,
-  metricValue,
-  secondaryLabel,
-}: {
-  rank: number
-  evaluation: BenchmarkEvalListItem
-  metricLabel: string
-  metricValue: string
-  secondaryLabel: string
-}) {
-  return (
-    <Link href={`/evals/${evaluation.evaluation_id}`} className="block">
-      <div className="flex items-center gap-4 rounded-2xl px-3 py-3 transition-colors hover:bg-muted/30">
-        <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full border text-xs font-semibold">
-          {rank}
-        </div>
-        <div className="min-w-0 flex-1">
-          <div className="truncate text-sm font-semibold">{evaluation.evaluation_name}</div>
-          <div className="truncate text-xs text-muted-foreground">
-            {evaluation.latest_source_name ?? "Reported benchmark"} · {secondaryLabel}
-          </div>
-        </div>
-        <div className="text-right">
-          <div className="text-[10px] font-semibold uppercase tracking-[0.16em] text-muted-foreground">
-            {metricLabel}
-          </div>
-          <div className="mt-1 text-sm font-bold tabular-nums">{metricValue}</div>
-        </div>
+      <p className="mt-3 text-sm leading-7 text-muted-foreground">{body}</p>
+      <div className="mt-auto pt-4 inline-flex items-center gap-2 text-sm font-semibold text-foreground">
+        Open
+        <ArrowRight className="h-4 w-4" />
       </div>
     </Link>
   )

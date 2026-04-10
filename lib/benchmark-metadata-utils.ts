@@ -8,6 +8,7 @@
  * Strips composite prefixes like "hfopenllm_v2/", lowercases, collapses whitespace.
  */
 export function normalizeBenchmarkKey(name: string): string {
+  if (!name) return ""
   return name
     .replace(/^[a-z0-9_]+ ?\//i, "") // strip "hfopenllm_v2/" etc.
     .toLowerCase()

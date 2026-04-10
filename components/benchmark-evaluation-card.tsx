@@ -7,14 +7,9 @@ import { useRouter } from "next/navigation"
 import {
   Award,
   ChevronDown,
-  CheckCircle2,
   ExternalLink,
   Eye,
-  FlaskConical,
-  LibraryBig,
   MoreHorizontal,
-  ShieldCheck,
-  TriangleAlert,
 } from "lucide-react"
 
 import type { CategoryType } from "@/lib/benchmark-schema"
@@ -56,6 +51,13 @@ export type BenchmarkEvaluationCardData = {
   }>
   latest_source_name?: string
   params_billions?: number | null
+  benchmark_names?: string[]
+  score_summary?: {
+    count: number
+    min: number
+    max: number
+    average: number | null
+  }
 
   top_scores: Array<{
     benchmark: string
@@ -109,70 +111,48 @@ function formatParamsBillions(value: number | null | undefined) {
   return `${value.toFixed(1)}B`
 }
 
-function getReportingSummaryLabel(data: BenchmarkEvaluationCardData) {
-  if (data.evaluator_count > 0) {
-    return `${data.evaluator_count} reporting org${data.evaluator_count !== 1 ? "s" : ""}`
+function formatScoreValue(value: number | null | undefined) {
+  if (value == null || !Number.isFinite(value)) {
+    return null
+  }
+
+  if (value >= 0 && value <= 1) {
+    return `${(value * 100).toFixed(1)}%`
+  }
+
+  if (Math.abs(value) >= 100) {
+    return value.toFixed(0)
+  }
+
+  return value.toFixed(2)
+}
+
+function getCoverageSummaryLabel(data: BenchmarkEvaluationCardData) {
+  if (data.benchmark_names?.length) {
+    return `${data.benchmark_names.length} benchmark suite${data.benchmark_names.length === 1 ? "" : "s"}`
   }
 
   if (data.latest_source_name) {
     return data.latest_source_name
   }
 
-  return "Aggregated reporting view"
+  return "Backend coverage summary"
 }
 
-function getReproducibilitySummary(data: BenchmarkEvaluationCardData) {
-  switch (data.reproducibility_status) {
-    case "complete":
-      return {
-        label: "Full config coverage",
-        tone: "secondary" as const,
-        icon: CheckCircle2,
-      }
-    case "partial":
-      return {
-        label: "Partial config coverage",
-        tone: "outline" as const,
-        icon: FlaskConical,
-      }
-    default:
-      return {
-        label: "Config mostly missing",
-        tone: "destructive" as const,
-        icon: TriangleAlert,
-      }
-  }
-}
-
-function getIndependentSummary(data: BenchmarkEvaluationCardData) {
-  const percent = Math.round(data.independent_verification_ratio * 100)
-
-  if (data.independent_verification_ratio >= 0.75) {
-    return `${percent}% independent`
+function getTopBenchmarks(data: BenchmarkEvaluationCardData) {
+  if (data.benchmark_names?.length) {
+    return data.benchmark_names
   }
 
-  if (data.independent_verification_ratio > 0) {
-    return `${percent}% independent`
-  }
-
-  return "Self-reported only"
+  return Array.from(new Set(data.top_scores.map((score) => score.benchmark)))
 }
 
 const CATEGORY_PLOT_COLORS: Record<string, string> = {
-  "Core Performance": "#2563eb",
-  "Core Quality Dimensions": "#7c3aed",
-  "Robustness": "#0f766e",
-  "Calibration": "#0891b2",
-  "Adversarial": "#dc2626",
-  "Memorization": "#9333ea",
-  "Fairness": "#ea580c",
+  "General": "#2563eb",
+  "Reasoning": "#7c3aed",
+  "Agentic": "#ea580c",
   "Safety": "#16a34a",
-  "Leakage/Contamination": "#be123c",
-  "Privacy": "#0d9488",
-  "Interpretability": "#6366f1",
-  "Efficiency": "#ca8a04",
-  "Retrainability": "#1d4ed8",
-  "Meta-Learning": "#9333ea",
+  "Knowledge": "#0f766e",
 }
 
 function getCategoryPlotColor(category: string) {
@@ -270,11 +250,13 @@ export function BenchmarkEvaluationCard({
         })),
     [data.category_stats]
   )
-  const library = data.eval_libraries[0]
   const paramsBillions = formatParamsBillions(data.params_billions)
-  const reportingSummaryLabel = getReportingSummaryLabel(data)
-  const reproducibility = getReproducibilitySummary(data)
-  const independentSummary = getIndependentSummary(data)
+  const coverageSummaryLabel = getCoverageSummaryLabel(data)
+  const topBenchmarks = getTopBenchmarks(data)
+  const averageScore = formatScoreValue(data.score_summary?.average ?? null)
+  const scoreRange = [formatScoreValue(data.score_summary?.min), formatScoreValue(data.score_summary?.max)]
+    .filter((value): value is string => Boolean(value))
+    .join(" to ")
 
   return (
     <Card
@@ -286,7 +268,7 @@ export function BenchmarkEvaluationCard({
         <div className="flex flex-wrap items-center justify-between gap-2 text-[10px] font-semibold uppercase tracking-[0.24em] text-muted-foreground">
           <span>Model Summary</span>
           <div className="flex flex-wrap items-center gap-2 text-[11px] font-medium tracking-[0.08em] text-muted-foreground/90">
-            <span className="max-w-[13rem] truncate">{reportingSummaryLabel}</span>
+            <span className="max-w-[13rem] truncate">{coverageSummaryLabel}</span>
             <span className="text-border">/</span>
             <span>{formatDate(data.latest_timestamp)}</span>
           </div>
@@ -308,14 +290,8 @@ export function BenchmarkEvaluationCard({
                 <Badge variant="secondary">{data.variant_count} versions</Badge>
               )}
               {paramsBillions && <Badge variant="secondary">{paramsBillions} parameters</Badge>}
-              <Badge variant={reproducibility.tone}>
-                <reproducibility.icon className="h-3.5 w-3.5" />
-                {reproducibility.label}
-              </Badge>
-              <Badge variant={data.independent_verification_ratio > 0 ? "secondary" : "outline"}>
-                <ShieldCheck className="h-3.5 w-3.5" />
-                {independentSummary}
-              </Badge>
+              <Badge variant="outline">{data.benchmarks_count} benchmark suites</Badge>
+              {averageScore && <Badge variant="outline">Avg {averageScore}</Badge>}
             </div>
           </div>
 
@@ -380,8 +356,8 @@ export function BenchmarkEvaluationCard({
               </div>
             </div>
             <div className="text-right">
-              <div className="text-lg font-semibold tabular-nums text-foreground">{data.evaluator_count}</div>
-              <div className="text-[11px] uppercase tracking-[0.18em] text-muted-foreground">reporting orgs</div>
+              <div className="text-lg font-semibold tabular-nums text-foreground">{data.evaluations_count}</div>
+              <div className="text-[11px] uppercase tracking-[0.18em] text-muted-foreground">reported results</div>
             </div>
           </div>
 
@@ -413,6 +389,29 @@ export function BenchmarkEvaluationCard({
           </div>
         )}
 
+        {topBenchmarks.length > 0 && (
+          <div className="space-y-2">
+            <div className="text-[11px] font-semibold uppercase tracking-[0.18em] text-muted-foreground">
+              Covered benchmarks
+            </div>
+            <div className="flex flex-wrap gap-1.5">
+              {topBenchmarks.slice(0, 6).map((benchmark) => (
+                <span
+                  key={benchmark}
+                  className="inline-flex items-center rounded-full border border-border/50 bg-background px-2.5 py-0.5 text-[11px] font-medium text-foreground/85"
+                >
+                  {benchmark}
+                </span>
+              ))}
+              {topBenchmarks.length > 6 && (
+                <span className="inline-flex items-center rounded-full border border-border/50 bg-background px-2.5 py-0.5 text-[11px] font-medium text-muted-foreground">
+                  +{topBenchmarks.length - 6} more
+                </span>
+              )}
+            </div>
+          </div>
+        )}
+
         <Collapsible className="rounded-2xl border border-border/70 bg-background">
           <CollapsibleTrigger asChild>
             <button
@@ -425,7 +424,7 @@ export function BenchmarkEvaluationCard({
                   Dive Deeper
                 </div>
                 <div className="mt-1 text-sm font-semibold text-foreground">
-                  {isResearchView ? "Methodology & provenance details" : "Reporting & accountability details"}
+                  {isResearchView ? "Coverage and score summary" : "Coverage and benchmark context"}
                 </div>
               </div>
               <ChevronDown className="h-4 w-4 text-muted-foreground" />
@@ -433,51 +432,16 @@ export function BenchmarkEvaluationCard({
           </CollapsibleTrigger>
           <CollapsibleContent onClick={(event) => event.stopPropagation()} className="border-t border-border/60 px-4 py-4">
             <div className="space-y-0 text-sm">
-              {isResearchView ? (
-                <>
-                  <KeyValueRow label="Reporting sources" value={reportingSummaryLabel} />
-                  {library && (
-                    <KeyValueRow label="Library" value={`${library.name}${library.version ? ` ${library.version}` : ""}`} />
-                  )}
-                  {data.latest_source_name && (
-                    <KeyValueRow label="Latest report" value={data.latest_source_name} />
-                  )}
-                  <KeyValueRow label="Updated" value={formatDate(data.latest_timestamp)} />
-                  <KeyValueRow label="Reproducibility" value={reproducibility.label} />
-                  <KeyValueRow label="Independence" value={independentSummary} />
-                  {data.source_types.length > 0 && (
-                    <KeyValueRow label="Source types" value={data.source_types.map((s) => s.replace(/_/g, " ")).join(", ")} />
-                  )}
-                  {data.architecture && <KeyValueRow label="Architecture" value={data.architecture} />}
-                  {data.missing_generation_config_count > 0 && (
-                    <KeyValueRow label="Missing config" value={`${data.missing_generation_config_count} result${data.missing_generation_config_count !== 1 ? "s" : ""}`} />
-                  )}
-                  {library?.fork && (
-                    <div className="mt-3 flex items-start gap-2 rounded-xl bg-amber-50/80 px-3 py-2 text-xs text-amber-900 dark:bg-amber-950/20 dark:text-amber-200">
-                      <LibraryBig className="mt-0.5 h-3.5 w-3.5 shrink-0 text-amber-600 dark:text-amber-300" />
-                      <span>Non-standard eval library fork</span>
-                    </div>
-                  )}
-                </>
-              ) : (
-                <>
-                  <KeyValueRow label="Who reported" value={reportingSummaryLabel} />
-                  <KeyValueRow label="Independence" value={independentSummary} />
-                  <KeyValueRow label="Reproducibility" value={reproducibility.label} />
-                  {data.latest_source_name && (
-                    <KeyValueRow label="Latest source" value={data.latest_source_name} />
-                  )}
-                  <KeyValueRow label="Updated" value={formatDate(data.latest_timestamp)} />
-                  {data.source_types.length > 0 && (
-                    <KeyValueRow label="Evidence types" value={data.source_types.map((s) => s.replace(/_/g, " ")).join(", ")} />
-                  )}
-                  {data.missing_generation_config_count > 0 && (
-                    <div className="mt-3 flex items-start gap-2 rounded-xl bg-amber-50/80 px-3 py-2 text-xs text-amber-900 dark:bg-amber-950/20 dark:text-amber-200">
-                      <LibraryBig className="mt-0.5 h-3.5 w-3.5 shrink-0 text-amber-600 dark:text-amber-300" />
-                      <span>{data.missing_generation_config_count} result{data.missing_generation_config_count !== 1 ? "s" : ""} lack documented generation settings — comparisons should be read with care.</span>
-                    </div>
-                  )}
-                </>
+              <KeyValueRow label={isResearchView ? "Coverage" : "Benchmark coverage"} value={coverageSummaryLabel} />
+              {topBenchmarks.length > 0 && (
+                <KeyValueRow label="Benchmarks" value={topBenchmarks.slice(0, 4).join(", ")} />
+              )}
+              {averageScore && <KeyValueRow label="Average score" value={averageScore} />}
+              {scoreRange && <KeyValueRow label="Score span" value={scoreRange} />}
+              <KeyValueRow label="Updated" value={formatDate(data.latest_timestamp)} />
+              {data.architecture && <KeyValueRow label="Architecture" value={data.architecture} />}
+              {data.source_types.length > 0 && (
+                <KeyValueRow label="Artifact type" value={data.source_types.map((s) => s.replace(/_/g, " ")).join(", ")} />
               )}
             </div>
           </CollapsibleContent>
