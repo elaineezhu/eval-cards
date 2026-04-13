@@ -4,10 +4,10 @@
   "private": true,
   "packageManager": "pnpm@10.25.0",
   "scripts": {
-    "build": "node scripts/precompute-ranks.mjs && next build",
+    "build": "node scripts/cache-hf-data.mjs && next build",
     "dev": "next dev",
     "lint": "next lint",
-    "precompute-ranks": "node scripts/precompute-ranks.mjs",
+    "cache-hf-data": "node scripts/cache-hf-data.mjs",
     "start": "next start",
     "test": "vitest"
   },
