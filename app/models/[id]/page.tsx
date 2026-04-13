@@ -7,7 +7,15 @@ import { ArrowLeft } from "lucide-react"
 import { Navigation } from "@/components/navigation"
 import { BenchmarkDetail } from "@/components/benchmark-detail"
 import type { BenchmarkCard, ModelEvaluationSummary } from "@/lib/eval-processing"
-import { fetchBenchmarkMetadata, fetchModelSummary } from "@/lib/dashboard-data-client"
+import {
+  fetchBenchmarkMetadata,
+  fetchComparisonIndex,
+  fetchEvalHierarchy,
+  fetchModelSummary,
+  fetchModelCards,
+} from "@/lib/dashboard-data-client"
+import type { BenchmarkEvaluationCardData } from "@/components/benchmark-evaluation-card"
+import type { ComparisonIndex, EvalHierarchy } from "@/lib/backend-artifacts"
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs"
 
 export default function ModelDetailPage() {
@@ -16,6 +24,9 @@ export default function ModelDetailPage() {
   const searchParams = useSearchParams()
   const [summary, setSummary] = useState<ModelEvaluationSummary | null>(null)
   const [benchmarkCards, setBenchmarkCards] = useState<Record<string, BenchmarkCard>>({})
+  const [modelCards, setModelCards] = useState<BenchmarkEvaluationCardData[]>([])
+  const [evalHierarchy, setEvalHierarchy] = useState<EvalHierarchy | null>(null)
+  const [comparisonIndex, setComparisonIndex] = useState<ComparisonIndex | null>(null)
   const [selectedVariantId, setSelectedVariantId] = useState<string | null>(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
@@ -96,9 +107,17 @@ export default function ModelDetailPage() {
 
     const loadData = async () => {
       try {
-        const [modelSummary, cards] = await Promise.all([
+        const [modelSummary, cards, allModelCards, hierarchy, compIndex] = await Promise.all([
           fetchModelSummary(routeId),
           fetchBenchmarkMetadata(),
+          fetchModelCards(),
+          fetchEvalHierarchy(),
+          // comparison-index is ~1.6 MB gzipped; fetched once on mount and
+          // drives every histogram, rank chip, and submission chip on the page.
+          fetchComparisonIndex().catch((err) => {
+            console.warn("Failed to load comparison-index:", err)
+            return null as ComparisonIndex | null
+          }),
         ])
         if (isCancelled) {
           return
@@ -106,6 +125,9 @@ export default function ModelDetailPage() {
 
         setSummary(modelSummary)
         setBenchmarkCards(cards)
+        setModelCards(allModelCards)
+        setEvalHierarchy(hierarchy)
+        setComparisonIndex(compIndex)
         setSelectedVariantId((current) => current ?? modelSummary.variants[0]?.variant_id ?? null)
       } catch (err) {
         if (isCancelled) {
@@ -264,7 +286,13 @@ export default function ModelDetailPage() {
         </div>
       </div>
       <main className="container mx-auto px-4 py-8">
-        <BenchmarkDetail summary={detailSummary} benchmarkCards={benchmarkCards} />
+        <BenchmarkDetail
+          summary={detailSummary}
+          benchmarkCards={benchmarkCards}
+          modelCards={modelCards}
+          evalHierarchy={evalHierarchy}
+          comparisonIndex={comparisonIndex}
+        />
       </main>
     </div>
   )

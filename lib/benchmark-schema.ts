@@ -9,6 +9,8 @@ export interface BenchmarkEvaluation {
   evaluation_id: string
   retrieved_timestamp: string
   benchmark?: string
+  display_name?: string
+  canonical_display_name?: string
   category?: CategoryType
   benchmark_family_key?: string
   benchmark_family_name?: string
@@ -16,6 +18,9 @@ export interface BenchmarkEvaluation {
   benchmark_parent_name?: string
   benchmark_leaf_key?: string
   benchmark_leaf_name?: string
+  benchmark_component_key?: string | null
+  benchmark_component_name?: string | null
+  is_summary_score?: boolean
   slice_key?: string
   slice_name?: string
 
@@ -81,6 +86,10 @@ export interface ModelInfo {
 
 export interface EvaluationResult {
   evaluation_name: string
+  display_name?: string
+  canonical_display_name?: string
+  metric_summary_id?: string
+  metric_key?: string
   evaluation_timestamp: string
   source_data?: string[] | SourceData
   metric_config: MetricConfig

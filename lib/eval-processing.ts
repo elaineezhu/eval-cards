@@ -134,6 +134,7 @@ export interface BenchmarkEvalSummary {
   evaluation_name: string
   /** URL-safe slug derived from evaluation_name */
   evaluation_id: string
+  canonical_display_name?: string
   composite_benchmark_key: string
   composite_benchmark_name: string
   category: CategoryType
@@ -183,6 +184,57 @@ export interface BenchmarkEvalSummary {
   is_summary_score?: boolean
   /** Related summary-score sibling ids for this benchmark */
   summary_eval_ids?: string[]
+  /** Canonical benchmark-level metrics from root metrics[] */
+  root_metrics?: BenchmarkSummaryMetric[]
+  /** Canonical benchmark subdivisions from subtasks[] */
+  subtasks?: BenchmarkSummarySubtask[]
+  /** Matrix columns for multi-metric benchmark leaderboards */
+  leaderboard_metrics?: BenchmarkLeaderboardMetric[]
+  /** Matrix rows for multi-metric benchmark leaderboards */
+  leaderboard_rows?: BenchmarkLeaderboardRow[]
+}
+
+export interface BenchmarkSummaryMetric {
+  metric_summary_id: string
+  metric_name: string
+  display_name: string
+  canonical_display_name?: string
+  metric_key?: string
+  lower_is_better: boolean
+  models_count: number
+  top_score?: number
+  unit?: string
+}
+
+export interface BenchmarkSummarySubtask {
+  subtask_key: string
+  subtask_name: string
+  display_name: string
+  canonical_display_name?: string
+  metrics: BenchmarkSummaryMetric[]
+}
+
+export interface BenchmarkLeaderboardMetric {
+  column_key: string
+  metric_summary_id: string
+  metric_name: string
+  display_name: string
+  canonical_display_name?: string
+  lower_is_better: boolean
+  unit?: string
+  scope: "root" | "subtask"
+  subtask_key?: string
+  subtask_name?: string
+}
+
+export interface BenchmarkLeaderboardRow {
+  model_info: ModelInfo
+  model_route_id?: string
+  evaluation_timestamp: string
+  source_metadata: SourceMetadata
+  source_data: BenchmarkEvaluation["source_data"]
+  values: Record<string, number | null>
+  metrics_present: number
 }
 
 export type BenchmarkEvalListItem = Omit<BenchmarkEvalSummary, "model_results">

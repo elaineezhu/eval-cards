@@ -3,7 +3,7 @@ import "server-only"
 import { promises as fs } from "fs"
 import path from "path"
 
-import type { BackendManifest, EvalHierarchy } from "@/lib/backend-artifacts"
+import type { BackendManifest, ComparisonIndex, EvalHierarchy } from "@/lib/backend-artifacts"
 import type {
   BenchmarkCard,
   BenchmarkEvaluation,
@@ -68,6 +68,10 @@ function isCanonicalCacheShape(relativePath: string, data: unknown) {
   if (relativePath === "eval-list.json") {
     const evals = Array.isArray(record.evals) ? (record.evals as Array<Record<string, unknown>>) : []
     return evals.length === 0 || typeof evals[0]?.benchmark_family_key === "string"
+  }
+
+  if (relativePath === "comparison-index.json") {
+    return record.evals != null && record.by_model != null
   }
 
   return true
@@ -178,6 +182,7 @@ export interface HFModelCardEntry {
 export interface HFEvalListEntry {
   eval_summary_id: string
   benchmark: string
+  canonical_display_name?: string
   benchmark_family_key: string
   benchmark_family_name: string
   benchmark_parent_key: string
@@ -239,8 +244,13 @@ export interface HFEvalModelResult {
 
 export interface HFEvalMetric {
   metric_summary_id: string
+  legacy_eval_summary_id?: string
+  evaluation_name?: string
   metric_name: string
   metric_key: string
+  display_name?: string
+  canonical_display_name?: string
+  metric_config?: MetricConfig | Record<string, unknown>
   lower_is_better: boolean
   model_results: HFEvalModelResult[]
 }
@@ -248,6 +258,7 @@ export interface HFEvalMetric {
 export interface HFEvalDetail {
   eval_summary_id: string
   benchmark: string
+  canonical_display_name?: string
   benchmark_family_key: string
   benchmark_leaf_key: string
   benchmark_leaf_name: string
@@ -309,6 +320,7 @@ export interface HFModelHierarchyMetric {
   legacy_eval_summary_id?: string
   evaluation_name: string
   display_name: string
+  canonical_display_name?: string
   benchmark_leaf_key: string
   benchmark_leaf_name: string
   slice_key?: string | null
@@ -327,6 +339,7 @@ export interface HFModelHierarchyMetric {
 export interface HFModelHierarchyNode {
   eval_summary_id: string
   benchmark: string
+  canonical_display_name?: string
   benchmark_family_key: string
   benchmark_family_name: string
   benchmark_parent_key: string
@@ -365,6 +378,7 @@ export interface HFModelHierarchyNode {
 type HFModelHierarchySubtask = Partial<Omit<HFModelHierarchyNode, "subtasks">> & {
   subtask_key?: string
   subtask_name?: string
+  canonical_display_name?: string
   metrics?: HFModelHierarchyMetric[]
   subtasks?: HFModelHierarchySubtask[]
 }
@@ -407,6 +421,10 @@ export async function fetchBackendManifest(): Promise<BackendManifest> {
 
 export async function fetchEvalHierarchy(): Promise<EvalHierarchy> {
   return fetchHFJson<EvalHierarchy>("eval-hierarchy.json")
+}
+
+export async function fetchComparisonIndex(): Promise<ComparisonIndex> {
+  return fetchHFJson<ComparisonIndex>("comparison-index.json")
 }
 
 export async function fetchModelDetail(slug: string): Promise<HFModelDetail | null> {
@@ -734,6 +752,8 @@ function getNodeSubtaskName(node: HFModelHierarchyNode | HFModelHierarchySubtask
 interface FlattenHierarchyContext {
   eval_summary_id?: string
   benchmark?: string
+  display_name?: string
+  canonical_display_name?: string
   sourceData: SourceData
   sourceMetadata: SourceMetadata
   benchmark_family_key?: string
@@ -758,6 +778,10 @@ function buildFlattenHierarchyContext(
     benchmarkFamilyName ??
     benchmark ??
     "Unknown Benchmark"
+  const canonicalDisplayName =
+    node.canonical_display_name ??
+    inheritedContext?.canonical_display_name ??
+    displayName
   const sourceData =
     node.source_data ??
     inheritedContext?.sourceData ?? {
@@ -767,6 +791,8 @@ function buildFlattenHierarchyContext(
   return {
     eval_summary_id: node.eval_summary_id ?? inheritedContext?.eval_summary_id,
     benchmark,
+    display_name: displayName,
+    canonical_display_name: canonicalDisplayName,
     sourceData,
     sourceMetadata: getCanonicalSourceMetadata(sourceData, {
       displayName,
@@ -819,7 +845,14 @@ function flattenHierarchyNode(
       const modelInfo = buildModelInfoForVariant(detail, result, variantMeta)
       const inlineSamples = parseInstanceLevelData(result.instance_level_data)
       const evaluationResult: EvaluationResult = {
-        evaluation_name: metric.display_name || `${node.display_name} / ${metric.metric_name}`,
+        evaluation_name: metric.metric_name || metric.evaluation_name || metric.display_name,
+        display_name: metric.display_name || metric.metric_name || metric.evaluation_name,
+        canonical_display_name:
+          metric.canonical_display_name ||
+          metric.display_name ||
+          `${context.benchmark ?? context.display_name ?? "Benchmark"} / ${metric.metric_name}`,
+        metric_summary_id: metric.metric_summary_id,
+        metric_key: metric.metric_key,
         evaluation_timestamp: result.retrieved_timestamp ?? detail.last_updated ?? "",
         source_data: sourceData,
         metric_config: metric.metric_config,
@@ -864,6 +897,18 @@ function flattenHierarchyNode(
         evaluation_id: `${metric.metric_summary_id}__${variantKey}`,
         retrieved_timestamp: variantGroup.latestTimestamp,
         benchmark: context.benchmark,
+        display_name:
+          node.display_name ??
+          getNodeSubtaskName(node) ??
+          metric.slice_name ??
+          context.display_name ??
+          context.benchmark_leaf_name ??
+          context.benchmark,
+        canonical_display_name:
+          node.canonical_display_name ??
+          (metric.slice_name && (context.benchmark_parent_name ?? context.benchmark)
+            ? `${context.benchmark_parent_name ?? context.benchmark} / ${metric.slice_name}`
+            : context.canonical_display_name ?? context.benchmark),
         category,
         benchmark_family_key: context.benchmark_family_key,
         benchmark_family_name: context.benchmark_family_name,

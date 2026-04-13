@@ -442,197 +442,219 @@ function hfEvalEntryToListItem(entry: {
 // HF eval detail → BenchmarkEvalSummary
 // ---------------------------------------------------------------------------
 
-function hfEvalDetailToSummary(detail: HFEvalDetail): BenchmarkEvalSummary {
-  const evalName = detail.benchmark_leaf_name || detail.eval_summary_id || "Unknown"
+function toSummaryMetricConfig(
+  metric: HFEvalDetail["metrics"][number]
+): BenchmarkEvalSummary["metric_config"] {
+  const rawConfig = (metric.metric_config ?? {}) as Record<string, unknown>
+  const description =
+    (typeof rawConfig.evaluation_description === "string" && rawConfig.evaluation_description) ||
+    (typeof rawConfig.metric_name === "string" && rawConfig.metric_name) ||
+    metric.metric_name ||
+    metric.display_name ||
+    metric.evaluation_name ||
+    ""
+  const unit =
+    typeof rawConfig.unit === "string"
+      ? rawConfig.unit
+      : typeof rawConfig.metric_unit === "string"
+        ? rawConfig.metric_unit
+        : undefined
+
+  return {
+    evaluation_description: description,
+    lower_is_better: metric.lower_is_better ?? false,
+    score_type:
+      rawConfig.score_type === "binary" || rawConfig.score_type === "discrete"
+        ? rawConfig.score_type
+        : "continuous",
+    min_score: typeof rawConfig.min_score === "number" ? rawConfig.min_score : 0,
+    max_score: typeof rawConfig.max_score === "number" ? rawConfig.max_score : 1,
+    unit,
+  }
+}
+
+function toBenchmarkSummaryMetric(metric: HFEvalDetail["metrics"][number]) {
+  const metricConfig = toSummaryMetricConfig(metric)
+  const scores = (metric.model_results ?? []).map((result) => result.score).filter(Number.isFinite)
+  const metricName = metric.metric_name || metric.evaluation_name || metric.display_name || "Metric"
+  const displayName = metric.display_name || metric.metric_name || metric.evaluation_name || metricName
+
+  return {
+    metric_summary_id: metric.metric_summary_id,
+    metric_name: metricName,
+    display_name: displayName,
+    canonical_display_name: metric.canonical_display_name,
+    metric_key: metric.metric_key,
+    lower_is_better: metric.lower_is_better ?? false,
+    models_count: metric.model_results?.length ?? 0,
+    top_score: scores.length > 0
+      ? (metric.lower_is_better ? Math.min(...scores) : Math.max(...scores))
+      : undefined,
+    unit: metricConfig.unit,
+  }
+}
+
+function extractDetailSubtasks(detail: HFEvalDetail) {
+  return (Array.isArray(detail.subtasks) ? detail.subtasks : [])
+    .flatMap((subtask) => {
+      if (!subtask || typeof subtask !== "object") {
+        return []
+      }
+
+      const subtaskRecord = subtask as Record<string, unknown>
+      const metrics = Array.isArray(subtaskRecord.metrics)
+        ? (subtaskRecord.metrics as HFEvalDetail["metrics"])
+        : []
+
+      return [{
+        subtask_key:
+          (typeof subtaskRecord.subtask_key === "string" && subtaskRecord.subtask_key) ||
+          (typeof subtaskRecord.display_name === "string" && slugifyEvalId(subtaskRecord.display_name)) ||
+          "subtask",
+        subtask_name:
+          (typeof subtaskRecord.subtask_name === "string" && subtaskRecord.subtask_name) ||
+          (typeof subtaskRecord.display_name === "string" && subtaskRecord.display_name) ||
+          "Subtask",
+        display_name:
+          (typeof subtaskRecord.display_name === "string" && subtaskRecord.display_name) ||
+          (typeof subtaskRecord.subtask_name === "string" && subtaskRecord.subtask_name) ||
+          "Subtask",
+        canonical_display_name:
+          typeof subtaskRecord.canonical_display_name === "string"
+            ? subtaskRecord.canonical_display_name
+            : undefined,
+        metrics,
+      }]
+    })
+}
+
+function extractBenchmarkSubtasks(detail: HFEvalDetail): NonNullable<BenchmarkEvalSummary["subtasks"]> {
+  return extractDetailSubtasks(detail).map((subtask) => ({
+    subtask_key: subtask.subtask_key,
+    subtask_name: subtask.subtask_name,
+    display_name: subtask.display_name,
+    canonical_display_name: subtask.canonical_display_name,
+    metrics: subtask.metrics.map(toBenchmarkSummaryMetric),
+  }))
+}
+
+function buildBenchmarkLeaderboardMatrix(detail: HFEvalDetail) {
   const benchmarkKey = detail.benchmark ?? ""
   const sourceName = detail.source_data?.dataset_name || benchmarkKey
   const sourceOrganization = detail.source_data?.hf_repo || sourceName
-  const allMetrics = detail.metrics ?? []
+  const sourceMetadata: SourceMetadata = {
+    source_type: "documentation",
+    source_name: sourceName,
+    source_organization_name: sourceOrganization,
+    evaluator_relationship: "other",
+  }
+  const sourceData = detail.source_data ?? { dataset_name: benchmarkKey }
 
-  if (allMetrics.length === 0) {
-    const subtaskMetrics = (Array.isArray(detail.subtasks) ? detail.subtasks : [])
-      .flatMap((subtask) => {
-        if (!subtask || typeof subtask !== "object") {
-          return []
-        }
+  const leaderboardMetrics: NonNullable<BenchmarkEvalSummary["leaderboard_metrics"]> = []
+  const rowStates = new Map<
+    string,
+    NonNullable<BenchmarkEvalSummary["leaderboard_rows"]>[number] & { _timestampValue: number }
+  >()
 
-        const subtaskRecord = subtask as Record<string, unknown>
-        const subtaskLabel =
-          (typeof subtaskRecord.display_name === "string" && subtaskRecord.display_name.trim()) ||
-          (typeof subtaskRecord.subtask_name === "string" && subtaskRecord.subtask_name.trim()) ||
-          (typeof subtaskRecord.subtask_key === "string" && humanizeToken(subtaskRecord.subtask_key)) ||
-          "Subtask"
+  const registerMetric = (
+    metric: HFEvalDetail["metrics"][number],
+    scope: "root" | "subtask",
+    subtask?: {
+      subtask_key: string
+      subtask_name: string
+    }
+  ) => {
+    const summaryMetric = toBenchmarkSummaryMetric(metric)
+    const metricToken = summaryMetric.metric_summary_id || summaryMetric.metric_key || slugifyEvalId(summaryMetric.display_name)
+    const columnKey = [scope, subtask?.subtask_key, metricToken].filter(Boolean).join(":")
 
-        const metrics = Array.isArray(subtaskRecord.metrics) ? subtaskRecord.metrics : []
-        return metrics.map((metric) => {
-          const metricRecord = metric as Record<string, unknown>
-          const metricName =
-            (typeof metricRecord.metric_name === "string" && metricRecord.metric_name.trim()) ||
-            (typeof metricRecord.evaluation_name === "string" && metricRecord.evaluation_name.trim()) ||
-            "Score"
+    leaderboardMetrics.push({
+      column_key: columnKey,
+      metric_summary_id: summaryMetric.metric_summary_id,
+      metric_name: summaryMetric.metric_name,
+      display_name: summaryMetric.display_name,
+      canonical_display_name: summaryMetric.canonical_display_name,
+      lower_is_better: summaryMetric.lower_is_better,
+      unit: summaryMetric.unit,
+      scope,
+      subtask_key: subtask?.subtask_key,
+      subtask_name: subtask?.subtask_name,
+    })
 
-          return {
-            label: subtaskLabel,
-            metricName,
-            lowerIsBetter: metricRecord.lower_is_better === true,
-            modelResults: Array.isArray(metricRecord.model_results)
-              ? (metricRecord.model_results as HFEvalModelResult[])
-              : [],
-          }
+    for (const modelResult of metric.model_results ?? []) {
+      const modelId = modelResult.model_id || modelResult.model_name
+      if (!modelId) {
+        continue
+      }
+
+      const nextTimestamp = normalizeEvalTimestamp(modelResult.retrieved_timestamp ?? "")
+      const existing = rowStates.get(modelId)
+      if (!existing) {
+        rowStates.set(modelId, {
+          model_info: {
+            name: modelResult.model_name ?? "",
+            id: modelId,
+            developer: modelResult.developer ?? "",
+          },
+          model_route_id: modelResult.model_route_id,
+          evaluation_timestamp: modelResult.retrieved_timestamp ?? "",
+          source_metadata: sourceMetadata,
+          source_data: sourceData,
+          values: { [columnKey]: modelResult.score ?? null },
+          metrics_present: 0,
+          _timestampValue: nextTimestamp,
         })
+        continue
+      }
+
+      existing.values[columnKey] = modelResult.score ?? null
+      if (!existing.model_route_id && modelResult.model_route_id) {
+        existing.model_route_id = modelResult.model_route_id
+      }
+      if (nextTimestamp >= existing._timestampValue) {
+        existing.evaluation_timestamp = modelResult.retrieved_timestamp ?? existing.evaluation_timestamp
+        existing._timestampValue = nextTimestamp
+      }
+    }
+  }
+
+  for (const metric of detail.metrics ?? []) {
+    registerMetric(metric, "root")
+  }
+
+  for (const subtask of extractDetailSubtasks(detail)) {
+    for (const metric of subtask.metrics) {
+      registerMetric(metric, "subtask", {
+        subtask_key: subtask.subtask_key,
+        subtask_name: subtask.display_name || subtask.subtask_name,
       })
-      .filter((metric) => metric.modelResults.length > 0)
-
-    if (subtaskMetrics.length > 0) {
-      const modelMap = new Map<string, {
-        model_info: ModelInfo
-        model_route_id?: string
-        evaluation_timestamp?: string
-        scores: Record<string, number>
-      }>()
-
-      for (const metric of subtaskMetrics) {
-        for (const mr of metric.modelResults) {
-          const modelId = mr.model_id ?? mr.model_route_id ?? mr.model_name ?? "unknown-model"
-          const existing = modelMap.get(modelId) ?? {
-            model_info: {
-              name: mr.model_name ?? "",
-              id: mr.model_id ?? "",
-              developer: mr.developer ?? "",
-            },
-            model_route_id: mr.model_route_id,
-            evaluation_timestamp: mr.retrieved_timestamp,
-            scores: {},
-          }
-
-          if (Number.isFinite(mr.score)) {
-            existing.scores[metric.label] = mr.score
-          }
-
-          if (
-            mr.retrieved_timestamp &&
-            (!existing.evaluation_timestamp ||
-              normalizeEvalTimestamp(mr.retrieved_timestamp) > normalizeEvalTimestamp(existing.evaluation_timestamp))
-          ) {
-            existing.evaluation_timestamp = mr.retrieved_timestamp
-          }
-
-          modelMap.set(modelId, existing)
-        }
-      }
-
-      const lowerIsBetter = subtaskMetrics.every((metric) => metric.lowerIsBetter)
-      const modelResults = Array.from(modelMap.values())
-        .flatMap((entry): ModelResultForBenchmark[] => {
-          const scoreEntries = Object.entries(entry.scores).filter(([, score]) => Number.isFinite(score))
-          if (scoreEntries.length === 0) {
-            return []
-          }
-
-          const averageScore = scoreEntries.reduce((sum, [, score]) => sum + score, 0) / scoreEntries.length
-          const detailScores = Object.fromEntries(scoreEntries)
-
-          const evaluationResult: EvaluationResult = {
-            evaluation_name: "Overall Score",
-            evaluation_timestamp: entry.evaluation_timestamp ?? "",
-            metric_config: {
-              evaluation_description: `Average score across ${subtaskMetrics.length} reported subtasks.`,
-              lower_is_better: lowerIsBetter,
-              score_type: "continuous",
-              min_score: 0,
-              max_score: 1,
-            },
-            score_details: {
-              score: averageScore,
-              details: detailScores,
-            },
-          }
-
-          return [{
-            model_info: entry.model_info,
-            model_route_id: entry.model_route_id,
-            score: averageScore,
-            score_details: {
-              score: averageScore,
-              details: detailScores,
-            },
-            evaluation_timestamp: entry.evaluation_timestamp ?? "",
-            source_metadata: {
-              source_type: "documentation" as const,
-              source_name: sourceName,
-              source_organization_name: sourceOrganization,
-              evaluator_relationship: "other" as const,
-            },
-            source_data: detail.source_data ?? { dataset_name: benchmarkKey },
-            result: evaluationResult,
-          }]
-        })
-
-      modelResults.sort((a, b) => (lowerIsBetter ? a.score - b.score : b.score - a.score))
-
-      const scores = modelResults.map((result) => result.score).filter(Number.isFinite)
-      const avgScore = scores.length > 0 ? scores.reduce((sum, value) => sum + value, 0) / scores.length : 0
-
-      return {
-        evaluation_name: evalName,
-        evaluation_id: detail.eval_summary_id,
-        composite_benchmark_key: benchmarkKey,
-        composite_benchmark_name: getBenchmarkDisplayName(benchmarkKey),
-        category: inferCategoryFromBenchmark(evalName),
-        metric_config: {
-          evaluation_description: `Average score across ${subtaskMetrics.length} reported subtasks.`,
-          lower_is_better: lowerIsBetter,
-          score_type: "continuous",
-          min_score: 0,
-          max_score: 1,
-        },
-        model_results: modelResults,
-        models_count: modelResults.length,
-        evaluator_names: [],
-        source_types: [],
-        latest_source_name: getBenchmarkDisplayName(benchmarkKey),
-        third_party_ratio: 0,
-        missing_generation_config_count: 0,
-        best_model: modelResults.length > 0
-          ? { name: modelResults[0].model_info.name, score: modelResults[0].score }
-          : null,
-        worst_model: modelResults.length > 0
-          ? { name: modelResults[modelResults.length - 1].model_info.name, score: modelResults[modelResults.length - 1].score }
-          : null,
-        avg_score: avgScore,
-        avg_score_norm: avgScore,
-        benchmark_card: detail.benchmark_card ?? undefined,
-        metric_names: subtaskMetrics.map((metric) => metric.label),
-        metrics_count: subtaskMetrics.length,
-      }
     }
   }
 
-  const primaryMetric = allMetrics[0]
-  if (!primaryMetric) {
-    return {
-      evaluation_name: evalName,
-      evaluation_id: detail.eval_summary_id,
-      composite_benchmark_key: benchmarkKey,
-      composite_benchmark_name: getBenchmarkDisplayName(benchmarkKey),
-      category: inferCategoryFromBenchmark(evalName),
-      metric_config: { evaluation_description: "", lower_is_better: false, score_type: "continuous" },
-      model_results: [],
-      models_count: 0,
-      evaluator_names: [],
-      source_types: [],
-      latest_source_name: getBenchmarkDisplayName(benchmarkKey),
-      third_party_ratio: 0,
-      missing_generation_config_count: 0,
-      best_model: null,
-      worst_model: null,
-      avg_score: 0,
-      avg_score_norm: 0,
-      benchmark_card: detail.benchmark_card ?? undefined,
-    }
-  }
+  const leaderboardRows = Array.from(rowStates.values()).map(({ _timestampValue, ...row }) => ({
+    ...row,
+    metrics_present: leaderboardMetrics.reduce(
+      (count, metric) => count + (typeof row.values[metric.column_key] === "number" ? 1 : 0),
+      0
+    ),
+  }))
 
-  const modelResults: ModelResultForBenchmark[] = (primaryMetric.model_results ?? []).map((mr) => {
+  return {
+    leaderboard_metrics: leaderboardMetrics,
+    leaderboard_rows: leaderboardRows,
+  }
+}
+
+function toModelResultsForMetric(
+  detail: HFEvalDetail,
+  metric: HFEvalDetail["metrics"][number]
+): ModelResultForBenchmark[] {
+  const benchmarkKey = detail.benchmark ?? ""
+  const sourceName = detail.source_data?.dataset_name || benchmarkKey
+  const sourceOrganization = detail.source_data?.hf_repo || sourceName
+  const metricConfig = toSummaryMetricConfig(metric)
+
+  return (metric.model_results ?? []).map((mr) => {
     const evaluationTimestamp = mr.retrieved_timestamp ?? ""
     const modelInfo: ModelInfo = {
       name: mr.model_name ?? "",
@@ -641,15 +663,13 @@ function hfEvalDetailToSummary(detail: HFEvalDetail): BenchmarkEvalSummary {
     }
 
     const evaluationResult: EvaluationResult = {
-      evaluation_name: primaryMetric.metric_name ?? "",
+      evaluation_name: metric.metric_name || metric.evaluation_name || metric.display_name || "",
+      display_name: metric.display_name || metric.metric_name || metric.evaluation_name,
+      canonical_display_name: metric.canonical_display_name,
+      metric_summary_id: metric.metric_summary_id,
+      metric_key: metric.metric_key,
       evaluation_timestamp: evaluationTimestamp,
-      metric_config: {
-        evaluation_description: primaryMetric.metric_name ?? "",
-        lower_is_better: primaryMetric.lower_is_better ?? false,
-        score_type: "continuous",
-        min_score: 0,
-        max_score: 1,
-      },
+      metric_config: metricConfig,
       score_details: { score: mr.score ?? 0 },
       detailed_evaluation_results_url: getCanonicalInstanceResultsUrl(
         mr.detailed_evaluation_results
@@ -672,26 +692,77 @@ function hfEvalDetailToSummary(detail: HFEvalDetail): BenchmarkEvalSummary {
       result: evaluationResult,
     }
   })
+}
+
+function hfEvalDetailToSummary(detail: HFEvalDetail): BenchmarkEvalSummary {
+  const evalName = detail.benchmark_leaf_name || detail.eval_summary_id || "Unknown"
+  const benchmarkKey = detail.benchmark ?? ""
+  const allMetrics = detail.metrics ?? []
+  const rootMetrics = allMetrics.map(toBenchmarkSummaryMetric)
+  const subtasks = extractBenchmarkSubtasks(detail)
+  const leaderboardMatrix = buildBenchmarkLeaderboardMatrix(detail)
+  const primaryMetric =
+    allMetrics[0] ??
+    (Array.isArray(detail.subtasks) ? detail.subtasks : [])
+      .flatMap((subtask) => {
+        if (!subtask || typeof subtask !== "object") {
+          return []
+        }
+
+        const metrics = Array.isArray((subtask as Record<string, unknown>).metrics)
+          ? ((subtask as Record<string, unknown>).metrics as HFEvalDetail["metrics"])
+          : []
+        return metrics
+      })[0]
+
+  if (!primaryMetric) {
+    return {
+      evaluation_name: evalName,
+      evaluation_id: detail.eval_summary_id,
+      canonical_display_name: detail.canonical_display_name,
+      composite_benchmark_key: benchmarkKey,
+      composite_benchmark_name: getBenchmarkDisplayName(benchmarkKey),
+      category: inferCategoryFromBenchmark(evalName),
+      metric_config: { evaluation_description: "", lower_is_better: false, score_type: "continuous" },
+      model_results: [],
+      models_count: 0,
+      evaluator_names: [],
+      source_types: [],
+      latest_source_name: getBenchmarkDisplayName(benchmarkKey),
+      third_party_ratio: 0,
+      missing_generation_config_count: 0,
+      best_model: null,
+      worst_model: null,
+      avg_score: 0,
+      avg_score_norm: 0,
+      benchmark_card: detail.benchmark_card ?? undefined,
+      metrics_count: leaderboardMatrix.leaderboard_metrics.length,
+      metric_names: leaderboardMatrix.leaderboard_metrics.map((metric) =>
+        metric.scope === "subtask" && metric.subtask_name
+          ? `${metric.subtask_name} / ${metric.metric_name}`
+          : metric.metric_name
+      ),
+      root_metrics: rootMetrics,
+      subtasks,
+      leaderboard_metrics: leaderboardMatrix.leaderboard_metrics,
+      leaderboard_rows: leaderboardMatrix.leaderboard_rows,
+    }
+  }
+
+  const modelResults = toModelResultsForMetric(detail, primaryMetric)
 
   // Sort by score
-  const lowerIsBetter = primaryMetric.lower_is_better ?? false
+  const metricConfig = toSummaryMetricConfig(primaryMetric)
+  const lowerIsBetter = metricConfig.lower_is_better
   modelResults.sort((a, b) => (lowerIsBetter ? a.score - b.score : b.score - a.score))
 
   const scores = modelResults.map((r) => r.score).filter(Number.isFinite)
   const avgScore = scores.length > 0 ? scores.reduce((s, v) => s + v, 0) / scores.length : 0
 
-  // Build metric_config from primary metric
-  const metricConfig = {
-    evaluation_description: primaryMetric.metric_name ?? "",
-    lower_is_better: lowerIsBetter,
-    score_type: "continuous" as const,
-    min_score: 0,
-    max_score: 1,
-  }
-
   return {
     evaluation_name: evalName,
     evaluation_id: detail.eval_summary_id,
+    canonical_display_name: detail.canonical_display_name,
     composite_benchmark_key: benchmarkKey,
     composite_benchmark_name: getBenchmarkDisplayName(benchmarkKey),
     category: inferCategoryFromBenchmark(evalName),
@@ -712,9 +783,19 @@ function hfEvalDetailToSummary(detail: HFEvalDetail): BenchmarkEvalSummary {
     avg_score: avgScore,
     avg_score_norm: avgScore, // scores are already 0-1 from the pipeline
     benchmark_card: detail.benchmark_card ?? undefined,
-    // Include all metrics info for the detail view
-    metric_names: allMetrics.map((m) => m.metric_name),
-    metrics_count: allMetrics.length,
+    metric_names:
+      leaderboardMatrix.leaderboard_metrics
+        .map((metric) =>
+          metric.scope === "subtask" && metric.subtask_name
+            ? `${metric.subtask_name} / ${metric.metric_name}`
+            : metric.metric_name
+        )
+        .filter((metricName): metricName is string => Boolean(metricName)),
+    metrics_count: leaderboardMatrix.leaderboard_metrics.length,
+    root_metrics: rootMetrics,
+    subtasks,
+    leaderboard_metrics: leaderboardMatrix.leaderboard_metrics,
+    leaderboard_rows: leaderboardMatrix.leaderboard_rows,
   }
 }
 

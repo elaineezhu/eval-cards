@@ -14,21 +14,41 @@ import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/component
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog"
 import { Input } from "@/components/ui/input"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
-import { 
-  ExternalLink, TrendingUp, Info, Database, Settings, FileCode, Building, Calendar, User, Server, 
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu"
+import {
+  ExternalLink, TrendingUp, Info, Database, Settings, FileCode, Building, Calendar, User, Server,
   ChevronDown, ChevronUp, BarChart3, Award, AlertTriangle,
-  Cpu, Tag, Globe, Network, Activity, MessageSquare, Clock, Hash, Layers, Search, FlaskConical, Scale, BookOpenText
+  Cpu, Tag, Globe, Network, Activity, MessageSquare, Clock, Hash, Layers, Search, FlaskConical, Scale, BookOpenText, Plus, X
 } from "lucide-react"
 import type { BenchmarkCard, BenchmarkEvaluation, CategoryType, EvaluationResult } from "@/lib/benchmark-schema"
 import { getCategoryColor as getCategoryTone, inferCategoryFromBenchmark } from "@/lib/benchmark-schema"
-import { formatScore, getBenchmarkDisplayName, type BenchmarkEvalSummary } from "@/lib/eval-processing"
+import type { BenchmarkEvalSummary } from "@/lib/eval-processing"
 import type { ModelSummaryCore } from "@/lib/benchmark-schema"
 import { lookupBenchmarkCard } from "@/lib/benchmark-metadata-utils"
+import type { BenchmarkEvaluationCardData } from "@/components/benchmark-evaluation-card"
+import type {
+  ComparisonEvalEntry,
+  ComparisonIndex,
+  ComparisonMetricEntry,
+  ComparisonScoreEntry,
+  EvalHierarchy,
+  SubmissionAxis,
+} from "@/lib/backend-artifacts"
 import { type CSSProperties, Fragment, useState, useEffect, useMemo } from "react"
 
 interface BenchmarkDetailProps {
   summary: ModelSummaryCore
   benchmarkCards?: Record<string, BenchmarkCard>
+  modelCards?: BenchmarkEvaluationCardData[]
+  evalHierarchy?: EvalHierarchy | null
+  comparisonIndex?: ComparisonIndex | null
 }
 
 interface BenchmarkVariant {
@@ -36,6 +56,7 @@ interface BenchmarkVariant {
   result: EvaluationResult
   label: string
   variantType: "setup" | "subtask" | "setup+subtask" | "default"
+  metricLabel: string
   setupLabel: string | null
   subtaskLabel: string | null
   displayScore: string
@@ -48,10 +69,12 @@ interface BenchmarkVariant {
 interface BenchmarkGroup {
   key: string
   title: string
+  canonicalTitle: string
   evalDetailHref: string
   category: CategoryType
   description: string
   scoreType: EvaluationResult["metric_config"]["score_type"] | "mixed"
+  avgRawScore: number
   avgNormalizedScore: number
   avgDisplayScore: string
   bestRankPosition: number | null
@@ -66,6 +89,7 @@ interface SuiteGroup {
   suiteKey: string
   suiteName: string
   benchmarks: BenchmarkGroup[]
+  avgRawScore: number
   avgNormalizedScore: number
   avgDisplayScore: string
   bestRank: { position: number; total: number } | null
@@ -106,27 +130,191 @@ const SUITE_DISPLAY_NAMES: Record<string, string> = {
   wordle_arena: "Wordle Arena",
 }
 
+const DISPLAY_TOKEN_OVERRIDES: Record<string, string> = {
+  ace: "ACE",
+  apex: "APEX",
+  api: "API",
+  ai: "AI",
+  ai2: "AI2",
+  bbh: "BBH",
+  diy: "DIY",
+  gpt: "GPT",
+  gpqa: "GPQA",
+  helm: "HELM",
+  hf: "HF",
+  ibm: "IBM",
+  ifeval: "IFEval",
+  la: "LA",
+  llm: "LLM",
+  math: "MATH",
+  md: "MD",
+  mmlu: "MMLU",
+  musr: "MUSR",
+  oecd: "OECD",
+  nist: "NIST",
+  openai: "OpenAI",
+  swe: "SWE",
+  tau: "TAU",
+  ui: "UI",
+  ux: "UX",
+  xai: "xAI",
+}
+
+const DISPLAY_NAME_OVERRIDES: Record<string, string> = {
+  ...SUITE_DISPLAY_NAMES,
+  apex: "APEX",
+  apex_agents: "APEX Agents",
+  apex_v1: "APEX v1",
+  openai: "OpenAI",
+  xai: "xAI",
+  nvidia: "NVIDIA",
+  ibm: "IBM",
+}
+
+const AMBIGUOUS_GROUP_LABELS = new Set(["overall", "score", "accuracy"])
+
+function normalizeDisplayKey(value: string) {
+  return value.toLowerCase().replace(/[^a-z0-9]+/g, "_").replace(/^_+|_+$/g, "")
+}
+
+function normalizeDisplayToken(token: string) {
+  const prefixMatch = token.match(/^[^a-z0-9]*/i)
+  const suffixMatch = token.match(/[^a-z0-9]*$/i)
+  const prefix = prefixMatch?.[0] ?? ""
+  const suffix = suffixMatch?.[0] ?? ""
+  const core = token.slice(prefix.length, token.length - suffix.length)
+
+  if (!core) {
+    return token
+  }
+
+  const override = DISPLAY_TOKEN_OVERRIDES[normalizeDisplayKey(core)]
+  if (override) {
+    return `${prefix}${override}${suffix}`
+  }
+
+  if (/[A-Z]/.test(core.slice(1))) {
+    return `${prefix}${core}${suffix}`
+  }
+
+  if (/^\d/.test(core)) {
+    return `${prefix}${core}${suffix}`
+  }
+
+  return `${prefix}${core.charAt(0).toUpperCase()}${core.slice(1).toLowerCase()}${suffix}`
+}
+
+function normalizeDisplayLabel(value: string | null | undefined): string {
+  if (!value) {
+    return ""
+  }
+
+  const normalizedKey = normalizeDisplayKey(value)
+  const override = DISPLAY_NAME_OVERRIDES[normalizedKey]
+  if (override) {
+    return override
+  }
+
+  return value
+    .split("/")
+    .map((segment) => {
+      const cleaned = segment.replace(/[_-]+/g, " ").replace(/\s+/g, " ").trim()
+      if (!cleaned) {
+        return ""
+      }
+
+      const cleanedOverride = DISPLAY_NAME_OVERRIDES[normalizeDisplayKey(cleaned)]
+      if (cleanedOverride) {
+        return cleanedOverride
+      }
+
+      return cleaned.split(" ").map(normalizeDisplayToken).join(" ")
+    })
+    .filter(Boolean)
+    .join(" / ")
+}
+
+function formatRawScoreValue(score: number, unit?: string) {
+  if (!Number.isFinite(score)) {
+    return "N/A"
+  }
+
+  const precision = Math.abs(score) >= 100 ? 1 : Math.abs(score) >= 10 ? 2 : 3
+  const value = score.toFixed(precision).replace(/0+$/g, "").replace(/\.$/, "")
+  const normalizedUnit = normalizeDisplayLabel(unit)
+
+  if (!normalizedUnit || normalizedUnit === "Accuracy" || normalizedUnit === "Pass@1" || normalizedUnit === "Score") {
+    return value
+  }
+
+  return `${value} ${normalizedUnit}`
+}
+
+function getModelDisplayName(value: string | null | undefined) {
+  return normalizeDisplayLabel(value) || "Unknown Model"
+}
+
+function getOrganizationDisplayName(value: string | null | undefined) {
+  return normalizeDisplayLabel(value) || "Unknown Organization"
+}
+
+function getRelationshipDisplayName(value: string | null | undefined) {
+  return normalizeDisplayLabel(value?.replace(/_/g, " ")) || "Unknown"
+}
+
+function getSourceTypeDisplayName(value: string | null | undefined) {
+  return normalizeDisplayLabel(value?.replace(/_/g, " ")) || "Unknown"
+}
+
 function normalizeSuiteKey(key: string): string {
   const k = key.toLowerCase().replace(/[-.\s]+/g, "_").replace(/^_+|_+$/g, "")
   if (/^fibble\d*_arena$/.test(k)) return "fibble_arena"
   if (/^arc_agi_v\d+/.test(k)) return "arc_agi"
-  if (/^apex_v\d+$/.test(k)) return "apex"
   return k
+}
+
+function doesLabelMatchSuiteKey(label: string | null | undefined, suiteKey: string) {
+  if (!label) {
+    return false
+  }
+
+  return normalizeSuiteKey(normalizeDisplayKey(label)) === normalizeSuiteKey(suiteKey)
 }
 
 function getSuiteKey(group: BenchmarkGroup): string {
   const evaluation = group.variants[0]?.evaluation
   const backendSuiteKey =
-    evaluation?.benchmark_family_key ||
     evaluation?.benchmark_parent_key ||
+    evaluation?.benchmark_family_key ||
     evaluation?.benchmark
 
   return normalizeSuiteKey(backendSuiteKey ?? group.key)
 }
 
 function getSuiteDisplayName(key: string): string {
-  const normalized = key.toLowerCase().replace(/[-.\s]+/g, "_").replace(/^_+|_+$/g, "")
-  return SUITE_DISPLAY_NAMES[normalized] ?? key.split(/[_-]+/).filter(Boolean).map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(" ")
+  const normalizedKey = normalizeSuiteKey(key)
+  return SUITE_DISPLAY_NAMES[normalizedKey] ?? normalizeDisplayLabel(key)
+}
+
+function getSuiteName(group: BenchmarkGroup, suiteKey: string): string {
+  const evaluation = group.variants[0]?.evaluation
+  const benchmarkCardName = group.benchmarkCard?.benchmark_details?.name
+  const backendParentName = evaluation?.benchmark_parent_name
+  const backendFamilyName = evaluation?.benchmark_family_name
+
+  if (doesLabelMatchSuiteKey(backendParentName, suiteKey)) {
+    return normalizeDisplayLabel(backendParentName)
+  }
+
+  if (doesLabelMatchSuiteKey(backendFamilyName, suiteKey)) {
+    return normalizeDisplayLabel(backendFamilyName)
+  }
+
+  if (doesLabelMatchSuiteKey(benchmarkCardName, suiteKey)) {
+    return normalizeDisplayLabel(benchmarkCardName)
+  }
+
+  return getSuiteDisplayName(suiteKey)
 }
 
 function groupBySuite(
@@ -143,11 +331,10 @@ function groupBySuite(
   }
 
   return Array.from(suites.entries()).map(([suiteKey, benchmarks]) => {
-    const backendSuiteName =
-      benchmarks[0]?.variants[0]?.evaluation?.benchmark_family_name ||
-      benchmarks[0]?.variants[0]?.evaluation?.benchmark_parent_name
     const scores = benchmarks.map(b => b.avgNormalizedScore).filter(Number.isFinite)
     const avgScore = scores.length > 0 ? scores.reduce((a, b) => a + b, 0) / scores.length : 0
+    const rawScores = benchmarks.map((benchmark) => benchmark.avgRawScore).filter(Number.isFinite)
+    const avgRawScore = rawScores.length > 0 ? rawScores.reduce((a, b) => a + b, 0) / rawScores.length : 0
 
     // Find best rank across all benchmarks in suite
     let bestRank: { position: number; total: number } | null = null
@@ -161,10 +348,11 @@ function groupBySuite(
 
     return {
       suiteKey,
-      suiteName: backendSuiteName || getSuiteDisplayName(suiteKey),
+      suiteName: benchmarks[0] ? getSuiteName(benchmarks[0], suiteKey) : getSuiteDisplayName(suiteKey),
       benchmarks,
+      avgRawScore,
       avgNormalizedScore: avgScore,
-      avgDisplayScore: `${(avgScore * 100).toFixed(1)}%`,
+      avgDisplayScore: formatRawScoreValue(avgRawScore),
       bestRank,
     }
   }).sort((a, b) => {
@@ -197,20 +385,28 @@ function getResultBenchmarkName(
   evaluation: BenchmarkEvaluation,
   result: EvaluationResult
 ) {
+  if (evaluation.display_name) {
+    return evaluation.display_name
+  }
+
   if (evaluation.slice_name) {
     return evaluation.slice_name
   }
 
-  if (result.source_data && !Array.isArray(result.source_data) && result.source_data.dataset_name) {
-    return result.source_data.dataset_name
+  if (evaluation.benchmark_leaf_name) {
+    return evaluation.benchmark_leaf_name
+  }
+
+  if (evaluation.benchmark_parent_name) {
+    return evaluation.benchmark_parent_name
   }
 
   if (evaluation.benchmark) {
     return evaluation.benchmark
   }
 
-  if (!Array.isArray(evaluation.source_data) && evaluation.source_data.dataset_name) {
-    return evaluation.source_data.dataset_name
+  if (result.display_name) {
+    return result.display_name
   }
 
   return result.evaluation_name
@@ -220,8 +416,16 @@ function getResultDisplayName(
   evaluation: BenchmarkEvaluation,
   result: EvaluationResult
 ) {
-  const benchmarkName = getBenchmarkDisplayName(getResultBenchmarkName(evaluation, result))
-  const metricName = result.evaluation_name
+  if (result.canonical_display_name) {
+    return result.canonical_display_name
+  }
+
+  if (evaluation.canonical_display_name) {
+    return evaluation.canonical_display_name
+  }
+
+  const benchmarkName = evaluation.benchmark_parent_name || evaluation.benchmark || getResultBenchmarkName(evaluation, result)
+  const metricName = result.display_name || result.evaluation_name
 
   if (GENERIC_RESULT_NAMES.has(metricName.toLowerCase())) {
     return `${benchmarkName} - ${metricName}`
@@ -230,20 +434,44 @@ function getResultDisplayName(
   return metricName
 }
 
+function getMetricDisplayLabel(result: EvaluationResult) {
+  const rawLabel =
+    result.display_name ||
+    result.canonical_display_name ||
+    result.evaluation_name
+
+  if (!rawLabel) {
+    return "Metric"
+  }
+
+  const segments = rawLabel
+    .split("/")
+    .map((segment) => segment.trim())
+    .filter(Boolean)
+  const leaf = segments[segments.length - 1] ?? rawLabel
+  return normalizeDisplayLabel(leaf)
+}
+
 function getVariantDescriptor(
   evaluation: BenchmarkEvaluation,
   result: EvaluationResult
-): Pick<BenchmarkVariant, "label" | "variantType" | "setupLabel" | "subtaskLabel"> {
-  const evaluationVariant = getEvaluationVariantLabel(evaluation)
-  const metricName = result.evaluation_name
-  const isGenericMetric = GENERIC_RESULT_NAMES.has(metricName.toLowerCase())
-  const subtaskLabel = isGenericMetric ? null : metricName
-  const setupLabel = evaluationVariant
+): Pick<BenchmarkVariant, "label" | "variantType" | "metricLabel" | "setupLabel" | "subtaskLabel"> {
+  const evaluationVariantRaw = getEvaluationVariantLabel(evaluation)
+  const evaluationVariant = evaluationVariantRaw ? formatSetupDisplayLabel(evaluationVariantRaw) : null
+  const metricLabel = getMetricDisplayLabel(result)
+  const metricKey = normalizeDisplayKey(metricLabel)
+  const metricIsAmbiguous = AMBIGUOUS_GROUP_LABELS.has(metricKey)
+  const subtaskLabel = evaluation.slice_name ? normalizeDisplayLabel(evaluation.slice_name) : null
+  const setupLabel = evaluationVariant ? formatSetupDisplayLabel(evaluationVariant) : null
+  const baseLabel = subtaskLabel
+    ? (metricIsAmbiguous ? subtaskLabel : `${subtaskLabel} · ${metricLabel}`)
+    : metricLabel
 
   if (setupLabel && subtaskLabel) {
     return {
-      label: `${setupLabel} · ${subtaskLabel}`,
+      label: `${setupLabel} · ${baseLabel}`,
       variantType: "setup+subtask",
+      metricLabel,
       setupLabel,
       subtaskLabel,
     }
@@ -251,25 +479,28 @@ function getVariantDescriptor(
 
   if (setupLabel) {
     return {
-      label: `Setup: ${setupLabel}`,
+      label: metricIsAmbiguous ? `Setup: ${setupLabel}` : `${setupLabel} · ${metricLabel}`,
       variantType: "setup",
+      metricLabel,
       setupLabel,
       subtaskLabel: null,
     }
   }
 
-  if (subtaskLabel) {
+  if (subtaskLabel || !metricIsAmbiguous) {
     return {
-      label: subtaskLabel,
-      variantType: "subtask",
+      label: baseLabel,
+      variantType: subtaskLabel ? "subtask" : "default",
+      metricLabel,
       setupLabel: null,
-      subtaskLabel,
+      subtaskLabel: subtaskLabel ?? null,
     }
   }
 
   return {
-    label: "Default run",
+    label: metricLabel,
     variantType: "default",
+    metricLabel,
     setupLabel: null,
     subtaskLabel: null,
   }
@@ -529,7 +760,7 @@ function getBenchmarkSpread(group: BenchmarkGroup) {
 }
 
 function getBenchmarkSourceCount(group: BenchmarkGroup) {
-  return new Set(group.variants.map((variant) => variant.evaluation.source_metadata.source_organization_name)).size
+  return new Set(group.variants.map((variant) => getOrganizationDisplayName(variant.evaluation.source_metadata.source_organization_name))).size
 }
 
 function getVariantTypeTone(variantType: BenchmarkVariant["variantType"]) {
@@ -578,12 +809,19 @@ function formatSetupDisplayLabel(setupLabel: string | null) {
     return "Default setup"
   }
 
-  return cleaned.replace(/\b\w/g, (letter) => letter.toUpperCase())
+  return normalizeDisplayLabel(cleaned)
 }
 
 function getVariantPrimaryLabel(variant: BenchmarkVariant, groupTitle: string) {
   if (variant.subtaskLabel) {
     return variant.subtaskLabel
+  }
+
+  if (variant.metricLabel) {
+    const normalizedMetricKey = normalizeDisplayKey(variant.metricLabel)
+    if (!AMBIGUOUS_GROUP_LABELS.has(normalizedMetricKey)) {
+      return variant.metricLabel
+    }
   }
 
   if (variant.variantType === "default" || variant.variantType === "setup") {
@@ -605,6 +843,10 @@ function getGroupSubtaskLabels(group: BenchmarkGroup) {
 
 function getGroupSubtaskCount(group: BenchmarkGroup) {
   return getGroupSubtaskLabels(group).length
+}
+
+function getBenchmarkGroupHeading(group: BenchmarkGroup) {
+  return group.canonicalTitle
 }
 
 function getSuiteBadgeMeta(suite: SuiteGroup) {
@@ -643,6 +885,121 @@ function getSuiteBadgeMeta(suite: SuiteGroup) {
   }
 
   return null
+}
+
+interface ScoreRange {
+  min: number
+  max: number
+}
+
+const DEFAULT_SCORE_RANGE: ScoreRange = { min: 0, max: 1 }
+
+function getScoreRange(values: number[]): ScoreRange {
+  const finiteValues = values.filter((value) => Number.isFinite(value))
+  if (finiteValues.length === 0) {
+    return DEFAULT_SCORE_RANGE
+  }
+
+  return {
+    min: Math.min(...finiteValues),
+    max: Math.max(...finiteValues),
+  }
+}
+
+function normalizeWithinRange(value: number, range: ScoreRange): number {
+  if (!Number.isFinite(value)) {
+    return 0.5
+  }
+
+  const span = range.max - range.min
+  if (span <= 0) {
+    return 0.5
+  }
+
+  return Math.max(0, Math.min(1, (value - range.min) / span))
+}
+
+function formatNormalizedPercent(value: number) {
+  if (!Number.isFinite(value)) {
+    return "N/A"
+  }
+
+  return `${(value * 100).toFixed(1)}%`
+}
+
+function isRangeEdge(value: number, range: ScoreRange, edge: "min" | "max") {
+  const span = range.max - range.min
+  if (!Number.isFinite(value) || span <= 0) {
+    return false
+  }
+
+  const target = edge === "max" ? range.max : range.min
+  const tolerance = Math.max(1e-4, span * 0.005)
+  return Math.abs(value - target) <= tolerance
+}
+
+function getRangeLabels<T>(
+  items: T[],
+  getValue: (item: T) => number,
+  getLabel: (item: T) => string
+) {
+  const finiteItems = items.filter((item) => Number.isFinite(getValue(item)))
+
+  if (finiteItems.length === 0) {
+    return { minLabel: "N/A", maxLabel: "N/A" }
+  }
+
+  const minItem = [...finiteItems].sort((a, b) => getValue(a) - getValue(b))[0]
+  const maxItem = [...finiteItems].sort((a, b) => getValue(b) - getValue(a))[0]
+
+  return {
+    minLabel: getLabel(minItem),
+    maxLabel: getLabel(maxItem),
+  }
+}
+
+function ScoreRail({
+  meanValue,
+  meanLabel,
+  range,
+  minLabel,
+  maxLabel,
+}: {
+  meanValue: number
+  meanLabel: string
+  range: ScoreRange
+  minLabel: string
+  maxLabel: string
+}) {
+  const meanPercent = normalizeWithinRange(meanValue, range) * 100
+  const globalMinTitle = `Min: ${minLabel}`
+  const globalMaxTitle = `Max: ${maxLabel}`
+
+  return (
+    <div className="relative h-1.5 flex-1 overflow-visible rounded-full bg-muted">
+      <div className="h-full rounded-full bg-foreground/25" style={{ width: `${Math.max(meanPercent, 2)}%` }} />
+
+      <span
+        className="absolute top-1/2 h-3.5 w-[2px] -translate-x-1/2 -translate-y-1/2 rounded-full bg-rose-500"
+        style={{ left: "0%" }}
+        title={globalMinTitle}
+        aria-hidden="true"
+      />
+      <span
+        className="absolute top-1/2 h-3.5 w-[2px] -translate-x-1/2 -translate-y-1/2 rounded-full bg-emerald-500"
+        style={{ left: "100%" }}
+        title={globalMaxTitle}
+        aria-hidden="true"
+      />
+
+      <span
+        className="absolute top-1/2 h-3.5 w-3.5 -translate-x-1/2 -translate-y-1/2 rounded-full border border-background bg-foreground shadow-sm"
+        style={{ left: `${meanPercent}%` }}
+        title={meanLabel}
+        aria-hidden="true"
+      />
+    </div>
+  )
 }
 
 function parseNumericRank(value: unknown) {
@@ -921,11 +1278,7 @@ async function fetchPeerRankForModel(evalSummaryId: string, modelId: string) {
 }
 
 function formatResultDisplayScore(result: EvaluationResult) {
-  return formatScore(
-    result.score_details.score,
-    result.metric_config.score_type,
-    result.metric_config.max_score
-  )
+  return formatRawScoreValue(result.score_details.score, result.metric_config.unit)
 }
 
 function toComparableTimestamp(timestamp: string) {
@@ -949,12 +1302,15 @@ function getVariantDedupKey(variant: BenchmarkVariant) {
 
   return JSON.stringify({
     label: variant.label,
+    metricSummaryId: variant.result.metric_summary_id,
+    metricKey: variant.result.metric_key,
+    metricLabel: variant.metricLabel,
     variantType: variant.variantType,
     setupLabel: variant.setupLabel,
     subtaskLabel: variant.subtaskLabel,
     displayScore: variant.displayScore,
-    sourceOrganization: variant.evaluation.source_metadata.source_organization_name,
-    sourceName: variant.evaluation.source_metadata.source_name ?? "",
+    sourceOrganization: getOrganizationDisplayName(variant.evaluation.source_metadata.source_organization_name),
+    sourceName: normalizeDisplayLabel(variant.evaluation.source_metadata.source_name ?? ""),
     sourceType: variant.evaluation.source_metadata.source_type,
     sourceDataName,
     configEntries,
@@ -969,12 +1325,25 @@ function buildBenchmarkGroups(
   const groups = new Map<string, BenchmarkGroup>()
 
   for (const entry of entries) {
-    const title = getBenchmarkDisplayName(getResultBenchmarkName(entry.evaluation, entry.result))
+    const rawBenchmarkName = entry.evaluation.benchmark || entry.evaluation.benchmark_parent_name || getResultBenchmarkName(entry.evaluation, entry.result)
+    const title = entry.evaluation.display_name || entry.evaluation.slice_name || entry.evaluation.benchmark_leaf_name || entry.evaluation.benchmark_parent_name || entry.evaluation.benchmark || getResultBenchmarkName(entry.evaluation, entry.result)
+    const canonicalTitle =
+      entry.evaluation.canonical_display_name ||
+      (entry.evaluation.slice_name && (entry.evaluation.benchmark_parent_name || entry.evaluation.benchmark)
+        ? `${entry.evaluation.benchmark_parent_name || entry.evaluation.benchmark} / ${entry.evaluation.slice_name}`
+        : title)
+    const groupKey =
+      entry.evaluation.eval_summary_id ??
+      entry.evaluation.benchmark_parent_key ??
+      entry.evaluation.benchmark_leaf_key ??
+      entry.evaluation.benchmark ??
+      "benchmark"
     const card = benchmarkCards
-      ? lookupBenchmarkCard(benchmarkCards, getResultBenchmarkName(entry.evaluation, entry.result))
+      ? lookupBenchmarkCard(benchmarkCards, rawBenchmarkName)
       : undefined
     const normalizedScore = normalizeScoreForDisplay(entry.result)
     const displayScore = formatResultDisplayScore(entry.result)
+    const rawScore = entry.result.score_details.score
     const rankInfo = getVariantPeerRank(entry.result)
     const rankPosition = rankInfo?.position ?? null
     const rankTotal = rankInfo?.total ?? null
@@ -990,6 +1359,7 @@ function buildBenchmarkGroups(
       result: entry.result,
       label: descriptor.label,
       variantType: descriptor.variantType,
+      metricLabel: descriptor.metricLabel,
       setupLabel: descriptor.setupLabel,
       subtaskLabel: descriptor.subtaskLabel,
       displayScore,
@@ -999,18 +1369,20 @@ function buildBenchmarkGroups(
       rankRatio,
     }
 
-    const existing = groups.get(title)
+    const existing = groups.get(groupKey)
 
     if (!existing) {
-      groups.set(title, {
-        key: title,
+      groups.set(groupKey, {
+        key: groupKey,
         title,
+        canonicalTitle,
         evalDetailHref: getEvalDetailHref(entry.evaluation, entry.result, returnTo),
         category: entry.category,
         description: entry.result.metric_config.evaluation_description ?? "",
         scoreType: entry.result.metric_config.score_type ?? "continuous",
+        avgRawScore: rawScore,
         avgNormalizedScore: normalizedScore,
-        avgDisplayScore: `${(normalizedScore * 100).toFixed(1)}%`,
+        avgDisplayScore: formatRawScoreValue(rawScore, entry.result.metric_config.unit),
         bestRankPosition: rankPosition,
         bestRankTotal: rankTotal,
         bestRankRatio: rankRatio,
@@ -1053,10 +1425,26 @@ function buildBenchmarkGroups(
       }
 
       group.variants = Array.from(dedupedVariants.values())
-      group.variants.sort((a, b) => b.normalizedScore - a.normalizedScore)
+      group.variants.sort((a, b) => {
+        const aIsSubtask = Boolean(a.evaluation.slice_key)
+        const bIsSubtask = Boolean(b.evaluation.slice_key)
+        if (aIsSubtask !== bIsSubtask) {
+          return aIsSubtask ? 1 : -1
+        }
+
+        const aPrimaryLabel = getVariantPrimaryLabel(a, group.title)
+        const bPrimaryLabel = getVariantPrimaryLabel(b, group.title)
+        if (aPrimaryLabel !== bPrimaryLabel) {
+          return aPrimaryLabel.localeCompare(bPrimaryLabel)
+        }
+
+        return b.normalizedScore - a.normalizedScore
+      })
+      group.avgRawScore =
+        group.variants.reduce((sum, variant) => sum + variant.result.score_details.score, 0) / group.variants.length
       group.avgNormalizedScore =
         group.variants.reduce((sum, variant) => sum + variant.normalizedScore, 0) / group.variants.length
-      group.avgDisplayScore = `${(group.avgNormalizedScore * 100).toFixed(1)}%`
+      group.avgDisplayScore = formatRawScoreValue(group.avgRawScore)
 
       const rankedVariants = group.variants
         .filter((variant) => variant.rankRatio != null)
@@ -1096,7 +1484,13 @@ function getEvaluationVariantLabel(evaluation: BenchmarkEvaluation) {
   return evaluationPrefix.split("/").filter(Boolean).pop() || null
 }
 
-export function BenchmarkDetail({ summary, benchmarkCards }: BenchmarkDetailProps) {
+export function BenchmarkDetail({
+  summary,
+  benchmarkCards,
+  modelCards,
+  evalHierarchy,
+  comparisonIndex,
+}: BenchmarkDetailProps) {
   const { mode } = useAudienceMode()
   const isResearchView = mode === "research"
   const pathname = usePathname()
@@ -1198,7 +1592,7 @@ export function BenchmarkDetail({ summary, benchmarkCards }: BenchmarkDetailProp
     let thirdPartyEvaluations = 0
 
     allEvaluations.forEach((evaluation) => {
-      organizations.add(evaluation.source_metadata.source_organization_name)
+      organizations.add(getOrganizationDisplayName(evaluation.source_metadata.source_organization_name))
       sourceTypes.add(evaluation.source_metadata.source_type)
       if (evaluation.eval_library?.name) {
         libraries.add(`${evaluation.eval_library.name}${evaluation.eval_library.version ? ` ${evaluation.eval_library.version}` : ""}`)
@@ -1256,10 +1650,10 @@ export function BenchmarkDetail({ summary, benchmarkCards }: BenchmarkDetailProp
 
       return {
         key: group.key,
-        title: group.title,
+        title: group.canonicalTitle,
         label: narrative.label,
         description: narrative.description,
-        scoreText: `${(group.avgNormalizedScore * 100).toFixed(0)}%`,
+        scoreText: group.avgDisplayScore,
         level,
       }
     })
@@ -1267,14 +1661,15 @@ export function BenchmarkDetail({ summary, benchmarkCards }: BenchmarkDetailProp
 
   const policySummary = useMemo(() => {
     const benchmarkCount = new Set(
-      allCategoryResults.map((entry) => getBenchmarkDisplayName(getResultBenchmarkName(entry.evaluation, entry.result)))
+      allCategoryResults.map((entry) => entry.evaluation.benchmark || entry.evaluation.benchmark_parent_name || entry.evaluation.eval_summary_id || getResultBenchmarkName(entry.evaluation, entry.result))
     ).size
     const allThirdParty =
       allEvaluations.length > 0 && reportingStats.thirdPartyEvaluations === allEvaluations.length
     const leadOrganization = reportingStats.organizationNames[0]
     const modelScaleDescription = getModelScaleDescription(summary.model_info.additional_details?.params_billions)
     const compactParamCount = formatParamsBillions(summary.model_info.additional_details?.params_billions)
-    const compactModelName = compactParamCount ? `${summary.model_info.name} · ${compactParamCount}` : summary.model_info.name
+    const normalizedModelName = getModelDisplayName(summary.model_info.name)
+    const compactModelName = compactParamCount ? `${normalizedModelName} · ${compactParamCount}` : normalizedModelName
 
     let testedByCopy = `Reported across ${benchmarkCount} standardized benchmark${benchmarkCount === 1 ? "" : "s"}.`
     if (leadOrganization && reportingStats.organizationCount === 1) {
@@ -1327,6 +1722,7 @@ export function BenchmarkDetail({ summary, benchmarkCards }: BenchmarkDetailProp
     () => buildBenchmarkGroups(allCategoryResults, benchmarkCards, currentDetailHref),
     [allCategoryResults, benchmarkCards, currentDetailHref]
   )
+
   const availableCategories = useMemo(() => {
     const presentCategories = new Set(benchmarkGroups.map((group) => group.category))
     return summary.categories_covered.filter((category) => presentCategories.has(category))
@@ -1345,6 +1741,7 @@ export function BenchmarkDetail({ summary, benchmarkCards }: BenchmarkDetailProp
 
       return (
         group.title.toLowerCase().includes(query) ||
+        group.canonicalTitle.toLowerCase().includes(query) ||
         group.description.toLowerCase().includes(query) ||
         group.variants.some((variant) => variant.label.toLowerCase().includes(query))
       )
@@ -1416,6 +1813,34 @@ export function BenchmarkDetail({ summary, benchmarkCards }: BenchmarkDetailProp
         .filter((section) => section.suites.length > 0),
     [groupedFilteredBenchmarkGroups, modelIds, peerRanks, getRelevanceScore]
   )
+
+  const categoryScoreRanges = useMemo(() => {
+    const ranges = new Map<CategoryType, ScoreRange>()
+
+    for (const section of categorySuiteSections) {
+      ranges.set(
+        section.category,
+        getScoreRange(section.suites.map((suite) => suite.avgNormalizedScore))
+      )
+    }
+
+    return ranges
+  }, [categorySuiteSections])
+
+  const suiteBenchmarkScoreRanges = useMemo(() => {
+    const ranges = new Map<string, ScoreRange>()
+
+    for (const section of categorySuiteSections) {
+      for (const suite of section.suites) {
+        ranges.set(
+          suite.suiteKey,
+          getScoreRange(suite.benchmarks.map((group) => group.avgNormalizedScore))
+        )
+      }
+    }
+
+    return ranges
+  }, [categorySuiteSections])
 
   const benchmarkGroupLookup = useMemo(
     () => new Map(benchmarkGroups.map((group) => [group.key, group] as const)),
@@ -1502,7 +1927,946 @@ export function BenchmarkDetail({ summary, benchmarkCards }: BenchmarkDetailProp
       setActiveBenchmarkGroupKey(groupKey)
     }
   }
-  
+
+  // Model comparison logic
+  const comparisonModels = useMemo(() => {
+    if (!modelCards || modelCards.length === 0) return []
+    // Exclude the current model
+    return modelCards.filter(m => m.id !== modelId)
+  }, [modelCards, modelId])
+
+  // Per-benchmark extras added via the "+" button on each histogram.
+  const [extraModelsByBenchmark, setExtraModelsByBenchmark] = useState<Record<string, string[]>>({})
+  // Whether a plotbox's subtasks drawer is expanded.
+  const [expandedPlotboxes, setExpandedPlotboxes] = useState<Set<string>>(new Set())
+  // All histogram data now comes from `comparisonIndex` (comparison-index.json),
+  // the backend-authoritative per-(eval, metric) leaderboard artifact. The old
+  // `top_scores`-on-model-cards and per-eval-detail fan-out paths are retired.
+
+  type HistogramBar = {
+    modelId: string
+    modelName: string
+    score: number
+    isCurrent: boolean
+    isDefault: boolean
+    submissionCount: number
+    submissionAxis: SubmissionAxis
+    headlineRunLabel?: string
+    submissions?: ComparisonScoreEntry["submissions"]
+    variantKey?: string
+  }
+
+  type BenchmarkHistogram = {
+    histKey: string
+    evalSummaryId: string
+    metricSummaryId: string
+    metricName: string
+    metricGroup: ComparisonMetricEntry["group"]
+    lowerIsBetter: boolean
+    unit: string | null
+    bars: HistogramBar[]
+    availableModels: Array<{
+      id: string
+      name: string
+      score: number
+      submissionCount: number
+      submissionAxis: SubmissionAxis
+    }>
+    defaultIds: Set<string>
+    currentModelRank: { position: number; total: number } | null
+  }
+
+  const histKeyFor = (evalSummaryId: string, metricSummaryId: string) =>
+    `${evalSummaryId}::${metricSummaryId}`
+
+  // Every identifier the current model may appear under in comparison-index.
+  // Used to (a) pull our own score out of `by_model` and (b) drop ourselves
+  // out of the peer score list.
+  const currentModelIdentityKeys = useMemo(() => {
+    const keys = new Set<string>(
+      [
+        summary.model_info.id,
+        (summary as any).model_family_id,
+        (summary.model_info as any).family_id,
+        (summary.model_info as any).model_route_id,
+        ...((summary as any).raw_model_ids ?? []),
+      ].filter(Boolean) as string[]
+    )
+    return keys
+  }, [summary])
+
+  // The primary model_route_id that keys into comparison-index.by_model for
+  // this page. Prefer an explicit route id; otherwise derive one.
+  const currentModelRouteId = useMemo(() => {
+    const explicit =
+      (summary.model_info as any).model_route_id ||
+      (summary as any).model_route_id
+    if (typeof explicit === "string" && explicit.length > 0) return explicit
+    const id = summary.model_info.id || ""
+    return id.replace(/[/]/g, "__")
+  }, [summary])
+
+  // Per-(eval, metric) leaderboards sourced from comparison-index.json.
+  const benchmarkHistograms = useMemo<Map<string, BenchmarkHistogram>>(() => {
+    const result = new Map<string, BenchmarkHistogram>()
+    if (!comparisonIndex) return result
+
+    const currentModelName = getModelDisplayName(summary.model_info.name)
+
+    // Resolve every eval_summary_id we care about from the current model's
+    // benchmarkGroups — this is the intersection of "what this model reports"
+    // and "what comparison-index covers".
+    const wantedEvalIds = new Set<string>()
+    for (const group of benchmarkGroups) {
+      for (const variant of group.variants) {
+        if (variant.evaluation.eval_summary_id) {
+          wantedEvalIds.add(variant.evaluation.eval_summary_id)
+        }
+      }
+    }
+
+    const byModelForCurrent =
+      comparisonIndex.by_model[currentModelRouteId] ?? {}
+
+    for (const evalId of wantedEvalIds) {
+      const evalEntry = comparisonIndex.evals[evalId]
+      if (!evalEntry) continue
+
+      for (const metric of evalEntry.metrics) {
+        const histKey = histKeyFor(evalId, metric.metric_summary_id)
+        const lowerIsBetter = Boolean(metric.lower_is_better)
+
+        // The current model's own row (if present) lives both in scores[] and
+        // in by_model. We look it up by any of the known identity keys and
+        // pull out its score/rank/submission info.
+        let currentRow: ComparisonScoreEntry | undefined
+        for (const s of metric.scores) {
+          if (
+            currentModelIdentityKeys.has(s.model_route_id) ||
+            currentModelIdentityKeys.has(s.model_family_id)
+          ) {
+            currentRow = s
+            break
+          }
+        }
+        const byModelRow =
+          byModelForCurrent[evalId]?.[metric.metric_summary_id]
+
+        const currentScore = currentRow?.score ?? byModelRow?.score
+        if (currentScore == null || !Number.isFinite(currentScore)) {
+          // We don't have a score on this (eval, metric) — skip the histogram.
+          // The tab will just not render.
+          continue
+        }
+        const currentModelRank =
+          currentRow != null
+            ? { position: currentRow.rank, total: currentRow.total }
+            : byModelRow != null
+              ? { position: byModelRow.rank, total: byModelRow.total }
+              : null
+
+        // Peer rows = everything in scores[] that isn't us. Backend already
+        // sorts best-first in the metric's own direction; we preserve that.
+        const peerRows = metric.scores.filter(
+          (s) =>
+            !currentModelIdentityKeys.has(s.model_route_id) &&
+            !currentModelIdentityKeys.has(s.model_family_id)
+        )
+
+        const defaults = new Set<string>()
+        if (peerRows.length > 0) {
+          // Best and worst come straight off the pre-sorted list.
+          defaults.add(peerRows[0].model_route_id)
+          defaults.add(peerRows[peerRows.length - 1].model_route_id)
+          // Two peers closest to the current score.
+          const closest = [...peerRows]
+            .sort(
+              (a, b) =>
+                Math.abs(a.score - currentScore) -
+                Math.abs(b.score - currentScore)
+            )
+            .filter((p) => !defaults.has(p.model_route_id))
+            .slice(0, 2)
+          for (const p of closest) defaults.add(p.model_route_id)
+        }
+
+        const extras = extraModelsByBenchmark[histKey] ?? []
+        const selectedIds = new Set<string>([...defaults, ...extras])
+
+        const peerBars: HistogramBar[] = peerRows
+          .filter((p) => selectedIds.has(p.model_route_id))
+          .map((p) => ({
+            modelId: p.model_route_id,
+            modelName: getModelDisplayName(p.model_family_name),
+            score: p.score,
+            isCurrent: false,
+            isDefault: defaults.has(p.model_route_id),
+            submissionCount: p.submission_count,
+            submissionAxis: p.submission_axis,
+            headlineRunLabel: p.headline_run_label,
+            submissions: p.submissions,
+            variantKey: p.variant_key,
+          }))
+
+        const currentBar: HistogramBar = {
+          modelId: currentModelRouteId,
+          modelName: currentModelName,
+          score: currentScore,
+          isCurrent: true,
+          isDefault: true,
+          submissionCount: currentRow?.submission_count ?? byModelRow?.submission_count ?? 1,
+          submissionAxis:
+            currentRow?.submission_axis ?? byModelRow?.submission_axis ?? "default",
+          headlineRunLabel: currentRow?.headline_run_label,
+          submissions: currentRow?.submissions,
+          variantKey: currentRow?.variant_key,
+        }
+
+        const bars = [currentBar, ...peerBars].sort((a, b) =>
+          lowerIsBetter ? a.score - b.score : b.score - a.score
+        )
+
+        const availableModels = peerRows
+          .filter((p) => !selectedIds.has(p.model_route_id))
+          .map((p) => ({
+            id: p.model_route_id,
+            name: p.model_family_name,
+            score: p.score,
+            submissionCount: p.submission_count,
+            submissionAxis: p.submission_axis,
+          }))
+
+        result.set(histKey, {
+          histKey,
+          evalSummaryId: evalId,
+          metricSummaryId: metric.metric_summary_id,
+          metricName: metric.metric_name,
+          metricGroup: metric.group,
+          lowerIsBetter,
+          unit: metric.unit,
+          bars,
+          availableModels,
+          defaultIds: defaults,
+          currentModelRank,
+        })
+      }
+    }
+
+    return result
+  }, [
+    benchmarkGroups,
+    comparisonIndex,
+    currentModelIdentityKeys,
+    currentModelRouteId,
+    extraModelsByBenchmark,
+    summary.model_info.name,
+  ])
+
+  const togglePlotboxExpanded = (key: string) => {
+    setExpandedPlotboxes((prev) => {
+      const next = new Set(prev)
+      if (next.has(key)) next.delete(key)
+      else next.add(key)
+      return next
+    })
+  }
+
+  // A plotbox is either one eval's metrics as tabs (SciArena: Elo/Cost/Rank)
+  // or one family's evals as tabs (RewardBench 2: rollup + 6 components).
+  // Every plotbox renders the same way — single-tab boxes just hide the tab
+  // bar. Plotbox grouping is driven entirely by comparison-index's own
+  // benchmark_family_key so it stays in sync with the backend.
+  type PlotboxTab = {
+    tabKey: string
+    label: string
+    histKey: string
+    evalSummaryId: string
+    metricSummaryId: string
+    evalDisplayName: string
+    evalEntry: ComparisonEvalEntry
+    metricEntry: ComparisonMetricEntry
+    isRollup: boolean
+    group: BenchmarkGroup
+    variant: BenchmarkVariant
+  }
+
+  type PlotboxUnit = {
+    unitKey: string
+    familyKey: string
+    familyName: string
+    category: CategoryType
+    kind: "single-eval" | "multi-eval"
+    childKindLabel: "metric" | "benchmark" | "component" | "subtask" | null
+    tabs: PlotboxTab[]
+    primaryGroup: BenchmarkGroup
+  }
+
+  // Strip the family name from a child's display so tabs read "Korean" rather
+  // than "Global MMLU Lite Korean" and "Math" rather than "Reward Bench 2 Math".
+  const stripFamilyPrefix = (label: string, familyName: string): string => {
+    if (!familyName) return label
+    const trimmed = label.trim()
+    const fam = familyName.trim()
+    if (trimmed.toLowerCase() === fam.toLowerCase()) return "Overall"
+    if (trimmed.toLowerCase().startsWith(fam.toLowerCase() + " ")) {
+      return trimmed.slice(fam.length).trim()
+    }
+    return trimmed
+  }
+
+  const plotboxUnits = useMemo<PlotboxUnit[]>(() => {
+    if (!comparisonIndex) return []
+
+    type ResolvedGroup = {
+      group: BenchmarkGroup
+      evalEntry: ComparisonEvalEntry
+    }
+    const familyBuckets = new Map<
+      string,
+      { familyName: string; category: CategoryType; resolved: ResolvedGroup[] }
+    >()
+
+    for (const group of filteredBenchmarkGroups) {
+      const evalId = group.variants.find((v) => v.evaluation.eval_summary_id)
+        ?.evaluation.eval_summary_id
+      if (!evalId) continue
+      const evalEntry = comparisonIndex.evals[evalId]
+      if (!evalEntry) continue
+
+      const famKey = evalEntry.benchmark_family_key ?? evalId
+      const famName =
+        evalEntry.benchmark_family_name || evalEntry.display_name || famKey
+      const bucket = familyBuckets.get(famKey) ?? {
+        familyName: famName,
+        category: group.category,
+        resolved: [] as ResolvedGroup[],
+      }
+      bucket.resolved.push({ group, evalEntry })
+      familyBuckets.set(famKey, bucket)
+    }
+
+    const variantFor = (
+      group: BenchmarkGroup,
+      metricSummaryId: string
+    ): BenchmarkVariant => {
+      return (
+        group.variants.find(
+          (v) => v.result.metric_summary_id === metricSummaryId
+        ) ?? group.variants[0]
+      )
+    }
+
+    const units: PlotboxUnit[] = []
+    for (const [famKey, bucket] of familyBuckets.entries()) {
+      const { familyName, category, resolved } = bucket
+
+      if (resolved.length === 1) {
+        // One eval in scope — tabs are the eval's metrics.
+        const { group, evalEntry } = resolved[0]
+        const evalDisplay =
+          evalEntry.display_name || evalEntry.benchmark_leaf_name || group.title
+        const tabs: PlotboxTab[] = evalEntry.metrics.map((metric) => ({
+          tabKey: `${evalEntry.eval_summary_id}::${metric.metric_summary_id}`,
+          label: metric.metric_name || "Score",
+          histKey: histKeyFor(evalEntry.eval_summary_id, metric.metric_summary_id),
+          evalSummaryId: evalEntry.eval_summary_id,
+          metricSummaryId: metric.metric_summary_id,
+          evalDisplayName: evalDisplay,
+          evalEntry,
+          metricEntry: metric,
+          isRollup: false,
+          group,
+          variant: variantFor(group, metric.metric_summary_id),
+        }))
+        if (tabs.length === 0) continue
+        units.push({
+          unitKey: `eval:${evalEntry.eval_summary_id}`,
+          familyKey: famKey,
+          familyName: evalDisplay,
+          category,
+          kind: "single-eval",
+          childKindLabel: tabs.length > 1 ? "metric" : null,
+          tabs,
+          primaryGroup: group,
+        })
+        continue
+      }
+
+      // Multi-eval family — tabs are evals. Each tab uses its eval's primary
+      // metric (metrics[0]), which the backend sorted by group_order +
+      // alphabetical. Secondary metrics show up in the accordion.
+      const rollup =
+        resolved.find(
+          (r) =>
+            r.evalEntry.benchmark_leaf_key != null &&
+            r.evalEntry.benchmark_leaf_key === r.evalEntry.benchmark_family_key
+        ) ?? null
+      const children = rollup ? resolved.filter((r) => r !== rollup) : resolved
+      const ordered: ResolvedGroup[] = rollup ? [rollup, ...children] : children
+
+      const tabs: PlotboxTab[] = []
+      for (const r of ordered) {
+        const metric = r.evalEntry.metrics[0]
+        if (!metric) continue
+        const rawLabel =
+          r.evalEntry.benchmark_leaf_name ||
+          r.evalEntry.display_name ||
+          r.group.title
+        const label =
+          r === rollup ? "Overall" : stripFamilyPrefix(rawLabel, familyName)
+        tabs.push({
+          tabKey: `${r.evalEntry.eval_summary_id}::${metric.metric_summary_id}`,
+          label: label || rawLabel,
+          histKey: histKeyFor(r.evalEntry.eval_summary_id, metric.metric_summary_id),
+          evalSummaryId: r.evalEntry.eval_summary_id,
+          metricSummaryId: metric.metric_summary_id,
+          evalDisplayName: rawLabel,
+          evalEntry: r.evalEntry,
+          metricEntry: metric,
+          isRollup: r === rollup,
+          group: r.group,
+          variant: variantFor(r.group, metric.metric_summary_id),
+        })
+      }
+      if (tabs.length === 0) continue
+
+      let hasComponent = false
+      let hasSubtask = false
+      let hasDistinctLeaves = false
+      for (const r of children) {
+        const leafKey = r.evalEntry.benchmark_leaf_key
+        if (leafKey && leafKey !== r.evalEntry.benchmark_family_key) {
+          hasDistinctLeaves = true
+        }
+        if (r.group.variants[0]?.evaluation.benchmark_component_key ?? null) {
+          hasComponent = true
+        } else {
+          hasSubtask = true
+        }
+      }
+      const childKindLabel: PlotboxUnit["childKindLabel"] =
+        hasComponent && hasSubtask
+          ? "component"
+          : hasComponent
+            ? "metric"
+            : hasDistinctLeaves
+              ? "benchmark"
+              : "subtask"
+
+      units.push({
+        unitKey: `family:${famKey}`,
+        familyKey: famKey,
+        familyName,
+        category,
+        kind: "multi-eval",
+        childKindLabel,
+        tabs,
+        primaryGroup: (rollup ?? children[0] ?? resolved[0]).group,
+      })
+    }
+
+    return units
+  }, [comparisonIndex, filteredBenchmarkGroups])
+
+  // Per-plotbox active tab (tab key → unitKey).
+  const [activeTabByUnit, setActiveTabByUnit] = useState<Record<string, string>>({})
+
+  const getActiveTab = (unit: PlotboxUnit): PlotboxTab => {
+    const explicit = activeTabByUnit[unit.unitKey]
+    if (explicit) {
+      const match = unit.tabs.find((t) => t.tabKey === explicit)
+      if (match) return match
+    }
+    return unit.tabs[0]
+  }
+
+  const submissionChipCopy = (
+    axis: SubmissionAxis,
+    count: number,
+    headlineLabel?: string
+  ): { short: string; long: string } | null => {
+    if (count <= 1 || axis === "default") return null
+    const others = count - 1
+    const variantNoun = (n: number) => (n === 1 ? "variant" : "variants")
+    switch (axis) {
+      case "harness":
+        return {
+          short: `+${others} harness${others === 1 ? "" : "es"}`,
+          long: headlineLabel
+            ? `${headlineLabel} · +${others} harness${others === 1 ? "" : "es"}`
+            : `+${others} harness${others === 1 ? "" : "es"}`,
+        }
+      case "variant":
+        return {
+          short: `+${others} ${variantNoun(others)}`,
+          long: headlineLabel
+            ? `${headlineLabel} · +${others} ${variantNoun(others)}`
+            : `+${others} ${variantNoun(others)}`,
+        }
+      case "rerun":
+        return {
+          short: `+${others} re-run${others === 1 ? "" : "s"}`,
+          long: headlineLabel
+            ? `${headlineLabel} · +${others} re-run${others === 1 ? "" : "s"}`
+            : `+${others} re-run${others === 1 ? "" : "s"}`,
+        }
+      case "mixed":
+        return {
+          short: `+${others} submissions`,
+          long: `+${others} submissions`,
+        }
+    }
+  }
+
+  const renderPlotbox = (unit: PlotboxUnit) => {
+    const activeTab = getActiveTab(unit)
+    if (!activeTab) return null
+
+    const hist = benchmarkHistograms.get(activeTab.histKey)
+
+    // Fallback: no comparison rows loaded yet, or the metric has zero peers.
+    // Still draw the current model's own bar from BenchmarkGroup data.
+    const activeHist: BenchmarkHistogram = hist ?? {
+      histKey: activeTab.histKey,
+      evalSummaryId: activeTab.evalSummaryId,
+      metricSummaryId: activeTab.metricSummaryId,
+      metricName: activeTab.metricEntry.metric_name,
+      metricGroup: activeTab.metricEntry.group,
+      lowerIsBetter: Boolean(activeTab.metricEntry.lower_is_better),
+      unit: activeTab.metricEntry.unit,
+      bars: [
+        {
+          modelId: currentModelRouteId,
+          modelName: getModelDisplayName(summary.model_info.name),
+          score: activeTab.variant.result.score_details.score,
+          isCurrent: true,
+          isDefault: true,
+          submissionCount: 1,
+          submissionAxis: "default",
+        },
+      ],
+      availableModels: [],
+      defaultIds: new Set<string>(),
+      currentModelRank: null,
+    }
+
+    const scores = activeHist.bars.map((b) => b.score)
+    const rawMax = Math.max(...scores)
+    const rawMin = Math.min(...scores)
+    const hasSpread = rawMax !== rawMin
+    const domainMin = hasSpread ? rawMin - (rawMax - rawMin) * 0.15 : Math.min(0, rawMin)
+    const domainMax = hasSpread
+      ? rawMax + (rawMax - rawMin) * 0.15
+      : rawMax === 0
+        ? 1
+        : rawMax * 1.2
+    const range = domainMax - domainMin || 1
+
+    const bestScore = activeHist.lowerIsBetter ? rawMin : rawMax
+    const worstScore = activeHist.lowerIsBetter ? rawMax : rawMin
+    let bestBarId: string | null = null
+    let worstBarId: string | null = null
+    if (hasSpread) {
+      for (const b of activeHist.bars) {
+        if (!bestBarId && b.score === bestScore) bestBarId = b.modelId
+        if (!worstBarId && b.score === worstScore) worstBarId = b.modelId
+      }
+    }
+
+    const rank = activeHist.currentModelRank
+    const plotboxKey = unit.unitKey
+    const hasTabBar = unit.tabs.length > 1
+    const childKindCount = unit.tabs.length - (unit.tabs.some((t) => t.isRollup) ? 1 : 0)
+    const showChildKindBadge =
+      hasTabBar && unit.childKindLabel != null && childKindCount > 0
+    const childKindPlural =
+      unit.childKindLabel === "metric"
+        ? childKindCount === 1 ? "metric" : "metrics"
+        : unit.childKindLabel === "subtask"
+          ? childKindCount === 1 ? "subtask" : "subtasks"
+          : unit.childKindLabel === "benchmark"
+            ? childKindCount === 1 ? "benchmark" : "benchmarks"
+            : childKindCount === 1 ? "component" : "components"
+
+    // Accordion data depends on the unit kind:
+    // - single-eval: per-variant (language / subtask / setup) splits of this
+    //   eval on the active metric, pulled from the current model's variants.
+    // - multi-eval: secondary metrics for the active child eval (the metrics
+    //   that aren't headline/tab material).
+    type AccordionRow = { label: string; score: string }
+    const accordion: { title: string; rows: AccordionRow[] } | null = (() => {
+      if (unit.kind === "single-eval") {
+        const variants = activeTab.group.variants.filter(
+          (v) =>
+            (v.result.metric_summary_id ?? "") === activeTab.metricSummaryId
+        )
+        if (variants.length <= 1) return null
+        return {
+          title: `${variants.length} splits`,
+          rows: variants.map((v) => ({
+            label: v.subtaskLabel || v.setupLabel || v.label,
+            score: v.displayScore,
+          })),
+        }
+      }
+      // multi-eval
+      const secondaryMetrics = activeTab.evalEntry.metrics.filter(
+        (m) => m.metric_summary_id !== activeTab.metricSummaryId
+      )
+      if (secondaryMetrics.length === 0) return null
+      const rows: AccordionRow[] = secondaryMetrics
+        .map((m) => {
+          // Current model's score on this secondary metric.
+          const byModelRow =
+            comparisonIndex?.by_model?.[currentModelRouteId]?.[
+              activeTab.evalSummaryId
+            ]?.[m.metric_summary_id]
+          const scoreVal =
+            byModelRow?.score ??
+            activeTab.group.variants.find(
+              (v) => v.result.metric_summary_id === m.metric_summary_id
+            )?.result.score_details.score
+          if (scoreVal == null || !Number.isFinite(scoreVal)) return null
+          return {
+            label: m.metric_name,
+            score: formatRawScoreValue(scoreVal, m.unit ?? undefined),
+          }
+        })
+        .filter((r): r is AccordionRow => r != null)
+      if (rows.length === 0) return null
+      return {
+        title: `${rows.length} other metric${rows.length === 1 ? "" : "s"}`,
+        rows,
+      }
+    })()
+
+    return (
+      <div
+        key={plotboxKey}
+        className="flex h-full flex-col rounded-2xl border border-border/70 bg-card p-4 shadow-sm"
+      >
+        {/* Header */}
+        <div className="flex items-start justify-between gap-2">
+          <div className="min-w-0 flex-1">
+            <div className="flex flex-wrap items-center gap-1.5">
+              <span
+                className={`inline-flex items-center rounded-full border px-2 py-0.5 text-[10px] font-semibold ${getCategoryTone(unit.category)}`}
+              >
+                {unit.category}
+              </span>
+              {showChildKindBadge && (
+                <span className="inline-flex items-center rounded-full border border-border/60 bg-muted/30 px-2 py-0.5 text-[10px] font-medium text-muted-foreground">
+                  {childKindCount} {childKindPlural}
+                </span>
+              )}
+              {rank && (
+                <span className="inline-flex items-center rounded-full border border-border/60 bg-background px-2 py-0.5 text-[10px] font-semibold tabular-nums text-muted-foreground">
+                  #{rank.position}
+                  {rank.total ? `/${rank.total}` : ""}
+                </span>
+              )}
+            </div>
+            <button
+              type="button"
+              onClick={() => jumpToDeepDive(activeTab.group.key)}
+              className="mt-2 block w-full truncate text-left text-sm font-semibold underline decoration-dotted underline-offset-4 hover:text-primary"
+              title={unit.familyName}
+            >
+              {unit.familyName}
+            </button>
+            <div className="mt-0.5 text-[10px] uppercase tracking-[0.14em] text-muted-foreground">
+              {activeHist.lowerIsBetter ? "Lower is better" : "Higher is better"}
+            </div>
+          </div>
+          {activeHist.availableModels.length > 0 && (
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="h-7 w-7 shrink-0 rounded-full p-0"
+                  aria-label="Add a model to this histogram"
+                >
+                  <Plus className="h-3.5 w-3.5" />
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent
+                align="end"
+                className="max-h-72 w-64 overflow-y-auto"
+              >
+                <DropdownMenuLabel className="text-[11px] uppercase tracking-[0.14em] text-muted-foreground">
+                  Add model
+                </DropdownMenuLabel>
+                <DropdownMenuSeparator />
+                {activeHist.availableModels.slice(0, 80).map((m) => (
+                  <DropdownMenuItem
+                    key={m.id}
+                    onSelect={() => {
+                      setExtraModelsByBenchmark((prev) => {
+                        const current = prev[activeHist.histKey] ?? []
+                        if (current.includes(m.id)) return prev
+                        return { ...prev, [activeHist.histKey]: [...current, m.id] }
+                      })
+                    }}
+                    className="flex items-center justify-between gap-4 text-xs"
+                  >
+                    <span className="truncate">{getModelDisplayName(m.name)}</span>
+                    <span className="font-mono text-[10px] text-muted-foreground tabular-nums">
+                      {formatRawScoreValue(m.score)}
+                    </span>
+                  </DropdownMenuItem>
+                ))}
+              </DropdownMenuContent>
+            </DropdownMenu>
+          )}
+        </div>
+
+        {/* Tab row (shown only when there are multiple tabs) */}
+        {hasTabBar && (
+          <div className="mt-3 -mx-1 flex flex-wrap gap-1">
+            {unit.tabs.map((tab) => {
+              const isActive = tab.tabKey === activeTab.tabKey
+              return (
+                <button
+                  key={tab.tabKey}
+                  type="button"
+                  onClick={() =>
+                    setActiveTabByUnit((prev) => ({
+                      ...prev,
+                      [unit.unitKey]: tab.tabKey,
+                    }))
+                  }
+                  className={`rounded-full border px-2.5 py-0.5 text-[11px] font-medium transition-colors ${
+                    isActive
+                      ? "border-foreground/50 bg-foreground text-background"
+                      : "border-border/60 bg-background text-muted-foreground hover:text-foreground"
+                  }`}
+                  aria-pressed={isActive}
+                >
+                  {tab.label}
+                </button>
+              )
+            })}
+          </div>
+        )}
+
+        {/* Spacer pushes the chart to the bottom of the card so bar baselines
+            align across plotboxes regardless of whether a tab row is present. */}
+        <div className="flex-1" />
+
+        {/* Chart */}
+        <div
+          className="relative mt-4 grid gap-1.5"
+          style={{
+            gridTemplateColumns: `repeat(${activeHist.bars.length}, minmax(0, 1fr))`,
+          }}
+        >
+          {activeHist.bars.map((bar) => {
+            const normalized = (bar.score - domainMin) / range
+            const clampedNorm = Math.max(Math.min(normalized, 1), 0)
+            const heightPct = Math.max(clampedNorm * 100, 4)
+            const isExtra = !activeHist.defaultIds.has(bar.modelId) && !bar.isCurrent
+            const isBest = bar.modelId === bestBarId && !bar.isCurrent
+            const isWorst =
+              bar.modelId === worstBarId && !bar.isCurrent && bestBarId !== worstBarId
+
+            return (
+              <div
+                key={bar.modelId}
+                className="group flex min-w-0 flex-col items-center"
+              >
+                <div className="relative flex h-44 w-full items-end">
+                  <div
+                    className={`w-full rounded-t-sm transition-all duration-300 ${
+                      bar.isCurrent
+                        ? "shadow-[0_1px_0_rgba(90,170,209,0.18)]"
+                        : isExtra
+                          ? "bg-amber-300/70 dark:bg-amber-400/60"
+                          : isBest
+                            ? "bg-muted-foreground/60"
+                            : isWorst
+                              ? "bg-muted-foreground/15"
+                              : "bg-muted-foreground/30"
+                    }`}
+                    style={{
+                      height: `${heightPct}%`,
+                      ...(bar.isCurrent
+                        ? {
+                            background:
+                              "linear-gradient(to top, #5aaad1, #9bcbe3)",
+                          }
+                        : {}),
+                    }}
+                  />
+                  <div
+                    className="pointer-events-none absolute left-1/2 -translate-x-1/2 text-[10px] font-semibold tabular-nums text-foreground/80"
+                    style={{ bottom: `calc(${heightPct}% + 2px)` }}
+                  >
+                    {formatRawScoreValue(bar.score, activeHist.unit ?? undefined)}
+                  </div>
+                  {isExtra && (
+                    <button
+                      type="button"
+                      aria-label={`Remove ${bar.modelName}`}
+                      onClick={() => {
+                        setExtraModelsByBenchmark((prev) => {
+                          const next = (prev[activeHist.histKey] ?? []).filter(
+                            (id) => id !== bar.modelId
+                          )
+                          const copy = { ...prev }
+                          if (next.length === 0) delete copy[activeHist.histKey]
+                          else copy[activeHist.histKey] = next
+                          return copy
+                        })
+                      }}
+                      className="absolute -right-1 -top-1 hidden h-4 w-4 items-center justify-center rounded-full border border-border/80 bg-background text-muted-foreground shadow-sm transition hover:text-destructive group-hover:flex"
+                    >
+                      <X className="h-2.5 w-2.5" />
+                    </button>
+                  )}
+                </div>
+                <div
+                  className={`mt-1.5 w-full truncate text-center text-[10px] leading-tight ${
+                    bar.isCurrent
+                      ? "font-semibold text-foreground"
+                      : "text-muted-foreground"
+                  }`}
+                  title={bar.modelName}
+                >
+                  {bar.modelName}
+                </div>
+                {(() => {
+                  const chip = submissionChipCopy(
+                    bar.submissionAxis,
+                    bar.submissionCount,
+                    bar.headlineRunLabel
+                  )
+                  if (!chip) return null
+                  const submissions = bar.submissions ?? []
+                  const trigger = (
+                    <button
+                      type="button"
+                      className="mt-0.5 inline-flex max-w-full items-center gap-1 truncate rounded-full border border-border/60 bg-muted/20 px-1.5 py-[1px] text-[9px] font-medium text-muted-foreground hover:text-foreground"
+                      title={chip.long}
+                    >
+                      {chip.short}
+                    </button>
+                  )
+                  if (submissions.length === 0) return trigger
+                  return (
+                    <DropdownMenu>
+                      <DropdownMenuTrigger asChild>{trigger}</DropdownMenuTrigger>
+                      <DropdownMenuContent align="center" className="max-h-72 w-72 overflow-y-auto">
+                        <DropdownMenuLabel className="flex items-center justify-between gap-3 text-[11px] uppercase tracking-[0.14em] text-muted-foreground">
+                          <span>{bar.modelName}</span>
+                          <span className="font-mono tabular-nums">{chip.short}</span>
+                        </DropdownMenuLabel>
+                        <DropdownMenuSeparator />
+                        {submissions.map((s, i) => (
+                          <DropdownMenuItem
+                            key={`${s.run_kind}::${s.run_label}::${i}`}
+                            className="flex items-center justify-between gap-3 text-xs"
+                            onSelect={(e) => e.preventDefault()}
+                          >
+                            <span className="min-w-0 flex-1 truncate">
+                              <span className="mr-1 rounded bg-muted px-1 py-[1px] text-[9px] font-semibold uppercase tracking-[0.08em] text-muted-foreground">
+                                {s.run_kind}
+                              </span>
+                              {s.run_label}
+                            </span>
+                            <span className="font-mono tabular-nums">
+                              {formatRawScoreValue(s.score, activeHist.unit ?? undefined)}
+                            </span>
+                          </DropdownMenuItem>
+                        ))}
+                      </DropdownMenuContent>
+                    </DropdownMenu>
+                  )
+                })()}
+              </div>
+            )
+          })}
+        </div>
+
+        {hasSpread && domainMin > 0.0001 && (
+          <div className="mt-1 flex items-center justify-center gap-1.5 text-[9px] text-muted-foreground/80">
+            <svg
+              aria-hidden
+              width="14"
+              height="8"
+              viewBox="0 0 14 8"
+              className="shrink-0"
+            >
+              <path
+                d="M0 4 L3 4 L5 1 L7 7 L9 1 L11 7 L14 4"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="1"
+              />
+            </svg>
+            <span className="font-mono tabular-nums">
+              axis zoomed: {formatRawScoreValue(domainMin, activeHist.unit ?? undefined)} –{" "}
+              {formatRawScoreValue(domainMax, activeHist.unit ?? undefined)}
+            </span>
+          </div>
+        )}
+
+        {accordion && (
+          <div className="mt-3 border-t border-border/40 pt-3">
+            <button
+              type="button"
+              onClick={() => togglePlotboxExpanded(plotboxKey)}
+              aria-expanded={expandedPlotboxes.has(plotboxKey)}
+              className="flex w-full items-center justify-between gap-2 text-left text-[11px] font-semibold uppercase tracking-[0.14em] text-muted-foreground hover:text-foreground"
+            >
+              <span>{accordion.title}</span>
+              <ChevronDown
+                className={`h-3.5 w-3.5 transition-transform ${
+                  expandedPlotboxes.has(plotboxKey) ? "rotate-180" : ""
+                }`}
+              />
+            </button>
+            {expandedPlotboxes.has(plotboxKey) && (
+              <ul className="mt-2 max-h-60 space-y-1 overflow-y-auto pr-1">
+                {accordion.rows.map((row, i) => (
+                  <li
+                    key={`${row.label}::${i}`}
+                    className="flex items-center justify-between gap-2 rounded-md bg-muted/20 px-2 py-1 text-[11px]"
+                  >
+                    <span
+                      className="min-w-0 flex-1 truncate text-muted-foreground"
+                      title={row.label}
+                    >
+                      {row.label}
+                    </span>
+                    <span className="shrink-0 font-mono tabular-nums text-foreground/80">
+                      {row.score}
+                    </span>
+                  </li>
+                ))}
+                <li className="pt-1.5">
+                  <button
+                    type="button"
+                    onClick={() => jumpToDeepDive(activeTab.group.key)}
+                    className="text-[11px] font-medium text-primary underline decoration-dotted underline-offset-4 hover:text-primary/80"
+                  >
+                    View deep dive →
+                  </button>
+                </li>
+              </ul>
+            )}
+          </div>
+        )}
+
+        {!hist && (
+          <div className="mt-2 text-[10px] text-muted-foreground/70">
+            {comparisonIndex ? "No peer scores for this metric." : "Loading comparison data…"}
+          </div>
+        )}
+      </div>
+    )
+  }
+
   return (
     <div className="space-y-4">
       <Card className="overflow-hidden">
@@ -1524,9 +2888,9 @@ export function BenchmarkDetail({ summary, benchmarkCards }: BenchmarkDetailProp
               </div>
 
               <div className="space-y-1">
-                <div className="text-2xl font-semibold tracking-tight sm:text-[1.9rem]">{summary.model_info.name}</div>
+                <div className="text-2xl font-semibold tracking-tight sm:text-[1.9rem]">{getModelDisplayName(summary.model_info.name)}</div>
                 <div className="text-sm text-muted-foreground">
-                  {summary.model_info.developer}
+                  {getOrganizationDisplayName(summary.model_info.developer)}
                   {policySummary.modelScaleDescription ? ` · ${policySummary.modelScaleDescription}` : ""}
                 </div>
               </div>
@@ -1851,181 +3215,75 @@ export function BenchmarkDetail({ summary, benchmarkCards }: BenchmarkDetailProp
           </div>
         </div>
 
-        {filteredBenchmarkGroups.length === 0 ? (
+        {filteredBenchmarkGroups.length === 0 || plotboxUnits.length === 0 ? (
           <div className="rounded-2xl border border-dashed p-8 text-center text-sm text-muted-foreground">
             No benchmarks match the current search or category filters.
           </div>
         ) : (
-          <div className="space-y-5">
-            <div className="space-y-4">
-              {categorySuiteSections.map((section) => (
-                <section key={`suite-section-${section.category}`} className="space-y-2.5">
-                  <div className="flex items-center justify-between gap-3">
-                    <div className="flex items-center gap-2">
-                      <span className={`inline-flex items-center rounded-full border px-3 py-1 text-xs font-semibold ${getCategoryTone(section.category)}`}>
-                        {section.category}
-                      </span>
-                      <span className="text-xs text-muted-foreground">
-                        {section.suites.length} suite{section.suites.length === 1 ? "" : "s"}
-                      </span>
-                    </div>
-                  </div>
+          (() => {
+            // Group plotbox units by category, preserving the order in
+            // summary.categories_covered. Within each category, standalone
+            // families render as a visually grouped block (e.g. Fibble), while
+            // composite benchmarks and single leaves share one responsive grid.
+            const categoryOrder = new Map(
+              summary.categories_covered.map((cat, i) => [cat, i])
+            )
+            const byCategory = new Map<CategoryType, PlotboxUnit[]>()
+            for (const unit of plotboxUnits) {
+              const list = byCategory.get(unit.category) ?? []
+              list.push(unit)
+              byCategory.set(unit.category, list)
+            }
+            const orderedCategories = Array.from(byCategory.keys()).sort(
+              (a, b) =>
+                (categoryOrder.get(a) ?? 999) - (categoryOrder.get(b) ?? 999)
+            )
 
-                  <div className="overflow-hidden rounded-2xl border border-border/70 bg-card">
-                    <div className="grid grid-cols-[minmax(0,1.55fr)_minmax(180px,1fr)_84px] items-center border-b bg-muted/20 px-3 py-2 text-[11px] font-semibold uppercase tracking-[0.16em] text-muted-foreground">
-                      <div>Benchmark Suite</div>
-                      <div className="text-right">Score</div>
-                      <div className="text-right">Rank</div>
-                    </div>
+            return (
+              <div className="space-y-6">
+                {orderedCategories.map((category) => {
+                  const units = byCategory.get(category) ?? []
+                  const familyCount = units.filter(
+                    (u) => u.kind === "multi-eval"
+                  ).length
+                  // Each tab represents one (eval, metric) comparison; a unit
+                  // with N tabs contributes N cells to the total.
+                  const totalBenchmarks = units.reduce(
+                    (sum, u) => sum + u.tabs.length,
+                    0
+                  )
 
-                    <div className="divide-y">
-                      {section.suites.map((suite) => {
-                        const isSingle = suite.benchmarks.length === 1
-                        const isExpanded = expandedSuites.has(suite.suiteKey)
-                        const suiteScorePercent = Math.max(4, Math.min(100, suite.avgNormalizedScore * 100))
-                        const singleGroup = isSingle ? suite.benchmarks[0] : null
-                        const singleRank = singleGroup ? getGroupPeerRank(singleGroup, modelIds, peerRanks) : null
-                        const suiteBadgeMeta = getSuiteBadgeMeta(suite)
+                  return (
+                    <section
+                      key={`category-section-${category}`}
+                      className="space-y-3"
+                    >
+                      <div className="flex flex-wrap items-center gap-2">
+                        <span
+                          className={`inline-flex items-center rounded-full border px-3 py-1 text-xs font-semibold ${getCategoryTone(category)}`}
+                        >
+                          {category}
+                        </span>
+                        <span className="text-xs text-muted-foreground">
+                          {totalBenchmarks} benchmark{totalBenchmarks === 1 ? "" : "s"}
+                          {familyCount > 0 && (
+                            <>
+                              {" "}· {familyCount}{" "}
+                              {familyCount === 1 ? "family" : "families"}
+                            </>
+                          )}
+                        </span>
+                      </div>
 
-                        return (
-                          <div key={`suite-${section.category}-${suite.suiteKey}`}>
-                            {isSingle ? (
-                              <div className="grid grid-cols-[minmax(0,1.55fr)_minmax(180px,1fr)_84px] items-center gap-3 px-3 py-3">
-                                <div className="min-w-0 pl-[1.625rem]">
-                                  <div className="flex min-w-0 flex-wrap items-center gap-2">
-                                    <button
-                                      type="button"
-                                      onClick={() => singleGroup && jumpToDeepDive(singleGroup.key)}
-                                      className="truncate text-left text-sm font-semibold underline decoration-dotted underline-offset-4 hover:text-primary"
-                                    >
-                                      {suite.suiteName}
-                                    </button>
-                                    {suiteBadgeMeta && (
-                                      <span className={`shrink-0 rounded-full border px-2 py-0.5 text-[10px] font-semibold ${suiteBadgeMeta.className}`}>
-                                        {suiteBadgeMeta.count} {suiteBadgeMeta.label}
-                                      </span>
-                                    )}
-                                  </div>
-                                </div>
-
-                                <div className="min-w-0">
-                                  <div className="flex items-center gap-2.5">
-                                    <div className="h-1.5 flex-1 overflow-hidden rounded-full bg-muted">
-                                      <div className="h-full rounded-full bg-foreground/80" style={{ width: `${suiteScorePercent}%` }} />
-                                    </div>
-                                    <span className="w-14 shrink-0 text-right text-sm font-semibold tabular-nums">
-                                      {singleGroup!.avgDisplayScore}
-                                    </span>
-                                  </div>
-                                </div>
-
-                                <div className="text-right text-xs tabular-nums text-muted-foreground">
-                                  {singleRank != null
-                                    ? `#${singleRank.position}${singleRank.total ? `/${singleRank.total}` : ""}`
-                                    : Object.keys(peerRanks).length === 0 ? "…" : "—"}
-                                </div>
-                              </div>
-                            ) : (
-                              <>
-                                <div className="grid grid-cols-[minmax(0,1.55fr)_minmax(180px,1fr)_84px] items-center gap-3 px-3 py-3 transition-colors hover:bg-muted/20">
-                                  <div className="flex min-w-0 items-center gap-2">
-                                    <button
-                                      type="button"
-                                      onClick={() => toggleSuite(suite.suiteKey)}
-                                      className="inline-flex h-6 w-6 shrink-0 items-center justify-center rounded-full text-muted-foreground transition-colors hover:bg-muted"
-                                      aria-expanded={isExpanded}
-                                      aria-label={isExpanded ? `Collapse ${suite.suiteName}` : `Expand ${suite.suiteName}`}
-                                    >
-                                      <svg
-                                        className={`h-3.5 w-3.5 shrink-0 transition-transform ${isExpanded ? "rotate-90" : ""}`}
-                                        fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}
-                                      >
-                                        <path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" />
-                                      </svg>
-                                    </button>
-                                    <button
-                                      type="button"
-                                      onClick={() => toggleSuite(suite.suiteKey)}
-                                      className="truncate text-left text-sm font-semibold hover:text-primary"
-                                      aria-expanded={isExpanded}
-                                    >
-                                      {suite.suiteName}
-                                    </button>
-                                    {suiteBadgeMeta && (
-                                      <span className={`shrink-0 rounded-full border px-2 py-0.5 text-[10px] font-semibold ${suiteBadgeMeta.className}`}>
-                                        {suiteBadgeMeta.count} {suiteBadgeMeta.label}
-                                      </span>
-                                    )}
-                                  </div>
-
-                                  <div className="min-w-0">
-                                    <div className="flex items-center gap-2.5">
-                                      <div className="h-1.5 flex-1 overflow-hidden rounded-full bg-muted">
-                                        <div className="h-full rounded-full bg-foreground/80" style={{ width: `${suiteScorePercent}%` }} />
-                                      </div>
-                                      <span className="w-14 shrink-0 text-right text-sm font-semibold tabular-nums">
-                                        {suite.avgDisplayScore}
-                                      </span>
-                                    </div>
-                                  </div>
-
-                                  <div className="text-right text-xs tabular-nums text-muted-foreground">
-                                    {suite.bestRank != null
-                                      ? `#${suite.bestRank.position}${suite.bestRank.total ? `/${suite.bestRank.total}` : ""}`
-                                      : Object.keys(peerRanks).length === 0 ? "…" : "—"}
-                                  </div>
-                                </div>
-
-                                {isExpanded && (
-                                  <div className="border-t border-border/40 bg-muted/5">
-                                    {suite.benchmarks.map((group) => {
-                                      const scorePercent = Math.max(4, Math.min(100, group.avgNormalizedScore * 100))
-                                      const rank = getGroupPeerRank(group, modelIds, peerRanks)
-
-                                      return (
-                                        <div key={`sub-${group.key}`} className="grid grid-cols-[minmax(0,1.55fr)_minmax(180px,1fr)_84px] items-center gap-3 px-3 py-2 pl-9">
-                                          <div className="min-w-0">
-                                            <button
-                                              type="button"
-                                              onClick={() => jumpToDeepDive(group.key)}
-                                              className="truncate text-left text-[13px] text-muted-foreground underline decoration-dotted underline-offset-4 hover:text-primary"
-                                            >
-                                              {group.title}
-                                            </button>
-                                          </div>
-
-                                          <div className="min-w-0">
-                                            <div className="flex items-center gap-2.5">
-                                              <div className="h-1 flex-1 overflow-hidden rounded-full bg-muted">
-                                                <div className="h-full rounded-full bg-foreground/50" style={{ width: `${scorePercent}%` }} />
-                                              </div>
-                                              <span className="w-14 shrink-0 text-right text-[13px] tabular-nums text-muted-foreground">
-                                                {group.avgDisplayScore}
-                                              </span>
-                                            </div>
-                                          </div>
-
-                                          <div className="text-right text-xs tabular-nums text-muted-foreground">
-                                            {rank != null
-                                              ? `#${rank.position}${rank.total ? `/${rank.total}` : ""}`
-                                              : "—"}
-                                          </div>
-                                        </div>
-                                      )
-                                    })}
-                                  </div>
-                                )}
-                              </>
-                            )}
-                          </div>
-                        )
-                      })}
-                    </div>
-                  </div>
-                </section>
-              ))}
-            </div>
-          </div>
+                      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
+                        {units.map((unit) => renderPlotbox(unit))}
+                      </div>
+                    </section>
+                  )
+                })}
+              </div>
+            )
+          })()
         )}
       </section>
 
@@ -2191,7 +3449,7 @@ function SampleDataDialog({
                       </TableCell>
                       <TableCell className="align-top text-right">
                         <div className="font-semibold text-sm">
-                          {typeof sample.score === 'number' ? (sample.score * 100).toFixed(1) + '%' : sample.score || 'N/A'}
+                          {typeof sample.score === 'number' ? formatRawScoreValue(sample.score) : sample.score || 'N/A'}
                         </div>
                       </TableCell>
                     </TableRow>
@@ -2287,21 +3545,15 @@ function BenchmarkResultCard({
   const isHigh = normalized >= 0.8
   const isMedium = normalized >= 0.6
   
-  let displayScore = score.toFixed(2)
-  let displayUnit = unit || "Accuracy"
+    let displayScore = formatRawScoreValue(score)
+    let displayUnit = normalizeDisplayLabel(unit) || "Score"
   const evaluationVariant = getEvaluationVariantLabel(evaluation)
   
-  if (unit === 'accuracy' || !unit) {
-      displayScore = (score * 100).toFixed(1) + "%"
-      displayUnit = "Accuracy"
-  } else if (unit === 'points') {
+    if (unit === 'points') {
       displayScore = score.toFixed(1)
       displayUnit = "/ 10"
-  } else if (unit === 'pass@1') {
-      displayScore = (score * 100).toFixed(1) + "%"
-      displayUnit = "Pass@1"
-  } else {
-      displayUnit = unit.charAt(0).toUpperCase() + unit.slice(1)
+    } else if (unit === 'accuracy' || unit === 'pass@1' || !unit) {
+      displayUnit = normalizeDisplayLabel(unit) || "Accuracy"
   }
 
   return (
@@ -2354,15 +3606,15 @@ function BenchmarkResultCard({
                   <div className="space-y-2 text-sm">
                     <div className="flex justify-between">
                       <span className="text-muted-foreground">Organization:</span>
-                      <span className="font-medium">{evaluation.source_metadata.source_organization_name}</span>
+                      <span className="font-medium">{getOrganizationDisplayName(evaluation.source_metadata.source_organization_name)}</span>
                     </div>
                     <div className="flex justify-between">
                       <span className="text-muted-foreground">Relationship:</span>
-                      <Badge variant="outline" className="text-xs">{evaluation.source_metadata.evaluator_relationship}</Badge>
+                      <Badge variant="outline" className="text-xs">{getRelationshipDisplayName(evaluation.source_metadata.evaluator_relationship)}</Badge>
                     </div>
                     <div className="flex justify-between">
                       <span className="text-muted-foreground">Source Type:</span>
-                      <span className="capitalize">{evaluation.source_metadata.source_type.replace(/_/g, ' ')}</span>
+                      <span>{getSourceTypeDisplayName(evaluation.source_metadata.source_type)}</span>
                     </div>
                     {evaluationVariant && (
                       <div className="flex justify-between">
@@ -2456,7 +3708,7 @@ function BenchmarkResultCard({
                         
                         if (typeof value === 'number') {
                             if (unit === 'accuracy' || !unit || unit === 'pass@1') {
-                                valDisplay = (value * 100).toFixed(1) + "%";
+                                valDisplay = formatRawScoreValue(value);
                                 normalized_subtask = value;
                             } else {
                                 valDisplay = value.toFixed(2);
@@ -2709,7 +3961,7 @@ function AggregatedBenchmarkCard({
   const activeFilterCount = Object.values(selectedFilters).filter((value) => value && value !== "all").length
   const leaderNormalizedScore = filteredRows[0]?.variant.normalizedScore ?? 0
   const spread = getBenchmarkSpread(group)
-  const sourceOrganizations = new Set(group.variants.map((variant) => variant.evaluation.source_metadata.source_organization_name))
+  const sourceOrganizations = new Set(group.variants.map((variant) => getOrganizationDisplayName(variant.evaluation.source_metadata.source_organization_name)))
   const latestTimestamp = group.variants.reduce((latest, variant) => {
     const value = Number.parseFloat(variant.evaluation.retrieved_timestamp)
     return Number.isFinite(value) ? Math.max(latest, value) : latest
@@ -2878,12 +4130,12 @@ function AggregatedBenchmarkCard({
 
               <div>
                 <div className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">
-                  Subtasks
+                  Metrics & Breakdown
                 </div>
                 <div className="text-xs text-muted-foreground mt-1">
                   {isResearchView
-                    ? "Setup changes and benchmark subtasks are shown separately so you can tell methodological differences from benchmark decomposition."
-                    : "Different setups and benchmark subtasks are visually separated so policy review does not confuse reporting choices with benchmark decomposition."}
+                    ? "Benchmark-level metrics and true benchmark subdivisions are shown separately from setup changes so the backend hierarchy stays intact."
+                    : "Root benchmark metrics and real benchmark breakdowns are shown without inventing extra hierarchy in the UI."}
                 </div>
               </div>
 
@@ -2965,7 +4217,8 @@ function AggregatedBenchmarkCard({
                     const { rowKey, variant } = row
                     const isRowOpen = expandedRows[rowKey] ?? false
                     const hasSourceLink = Boolean(variant.evaluation.source_metadata.source_url)
-                    const gapToLeader = Math.max(0, leaderNormalizedScore - variant.normalizedScore)
+                    const leaderRawScore = filteredRows[0]?.variant.result.score_details.score ?? variant.result.score_details.score
+                    const gapToLeader = Math.max(0, leaderRawScore - variant.result.score_details.score)
                     const evidenceStatus = hasSourceLink ? "Linked" : "Inline"
 
                     return (
@@ -3020,7 +4273,7 @@ function AggregatedBenchmarkCard({
                               <div className="min-w-0">
                                 <div className="flex items-center justify-between text-[11px] font-semibold uppercase tracking-[0.16em] text-muted-foreground">
                                   <span>{isResearchView ? "Relative score" : "Evidence context"}</span>
-                                  <span>{index === 0 ? "Leader" : `-${(gapToLeader * 100).toFixed(1)} pts`}</span>
+                                  <span>{index === 0 ? "Leader" : `-${formatRawScoreValue(gapToLeader)}`}</span>
                                 </div>
                                 {isResearchView ? (
                                   <>
@@ -3033,12 +4286,12 @@ function AggregatedBenchmarkCard({
                                       />
                                     </div>
                                     <div className="mt-1 text-[12px] text-muted-foreground">
-                                      {variant.evaluation.source_metadata.evaluator_relationship.replace(/_/g, " ")}
+                                      {getRelationshipDisplayName(variant.evaluation.source_metadata.evaluator_relationship)}
                                     </div>
                                   </>
                                 ) : (
                                   <div className="mt-1 text-sm capitalize text-muted-foreground">
-                                    {variant.evaluation.source_metadata.evaluator_relationship.replace(/_/g, " ")}
+                                    {getRelationshipDisplayName(variant.evaluation.source_metadata.evaluator_relationship)}
                                   </div>
                                 )}
                               </div>
@@ -3055,7 +4308,7 @@ function AggregatedBenchmarkCard({
                                   {isResearchView ? "Source" : "Evidence"}
                                 </div>
                                 <div className="mt-1 truncate text-sm font-medium text-foreground/90">
-                                  {variant.evaluation.source_metadata.source_organization_name}
+                                  {getOrganizationDisplayName(variant.evaluation.source_metadata.source_organization_name)}
                                 </div>
                                 <div className="text-[12px] text-muted-foreground">
                                   {evidenceStatus}
@@ -3080,7 +4333,7 @@ function AggregatedBenchmarkCard({
 
                   {filteredRows.length === 0 && (
                     <div className="rounded-xl border bg-background p-6 text-center text-sm text-muted-foreground">
-                      No subtasks match the current filters.
+                      No rows match the current filters.
                     </div>
                   )}
                 </div>
@@ -3107,7 +4360,7 @@ function BenchmarkDeepDiveDialogPanel({
   const subtaskCount = getGroupSubtaskCount(group)
   const hasSubtaskMatrix = subtaskCount > 0
   const sourceOrganizations = useMemo(
-    () => new Set(group.variants.map((variant) => variant.evaluation.source_metadata.source_organization_name)),
+    () => new Set(group.variants.map((variant) => getOrganizationDisplayName(variant.evaluation.source_metadata.source_organization_name))),
     [group.variants]
   )
   const rankedVariants = useMemo(
@@ -3276,7 +4529,7 @@ function BenchmarkDeepDiveDialogPanel({
                 </span>
               )}
             </div>
-            <DialogTitle className="mt-2 pr-4">{group.title}</DialogTitle>
+            <DialogTitle className="mt-2 pr-4">{getBenchmarkGroupHeading(group)}</DialogTitle>
             <DialogDescription>
               {isResearchView
                 ? "Inspect setup subtasks, score details, and source provenance in one focused view."
@@ -3390,9 +4643,9 @@ function BenchmarkDeepDiveDialogPanel({
                           <div className="space-y-1.5">
                             <div className="font-medium leading-5">{primaryLabel}</div>
                             <div className="flex flex-wrap items-center gap-2">
-                              {primaryLabel === group.title && (
+                              {!variant.evaluation.slice_key && (
                                 <span className="rounded-full border border-border/60 bg-muted/30 px-2 py-0.5 text-[10px] font-medium text-muted-foreground">
-                                  Overall benchmark result
+                                  Benchmark-level metric
                                 </span>
                               )}
                               {variant.variantType !== "default" && (
@@ -3405,7 +4658,7 @@ function BenchmarkDeepDiveDialogPanel({
                         </TableCell>
                         <TableCell className="px-4 py-3 align-top whitespace-normal">
                           <div className="space-y-1.5 text-sm">
-                            <div className="font-medium leading-5">{variant.evaluation.source_metadata.source_organization_name}</div>
+                            <div className="font-medium leading-5">{getOrganizationDisplayName(variant.evaluation.source_metadata.source_organization_name)}</div>
                             <div className="text-xs text-muted-foreground">{singleSetupDisplayLabel}</div>
                             {filteredConfigEntries.length > 0 && (
                               <div className="text-xs text-muted-foreground line-clamp-2">
@@ -3434,11 +4687,11 @@ function BenchmarkDeepDiveDialogPanel({
           <section className="space-y-2">
             <div className="flex items-center justify-between gap-3">
               <div>
-                <h4 className="text-sm font-semibold">Subtask matrix</h4>
+                <h4 className="text-sm font-semibold">Benchmark matrix</h4>
                 <p className="text-xs text-muted-foreground">
                   {isResearchView
-                    ? "Rows separate benchmark subtasks. Columns separate reporting setups. Cells show the strongest reported result for each combination."
-                    : "Rows show the benchmark subtasks being discussed. Columns show the setup used to report them so readers can compare like with like."}
+                    ? "Rows reflect backend-defined benchmark rows. Columns separate reporting setups. Cells show the strongest reported result for each combination."
+                    : "Rows follow the backend hierarchy directly. Columns show the setup used to report them so readers can compare like with like."}
                 </p>
               </div>
               <span className="rounded-full border border-border/60 bg-background px-2 py-1 text-[10px] font-medium text-muted-foreground">
@@ -3451,7 +4704,7 @@ function BenchmarkDeepDiveDialogPanel({
                 <TableHeader className="bg-muted/20">
                   <TableRow className="hover:bg-transparent">
                     <TableHead className="w-[24%] px-4 py-3 text-[11px] font-semibold uppercase tracking-[0.14em] text-muted-foreground">
-                      Subtask
+                      Row
                     </TableHead>
                     {subtaskMatrix.setupOrder.map((setupDisplayLabel) => (
                       <TableHead
@@ -3469,9 +4722,9 @@ function BenchmarkDeepDiveDialogPanel({
                       <TableCell className="px-4 py-3 align-top whitespace-normal">
                         <div className="space-y-1">
                           <div className="font-medium leading-5">{primaryLabel}</div>
-                          {primaryLabel === group.title && (
+                          {!((subtaskMatrix.cells.get(`${primaryLabel}::${subtaskMatrix.setupOrder[0]}`) ?? [])[0]?.variant.evaluation.slice_key) && (
                             <div className="text-[11px] text-muted-foreground">
-                              Overall benchmark result
+                              Benchmark-level metric
                             </div>
                           )}
                         </div>
@@ -3509,7 +4762,7 @@ function BenchmarkDeepDiveDialogPanel({
                               <div className="text-sm font-semibold tabular-nums">{leadRow.variant.displayScore}</div>
                               <div className="text-[11px] tabular-nums text-muted-foreground">{rankLabel}</div>
                               <div className="text-[11px] text-muted-foreground line-clamp-2">
-                                {leadRow.variant.evaluation.source_metadata.source_organization_name}
+                                {getOrganizationDisplayName(leadRow.variant.evaluation.source_metadata.source_organization_name)}
                               </div>
                               {rawVariantLabel && (
                                 <div className="text-[11px] text-muted-foreground line-clamp-2">{rawVariantLabel}</div>
@@ -3535,7 +4788,7 @@ function BenchmarkDeepDiveDialogPanel({
         <section className="space-y-2">
           <div className="flex items-center justify-between gap-3">
             <div>
-              <h4 className="text-sm font-semibold">{subtaskMatrix ? "Reported rows" : "Subtask breakdown"}</h4>
+              <h4 className="text-sm font-semibold">{subtaskMatrix ? "Reported rows" : "Benchmark breakdown"}</h4>
               <p className="text-xs text-muted-foreground">
                 {subtaskMatrix
                   ? "Use the matrix above for the quick cross-setup comparison. This table keeps every reported row with its setup, source, and config detail."
@@ -3579,7 +4832,7 @@ function BenchmarkDeepDiveDialogPanel({
                       <div className="space-y-1">
                         <div className="text-sm font-medium leading-5">{setupDisplayLabel}</div>
                         <div className="text-xs text-muted-foreground">
-                          {variant.evaluation.source_metadata.source_organization_name}
+                          {getOrganizationDisplayName(variant.evaluation.source_metadata.source_organization_name)}
                         </div>
                         {configEntries.length > 0 && (
                           <div className="text-xs text-muted-foreground line-clamp-2">
@@ -3674,7 +4927,7 @@ function VariantExpandedDetail({
   const isResearchView = mode === "research"
   const { variant, configEntries, sampleCount } = row
   const { numericBreakdown, helmMetrics, structuredBreakdown } = buildVariantStructuredSections(variant)
-  const sourceTypeLabel = variant.evaluation.source_metadata.source_type.replace(/_/g, " ")
+  const sourceTypeLabel = getSourceTypeDisplayName(variant.evaluation.source_metadata.source_type)
   const sourceData = !Array.isArray(variant.result.source_data ?? variant.evaluation.source_data)
     ? (variant.result.source_data ?? variant.evaluation.source_data) as import("@/lib/benchmark-schema").SourceData
     : null
@@ -3715,7 +4968,7 @@ function VariantExpandedDetail({
         <div className="flex flex-wrap gap-2">
           <Badge variant="outline">{formatCompactDate(variant.evaluation.retrieved_timestamp)}</Badge>
           <Badge variant="outline" className="capitalize">
-            {variant.evaluation.source_metadata.evaluator_relationship.replace(/_/g, " ")}
+            {getRelationshipDisplayName(variant.evaluation.source_metadata.evaluator_relationship)}
           </Badge>
           {numSamples != null && <Badge variant="outline">{Number(numSamples).toLocaleString()} samples</Badge>}
           {evalLibrary && (
@@ -3732,12 +4985,12 @@ function VariantExpandedDetail({
             {isResearchView ? "Provenance & Dataset" : "Reporting Context"}
           </div>
           <div className="grid gap-3 md:grid-cols-2 text-sm">
-            <InlineMeta label="Organization" value={variant.evaluation.source_metadata.source_organization_name} />
+            <InlineMeta label="Organization" value={getOrganizationDisplayName(variant.evaluation.source_metadata.source_organization_name)} />
             <InlineMeta label="Source Type" value={sourceTypeLabel} />
-            <InlineMeta label="Relationship" value={variant.evaluation.source_metadata.evaluator_relationship.replace(/_/g, " ")} />
+            <InlineMeta label="Relationship" value={getRelationshipDisplayName(variant.evaluation.source_metadata.evaluator_relationship)} />
             <InlineMeta
               label={isResearchView ? "Dataset" : "Benchmark"}
-              value={sourceData?.dataset_name ?? group.title}
+              value={normalizeDisplayLabel(sourceData?.dataset_name ?? group.title)}
             />
             {sourceData?.hf_repo && (
               <InlineMeta label="HF Repo" value={
@@ -3747,11 +5000,11 @@ function VariantExpandedDetail({
             )}
             {sourceData?.dataset_version && <InlineMeta label="Dataset Version" value={sourceData.dataset_version} />}
             {sourceData?.hf_split && <InlineMeta label="Split" value={sourceData.hf_split} />}
-            {variant.subtaskLabel && <InlineMeta label="Subtask" value={variant.subtaskLabel} />}
-            {variant.setupLabel && <InlineMeta label="Setup" value={variant.setupLabel} />}
+            {variant.subtaskLabel && <InlineMeta label="Subtask" value={normalizeDisplayLabel(variant.subtaskLabel)} />}
+            {variant.setupLabel && <InlineMeta label="Setup" value={formatSetupDisplayLabel(variant.setupLabel)} />}
             {inferencePlatform && <InlineMeta label="Inference Platform" value={inferencePlatform} />}
             {variant.evaluation.source_metadata.source_name && (
-              <InlineMeta label="Source Name" value={variant.evaluation.source_metadata.source_name} />
+              <InlineMeta label="Source Name" value={normalizeDisplayLabel(variant.evaluation.source_metadata.source_name)} />
             )}
             <InlineMeta label="Reported" value={formatCompactDate(variant.evaluation.retrieved_timestamp)} />
             <InlineMeta label="Score" value={variant.displayScore} />
@@ -3817,7 +5070,7 @@ function VariantExpandedDetail({
               return (
                 <div key={key} className="rounded-xl border bg-background p-3">
                   <div className="mb-2 text-xs text-muted-foreground">{formatConfigLabel(key)}</div>
-                  <div className="mb-2 text-lg font-semibold">{formatMetadataValue(numericValue)}</div>
+                  <div className="mb-2 text-lg font-semibold">{formatRawScoreValue(numericValue, variant.result.metric_config.unit)}</div>
                   <Progress value={Math.max(0, Math.min(100, normalizedValue))} className="h-1.5" />
                 </div>
               )
@@ -4013,7 +5266,7 @@ function CategoryStatsView({
               <div className="flex items-center justify-between">
                 <CardTitle className="text-lg">{getCategoryLabel(stat.category)}</CardTitle>
                 <div className={`text-2xl font-bold ${getCategoryColor(stat.avg_score)}`}>
-                  {(stat.avg_score * 100).toFixed(1)}%
+                  {formatRawScoreValue(stat.avg_score)}
                 </div>
               </div>
               <CardDescription>{stat.count} evaluation{stat.count !== 1 ? 's' : ''}</CardDescription>
@@ -4034,17 +5287,13 @@ function CategoryStatsView({
                       <div className="space-y-1">
                         <div className="font-medium text-sm">{getResultDisplayName(eval_, result)}</div>
                         <div className="text-xs text-muted-foreground">
-                          {(getEvaluationVariantLabel(eval_) ? `Setup: ${getEvaluationVariantLabel(eval_)}` : null) || (Array.isArray(eval_.source_data)
-                            ? (eval_.source_metadata.source_name || 'Unknown')
-                            : eval_.source_data.dataset_name)}
+                          {((getEvaluationVariantLabel(eval_) ? `Setup: ${formatSetupDisplayLabel(getEvaluationVariantLabel(eval_))}` : null)) || (Array.isArray(eval_.source_data)
+                            ? (normalizeDisplayLabel(eval_.source_metadata.source_name) || 'Unknown')
+                            : normalizeDisplayLabel(eval_.source_data.dataset_name))}
                         </div>
                       </div>
                       <div className="font-mono font-semibold">
-                        {formatScore(
-                          result.score_details.score,
-                          result.metric_config.score_type,
-                          result.metric_config.max_score
-                        )}
+                        {formatRawScoreValue(result.score_details.score, result.metric_config.unit)}
                       </div>
                     </div>
                   ))

@@ -1,7 +1,7 @@
 "use client"
 
 import { useCallback, useEffect, useMemo, useState } from "react"
-import { useParams, useRouter, useSearchParams } from "next/navigation"
+import { useParams, usePathname, useRouter, useSearchParams } from "next/navigation"
 import Link from "next/link"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
@@ -62,6 +62,7 @@ function normalizeMetadataList(value: unknown): string[] {
 
 export default function EvalDetailPage() {
   const params = useParams()
+  const pathname = usePathname()
   const router = useRouter()
   const searchParams = useSearchParams()
   const [summary, setSummary] = useState<BenchmarkEvalSummary | null>(null)
@@ -70,6 +71,12 @@ export default function EvalDetailPage() {
   const [error, setError] = useState<string | null>(null)
   const [matrixSearch, setMatrixSearch] = useState("")
   const returnTo = searchParams.get("from")
+  const currentDetailHref = useMemo(() => {
+    const params = new URLSearchParams(searchParams.toString())
+    params.delete("from")
+    const query = params.toString()
+    return query ? `${pathname}?${query}` : pathname
+  }, [pathname, searchParams])
 
   const handleBack = useCallback(() => {
     if (returnTo?.startsWith("/")) {
@@ -184,6 +191,7 @@ export default function EvalDetailPage() {
             subSummaries={subSummaries}
             matrixSearch={matrixSearch}
             onMatrixSearchChange={setMatrixSearch}
+            currentDetailHref={currentDetailHref}
           />
         ) : (
           <EvalDetail summary={summary} />
@@ -202,11 +210,13 @@ function CompositeEvalView({
   subSummaries,
   matrixSearch,
   onMatrixSearchChange,
+  currentDetailHref,
 }: {
   summary: BenchmarkEvalSummary
   subSummaries: BenchmarkEvalSummary[]
   matrixSearch: string
   onMatrixSearchChange: (v: string) => void
+  currentDetailHref: string
 }) {
   return (
     <div className="space-y-6">
@@ -253,6 +263,7 @@ function CompositeEvalView({
           <SubBenchmarkCards
             sources={summary.aggregate_sources ?? []}
             subSummaries={subSummaries}
+            currentDetailHref={currentDetailHref}
           />
         </TabsContent>
 
@@ -276,9 +287,11 @@ function CompositeEvalView({
 function SubBenchmarkCards({
   sources,
   subSummaries,
+  currentDetailHref,
 }: {
   sources: NonNullable<BenchmarkEvalSummary["aggregate_sources"]>
   subSummaries: BenchmarkEvalSummary[]
+  currentDetailHref: string
 }) {
   const subMap = useMemo(
     () => new Map(subSummaries.map((s) => [s.evaluation_id, s])),
@@ -297,7 +310,7 @@ function SubBenchmarkCards({
         return (
           <Link
             key={source.evaluation_id}
-            href={`/evals/${source.evaluation_id}`}
+            href={`/evals/${source.evaluation_id}?from=${encodeURIComponent(currentDetailHref)}`}
             className="group"
           >
             <Card className="h-full transition-all hover:-translate-y-0.5 hover:shadow-lg">

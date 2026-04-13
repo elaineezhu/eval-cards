@@ -1,5 +1,6 @@
-import type { BackendManifest, EvalHierarchy } from "@/lib/backend-artifacts"
+import type { BackendManifest, ComparisonIndex, EvalHierarchy } from "@/lib/backend-artifacts"
 import type { BenchmarkEvaluationCardData } from "@/components/benchmark-evaluation-card"
+import type { HFEvalDetail } from "@/lib/hf-data"
 import type {
   BenchmarkCard,
   BenchmarkEvalListItem,
@@ -76,6 +77,12 @@ export function fetchEvalSummary(evalId: string) {
   )
 }
 
+export function fetchEvalDetail(evalId: string) {
+  return fetchJson<HFEvalDetail>(
+    `/api/eval-detail?id=${encodeURIComponent(evalId)}`
+  )
+}
+
 export function fetchDevelopers() {
   return fetchJson<DeveloperListItem[]>("/api/developers")
 }
@@ -96,4 +103,8 @@ export function fetchBackendManifest() {
 
 export function fetchEvalHierarchy() {
   return fetchJson<EvalHierarchy>("/api/eval-hierarchy")
+}
+
+export function fetchComparisonIndex() {
+  return fetchJson<ComparisonIndex>("/api/comparison-index")
 }

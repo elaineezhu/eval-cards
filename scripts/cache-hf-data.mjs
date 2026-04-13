@@ -28,6 +28,7 @@ const CACHE_ROOT_FILES = [
   "developers.json",
   "benchmark-metadata.json",
   "eval-hierarchy.json",
+  "comparison-index.json",
 ]
 
 const CACHE_DIRECTORIES = ["developers", "evals", "models"]
