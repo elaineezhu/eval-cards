@@ -245,7 +245,7 @@ function CompositeEvalView({
           </TabsTrigger>
           <TabsTrigger value="matrix" className="gap-2">
             <Grid3X3 className="h-4 w-4" />
-            Matrix Leaderboard
+            Score breakdown
           </TabsTrigger>
         </TabsList>
 
@@ -496,9 +496,9 @@ function MatrixLeaderboard({
   }
 
   function formatScore(score: number): string {
-    if (score >= 1 && score <= 100) return score.toFixed(1)
-    if (score > 0 && score < 1) return (score * 100).toFixed(1)
-    return score.toFixed(1)
+    if (Math.abs(score) >= 100) return score.toFixed(1)
+    if (Math.abs(score) >= 10) return score.toFixed(2)
+    return score.toFixed(3).replace(/0+$/g, "").replace(/\.$/, "")
   }
 
   function handleSort(col: string) {

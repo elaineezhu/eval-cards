@@ -199,8 +199,16 @@ function formatMetadataValue(value: unknown): string {
 }
 
 function formatDate(ts: string) {
+  if (!ts || !ts.trim()) {
+    return "Unknown"
+  }
+
   const numeric = Number(ts)
   const parsedDate = !Number.isNaN(numeric) && !ts.includes("-") ? new Date(numeric * 1000) : new Date(ts)
+
+  if (Number.isNaN(parsedDate.getTime())) {
+    return "Unknown"
+  }
 
   try {
     return parsedDate.toLocaleDateString("en-US", {
@@ -322,7 +330,7 @@ export function EvalDetail({ summary }: EvalDetailProps) {
     [leaderboardRows, leaderboardPage]
   )
 
-  const avgNorm = formatPercent(summary.avg_score_norm)
+  const avgScoreLabel = formatRawScore(summary.avg_score, summary.metric_config.unit)
   const scoreDirectionLabel = summary.metric_config.lower_is_better ? "Lower scores rank higher" : "Higher scores rank higher"
   const leaderboardTitle = isResearchView ? "Leaderboard" : "Reporting Comparison"
   const sourceDatasetLabel = summary.source_data?.hf_repo ?? summary.source_data?.dataset_name ?? "Backend summary"
@@ -331,8 +339,8 @@ export function EvalDetail({ summary }: EvalDetailProps) {
     : "Not linked"
   const leaderboardDescription = isResearchView
     ? summary.is_aggregated
-      ? "Models ranked by average normalized score across the contributing composite benchmarks."
-      : "Models ranked by normalized score for this benchmark."
+      ? "Models ranked by average raw score across the contributing composite benchmarks."
+      : "Models ranked by raw score for this benchmark."
     : summary.is_aggregated
       ? "Averaged model results across the contributing composite benchmarks, with drill-down to each component score."
       : "Model results with benchmark context, source dataset detail, and optional instance-data links."
@@ -396,9 +404,9 @@ export function EvalDetail({ summary }: EvalDetailProps) {
               </div>
               <div className="rounded-2xl border border-border/70 bg-muted/20 px-4 py-3">
                 <div className="text-[11px] font-semibold uppercase tracking-[0.18em] text-muted-foreground">
-                  {isResearchView ? "Avg norm" : "Metrics"}
+                  {isResearchView ? "Avg score" : "Metrics"}
                 </div>
-                <div className="mt-1 text-2xl font-semibold">{isResearchView ? avgNorm : summary.metrics_count ?? 1}</div>
+                <div className="mt-1 text-2xl font-semibold">{isResearchView ? avgScoreLabel : summary.metrics_count ?? 1}</div>
               </div>
               <div className="rounded-2xl border border-emerald-200/80 bg-emerald-50/80 px-4 py-3 dark:border-emerald-900/40 dark:bg-emerald-950/20">
                 <div className="text-[11px] font-semibold uppercase tracking-[0.18em] text-emerald-700 dark:text-emerald-200">
@@ -409,7 +417,7 @@ export function EvalDetail({ summary }: EvalDetailProps) {
                 </div>
                 {isResearchView && summary.best_model && (
                   <div className="mt-1 text-xs text-emerald-700/80 dark:text-emerald-200/80">
-                    {formatPercent(normalizeScore(summary.best_model.score))}
+                    {formatRawScore(summary.best_model.score, summary.metric_config.unit)}
                   </div>
                 )}
               </div>
@@ -424,7 +432,7 @@ export function EvalDetail({ summary }: EvalDetailProps) {
                 </div>
                 {isResearchView && summary.worst_model && (
                   <div className="mt-1 text-xs text-amber-700/80 dark:text-amber-200/80">
-                    {formatPercent(normalizeScore(summary.worst_model.score))}
+                    {formatRawScore(summary.worst_model.score, summary.metric_config.unit)}
                   </div>
                 )}
               </div>
@@ -703,21 +711,13 @@ export function EvalDetail({ summary }: EvalDetailProps) {
                       </TableCell>
 
                       <TableCell className="text-right">
-                        <div className="space-y-1">
-                          <div className="text-xl font-semibold tabular-nums">{formatPercent(normalizedScore)}</div>
-                          <div className="text-xs text-muted-foreground">
-                            Raw {formatRawScore(modelResult.score, summary.metric_config.unit)}
-                          </div>
-                        </div>
+                        <div className="text-xl font-semibold tabular-nums">{formatRawScore(modelResult.score, summary.metric_config.unit)}</div>
                       </TableCell>
 
                       {isResearchView ? (
                         <TableCell className="hidden md:table-cell">
-                          <div className="flex min-w-[220px] items-center gap-3">
-                            <Progress value={normalizedScore * 100} className="h-2 flex-1" />
-                            <span className="w-12 text-right text-xs tabular-nums text-muted-foreground">
-                              {formatPercent(normalizedScore)}
-                            </span>
+                          <div className="min-w-[220px]">
+                            <Progress value={normalizedScore * 100} className="h-2" />
                           </div>
                         </TableCell>
                       ) : (
@@ -846,15 +846,11 @@ export function EvalDetail({ summary }: EvalDetailProps) {
                                 subtitle={
                                   isResearchView
                                     ? "Raw metric values and uncertainty details."
-                                    : "Normalized performance plus uncertainty and sample details."
+                                    : "Raw performance plus uncertainty and sample details."
                                 }
                               >
                                 <MetaRow
-                                  label={modelResult.aggregate_components ? "Average Score" : "Normalized Score"}
-                                  value={formatPercent(normalizedScore)}
-                                />
-                                <MetaRow
-                                  label={modelResult.aggregate_components ? "Average Raw Value" : "Raw Score"}
+                                  label={modelResult.aggregate_components ? "Average Raw Score" : "Raw Score"}
                                   value={formatRawScore(modelResult.score, summary.metric_config.unit)}
                                 />
                                 <MetaRow label="Score Type" value={modelResult.result.metric_config.score_type} />
@@ -888,7 +884,6 @@ export function EvalDetail({ summary }: EvalDetailProps) {
                                         <th className="px-3 py-2 text-left text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">Benchmark</th>
                                         <th className="px-3 py-2 text-left text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">Source</th>
                                         <th className="px-3 py-2 text-right text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">Raw</th>
-                                        <th className="px-3 py-2 text-right text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">Score</th>
                                       </tr>
                                     </thead>
                                     <tbody>
@@ -897,7 +892,6 @@ export function EvalDetail({ summary }: EvalDetailProps) {
                                           <td className="px-3 py-2 font-medium">{component.composite_benchmark_name}</td>
                                           <td className="px-3 py-2 text-muted-foreground">{component.source_organization_name}</td>
                                           <td className="px-3 py-2 text-right tabular-nums text-muted-foreground">{formatRawScore(component.score)}</td>
-                                          <td className="px-3 py-2 text-right font-semibold tabular-nums">{formatPercent(component.normalized_score)}</td>
                                         </tr>
                                       ))}
                                     </tbody>
@@ -917,18 +911,15 @@ export function EvalDetail({ summary }: EvalDetailProps) {
                                       <tr className="border-b bg-muted/30">
                                         <th className="px-3 py-2 text-left text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">Subtask</th>
                                         <th className="px-3 py-2 text-right text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">Raw</th>
-                                        <th className="px-3 py-2 text-right text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">Score</th>
                                       </tr>
                                     </thead>
                                     <tbody>
                                       {subtasks.map(([subtaskName, value]) => {
                                         const numericValue = value as number
-                                        const normalizedSubtaskScore = range > 0 ? (numericValue - minScore) / range : numericValue
                                         return (
                                           <tr key={subtaskName} className="border-b last:border-0 hover:bg-muted/10">
                                             <td className="px-3 py-2 font-medium capitalize">{subtaskName.replace(/_/g, " ")}</td>
                                             <td className="px-3 py-2 text-right tabular-nums text-muted-foreground">{formatRawScore(numericValue, summary.metric_config.unit)}</td>
-                                            <td className="px-3 py-2 text-right font-semibold tabular-nums">{formatPercent(normalizedSubtaskScore)}</td>
                                           </tr>
                                         )
                                       })}
