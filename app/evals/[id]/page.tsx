@@ -1,7 +1,7 @@
 "use client"
 
 import { useCallback, useEffect, useMemo, useState } from "react"
-import { useParams, useRouter } from "next/navigation"
+import { useParams, useRouter, useSearchParams } from "next/navigation"
 import Link from "next/link"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
@@ -36,27 +36,27 @@ function formatParamBoundLabel(step: number, bound: "min" | "max") {
 export default function EvalDetailPage() {
   const params = useParams()
   const router = useRouter()
+  const searchParams = useSearchParams()
   const [summary, setSummary] = useState<BenchmarkEvalSummary | null>(null)
   const [subSummaries, setSubSummaries] = useState<BenchmarkEvalSummary[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const [matrixSearch, setMatrixSearch] = useState("")
+  const returnTo = searchParams.get("from")
 
   const handleBack = useCallback(() => {
-    if (typeof window !== "undefined") {
-      const referrer = document.referrer
-      if (referrer) {
-        try {
-          const referrerUrl = new URL(referrer)
-          if (referrerUrl.origin === window.location.origin) {
-            router.back()
-            return
-          }
-        } catch { /* fall through */ }
-      }
+    if (returnTo?.startsWith("/")) {
+      router.push(returnTo)
+      return
     }
+
+    if (typeof window !== "undefined" && window.history.length > 1) {
+      router.back()
+      return
+    }
+
     router.push("/evals")
-  }, [router])
+  }, [returnTo, router])
 
   useEffect(() => {
     const load = async () => {

@@ -2,6 +2,7 @@
 
 // Force recompile
 import Link from "next/link"
+import { usePathname, useSearchParams } from "next/navigation"
 import { useAudienceMode } from "@/components/audience-mode-provider"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
@@ -69,6 +70,8 @@ interface SuiteGroup {
   avgDisplayScore: string
   bestRank: { position: number; total: number } | null
 }
+
+const INSTANCE_PREVIEW_LIMIT = 5
 
 const SUITE_DISPLAY_NAMES: Record<string, string> = {
   hfopenllm_v2: "HF Open LLM v2",
@@ -590,6 +593,58 @@ function getVariantPrimaryLabel(variant: BenchmarkVariant, groupTitle: string) {
   return variant.label
 }
 
+function getGroupSubtaskLabels(group: BenchmarkGroup) {
+  return Array.from(
+    new Set(
+      group.variants
+        .map((variant) => variant.subtaskLabel?.trim())
+        .filter((label): label is string => Boolean(label))
+    )
+  )
+}
+
+function getGroupSubtaskCount(group: BenchmarkGroup) {
+  return getGroupSubtaskLabels(group).length
+}
+
+function getSuiteBadgeMeta(suite: SuiteGroup) {
+  if (suite.benchmarks.length > 1) {
+    return {
+      count: suite.benchmarks.length,
+      label: `sub-benchmark${suite.benchmarks.length === 1 ? "" : "s"}`,
+      className:
+        "border-sky-200/80 bg-sky-50/70 text-sky-700 dark:border-sky-900/60 dark:bg-sky-950/30 dark:text-sky-300",
+    }
+  }
+
+  const singleGroup = suite.benchmarks[0]
+  if (!singleGroup) {
+    return null
+  }
+
+  const suiteMatchesBenchmark = normalizeSuiteKey(suite.suiteName) === normalizeSuiteKey(singleGroup.title)
+  if (!suiteMatchesBenchmark) {
+    return {
+      count: 1,
+      label: "sub-benchmark",
+      className:
+        "border-sky-200/80 bg-sky-50/70 text-sky-700 dark:border-sky-900/60 dark:bg-sky-950/30 dark:text-sky-300",
+    }
+  }
+
+  const subtaskCount = getGroupSubtaskCount(singleGroup)
+  if (subtaskCount > 0) {
+    return {
+      count: subtaskCount,
+      label: `subtask${subtaskCount === 1 ? "" : "s"}`,
+      className:
+        "border-emerald-200/70 bg-emerald-50 text-emerald-700 dark:border-emerald-900/60 dark:bg-emerald-950/30 dark:text-emerald-300",
+    }
+  }
+
+  return null
+}
+
 function parseNumericRank(value: unknown) {
   if (typeof value === "number") {
     return Number.isFinite(value) ? value : null
@@ -788,19 +843,26 @@ function slugifyEvalSummaryId(value: string) {
   return value.toLowerCase().replace(/[^a-z0-9]+/g, "_").replace(/^_|_$/g, "")
 }
 
-function getEvalDetailHref(evaluation: BenchmarkEvaluation, result: EvaluationResult) {
-  if (evaluation.eval_summary_id) {
-    return `/evals/${evaluation.eval_summary_id}`
+function getEvalDetailHref(
+  evaluation: BenchmarkEvaluation,
+  result: EvaluationResult,
+  returnTo?: string
+) {
+  const baseHref = evaluation.eval_summary_id
+    ? `/evals/${evaluation.eval_summary_id}`
+    : `/evals/${slugifyEvalSummaryId(`${evaluation.benchmark || getResultBenchmarkName(evaluation, result)}__${result.evaluation_name}`)}`
+
+  if (!returnTo) {
+    return baseHref
   }
 
-  const benchmarkKey = evaluation.benchmark || getResultBenchmarkName(evaluation, result)
-  const evalSummaryId = slugifyEvalSummaryId(`${benchmarkKey}__${result.evaluation_name}`)
-  return `/evals/${evalSummaryId}`
+  const params = new URLSearchParams({ from: returnTo })
+  return `${baseHref}?${params.toString()}`
 }
 
 function getEvalSummaryIdFromHref(href: string) {
   const [, id = ""] = href.split("/evals/")
-  return id
+  return id.split("?")[0]?.split("#")[0] ?? ""
 }
 
 function getGroupPeerRank(
@@ -901,7 +963,8 @@ function getVariantDedupKey(variant: BenchmarkVariant) {
 
 function buildBenchmarkGroups(
   entries: Array<{ evaluation: BenchmarkEvaluation; result: EvaluationResult; category: CategoryType }>,
-  benchmarkCards?: Record<string, BenchmarkCard>
+  benchmarkCards: Record<string, BenchmarkCard> | undefined,
+  returnTo?: string
 ): BenchmarkGroup[] {
   const groups = new Map<string, BenchmarkGroup>()
 
@@ -942,7 +1005,7 @@ function buildBenchmarkGroups(
       groups.set(title, {
         key: title,
         title,
-        evalDetailHref: getEvalDetailHref(entry.evaluation, entry.result),
+        evalDetailHref: getEvalDetailHref(entry.evaluation, entry.result, returnTo),
         category: entry.category,
         description: entry.result.metric_config.evaluation_description ?? "",
         scoreType: entry.result.metric_config.score_type ?? "continuous",
@@ -1036,11 +1099,18 @@ function getEvaluationVariantLabel(evaluation: BenchmarkEvaluation) {
 export function BenchmarkDetail({ summary, benchmarkCards }: BenchmarkDetailProps) {
   const { mode } = useAudienceMode()
   const isResearchView = mode === "research"
+  const pathname = usePathname()
+  const searchParams = useSearchParams()
   const [benchmarkSearch, setBenchmarkSearch] = useState("")
   const [benchmarkSort, setBenchmarkSort] = useState<"relevance" | "rank" | "score" | "name" | "variants" | "spread">("relevance")
   const [selectedCategories, setSelectedCategories] = useState<CategoryType[]>([])
   const [expandedSuites, setExpandedSuites] = useState<Set<string>>(new Set())
   const [activeBenchmarkGroupKey, setActiveBenchmarkGroupKey] = useState<string | null>(null)
+
+  const currentDetailHref = useMemo(() => {
+    const query = searchParams.toString()
+    return query ? `${pathname}?${query}` : pathname
+  }, [pathname, searchParams])
   const modelId = summary.model_info.id
   // Collect all known model IDs for peer rank lookup (family ID + raw variant IDs)
   const modelIds = useMemo(() => {
@@ -1254,8 +1324,8 @@ export function BenchmarkDetail({ summary, benchmarkCards }: BenchmarkDetailProp
   ])
 
   const benchmarkGroups = useMemo(
-    () => buildBenchmarkGroups(allCategoryResults, benchmarkCards),
-    [allCategoryResults, benchmarkCards]
+    () => buildBenchmarkGroups(allCategoryResults, benchmarkCards, currentDetailHref),
+    [allCategoryResults, benchmarkCards, currentDetailHref]
   )
   const availableCategories = useMemo(() => {
     const presentCategories = new Set(benchmarkGroups.map((group) => group.category))
@@ -1799,9 +1869,6 @@ export function BenchmarkDetail({ summary, benchmarkCards }: BenchmarkDetailProp
                         {section.suites.length} suite{section.suites.length === 1 ? "" : "s"}
                       </span>
                     </div>
-                    <div className="text-xs text-muted-foreground">
-                      Click benchmark names to open detailed evidence.
-                    </div>
                   </div>
 
                   <div className="overflow-hidden rounded-2xl border border-border/70 bg-card">
@@ -1818,19 +1885,27 @@ export function BenchmarkDetail({ summary, benchmarkCards }: BenchmarkDetailProp
                         const suiteScorePercent = Math.max(4, Math.min(100, suite.avgNormalizedScore * 100))
                         const singleGroup = isSingle ? suite.benchmarks[0] : null
                         const singleRank = singleGroup ? getGroupPeerRank(singleGroup, modelIds, peerRanks) : null
+                        const suiteBadgeMeta = getSuiteBadgeMeta(suite)
 
                         return (
                           <div key={`suite-${section.category}-${suite.suiteKey}`}>
                             {isSingle ? (
                               <div className="grid grid-cols-[minmax(0,1.55fr)_minmax(180px,1fr)_84px] items-center gap-3 px-3 py-3">
                                 <div className="min-w-0 pl-[1.625rem]">
-                                  <button
-                                    type="button"
-                                    onClick={() => singleGroup && jumpToDeepDive(singleGroup.key)}
-                                    className="truncate text-left text-sm font-semibold underline decoration-dotted underline-offset-4 hover:text-primary"
-                                  >
-                                    {suite.suiteName}
-                                  </button>
+                                  <div className="flex min-w-0 flex-wrap items-center gap-2">
+                                    <button
+                                      type="button"
+                                      onClick={() => singleGroup && jumpToDeepDive(singleGroup.key)}
+                                      className="truncate text-left text-sm font-semibold underline decoration-dotted underline-offset-4 hover:text-primary"
+                                    >
+                                      {suite.suiteName}
+                                    </button>
+                                    {suiteBadgeMeta && (
+                                      <span className={`shrink-0 rounded-full border px-2 py-0.5 text-[10px] font-semibold ${suiteBadgeMeta.className}`}>
+                                        {suiteBadgeMeta.count} {suiteBadgeMeta.label}
+                                      </span>
+                                    )}
+                                  </div>
                                 </div>
 
                                 <div className="min-w-0">
@@ -1876,9 +1951,11 @@ export function BenchmarkDetail({ summary, benchmarkCards }: BenchmarkDetailProp
                                     >
                                       {suite.suiteName}
                                     </button>
-                                    <span className="shrink-0 rounded-full border border-border/60 bg-muted/40 px-2 py-0.5 text-[10px] font-medium text-muted-foreground">
-                                      {suite.benchmarks.length} metrics
-                                    </span>
+                                    {suiteBadgeMeta && (
+                                      <span className={`shrink-0 rounded-full border px-2 py-0.5 text-[10px] font-semibold ${suiteBadgeMeta.className}`}>
+                                        {suiteBadgeMeta.count} {suiteBadgeMeta.label}
+                                      </span>
+                                    )}
                                   </div>
 
                                   <div className="min-w-0">
@@ -1960,7 +2037,7 @@ export function BenchmarkDetail({ summary, benchmarkCards }: BenchmarkDetailProp
           }
         }}
       >
-        <DialogContent className="max-h-[88vh] max-w-[94vw] overflow-hidden p-0 sm:max-w-5xl">
+        <DialogContent className="max-h-[88dvh] max-w-[94vw] grid-rows-[auto_minmax(0,1fr)] overflow-hidden p-0 sm:max-w-5xl">
           {activeBenchmarkGroup && <BenchmarkDeepDiveDialogPanel group={activeBenchmarkGroup} />}
         </DialogContent>
       </Dialog>
@@ -2031,11 +2108,20 @@ function SampleDataDialog({
     }
   }
 
+  const handleOpenToggle = () => {
+    const nextOpen = !open
+    setOpen(nextOpen)
+
+    if (nextOpen && fullDataUrl && !hasLoadedAll && !isLoadingAll) {
+      void handleLoadAll()
+    }
+  }
+
   return (
     <>
-      <Button variant="outline" size="sm" className="gap-2" onClick={() => setOpen(!open)}>
+      <Button variant="outline" size="sm" className="gap-2" onClick={handleOpenToggle}>
         <Database className="h-4 w-4" />
-        {open ? "Hide" : "View All"} {allSamples.length} Samples
+        {open ? "Hide instances" : "View all instances"}
       </Button>
       {open && (
       <div className="rounded-xl border bg-background p-4 space-y-3">
@@ -2048,7 +2134,7 @@ function SampleDataDialog({
           </div>
         </div>
 
-        <div className="flex items-center gap-4 py-4">
+        <div className="flex flex-col gap-3 py-4 sm:flex-row sm:items-center sm:gap-4">
           <div className="relative w-full max-w-sm">
             <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
             <Input
@@ -2058,28 +2144,13 @@ function SampleDataDialog({
               className="pl-8"
             />
           </div>
-          {fullDataUrl && !hasLoadedAll && (
-            <Button
-              variant="secondary"
-              size="sm"
-              onClick={handleLoadAll}
-              disabled={isLoadingAll}
-              className="gap-2 whitespace-nowrap"
-            >
-              {isLoadingAll ? (
-                <>Loading...</>
-              ) : (
-                <>
-                  <Database className="h-3 w-3" />
-                  Load Full Dataset
-                </>
-              )}
-            </Button>
+          {isLoadingAll && (
+            <div className="text-xs text-muted-foreground">Loading all instances…</div>
           )}
           {loadError && (
             <div className="text-xs text-destructive">{loadError}</div>
           )}
-          <div className="ml-auto text-sm text-muted-foreground whitespace-nowrap">
+          <div className="text-sm text-muted-foreground whitespace-nowrap sm:ml-auto">
             Showing {filteredSamples.length > 0 ? startIndex + 1 : 0}-{Math.min(startIndex + itemsPerPage, filteredSamples.length)} of {filteredSamples.length}
           </div>
         </div>
@@ -2647,6 +2718,7 @@ function AggregatedBenchmarkCard({
     Number.isFinite(latestTimestamp) ? formatCompactDate(String(latestTimestamp)) : formatCompactDate(group.variants[0]?.evaluation.retrieved_timestamp ?? "")
   const compactDomains = group.domains.slice(0, 2)
   const progressWidth = Math.max(4, Math.min(100, group.avgNormalizedScore * 100))
+  const subtaskCount = getGroupSubtaskCount(group)
 
   const toggleRow = (rowKey: string) => {
     setExpandedRows((current) => ({
@@ -2697,6 +2769,11 @@ function AggregatedBenchmarkCard({
                       card
                     </span>
                   )}
+                  {subtaskCount > 0 && (
+                    <span className="shrink-0 rounded-full border border-emerald-200/70 bg-emerald-50 px-1.5 py-0.5 text-[9px] font-semibold uppercase tracking-[0.12em] text-emerald-700 dark:border-emerald-900/60 dark:bg-emerald-950/30 dark:text-emerald-300">
+                      {subtaskCount} subtask{subtaskCount === 1 ? "" : "s"}
+                    </span>
+                  )}
                   {compactDomains.map((domain) => (
                     <span
                       key={`${group.key}-${domain}`}
@@ -2724,7 +2801,7 @@ function AggregatedBenchmarkCard({
 
               {/* Subtask count */}
               <span className="shrink-0 text-[11px] text-muted-foreground w-16 text-right hidden sm:block">
-                {group.variants.length} {group.variants.length === 1 ? "subtask" : "subtasks"}
+                {group.variants.length} {group.variants.length === 1 ? "row" : "rows"}
               </span>
 
               <div className="shrink-0 text-muted-foreground">
@@ -3027,6 +3104,8 @@ function BenchmarkDeepDiveDialogPanel({
   const [resolvedRanks, setResolvedRanks] = useState<Record<string, { position: number; total: number | null }>>({})
   const [isResolvingRanks, setIsResolvingRanks] = useState(false)
   const compactDomains = group.domains.slice(0, 2)
+  const subtaskCount = getGroupSubtaskCount(group)
+  const hasSubtaskMatrix = subtaskCount > 0
   const sourceOrganizations = useMemo(
     () => new Set(group.variants.map((variant) => variant.evaluation.source_metadata.source_organization_name)),
     [group.variants]
@@ -3082,6 +3161,43 @@ function BenchmarkDeepDiveDialogPanel({
       })
     return candidates[0] ?? null
   }, [resolvedRanks, variantRows])
+
+  const subtaskMatrix = useMemo(() => {
+    if (!hasSubtaskMatrix) {
+      return null
+    }
+
+    const rowOrder: string[] = []
+    const setupOrder: string[] = []
+    const cells = new Map<string, typeof variantRows>()
+
+    for (const row of variantRows) {
+      const primaryLabel = getVariantPrimaryLabel(row.variant, group.title)
+      const setupDisplayLabel = formatSetupDisplayLabel(row.variant.setupLabel)
+
+      if (!rowOrder.includes(primaryLabel)) {
+        rowOrder.push(primaryLabel)
+      }
+
+      if (!setupOrder.includes(setupDisplayLabel)) {
+        setupOrder.push(setupDisplayLabel)
+      }
+
+      const cellKey = `${primaryLabel}::${setupDisplayLabel}`
+      const existing = cells.get(cellKey) ?? []
+      existing.push(row)
+      cells.set(cellKey, existing)
+    }
+
+    return {
+      rowOrder,
+      setupOrder,
+      cells,
+    }
+  }, [group.title, hasSubtaskMatrix, variantRows])
+
+  const useSingleSetupOverview = Boolean(subtaskMatrix && subtaskMatrix.setupOrder.length === 1)
+  const singleSetupDisplayLabel = useSingleSetupOverview ? subtaskMatrix?.setupOrder[0] ?? null : null
 
   useEffect(() => {
     const pendingRows = variantRows.filter(
@@ -3179,8 +3295,13 @@ function BenchmarkDeepDiveDialogPanel({
         </div>
 
         <div className="flex flex-wrap items-center justify-between gap-x-4 gap-y-1 text-[11px] text-muted-foreground">
-          <span>{group.variants.length} {group.variants.length === 1 ? "subtask" : "subtasks"}</span>
+          <span>{group.variants.length} {group.variants.length === 1 ? "reported row" : "reported rows"}</span>
           <span className="flex flex-wrap items-center gap-2">
+            {hasSubtaskMatrix && (
+              <span className="rounded-full border border-emerald-200/80 bg-emerald-50/70 px-1.5 py-0.5 text-[9px] font-semibold text-emerald-700 dark:border-emerald-900/60 dark:bg-emerald-950/30 dark:text-emerald-300">
+                {subtaskCount} benchmark subtask{subtaskCount === 1 ? "" : "s"}
+              </span>
+            )}
             {group.variants.some(v => v.evaluation.detailed_evaluation_results_per_samples && v.evaluation.detailed_evaluation_results_per_samples.length > 0) && (
               <span className="rounded-full border border-sky-200/80 bg-sky-50/60 px-1.5 py-0.5 text-[9px] font-semibold text-sky-700 dark:border-sky-900/60 dark:bg-sky-950/30 dark:text-sky-300">
                 Has samples
@@ -3223,11 +3344,203 @@ function BenchmarkDeepDiveDialogPanel({
           </div>
         )}
 
+        {useSingleSetupOverview ? (
+          <section className="space-y-2">
+            <div className="flex items-center justify-between gap-3">
+              <div>
+                <h4 className="text-sm font-semibold">Subtask overview</h4>
+                <p className="text-xs text-muted-foreground">
+                  {isResearchView
+                    ? "This benchmark reports one setup, so subtasks, scores, and provenance are merged into one comparison view."
+                    : "This benchmark only reports one setup, so the subtask evidence is consolidated into a single reader-friendly view."}
+                </p>
+              </div>
+              <div className="flex flex-wrap items-center gap-2">
+                {singleSetupDisplayLabel && (
+                  <span className="rounded-full border border-sky-200/80 bg-sky-50/70 px-2 py-1 text-[10px] font-semibold text-sky-700 dark:border-sky-900/60 dark:bg-sky-950/30 dark:text-sky-300">
+                    {singleSetupDisplayLabel}
+                  </span>
+                )}
+                <span className="rounded-full border border-border/60 bg-background px-2 py-1 text-[10px] font-medium text-muted-foreground">
+                  {variantRows.length} row{variantRows.length === 1 ? "" : "s"}
+                </span>
+              </div>
+            </div>
+
+            <div className="min-h-0 overflow-auto rounded-xl border border-border/70 bg-background">
+              <Table className="table-fixed">
+                <TableHeader className="bg-muted/20">
+                  <TableRow className="hover:bg-transparent">
+                    <TableHead className="w-[36%] px-4 py-3 text-[11px] font-semibold uppercase tracking-[0.14em] text-muted-foreground">Subtask</TableHead>
+                    <TableHead className="w-[36%] px-4 py-3 text-[11px] font-semibold uppercase tracking-[0.14em] text-muted-foreground">Evidence</TableHead>
+                    <TableHead className="w-[14%] px-4 py-3 text-right text-[11px] font-semibold uppercase tracking-[0.14em] text-muted-foreground">Score</TableHead>
+                    <TableHead className="w-[14%] px-4 py-3 text-right text-[11px] font-semibold uppercase tracking-[0.14em] text-muted-foreground">Rank</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {variantRows.map((row) => {
+                    const { rowKey, variant, configEntries } = row
+                    const resolvedRank = resolvedRanks[rowKey]
+                    const primaryLabel = getVariantPrimaryLabel(variant, group.title)
+                    const filteredConfigEntries = configEntries.filter(([key]) => key.toLowerCase() !== "setup")
+
+                    return (
+                      <TableRow key={rowKey} className="align-top hover:bg-muted/10">
+                        <TableCell className="px-4 py-3 align-top whitespace-normal">
+                          <div className="space-y-1.5">
+                            <div className="font-medium leading-5">{primaryLabel}</div>
+                            <div className="flex flex-wrap items-center gap-2">
+                              {primaryLabel === group.title && (
+                                <span className="rounded-full border border-border/60 bg-muted/30 px-2 py-0.5 text-[10px] font-medium text-muted-foreground">
+                                  Overall benchmark result
+                                </span>
+                              )}
+                              {variant.variantType !== "default" && (
+                                <span className={`inline-flex items-center rounded-full px-2 py-0.5 text-[10px] font-medium ${getVariantTypeTone(variant.variantType)}`}>
+                                  {getVariantTypeLabel(variant.variantType)}
+                                </span>
+                              )}
+                            </div>
+                          </div>
+                        </TableCell>
+                        <TableCell className="px-4 py-3 align-top whitespace-normal">
+                          <div className="space-y-1.5 text-sm">
+                            <div className="font-medium leading-5">{variant.evaluation.source_metadata.source_organization_name}</div>
+                            <div className="text-xs text-muted-foreground">{singleSetupDisplayLabel}</div>
+                            {filteredConfigEntries.length > 0 && (
+                              <div className="text-xs text-muted-foreground line-clamp-2">
+                                {filteredConfigEntries
+                                  .slice(0, 2)
+                                  .map(([key, value]) => `${formatConfigLabel(key)}=${getConfigDisplayValue(value)}`)
+                                  .join(" · ")}
+                              </div>
+                            )}
+                          </div>
+                        </TableCell>
+                        <TableCell className="px-4 py-3 text-right align-top font-semibold tabular-nums">{variant.displayScore}</TableCell>
+                        <TableCell className="px-4 py-3 text-right align-top tabular-nums text-muted-foreground">
+                          {(variant.rankPosition != null || resolvedRank)
+                            ? `#${resolvedRank?.position ?? variant.rankPosition}${(resolvedRank?.total ?? variant.rankTotal) ? `/${resolvedRank?.total ?? variant.rankTotal}` : ""}`
+                            : "N/A"}
+                        </TableCell>
+                      </TableRow>
+                    )
+                  })}
+                </TableBody>
+              </Table>
+            </div>
+          </section>
+        ) : subtaskMatrix ? (
+          <section className="space-y-2">
+            <div className="flex items-center justify-between gap-3">
+              <div>
+                <h4 className="text-sm font-semibold">Subtask matrix</h4>
+                <p className="text-xs text-muted-foreground">
+                  {isResearchView
+                    ? "Rows separate benchmark subtasks. Columns separate reporting setups. Cells show the strongest reported result for each combination."
+                    : "Rows show the benchmark subtasks being discussed. Columns show the setup used to report them so readers can compare like with like."}
+                </p>
+              </div>
+              <span className="rounded-full border border-border/60 bg-background px-2 py-1 text-[10px] font-medium text-muted-foreground">
+                {subtaskMatrix.rowOrder.length} row{subtaskMatrix.rowOrder.length === 1 ? "" : "s"} x {subtaskMatrix.setupOrder.length} setup{subtaskMatrix.setupOrder.length === 1 ? "" : "s"}
+              </span>
+            </div>
+
+            <div className="min-h-0 overflow-auto rounded-xl border border-border/70 bg-background">
+              <Table className="min-w-[44rem] table-fixed">
+                <TableHeader className="bg-muted/20">
+                  <TableRow className="hover:bg-transparent">
+                    <TableHead className="w-[24%] px-4 py-3 text-[11px] font-semibold uppercase tracking-[0.14em] text-muted-foreground">
+                      Subtask
+                    </TableHead>
+                    {subtaskMatrix.setupOrder.map((setupDisplayLabel) => (
+                      <TableHead
+                        key={`${group.key}-${setupDisplayLabel}`}
+                        className="px-4 py-3 text-[11px] font-semibold uppercase tracking-[0.14em] text-muted-foreground"
+                      >
+                        {setupDisplayLabel}
+                      </TableHead>
+                    ))}
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {subtaskMatrix.rowOrder.map((primaryLabel) => (
+                    <TableRow key={`${group.key}-${primaryLabel}`} className="align-top hover:bg-muted/10">
+                      <TableCell className="px-4 py-3 align-top whitespace-normal">
+                        <div className="space-y-1">
+                          <div className="font-medium leading-5">{primaryLabel}</div>
+                          {primaryLabel === group.title && (
+                            <div className="text-[11px] text-muted-foreground">
+                              Overall benchmark result
+                            </div>
+                          )}
+                        </div>
+                      </TableCell>
+
+                      {subtaskMatrix.setupOrder.map((setupDisplayLabel) => {
+                        const matrixRows = subtaskMatrix.cells.get(`${primaryLabel}::${setupDisplayLabel}`) ?? []
+                        const leadRow = matrixRows[0]
+
+                        if (!leadRow) {
+                          return (
+                            <TableCell
+                              key={`${group.key}-${primaryLabel}-${setupDisplayLabel}`}
+                              className="px-4 py-3 align-top text-sm text-muted-foreground"
+                            >
+                              <span className="inline-flex rounded-full border border-dashed border-border/60 px-2 py-0.5 text-[11px]">
+                                Not reported
+                              </span>
+                            </TableCell>
+                          )
+                        }
+
+                        const resolvedRank = resolvedRanks[leadRow.rowKey]
+                        const rankLabel = (leadRow.variant.rankPosition != null || resolvedRank)
+                          ? `#${resolvedRank?.position ?? leadRow.variant.rankPosition}${(resolvedRank?.total ?? leadRow.variant.rankTotal) ? `/${resolvedRank?.total ?? leadRow.variant.rankTotal}` : ""}`
+                          : "Unranked"
+                        const rawVariantLabel = leadRow.variant.label !== primaryLabel ? leadRow.variant.label : null
+
+                        return (
+                          <TableCell
+                            key={`${group.key}-${primaryLabel}-${setupDisplayLabel}`}
+                            className="px-4 py-3 align-top whitespace-normal"
+                          >
+                            <div className="space-y-1.5">
+                              <div className="text-sm font-semibold tabular-nums">{leadRow.variant.displayScore}</div>
+                              <div className="text-[11px] tabular-nums text-muted-foreground">{rankLabel}</div>
+                              <div className="text-[11px] text-muted-foreground line-clamp-2">
+                                {leadRow.variant.evaluation.source_metadata.source_organization_name}
+                              </div>
+                              {rawVariantLabel && (
+                                <div className="text-[11px] text-muted-foreground line-clamp-2">{rawVariantLabel}</div>
+                              )}
+                              {matrixRows.length > 1 && (
+                                <div className="text-[11px] font-medium text-muted-foreground">
+                                  {matrixRows.length} reports in this cell
+                                </div>
+                              )}
+                            </div>
+                          </TableCell>
+                        )
+                      })}
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            </div>
+          </section>
+        ) : null}
+
+        {!useSingleSetupOverview && (
         <section className="space-y-2">
           <div className="flex items-center justify-between gap-3">
             <div>
-              <h4 className="text-sm font-semibold">Subtask breakdown</h4>
-              <p className="text-xs text-muted-foreground">Primary row labels show the benchmark slice or subtask. Setup and source details sit alongside each row.</p>
+              <h4 className="text-sm font-semibold">{subtaskMatrix ? "Reported rows" : "Subtask breakdown"}</h4>
+              <p className="text-xs text-muted-foreground">
+                {subtaskMatrix
+                  ? "Use the matrix above for the quick cross-setup comparison. This table keeps every reported row with its setup, source, and config detail."
+                  : "Primary row labels show the benchmark slice or subtask. Setup and source details sit alongside each row."}
+              </p>
             </div>
           </div>
 
@@ -3291,6 +3604,7 @@ function BenchmarkDeepDiveDialogPanel({
           </Table>
           </div>
         </section>
+        )}
 
         {(() => {
           const variantWithSamples = group.variants.find(v => v.evaluation.detailed_evaluation_results_per_samples && v.evaluation.detailed_evaluation_results_per_samples.length > 0)
@@ -3304,7 +3618,7 @@ function BenchmarkDeepDiveDialogPanel({
                 Sample data preview ({samples.length} examples)
               </div>
               <div className="space-y-2">
-                {samples.slice(0, 2).map((sample, idx) => (
+                {samples.slice(0, INSTANCE_PREVIEW_LIMIT).map((sample, idx) => (
                   <div key={idx} className="rounded-lg border bg-background/80 p-3 text-sm">
                     {sample.input && (
                       <div className="mb-2">
@@ -3327,7 +3641,7 @@ function BenchmarkDeepDiveDialogPanel({
                   </div>
                 ))}
               </div>
-              {samples.length > 2 && (
+              {(samples.length > INSTANCE_PREVIEW_LIMIT || fullDataUrl) && (
                 <SampleDataDialog
                   samples={samples}
                   evaluationName={variantWithSamples.result.evaluation_name}
@@ -3585,7 +3899,7 @@ function VariantExpandedDetail({
             Sample data ({variant.evaluation.detailed_evaluation_results_per_samples.length} examples)
           </div>
           <div className="space-y-2">
-            {variant.evaluation.detailed_evaluation_results_per_samples.slice(0, 3).map((sample, idx) => (
+            {variant.evaluation.detailed_evaluation_results_per_samples.slice(0, INSTANCE_PREVIEW_LIMIT).map((sample, idx) => (
               <div key={idx} className="rounded-lg border bg-muted/10 p-3 text-sm">
                 {sample.input && (
                   <div className="mb-2">
@@ -3613,7 +3927,9 @@ function VariantExpandedDetail({
               </div>
             ))}
           </div>
-          {variant.evaluation.detailed_evaluation_results_per_samples.length > 3 && (
+          {(variant.evaluation.detailed_evaluation_results_per_samples.length > INSTANCE_PREVIEW_LIMIT ||
+            variant.result.detailed_evaluation_results_url ||
+            variant.evaluation.evaluation_results.find(r => r.detailed_evaluation_results_url)?.detailed_evaluation_results_url) && (
             <SampleDataDialog
               samples={variant.evaluation.detailed_evaluation_results_per_samples}
               evaluationName={variant.result.evaluation_name}

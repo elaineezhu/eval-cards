@@ -46,6 +46,23 @@ function licenseBadgeClass(license: string): string {
   return "bg-muted text-muted-foreground border-border"
 }
 
+function categoryGlowClass(category: CategoryType | string) {
+  switch (category) {
+    case "General":
+      return "bg-sky-200/45 dark:bg-sky-900/30"
+    case "Reasoning":
+      return "bg-violet-200/45 dark:bg-violet-900/30"
+    case "Agentic":
+      return "bg-amber-200/45 dark:bg-amber-900/30"
+    case "Safety":
+      return "bg-rose-200/45 dark:bg-rose-900/30"
+    case "Knowledge":
+      return "bg-emerald-200/45 dark:bg-emerald-900/30"
+    default:
+      return "bg-stone-200/45 dark:bg-stone-800/40"
+  }
+}
+
 function slugifyAggregateId(value: string) {
   return `aggregate__${value.toLowerCase().replace(/[^a-z0-9]+/g, "_").replace(/^_|_$/g, "")}`
 }
@@ -53,6 +70,7 @@ function slugifyAggregateId(value: string) {
 // Canonical display names — keyed by normalized form (lowercase, separators→underscores)
 const BENCHMARK_DISPLAY_NAMES: Record<string, string> = {
   hfopenllm_v2: "HF Open LLM v2",
+  hfopenllm: "HF Open LLM",
   helm_lite: "HELM Lite",
   helm_capabilities: "HELM Capabilities",
   helm_classic: "HELM Classic",
@@ -63,7 +81,7 @@ const BENCHMARK_DISPLAY_NAMES: Record<string, string> = {
   bfcl: "BFCL",
   global_mmlu_lite: "Global MMLU Lite",
   swe_bench: "SWE-bench",
-  arc_agi: "ARC-AGI",
+  arc_agi: "ARC AGI",
   tau_bench_2: "TAU-Bench 2",
   ace: "ACE",
   apex_agents: "APEX Agents",
@@ -82,6 +100,64 @@ const BENCHMARK_DISPLAY_NAMES: Record<string, string> = {
   fibble4_arena: "Fibble Arena v4",
   fibble5_arena: "Fibble Arena v5",
   wordle_arena: "Wordle Arena",
+  bfcl_live: "BFCL Live",
+  bfcl_non_live: "BFCL Non Live",
+  bfcl_multi_turn: "BFCL Multi Turn",
+  bfcl_overall: "BFCL Overall",
+}
+
+const BENCHMARK_TOKEN_CASE_OVERRIDES: Record<string, string> = {
+  agi: "AGI",
+  ai: "AI",
+  apex: "APEX",
+  api: "API",
+  arc: "ARC",
+  bbh: "BBH",
+  bfcl: "BFCL",
+  gpqa: "GPQA",
+  gsm8k: "GSM8K",
+  hf: "HF",
+  helm: "HELM",
+  if: "IF",
+  ifeval: "IFEval",
+  la: "LA",
+  llm: "LLM",
+  math: "MATH",
+  medqa: "MedQA",
+  mmlu: "MMLU",
+  musr: "MUSR",
+  omni: "Omni",
+  qa: "QA",
+  swe: "SWE",
+  tau: "TAU",
+  vqa: "VQA",
+}
+
+function toCanonicalBenchmarkLabelKey(value: string): string {
+  return value
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, "_")
+    .replace(/^_+|_+$/g, "")
+}
+
+function formatBenchmarkToken(token: string): string {
+  const trimmed = token.trim()
+  if (!trimmed) return ""
+
+  const canonical = trimmed.toLowerCase()
+  if (BENCHMARK_TOKEN_CASE_OVERRIDES[canonical]) {
+    return BENCHMARK_TOKEN_CASE_OVERRIDES[canonical]
+  }
+
+  if (/^[A-Z0-9]+$/.test(trimmed) && /[A-Z]/.test(trimmed)) {
+    return trimmed
+  }
+
+  if (/^[vV]\d+[a-zA-Z0-9]*$/.test(trimmed)) {
+    return `${trimmed.charAt(0).toUpperCase()}${trimmed.slice(1)}`
+  }
+
+  return `${trimmed.charAt(0).toUpperCase()}${trimmed.slice(1).toLowerCase()}`
 }
 
 /**
@@ -101,14 +177,57 @@ function getSuperGroupKey(benchmarkKey: string): string {
 }
 
 function humanizeBenchmarkKey(key: string): string {
-  const normalized = key.toLowerCase().replace(/[-.\s]+/g, "_").replace(/^_+|_+$/g, "")
-  if (BENCHMARK_DISPLAY_NAMES[normalized]) return BENCHMARK_DISPLAY_NAMES[normalized]
-  // Fallback: title-case with underscores/hyphens as word separators
+  const canonical = toCanonicalBenchmarkLabelKey(key)
+  const superGroupKey = getSuperGroupKey(canonical)
+
+  if (BENCHMARK_DISPLAY_NAMES[canonical]) return BENCHMARK_DISPLAY_NAMES[canonical]
+  if (BENCHMARK_DISPLAY_NAMES[superGroupKey]) return BENCHMARK_DISPLAY_NAMES[superGroupKey]
+
   return key
-    .split(/[_-]+/)
+    .replace(/[/.]+/g, " ")
+    .split(/[_\-\s]+/)
     .filter(Boolean)
-    .map((w) => w.charAt(0).toUpperCase() + w.slice(1))
+    .map(formatBenchmarkToken)
     .join(" ")
+}
+
+function formatBenchmarkLabel(value?: string | null): string {
+  if (!value) return ""
+  return humanizeBenchmarkKey(value)
+}
+
+function getSummaryHierarchyLabels(
+  summary: BenchmarkEvalListItem,
+  card: BenchmarkCard | undefined,
+  familyLabels: Map<string, string>
+) {
+  const familyLabel =
+    (summary.benchmark_family_key ? familyLabels.get(summary.benchmark_family_key) : undefined) ??
+    formatBenchmarkLabel(summary.benchmark_family_key)
+
+  const suiteLabel = formatBenchmarkLabel(
+    summary.composite_benchmark_name || summary.evaluation_name
+  )
+
+  const benchmarkLabel = formatBenchmarkLabel(
+    summary.is_aggregated
+      ? summary.composite_benchmark_name || summary.evaluation_name
+      : card?.benchmark_details?.name ?? summary.evaluation_name
+  )
+
+  const suiteKey = normalizeBenchmarkKey(suiteLabel)
+  const benchmarkKey = normalizeBenchmarkKey(benchmarkLabel)
+  const isSuiteLevel = !benchmarkKey || suiteKey === benchmarkKey
+  const showFamilyLabel = Boolean(familyLabel) && normalizeBenchmarkKey(familyLabel) !== suiteKey
+
+  return {
+    familyLabel,
+    suiteLabel,
+    benchmarkLabel: isSuiteLevel ? suiteLabel : benchmarkLabel,
+    displayTitle: isSuiteLevel ? suiteLabel : `${suiteLabel}: ${benchmarkLabel}`,
+    isSuiteLevel,
+    showFamilyLabel,
+  }
 }
 
 function countFamilySurface(family: HierarchyFamily) {
@@ -315,6 +434,22 @@ export default function EvalsPage() {
       .slice(0, 10)
   }, [hierarchy])
 
+  const familyDisplayLabels = useMemo(() => {
+    const labels = new Map<string, string>()
+
+    for (const summary of aggregatedSummaries) {
+      if (summary.benchmark_family_key && !labels.has(summary.benchmark_family_key)) {
+        labels.set(summary.benchmark_family_key, formatBenchmarkLabel(summary.benchmark_family_key))
+      }
+    }
+
+    for (const family of hierarchy?.families ?? []) {
+      labels.set(family.key, formatBenchmarkLabel(family.display_name || family.key))
+    }
+
+    return labels
+  }, [aggregatedSummaries, hierarchy])
+
   const filtered = useMemo(() => {
     const query = searchQuery.trim().toLowerCase()
     let list = [...aggregatedSummaries]
@@ -380,6 +515,8 @@ export default function EvalsPage() {
     [filtered, page]
   )
 
+  const activeFilterCount = [searchQuery.trim(), selectedDomain, selectedCategory].filter(Boolean).length
+
   if (loading) {
     return (
       <div className="min-h-screen bg-background">
@@ -404,177 +541,169 @@ export default function EvalsPage() {
             ? "Scan single-benchmark evaluations with the benchmark context first, then open the detail page when you need methodology, provenance, or ranking depth."
             : "Scan single-benchmark evaluations with the benchmark context first, then open the detail page when you need accountability, source, or reporting detail."
         }
-        metaItems={[
-          { label: "Evaluations", value: filtered.length.toString() },
-          { label: "Models", value: totalModels.toString() },
-          ...(hierarchy ? [{ label: "Families", value: hierarchy.stats.family_count.toString() }] : []),
-          ...(hierarchy ? [{ label: "Metrics", value: hierarchy.stats.metric_count.toString() }] : []),
-          { label: "Domains", value: allDomains.length.toString() },
-          ...(selectedDomain ? [{ label: "Domain filter", value: selectedDomain }] : []),
-          ...(selectedCategory ? [{ label: "Category filter", value: selectedCategory }] : []),
-        ]}
       />
 
-      <main className="container mx-auto px-4 py-8">
-        {hierarchy && (
-          <section className="mb-8 rounded-[1.5rem] border border-border/70 bg-muted/10 p-5">
-            <div className="mb-4 flex flex-col gap-2 lg:flex-row lg:items-end lg:justify-between">
-              <div>
-                <div className="text-[11px] font-semibold uppercase tracking-[0.22em] text-muted-foreground">
-                  Benchmark Overview
-                </div>
-                <h3 className="mt-1 text-lg font-bold tracking-tight">How the evaluation set is organized</h3>
-                <p className="mt-1 text-sm text-muted-foreground">
-                  Use these groups to move from broader benchmark families to individual benchmarks and reported slices.
-                </p>
-              </div>
-              <div className="flex flex-wrap gap-2 text-sm">
-                <span className="rounded-full border border-border/70 bg-background px-3 py-1.5 font-medium">
-                  {hierarchy.stats.composite_count} composites
-                </span>
-                <span className="rounded-full border border-border/70 bg-background px-3 py-1.5 font-medium">
-                  {hierarchy.stats.single_benchmark_count} benchmarks
-                </span>
-                <span className="rounded-full border border-border/70 bg-background px-3 py-1.5 font-medium">
-                  {hierarchy.stats.slice_count} slices
-                </span>
-              </div>
-            </div>
-
-            <div className="flex flex-wrap gap-2">
-              {taxonomyFamilies.map((family) => (
-                <button
-                  key={family.key}
-                  type="button"
-                  onClick={() => setSearchQuery(family.display_name)}
-                  className="inline-flex items-center gap-2 rounded-full border border-border/70 bg-background px-3 py-1.5 text-sm font-medium text-foreground transition-colors hover:bg-muted/40"
-                >
-                  {family.display_name}
-                  <span className="rounded-full bg-muted px-2 py-0.5 text-[10px] font-semibold uppercase tracking-[0.14em] text-muted-foreground">
-                    {countFamilySurface(family)}
-                  </span>
-                </button>
-              ))}
-            </div>
-          </section>
-        )}
-
-        <div className="mb-8 flex flex-col gap-3 border-b border-border/50 pb-6">
-          <div className="flex flex-col gap-3 sm:flex-row sm:flex-wrap sm:items-center">
-            <div className="relative w-full sm:max-w-sm">
+      <main className="container mx-auto px-4 py-6 sm:py-8">
+        <section className="mb-8 rounded-[1.5rem] border border-stone-200/80 bg-white/82 p-4 shadow-[0_10px_28px_-26px_rgba(15,23,42,0.35)] dark:border-stone-800/80 dark:bg-stone-950/70">
+          <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
+            <div className="relative w-full lg:max-w-md">
               <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
               <Input
                 value={searchQuery}
                 onChange={(event) => setSearchQuery(event.target.value)}
                 placeholder="Search by name, domain, or overview"
-                className="pl-9"
+                className="h-11 rounded-full border-stone-200/80 bg-stone-50/70 pl-10 shadow-none dark:border-stone-700/70 dark:bg-stone-900/60"
               />
+            </div>
+
+            <div className="flex flex-wrap items-center gap-2 text-sm">
+              <span className="rounded-full border border-stone-200/80 bg-stone-50/80 px-3 py-1.5 font-medium text-stone-700 dark:border-stone-700/80 dark:bg-stone-900/70 dark:text-stone-200">
+                {filtered.length} visible
+              </span>
+              {activeFilterCount > 0 && (
+                <button
+                  type="button"
+                  onClick={() => {
+                    setSearchQuery("")
+                    setSelectedDomain(null)
+                    setSelectedCategory(null)
+                  }}
+                  className="inline-flex items-center gap-1.5 rounded-full border border-stone-200/80 bg-white px-3 py-1.5 text-sm font-medium text-stone-600 transition-colors hover:bg-stone-50 dark:border-stone-700/80 dark:bg-stone-900 dark:text-stone-200 dark:hover:bg-stone-800"
+                >
+                  <X className="h-3.5 w-3.5" />
+                  Reset filters
+                </button>
+              )}
             </div>
           </div>
 
+          {hierarchy && taxonomyFamilies.length > 0 && (
+            <div className="mt-4 border-t border-stone-200/80 pt-4 dark:border-stone-800/80">
+              <div className="flex flex-col gap-2 lg:flex-row lg:items-start lg:justify-between">
+                <div>
+                  <div className="text-[11px] font-semibold uppercase tracking-[0.2em] text-stone-500 dark:text-stone-400">
+                    Benchmark families
+                  </div>
+                  <p className="mt-1 text-sm text-stone-600 dark:text-stone-300">
+                    Jump into the main suites first, then narrow with domain or category filters.
+                  </p>
+                </div>
+                <div className="flex flex-wrap gap-2 text-sm">
+                  <span className="rounded-full border border-stone-200/80 bg-stone-50/80 px-3 py-1.5 font-medium text-stone-700 dark:border-stone-700/80 dark:bg-stone-900/70 dark:text-stone-200">
+                    {hierarchy.stats.composite_count} composites
+                  </span>
+                  <span className="rounded-full border border-stone-200/80 bg-stone-50/80 px-3 py-1.5 font-medium text-stone-700 dark:border-stone-700/80 dark:bg-stone-900/70 dark:text-stone-200">
+                    {hierarchy.stats.single_benchmark_count} benchmarks
+                  </span>
+                  <span className="rounded-full border border-stone-200/80 bg-stone-50/80 px-3 py-1.5 font-medium text-stone-700 dark:border-stone-700/80 dark:bg-stone-900/70 dark:text-stone-200">
+                    {hierarchy.stats.slice_count} slices
+                  </span>
+                </div>
+              </div>
+
+              <div className="mt-3 flex flex-wrap gap-1.5">
+                {taxonomyFamilies.map((family) => (
+                  <button
+                    key={family.key}
+                    type="button"
+                    onClick={() => setSearchQuery(formatBenchmarkLabel(family.display_name || family.key))}
+                    className="inline-flex items-center gap-2 rounded-full border border-stone-200/80 bg-white px-3 py-1.5 text-sm font-medium text-stone-700 transition-colors hover:bg-stone-50 dark:border-stone-700/80 dark:bg-stone-900 dark:text-stone-200 dark:hover:bg-stone-800"
+                  >
+                    {formatBenchmarkLabel(family.display_name || family.key)}
+                    <span className="rounded-full bg-stone-100 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-[0.14em] text-stone-500 dark:bg-stone-800 dark:text-stone-300">
+                      {countFamilySurface(family)}
+                    </span>
+                  </button>
+                ))}
+              </div>
+            </div>
+          )}
+
           {allDomains.length > 0 && (
-            <div className="flex flex-wrap items-center gap-1.5">
-              <span className="mr-1 text-[11px] font-semibold uppercase tracking-[0.2em] text-muted-foreground">
+            <div className="mt-4 space-y-1.5">
+              <div className="text-[11px] font-semibold uppercase tracking-[0.2em] text-stone-500 dark:text-stone-400">
                 Domain
-              </span>
-              <button
-                type="button"
-                onClick={() => setSelectedDomain(null)}
-                className={cn(
-                  "rounded-full border px-3 py-1 text-xs font-medium transition-colors",
-                  selectedDomain === null
-                    ? "border-primary bg-primary text-primary-foreground"
-                    : "border-border/60 bg-background text-muted-foreground hover:text-foreground"
-                )}
-              >
-                All
-              </button>
-              {allDomains.map((domain) => (
-                <button
-                  key={domain}
-                  type="button"
-                  onClick={() => setSelectedDomain(selectedDomain === domain ? null : domain)}
-                  className={cn(
-                    "rounded-full border px-3 py-1 text-xs font-medium capitalize transition-colors",
-                    selectedDomain === domain
-                      ? "border-primary bg-primary text-primary-foreground"
-                      : "border-border/60 bg-background text-muted-foreground hover:text-foreground"
-                  )}
-                >
-                  {domain}
-                </button>
-              ))}
-              {selectedDomain && (
-                <button
-                  type="button"
-                  onClick={() => setSelectedDomain(null)}
-                  className="ml-1 flex items-center gap-1 text-xs text-muted-foreground hover:text-foreground"
-                >
-                  <X className="h-3 w-3" />
-                  Clear
-                </button>
-              )}
+              </div>
+              <div className="flex flex-wrap items-center gap-1.5">
+                  <button
+                    type="button"
+                    onClick={() => setSelectedDomain(null)}
+                    className={cn(
+                      "shrink-0 rounded-full border px-3 py-1.5 text-xs font-medium transition-colors",
+                      selectedDomain === null
+                        ? "border-stone-950 bg-stone-950 text-stone-50 dark:border-stone-100 dark:bg-stone-100 dark:text-stone-950"
+                        : "border-stone-200/80 bg-stone-50/80 text-stone-600 hover:bg-stone-100 dark:border-stone-700/80 dark:bg-stone-900/70 dark:text-stone-300 dark:hover:bg-stone-800"
+                    )}
+                  >
+                    All
+                  </button>
+                  {allDomains.map((domain) => (
+                    <button
+                      key={domain}
+                      type="button"
+                      onClick={() => setSelectedDomain(selectedDomain === domain ? null : domain)}
+                      className={cn(
+                        "shrink-0 rounded-full border px-3 py-1.5 text-xs font-medium capitalize transition-colors",
+                        selectedDomain === domain
+                          ? "border-sky-300 bg-sky-50 text-sky-800 dark:border-sky-800 dark:bg-sky-950/50 dark:text-sky-200"
+                          : "border-stone-200/80 bg-white text-stone-600 hover:bg-stone-50 dark:border-stone-700/80 dark:bg-stone-900 dark:text-stone-300 dark:hover:bg-stone-800"
+                      )}
+                    >
+                      {domain}
+                    </button>
+                  ))}
+              </div>
             </div>
           )}
 
           {allCategories.length > 0 && (
-            <div className="flex flex-wrap items-center gap-1.5">
-              <span className="mr-1 text-[11px] font-semibold uppercase tracking-[0.2em] text-muted-foreground">
+            <div className="mt-4 space-y-1.5">
+              <div className="text-[11px] font-semibold uppercase tracking-[0.2em] text-stone-500 dark:text-stone-400">
                 Category
-              </span>
-              <button
-                type="button"
-                onClick={() => setSelectedCategory(null)}
-                className={cn(
-                  "rounded-full border px-3 py-1 text-xs font-medium transition-colors",
-                  selectedCategory === null
-                    ? "border-primary bg-primary text-primary-foreground"
-                    : "border-border/60 bg-background text-muted-foreground hover:text-foreground"
-                )}
-              >
-                All
-              </button>
-              {allCategories.map((category) => (
-                <button
-                  key={category}
-                  type="button"
-                  onClick={() => setSelectedCategory(selectedCategory === category ? null : category)}
-                  className={cn(
-                    "rounded-full border px-3 py-1 text-xs font-medium transition-colors",
-                    selectedCategory === category
-                      ? `${getCategoryColor(category as CategoryType)} border-2`
-                      : "border-border/60 bg-background text-muted-foreground hover:text-foreground"
-                  )}
-                >
-                  {category}
-                </button>
-              ))}
-              {selectedCategory && (
-                <button
-                  type="button"
-                  onClick={() => setSelectedCategory(null)}
-                  className="ml-1 flex items-center gap-1 text-xs text-muted-foreground hover:text-foreground"
-                >
-                  <X className="h-3 w-3" />
-                  Clear
-                </button>
-              )}
+              </div>
+              <div className="flex flex-wrap items-center gap-1.5">
+                  <button
+                    type="button"
+                    onClick={() => setSelectedCategory(null)}
+                    className={cn(
+                      "shrink-0 rounded-full border px-3 py-1.5 text-xs font-medium transition-colors",
+                      selectedCategory === null
+                        ? "border-stone-950 bg-stone-950 text-stone-50 dark:border-stone-100 dark:bg-stone-100 dark:text-stone-950"
+                        : "border-stone-200/80 bg-stone-50/80 text-stone-600 hover:bg-stone-100 dark:border-stone-700/80 dark:bg-stone-900/70 dark:text-stone-300 dark:hover:bg-stone-800"
+                    )}
+                  >
+                    All
+                  </button>
+                  {allCategories.map((category) => (
+                    <button
+                      key={category}
+                      type="button"
+                      onClick={() => setSelectedCategory(selectedCategory === category ? null : category)}
+                      className={cn(
+                        "shrink-0 rounded-full border px-3 py-1.5 text-xs font-medium transition-colors",
+                        selectedCategory === category
+                          ? `${getCategoryColor(category as CategoryType)} border`
+                          : "border-stone-200/80 bg-white text-stone-600 hover:bg-stone-50 dark:border-stone-700/80 dark:bg-stone-900 dark:text-stone-300 dark:hover:bg-stone-800"
+                      )}
+                    >
+                      {category}
+                    </button>
+                  ))}
+              </div>
             </div>
           )}
-        </div>
+        </section>
 
         {filtered.length === 0 ? (
           <div className="py-12 text-center text-muted-foreground">
             No evaluations found.
           </div>
         ) : (
-          <div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">
+          <div className="grid grid-cols-1 gap-5 md:grid-cols-2 xl:grid-cols-3">
             {pagedSummaries.map((summary) => {
               const card = summary.benchmark_card
-              // For aggregated (grouped) items, always use the suite name, not a sub-metric card name
-              const title = summary.is_aggregated
-                ? summary.evaluation_name
-                : (card?.benchmark_details?.name ?? summary.evaluation_name)
+              const hierarchyLabels = getSummaryHierarchyLabels(summary, card, familyDisplayLabels)
+              const title = hierarchyLabels.displayTitle
               const overview = summary.is_aggregated
                 ? `Composite benchmark with ${summary.aggregate_sources?.length ?? 0} metrics across ${summary.models_count.toLocaleString()} models.`
                 : (card?.benchmark_details?.overview ?? summary.metric_config.evaluation_description)
@@ -587,31 +716,54 @@ export default function EvalsPage() {
                   ? `${(summary.top_score * 100).toFixed(1)}%`
                   : summary.top_score.toFixed(summary.top_score >= 100 ? 0 : 2)
                 : null
-              const showCompositeLabel =
-                summary.composite_benchmark_name &&
-                summary.composite_benchmark_name.toLowerCase() !== title.toLowerCase()
-              const compositeLabel = summary.is_aggregated
-                ? summary.aggregate_sources?.map((source) => source.composite_benchmark_name).join(", ")
-                : summary.composite_benchmark_name
+              const categoryBadgeClass = getCategoryColor(summary.category as CategoryType)
 
               return (
                 <Link
                   key={summary.evaluation_id}
                   href={`/evals/${summary.evaluation_id}`}
-                  className="group flex flex-col rounded-[1.75rem] border border-border/70 bg-card p-5 shadow-[0_10px_30px_-22px_rgba(15,23,42,0.35)] transition-all hover:-translate-y-0.5 hover:shadow-[0_18px_40px_-24px_rgba(15,23,42,0.45)] motion-academic-enter motion-academic-surface motion-academic-hover"
+                  className="group relative flex flex-col overflow-hidden rounded-[1.75rem] border border-stone-200/80 bg-[linear-gradient(180deg,rgba(255,255,255,0.98),rgba(250,248,245,0.92))] p-5 shadow-[0_14px_36px_-28px_rgba(15,23,42,0.38)] transition-all hover:-translate-y-0.5 hover:border-stone-300/90 hover:shadow-[0_22px_48px_-30px_rgba(15,23,42,0.44)] dark:border-stone-800/80 dark:bg-[linear-gradient(180deg,rgba(28,27,26,0.98),rgba(23,23,23,0.94))] dark:hover:border-stone-700/90 motion-academic-enter motion-academic-surface motion-academic-hover"
                 >
-                  <div className="mb-4 flex items-start justify-between gap-3">
-                    <div className="text-[10px] font-semibold uppercase tracking-[0.28em] text-muted-foreground">
-                      Benchmark
+                  <div className={`pointer-events-none absolute right-2 top-2 h-24 w-24 rounded-full blur-3xl transition-opacity duration-300 group-hover:opacity-90 ${categoryGlowClass(summary.category as CategoryType)}`} />
+
+                  <div className="relative mb-4 flex items-start justify-between gap-3">
+                    <div className="min-w-0">
+                      <div className="mb-2 flex flex-wrap items-center gap-1.5">
+                        <span className="text-[10px] font-semibold uppercase tracking-[0.28em] text-stone-500 dark:text-stone-400">
+                          {hierarchyLabels.isSuiteLevel ? "Benchmark suite" : "Benchmark"}
+                        </span>
+                        <span className={`rounded-full border px-2.5 py-0.5 text-[10px] font-semibold ${categoryBadgeClass}`}>
+                          {summary.category}
+                        </span>
+                        {summary.is_summary_score && (
+                          <span className="rounded-full border border-stone-200/80 bg-stone-100/80 px-2.5 py-0.5 text-[10px] font-semibold text-stone-700 dark:border-stone-700/80 dark:bg-stone-800/70 dark:text-stone-200">
+                            Summary score
+                          </span>
+                        )}
+                      </div>
+
+                      <div className="flex flex-wrap items-center gap-x-2 gap-y-1 text-[11px] font-medium text-stone-500 dark:text-stone-400">
+                        {hierarchyLabels.showFamilyLabel && hierarchyLabels.familyLabel && (
+                          <>
+                            <span className="uppercase tracking-[0.18em] text-stone-400 dark:text-stone-500">Family</span>
+                            <span className="text-stone-700 dark:text-stone-200">{hierarchyLabels.familyLabel}</span>
+                          </>
+                        )}
+                        {!hierarchyLabels.isSuiteLevel && hierarchyLabels.suiteLabel && (
+                          <>
+                            {hierarchyLabels.showFamilyLabel && <span className="text-stone-300 dark:text-stone-600">/</span>}
+                            <span className="uppercase tracking-[0.18em] text-stone-400 dark:text-stone-500">Suite</span>
+                            <span className="text-stone-700 dark:text-stone-200">{hierarchyLabels.suiteLabel}</span>
+                          </>
+                        )}
+                      </div>
                     </div>
                     <div className="flex flex-wrap justify-end gap-1.5">
                       {summary.is_summary_score && (
-                        <span className="rounded-full border border-primary/30 bg-primary/5 px-2.5 py-0.5 text-[10px] font-semibold text-primary">
-                          Summary score
-                        </span>
+                        <span className="hidden" />
                       )}
                       {dataType && (
-                        <span className="rounded-full border border-border/60 bg-muted/40 px-2.5 py-0.5 text-[10px] font-medium text-muted-foreground">
+                        <span className="rounded-full border border-stone-200/80 bg-white/85 px-2.5 py-0.5 text-[10px] font-medium text-stone-500 dark:border-stone-700/80 dark:bg-stone-900/85 dark:text-stone-300">
                           {dataType}
                         </span>
                       )}
@@ -620,59 +772,53 @@ export default function EvalsPage() {
                           {shortLicense}
                         </span>
                       )}
-                      <span className="rounded-full border border-border/60 bg-background px-2.5 py-0.5 text-[10px] font-semibold text-muted-foreground">
-                        {summary.models_count.toLocaleString()} models
-                      </span>
-                      <span className="rounded-full border border-border/60 bg-background px-2.5 py-0.5 text-[10px] font-semibold text-muted-foreground">
-                        {summary.metrics_count ?? 0} metric{(summary.metrics_count ?? 0) === 1 ? "" : "s"}
+                      <span className="rounded-full border border-stone-200/80 bg-white/85 px-2.5 py-0.5 text-[10px] font-semibold text-stone-600 dark:border-stone-700/80 dark:bg-stone-900/85 dark:text-stone-300">
+                        {summary.models_count.toLocaleString()} models · {summary.metrics_count ?? 0} metric{(summary.metrics_count ?? 0) === 1 ? "" : "s"}
                       </span>
                     </div>
                   </div>
 
-                  <h3 className="mb-2 text-base font-bold tracking-tight transition-colors group-hover:text-primary sm:text-lg">
+                  <h3 className="relative mb-2 text-lg font-bold tracking-tight text-stone-950 transition-colors group-hover:text-stone-700 dark:text-stone-50 dark:group-hover:text-stone-200">
                     {title}
                   </h3>
 
                   {summary.is_aggregated && summary.aggregate_sources && summary.aggregate_sources.length > 1 && (
-                    <div className="mb-2 flex flex-wrap gap-1.5">
-                      <span className="rounded-full border border-primary/30 bg-primary/5 px-2.5 py-0.5 text-[10px] font-semibold text-primary">
-                        {summary.aggregate_sources.length} metrics
-                      </span>
-                      {summary.aggregate_sources.slice(0, 4).map((source) => (
-                        <span key={source.evaluation_id} className="rounded-full border border-border/60 bg-muted/30 px-2 py-0.5 text-[10px] text-muted-foreground">
-                          {source.composite_benchmark_name}
+                    <div className="mb-3 flex flex-wrap gap-1.5">
+                      {summary.aggregate_sources.slice(0, 3).map((source) => (
+                        <span key={source.evaluation_id} className="rounded-full border border-stone-200/80 bg-stone-100/70 px-2.5 py-0.5 text-[10px] font-medium text-stone-600 dark:border-stone-700/80 dark:bg-stone-800/70 dark:text-stone-300">
+                          {formatBenchmarkLabel(source.composite_benchmark_name)}
                         </span>
                       ))}
-                      {summary.aggregate_sources.length > 4 && (
-                        <span className="rounded-full border border-border/60 bg-muted/30 px-2 py-0.5 text-[10px] text-muted-foreground">
-                          +{summary.aggregate_sources.length - 4} more
+                      {summary.aggregate_sources.length > 3 && (
+                        <span className="rounded-full border border-stone-200/80 bg-stone-100/70 px-2.5 py-0.5 text-[10px] font-medium text-stone-600 dark:border-stone-700/80 dark:bg-stone-800/70 dark:text-stone-300">
+                          +{summary.aggregate_sources.length - 3} more
                         </span>
                       )}
                     </div>
                   )}
 
                   {overview && (
-                    <p className="mb-4 flex-1 text-sm leading-6 text-muted-foreground line-clamp-4">
+                    <p className="mb-4 flex-1 text-sm leading-6 text-stone-600 line-clamp-3 dark:text-stone-300">
                       {overview}
                     </p>
                   )}
 
-                  <div className="mb-4 grid gap-2 sm:grid-cols-2 xl:grid-cols-3">
+                  <div className="mb-4 grid gap-px overflow-hidden rounded-[1.2rem] border border-stone-200/80 bg-stone-200/80 dark:border-stone-800/80 dark:bg-stone-800/80 sm:grid-cols-2 xl:grid-cols-3">
                     {topScoreLabel && (
-                      <div className="rounded-2xl border border-border/60 bg-muted/15 px-3 py-2">
-                        <div className="text-[10px] font-semibold uppercase tracking-[0.16em] text-muted-foreground">Top score</div>
-                        <div className="mt-1 text-sm font-semibold">{topScoreLabel}</div>
+                      <div className="bg-white/90 px-3 py-3 dark:bg-stone-950/90">
+                        <div className="text-[10px] font-semibold uppercase tracking-[0.16em] text-stone-500 dark:text-stone-400">Top score</div>
+                        <div className="mt-1 text-sm font-semibold text-stone-900 dark:text-stone-100">{topScoreLabel}</div>
                       </div>
                     )}
-                    <div className="rounded-2xl border border-border/60 bg-muted/15 px-3 py-2">
-                      <div className="text-[10px] font-semibold uppercase tracking-[0.16em] text-muted-foreground">Source</div>
-                      <div className="mt-1 truncate text-sm font-semibold">
+                    <div className="bg-white/90 px-3 py-3 dark:bg-stone-950/90">
+                      <div className="text-[10px] font-semibold uppercase tracking-[0.16em] text-stone-500 dark:text-stone-400">Source</div>
+                      <div className="mt-1 truncate text-sm font-semibold text-stone-900 dark:text-stone-100">
                         {summary.source_data?.hf_repo ?? summary.source_data?.dataset_name ?? "Backend summary"}
                       </div>
                     </div>
-                    <div className="rounded-2xl border border-border/60 bg-muted/15 px-3 py-2">
-                      <div className="text-[10px] font-semibold uppercase tracking-[0.16em] text-muted-foreground">Instance data</div>
-                      <div className="mt-1 text-sm font-semibold">
+                    <div className="bg-white/90 px-3 py-3 dark:bg-stone-950/90">
+                      <div className="text-[10px] font-semibold uppercase tracking-[0.16em] text-stone-500 dark:text-stone-400">Instance data</div>
+                      <div className="mt-1 text-sm font-semibold text-stone-900 dark:text-stone-100">
                         {summary.instance_data?.available ? `${summary.instance_data.url_count.toLocaleString()} URLs` : "Not linked"}
                       </div>
                     </div>
@@ -680,17 +826,17 @@ export default function EvalsPage() {
 
                   {domains.length > 0 && (
                     <div className="mt-auto flex flex-wrap gap-2 pt-1">
-                      {domains.slice(0, 5).map((domain) => (
+                      {domains.slice(0, 3).map((domain) => (
                         <span
                           key={domain}
-                          className="rounded-full border border-border/60 bg-muted/30 px-3 py-1 text-[11px] font-medium capitalize text-muted-foreground"
+                          className="rounded-full border border-stone-200/80 bg-stone-100/70 px-3 py-1 text-[11px] font-medium capitalize text-stone-600 dark:border-stone-700/80 dark:bg-stone-800/70 dark:text-stone-300"
                         >
                           {domain}
                         </span>
                       ))}
-                      {domains.length > 5 && (
-                        <span className="rounded-full border border-border/60 bg-muted/30 px-3 py-1 text-[11px] font-medium text-muted-foreground">
-                          +{domains.length - 5}
+                      {domains.length > 3 && (
+                        <span className="rounded-full border border-stone-200/80 bg-stone-100/70 px-3 py-1 text-[11px] font-medium text-stone-600 dark:border-stone-700/80 dark:bg-stone-800/70 dark:text-stone-300">
+                          +{domains.length - 3}
                         </span>
                       )}
                     </div>
