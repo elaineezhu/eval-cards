@@ -33,6 +33,33 @@ function formatParamBoundLabel(step: number, bound: "min" | "max") {
   return value != null ? `${value}B` : "Not reported"
 }
 
+function normalizeMetadataList(value: unknown): string[] {
+  if (Array.isArray(value)) {
+    return value
+      .filter((item): item is string => typeof item === "string")
+      .map((item) => item.trim())
+      .filter(Boolean)
+  }
+
+  if (typeof value !== "string") return []
+
+  const normalized = value.trim()
+  if (!normalized) return []
+
+  const looksDelimited = /[,;|]/.test(normalized)
+  if (looksDelimited) {
+    return normalized
+      .split(/[,;|]/)
+      .map((item) => item.trim())
+      .filter(Boolean)
+  }
+
+  // Treat long prose values as invalid list data rather than rendering oversized chips.
+  if (normalized.length > 40 || /\s/.test(normalized)) return []
+
+  return [normalized]
+}
+
 export default function EvalDetailPage() {
   const params = useParams()
   const router = useRouter()
@@ -264,7 +291,7 @@ function SubBenchmarkCards({
         const sub = subMap.get(source.evaluation_id)
         const card = sub?.benchmark_card
         const overview = card?.benchmark_details?.overview ?? sub?.metric_config?.evaluation_description
-        const domains = card?.benchmark_details?.domains ?? []
+        const domains = normalizeMetadataList(card?.benchmark_details?.domains)
         const goal = card?.purpose_and_intended_users?.goal
 
         return (

@@ -1,155 +1,178 @@
 /**
- * Downloads HF dataset files to local cache during build.
- * This avoids hitting HF rate limits at runtime.
+ * Downloads the HF dataset snapshot to local cache during build.
+ * This avoids hitting HF rate limits at runtime and during cache refresh.
  *
- * Phase 1: Download index files (model-cards, eval-list, developers, benchmark-metadata, peer-ranks)
- * Phase 2: Download all developer detail files (developers/*.json)
- * Phase 3: Download all eval detail files (evals/*.json)
+ * Phase 1: Clone the dataset snapshot once via Git
+ * Phase 2: Copy index files (model-cards, eval-list, developers, benchmark-metadata, peer-ranks)
+ * Phase 3: Copy detail directories (developers/*.json, evals/*.json, models/*.json)
  *
  * Run with:  node scripts/cache-hf-data.mjs
  */
 
+import { execFile } from "child_process"
 import fs from "fs/promises"
+import os from "os"
 import path from "path"
+import { promisify } from "util"
 
 const root = path.resolve(new URL(import.meta.url).pathname, "..", "..")
 const cacheDir = path.join(root, ".cache", "hf-data")
 const publicDir = path.join(root, "public")
-const HF_BASE = "https://huggingface.co/datasets/evaleval/card_backend/resolve/main"
+const HF_DATASET_REPO = "https://huggingface.co/datasets/evaleval/card_backend"
+const HF_RESOLVE_BASE = `${HF_DATASET_REPO}/resolve/main`
+const execFileAsync = promisify(execFile)
 
-// Rate-limit-aware download with retries
-async function download(remotePath, localPath) {
-  const url = `${HF_BASE}/${remotePath}`
-  for (let attempt = 0; attempt < 3; attempt++) {
-    try {
-      if (attempt > 0) await new Promise((r) => setTimeout(r, 2000 * attempt))
-      const res = await fetch(url)
-      if (res.status === 429) {
-        console.warn(`  ⏳ Rate limited on ${remotePath}, retrying...`)
-        continue
-      }
-      if (!res.ok) return false
-      const data = await res.text()
-      await fs.mkdir(path.dirname(localPath), { recursive: true })
-      await fs.writeFile(localPath, data)
-      return true
-    } catch {
-      if (attempt === 2) return false
-    }
-  }
-  return false
+const CACHE_ROOT_FILES = [
+  "model-cards.json",
+  "eval-list.json",
+  "developers.json",
+  "benchmark-metadata.json",
+  "eval-hierarchy.json",
+]
+
+const CACHE_DIRECTORIES = ["developers", "evals", "models"]
+
+async function runGit(args, cwd) {
+  await execFileAsync("git", args, {
+    cwd,
+    maxBuffer: 1024 * 1024 * 32,
+  })
 }
 
-// Download in batches to avoid rate limits
-async function downloadBatch(items, concurrency = 5) {
-  let done = 0
-  let failed = 0
-  const total = items.length
-
-  for (let i = 0; i < items.length; i += concurrency) {
-    const batch = items.slice(i, i + concurrency)
-    const results = await Promise.all(
-      batch.map(({ remote, local }) => download(remote, local))
-    )
-    done += results.filter(Boolean).length
-    failed += results.filter((r) => !r).length
-
-    // Brief pause between batches to be polite
-    if (i + concurrency < items.length) {
-      await new Promise((r) => setTimeout(r, 200))
-    }
-  }
-
-  return { done, failed, total }
+async function cloneDatasetSnapshot(targetDir) {
+  await runGit(["clone", "--depth", "1", "--single-branch", HF_DATASET_REPO, targetDir], root)
 }
 
-function slugify(text) {
-  return (text.replace(/[\x00-\x1f\x7f]/g, "").replace(/[^a-zA-Z0-9._-]/g, "_").replace(/^_+|_+$/g, "") || "unknown")
+async function ensureCleanDirectory(dirPath) {
+  await fs.rm(dirPath, { recursive: true, force: true })
+  await fs.mkdir(dirPath, { recursive: true })
+}
+
+async function copyFile(sourcePath, destinationPath) {
+  await fs.mkdir(path.dirname(destinationPath), { recursive: true })
+  await fs.copyFile(sourcePath, destinationPath)
+  const stat = await fs.stat(destinationPath)
+  return stat.size
+}
+
+function isGitLfsPointer(contents) {
+  return contents.startsWith("version https://git-lfs.github.com/spec/v1\n")
+}
+
+async function writeRemoteFile(relativePath, destinationPath) {
+  const response = await fetch(`${HF_RESOLVE_BASE}/${relativePath}`)
+  if (!response.ok) {
+    throw new Error(`Failed to download ${relativePath}: ${response.status} ${response.statusText}`)
+  }
+
+  const body = await response.text()
+  await fs.mkdir(path.dirname(destinationPath), { recursive: true })
+  await fs.writeFile(destinationPath, body)
+  return Buffer.byteLength(body)
+}
+
+async function copySnapshotFile(snapshotRoot, relativePath, destinationPath) {
+  const sourcePath = path.join(snapshotRoot, relativePath)
+  const contents = await fs.readFile(sourcePath, "utf8")
+
+  if (isGitLfsPointer(contents)) {
+    const size = await writeRemoteFile(relativePath, destinationPath)
+    return { size, source: "remote" }
+  }
+
+  const size = await copyFile(sourcePath, destinationPath)
+  return { size, source: "snapshot" }
+}
+
+async function copySnapshotDirectory(snapshotRoot, relativeDir, destinationDir) {
+  const sourceDir = path.join(snapshotRoot, relativeDir)
+  const entries = await fs.readdir(sourceDir, { withFileTypes: true })
+
+  let fileCount = 0
+  let remoteCount = 0
+
+  for (const entry of entries) {
+    const nestedRelativePath = path.posix.join(relativeDir, entry.name)
+    const destinationPath = path.join(destinationDir, entry.name)
+
+    if (entry.isDirectory()) {
+      await ensureCleanDirectory(destinationPath)
+      const nested = await copySnapshotDirectory(snapshotRoot, nestedRelativePath, destinationPath)
+      fileCount += nested.fileCount
+      remoteCount += nested.remoteCount
+      continue
+    }
+
+    const result = await copySnapshotFile(snapshotRoot, nestedRelativePath, destinationPath)
+    fileCount += 1
+    remoteCount += result.source === "remote" ? 1 : 0
+  }
+
+  return { fileCount, remoteCount }
+}
+
+async function countFiles(dirPath) {
+  const entries = await fs.readdir(dirPath, { withFileTypes: true })
+  let count = 0
+
+  for (const entry of entries) {
+    const fullPath = path.join(dirPath, entry.name)
+    if (entry.isDirectory()) {
+      count += await countFiles(fullPath)
+      continue
+    }
+
+    count += 1
+  }
+
+  return count
 }
 
 async function main() {
-  console.log("Caching HF dataset files for build...\n")
-
-  // ── Phase 1: Index files ──────────────────────────────────────────────
-  console.log("Phase 1: Index files")
-  const indexFiles = [
-    { remote: "model-cards.json", local: path.join(cacheDir, "model-cards.json") },
-    { remote: "eval-list.json", local: path.join(cacheDir, "eval-list.json") },
-    { remote: "developers.json", local: path.join(cacheDir, "developers.json") },
-    { remote: "benchmark-metadata.json", local: path.join(cacheDir, "benchmark-metadata.json") },
-    { remote: "eval-hierarchy.json", local: path.join(cacheDir, "eval-hierarchy.json") },
-    { remote: "peer-ranks.json", local: path.join(publicDir, "peer-ranks.json") },
-  ]
+  console.log("Caching HF dataset snapshot for build...\n")
 
   await fs.mkdir(cacheDir, { recursive: true })
   await fs.mkdir(publicDir, { recursive: true })
 
-  for (const file of indexFiles) {
-    const ok = await download(file.remote, file.local)
-    const stat = ok ? await fs.stat(file.local) : null
-    const sizeKB = stat ? (stat.size / 1024).toFixed(0) : "?"
-    console.log(`  ${ok ? "✓" : "✗"} ${file.remote} ${ok ? `(${sizeKB} KB)` : "(failed)"}`)
-  }
+  const tempDir = await fs.mkdtemp(path.join(os.tmpdir(), "card-backend-"))
 
-  // ── Phase 2: Developer detail files ───────────────────────────────────
-  console.log("\nPhase 2: Developer detail files")
-  let developerItems = []
   try {
-    const devIndex = JSON.parse(await fs.readFile(path.join(cacheDir, "developers.json"), "utf8"))
-    developerItems = devIndex.map((entry) => {
-      const slug = slugify(entry.developer.trim().toLowerCase())
-      return {
-        remote: `developers/${slug}.json`,
-        local: path.join(cacheDir, "developers", `${slug}.json`),
-      }
-    })
-  } catch (err) {
-    console.warn("  Could not read developers index:", err.message)
-  }
+    // ── Phase 1: Clone snapshot ───────────────────────────────────────────
+    console.log("Phase 1: Clone dataset snapshot")
+    await cloneDatasetSnapshot(tempDir)
+    console.log(`  ✓ cloned ${HF_DATASET_REPO}`)
 
-  if (developerItems.length > 0) {
-    const res = await downloadBatch(developerItems)
-    console.log(`  ✓ ${res.done}/${res.total} developer files cached (${res.failed} not found)`)
-  }
+    // ── Phase 2: Root files ───────────────────────────────────────────────
+    console.log("\nPhase 2: Copy index files")
+    for (const fileName of CACHE_ROOT_FILES) {
+      const destinationPath = path.join(cacheDir, fileName)
+      const result = await copySnapshotFile(tempDir, fileName, destinationPath)
+      const suffix = result.source === "remote" ? ", resolved from LFS" : ""
+      console.log(`  ✓ ${fileName} (${(result.size / 1024).toFixed(0)} KB${suffix})`)
+    }
 
-  // ── Phase 3: Eval detail files ────────────────────────────────────────
-  console.log("\nPhase 3: Eval detail files")
-  let evalItems = []
-  try {
-    const evalIndex = JSON.parse(await fs.readFile(path.join(cacheDir, "eval-list.json"), "utf8"))
-    const evals = evalIndex.evals ?? evalIndex
-    evalItems = evals.map((entry) => ({
-      remote: `evals/${entry.eval_summary_id}.json`,
-      local: path.join(cacheDir, "evals", `${entry.eval_summary_id}.json`),
-    }))
-  } catch (err) {
-    console.warn("  Could not read eval-list index:", err.message)
-  }
+    const peerRanksResult = await copySnapshotFile(
+      tempDir,
+      "peer-ranks.json",
+      path.join(publicDir, "peer-ranks.json")
+    )
+    const peerRanksSuffix = peerRanksResult.source === "remote" ? ", resolved from LFS" : ""
+    console.log(`  ✓ peer-ranks.json (${(peerRanksResult.size / 1024).toFixed(0)} KB${peerRanksSuffix})`)
 
-  if (evalItems.length > 0) {
-    const res = await downloadBatch(evalItems)
-    console.log(`  ✓ ${res.done}/${res.total} eval files cached (${res.failed} not found)`)
-  }
+    // ── Phase 3: Detail directories ─────────────────────────────────────
+    console.log("\nPhase 3: Copy detail directories")
+    for (const directoryName of CACHE_DIRECTORIES) {
+      const destinationPath = path.join(cacheDir, directoryName)
+      await ensureCleanDirectory(destinationPath)
+      const result = await copySnapshotDirectory(tempDir, directoryName, destinationPath)
+      const remoteSuffix = result.remoteCount > 0 ? `, ${result.remoteCount} resolved from LFS` : ""
+      console.log(`  ✓ ${directoryName}/ (${result.fileCount} files${remoteSuffix})`)
+    }
 
-  // ── Phase 4: Model detail files ──────────────────────────────────────
-  console.log("\nPhase 4: Model detail files")
-  let modelItems = []
-  try {
-    const modelCards = JSON.parse(await fs.readFile(path.join(cacheDir, "model-cards.json"), "utf8"))
-    modelItems = modelCards.map((entry) => ({
-      remote: `models/${entry.model_route_id}.json`,
-      local: path.join(cacheDir, "models", `${entry.model_route_id}.json`),
-    }))
-  } catch (err) {
-    console.warn("  Could not read model-cards index:", err.message)
+    console.log("\nDone.")
+  } finally {
+    await fs.rm(tempDir, { recursive: true, force: true })
   }
-
-  if (modelItems.length > 0) {
-    const res = await downloadBatch(modelItems, 3)
-    console.log(`  ✓ ${res.done}/${res.total} model files cached (${res.failed} not found)`)
-  }
-
-  console.log("\nDone.")
 }
 
 main().catch((err) => {
