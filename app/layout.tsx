@@ -8,6 +8,11 @@ export const metadata: Metadata = {
   title: "Eval Cards",
   description: "Professional AI system evaluation and assessment tool",
   generator: "v0.app",
+  icons: {
+    icon: "https://evalevalai.com/assets/img/logo-square.png",
+    shortcut: "https://evalevalai.com/assets/img/logo-square.png",
+    apple: "https://evalevalai.com/assets/img/logo-square.png",
+  },
 }
 
 export default function RootLayout({
