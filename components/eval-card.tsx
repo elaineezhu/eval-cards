@@ -74,6 +74,7 @@ export function EvalCard({ summary, delayMs = 0 }: EvalCardProps) {
   const scoreInterpretation = card?.methodology?.interpretation
   const rawSimilar = card?.benchmark_details?.similar_benchmarks
   const similarBenchmarks: string[] = Array.isArray(rawSimilar) ? rawSimilar : rawSimilar ? [rawSimilar] : []
+  const domainPreview = domains.slice(0, 2)
 
   return (
     <Card
@@ -110,24 +111,6 @@ export function EvalCard({ summary, delayMs = 0 }: EvalCardProps) {
           </div>
         </div>
 
-        {domains.length > 0 && (
-          <div className="flex flex-wrap gap-1.5">
-            {domains.slice(0, 5).map((d) => (
-              <span
-                key={d}
-                className="rounded-full border border-border/60 bg-muted/40 px-2 py-0.5 text-[10px] font-medium capitalize text-muted-foreground"
-              >
-                {d}
-              </span>
-            ))}
-            {domains.length > 5 && (
-              <span className="rounded-full border border-border/60 bg-muted/40 px-2 py-0.5 text-[10px] font-medium text-muted-foreground">
-                +{domains.length - 5}
-              </span>
-            )}
-          </div>
-        )}
-
         <div className="flex flex-wrap gap-2">
           {summary.third_party_ratio > 0 && (
             <Badge className="bg-emerald-600 text-white hover:bg-emerald-600">
@@ -142,6 +125,21 @@ export function EvalCard({ summary, delayMs = 0 }: EvalCardProps) {
             </Badge>
           )}
         </div>
+
+        {domains.length > 0 && (
+          <div className="flex flex-wrap items-center gap-2 text-[11px] text-muted-foreground">
+            <span className="font-semibold uppercase tracking-[0.16em]">Domain coverage</span>
+            {domainPreview.map((domain) => (
+              <span
+                key={domain}
+                className="rounded-full border border-border/60 bg-muted/30 px-2 py-0.5 text-[10px] font-medium capitalize text-muted-foreground"
+              >
+                {domain}
+              </span>
+            ))}
+            {domains.length > domainPreview.length && <span>+{domains.length - domainPreview.length} more</span>}
+          </div>
+        )}
       </CardHeader>
 
       <CardContent className="space-y-4 pt-4">

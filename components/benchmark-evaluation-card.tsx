@@ -7,6 +7,7 @@ import { useRouter } from "next/navigation"
 import {
   Award,
   ChevronDown,
+  ChevronRight,
   ExternalLink,
   Eye,
   MoreHorizontal,
@@ -128,23 +129,28 @@ function formatScoreValue(value: number | null | undefined) {
 }
 
 function getCoverageSummaryLabel(data: BenchmarkEvaluationCardData) {
-  if (data.benchmark_names?.length) {
-    return `${data.benchmark_names.length} benchmark suite${data.benchmark_names.length === 1 ? "" : "s"}`
+  if (data.benchmarks_count > 0) {
+    return `${data.benchmarks_count} benchmark suite${data.benchmarks_count === 1 ? "" : "s"} surfaced`
   }
 
   if (data.latest_source_name) {
     return data.latest_source_name
   }
 
-  return "Backend coverage summary"
+  return "Coverage summary"
 }
 
 function getTopBenchmarks(data: BenchmarkEvaluationCardData) {
-  if (data.benchmark_names?.length) {
-    return data.benchmark_names
+  const surfaced = Array.from(new Set(data.top_scores.map((score) => score.benchmark)))
+  if (surfaced.length > 0) {
+    return surfaced
   }
 
-  return Array.from(new Set(data.top_scores.map((score) => score.benchmark)))
+  if (data.benchmark_names?.length) {
+    return Array.from(new Set(data.benchmark_names))
+  }
+
+  return []
 }
 
 const CATEGORY_PLOT_COLORS: Record<string, string> = {
@@ -253,7 +259,6 @@ export function BenchmarkEvaluationCard({
   const paramsBillions = formatParamsBillions(data.params_billions)
   const coverageSummaryLabel = getCoverageSummaryLabel(data)
   const topBenchmarks = getTopBenchmarks(data)
-  const averageScore = formatScoreValue(data.score_summary?.average ?? null)
   const scoreRange = [formatScoreValue(data.score_summary?.min), formatScoreValue(data.score_summary?.max)]
     .filter((value): value is string => Boolean(value))
     .join(" to ")
@@ -291,7 +296,7 @@ export function BenchmarkEvaluationCard({
               )}
               {paramsBillions && <Badge variant="secondary">{paramsBillions} parameters</Badge>}
               <Badge variant="outline">{data.benchmarks_count} benchmark suites</Badge>
-              {averageScore && <Badge variant="outline">Avg {averageScore}</Badge>}
+              <Badge variant="outline">{data.evaluations_count} reported results</Badge>
             </div>
           </div>
 
@@ -404,8 +409,8 @@ export function BenchmarkEvaluationCard({
                 </span>
               ))}
               {topBenchmarks.length > 6 && (
-                <span className="inline-flex items-center rounded-full border border-border/50 bg-background px-2.5 py-0.5 text-[11px] font-medium text-muted-foreground">
-                  +{topBenchmarks.length - 6} more
+                <span className="inline-flex items-center rounded-full border border-dashed border-border/50 bg-background px-2.5 py-0.5 text-[11px] font-medium text-muted-foreground">
+                  See the full list in details
                 </span>
               )}
             </div>
@@ -434,9 +439,8 @@ export function BenchmarkEvaluationCard({
             <div className="space-y-0 text-sm">
               <KeyValueRow label={isResearchView ? "Coverage" : "Benchmark coverage"} value={coverageSummaryLabel} />
               {topBenchmarks.length > 0 && (
-                <KeyValueRow label="Benchmarks" value={topBenchmarks.slice(0, 4).join(", ")} />
+                <KeyValueRow label="Benchmarks" value={topBenchmarks.slice(0, 6).join(", ")} />
               )}
-              {averageScore && <KeyValueRow label="Average score" value={averageScore} />}
               {scoreRange && <KeyValueRow label="Score span" value={scoreRange} />}
               <KeyValueRow label="Updated" value={formatDate(data.latest_timestamp)} />
               {data.architecture && <KeyValueRow label="Architecture" value={data.architecture} />}
@@ -446,6 +450,29 @@ export function BenchmarkEvaluationCard({
             </div>
           </CollapsibleContent>
         </Collapsible>
+
+        <div className="flex items-center justify-between rounded-2xl border border-border/70 bg-muted/10 px-4 py-3">
+          <div>
+            <div className="text-[11px] font-semibold uppercase tracking-[0.18em] text-muted-foreground">
+              Clickthrough
+            </div>
+            <div className="mt-1 text-sm text-muted-foreground">
+              Open the model card for the full benchmark list, evidence context, and comparison detail.
+            </div>
+          </div>
+          <Button
+            variant="ghost"
+            size="sm"
+            className="gap-1"
+            onClick={(event) => {
+              event.stopPropagation()
+              router.push(`/models/${data.route_id}`)
+            }}
+          >
+            Open card
+            <ChevronRight className="h-4 w-4" />
+          </Button>
+        </div>
       </CardContent>
     </Card>
   )

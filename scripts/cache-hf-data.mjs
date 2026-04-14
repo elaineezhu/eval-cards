@@ -23,13 +23,21 @@ const HF_RESOLVE_BASE = `${HF_DATASET_REPO}/resolve/main`
 const execFileAsync = promisify(execFile)
 
 const CACHE_ROOT_FILES = [
+  "manifest.json",
   "model-cards.json",
+  "model-cards-lite.json",
   "eval-list.json",
+  "eval-list-lite.json",
   "developers.json",
   "benchmark-metadata.json",
   "eval-hierarchy.json",
   "comparison-index.json",
 ]
+
+const OPTIONAL_CACHE_ROOT_FILES = new Set([
+  "model-cards-lite.json",
+  "eval-list-lite.json",
+])
 
 const CACHE_DIRECTORIES = ["developers", "evals", "models"]
 
@@ -147,9 +155,24 @@ async function main() {
     console.log("\nPhase 2: Copy index files")
     for (const fileName of CACHE_ROOT_FILES) {
       const destinationPath = path.join(cacheDir, fileName)
-      const result = await copySnapshotFile(tempDir, fileName, destinationPath)
-      const suffix = result.source === "remote" ? ", resolved from LFS" : ""
-      console.log(`  ✓ ${fileName} (${(result.size / 1024).toFixed(0)} KB${suffix})`)
+      try {
+        const result = await copySnapshotFile(tempDir, fileName, destinationPath)
+        const suffix = result.source === "remote" ? ", resolved from LFS" : ""
+        console.log(`  ✓ ${fileName} (${(result.size / 1024).toFixed(0)} KB${suffix})`)
+      } catch (error) {
+        if (
+          OPTIONAL_CACHE_ROOT_FILES.has(fileName) &&
+          typeof error === "object" &&
+          error != null &&
+          "code" in error &&
+          error.code === "ENOENT"
+        ) {
+          console.log(`  ○ ${fileName} not published yet; skipping`)
+          continue
+        }
+
+        throw error
+      }
     }
 
     const peerRanksResult = await copySnapshotFile(

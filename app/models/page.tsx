@@ -1,11 +1,11 @@
 "use client"
 
-import { useState, useMemo, useEffect } from "react"
+import { useDeferredValue, useEffect, useMemo, useState } from "react"
 import { useAudienceMode } from "@/components/audience-mode-provider"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { ArrowUpDown, ArrowRightLeft, Search, X } from "lucide-react"
+import { ArrowUpDown, ArrowRightLeft, Download, Search, X } from "lucide-react"
 import { BenchmarkEvaluationCard, type BenchmarkEvaluationCardData } from "@/components/benchmark-evaluation-card"
 import { DeveloperCard } from "@/components/developer-card"
 import { ListPagination } from "@/components/list-pagination"
@@ -45,13 +45,28 @@ function formatParamBoundLabel(step: number, bound: "min" | "max") {
   return value != null ? `${value}B` : "Not reported"
 }
 
+function safeTimestamp(value: string | null | undefined) {
+  if (!value) {
+    return 0
+  }
+
+  const numeric = Number(value)
+  if (!Number.isNaN(numeric) && !value.includes("-")) {
+    return numeric > 1_000_000_000_000 ? numeric : numeric * 1000
+  }
+
+  const parsed = new Date(value).getTime()
+  return Number.isNaN(parsed) ? 0 : parsed
+}
+
 export default function ModelsPage() {
   const { mode } = useAudienceMode()
   const [evaluations, setEvaluations] = useState<BenchmarkEvaluationCardData[]>([])
   const [developers, setDevelopers] = useState<DeveloperListItem[]>([])
   const [benchmarkCards, setBenchmarkCards] = useState<Record<string, BenchmarkCard>>({})
   const [loadingModels, setLoadingModels] = useState(true)
-  const [loadingDevelopers, setLoadingDevelopers] = useState(true)
+  const [loadingDevelopers, setLoadingDevelopers] = useState(false)
+  const [developersReady, setDevelopersReady] = useState(false)
   const [groupByDeveloper, setGroupByDeveloper] = useState(false)
   const [modelSortBy, setModelSortBy] = useState<"date" | "name" | "benchmarks" | "variants" | "size">("benchmarks")
   const [developerSortBy, setDeveloperSortBy] = useState<"coverage" | "evaluated" | "models" | "name">("coverage")
@@ -62,6 +77,7 @@ export default function ModelsPage() {
   const [selectedCategories, setSelectedCategories] = useState<string[]>([])
   const [compareOpen, setCompareOpen] = useState(false)
   const [page, setPage] = useState(1)
+  const deferredSearchQuery = useDeferredValue(searchQuery)
 
   useEffect(() => {
     Promise.all([fetchModelCards(), fetchBenchmarkMetadata()])
@@ -73,14 +89,24 @@ export default function ModelsPage() {
         console.error("Failed to load evaluations:", error)
       })
       .finally(() => setLoadingModels(false))
+  }, [])
 
+  useEffect(() => {
+    if (!groupByDeveloper || developersReady || loadingDevelopers) {
+      return
+    }
+
+    setLoadingDevelopers(true)
     fetchDevelopers()
       .then(setDevelopers)
       .catch((error) => {
         console.error("Failed to load developers:", error)
       })
-      .finally(() => setLoadingDevelopers(false))
-  }, [])
+      .finally(() => {
+        setLoadingDevelopers(false)
+        setDevelopersReady(true)
+      })
+  }, [developersReady, groupByDeveloper, loadingDevelopers])
 
   useEffect(() => {
     if (typeof window === "undefined") {
@@ -124,7 +150,7 @@ export default function ModelsPage() {
   }, [evaluations])
 
   const filteredEvaluations = useMemo(() => {
-    const query = searchQuery.trim().toLowerCase()
+    const query = deferredSearchQuery.trim().toLowerCase()
 
     return evaluations.filter((evaluation) => {
       if (numericMinParams != null) {
@@ -161,33 +187,73 @@ export default function ModelsPage() {
 
       return haystacks.some((value) => value?.toLowerCase().includes(query))
     })
-  }, [evaluations, numericMaxParams, numericMinParams, searchQuery, selectedCategories])
+  }, [deferredSearchQuery, evaluations, numericMaxParams, numericMinParams, selectedCategories])
 
   const sortedEvaluations = useMemo(() => {
     const sorted = [...filteredEvaluations]
+    const byName = (a: BenchmarkEvaluationCardData, b: BenchmarkEvaluationCardData) =>
+      a.model_name.localeCompare(b.model_name) ||
+      (a.developer ?? "").localeCompare(b.developer ?? "")
 
     switch (modelSortBy) {
       case "date":
-        sorted.sort((a, b) =>
-          new Date(b.latest_timestamp).getTime() - new Date(a.latest_timestamp).getTime()
-        )
+        sorted.sort((a, b) => {
+          const comparison = safeTimestamp(b.latest_timestamp) - safeTimestamp(a.latest_timestamp)
+          if (comparison !== 0) {
+            return comparison
+          }
+
+          return byName(a, b)
+        })
         break
       case "name":
-        sorted.sort((a, b) => a.model_name.localeCompare(b.model_name))
+        sorted.sort((a, b) => byName(a, b))
         break
       case "benchmarks":
-        sorted.sort((a, b) => b.benchmarks_count - a.benchmarks_count)
+        sorted.sort((a, b) => {
+          if (b.benchmarks_count !== a.benchmarks_count) {
+            return b.benchmarks_count - a.benchmarks_count
+          }
+
+          if (b.evaluations_count !== a.evaluations_count) {
+            return b.evaluations_count - a.evaluations_count
+          }
+
+          return byName(a, b)
+        })
         break
       case "variants":
         sorted.sort((a, b) => {
           if (b.variant_count !== a.variant_count) {
             return b.variant_count - a.variant_count
           }
-          return b.benchmarks_count - a.benchmarks_count
+
+          if (b.benchmarks_count !== a.benchmarks_count) {
+            return b.benchmarks_count - a.benchmarks_count
+          }
+
+          return byName(a, b)
         })
         break
       case "size":
-        sorted.sort((a, b) => (b.params_billions ?? -1) - (a.params_billions ?? -1))
+        sorted.sort((a, b) => {
+          const aSize = a.params_billions ?? null
+          const bSize = b.params_billions ?? null
+
+          if (aSize != null && bSize != null) {
+            if (bSize !== aSize) {
+              return bSize - aSize
+            }
+          } else if (aSize != null || bSize != null) {
+            return aSize == null ? 1 : -1
+          }
+
+          if (b.benchmarks_count !== a.benchmarks_count) {
+            return b.benchmarks_count - a.benchmarks_count
+          }
+
+          return byName(a, b)
+        })
         break
     }
 
@@ -195,7 +261,7 @@ export default function ModelsPage() {
   }, [filteredEvaluations, modelSortBy])
 
   const filteredDevelopers = useMemo(() => {
-    const query = searchQuery.trim().toLowerCase()
+    const query = deferredSearchQuery.trim().toLowerCase()
     const filtered = query
       ? developers.filter((developer) => {
           const haystacks = [
@@ -238,7 +304,7 @@ export default function ModelsPage() {
     })
 
     return filtered
-  }, [developerSortBy, developers, searchQuery])
+  }, [deferredSearchQuery, developerSortBy, developers])
 
   useEffect(() => {
     setPage(1)
@@ -273,6 +339,73 @@ export default function ModelsPage() {
     }
   }, [compareOpen, selectedModels.length])
 
+  const sharedBenchmarkCount = useMemo(() => {
+    if (selectedModels.length < 2) {
+      return 0
+    }
+
+    const benchmarkCounts = new Map<string, number>()
+
+    for (const model of selectedModels) {
+      const benchmarks = new Set([
+        ...(model.benchmark_names ?? []),
+        ...model.top_scores.map((score) => score.benchmark),
+      ])
+
+      for (const benchmark of benchmarks) {
+        benchmarkCounts.set(benchmark, (benchmarkCounts.get(benchmark) ?? 0) + 1)
+      }
+    }
+
+    return Array.from(benchmarkCounts.values()).filter((count) => count === selectedModels.length).length
+  }, [selectedModels])
+
+  const handleExport = () => {
+    const payload = groupByDeveloper
+      ? {
+          view: "developers",
+          filters: {
+            search: searchQuery,
+            sort: developerSortBy,
+          },
+          rows: filteredDevelopers.map((developer) => ({
+            developer: developer.developer,
+            route_id: developer.route_id,
+            model_count: developer.model_count,
+            benchmark_count: developer.benchmark_count,
+            evaluation_count: developer.evaluation_count,
+            popular_evals: developer.popular_evals,
+          })),
+        }
+      : {
+          view: "models",
+          filters: {
+            search: searchQuery,
+            sort: modelSortBy,
+            categories: selectedCategories,
+            min_params_billions: numericMinParams,
+            max_params_billions: numericMaxParams,
+          },
+          rows: sortedEvaluations.map((evaluation) => ({
+            model_name: evaluation.model_name,
+            route_id: evaluation.route_id,
+            developer: evaluation.developer,
+            benchmark_suites: evaluation.benchmarks_count,
+            reported_results: evaluation.evaluations_count,
+            categories: evaluation.categories,
+            visible_benchmarks: (evaluation.benchmark_names ?? []).slice(0, 8),
+          })),
+        }
+
+    const blob = new Blob([JSON.stringify(payload, null, 2)], { type: "application/json" })
+    const url = URL.createObjectURL(blob)
+    const link = document.createElement("a")
+    link.href = url
+    link.download = groupByDeveloper ? "eval-cards-developers-view.json" : "eval-cards-model-view.json"
+    link.click()
+    URL.revokeObjectURL(url)
+  }
+
   const toggleModelSelection = (id: string) => {
     setSelectedModelIds((current) => {
       if (current.includes(id)) {
@@ -287,7 +420,7 @@ export default function ModelsPage() {
     })
   }
 
-  const loading = loadingModels || loadingDevelopers
+  const loading = loadingModels || (groupByDeveloper && !developersReady)
   const maxParamStepIndex = PARAM_RANGE_VALUES.length - 1
   const minHandlePercent = (minParamStep / maxParamStepIndex) * 100
   const maxHandlePercent = (maxParamStep / maxParamStepIndex) * 100
@@ -351,11 +484,11 @@ export default function ModelsPage() {
                   Compare Workflow
                 </div>
                 <div className="mt-2 text-sm text-muted-foreground">
-                  Narrow to a similar parameter range, scan benchmark coverage and top surfaced scores, then select up to {MAX_COMPARE_MODELS} models for a table comparison.
+                  Open a card for details, keep the list narrow with filters, export the current view, then compare up to {MAX_COMPARE_MODELS} models side by side.
                 </div>
               </div>
               <div className="flex flex-wrap gap-2">
-                <Badge variant="outline">Parameter range filter</Badge>
+                <Badge variant="outline">Export current view</Badge>
                 <Badge variant="outline">Benchmark coverage</Badge>
                 <Badge variant="outline">Table comparison</Badge>
               </div>
@@ -365,6 +498,30 @@ export default function ModelsPage() {
 
         <div className="mb-8 flex flex-col gap-4 border-b border-border/50 pb-6">
           <div className="flex flex-col gap-3 sm:flex-row sm:flex-wrap sm:items-center">
+          <div className="inline-flex w-fit rounded-full border bg-muted/20 p-1">
+            <button
+              type="button"
+              onClick={() => setGroupByDeveloper(false)}
+              className={`inline-flex items-center rounded-full px-3 py-1.5 text-sm font-medium transition-colors ${
+                !groupByDeveloper
+                  ? "bg-background text-foreground shadow-sm"
+                  : "text-muted-foreground hover:text-foreground"
+              }`}
+            >
+              Models
+            </button>
+            <button
+              type="button"
+              onClick={() => setGroupByDeveloper(true)}
+              className={`inline-flex items-center rounded-full px-3 py-1.5 text-sm font-medium transition-colors ${
+                groupByDeveloper
+                  ? "bg-background text-foreground shadow-sm"
+                  : "text-muted-foreground hover:text-foreground"
+              }`}
+            >
+              Group by model developer
+            </button>
+          </div>
             <div className="relative w-full sm:max-w-sm">
               <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
               <Input
@@ -463,30 +620,6 @@ export default function ModelsPage() {
               </div>
             </div>
           ) : null}
-          <div className="inline-flex w-fit rounded-full border bg-muted/20 p-1">
-            <button
-              type="button"
-              onClick={() => setGroupByDeveloper(false)}
-              className={`inline-flex items-center rounded-full px-3 py-1.5 text-sm font-medium transition-colors ${
-                !groupByDeveloper
-                  ? "bg-background text-foreground shadow-sm"
-                  : "text-muted-foreground hover:text-foreground"
-              }`}
-            >
-              Models
-            </button>
-            <button
-              type="button"
-              onClick={() => setGroupByDeveloper(true)}
-              className={`inline-flex items-center rounded-full px-3 py-1.5 text-sm font-medium transition-colors ${
-                groupByDeveloper
-                  ? "bg-background text-foreground shadow-sm"
-                  : "text-muted-foreground hover:text-foreground"
-              }`}
-            >
-              Group by model developer
-            </button>
-          </div>
           <Select
             value={groupByDeveloper ? developerSortBy : modelSortBy}
             onValueChange={(value) => {
@@ -520,46 +653,55 @@ export default function ModelsPage() {
               )}
             </SelectContent>
           </Select>
+          <Button variant="outline" onClick={handleExport}>
+            <Download className="h-4 w-4" />
+            Export current view
+          </Button>
           </div>
 
           {/* Category filter chips — only shown for model view */}
           {!groupByDeveloper && allCategories.length > 0 && (
-            <div className="flex flex-wrap items-center gap-1.5">
-              <span className="text-[11px] font-semibold uppercase tracking-[0.2em] text-muted-foreground mr-1">
-                Category
-              </span>
-              {allCategories.map((cat) => {
-                const isActive = selectedCategories.includes(cat)
-                return (
+            <div className="space-y-2">
+              <div className="text-[11px] font-semibold uppercase tracking-[0.2em] text-muted-foreground">
+                Category Match
+              </div>
+              <div className="flex flex-wrap items-center gap-1.5">
+                {allCategories.map((cat) => {
+                  const isActive = selectedCategories.includes(cat)
+                  return (
+                    <button
+                      key={cat}
+                      type="button"
+                      onClick={() =>
+                        setSelectedCategories((prev) =>
+                          prev.includes(cat) ? prev.filter((c) => c !== cat) : [...prev, cat]
+                        )
+                      }
+                      className={cn(
+                        "rounded-full border px-3 py-1 text-xs font-medium transition-colors",
+                        isActive
+                          ? getCategoryColor(cat as CategoryType) + " border-2"
+                          : "border-border/60 bg-background text-muted-foreground hover:text-foreground"
+                      )}
+                    >
+                      {cat}
+                    </button>
+                  )
+                })}
+                {selectedCategories.length > 0 && (
                   <button
-                    key={cat}
                     type="button"
-                    onClick={() =>
-                      setSelectedCategories((prev) =>
-                        prev.includes(cat) ? prev.filter((c) => c !== cat) : [...prev, cat]
-                      )
-                    }
-                    className={cn(
-                      "rounded-full border px-3 py-1 text-xs font-medium transition-colors",
-                      isActive
-                        ? getCategoryColor(cat as CategoryType) + " border-2"
-                        : "border-border/60 bg-background text-muted-foreground hover:text-foreground"
-                    )}
+                    onClick={() => setSelectedCategories([])}
+                    className="ml-1 flex items-center gap-1 text-xs text-muted-foreground hover:text-foreground"
                   >
-                    {cat}
+                    <X className="h-3 w-3" />
+                    Clear
                   </button>
-                )
-              })}
-              {selectedCategories.length > 0 && (
-                <button
-                  type="button"
-                  onClick={() => setSelectedCategories([])}
-                  className="ml-1 flex items-center gap-1 text-xs text-muted-foreground hover:text-foreground"
-                >
-                  <X className="h-3 w-3" />
-                  Clear
-                </button>
-              )}
+                )}
+              </div>
+              <p className="text-sm text-muted-foreground">
+                Keeps model cards tagged with any selected category.
+              </p>
             </div>
           )}
         </div>
@@ -569,13 +711,14 @@ export default function ModelsPage() {
             <p className="mb-4 text-lg text-muted-foreground">
               {groupByDeveloper
                 ? "No developers found matching your filters"
-                : "No evaluations found matching your filters"}
+                : "No model cards found matching your filters"}
             </p>
             <Button
               onClick={() => {
                 setModelSortBy("benchmarks")
                 setDeveloperSortBy("coverage")
                 setSearchQuery("")
+                setSelectedCategories([])
                 setMinParamStep(0)
                 setMaxParamStep(PARAM_RANGE_VALUES.length - 1)
               }}
@@ -642,7 +785,9 @@ export default function ModelsPage() {
                     ))}
                   </div>
                   <div className="text-sm text-muted-foreground">
-                    Select up to {MAX_COMPARE_MODELS} models. The compare view is most useful when you keep the parameter range tight.
+                    {sharedBenchmarkCount > 0
+                      ? `${sharedBenchmarkCount} surfaced benchmark${sharedBenchmarkCount === 1 ? " overlaps" : "s overlap"} across the selected models.`
+                      : `Select up to ${MAX_COMPARE_MODELS} models. The compare view is most useful when the selected models share benchmark coverage.`}
                   </div>
                 </div>
 

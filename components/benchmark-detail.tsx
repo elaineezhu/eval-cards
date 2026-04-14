@@ -2496,17 +2496,38 @@ export function BenchmarkDetail({
     type AccordionRow = { label: string; score: string }
     const accordion: { title: string; rows: AccordionRow[] } | null = (() => {
       if (unit.kind === "single-eval") {
-        const variants = activeTab.group.variants.filter(
+        const metricMatchedVariants = activeTab.group.variants.filter(
           (v) =>
             (v.result.metric_summary_id ?? "") === activeTab.metricSummaryId
         )
-        if (variants.length <= 1) return null
+
+        // Some benchmark families (for example Global MMLU Lite) publish each
+        // slice as its own metric ID. If we only keep metric-matched variants,
+        // the accordion collapses to a single row and subtasks disappear.
+        const candidateVariants =
+          metricMatchedVariants.length > 1
+            ? metricMatchedVariants
+            : activeTab.group.variants
+
+        const dedupedRows = new Map<string, AccordionRow>()
+        for (const variant of candidateVariants) {
+          const label = variant.subtaskLabel || variant.setupLabel || variant.label
+          if (!label || dedupedRows.has(label)) {
+            continue
+          }
+
+          dedupedRows.set(label, {
+            label,
+            score: variant.displayScore,
+          })
+        }
+
+        const rows = Array.from(dedupedRows.values())
+        if (rows.length <= 1) return null
+
         return {
-          title: `${variants.length} splits`,
-          rows: variants.map((v) => ({
-            label: v.subtaskLabel || v.setupLabel || v.label,
-            score: v.displayScore,
-          })),
+          title: `${rows.length} splits`,
+          rows,
         }
       }
       // multi-eval
@@ -4134,7 +4155,7 @@ function AggregatedBenchmarkCard({
                 </div>
                 <div className="text-xs text-muted-foreground mt-1">
                   {isResearchView
-                    ? "Benchmark-level metrics and true benchmark subdivisions are shown separately from setup changes so the backend hierarchy stays intact."
+                    ? "Benchmark-level metrics and benchmark breakdowns are shown separately from setup changes."
                     : "Root benchmark metrics and real benchmark breakdowns are shown without inventing extra hierarchy in the UI."}
                 </div>
               </div>
@@ -4690,8 +4711,8 @@ function BenchmarkDeepDiveDialogPanel({
                 <h4 className="text-sm font-semibold">Benchmark matrix</h4>
                 <p className="text-xs text-muted-foreground">
                   {isResearchView
-                    ? "Rows reflect backend-defined benchmark rows. Columns separate reporting setups. Cells show the strongest reported result for each combination."
-                    : "Rows follow the backend hierarchy directly. Columns show the setup used to report them so readers can compare like with like."}
+                    ? "Rows reflect benchmark rows. Columns separate reporting setups. Cells show the strongest reported result for each combination."
+                    : "Rows follow the benchmark breakdown directly. Columns show the setup used to report them so readers can compare like with like."}
                 </p>
               </div>
               <span className="rounded-full border border-border/60 bg-background px-2 py-1 text-[10px] font-medium text-muted-foreground">

@@ -1,6 +1,6 @@
 "use client"
 
-import { useCallback, useEffect, useMemo, useState } from "react"
+import { startTransition, useCallback, useEffect, useMemo, useState } from "react"
 import { useParams, useRouter, useSearchParams } from "next/navigation"
 import { Button } from "@/components/ui/button"
 import { ArrowLeft } from "lucide-react"
@@ -105,18 +105,14 @@ export default function ModelDetailPage() {
   useEffect(() => {
     let isCancelled = false
 
-    const loadData = async () => {
+    const loadCoreData = async () => {
       try {
-        const [modelSummary, cards, allModelCards, hierarchy, compIndex] = await Promise.all([
+        const [modelSummary, cards, hierarchy] = await Promise.all([
           fetchModelSummary(routeId),
           fetchBenchmarkMetadata(),
-          fetchModelCards(),
-          fetchEvalHierarchy(),
-          // comparison-index is ~1.6 MB gzipped; fetched once on mount and
-          // drives every histogram, rank chip, and submission chip on the page.
-          fetchComparisonIndex().catch((err) => {
-            console.warn("Failed to load comparison-index:", err)
-            return null as ComparisonIndex | null
+          fetchEvalHierarchy().catch((err) => {
+            console.warn("Failed to load eval-hierarchy:", err)
+            return null as EvalHierarchy | null
           }),
         ])
         if (isCancelled) {
@@ -125,9 +121,7 @@ export default function ModelDetailPage() {
 
         setSummary(modelSummary)
         setBenchmarkCards(cards)
-        setModelCards(allModelCards)
         setEvalHierarchy(hierarchy)
-        setComparisonIndex(compIndex)
         setSelectedVariantId((current) => current ?? modelSummary.variants[0]?.variant_id ?? null)
       } catch (err) {
         if (isCancelled) {
@@ -143,7 +137,39 @@ export default function ModelDetailPage() {
       }
     }
 
-    loadData()
+    loadCoreData()
+
+    return () => {
+      isCancelled = true
+    }
+  }, [routeId])
+
+  useEffect(() => {
+    let isCancelled = false
+
+    const loadAuxiliaryData = async () => {
+      const [allModelCards, compIndex] = await Promise.all([
+        fetchModelCards().catch((err) => {
+          console.warn("Failed to load model cards:", err)
+          return [] as BenchmarkEvaluationCardData[]
+        }),
+        fetchComparisonIndex().catch((err) => {
+          console.warn("Failed to load comparison-index:", err)
+          return null as ComparisonIndex | null
+        }),
+      ])
+
+      if (isCancelled) {
+        return
+      }
+
+      startTransition(() => {
+        setModelCards(allModelCards)
+        setComparisonIndex(compIndex)
+      })
+    }
+
+    loadAuxiliaryData()
 
     return () => {
       isCancelled = true

@@ -350,7 +350,7 @@ export default function SurveyPage() {
       <PageHeader
         eyebrow="Survey"
         title={SURVEY_CONFIG.title}
-        description="A public survey for stakeholders who work with model evaluations, plus a schema-field ranking workspace."
+        description="Tell us what is confusing, missing, or hard to compare. This page is meant to collect concrete feedback from you, not just describe the survey."
         metaItems={[
           { label: "Schema fields", value: FIELD_LIBRARY.length.toString() },
           { label: "Ranked now", value: surveyState.rankedFieldIds.length.toString() },
@@ -364,27 +364,27 @@ export default function SurveyPage() {
       />
 
       <main className="container mx-auto px-4 py-8 pb-24">
-        <section className="mb-8 grid gap-4 lg:grid-cols-[1.15fr_0.85fr]">
+        <section className="mb-8 space-y-4">
           <div className="rounded-[1.5rem] border border-border/70 bg-muted/10 p-5">
             <div className="mb-3 text-[11px] font-semibold uppercase tracking-[0.22em] text-muted-foreground">
-              Survey Framing
+              Before You Start
             </div>
             <div className="space-y-3 text-sm leading-6 text-muted-foreground">
               <p>{SURVEY_CONFIG.audienceSummary}</p>
               <p>{SURVEY_CONFIG.goalsSummary}</p>
               <p>
-                Use the stakeholder tag only as a grouping aid for later analysis.
+                Use the stakeholder tag only as a grouping aid for later analysis. The useful part is your concrete feedback, not the label.
               </p>
             </div>
           </div>
 
           <div className="rounded-[1.5rem] border border-sky-200/70 bg-sky-50/80 p-5 text-sky-950 dark:border-sky-900/60 dark:bg-sky-950/20 dark:text-sky-100">
             <div className="mb-3 text-[11px] font-semibold uppercase tracking-[0.22em] text-sky-700 dark:text-sky-300">
-              Usability Prompt
+              What We Want From You
             </div>
             <p className="text-sm leading-6">{SURVEY_CONFIG.usabilityPrompt}</p>
             <p className="mt-3 text-sm leading-6 text-sky-800/85 dark:text-sky-200/85">
-              Have the participant explore{" "}
+              Please explore{" "}
               <a
                 href={SURVEY_TOOL_URL}
                 target="_blank"
@@ -393,12 +393,12 @@ export default function SurveyPage() {
               >
                 the current prototype
               </a>{" "}
-              while you capture notes below.
+              and then write your notes below, one section at a time.
             </p>
           </div>
         </section>
 
-        <section className="mb-6 grid gap-6 xl:grid-cols-[1.1fr_0.9fr]">
+        <section className="mb-6 space-y-6">
           <div className="rounded-[1.5rem] border border-border/70 bg-background p-5">
             <div className="mb-3 flex flex-wrap items-center gap-2">
               <Badge variant="outline">Public survey</Badge>
@@ -406,7 +406,7 @@ export default function SurveyPage() {
             </div>
             <h2 className="text-xl font-bold tracking-tight">{SURVEY_CONFIG.title}</h2>
             <p className="mt-2 text-sm leading-6 text-muted-foreground">
-              Ask the same core questions across respondents, then segment the results afterward using the participant's role and stakeholder tag.
+              Fill this in like an interview worksheet: answer the core questions, rank the fields that matter, and leave direct notes on what should change.
             </p>
           </div>
 
@@ -417,7 +417,7 @@ export default function SurveyPage() {
             <p className="mb-4 text-sm text-muted-foreground">
               This is a public survey — all fields below are optional. Responses are saved anonymously if left blank.
             </p>
-            <div className="grid gap-4 sm:grid-cols-3">
+            <div className="grid gap-4">
               <label className="block">
                 <span className="mb-2 block text-sm"><span className="font-medium">Name</span> <span className="text-muted-foreground">(optional)</span></span>
                 <Input

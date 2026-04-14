@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation"
 import { BarChart3, Boxes, ChevronRight, Sparkles } from "lucide-react"
 
 import { Badge } from "@/components/ui/badge"
+import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader } from "@/components/ui/card"
 import type { DeveloperListItem } from "@/lib/dashboard-data-client"
 
@@ -76,6 +77,24 @@ export function DeveloperCard({ developer, delayMs = 0 }: DeveloperCardProps) {
               <span className="text-sm text-muted-foreground">No benchmark coverage indexed yet</span>
             )}
           </div>
+        </div>
+
+        <div className="flex items-center justify-between rounded-xl border border-border/70 bg-muted/10 px-3 py-3">
+          <div className="text-sm text-muted-foreground">
+            Open the developer card for model-by-model coverage and benchmark detail.
+          </div>
+          <Button
+            variant="ghost"
+            size="sm"
+            className="gap-1"
+            onClick={(event) => {
+              event.stopPropagation()
+              router.push(`/developers/${developer.route_id}`)
+            }}
+          >
+            Open card
+            <ChevronRight className="h-4 w-4" />
+          </Button>
         </div>
       </CardContent>
     </Card>

@@ -33,7 +33,9 @@ import {
   fetchBackendManifest,
   fetchEvalHierarchy,
   fetchModelCardsList,
+  fetchModelCardsListLite,
   fetchEvalList as fetchHFEvalList,
+  fetchEvalListLite as fetchHFEvalListLite,
   fetchDevelopersList,
   fetchDeveloperDetail as fetchHFDeveloperDetail,
   fetchModelDetail as fetchHFModelDetail,
@@ -290,6 +292,50 @@ function getDeveloperBenchmarkStats(models: HFModelCardEntry[]) {
   return benchmarkCounts
 }
 
+function parseParamsBillions(value: unknown): number | null {
+  if (typeof value === "number") {
+    return Number.isFinite(value) && value > 0 ? value : null
+  }
+
+  if (typeof value !== "string") {
+    return null
+  }
+
+  const normalized = value.trim().toLowerCase()
+  if (!normalized) {
+    return null
+  }
+
+  const compact = normalized.replace(/,/g, "")
+  const tokenMatch = compact.match(/(\d+(?:\.\d+)?)\s*(trillion|tn|t|billion|bn|b|million|mn|m|thousand|k)\b/)
+  if (tokenMatch) {
+    const amount = Number.parseFloat(tokenMatch[1])
+    if (!Number.isFinite(amount) || amount <= 0) {
+      return null
+    }
+
+    const unit = tokenMatch[2]
+    if (unit === "trillion" || unit === "tn" || unit === "t") {
+      return amount * 1000
+    }
+
+    if (unit === "billion" || unit === "bn" || unit === "b") {
+      return amount
+    }
+
+    if (unit === "million" || unit === "mn" || unit === "m") {
+      return amount / 1000
+    }
+
+    if (unit === "thousand" || unit === "k") {
+      return amount / 1_000_000
+    }
+  }
+
+  const numeric = Number.parseFloat(compact)
+  return Number.isFinite(numeric) && numeric > 0 ? numeric : null
+}
+
 // ---------------------------------------------------------------------------
 // HF model-cards.json → EvaluationCardData
 // ---------------------------------------------------------------------------
@@ -319,7 +365,7 @@ function hfModelCardToEvaluationCardData(entry: HFModelCardEntry): EvaluationCar
     canonical_model_name: entry.model_family_name,
     developer: normalizeDeveloperName(entry.developer),
     evaluations_count: entry.total_evaluations,
-    benchmarks_count: entry.benchmark_count,
+    benchmarks_count: entry.benchmark_family_count || entry.benchmark_count,
     variant_count: entry.variants.length,
     categories,
     category_stats: categoryStats as Record<CategoryType, number>,
@@ -339,7 +385,7 @@ function hfModelCardToEvaluationCardData(entry: HFModelCardEntry): EvaluationCar
     latest_source_name: entry.benchmark_names?.length
       ? `${entry.benchmark_names.length} benchmark${entry.benchmark_names.length === 1 ? "" : "s"}`
       : undefined,
-    params_billions: null,
+    params_billions: parseParamsBillions(entry.params_billions),
     benchmark_names: (entry.benchmark_names ?? []).map((name) => getBenchmarkDisplayName(name)),
     score_summary: {
       count: entry.score_summary.count,
@@ -1013,6 +1059,16 @@ export async function getModelCards(): Promise<EvaluationCardData[]> {
   )
 }
 
+export async function getModelCardsLite(): Promise<EvaluationCardData[]> {
+  const entries = await fetchModelCardsListLite()
+  return entries.map(hfModelCardToEvaluationCardData).sort(
+    (a, b) =>
+      b.benchmarks_count - a.benchmarks_count ||
+      b.evaluations_count - a.evaluations_count ||
+      a.model_name.localeCompare(b.model_name)
+  )
+}
+
 export async function getEvalListData(): Promise<{
   evals: BenchmarkEvalListItem[]
   totalModels: number
@@ -1049,6 +1105,25 @@ export async function getEvalListData(): Promise<{
 
   return {
     evals: evalsWithCards.sort((a, b) => (a.evaluation_name ?? "").localeCompare(b.evaluation_name ?? "")),
+    totalModels: modelCards.length,
+  }
+}
+
+export async function getEvalListLiteData(): Promise<{
+  evals: BenchmarkEvalListItem[]
+  totalModels: number
+}> {
+  const [evalData, modelCards] = await Promise.all([
+    fetchHFEvalListLite(),
+    fetchModelCardsListLite(),
+  ])
+
+  const evals = evalData.evals
+    .filter((entry) => !(typeof entry.source_data?.hf_repo === "string" && entry.source_data.hf_repo.startsWith("example://")))
+    .map(hfEvalEntryToListItem)
+
+  return {
+    evals: evals.sort((a, b) => (a.evaluation_name ?? "").localeCompare(b.evaluation_name ?? "")),
     totalModels: modelCards.length,
   }
 }

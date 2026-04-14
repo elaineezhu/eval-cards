@@ -58,11 +58,11 @@ export function fetchDashboardData() {
 }
 
 export function fetchModelCards() {
-  return fetchJson<BenchmarkEvaluationCardData[]>("/api/model-cards")
+  return fetchJson<BenchmarkEvaluationCardData[]>("/api/model-cards-lite")
 }
 
 export function fetchEvalList() {
-  return fetchJson<EvalListResponse>("/api/eval-list")
+  return fetchJson<EvalListResponse>("/api/eval-list-lite")
 }
 
 export function fetchModelSummary(modelId: string) {

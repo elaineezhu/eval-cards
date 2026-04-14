@@ -402,8 +402,26 @@ export async function fetchModelCardsList(): Promise<HFModelCardEntry[]> {
   return Array.isArray(data) ? data : []
 }
 
+export async function fetchModelCardsListLite(): Promise<HFModelCardEntry[]> {
+  const data = await fetchHFJsonSafe<HFModelCardEntry[]>("model-cards-lite.json")
+  if (Array.isArray(data)) {
+    return data
+  }
+
+  return fetchModelCardsList()
+}
+
 export async function fetchEvalList(): Promise<{ evals: HFEvalListEntry[] }> {
   return fetchHFJson<{ evals: HFEvalListEntry[] }>("eval-list.json")
+}
+
+export async function fetchEvalListLite(): Promise<{ evals: HFEvalListEntry[] }> {
+  const data = await fetchHFJsonSafe<{ evals: HFEvalListEntry[] }>("eval-list-lite.json")
+  if (data && Array.isArray(data.evals)) {
+    return data
+  }
+
+  return fetchEvalList()
 }
 
 export async function fetchDevelopersList(): Promise<HFDeveloperEntry[]> {

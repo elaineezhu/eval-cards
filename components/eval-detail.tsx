@@ -388,7 +388,7 @@ export function EvalDetail({ summary }: EvalDetailProps) {
   const avgScoreLabel = formatRawScore(summary.avg_score, summary.metric_config.unit)
   const scoreDirectionLabel = summary.metric_config.lower_is_better ? "Lower scores rank higher" : "Higher scores rank higher"
   const leaderboardTitle = isResearchView ? "Leaderboard" : "Reporting Comparison"
-  const sourceDatasetLabel = summary.source_data?.hf_repo ?? summary.source_data?.dataset_name ?? "Backend summary"
+  const sourceDatasetLabel = summary.source_data?.hf_repo ?? summary.source_data?.dataset_name ?? "Summary source"
   const instanceDataLabel = summary.instance_data?.available
     ? `${summary.instance_data.url_count.toLocaleString()} linked URL${summary.instance_data.url_count === 1 ? "" : "s"}`
     : "Not linked"
@@ -537,9 +537,10 @@ export function EvalDetail({ summary }: EvalDetailProps) {
               </div>
               {summary.tags?.domains && summary.tags.domains.length > 0 && (
                 <div>
-                  <dt className="text-[11px] font-semibold uppercase tracking-[0.16em] text-muted-foreground">Domains</dt>
+                  <dt className="text-[11px] font-semibold uppercase tracking-[0.16em] text-muted-foreground">Domain coverage</dt>
                   <dd className="mt-1 font-medium capitalize">
-                    {summary.tags.domains.slice(0, 4).join(", ")}
+                    {summary.tags.domains.slice(0, 2).join(", ")}
+                    {summary.tags.domains.length > 2 ? ` +${summary.tags.domains.length - 2} more` : ""}
                   </dd>
                 </div>
               )}
@@ -561,7 +562,7 @@ export function EvalDetail({ summary }: EvalDetailProps) {
           <CardHeader className="border-b bg-muted/10">
             <CardTitle className="text-xl">Benchmark structure</CardTitle>
             <CardDescription>
-              Root metrics are benchmark-level rollups. Subtasks below are true backend-defined benchmark subdivisions.
+              Benchmark-level summary metrics and benchmark breakdowns are shown as separate sections.
             </CardDescription>
           </CardHeader>
           <CardContent className="space-y-6 p-5 sm:p-6">
@@ -570,7 +571,7 @@ export function EvalDetail({ summary }: EvalDetailProps) {
                 <div>
                   <div className="text-sm font-semibold">Benchmark-level metrics</div>
                   <div className="text-xs text-muted-foreground">
-                    Taken directly from root `metrics[]`.
+                    Benchmark summary metrics used in this evaluation view.
                   </div>
                 </div>
                 <div className="flex flex-wrap gap-2">
@@ -852,7 +853,7 @@ export function EvalDetail({ summary }: EvalDetailProps) {
                             <div className="text-sm text-muted-foreground capitalize">
                               {modelResult.aggregate_components && modelResult.aggregate_components.length > 1
                                 ? `average of ${modelResult.aggregate_components.length} composite scores`
-                                : datasetName ?? "Backend detail artifact"}
+                                : datasetName ?? "Detailed result source"}
                             </div>
                           </TableCell>
                         )}
@@ -874,8 +875,8 @@ export function EvalDetail({ summary }: EvalDetailProps) {
                               <div className="font-medium">{datasetName ?? sourceDatasetLabel}</div>
                               <div className="text-xs text-muted-foreground">
                                 {Array.isArray(modelResult.source_data)
-                                  ? "Backend detail artifact"
-                                  : modelResult.source_data.hf_repo ?? modelResult.source_data.source_type ?? "Backend detail artifact"}
+                                  ? "Detailed result source"
+                                  : modelResult.source_data.hf_repo ?? modelResult.source_data.source_type ?? "Detailed result source"}
                               </div>
                             </div>
                           )}
@@ -1153,6 +1154,7 @@ function MultiMetricLeaderboard({
   const [page, setPage] = useState(1)
   const [sortKey, setSortKey] = useState<string>("coverage")
   const [sortDirection, setSortDirection] = useState<"asc" | "desc">("desc")
+  const [activeSubtaskTab, setActiveSubtaskTab] = useState<string>("all")
   const [minParamStep, setMinParamStep] = useState(0)
   const [maxParamStep, setMaxParamStep] = useState(PARAM_RANGE_VALUES.length - 1)
   const leaderboardMetrics = summary.leaderboard_metrics ?? []
@@ -1165,10 +1167,6 @@ function MultiMetricLeaderboard({
     [leaderboardMetrics]
   )
   const visibleMetricKeySet = useMemo(() => new Set(visibleMetricKeys), [visibleMetricKeys])
-  const visibleMetrics = useMemo(
-    () => leaderboardMetrics.filter((metric) => visibleMetricKeySet.has(metric.column_key)),
-    [leaderboardMetrics, visibleMetricKeySet]
-  )
   const subtaskMetricCounts = useMemo(() => {
     const counts = new Map<string, number>()
     for (const metric of leaderboardMetrics) {
@@ -1178,6 +1176,37 @@ function MultiMetricLeaderboard({
     }
     return counts
   }, [leaderboardMetrics])
+
+  const singleMetricSubtaskTabs = useMemo(() => {
+    return leaderboardMetrics
+      .filter((metric) => metric.scope === "subtask" && metric.subtask_key && subtaskMetricCounts.get(metric.subtask_key) === 1)
+      .map((metric) => ({
+        key: metric.subtask_key as string,
+        label: metric.subtask_name ?? getCompactMetricLabel(metric.display_name),
+      }))
+  }, [leaderboardMetrics, subtaskMetricCounts])
+
+  const hasSubtaskTabs = singleMetricSubtaskTabs.length > 1
+
+  const visibleMetrics = useMemo(
+    () =>
+      leaderboardMetrics.filter((metric) => {
+        if (!visibleMetricKeySet.has(metric.column_key)) {
+          return false
+        }
+
+        if (!hasSubtaskTabs || activeSubtaskTab === "all") {
+          return true
+        }
+
+        return metric.scope === "subtask" && metric.subtask_key === activeSubtaskTab
+      }),
+    [activeSubtaskTab, hasSubtaskTabs, leaderboardMetrics, visibleMetricKeySet]
+  )
+  const visibleMetricColumnKeySet = useMemo(
+    () => new Set(visibleMetrics.map((metric) => metric.column_key)),
+    [visibleMetrics]
+  )
 
   const numericMinParams = useMemo(() => {
     if (minParamStep <= 0) {
@@ -1285,11 +1314,32 @@ function MultiMetricLeaderboard({
   }, [allMetricKeys, summary.evaluation_id])
 
   useEffect(() => {
-    if (leaderboardMetricMap.has(sortKey) && !visibleMetricKeySet.has(sortKey)) {
+    setActiveSubtaskTab("all")
+  }, [summary.evaluation_id])
+
+  useEffect(() => {
+    if (leaderboardMetricMap.has(sortKey) && !visibleMetricColumnKeySet.has(sortKey)) {
       setSortKey("coverage")
       setSortDirection("desc")
     }
-  }, [leaderboardMetricMap, sortKey, visibleMetricKeySet])
+  }, [leaderboardMetricMap, sortKey, visibleMetricColumnKeySet])
+
+  useEffect(() => {
+    if (!hasSubtaskTabs) {
+      if (activeSubtaskTab !== "all") {
+        setActiveSubtaskTab("all")
+      }
+      return
+    }
+
+    if (activeSubtaskTab === "all") {
+      return
+    }
+
+    if (!singleMetricSubtaskTabs.some((tab) => tab.key === activeSubtaskTab)) {
+      setActiveSubtaskTab("all")
+    }
+  }, [activeSubtaskTab, hasSubtaskTabs, singleMetricSubtaskTabs])
 
   const hasParameterData = useMemo(
     () => leaderboardRows.some((row) => getParamsBillionsFromModelInfo(row.model_info) != null),
@@ -1318,6 +1368,11 @@ function MultiMetricLeaderboard({
   const pagedRows = useMemo(
     () => sortedRows.slice(0, page * 50),
     [page, sortedRows]
+  )
+
+  const rankByModelId = useMemo(
+    () => new Map(sortedRows.map((row, index) => [row.model_info.id, index + 1])),
+    [sortedRows]
   )
 
   const setMetricVisibility = (metricKey: string, nextVisible: boolean) => {
@@ -1441,6 +1496,35 @@ function MultiMetricLeaderboard({
       </CardHeader>
 
       <CardContent className="p-0">
+        {hasSubtaskTabs && (
+          <div className="border-b bg-background px-5 py-3 sm:px-6">
+            <div className="mb-2 text-[11px] font-semibold uppercase tracking-[0.16em] text-muted-foreground">
+              Benchmark slices
+            </div>
+            <div className="flex flex-wrap gap-2">
+              <Button
+                type="button"
+                size="sm"
+                variant={activeSubtaskTab === "all" ? "default" : "outline"}
+                onClick={() => setActiveSubtaskTab("all")}
+              >
+                All slices
+              </Button>
+              {singleMetricSubtaskTabs.map((tab) => (
+                <Button
+                  key={tab.key}
+                  type="button"
+                  size="sm"
+                  variant={activeSubtaskTab === tab.key ? "default" : "outline"}
+                  onClick={() => setActiveSubtaskTab(tab.key)}
+                >
+                  {tab.label}
+                </Button>
+              ))}
+            </div>
+          </div>
+        )}
+
         {hasParameterData && (
           <div className="border-b bg-background px-5 py-4 sm:px-6">
             <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
@@ -1528,6 +1612,7 @@ function MultiMetricLeaderboard({
           <Table className="min-w-[1080px]">
             <TableHeader>
               <TableRow className="hover:bg-transparent">
+                <TableHead className="w-20 px-4">Rank</TableHead>
                 <TableHead className="min-w-[260px] px-4">
                   <button
                     type="button"
@@ -1564,7 +1649,7 @@ function MultiMetricLeaderboard({
                       aria-label={describeLeaderboardMetric(metric)}
                       className="group relative flex w-full flex-col items-end leading-tight transition-colors hover:text-primary focus-visible:text-primary"
                     >
-                      {!(metric.scope === "subtask" && metric.subtask_key && subtaskMetricCounts.get(metric.subtask_key) === 1) && metric.scope === "subtask" && metric.subtask_name && (
+                      {!hasSubtaskTabs && !(metric.scope === "subtask" && metric.subtask_key && subtaskMetricCounts.get(metric.subtask_key) === 1) && metric.scope === "subtask" && metric.subtask_name && (
                         <span className="text-[10px] font-medium uppercase tracking-[0.14em] text-muted-foreground">
                           {metric.subtask_name}
                         </span>
@@ -1593,8 +1678,21 @@ function MultiMetricLeaderboard({
               </TableRow>
             </TableHeader>
             <TableBody>
-              {pagedRows.map((row) => (
+              {pagedRows.map((row) => {
+                const rank = rankByModelId.get(row.model_info.id) ?? 0
+
+                return (
                 <TableRow key={row.model_info.id} className="hover:bg-muted/10">
+                  <TableCell className="px-4">
+                    <div
+                      className={cn(
+                        "inline-flex h-9 w-9 items-center justify-center rounded-full border text-sm font-semibold",
+                        getRankBadgeClass(rank)
+                      )}
+                    >
+                      {rank}
+                    </div>
+                  </TableCell>
                   <TableCell className="px-4 whitespace-normal">
                     <div className="space-y-1">
                       <div className="font-semibold leading-tight">
@@ -1650,11 +1748,11 @@ function MultiMetricLeaderboard({
                     {formatDate(row.evaluation_timestamp)}
                   </TableCell>
                 </TableRow>
-              ))}
+              )})}
 
               {filteredRows.length === 0 && (
                 <TableRow>
-                  <TableCell colSpan={visibleMetrics.length + 4} className="px-6 py-12 text-center text-sm text-muted-foreground">
+                  <TableCell colSpan={visibleMetrics.length + 5} className="px-6 py-12 text-center text-sm text-muted-foreground">
                     No models match the selected parameter range.
                   </TableCell>
                 </TableRow>
@@ -1740,11 +1838,47 @@ function MetaRow({
   )
 }
 
-function toStringArray(value: string[] | string | undefined): string[] {
-  if (!value) return []
-  if (Array.isArray(value)) return value.filter(Boolean)
-  if (value === "Not specified") return []
-  return [value]
+function toStringArray(value: unknown): string[] {
+  const result = new Set<string>()
+
+  const visit = (candidate: unknown) => {
+    if (!candidate) {
+      return
+    }
+
+    if (Array.isArray(candidate)) {
+      for (const item of candidate) {
+        visit(item)
+      }
+      return
+    }
+
+    if (typeof candidate === "object") {
+      for (const item of Object.values(candidate)) {
+        visit(item)
+      }
+      return
+    }
+
+    if (typeof candidate !== "string") {
+      return
+    }
+
+    const normalized = candidate.trim()
+    if (!normalized || normalized === "Not specified") {
+      return
+    }
+
+    for (const part of normalized.split(/[,;|]/)) {
+      const token = part.trim()
+      if (token && token !== "Not specified") {
+        result.add(token)
+      }
+    }
+  }
+
+  visit(value)
+  return Array.from(result)
 }
 
 function BenchmarkCardPanel({
@@ -1766,8 +1900,8 @@ function BenchmarkCardPanel({
   const flaggedFields = Object.entries(card.flagged_fields ?? {})
   const missingFields = card.missing_fields ?? []
 
-  const domains = details.domains ?? []
-  const languages = details.languages ?? []
+  const domains = toStringArray(details.domains)
+  const languages = toStringArray(details.languages)
   const resources = (details.resources ?? []).filter(Boolean)
   const tasks = toStringArray(purpose.tasks)
   const audience = toStringArray(purpose.audience)

@@ -3,7 +3,7 @@ import { Button } from "@/components/ui/button"
 import { ArrowRight, BookOpenText, Database, MessageSquare, Scale } from "lucide-react"
 import { HomeModeLabel } from "@/components/home-mode-label"
 import { Navigation } from "@/components/navigation"
-import { getBackendManifestData, getEvalHierarchyData, getEvalListData, getModelCards } from "@/lib/model-data"
+import { getBackendManifestData, getEvalHierarchyData, getEvalListLiteData, getModelCardsLite } from "@/lib/model-data"
 
 function formatGeneratedAt(value: string | null | undefined) {
   if (!value) return "Unknown"
@@ -22,8 +22,8 @@ function formatGeneratedAt(value: string | null | undefined) {
 
 export default async function HomePage() {
   const [models, evalList, manifest, hierarchy] = await Promise.all([
-    getModelCards(),
-    getEvalListData(),
+    getModelCardsLite(),
+    getEvalListLiteData(),
     getBackendManifestData(),
     getEvalHierarchyData(),
   ])
@@ -57,7 +57,7 @@ export default async function HomePage() {
                   Public reporting for AI evaluations.
                 </h1>
                 <p className="max-w-3xl text-lg leading-8 text-muted-foreground sm:text-xl">
-                  Browse reported benchmark evidence across models, evaluators, and benchmarks without flattening the record into a single score table.
+                  Start from the question you have: which models show broad evidence, which benchmarks have thin reporting, and where the public record is still incomplete.
                 </p>
               </div>
 
@@ -110,37 +110,38 @@ export default async function HomePage() {
               <div className="flex items-center justify-between gap-3 border-b border-border/60 pb-4">
                 <div>
                   <div className="text-[11px] font-semibold uppercase tracking-[0.18em] text-muted-foreground">
-                    Current public corpus
+                    Start from a reader question
                   </div>
                   <div className="mt-1 text-sm leading-6 text-muted-foreground">
-                    Structured records currently available to inspect.
+                    The site is strongest when you treat it as an evidence reader, not a leaderboard.
                   </div>
                 </div>
                 <Database className="h-4 w-4 text-muted-foreground" />
               </div>
 
-              <div className="mt-5 grid auto-rows-fr gap-3 sm:grid-cols-2 xl:grid-cols-1 2xl:grid-cols-2">
+              <div className="mt-5 space-y-3">
+                <InquiryRow
+                  title="Which models have broad public evidence?"
+                  body="Use the models view to scan benchmark breadth, reported results, and where coverage is still thin."
+                  href="/models"
+                />
+                <InquiryRow
+                  title="How is one benchmark being reported?"
+                  body="Use the evaluations view to inspect methodology context, score spread, and missing configuration details."
+                  href="/evals"
+                />
+                <InquiryRow
+                  title="Who is publishing the evidence?"
+                  body="Group models by developer or open a developer page to see which organizations are reporting the most."
+                  href="/developers"
+                />
+              </div>
+
+              <div className="mt-5 grid gap-3 border-t border-border/60 pt-5 sm:grid-cols-2">
                 <QuietStat label="Models" value={models.length.toString()} detail="Tracked in the current corpus" tone="amber" />
                 <QuietStat label="Evaluations" value={evalSummaries.length.toString()} detail="Benchmark views with linked details" tone="sky" />
                 <QuietStat label="Developers" value={developerCount.toString()} detail="Organizations represented" tone="emerald" />
-                <QuietStat
-                  label="Families"
-                  value={hierarchy ? hierarchy.stats.family_count.toString() : "—"}
-                  detail="Backend taxonomy families"
-                  tone="rose"
-                />
-                <QuietStat
-                  label="Reported results"
-                  value={totalReportedResults.toLocaleString()}
-                  detail="Model-linked results currently indexed"
-                  tone="slate"
-                />
-                <QuietStat
-                  label="Benchmarks per model"
-                  value={avgBenchmarksPerModel.toFixed(1)}
-                  detail="Average reported benchmark breadth"
-                  tone="amber"
-                />
+                <QuietStat label="Reported results" value={totalReportedResults.toLocaleString()} detail={`Avg ${avgBenchmarksPerModel.toFixed(1)} benchmark suites per model`} tone="slate" />
               </div>
             </aside>
           </div>
@@ -163,7 +164,7 @@ export default async function HomePage() {
                 href="/about"
                 icon={<Scale className="h-4 w-4" />}
                 title="Project framing"
-                body="Read the rationale behind the reporting model, the schema direction, and the intended research and policy use."
+                body="Read why this reporting format exists and how it supports both research and policy reading modes."
               />
             </div>
 
@@ -186,6 +187,28 @@ export default async function HomePage() {
         </section>
       </main>
     </div>
+  )
+}
+
+function InquiryRow({
+  title,
+  body,
+  href,
+}: {
+  title: string
+  body: string
+  href: string
+}) {
+  return (
+    <Link href={href} className="group rounded-[1.3rem] border border-border/70 bg-muted/10 p-4 transition-colors hover:bg-muted/20">
+      <div className="flex items-start justify-between gap-3">
+        <div>
+          <div className="text-sm font-semibold text-foreground">{title}</div>
+          <p className="mt-1 text-sm leading-6 text-muted-foreground">{body}</p>
+        </div>
+        <ArrowRight className="mt-0.5 h-4 w-4 shrink-0 text-muted-foreground transition-transform group-hover:translate-x-0.5" />
+      </div>
+    </Link>
   )
 }
 

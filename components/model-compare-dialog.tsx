@@ -1,6 +1,6 @@
 "use client"
 
-import { Fragment, useMemo } from "react"
+import { Fragment, useMemo, useState } from "react"
 import Link from "next/link"
 import {
   ChevronDown,
@@ -132,8 +132,8 @@ const CONTEXT_ROWS = [
   { key: "params", label: "Parameter range" },
   { key: "benchmarks", label: "Benchmark coverage" },
   { key: "variants", label: "Versions" },
-  { key: "score_summary", label: "Score summary" },
-  { key: "latest", label: "Backend summary" },
+  { key: "score_summary", label: "Score range" },
+  { key: "latest", label: "Latest summary" },
   { key: "updated", label: "Updated" },
 ] as const
 
@@ -148,6 +148,7 @@ export function ModelCompareDialog({
   open,
   onOpenChange,
 }: ModelCompareDialogProps) {
+  const [sharedOnly, setSharedOnly] = useState(false)
   const benchmarkRows = useMemo(() => {
     const rows = new Map<
       string,
@@ -206,6 +207,24 @@ export function ModelCompareDialog({
     })).filter((group) => group.rows.length > 0)
   }, [benchmarkRows])
 
+  const sharedBenchmarkCount = useMemo(
+    () => benchmarkRows.filter((row) => Object.keys(row.values).length === models.length).length,
+    [benchmarkRows, models.length]
+  )
+
+  const visibleBenchmarkSections = useMemo(() => {
+    if (!sharedOnly) {
+      return benchmarkSections
+    }
+
+    return benchmarkSections
+      .map((group) => ({
+        ...group,
+        rows: group.rows.filter((row) => Object.keys(row.values).length === models.length),
+      }))
+      .filter((group) => group.rows.length > 0)
+  }, [benchmarkSections, models.length, sharedOnly])
+
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="h-[85dvh] max-h-[85dvh] max-w-[min(96vw,1220px)] overflow-hidden p-0 sm:max-w-[min(96vw,1220px)]">
@@ -224,11 +243,27 @@ export function ModelCompareDialog({
             <div className="min-w-[920px] space-y-6">
               <div className="rounded-[1.5rem] border border-border/70 bg-background">
                 <div className="border-b border-border/60 px-5 py-4">
-                  <div className="text-[11px] font-semibold uppercase tracking-[0.22em] text-muted-foreground">
-                    Benchmark Comparison
-                  </div>
-                  <div className="mt-2 text-sm text-muted-foreground">
-                    Rows are drawn from the most relevant surfaced benchmarks across the selected models, closer to how release posts present comparison tables.
+                  <div className="flex flex-col gap-3 lg:flex-row lg:items-start lg:justify-between">
+                    <div>
+                      <div className="text-[11px] font-semibold uppercase tracking-[0.22em] text-muted-foreground">
+                        Benchmark Comparison
+                      </div>
+                      <div className="mt-2 text-sm text-muted-foreground">
+                        Rows are drawn from the most relevant surfaced benchmarks across the selected models, closer to how release posts present comparison tables.
+                      </div>
+                      <div className="mt-3 flex flex-wrap gap-2 text-xs text-muted-foreground">
+                        <Badge variant="outline">{benchmarkRows.length} surfaced benchmarks</Badge>
+                        <Badge variant="outline">{sharedBenchmarkCount} shared across all selected models</Badge>
+                      </div>
+                    </div>
+                    <Button
+                      type="button"
+                      variant={sharedOnly ? "default" : "outline"}
+                      size="sm"
+                      onClick={() => setSharedOnly((current) => !current)}
+                    >
+                      {sharedOnly ? "Showing shared only" : "Show shared only"}
+                    </Button>
                   </div>
                 </div>
 
@@ -260,7 +295,7 @@ export function ModelCompareDialog({
                       </TableRow>
                     </TableHeader>
                     <TableBody>
-                      {benchmarkSections.map((group) => (
+                      {visibleBenchmarkSections.map((group) => (
                         <Fragment key={group.section}>
                           <TableRow key={`${group.section}-heading`}>
                             <TableCell
@@ -369,9 +404,6 @@ export function ModelCompareDialog({
                                 ) : null}
                                 {row.key === "score_summary" ? (
                                   <div className="space-y-2">
-                                    <Badge variant="outline" className="font-medium">
-                                      Avg {formatSummaryScore(model.score_summary?.average ?? null)}
-                                    </Badge>
                                     <div className="text-sm text-muted-foreground">
                                       Range {formatSummaryScore(model.score_summary?.min ?? null)} to {formatSummaryScore(model.score_summary?.max ?? null)} across {model.score_summary?.count ?? 0} surfaced scores
                                     </div>

@@ -461,6 +461,7 @@ export default function EvalsPage() {
   const [searchQuery, setSearchQuery] = useState("")
   const [selectedDomain, setSelectedDomain] = useState<string | null>(null)
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null)
+  const [selectedNodeKind, setSelectedNodeKind] = useState<EvalBrowserNodeKind | null>(null)
   const [currentNodeId, setCurrentNodeId] = useState<string | null>(null)
   const [page, setPage] = useState(1)
   const pendingHistoryActionRef = useRef<"push" | "replace">("replace")
@@ -871,6 +872,7 @@ export default function EvalsPage() {
           const suiteCard = getNodeCard(benchmarkCards, composite.display_name, composite.key)
           const rollupBenchmark = (composite.benchmarks ?? []).find((benchmark) => isSameHierarchyKey(benchmark.key, composite.key))
           const suiteBenchmarks = (composite.benchmarks ?? []).filter((benchmark) => !isSameHierarchyKey(benchmark.key, composite.key))
+          const suiteMatrixPreview = buildSingleMetricMatrixPreview(suiteBenchmarks, suiteScopeKeys)
           const rollupSummary = pickSummaryForKey(summariesWithCards, composite.key, suiteScopeKeys)
 
           buildNode({
@@ -884,41 +886,45 @@ export default function EvalsPage() {
             summaries: suiteSummaries,
             card: suiteCard,
             sourceLabel: suiteLabel,
+            href: suiteMatrixPreview && rollupSummary ? `/evals/${rollupSummary.evaluation_id}` : undefined,
             scopeKeys: suiteScopeKeys,
+            matrixPreview: suiteMatrixPreview,
             descriptionFallback: `Browse the {label} suite and then open its benchmark children.`,
           })
 
-          for (const benchmark of suiteBenchmarks) {
-            const benchmarkSummary = pickSummaryForKey(summariesWithCards, benchmark.key, suiteScopeKeys)
-            createBenchmarkNode({
-              parentId: suiteId,
-              familyLabel,
-              suiteLabel,
-              benchmarkKey: benchmark.key,
-              benchmarkLabel: formatBenchmarkLabel(benchmark.display_name || benchmark.key),
-              category: mapHierarchyCategory(composite.category),
-              domains: normalizeDomainList(benchmark.tags?.domains),
-              cardCandidates: [benchmark.display_name, benchmark.key],
-              summary: benchmarkSummary,
-              slices: benchmark.slices ?? [],
-              metrics: benchmark.metrics ?? [],
-              scopeKeys: suiteScopeKeys,
-            })
-          }
+          if (!suiteMatrixPreview) {
+            for (const benchmark of suiteBenchmarks) {
+              const benchmarkSummary = pickSummaryForKey(summariesWithCards, benchmark.key, suiteScopeKeys)
+              createBenchmarkNode({
+                parentId: suiteId,
+                familyLabel,
+                suiteLabel,
+                benchmarkKey: benchmark.key,
+                benchmarkLabel: formatBenchmarkLabel(benchmark.display_name || benchmark.key),
+                category: mapHierarchyCategory(composite.category),
+                domains: normalizeDomainList(benchmark.tags?.domains),
+                cardCandidates: [benchmark.display_name, benchmark.key],
+                summary: benchmarkSummary,
+                slices: benchmark.slices ?? [],
+                metrics: benchmark.metrics ?? [],
+                scopeKeys: suiteScopeKeys,
+              })
+            }
 
-          if (rollupBenchmark) {
-            createSliceNodes(
-              suiteId,
-              suiteLabel,
-              rollupSummary,
-              (rollupBenchmark.slices ?? []).map((slice) => ({
-                key: slice.key,
-                display_name: slice.display_name,
-                metrics: slice.metrics ?? [],
-              })),
-              mapHierarchyCategory(composite.category),
-              suiteScopeKeys
-            )
+            if (rollupBenchmark) {
+              createSliceNodes(
+                suiteId,
+                suiteLabel,
+                rollupSummary,
+                (rollupBenchmark.slices ?? []).map((slice) => ({
+                  key: slice.key,
+                  display_name: slice.display_name,
+                  metrics: slice.metrics ?? [],
+                })),
+                mapHierarchyCategory(composite.category),
+                suiteScopeKeys
+              )
+            }
           }
 
           const suiteNode = nodes.get(suiteId)
@@ -971,6 +977,7 @@ export default function EvalsPage() {
         const suiteBenchmarks = familyComposites[0]?.benchmarks ?? childBenchmarks
         const rollupBenchmark = suiteBenchmarks.find((benchmark) => isSameHierarchyKey(benchmark.key, suiteKey)) ?? familyRollupBenchmark
         const visibleBenchmarks = suiteBenchmarks.filter((benchmark) => !isSameHierarchyKey(benchmark.key, suiteKey))
+        const suiteMatrixPreview = buildSingleMetricMatrixPreview(visibleBenchmarks, suiteScopeKeys)
         const rollupSummary = pickSummaryForKey(summariesWithCards, suiteKey, suiteScopeKeys)
         const suiteSummaries = summariesWithCards.filter((summary) => {
           const familyScope = getSummaryScopeKey(summary.benchmark_family_key ?? summary.composite_benchmark_key)
@@ -995,41 +1002,45 @@ export default function EvalsPage() {
             family.key
           ),
           sourceLabel: suiteLabel,
+          href: suiteMatrixPreview && rollupSummary ? `/evals/${rollupSummary.evaluation_id}` : undefined,
           scopeKeys: suiteScopeKeys,
+          matrixPreview: suiteMatrixPreview,
           descriptionFallback: `Browse the {label} suite and then open its benchmark children.`,
         })
 
-        for (const benchmark of visibleBenchmarks) {
-          const benchmarkSummary = pickSummaryForKey(summariesWithCards, benchmark.key, suiteScopeKeys)
-          createBenchmarkNode({
-            parentId: suiteId,
-            familyLabel: familyComposites[0] ? familyLabel : undefined,
-            suiteLabel,
-            benchmarkKey: benchmark.key,
-            benchmarkLabel: formatBenchmarkLabel(benchmark.display_name || benchmark.key),
-            category: mapHierarchyCategory(familyComposites[0]?.category ?? family.category),
-            domains: normalizeDomainList(benchmark.tags?.domains),
-            cardCandidates: [benchmark.display_name, benchmark.key],
-            summary: benchmarkSummary,
-            slices: benchmark.slices ?? [],
-            metrics: benchmark.metrics ?? [],
-            scopeKeys: suiteScopeKeys,
-          })
-        }
+        if (!suiteMatrixPreview) {
+          for (const benchmark of visibleBenchmarks) {
+            const benchmarkSummary = pickSummaryForKey(summariesWithCards, benchmark.key, suiteScopeKeys)
+            createBenchmarkNode({
+              parentId: suiteId,
+              familyLabel: familyComposites[0] ? familyLabel : undefined,
+              suiteLabel,
+              benchmarkKey: benchmark.key,
+              benchmarkLabel: formatBenchmarkLabel(benchmark.display_name || benchmark.key),
+              category: mapHierarchyCategory(familyComposites[0]?.category ?? family.category),
+              domains: normalizeDomainList(benchmark.tags?.domains),
+              cardCandidates: [benchmark.display_name, benchmark.key],
+              summary: benchmarkSummary,
+              slices: benchmark.slices ?? [],
+              metrics: benchmark.metrics ?? [],
+              scopeKeys: suiteScopeKeys,
+            })
+          }
 
-        if (rollupBenchmark) {
-          createSliceNodes(
-            suiteId,
-            suiteLabel,
-            rollupSummary,
-            (rollupBenchmark.slices ?? []).map((slice) => ({
-              key: slice.key,
-              display_name: slice.display_name,
-              metrics: slice.metrics ?? [],
-            })),
-            nodes.get(suiteId)?.category ?? "General",
-            suiteScopeKeys
-          )
+          if (rollupBenchmark) {
+            createSliceNodes(
+              suiteId,
+              suiteLabel,
+              rollupSummary,
+              (rollupBenchmark.slices ?? []).map((slice) => ({
+                key: slice.key,
+                display_name: slice.display_name,
+                metrics: slice.metrics ?? [],
+              })),
+              nodes.get(suiteId)?.category ?? "General",
+              suiteScopeKeys
+            )
+          }
         }
 
         const suiteNode = nodes.get(suiteId)
@@ -1137,9 +1148,15 @@ export default function EvalsPage() {
 
   const allDomains = useMemo(() => {
     const domainSet = new Set<string>()
-    const domainCandidates = selectedCategory
-      ? nodesMatchingSearch.filter((node) => node.category === selectedCategory)
-      : nodesMatchingSearch
+    let domainCandidates = nodesMatchingSearch
+
+    if (selectedNodeKind) {
+      domainCandidates = domainCandidates.filter((node) => node.kind === selectedNodeKind)
+    }
+
+    if (selectedCategory) {
+      domainCandidates = domainCandidates.filter((node) => node.category === selectedCategory)
+    }
 
     for (const node of domainCandidates) {
       for (const domain of node.domains) {
@@ -1152,11 +1169,17 @@ export default function EvalsPage() {
 
   const allCategories = useMemo(() => {
     const categorySet = new Set<string>()
-    const categoryCandidates = selectedDomain
-      ? nodesMatchingSearch.filter((node) =>
-          node.domains.some((domain) => domain.toLowerCase() === selectedDomain.toLowerCase())
-        )
-      : nodesMatchingSearch
+    let categoryCandidates = nodesMatchingSearch
+
+    if (selectedNodeKind) {
+      categoryCandidates = categoryCandidates.filter((node) => node.kind === selectedNodeKind)
+    }
+
+    if (selectedDomain) {
+      categoryCandidates = categoryCandidates.filter((node) =>
+        node.domains.some((domain) => domain.toLowerCase() === selectedDomain.toLowerCase())
+      )
+    }
 
     for (const node of categoryCandidates) {
       categorySet.add(node.category)
@@ -1167,6 +1190,10 @@ export default function EvalsPage() {
 
   const filtered = useMemo(() => {
     let list = [...nodesMatchingSearch]
+
+    if (selectedNodeKind) {
+      list = list.filter((node) => node.kind === selectedNodeKind)
+    }
 
     if (selectedDomain) {
       list = list.filter((node) =>
@@ -1182,7 +1209,7 @@ export default function EvalsPage() {
 
     list.sort((a, b) => a.title.localeCompare(b.title, undefined, { sensitivity: "base" }))
     return list
-  }, [nodesMatchingSearch, selectedCategory, selectedDomain])
+  }, [nodesMatchingSearch, selectedCategory, selectedDomain, selectedNodeKind])
 
   useEffect(() => {
     if (selectedDomain && !allDomains.includes(selectedDomain)) {
@@ -1198,15 +1225,15 @@ export default function EvalsPage() {
 
   useEffect(() => {
     setPage(1)
-  }, [currentNodeId, searchQuery, selectedCategory, selectedDomain])
+  }, [currentNodeId, searchQuery, selectedCategory, selectedDomain, selectedNodeKind])
 
   const pagedNodes = useMemo(
     () => filtered.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE),
     [filtered, page]
   )
 
-  const activeFilterCount = [searchQuery.trim(), selectedDomain, selectedCategory].filter(Boolean).length
   const currentLevelKinds = Array.from(new Set(currentLevelNodes.map((node) => node.kind)))
+  const activeFilterCount = [searchQuery.trim(), selectedDomain, selectedCategory, selectedNodeKind].filter(Boolean).length
   const currentLevelLabel =
     currentNodeId === null
       ? "Rollout entry level"
@@ -1216,6 +1243,12 @@ export default function EvalsPage() {
   const currentLevelDescription = currentNode
     ? `Showing the next level under ${currentNode.title}.`
     : "Showing the highest rollout node for each benchmark branch before you drill into suites, benchmarks, splits, subtasks, and metrics."
+
+  useEffect(() => {
+    if (selectedNodeKind && !currentLevelKinds.includes(selectedNodeKind)) {
+      setSelectedNodeKind(null)
+    }
+  }, [currentLevelKinds, selectedNodeKind])
 
   const handleNodeOpen = useCallback(
     (node: EvalBrowserNode) => {
@@ -1339,6 +1372,7 @@ export default function EvalsPage() {
                     setSearchQuery("")
                     setSelectedDomain(null)
                     setSelectedCategory(null)
+                    setSelectedNodeKind(null)
                   }}
                   className="inline-flex items-center gap-1.5 rounded-full border border-stone-200/80 bg-white px-3 py-1.5 text-sm font-medium text-stone-600 transition-colors hover:bg-stone-50 dark:border-stone-700/80 dark:bg-stone-900 dark:text-stone-200 dark:hover:bg-stone-800"
                 >
@@ -1420,6 +1454,43 @@ export default function EvalsPage() {
               )}
             </div>
           </div>
+
+          {currentLevelKinds.length > 1 && (
+            <div className="mt-4 space-y-1.5">
+              <div className="text-[11px] font-semibold uppercase tracking-[0.2em] text-stone-500 dark:text-stone-400">
+                Granularity
+              </div>
+              <div className="flex flex-wrap items-center gap-1.5">
+                <button
+                  type="button"
+                  onClick={() => setSelectedNodeKind(null)}
+                  className={cn(
+                    "shrink-0 rounded-full border px-3 py-1.5 text-xs font-medium transition-colors",
+                    selectedNodeKind === null
+                      ? "border-stone-950 bg-stone-950 text-stone-50 dark:border-stone-100 dark:bg-stone-100 dark:text-stone-950"
+                      : "border-stone-200/80 bg-stone-50/80 text-stone-600 hover:bg-stone-100 dark:border-stone-700/80 dark:bg-stone-900/70 dark:text-stone-300 dark:hover:bg-stone-800"
+                  )}
+                >
+                  All
+                </button>
+                {currentLevelKinds.map((kind) => (
+                  <button
+                    key={kind}
+                    type="button"
+                    onClick={() => setSelectedNodeKind(selectedNodeKind === kind ? null : kind)}
+                    className={cn(
+                      "shrink-0 rounded-full border px-3 py-1.5 text-xs font-medium transition-colors",
+                      selectedNodeKind === kind
+                        ? "border-sky-300 bg-sky-50 text-sky-800 dark:border-sky-800 dark:bg-sky-950/50 dark:text-sky-200"
+                        : "border-stone-200/80 bg-white text-stone-600 hover:bg-stone-50 dark:border-stone-700/80 dark:bg-stone-900 dark:text-stone-300 dark:hover:bg-stone-800"
+                    )}
+                  >
+                    {getBrowserNodeKindLabel(kind)}
+                  </button>
+                ))}
+              </div>
+            </div>
+          )}
 
           {allDomains.length > 0 && (
             <div className="mt-4 space-y-1.5">
@@ -1586,23 +1657,21 @@ export default function EvalsPage() {
 
                   {node.matrixPreview && (
                     <div className="mb-4 overflow-hidden rounded-[1.2rem] border border-stone-200/80 bg-stone-50/85 dark:border-stone-800/80 dark:bg-stone-900/85">
-                      <div className="grid grid-cols-[minmax(0,1fr)_auto] gap-px bg-stone-200/80 dark:bg-stone-800/80">
-                        <div className="bg-white/95 px-3 py-2 text-[10px] font-semibold uppercase tracking-[0.16em] text-stone-500 dark:bg-stone-950/95 dark:text-stone-400">
-                          Subtask
+                      <div className="space-y-2 bg-white/92 px-3 py-3 dark:bg-stone-950/92">
+                        <div className="text-[10px] font-semibold uppercase tracking-[0.16em] text-stone-500 dark:text-stone-400">
+                          Rollup preview
                         </div>
-                        <div className="bg-white/95 px-3 py-2 text-right text-[10px] font-semibold uppercase tracking-[0.16em] text-stone-500 dark:bg-stone-950/95 dark:text-stone-400">
-                          {node.matrixPreview.columnLabel}
+                        <div className="flex flex-wrap items-center gap-2">
+                          <span className="rounded-full border border-stone-200/80 bg-stone-100/70 px-2.5 py-0.5 text-[10px] font-semibold uppercase tracking-[0.14em] text-stone-600 dark:border-stone-700/80 dark:bg-stone-800/70 dark:text-stone-300">
+                            {node.matrixPreview.rows.length} slice{node.matrixPreview.rows.length === 1 ? "" : "s"}
+                          </span>
+                          <span className="rounded-full border border-stone-200/80 bg-stone-100/70 px-2.5 py-0.5 text-[10px] font-semibold uppercase tracking-[0.14em] text-stone-600 dark:border-stone-700/80 dark:bg-stone-800/70 dark:text-stone-300">
+                            Metric: {node.matrixPreview.columnLabel}
+                          </span>
                         </div>
-                        {node.matrixPreview.rows.map((row) => (
-                          <div key={`${node.id}:${row.label}`} className="contents">
-                            <div className="truncate bg-white/90 px-3 py-2 text-sm font-medium text-stone-700 dark:bg-stone-950/90 dark:text-stone-200">
-                              {row.label}
-                            </div>
-                            <div className="bg-white/90 px-3 py-2 text-right text-sm font-semibold text-stone-900 dark:bg-stone-950/90 dark:text-stone-100">
-                              {row.value}
-                            </div>
-                          </div>
-                        ))}
+                        <p className="text-xs text-stone-600 dark:text-stone-300">
+                          Open rollup to view slice-level scores in the matrix leaderboard.
+                        </p>
                       </div>
                     </div>
                   )}
