@@ -12,7 +12,7 @@ export function normalizeBenchmarkKey(name: string): string {
   return name
     .replace(/^[a-z0-9_]+ ?\//i, "") // strip "hfopenllm_v2/" etc.
     .toLowerCase()
-    .replace(/[_]+/g, " ")
+    .replace(/[_-]+/g, " ")
     .replace(/\s+/g, " ")
     .trim()
 }
