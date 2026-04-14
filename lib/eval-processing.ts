@@ -357,6 +357,82 @@ function pickRepresentativeModelInfo(evaluations: BenchmarkEvaluation[]): ModelI
   return sorted[0].model_info
 }
 
+type AggregatedVariantDescriptor = {
+  variantKey: string
+  variantLabel: string
+  variantDisplayName: string
+  familyId: string
+  familyName: string
+  versionDate?: string
+  versionQualifier?: string
+  mergedSetupAlias: boolean
+}
+
+function getSetupAliasMode(modelInfo: ModelInfo) {
+  const rawMode = modelInfo.additional_details?.mode
+  if (typeof rawMode !== 'string') {
+    return null
+  }
+
+  const normalizedMode = rawMode.trim().toLowerCase().replace(/[_-]+/g, ' ')
+  if (!normalizedMode) {
+    return null
+  }
+
+  if (
+    normalizedMode === 'prompt' ||
+    normalizedMode === 'fc' ||
+    normalizedMode === 'function calling' ||
+    normalizedMode.startsWith('thinking')
+  ) {
+    return rawMode.trim()
+  }
+
+  return null
+}
+
+function getAggregatedVariantDescriptor(modelInfo: ModelInfo): AggregatedVariantDescriptor {
+  const identity = getCanonicalModelIdentity(modelInfo)
+  const setupAliasMode = getSetupAliasMode(modelInfo)
+
+  if (!setupAliasMode) {
+    return {
+      variantKey: identity.variantKey,
+      variantLabel: identity.variantLabel,
+      variantDisplayName: identity.variantDisplayName,
+      familyId: identity.familyId,
+      familyName: identity.familyName,
+      versionDate: identity.versionDate,
+      versionQualifier: identity.versionQualifier,
+      mergedSetupAlias: false,
+    }
+  }
+
+  if (identity.versionDate) {
+    return {
+      variantKey: identity.versionDate,
+      variantLabel: identity.versionDate,
+      variantDisplayName: `${identity.familyName} (${identity.versionDate})`,
+      familyId: identity.familyId,
+      familyName: identity.familyName,
+      versionDate: identity.versionDate,
+      versionQualifier: undefined,
+      mergedSetupAlias: true,
+    }
+  }
+
+  return {
+    variantKey: 'base',
+    variantLabel: 'Current',
+    variantDisplayName: identity.familyName,
+    familyId: identity.familyId,
+    familyName: identity.familyName,
+    versionDate: undefined,
+    versionQualifier: undefined,
+    mergedSetupAlias: true,
+  }
+}
+
 function sortVariants(variants: ModelVariantSummary[]) {
   return [...variants].sort((a, b) => {
     const aDate = a.version_date ? new Date(a.version_date).getTime() : Number.NEGATIVE_INFINITY
@@ -382,34 +458,54 @@ export function createModelFamilySummary(
   }
 
   const familyIdentity = getCanonicalModelIdentity(evaluations[0].model_info)
-  const variantGroups = new Map<string, BenchmarkEvaluation[]>()
+  const variantGroups = new Map<string, {
+    descriptor: AggregatedVariantDescriptor
+    evaluations: BenchmarkEvaluation[]
+  }>()
 
   for (const evaluation of evaluations) {
-    const identity = getCanonicalModelIdentity(evaluation.model_info)
-    const existing = variantGroups.get(identity.variantKey) ?? []
-    existing.push(evaluation)
-    variantGroups.set(identity.variantKey, existing)
+    const descriptor = getAggregatedVariantDescriptor(evaluation.model_info)
+    const existing = variantGroups.get(descriptor.variantKey)
+
+    if (existing) {
+      existing.evaluations.push(evaluation)
+      continue
+    }
+
+    variantGroups.set(descriptor.variantKey, {
+      descriptor,
+      evaluations: [evaluation],
+    })
   }
 
   const variants = sortVariants(
-    Array.from(variantGroups.entries()).map(([variantKey, variantEvaluations]) => {
-      const representativeModel = pickRepresentativeModelInfo(variantEvaluations)
-      const identity = getCanonicalModelIdentity(representativeModel)
+    Array.from(variantGroups.values()).map(({ descriptor, evaluations: variantEvaluations }) => {
       const summary = createModelSummary(variantEvaluations)
+      const modelInfo = descriptor.mergedSetupAlias
+        ? {
+            ...summary.model_info,
+            id: descriptor.variantKey === 'base'
+              ? descriptor.familyId
+              : `${descriptor.familyId}::${descriptor.variantKey}`,
+            name: descriptor.variantDisplayName,
+            model_version: descriptor.variantKey === 'base' ? undefined : descriptor.variantLabel,
+          }
+        : summary.model_info
 
       return {
         ...summary,
-        variant_id: `${identity.familyId}::${variantKey}`,
-        variant_key: variantKey,
-        variant_label: identity.variantLabel,
-        variant_display_name: identity.variantDisplayName,
+        model_info: modelInfo,
+        variant_id: `${descriptor.familyId}::${descriptor.variantKey}`,
+        variant_key: descriptor.variantKey,
+        variant_label: descriptor.variantLabel,
+        variant_display_name: descriptor.variantDisplayName,
         raw_model_ids: Array.from(new Set(variantEvaluations.map((item) => item.model_info.id))).sort((a, b) =>
           a.localeCompare(b)
         ),
-        family_id: identity.familyId,
-        family_name: identity.familyName,
-        version_date: identity.versionDate,
-        version_qualifier: identity.versionQualifier,
+        family_id: descriptor.familyId,
+        family_name: descriptor.familyName,
+        version_date: descriptor.versionDate,
+        version_qualifier: descriptor.versionQualifier,
       }
     })
   )

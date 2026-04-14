@@ -372,6 +372,14 @@ interface VariantRowData {
   sampleCount: number | null
 }
 
+interface DeepDiveVariantRow {
+  rowKey: string
+  variant: BenchmarkVariant
+  evalSummaryId: string
+  configMap: Record<string, string>
+  configEntries: Array<[string, string]>
+}
+
 const GENERIC_RESULT_NAMES = new Set([
   "score",
   "accuracy",
@@ -597,6 +605,93 @@ function getTableConfigLabel(row: VariantRowData) {
   }
 
   return "Default config"
+}
+
+function getComparisonScoreEntryForVariant(
+  row: DeepDiveVariantRow,
+  comparisonIndex?: ComparisonIndex | null
+) {
+  if (!comparisonIndex || !row.evalSummaryId) {
+    return null
+  }
+
+  const metricSummaryId = row.variant.result.metric_summary_id
+  if (!metricSummaryId) {
+    return null
+  }
+
+  const metricEntry = comparisonIndex.evals[row.evalSummaryId]?.metrics.find(
+    (metric) => metric.metric_summary_id === metricSummaryId
+  )
+
+  if (!metricEntry) {
+    return null
+  }
+
+  const modelId = row.variant.evaluation.model_info.id
+  return (
+    metricEntry.scores.find(
+      (score) => score.model_route_id === modelId || score.model_family_id === modelId
+    ) ?? null
+  )
+}
+
+function getVariantRunLabels(
+  row: DeepDiveVariantRow,
+  comparisonIndex?: ComparisonIndex | null
+) {
+  const comparisonScoreEntry = getComparisonScoreEntryForVariant(row, comparisonIndex)
+  const submissions = comparisonScoreEntry?.submissions ?? []
+  const targetScore = row.variant.result.score_details.score
+
+  const matchingSubmissions = submissions.filter(
+    (submission) => Math.abs(submission.score - targetScore) <= 1e-6
+  )
+  const candidateSubmissions =
+    matchingSubmissions.length > 0
+      ? matchingSubmissions
+      : submissions.length === 1
+        ? submissions
+        : []
+
+  const runLabels = Array.from(
+    new Set(
+      candidateSubmissions
+        .map((submission) => normalizeDisplayLabel(submission.run_label))
+        .filter(Boolean)
+    )
+  )
+
+  if (runLabels.length > 0) {
+    return runLabels
+  }
+
+  const headlineRunLabel = normalizeDisplayLabel(comparisonScoreEntry?.headline_run_label)
+  return headlineRunLabel ? [headlineRunLabel] : []
+}
+
+function getVariantConfigDisambiguation(
+  row: DeepDiveVariantRow,
+  similarRows: DeepDiveVariantRow[]
+) {
+  const differingKeys = Array.from(
+    new Set(
+      similarRows.flatMap((candidate) =>
+        Object.keys(candidate.configMap).filter((key) => key.toLowerCase() !== "setup")
+      )
+    )
+  )
+    .filter((key) => {
+      const values = new Set(similarRows.map((candidate) => candidate.configMap[key]).filter(Boolean))
+      return values.size > 1
+    })
+    .sort((a, b) => a.localeCompare(b))
+
+  return differingKeys
+    .map((key) => [key, row.configMap[key]] as const)
+    .filter((entry): entry is readonly [string, string] => Boolean(entry[1]))
+    .slice(0, 2)
+    .map(([key, value]) => `${formatConfigLabel(key)}=${getConfigDisplayValue(value)}`)
 }
 
 function formatCompactDate(timestamp: string) {
@@ -2690,6 +2785,23 @@ export function BenchmarkDetail({
             const isBest = bar.modelId === bestBarId && !bar.isCurrent
             const isWorst =
               bar.modelId === worstBarId && !bar.isCurrent && bestBarId !== worstBarId
+            const submissionScores = (bar.submissions ?? [])
+              .map((submission) => submission.score)
+              .filter((score) => Number.isFinite(score))
+            const minSubmissionScore = submissionScores.length >= 2 ? Math.min(...submissionScores) : null
+            const maxSubmissionScore = submissionScores.length >= 2 ? Math.max(...submissionScores) : null
+            const minSubmissionPct =
+              minSubmissionScore != null
+                ? Math.max(0, Math.min(100, ((minSubmissionScore - domainMin) / range) * 100))
+                : null
+            const maxSubmissionPct =
+              maxSubmissionScore != null
+                ? Math.max(0, Math.min(100, ((maxSubmissionScore - domainMin) / range) * 100))
+                : null
+            const submissionSpanPct =
+              minSubmissionPct != null && maxSubmissionPct != null
+                ? Math.max(maxSubmissionPct - minSubmissionPct, 0.8)
+                : 0
 
             return (
               <div
@@ -2719,6 +2831,21 @@ export function BenchmarkDetail({
                         : {}),
                     }}
                   />
+                  {minSubmissionPct != null && maxSubmissionPct != null && (
+                    <div
+                      className="absolute inset-x-0"
+                      style={{
+                        bottom: `${minSubmissionPct}%`,
+                        height: `${submissionSpanPct}%`,
+                      }}
+                      title={`Reported run range: ${formatRawScoreValue(minSubmissionScore!, activeHist.unit ?? undefined)} to ${formatRawScoreValue(maxSubmissionScore!, activeHist.unit ?? undefined)}`}
+                      aria-hidden="true"
+                    >
+                      <span className="absolute bottom-0 left-1/2 h-full w-px -translate-x-1/2 rounded-full bg-foreground/35" />
+                      <span className="absolute bottom-0 left-1/2 h-px w-3 -translate-x-1/2 rounded-full bg-foreground/35" />
+                      <span className="absolute left-1/2 top-0 h-px w-3 -translate-x-1/2 rounded-full bg-foreground/35" />
+                    </div>
+                  )}
                   <div
                     className="pointer-events-none absolute left-1/2 -translate-x-1/2 text-[10px] font-semibold tabular-nums text-foreground/80"
                     style={{ bottom: `calc(${heightPct}% + 2px)` }}
@@ -3317,7 +3444,12 @@ export function BenchmarkDetail({
         }}
       >
         <DialogContent className="max-h-[88dvh] max-w-[94vw] grid-rows-[auto_minmax(0,1fr)] overflow-hidden p-0 sm:max-w-5xl">
-          {activeBenchmarkGroup && <BenchmarkDeepDiveDialogPanel group={activeBenchmarkGroup} />}
+          {activeBenchmarkGroup && (
+            <BenchmarkDeepDiveDialogPanel
+              group={activeBenchmarkGroup}
+              comparisonIndex={comparisonIndex}
+            />
+          )}
         </DialogContent>
       </Dialog>
     </div>
@@ -4370,8 +4502,10 @@ function AggregatedBenchmarkCard({
 
 function BenchmarkDeepDiveDialogPanel({
   group,
+  comparisonIndex,
 }: {
   group: BenchmarkGroup
+  comparisonIndex?: ComparisonIndex | null
 }) {
   const { mode } = useAudienceMode()
   const isResearchView = mode === "research"
@@ -4399,7 +4533,7 @@ function BenchmarkDeepDiveDialogPanel({
     [group.variants]
   )
 
-  const variantRows = useMemo(
+  const variantRows = useMemo<DeepDiveVariantRow[]>(
     () =>
       rankedVariants.map((variant, index) => {
         const rowKey = `${variant.evaluation.evaluation_id}-${index}`
@@ -4411,11 +4545,92 @@ function BenchmarkDeepDiveDialogPanel({
           rowKey,
           variant,
           evalSummaryId,
+          configMap,
           configEntries: Object.entries(configMap),
         }
       }),
     [rankedVariants]
   )
+
+  const rowsByPrimaryLabel = useMemo(() => {
+    const groupedRows = new Map<string, DeepDiveVariantRow[]>()
+
+    for (const row of variantRows) {
+      const primaryLabel = getVariantPrimaryLabel(row.variant, group.title)
+      const existing = groupedRows.get(primaryLabel) ?? []
+      existing.push(row)
+      groupedRows.set(primaryLabel, existing)
+    }
+
+    return groupedRows
+  }, [group.title, variantRows])
+
+  const hasAmbiguousPrimaryLabels = useMemo(
+    () => Array.from(rowsByPrimaryLabel.values()).some((rows) => rows.length > 1),
+    [rowsByPrimaryLabel]
+  )
+
+  const rowDisambiguationLabels = useMemo(() => {
+    const labels = new Map<string, string>()
+
+    for (const [primaryLabel, rows] of rowsByPrimaryLabel.entries()) {
+      if (rows.length <= 1) {
+        continue
+      }
+
+      const runLabelsByRow = new Map<string, string>()
+      const distinctRunLabels = new Set<string>()
+
+      for (const row of rows) {
+        const runLabel = getVariantRunLabels(row, comparisonIndex)[0]
+        if (!runLabel) {
+          continue
+        }
+
+        runLabelsByRow.set(row.rowKey, runLabel)
+        distinctRunLabels.add(runLabel)
+      }
+
+      if (distinctRunLabels.size === rows.length) {
+        for (const row of rows) {
+          const runLabel = runLabelsByRow.get(row.rowKey)
+          if (runLabel) {
+            labels.set(row.rowKey, runLabel)
+          }
+        }
+        continue
+      }
+
+      const configLabelsByRow = new Map<string, string>()
+      const distinctConfigLabels = new Set<string>()
+
+      for (const row of rows) {
+        const configLabel = getVariantConfigDisambiguation(row, rows).join(" · ")
+        if (!configLabel) {
+          continue
+        }
+
+        configLabelsByRow.set(row.rowKey, configLabel)
+        distinctConfigLabels.add(configLabel)
+      }
+
+      if (distinctConfigLabels.size === rows.length) {
+        for (const row of rows) {
+          const configLabel = configLabelsByRow.get(row.rowKey)
+          if (configLabel) {
+            labels.set(row.rowKey, configLabel)
+          }
+        }
+        continue
+      }
+
+      rows.forEach((row, index) => {
+        labels.set(row.rowKey, `${primaryLabel} run ${index + 1}`)
+      })
+    }
+
+    return labels
+  }, [comparisonIndex, rowsByPrimaryLabel])
 
   const bestResolvedRank = useMemo(() => {
     const candidates = variantRows
@@ -4622,11 +4837,17 @@ function BenchmarkDeepDiveDialogPanel({
           <section className="space-y-2">
             <div className="flex items-center justify-between gap-3">
               <div>
-                <h4 className="text-sm font-semibold">Subtask overview</h4>
+                <h4 className="text-sm font-semibold">
+                  {hasAmbiguousPrimaryLabels ? "Reported runs" : "Subtask overview"}
+                </h4>
                 <p className="text-xs text-muted-foreground">
-                  {isResearchView
-                    ? "This benchmark reports one setup, so subtasks, scores, and provenance are merged into one comparison view."
-                    : "This benchmark only reports one setup, so the subtask evidence is consolidated into a single reader-friendly view."}
+                  {hasAmbiguousPrimaryLabels
+                    ? isResearchView
+                      ? "These rows share the same benchmark label, so run names or differing config fields are surfaced to show what changed across reports."
+                      : "These rows describe the same benchmark view, so the table surfaces the reported run name or setup differences that separate them."
+                    : isResearchView
+                      ? "This benchmark reports one setup, so subtasks, scores, and provenance are merged into one comparison view."
+                      : "This benchmark only reports one setup, so the subtask evidence is consolidated into a single reader-friendly view."}
                 </p>
               </div>
               <div className="flex flex-wrap items-center gap-2">
@@ -4645,24 +4866,38 @@ function BenchmarkDeepDiveDialogPanel({
               <Table className="table-fixed">
                 <TableHeader className="bg-muted/20">
                   <TableRow className="hover:bg-transparent">
-                    <TableHead className="w-[36%] px-4 py-3 text-[11px] font-semibold uppercase tracking-[0.14em] text-muted-foreground">Subtask</TableHead>
+                    <TableHead className="w-[36%] px-4 py-3 text-[11px] font-semibold uppercase tracking-[0.14em] text-muted-foreground">
+                      {hasAmbiguousPrimaryLabels ? "Reported row" : "Subtask"}
+                    </TableHead>
                     <TableHead className="w-[36%] px-4 py-3 text-[11px] font-semibold uppercase tracking-[0.14em] text-muted-foreground">Evidence</TableHead>
                     <TableHead className="w-[14%] px-4 py-3 text-right text-[11px] font-semibold uppercase tracking-[0.14em] text-muted-foreground">Score</TableHead>
                     <TableHead className="w-[14%] px-4 py-3 text-right text-[11px] font-semibold uppercase tracking-[0.14em] text-muted-foreground">Rank</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {variantRows.map((row) => {
+                  {variantRows.map((row, index) => {
                     const { rowKey, variant, configEntries } = row
                     const resolvedRank = resolvedRanks[rowKey]
                     const primaryLabel = getVariantPrimaryLabel(variant, group.title)
                     const filteredConfigEntries = configEntries.filter(([key]) => key.toLowerCase() !== "setup")
+                    const disambiguationLabel = rowDisambiguationLabels.get(rowKey)
+                    const leadLabel = hasAmbiguousPrimaryLabels
+                      ? disambiguationLabel ?? `Reported run ${index + 1}`
+                      : primaryLabel
+                    const supportingLabel = hasAmbiguousPrimaryLabels
+                      ? primaryLabel
+                      : disambiguationLabel && disambiguationLabel !== primaryLabel
+                        ? disambiguationLabel
+                        : null
 
                     return (
                       <TableRow key={rowKey} className="align-top hover:bg-muted/10">
                         <TableCell className="px-4 py-3 align-top whitespace-normal">
                           <div className="space-y-1.5">
-                            <div className="font-medium leading-5">{primaryLabel}</div>
+                            <div className="font-medium leading-5">{leadLabel}</div>
+                            {supportingLabel && (
+                              <div className="text-xs text-muted-foreground">{supportingLabel}</div>
+                            )}
                             <div className="flex flex-wrap items-center gap-2">
                               {!variant.evaluation.slice_key && (
                                 <span className="rounded-full border border-border/60 bg-muted/30 px-2 py-0.5 text-[10px] font-medium text-muted-foreground">
@@ -4773,6 +5008,13 @@ function BenchmarkDeepDiveDialogPanel({
                           ? `#${resolvedRank?.position ?? leadRow.variant.rankPosition}${(resolvedRank?.total ?? leadRow.variant.rankTotal) ? `/${resolvedRank?.total ?? leadRow.variant.rankTotal}` : ""}`
                           : "Unranked"
                         const rawVariantLabel = leadRow.variant.label !== primaryLabel ? leadRow.variant.label : null
+                        const distinctRowLabels = Array.from(
+                          new Set(
+                            matrixRows
+                              .map((row) => rowDisambiguationLabels.get(row.rowKey))
+                              .filter((label): label is string => Boolean(label))
+                          )
+                        )
 
                         return (
                           <TableCell
@@ -4787,6 +5029,12 @@ function BenchmarkDeepDiveDialogPanel({
                               </div>
                               {rawVariantLabel && (
                                 <div className="text-[11px] text-muted-foreground line-clamp-2">{rawVariantLabel}</div>
+                              )}
+                              {distinctRowLabels.length > 0 && (
+                                <div className="text-[11px] text-muted-foreground line-clamp-2">
+                                  {distinctRowLabels.slice(0, 2).join(" · ")}
+                                  {distinctRowLabels.length > 2 ? ` +${distinctRowLabels.length - 2} more` : ""}
+                                </div>
                               )}
                               {matrixRows.length > 1 && (
                                 <div className="text-[11px] font-medium text-muted-foreground">

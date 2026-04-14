@@ -187,6 +187,36 @@ export default function ModelDetailPage() {
     }
   }, [getVariantFromQuery, searchParams, summary])
 
+  useEffect(() => {
+    if (!summary?.variants.length || !routeId) {
+      return
+    }
+
+    const requestedVersion = searchParams.get("version")
+    if (!requestedVersion) {
+      return
+    }
+
+    const matchesKnownVariant = summary.variants.some(
+      (variant) =>
+        variant.variant_key === requestedVersion ||
+        variant.variant_id === requestedVersion
+    )
+
+    if (matchesKnownVariant) {
+      return
+    }
+
+    const nextParams = new URLSearchParams(searchParams.toString())
+    nextParams.delete("version")
+    const nextQuery = nextParams.toString()
+
+    router.replace(
+      nextQuery ? `/models/${routeId}?${nextQuery}` : `/models/${routeId}`,
+      { scroll: false }
+    )
+  }, [routeId, router, searchParams, summary])
+
   const selectedVariant = useMemo(() => {
     if (!summary) {
       return null

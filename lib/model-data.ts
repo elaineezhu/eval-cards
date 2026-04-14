@@ -341,6 +341,10 @@ function parseParamsBillions(value: unknown): number | null {
 // ---------------------------------------------------------------------------
 
 function hfModelCardToEvaluationCardData(entry: HFModelCardEntry): EvaluationCardData {
+  const canonicalIdentity = getCanonicalModelIdentity({
+    id: entry.model_family_id,
+    name: entry.model_family_name,
+  })
   const categories = mapHFCategories(entry.categories_covered) as CategoryType[]
   const averageScore = getModelCardAverageScore(entry)
   const topScores = getModelCardTopScores(entry)
@@ -358,11 +362,11 @@ function hfModelCardToEvaluationCardData(entry: HFModelCardEntry): EvaluationCar
   }
 
   return {
-    id: entry.model_family_id,
-    route_id: entry.model_route_id,
-    model_name: entry.model_family_name,
-    model_id: entry.model_family_id,
-    canonical_model_name: entry.model_family_name,
+    id: canonicalIdentity.familyId,
+    route_id: getModelFamilyRouteId(canonicalIdentity.familyId),
+    model_name: canonicalIdentity.familyName,
+    model_id: canonicalIdentity.familyId,
+    canonical_model_name: canonicalIdentity.familyName,
     developer: normalizeDeveloperName(entry.developer),
     evaluations_count: entry.total_evaluations,
     benchmarks_count: entry.benchmark_family_count || entry.benchmark_count,

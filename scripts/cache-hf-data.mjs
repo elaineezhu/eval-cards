@@ -41,6 +41,24 @@ const OPTIONAL_CACHE_ROOT_FILES = new Set([
 
 const CACHE_DIRECTORIES = ["developers", "evals", "models"]
 
+const TOKEN_CASE_MAP = {
+  ai: "AI",
+  claude: "Claude",
+  fc: "FC",
+  gemini: "Gemini",
+  gemma: "Gemma",
+  gpt: "GPT",
+  haiku: "Haiku",
+  mini: "Mini",
+  opus: "Opus",
+  preview: "Preview",
+  pro: "Pro",
+  prompt: "Prompt",
+  reasoning: "Reasoning",
+  sonnet: "Sonnet",
+  thinking: "Thinking",
+}
+
 async function runGit(args, cwd) {
   await execFileAsync("git", args, {
     cwd,
@@ -120,6 +138,185 @@ async function copySnapshotDirectory(snapshotRoot, relativeDir, destinationDir) 
   return { fileCount, remoteCount }
 }
 
+function normalizeHandle(rawHandle) {
+  return rawHandle
+    .trim()
+    .toLowerCase()
+    .replace(/[_\s/]+/g, "-")
+    .replace(/(\d)-(?=\d(?:-|$))/g, "$1.")
+    .replace(/-+/g, "-")
+    .replace(/^-|-$/g, "")
+}
+
+function formatVersionDate(dateToken) {
+  if (!/^(?:19|20)\d{6}$/.test(dateToken)) {
+    return dateToken
+  }
+
+  return `${dateToken.slice(0, 4)}-${dateToken.slice(4, 6)}-${dateToken.slice(6, 8)}`
+}
+
+function titleCaseToken(token) {
+  if (!token) {
+    return token
+  }
+
+  if (TOKEN_CASE_MAP[token]) {
+    return TOKEN_CASE_MAP[token]
+  }
+
+  if (/^\d+(\.\d+)?$/.test(token)) {
+    return token
+  }
+
+  if (/^\d+(\.\d+)?[bkmt]$/i.test(token)) {
+    return `${token.slice(0, -1)}${token.slice(-1).toUpperCase()}`
+  }
+
+  return token.charAt(0).toUpperCase() + token.slice(1)
+}
+
+function humanizeHandle(handle) {
+  return handle
+    .split("-")
+    .filter(Boolean)
+    .map((token) => (/^(?:19|20)\d{6}$/.test(token) ? formatVersionDate(token) : titleCaseToken(token)))
+    .join(" ")
+}
+
+function getCanonicalFamilyInfo(modelFamilyId) {
+  const [namespace = "unknown", rawHandle = ""] = String(modelFamilyId).split("/")
+  const normalizedHandle = normalizeHandle(rawHandle)
+  const match = normalizedHandle.match(/^(.*?)-((?:19|20)\d{6})(?:-(.+))?$/)
+  const familySlug = match ? match[1] : normalizedHandle
+
+  return {
+    familyId: `${namespace}/${familySlug}`,
+    familyName: humanizeHandle(familySlug),
+  }
+}
+
+function normalizeSetupAliasQualifier(value) {
+  return String(value ?? "").trim().toLowerCase().replace(/[_\s]+/g, "-")
+}
+
+function isSetupAliasQualifier(value) {
+  const normalized = normalizeSetupAliasQualifier(value)
+  return (
+    normalized === "prompt" ||
+    normalized === "fc" ||
+    normalized === "function-calling" ||
+    normalized.startsWith("thinking")
+  )
+}
+
+function getNormalizedVariantMeta(familyId, variantKey, variantLabel) {
+  if (variantKey === "default" || variantKey === "base") {
+    return {
+      variantKey: "default",
+      variantLabel: "Default",
+    }
+  }
+
+  const familyHandle = familyId.split("/")[1] ?? ""
+  const compositeHandle = normalizeHandle(`${familyHandle}-${variantKey}`)
+  const match = compositeHandle.match(/^(.*?)-((?:19|20)\d{6})(?:-(.+))?$/)
+
+  if (!match) {
+    return {
+      variantKey,
+      variantLabel,
+    }
+  }
+
+  const [, , dateToken, qualifier] = match
+  if (qualifier && isSetupAliasQualifier(humanizeHandle(qualifier))) {
+    const formattedDate = formatVersionDate(dateToken)
+    return {
+      variantKey: formattedDate,
+      variantLabel: formattedDate,
+    }
+  }
+
+  const formattedDate = formatVersionDate(dateToken)
+  return {
+    variantKey,
+    variantLabel: qualifier ? `${formattedDate} · ${humanizeHandle(qualifier)}` : formattedDate,
+  }
+}
+
+function normalizeModelCardEntry(entry) {
+  const familyInfo = getCanonicalFamilyInfo(entry.model_family_id)
+  const variantsByKey = new Map()
+
+  for (const variant of entry.variants ?? []) {
+    const meta = getNormalizedVariantMeta(familyInfo.familyId, variant.variant_key, variant.variant_label)
+    const existing = variantsByKey.get(meta.variantKey)
+
+    if (existing) {
+      existing.evaluation_count += variant.evaluation_count
+      existing.last_updated =
+        !existing.last_updated || (variant.last_updated && new Date(variant.last_updated).getTime() > new Date(existing.last_updated).getTime())
+          ? variant.last_updated
+          : existing.last_updated
+      existing.raw_model_ids = Array.from(
+        new Set([...(existing.raw_model_ids ?? []), ...(variant.raw_model_ids ?? [])])
+      ).sort((a, b) => a.localeCompare(b))
+      continue
+    }
+
+    variantsByKey.set(meta.variantKey, {
+      ...variant,
+      variant_key: meta.variantKey,
+      variant_label: meta.variantLabel,
+      raw_model_ids: [...(variant.raw_model_ids ?? [])].sort((a, b) => a.localeCompare(b)),
+    })
+  }
+
+  const variants = Array.from(variantsByKey.values()).sort((a, b) => {
+    const aIsDefault = a.variant_key === "default"
+    const bIsDefault = b.variant_key === "default"
+    if (aIsDefault !== bIsDefault) {
+      return aIsDefault ? -1 : 1
+    }
+
+    const aTime = a.last_updated ? new Date(a.last_updated).getTime() : Number.NEGATIVE_INFINITY
+    const bTime = b.last_updated ? new Date(b.last_updated).getTime() : Number.NEGATIVE_INFINITY
+    if (aTime !== bTime) {
+      return bTime - aTime
+    }
+
+    return a.variant_label.localeCompare(b.variant_label)
+  })
+
+  return {
+    ...entry,
+    model_family_id: familyInfo.familyId,
+    model_route_id: familyInfo.familyId.replace(/\//g, "__"),
+    model_family_name: familyInfo.familyName,
+    total_evaluations:
+      variants.length > 0
+        ? variants.reduce((sum, variant) => sum + (variant.evaluation_count ?? 0), 0)
+        : entry.total_evaluations,
+    variants,
+  }
+}
+
+async function normalizeCachedModelCardFile(filePath) {
+  try {
+    const text = await fs.readFile(filePath, "utf8")
+    const data = JSON.parse(text)
+    if (!Array.isArray(data)) {
+      return
+    }
+
+    const normalized = data.map(normalizeModelCardEntry)
+    await fs.writeFile(filePath, `${JSON.stringify(normalized, null, 2)}\n`)
+  } catch (error) {
+    console.warn(`  ○ failed to normalize ${path.basename(filePath)}: ${error instanceof Error ? error.message : String(error)}`)
+  }
+}
+
 async function countFiles(dirPath) {
   const entries = await fs.readdir(dirPath, { withFileTypes: true })
   let count = 0
@@ -182,6 +379,10 @@ async function main() {
     )
     const peerRanksSuffix = peerRanksResult.source === "remote" ? ", resolved from LFS" : ""
     console.log(`  ✓ peer-ranks.json (${(peerRanksResult.size / 1024).toFixed(0)} KB${peerRanksSuffix})`)
+
+    await normalizeCachedModelCardFile(path.join(cacheDir, "model-cards.json"))
+    await normalizeCachedModelCardFile(path.join(cacheDir, "model-cards-lite.json"))
+    console.log("  ✓ normalized model card artifacts")
 
     // ── Phase 3: Detail directories ─────────────────────────────────────
     console.log("\nPhase 3: Copy detail directories")

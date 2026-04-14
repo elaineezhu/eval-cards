@@ -16,6 +16,7 @@ import type {
   SourceMetadata,
 } from "@/lib/benchmark-schema"
 import { inferCategoryFromBenchmark } from "@/lib/benchmark-schema"
+import { getCanonicalModelIdentity, getModelFamilyRouteId } from "@/lib/model-family"
 
 // ---------------------------------------------------------------------------
 // HuggingFace dataset base URL
@@ -149,6 +150,7 @@ export interface HFModelCardEntry {
   model_route_id: string
   model_family_name: string
   developer: string
+  params_billions?: number | string | null
   total_evaluations: number
   benchmark_count: number
   benchmark_family_count: number
@@ -393,19 +395,129 @@ export interface HFDeveloperDetail {
   models: HFModelCardEntry[]
 }
 
+function normalizeSetupAliasQualifier(value: string | null | undefined) {
+  return value?.trim().toLowerCase().replace(/[_\s]+/g, "-") ?? ""
+}
+
+function isSetupAliasQualifier(value: string | null | undefined) {
+  const normalized = normalizeSetupAliasQualifier(value)
+  return (
+    normalized === "prompt" ||
+    normalized === "fc" ||
+    normalized === "function-calling" ||
+    normalized.startsWith("thinking")
+  )
+}
+
+function getLatestTimestamp(a?: string, b?: string) {
+  if (!a) return b
+  if (!b) return a
+
+  const aTime = new Date(a).getTime()
+  const bTime = new Date(b).getTime()
+
+  if (!Number.isFinite(aTime)) return b
+  if (!Number.isFinite(bTime)) return a
+  return bTime > aTime ? b : a
+}
+
+function sortNormalizedModelCardVariants(a: HFModelCardEntry["variants"][number], b: HFModelCardEntry["variants"][number]) {
+  const aIsDefault = a.variant_key === "default"
+  const bIsDefault = b.variant_key === "default"
+  if (aIsDefault !== bIsDefault) {
+    return aIsDefault ? -1 : 1
+  }
+
+  const aTime = a.last_updated ? new Date(a.last_updated).getTime() : Number.NEGATIVE_INFINITY
+  const bTime = b.last_updated ? new Date(b.last_updated).getTime() : Number.NEGATIVE_INFINITY
+  if (aTime !== bTime) {
+    return bTime - aTime
+  }
+
+  return a.variant_label.localeCompare(b.variant_label)
+}
+
+function normalizeSingleModelCardEntry(entry: HFModelCardEntry): HFModelCardEntry {
+  const familyIdentity = getCanonicalModelIdentity({
+    id: entry.model_family_id,
+    name: entry.model_family_name,
+  })
+
+  const variantsByKey = new Map<string, HFModelCardEntry["variants"][number]>()
+
+  for (const variant of entry.variants ?? []) {
+    let normalizedVariantKey = variant.variant_key
+    let normalizedVariantLabel = variant.variant_label
+
+    if (variant.variant_key === "base") {
+      normalizedVariantKey = "default"
+      normalizedVariantLabel = "Default"
+    } else if (variant.variant_key !== "default") {
+      const syntheticIdentity = getCanonicalModelIdentity({
+        id: `${familyIdentity.familyId}-${variant.variant_key}`,
+        name: `${familyIdentity.familyId}-${variant.variant_key}`,
+      })
+
+      if (syntheticIdentity.versionDate && isSetupAliasQualifier(syntheticIdentity.versionQualifier)) {
+        normalizedVariantKey = syntheticIdentity.versionDate
+        normalizedVariantLabel = syntheticIdentity.versionDate
+      } else {
+        normalizedVariantKey = syntheticIdentity.variantKey
+        normalizedVariantLabel = syntheticIdentity.variantLabel
+      }
+    }
+
+    const existing = variantsByKey.get(normalizedVariantKey)
+    if (existing) {
+      existing.evaluation_count += variant.evaluation_count
+      existing.last_updated = getLatestTimestamp(existing.last_updated, variant.last_updated)
+      existing.raw_model_ids = Array.from(
+        new Set([...(existing.raw_model_ids ?? []), ...(variant.raw_model_ids ?? [])])
+      ).sort((a, b) => a.localeCompare(b))
+      continue
+    }
+
+    variantsByKey.set(normalizedVariantKey, {
+      ...variant,
+      variant_key: normalizedVariantKey,
+      variant_label: normalizedVariantLabel,
+      raw_model_ids: [...(variant.raw_model_ids ?? [])].sort((a, b) => a.localeCompare(b)),
+    })
+  }
+
+  const normalizedVariants = Array.from(variantsByKey.values()).sort(sortNormalizedModelCardVariants)
+  const normalizedTotalEvaluations =
+    normalizedVariants.length > 0
+      ? normalizedVariants.reduce((sum, variant) => sum + variant.evaluation_count, 0)
+      : entry.total_evaluations
+
+  return {
+    ...entry,
+    model_family_id: familyIdentity.familyId,
+    model_route_id: getModelFamilyRouteId(familyIdentity.familyId),
+    model_family_name: familyIdentity.familyName,
+    total_evaluations: normalizedTotalEvaluations,
+    variants: normalizedVariants,
+  }
+}
+
+function normalizeModelCardEntries(entries: HFModelCardEntry[]) {
+  return entries.map(normalizeSingleModelCardEntry)
+}
+
 // ---------------------------------------------------------------------------
 // Public data fetchers
 // ---------------------------------------------------------------------------
 
 export async function fetchModelCardsList(): Promise<HFModelCardEntry[]> {
   const data = await fetchHFJson<HFModelCardEntry[]>("model-cards.json")
-  return Array.isArray(data) ? data : []
+  return Array.isArray(data) ? normalizeModelCardEntries(data) : []
 }
 
 export async function fetchModelCardsListLite(): Promise<HFModelCardEntry[]> {
   const data = await fetchHFJsonSafe<HFModelCardEntry[]>("model-cards-lite.json")
   if (Array.isArray(data)) {
-    return data
+    return normalizeModelCardEntries(data)
   }
 
   return fetchModelCardsList()
