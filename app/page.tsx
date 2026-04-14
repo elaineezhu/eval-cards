@@ -1,15 +1,9 @@
-"use client"
-
 import Link from "next/link"
-import { useEffect, useMemo, useState } from "react"
-import { useAudienceMode } from "@/components/audience-mode-provider"
 import { Button } from "@/components/ui/button"
 import { ArrowRight, BookOpenText, Database, MessageSquare, Scale } from "lucide-react"
-import type { BenchmarkEvaluationCardData } from "@/components/benchmark-evaluation-card"
+import { HomeModeLabel } from "@/components/home-mode-label"
 import { Navigation } from "@/components/navigation"
-import type { BackendManifest, EvalHierarchy } from "@/lib/backend-artifacts"
-import type { BenchmarkEvalListItem } from "@/lib/eval-processing"
-import { fetchBackendManifest, fetchEvalHierarchy, fetchEvalList, fetchModelCards } from "@/lib/dashboard-data-client"
+import { getBackendManifestData, getEvalHierarchyData, getEvalListData, getModelCards } from "@/lib/model-data"
 
 function formatGeneratedAt(value: string | null | undefined) {
   if (!value) return "Unknown"
@@ -26,64 +20,21 @@ function formatGeneratedAt(value: string | null | undefined) {
   }
 }
 
-export default function HomePage() {
-  const { mode } = useAudienceMode()
-  const [models, setModels] = useState<BenchmarkEvaluationCardData[]>([])
-  const [evalSummaries, setEvalSummaries] = useState<BenchmarkEvalListItem[]>([])
-  const [manifest, setManifest] = useState<BackendManifest | null>(null)
-  const [hierarchy, setHierarchy] = useState<EvalHierarchy | null>(null)
-  const [modelsLoading, setModelsLoading] = useState(true)
-  const [evalsLoading, setEvalsLoading] = useState(true)
+export default async function HomePage() {
+  const [models, evalList, manifest, hierarchy] = await Promise.all([
+    getModelCards(),
+    getEvalListData(),
+    getBackendManifestData(),
+    getEvalHierarchyData(),
+  ])
 
-  useEffect(() => {
-    fetchModelCards()
-      .then(setModels)
-      .catch(console.error)
-      .finally(() => setModelsLoading(false))
-
-    fetchEvalList()
-      .then((data) => setEvalSummaries(data.evals))
-      .catch(console.error)
-      .finally(() => setEvalsLoading(false))
-
-    fetchBackendManifest()
-      .then(setManifest)
-      .catch(console.error)
-
-    fetchEvalHierarchy()
-      .then(setHierarchy)
-      .catch(console.error)
-  }, [])
-
-  const loading = modelsLoading || evalsLoading
-
-  const developerCount = useMemo(
-    () => new Set(models.map((entry) => entry.developer).filter(Boolean)).size,
-    [models]
-  )
-
-  const avgBenchmarksPerModel = useMemo(() => {
-    if (models.length === 0) return 0
-    return models.reduce((sum, entry) => sum + entry.benchmarks_count, 0) / models.length
-  }, [models])
-
-  const totalReportedResults = useMemo(
-    () => models.reduce((sum, entry) => sum + entry.evaluations_count, 0),
-    [models]
-  )
-
-  if (loading) {
-    return (
-      <div className="min-h-screen bg-background">
-        <Navigation />
-        <main className="container mx-auto px-4 py-8">
-          <div className="flex h-96 items-center justify-center">
-            <div className="text-lg text-muted-foreground">Loading overview...</div>
-          </div>
-        </main>
-      </div>
-    )
-  }
+  const evalSummaries = evalList.evals
+  const developerCount = new Set(models.map((entry) => entry.developer).filter(Boolean)).size
+  const avgBenchmarksPerModel =
+    models.length > 0
+      ? models.reduce((sum, entry) => sum + entry.benchmarks_count, 0) / models.length
+      : 0
+  const totalReportedResults = models.reduce((sum, entry) => sum + entry.evaluations_count, 0)
 
   return (
     <div className="min-h-screen bg-background">
@@ -97,7 +48,7 @@ export default function HomePage() {
             <div className="grid content-start gap-8">
               <div className="flex flex-wrap items-center gap-x-4 gap-y-2 text-[11px] font-semibold uppercase tracking-[0.24em] text-muted-foreground">
                 <span className="rounded-full border border-border/70 bg-background px-3 py-1">Beta preview</span>
-                <span>{mode === "research" ? "Research-first reading mode" : "Policy-first reading mode"}</span>
+                <HomeModeLabel />
                 {manifest ? <span>Updated {formatGeneratedAt(manifest.generated_at)}</span> : null}
               </div>
 

@@ -245,6 +245,11 @@ function normalizeDomainList(value: unknown): string[] {
 
 type EvalBrowserNodeKind = "family" | "suite" | "benchmark" | "split" | "subtask"
 
+interface EvalBrowserMatrixPreviewRow {
+  label: string
+  value: string
+}
+
 interface EvalBrowserNode {
   id: string
   parentId: string | null
@@ -265,6 +270,10 @@ interface EvalBrowserNode {
   childIds: string[]
   href?: string
   scopeKeys: string[]
+  matrixPreview?: {
+    columnLabel: string
+    rows: EvalBrowserMatrixPreviewRow[]
+  }
 }
 
 function getBrowserNodeKindLabel(kind: EvalBrowserNodeKind) {
@@ -336,6 +345,12 @@ function summarizeNodeStats(
       summaries[0]?.source_data?.dataset_name ??
       "Hierarchy summary",
   }
+}
+
+function formatCompactScore(value: number | undefined) {
+  if (value == null || !Number.isFinite(value)) return "—"
+  if (value >= 0 && value <= 1) return `${(value * 100).toFixed(1)}%`
+  return value.toFixed(value >= 100 ? 0 : 2)
 }
 
 function getNodeCard(
@@ -586,6 +601,7 @@ export default function EvalsPage() {
       childIds = [],
       href,
       scopeKeys,
+      matrixPreview,
       descriptionFallback,
     }: {
       id: string
@@ -602,6 +618,7 @@ export default function EvalsPage() {
       childIds?: string[]
       href?: string
       scopeKeys: string[]
+      matrixPreview?: EvalBrowserNode["matrixPreview"]
       descriptionFallback: string
     }) => {
       const stats = summarizeNodeStats(summaries, category)
@@ -625,7 +642,49 @@ export default function EvalsPage() {
         childIds,
         href,
         scopeKeys,
+        matrixPreview,
       })
+    }
+
+    const buildSingleMetricMatrixPreview = (
+      benchmarks: Array<{
+        key: string
+        display_name: string
+        slices?: Array<{ key: string; display_name: string; metrics: Array<{ key: string; display_name: string }> }>
+        metrics?: Array<{ key: string; display_name: string }>
+      }>,
+      scopeKeys: string[]
+    ): EvalBrowserNode["matrixPreview"] | null => {
+      if (benchmarks.length < 2) {
+        return null
+      }
+
+      const metricLabels = new Set<string>()
+      const rows: EvalBrowserMatrixPreviewRow[] = []
+
+      for (const benchmark of benchmarks) {
+        if ((benchmark.slices?.length ?? 0) > 0 || (benchmark.metrics?.length ?? 0) !== 1) {
+          return null
+        }
+
+        const metric = benchmark.metrics?.[0]
+        metricLabels.add(metric?.display_name || metric?.key || "Metric")
+
+        const benchmarkSummary = pickSummaryForKey(summariesWithCards, benchmark.key, scopeKeys)
+        rows.push({
+          label: formatBenchmarkLabel(benchmark.display_name || benchmark.key),
+          value: formatCompactScore(benchmarkSummary?.top_score),
+        })
+      }
+
+      if (metricLabels.size !== 1) {
+        return null
+      }
+
+      return {
+        columnLabel: Array.from(metricLabels)[0],
+        rows,
+      }
     }
 
     const createSliceNodes = (
@@ -742,6 +801,33 @@ export default function EvalsPage() {
       const familyStandalone = family.standalone_benchmarks ?? []
       const familyRollupBenchmark = familyBenchmarks.find((benchmark) => isSameHierarchyKey(benchmark.key, family.key))
       const childBenchmarks = familyBenchmarks.filter((benchmark) => !isSameHierarchyKey(benchmark.key, family.key))
+      const familyMatrixPreview = buildSingleMetricMatrixPreview(childBenchmarks, familyScopeKeys)
+      const familyRollupSummary = pickSummaryForKey(summariesWithCards, family.key, familyScopeKeys)
+
+      if (
+        familyComposites.length === 0 &&
+        familyStandalone.length === 0 &&
+        familyRollupBenchmark &&
+        familyMatrixPreview
+      ) {
+        buildNode({
+          id: `family:${familyKey}`,
+          parentId: null,
+          kind: "family",
+          title: familyLabel,
+          category: mapHierarchyCategory(family.category),
+          domains: normalizeDomainList(family.tags?.domains),
+          summaries: familySummaries,
+          card: familyCard,
+          sourceLabel: familyLabel,
+          href: familyRollupSummary ? `/evals/${familyRollupSummary.evaluation_id}` : undefined,
+          scopeKeys: familyScopeKeys,
+          matrixPreview: familyMatrixPreview,
+          descriptionFallback: `Browse the {label} rollup and compare its single-metric branches in one matrix view.`,
+        })
+
+        continue
+      }
 
       const topLevelMode: "family" | "suite" | "benchmark" =
         familyComposites.length > 1
@@ -1418,15 +1504,10 @@ export default function EvalsPage() {
           <div className="grid grid-cols-1 gap-5 md:grid-cols-2 xl:grid-cols-3">
             {pagedNodes.map((node) => {
               const shortLicense = shortenLicense(node.license ?? "")
-              const topScoreLabel =
-                node.topScore != null
-                  ? node.topScore >= 0 && node.topScore <= 1
-                    ? `${(node.topScore * 100).toFixed(1)}%`
-                    : node.topScore.toFixed(node.topScore >= 100 ? 0 : 2)
-                  : null
+              const topScoreLabel = formatCompactScore(node.topScore)
               const categoryBadgeClass = getCategoryColor(node.category)
               const isNavigable = node.childIds.length > 0 || Boolean(node.href)
-              const actionLabel = node.childIds.length > 0 ? "Open level" : "View benchmark"
+              const actionLabel = node.childIds.length > 0 ? "Open level" : node.matrixPreview ? "View rollup" : "View benchmark"
               const kindLabel = getBrowserNodeKindLabel(node.kind)
 
               return (
@@ -1503,8 +1584,31 @@ export default function EvalsPage() {
                     </p>
                   )}
 
+                  {node.matrixPreview && (
+                    <div className="mb-4 overflow-hidden rounded-[1.2rem] border border-stone-200/80 bg-stone-50/85 dark:border-stone-800/80 dark:bg-stone-900/85">
+                      <div className="grid grid-cols-[minmax(0,1fr)_auto] gap-px bg-stone-200/80 dark:bg-stone-800/80">
+                        <div className="bg-white/95 px-3 py-2 text-[10px] font-semibold uppercase tracking-[0.16em] text-stone-500 dark:bg-stone-950/95 dark:text-stone-400">
+                          Subtask
+                        </div>
+                        <div className="bg-white/95 px-3 py-2 text-right text-[10px] font-semibold uppercase tracking-[0.16em] text-stone-500 dark:bg-stone-950/95 dark:text-stone-400">
+                          {node.matrixPreview.columnLabel}
+                        </div>
+                        {node.matrixPreview.rows.map((row) => (
+                          <div key={`${node.id}:${row.label}`} className="contents">
+                            <div className="truncate bg-white/90 px-3 py-2 text-sm font-medium text-stone-700 dark:bg-stone-950/90 dark:text-stone-200">
+                              {row.label}
+                            </div>
+                            <div className="bg-white/90 px-3 py-2 text-right text-sm font-semibold text-stone-900 dark:bg-stone-950/90 dark:text-stone-100">
+                              {row.value}
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+
                   <div className="mb-4 grid gap-px overflow-hidden rounded-[1.2rem] border border-stone-200/80 bg-stone-200/80 dark:border-stone-800/80 dark:bg-stone-800/80 sm:grid-cols-2 xl:grid-cols-3">
-                    {topScoreLabel && (
+                    {topScoreLabel !== "—" && (
                       <div className="bg-white/90 px-3 py-3 dark:bg-stone-950/90">
                         <div className="text-[10px] font-semibold uppercase tracking-[0.16em] text-stone-500 dark:text-stone-400">Top score</div>
                         <div className="mt-1 text-sm font-semibold text-stone-900 dark:text-stone-100">{topScoreLabel}</div>
