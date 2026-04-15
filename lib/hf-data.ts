@@ -529,6 +529,11 @@ export interface HFEvalModelResult {
   evaluation_id?: string
   retrieved_timestamp?: string
   source_record_url?: string
+  // Populated by pipeline versions that copy the parent record's provenance
+  // straight onto each hierarchy row. Older exports omit these; fall back to
+  // the evaluations_by_category index when missing.
+  source_metadata?: SourceMetadata
+  source_data?: SourceData | string[]
   detailed_evaluation_results?: string | null
   detailed_evaluation_results_meta?: unknown
   instance_level_data?: unknown
@@ -1234,7 +1239,8 @@ function flattenHierarchyNode(
   category: CategoryType,
   rawModelIds: Set<string>,
   variantLookup: Map<string, { variantKey: string; variantLabel: string }>,
-  inheritedContext?: FlattenHierarchyContext
+  inheritedContext?: FlattenHierarchyContext,
+  sourceMetadataByEvaluationId?: Map<string, SourceMetadata>
 ): BenchmarkEvaluation[] {
   const evaluations: BenchmarkEvaluation[] = []
   const context = buildFlattenHierarchyContext(node, inheritedContext)
@@ -1257,6 +1263,7 @@ function flattenHierarchyNode(
         evaluationResults: EvaluationResult[]
         inlineSamples?: SampleResult[]
         latestTimestamp: string
+        sourceMetadataOverride?: SourceMetadata
       }
     >()
 
@@ -1265,6 +1272,13 @@ function flattenHierarchyNode(
       const variantKey = variantMeta.variantKey || "default"
       const modelInfo = buildModelInfoForVariant(detail, result, variantMeta)
       const inlineSamples = parseInstanceLevelData(result.instance_level_data)
+      // Prefer source_metadata carried directly on the result row (populated
+      // by newer pipeline runs). Fall back to the by-evaluation-id index built
+      // from evaluations_by_category, which older exports still need.
+      const evaluationIdForResult = result.evaluation_id
+      const resolvedSourceMetadata: SourceMetadata | undefined =
+        result.source_metadata ??
+        (evaluationIdForResult ? sourceMetadataByEvaluationId?.get(evaluationIdForResult) : undefined)
       const evaluationResult: EvaluationResult = {
         evaluation_name: metric.metric_name || metric.evaluation_name || metric.display_name,
         display_name: metric.display_name || metric.metric_name || metric.evaluation_name,
@@ -1292,6 +1306,7 @@ function flattenHierarchyNode(
           evaluationResults: [evaluationResult],
           inlineSamples: inlineSamples.length > 0 ? inlineSamples : undefined,
           latestTimestamp: result.retrieved_timestamp ?? detail.last_updated ?? "",
+          sourceMetadataOverride: resolvedSourceMetadata,
         })
         continue
       }
@@ -1305,6 +1320,13 @@ function flattenHierarchyNode(
         toComparableTimestamp(existing.latestTimestamp)
       ) {
         existing.latestTimestamp = result.retrieved_timestamp ?? existing.latestTimestamp
+        // Prefer source_metadata from the freshest submission when multiple
+        // submissions land in the same variant bucket.
+        if (resolvedSourceMetadata) {
+          existing.sourceMetadataOverride = resolvedSourceMetadata
+        }
+      } else if (!existing.sourceMetadataOverride && resolvedSourceMetadata) {
+        existing.sourceMetadataOverride = resolvedSourceMetadata
       }
     }
 
@@ -1340,7 +1362,7 @@ function flattenHierarchyNode(
         slice_key: sliceKey,
         slice_name: sliceName,
         source_data: sourceData,
-        source_metadata: sourceMetadata,
+        source_metadata: variantGroup.sourceMetadataOverride ?? sourceMetadata,
         model_info: variantGroup.modelInfo,
         evaluation_results: variantGroup.evaluationResults,
         detailed_evaluation_results_per_samples:
@@ -1353,7 +1375,15 @@ function flattenHierarchyNode(
 
   for (const subtask of node.subtasks ?? []) {
     evaluations.push(
-      ...flattenHierarchyNode(detail, subtask, category, rawModelIds, variantLookup, context)
+      ...flattenHierarchyNode(
+        detail,
+        subtask,
+        category,
+        rawModelIds,
+        variantLookup,
+        context,
+        sourceMetadataByEvaluationId
+      )
     )
   }
 
@@ -1377,15 +1407,44 @@ export function flattenModelEvaluations(detail: HFModelDetail): BenchmarkEvaluat
       .filter(Boolean)
   )
   const variantLookup = buildVariantLookup(detail)
+  // evaluations_by_category carries the authoritative source_metadata straight
+  // from the pipeline. The hierarchy branch of this detail file doesn't, so
+  // we build a (evaluation_id -> source_metadata) index here and look values
+  // up per-result inside flattenHierarchyNode. Without this the hierarchy
+  // fallback below hardcodes evaluator_relationship to "other" and every
+  // 1st/3rd-party badge in the UI collapses to "Other".
+  const sourceMetadataByEvaluationId = buildSourceMetadataIndex(detail)
 
   for (const [categoryKey, nodes] of Object.entries(detail.hierarchy_by_category ?? {})) {
     const mappedCategory = mapHFCategories([categoryKey])[0]
     for (const node of nodes) {
-      evaluations.push(...flattenHierarchyNode(detail, node, mappedCategory, rawModelIds, variantLookup))
+      evaluations.push(
+        ...flattenHierarchyNode(
+          detail,
+          node,
+          mappedCategory,
+          rawModelIds,
+          variantLookup,
+          undefined,
+          sourceMetadataByEvaluationId
+        )
+      )
     }
   }
 
   return evaluations
+}
+
+function buildSourceMetadataIndex(detail: HFModelDetail): Map<string, SourceMetadata> {
+  const index = new Map<string, SourceMetadata>()
+  for (const evals of Object.values(detail.evaluations_by_category ?? {})) {
+    for (const evaluation of evals ?? []) {
+      if (evaluation?.source_metadata && evaluation.evaluation_id) {
+        index.set(evaluation.evaluation_id, evaluation.source_metadata)
+      }
+    }
+  }
+  return index
 }
 
 /**
