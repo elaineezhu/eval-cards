@@ -1,4 +1,4 @@
-import type { BackendManifest, ComparisonIndex, EvalHierarchy } from "@/lib/backend-artifacts"
+import type { BackendManifestStatus, ComparisonIndex, EvalHierarchy } from "@/lib/backend-artifacts"
 import type { BenchmarkEvaluationCardData } from "@/components/benchmark-evaluation-card"
 import type { HFEvalDetail } from "@/lib/hf-data"
 import type {
@@ -98,7 +98,7 @@ export function fetchBenchmarkMetadata() {
 }
 
 export function fetchBackendManifest() {
-  return fetchJson<BackendManifest>("/api/backend-manifest")
+  return fetchJson<BackendManifestStatus>("/api/backend-manifest")
 }
 
 export function fetchEvalHierarchy() {

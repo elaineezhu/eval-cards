@@ -3,7 +3,7 @@ import "server-only"
 import { promises as fs } from "fs"
 import path from "path"
 
-import type { BackendManifest, ComparisonIndex, EvalHierarchy } from "@/lib/backend-artifacts"
+import type { BackendManifest, BackendManifestStatus, ComparisonIndex, EvalHierarchy } from "@/lib/backend-artifacts"
 import type {
   BenchmarkCard,
   BenchmarkEvaluation,
@@ -45,11 +45,41 @@ async function readLocalCache<T>(relativePath: string): Promise<T | null> {
 // In-memory cache (always active to avoid HF rate limits)
 // ---------------------------------------------------------------------------
 
-const cache = new Map<string, { data: unknown; ts: number }>()
+interface CacheEntry {
+  data: unknown
+  ts: number
+  manifestSignature?: string
+}
+
+const cache = new Map<string, CacheEntry>()
 const CACHE_TTL_MS =
-  process.env.NODE_ENV === "production"
-    ? 10 * 60 * 1000  // 10 min in prod
-    : 2 * 60 * 1000   // 2 min in dev
+  process.env.HF_DATA_CACHE_TTL_MS != null
+    ? Number.parseInt(process.env.HF_DATA_CACHE_TTL_MS, 10)
+    : process.env.NODE_ENV === "production"
+      ? 60 * 1000
+      : 0
+const MANIFEST_TTL_MS =
+  process.env.HF_MANIFEST_CACHE_TTL_MS != null
+    ? Number.parseInt(process.env.HF_MANIFEST_CACHE_TTL_MS, 10)
+    : process.env.NODE_ENV === "production"
+      ? 30 * 1000
+      : 0
+
+let manifestSnapshotCache:
+  | {
+      remote: BackendManifest | null
+      local: BackendManifest | null
+      ts: number
+    }
+  | null = null
+let localManifestPromise: Promise<BackendManifest | null> | null = null
+let manifestRefreshPromise: Promise<void> | null = null
+let refreshTargetManifestSignature: string | null = null
+let refreshTargetFailed = false
+let activeManifestSignature: string | null = null
+let activeManifest: BackendManifest | null = null
+const backgroundRefreshes = new Map<string, Promise<void>>()
+const observedPaths = new Set<string>()
 
 function isCanonicalCacheShape(relativePath: string, data: unknown) {
   if (!data || typeof data !== "object") {
@@ -78,56 +108,317 @@ function isCanonicalCacheShape(relativePath: string, data: unknown) {
   return true
 }
 
-async function fetchHFJson<T>(relativePath: string): Promise<T> {
-  // 1. In-memory cache (hot)
-  const hit = cache.get(relativePath)
-  const validHotCache = hit ? isCanonicalCacheShape(relativePath, hit.data) : false
-  if (hit && !validHotCache) {
-    cache.delete(relativePath)
-  }
-  if (hit && validHotCache && Date.now() - hit.ts < CACHE_TTL_MS) {
-    return hit.data as T
+function getManifestSignature(manifest: BackendManifest | null | undefined) {
+  if (!manifest) {
+    return null
   }
 
-  // 2. Local disk cache (warm — populated at build time)
-  const local = await readLocalCache<T>(relativePath)
-  if (local !== null && isCanonicalCacheShape(relativePath, local)) {
-    cache.set(relativePath, { data: local, ts: Date.now() })
-    return local
-  }
+  return JSON.stringify({
+    generated_at: manifest.generated_at,
+    config_version: manifest.config_version,
+    skipped_configs: [...manifest.skipped_configs].sort(),
+  })
+}
 
-  // 3. Fetch from HF with retry for 429 rate limits
+async function fetchRemoteJson<T>(relativePath: string): Promise<T> {
   const url = `${HF_BASE}/${relativePath}`
   let lastError: Error | null = null
+
   for (let attempt = 0; attempt < 3; attempt++) {
     if (attempt > 0) {
-      await new Promise((r) => setTimeout(r, 1000 * attempt))
+      await new Promise((resolve) => setTimeout(resolve, 1000 * attempt))
     }
+
     try {
       const res = await fetch(url, { cache: "no-store" })
       if (res.status === 429) {
         lastError = new Error(`HF rate limited (429) for ${url}`)
         continue
       }
+
       if (!res.ok) {
         throw new Error(`HF fetch failed: ${res.status} ${res.statusText} for ${url}`)
       }
-      const data = (await res.json()) as T
-      cache.set(relativePath, { data, ts: Date.now() })
-      return data
+
+      return (await res.json()) as T
     } catch (err) {
       lastError = err instanceof Error ? err : new Error(String(err))
-      if (!String(err).includes("429")) throw err
+      if (!String(err).includes("429")) {
+        throw err
+      }
     }
   }
 
-  // 4. Fall back to stale in-memory cache if all else fails
-  if (hit && validHotCache) {
-    console.warn(`[hf-data] Using stale cache for ${relativePath} after rate limit`)
+  throw lastError ?? new Error(`HF fetch failed for ${url}`)
+}
+
+async function getLocalManifest() {
+  if (!localManifestPromise) {
+    localManifestPromise = readLocalCache<BackendManifest>("manifest.json")
+  }
+
+  const local = await localManifestPromise
+
+  if (!manifestSnapshotCache) {
+    manifestSnapshotCache = {
+      remote: null,
+      local,
+      ts: 0,
+    }
+  } else if (manifestSnapshotCache.local == null && local != null) {
+    manifestSnapshotCache.local = local
+  }
+
+  if (!activeManifestSignature) {
+    activeManifestSignature = getManifestSignature(local)
+    activeManifest = local
+  }
+
+  return local
+}
+
+function queueArtifactRefresh(
+  relativePath: string,
+  manifestSignature: string,
+  remoteManifest: BackendManifest | null
+) {
+  if (backgroundRefreshes.has(relativePath)) {
+    return
+  }
+
+  if (backgroundRefreshes.size === 0 || refreshTargetManifestSignature !== manifestSignature) {
+    refreshTargetManifestSignature = manifestSignature
+    refreshTargetFailed = false
+  }
+
+  const refreshPromise = (async () => {
+    try {
+      const data = await fetchRemoteJson<unknown>(relativePath)
+      if (isCanonicalCacheShape(relativePath, data)) {
+        cache.set(relativePath, {
+          data,
+          ts: Date.now(),
+          manifestSignature,
+        })
+      }
+    } catch (err) {
+      refreshTargetFailed = true
+      console.warn(`[hf-data] Background refresh failed for ${relativePath}:`, err)
+    } finally {
+      backgroundRefreshes.delete(relativePath)
+
+      if (
+        backgroundRefreshes.size === 0 &&
+        !refreshTargetFailed &&
+        refreshTargetManifestSignature === manifestSignature
+      ) {
+        activeManifestSignature = manifestSignature
+        activeManifest = remoteManifest
+      }
+    }
+  })()
+
+  backgroundRefreshes.set(relativePath, refreshPromise)
+}
+
+function queueObservedPathRefreshes(snapshot: {
+  remote: BackendManifest | null
+  local: BackendManifest | null
+}) {
+  const remoteManifestSignature = getManifestSignature(snapshot.remote)
+  if (!remoteManifestSignature || remoteManifestSignature === activeManifestSignature) {
+    return
+  }
+
+  for (const relativePath of observedPaths) {
+    if (relativePath !== "manifest.json") {
+      queueArtifactRefresh(relativePath, remoteManifestSignature, snapshot.remote)
+    }
+  }
+}
+
+function queueManifestSnapshotRefresh() {
+  if (manifestRefreshPromise) {
+    return manifestRefreshPromise
+  }
+
+  manifestRefreshPromise = (async () => {
+    const local = await getLocalManifest()
+    const remote = await fetchRemoteJson<BackendManifest>("manifest.json").catch((err) => {
+      console.warn("[hf-data] Failed to fetch remote manifest:", err)
+      return null
+    })
+
+    manifestSnapshotCache = {
+      remote,
+      local,
+      ts: Date.now(),
+    }
+
+    const remoteManifestSignature = getManifestSignature(remote)
+    if (!activeManifestSignature && remoteManifestSignature) {
+      activeManifestSignature = remoteManifestSignature
+      activeManifest = remote
+    }
+
+    queueObservedPathRefreshes(manifestSnapshotCache)
+  })().finally(() => {
+    manifestRefreshPromise = null
+  })
+
+  return manifestRefreshPromise
+}
+
+async function getManifestSnapshot() {
+  const local = await getLocalManifest()
+
+  if (!manifestSnapshotCache) {
+    manifestSnapshotCache = {
+      remote: null,
+      local,
+      ts: 0,
+    }
+  }
+
+  if (
+    MANIFEST_TTL_MS === 0 ||
+    Date.now() - manifestSnapshotCache.ts >= MANIFEST_TTL_MS
+  ) {
+    void queueManifestSnapshotRefresh()
+  }
+
+  return manifestSnapshotCache
+}
+
+function getCurrentManifestFromSnapshot(snapshot: {
+  remote: BackendManifest | null
+  local: BackendManifest | null
+}) {
+  const remoteSignature = getManifestSignature(snapshot.remote)
+
+  if (remoteSignature && remoteSignature === activeManifestSignature) {
+    return snapshot.remote
+  }
+
+  return activeManifest ?? snapshot.local ?? snapshot.remote
+}
+
+async function fetchHFJson<T>(relativePath: string): Promise<T> {
+  if (relativePath === "manifest.json") {
+    const snapshot = await getManifestSnapshot()
+
+    if (snapshot.remote) {
+      return snapshot.remote as T
+    }
+
+    if (snapshot.local) {
+      return snapshot.local as T
+    }
+
+    throw new Error("HF manifest fetch failed and no local manifest cache is available")
+  }
+
+  const manifestSnapshot = await getManifestSnapshot()
+  const remoteManifestSignature = getManifestSignature(manifestSnapshot.remote)
+  const localManifestSignature = getManifestSignature(manifestSnapshot.local)
+  observedPaths.add(relativePath)
+
+  // 1. In-memory cache (hot)
+  const hit = cache.get(relativePath)
+  const validHotCache = hit ? isCanonicalCacheShape(relativePath, hit.data) : false
+  if (hit && !validHotCache) {
+    cache.delete(relativePath)
+  }
+  if (
+    hit &&
+    validHotCache &&
+    CACHE_TTL_MS > 0 &&
+    Date.now() - hit.ts < CACHE_TTL_MS &&
+    (!remoteManifestSignature || hit.manifestSignature === remoteManifestSignature)
+  ) {
     return hit.data as T
   }
 
-  throw lastError ?? new Error(`HF fetch failed for ${url}`)
+  if (hit && validHotCache) {
+    if (remoteManifestSignature && hit.manifestSignature !== remoteManifestSignature) {
+      queueArtifactRefresh(relativePath, remoteManifestSignature, manifestSnapshot.remote)
+    }
+    return hit.data as T
+  }
+
+  const local = await readLocalCache<T>(relativePath)
+  const validLocalCache = local !== null && isCanonicalCacheShape(relativePath, local)
+
+  // 2. If the local cache was built from the same manifest, keep using it.
+  if (
+    validLocalCache &&
+    remoteManifestSignature &&
+    localManifestSignature &&
+    remoteManifestSignature === localManifestSignature
+  ) {
+    cache.set(relativePath, {
+      data: local,
+      ts: Date.now(),
+      manifestSignature: remoteManifestSignature,
+    })
+    return local
+  }
+
+  // 3. Serve the local cache immediately and refresh in the background when the
+  // manifest indicates newer data exists.
+  if (validLocalCache) {
+    cache.set(relativePath, {
+      data: local,
+      ts: Date.now(),
+      manifestSignature: localManifestSignature ?? undefined,
+    })
+
+    if (remoteManifestSignature && remoteManifestSignature !== localManifestSignature) {
+      queueArtifactRefresh(relativePath, remoteManifestSignature, manifestSnapshot.remote)
+    }
+
+    return local
+  }
+
+  // 4. Fall back to a live fetch only when there is no usable stale cache.
+  try {
+    const data = await fetchRemoteJson<T>(relativePath)
+    cache.set(relativePath, {
+      data,
+      ts: Date.now(),
+      manifestSignature: remoteManifestSignature ?? undefined,
+    })
+    return data
+  } catch (err) {
+    if (hit && validHotCache) {
+      console.warn(`[hf-data] Using stale cache for ${relativePath} after live fetch failed`)
+      return hit.data as T
+    }
+
+    throw err
+  }
+}
+
+export async function fetchBackendManifestStatus(): Promise<BackendManifestStatus> {
+  const snapshot = await getManifestSnapshot()
+  const currentManifest = getCurrentManifestFromSnapshot(snapshot)
+  const currentManifestSignature = getManifestSignature(currentManifest)
+  const latestManifest = snapshot.remote ?? snapshot.local
+  const latestManifestSignature = getManifestSignature(latestManifest)
+
+  return {
+    currentManifest,
+    latestManifest,
+    currentManifestSignature,
+    latestManifestSignature,
+    updateAvailable: Boolean(
+      currentManifestSignature &&
+      latestManifestSignature &&
+      currentManifestSignature !== latestManifestSignature
+    ),
+    refreshing: manifestRefreshPromise != null || backgroundRefreshes.size > 0,
+    pendingRefreshCount: backgroundRefreshes.size,
+  }
 }
 
 async function fetchHFJsonSafe<T>(relativePath: string): Promise<T | null> {

@@ -10,6 +10,8 @@ import {
   BadgeCheck,
   BookOpenText,
   ChartNoAxesColumn,
+  Database,
+  ExternalLink,
   FlaskConical,
   Scale,
   Users,
@@ -75,6 +77,15 @@ export function EvalCard({ summary, delayMs = 0 }: EvalCardProps) {
   const rawSimilar = card?.benchmark_details?.similar_benchmarks
   const similarBenchmarks: string[] = Array.isArray(rawSimilar) ? rawSimilar : rawSimilar ? [rawSimilar] : []
   const domainPreview = domains.slice(0, 2)
+  // Source provenance pulled from the pipeline's source_data
+  const sourceData = summary.source_data
+  const datasetName = sourceData?.dataset_name
+  const datasetUrl =
+    sourceData?.dataset_url ??
+    (Array.isArray(sourceData?.url) ? sourceData?.url?.[0] : sourceData?.url) ??
+    (sourceData?.hf_repo ? `https://huggingface.co/datasets/${sourceData.hf_repo}` : undefined)
+  const datasetVersion = sourceData?.dataset_version
+  const sourceTypeLabel = sourceData?.source_type
 
   return (
     <Card
@@ -182,6 +193,15 @@ export function EvalCard({ summary, delayMs = 0 }: EvalCardProps) {
                 )}
               </div>
             </div>
+
+            {(datasetName || datasetUrl || sourceTypeLabel) && (
+              <ProvenanceRow
+                datasetName={datasetName}
+                datasetUrl={datasetUrl}
+                datasetVersion={datasetVersion}
+                sourceType={sourceTypeLabel}
+              />
+            )}
           </>
         ) : (
           <>
@@ -227,11 +247,20 @@ export function EvalCard({ summary, delayMs = 0 }: EvalCardProps) {
                 <DataRow label="Reported by" value={summary.evaluator_names.join(", ") || "Unknown"} />
                 {summary.missing_generation_config_count > 0 && (
                   <p className="pt-1 text-xs text-muted-foreground">
-                    Some results lack documented generation settings — direct score comparisons should be read with care.
+                    Some results lack generation settings; compare scores with care.
                   </p>
                 )}
               </div>
             </div>
+
+            {(datasetName || datasetUrl || sourceTypeLabel) && (
+              <ProvenanceRow
+                datasetName={datasetName}
+                datasetUrl={datasetUrl}
+                datasetVersion={datasetVersion}
+                sourceType={sourceTypeLabel}
+              />
+            )}
           </>
         )}
       </CardContent>
@@ -266,6 +295,52 @@ function DataRow({ label, value }: { label: string; value: string }) {
     <div className="flex items-start justify-between gap-3">
       <span className="shrink-0 text-muted-foreground">{label}</span>
       <span className="text-right font-medium text-foreground">{value}</span>
+    </div>
+  )
+}
+
+function ProvenanceRow({
+  datasetName,
+  datasetUrl,
+  datasetVersion,
+  sourceType,
+}: {
+  datasetName?: string
+  datasetUrl?: string
+  datasetVersion?: string
+  sourceType?: string
+}) {
+  return (
+    <div className="rounded-xl border border-border/60 bg-background/60 p-3">
+      <div className="mb-2 flex items-center gap-1.5 text-[10px] font-semibold uppercase tracking-[0.18em] text-muted-foreground">
+        <Database className="h-3 w-3" />
+        Source dataset
+      </div>
+      <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-sm">
+        {datasetName && (
+          <span className="font-medium text-foreground">
+            {datasetName}
+            {datasetVersion ? <span className="text-muted-foreground"> · v{datasetVersion}</span> : null}
+          </span>
+        )}
+        {sourceType && (
+          <span className="rounded-full border border-border/60 bg-muted/30 px-2 py-0.5 text-[10px] font-medium uppercase tracking-[0.14em] text-muted-foreground">
+            {sourceType.replace(/_/g, " ")}
+          </span>
+        )}
+        {datasetUrl && (
+          <a
+            href={datasetUrl}
+            target="_blank"
+            rel="noopener noreferrer"
+            onClick={(event) => event.stopPropagation()}
+            className="ml-auto inline-flex items-center gap-1 text-xs font-medium text-primary hover:underline"
+          >
+            View source
+            <ExternalLink className="h-3 w-3" />
+          </a>
+        )}
+      </div>
     </div>
   )
 }

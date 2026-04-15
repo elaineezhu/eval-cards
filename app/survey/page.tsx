@@ -350,7 +350,7 @@ export default function SurveyPage() {
       <PageHeader
         eyebrow="Survey"
         title={SURVEY_CONFIG.title}
-        description="Tell us what is confusing, missing, or hard to compare. This page is meant to collect concrete feedback from you, not just describe the survey."
+        description="Tell us what is confusing, missing, or hard to compare. This page collects concrete feedback you can write into the form below."
         metaItems={[
           { label: "Schema fields", value: FIELD_LIBRARY.length.toString() },
           { label: "Ranked now", value: surveyState.rankedFieldIds.length.toString() },
@@ -415,7 +415,7 @@ export default function SurveyPage() {
               About You
             </div>
             <p className="mb-4 text-sm text-muted-foreground">
-              This is a public survey — all fields below are optional. Responses are saved anonymously if left blank.
+              All fields are optional. Responses are saved anonymously if left blank.
             </p>
             <div className="grid gap-4">
               <label className="block">

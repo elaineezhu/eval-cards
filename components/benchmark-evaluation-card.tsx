@@ -454,10 +454,10 @@ export function BenchmarkEvaluationCard({
         <div className="flex items-center justify-between rounded-2xl border border-border/70 bg-muted/10 px-4 py-3">
           <div>
             <div className="text-[11px] font-semibold uppercase tracking-[0.18em] text-muted-foreground">
-              Clickthrough
+              Full record
             </div>
             <div className="mt-1 text-sm text-muted-foreground">
-              Open the model card for the full benchmark list, evidence context, and comparison detail.
+              Open for the full benchmark list, provenance, and comparison detail.
             </div>
           </div>
           <Button

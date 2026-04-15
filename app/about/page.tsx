@@ -13,7 +13,7 @@ export default function AboutPage() {
       <PageHeader
         eyebrow="About"
         title="About Eval Cards"
-        description="Why public AI evaluation reporting needs shared infrastructure, and what this project is trying to build."
+        description="Why public AI evaluation reporting needs shared infrastructure, and what this project builds toward it."
         size="wide"
         metaItems={[
           { label: "Modes", value: "Research + Policy" },
@@ -34,10 +34,10 @@ export default function AboutPage() {
             <div className="grid gap-6 xl:grid-cols-[minmax(0,1.2fr)_minmax(260px,0.8fr)]">
               <div className="space-y-4 text-base leading-8 text-muted-foreground">
                 <p>
-                  AI evaluations now shape discussions about capability, safety, and deployment readiness. But public reporting still arrives through papers, leaderboards, blog posts, and framework-specific outputs that rarely line up cleanly.
+                  AI evaluations shape discussions about capability, safety, and deployment. Public reporting arrives through papers, leaderboards, blog posts, and framework outputs that rarely line up.
                 </p>
                 <p>
-                  Eval Cards treats reporting itself as infrastructure. The point is not only to collect more scores. It is to make it easier to see who reported a result, when it was run, what benchmark slice it refers to, and whether the surrounding setup makes comparison reasonable.
+                  Eval Cards treats reporting as infrastructure. Beyond collecting scores, it surfaces who reported a result, when it was run, what slice it covers, and whether the setup makes comparison reasonable.
                 </p>
               </div>
 
@@ -46,7 +46,7 @@ export default function AboutPage() {
                   Reading stance
                 </div>
                 <div className="mt-4 space-y-4">
-                  <SignalLine icon={<Search className="h-4 w-4" />} label="Inspect provenance, not just rankings." tone="sky" />
+                  <SignalLine icon={<Search className="h-4 w-4" />} label="Inspect provenance alongside rankings." tone="sky" />
                   <SignalLine icon={<Scale className="h-4 w-4" />} label="Surface comparability caveats early." tone="amber" />
                   <SignalLine icon={<BookOpenText className="h-4 w-4" />} label="Support research and policy use without duplicating the record." tone="emerald" />
                 </div>
@@ -63,7 +63,7 @@ export default function AboutPage() {
                 </h2>
               </div>
               <p className="max-w-3xl text-base leading-8 text-muted-foreground">
-                The project combines a reporting framework, a standardized data layer, and an interface for exploring the resulting evidence across models, evaluations, and benchmark structures.
+                A reporting framework, a standardized data layer, and an interface for exploring the evidence across models, evaluations, and benchmarks.
               </p>
             </div>
 
@@ -94,10 +94,10 @@ export default function AboutPage() {
               <SectionLabel label="What the platform supports" />
               <div className="space-y-4 text-base leading-8 text-muted-foreground">
                 <p>
-                  Users can move from a model to its reported benchmark footprint, from an evaluation to the models reported on it, and from a benchmark family to the slices and metrics that sit underneath it.
+                  Move from a model to its reported benchmarks, from an evaluation to the models that ran on it, and from a benchmark family down to its slices and metrics.
                 </p>
                 <p>
-                  The interface is designed for analysis rather than spectacle. Scores are useful, but only when paired with benchmark scope, evaluator identity, generation setup, and the places where reporting is incomplete.
+                  Scores are useful only when paired with benchmark scope, evaluator identity, generation setup, and the places where reporting is incomplete.
                 </p>
               </div>
             </div>
@@ -115,7 +115,7 @@ export default function AboutPage() {
                 />
               </div>
               <p className="text-sm leading-7 text-muted-foreground">
-                Eval Cards uses audience modes to change emphasis, not to create separate incompatible views of the same underlying record.
+                Audience modes change emphasis, not the underlying record.
               </p>
             </div>
           </section>
@@ -125,10 +125,10 @@ export default function AboutPage() {
               <SectionLabel label="Current scope" />
               <div className="space-y-4 text-base leading-8 text-muted-foreground">
                 <p>
-                  This version should be read as a working public beta. It is meant to make structured evaluation reporting more legible now, while also testing which fields, comparison flows, and benchmark abstractions are most useful in practice.
+                  Read this version as a public beta. It tries to make structured evaluation reporting legible, while testing which fields, comparison flows, and abstractions hold up in practice.
                 </p>
                 <p>
-                  The larger goal is to make public AI evaluation evidence easier to inspect and harder to over-interpret. That requires both better data structure and better reading surfaces.
+                  The larger goal: make AI evaluation evidence easier to inspect and harder to over-interpret.
                 </p>
               </div>
             </div>
@@ -136,12 +136,8 @@ export default function AboutPage() {
             <div className="space-y-4 rounded-[1.75rem] border border-border/70 bg-[linear-gradient(180deg,rgba(71,129,177,0.08),rgba(71,129,177,0.02))] p-5">
               <SectionLabel label="Next steps" />
               <div className="space-y-3 text-sm leading-7 text-muted-foreground">
-                <p>
-                  Use the homepage when you want the shortest path into the data.
-                </p>
-                <p>
-                  Use the survey when a missing field, confusing label, or misleading comparison suggests the reporting model still needs work.
-                </p>
+                <p>The homepage is the shortest path into the data.</p>
+                <p>The survey collects missing fields, confusing labels, and misleading comparisons.</p>
               </div>
               <div className="flex flex-wrap gap-3 pt-2">
                 <Link href="/">

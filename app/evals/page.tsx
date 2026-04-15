@@ -1440,8 +1440,8 @@ export default function EvalsPage() {
 
             <p className="mt-3 max-w-3xl text-sm leading-6 text-muted-foreground sm:mt-4">
               {mode === "research"
-                ? "Scan single-benchmark evaluations with the benchmark context first, then open the detail page when you need methodology, provenance, or ranking depth."
-                : "Scan single-benchmark evaluations with the benchmark context first, then open the detail page when you need accountability, source, or reporting detail."}
+                ? "Single-benchmark evaluations with benchmark context first; open the detail page for methodology, provenance, and rankings."
+                : "Single-benchmark evaluations with benchmark context first; open the detail page for source, accountability, and reporting detail."}
             </p>
           </div>
         </div>
@@ -1451,8 +1451,8 @@ export default function EvalsPage() {
           title="Browse Evaluations"
           description={
             mode === "research"
-              ? "Scan single-benchmark evaluations with the benchmark context first, then open the detail page when you need methodology, provenance, or ranking depth."
-              : "Scan single-benchmark evaluations with the benchmark context first, then open the detail page when you need accountability, source, or reporting detail."
+              ? "Single-benchmark evaluations. Open one for methodology, provenance, and rankings."
+              : "Single-benchmark evaluations. Open one for source, accountability, and reporting detail."
           }
         />
       )}
@@ -1899,26 +1899,24 @@ export default function EvalsPage() {
                     </div>
                   )}
 
-                  <div className="mb-4 grid gap-px overflow-hidden rounded-[1.2rem] border border-stone-200/80 bg-stone-200/80 dark:border-stone-800/80 dark:bg-stone-800/80 sm:grid-cols-2 xl:grid-cols-3">
+                  <dl className="mb-4 flex flex-wrap gap-x-5 gap-y-2 text-sm">
                     {topScoreLabel !== "—" && (
-                      <div className="bg-white/90 px-3 py-3 dark:bg-stone-950/90">
-                        <div className="text-[10px] font-semibold uppercase tracking-[0.16em] text-stone-500 dark:text-stone-400">Reported score</div>
-                        <div className="mt-1 text-sm font-semibold text-stone-900 dark:text-stone-100">{topScoreLabel}</div>
+                      <div className="min-w-0">
+                        <dt className="text-[10px] font-semibold uppercase tracking-[0.16em] text-stone-500 dark:text-stone-400">Top score</dt>
+                        <dd className="mt-0.5 font-semibold tabular-nums text-stone-900 dark:text-stone-100">{topScoreLabel}</dd>
                       </div>
                     )}
-                    <div className="bg-white/90 px-3 py-3 dark:bg-stone-950/90">
-                      <div className="text-[10px] font-semibold uppercase tracking-[0.16em] text-stone-500 dark:text-stone-400">Dataset or record</div>
-                      <div className="mt-1 truncate text-sm font-semibold text-stone-900 dark:text-stone-100">
-                        {node.sourceLabel}
-                      </div>
+                    <div className="min-w-0 flex-1">
+                      <dt className="text-[10px] font-semibold uppercase tracking-[0.16em] text-stone-500 dark:text-stone-400">Source</dt>
+                      <dd className="mt-0.5 truncate font-semibold text-stone-900 dark:text-stone-100">{node.sourceLabel}</dd>
                     </div>
-                    <div className="bg-white/90 px-3 py-3 dark:bg-stone-950/90">
-                      <div className="text-[10px] font-semibold uppercase tracking-[0.16em] text-stone-500 dark:text-stone-400">Linked instances</div>
-                      <div className="mt-1 text-sm font-semibold text-stone-900 dark:text-stone-100">
-                        {node.instanceDataLabel}
+                    {node.instanceDataLabel && node.instanceDataLabel !== "Not linked" && (
+                      <div className="min-w-0">
+                        <dt className="text-[10px] font-semibold uppercase tracking-[0.16em] text-stone-500 dark:text-stone-400">Instances</dt>
+                        <dd className="mt-0.5 font-semibold text-stone-900 dark:text-stone-100">{node.instanceDataLabel}</dd>
                       </div>
-                    </div>
-                  </div>
+                    )}
+                  </dl>
 
                   {node.domains.length > 0 && (
                     <div className="mt-auto flex flex-wrap gap-2 pt-1">

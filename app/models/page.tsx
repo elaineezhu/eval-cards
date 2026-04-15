@@ -447,10 +447,10 @@ export default function ModelsPage() {
           title={groupByDeveloper ? "Model Developers" : "AI Model Evaluations"}
           description={
             groupByDeveloper
-              ? "Group the model corpus by developer to compare how many models each team ships and which eval suites show up most often."
+              ? "Group models by developer to see how many each team ships and which eval suites appear most."
               : mode === "research"
-                ? "Browse model cards with benchmark breadth, comparison-ready context, and methodological trust signals."
-                : "Browse model cards with stronger emphasis on reporting breadth, evidence quality, and evaluation accountability."
+                ? "Model cards with benchmark breadth, comparison context, and reproducibility signals."
+                : "Model cards with reporting breadth, evidence quality, and evaluator accountability."
           }
           metaItems={[
             groupByDeveloper
@@ -484,7 +484,7 @@ export default function ModelsPage() {
                   Compare Workflow
                 </div>
                 <div className="mt-2 text-sm text-muted-foreground">
-                  Open a card for details, keep the list narrow with filters, export the current view, then compare up to {MAX_COMPARE_MODELS} models side by side.
+                  Filter the list, then compare up to {MAX_COMPARE_MODELS} models side by side.
                 </div>
               </div>
               <div className="flex flex-wrap gap-2">
@@ -700,7 +700,7 @@ export default function ModelsPage() {
                 )}
               </div>
               <p className="text-sm text-muted-foreground">
-                Keeps model cards tagged with any selected category.
+                Showing models tagged with any selected category.
               </p>
             </div>
           )}

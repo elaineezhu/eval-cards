@@ -1,8 +1,8 @@
 import { NextResponse } from "next/server"
 
-import { getBackendManifestData } from "@/lib/model-data"
+import { getBackendManifestStatusData } from "@/lib/model-data"
 
 export async function GET() {
-  const manifest = await getBackendManifestData()
-  return NextResponse.json(manifest)
+  const manifestStatus = await getBackendManifestStatusData()
+  return NextResponse.json(manifestStatus)
 }

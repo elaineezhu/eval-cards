@@ -4,6 +4,16 @@ export interface BackendManifest {
   skipped_configs: string[]
 }
 
+export interface BackendManifestStatus {
+  currentManifest: BackendManifest | null
+  latestManifest: BackendManifest | null
+  currentManifestSignature: string | null
+  latestManifestSignature: string | null
+  updateAvailable: boolean
+  refreshing: boolean
+  pendingRefreshCount: number
+}
+
 export interface HierarchyTags {
   domains: string[]
   languages: string[]

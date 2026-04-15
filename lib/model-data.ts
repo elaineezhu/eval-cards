@@ -10,7 +10,7 @@ import type {
   SourceData,
   SourceMetadata,
 } from "@/lib/benchmark-schema"
-import type { BackendManifest, EvalHierarchy } from "@/lib/backend-artifacts"
+import type { BackendManifest, BackendManifestStatus, EvalHierarchy } from "@/lib/backend-artifacts"
 import { inferCategoryFromBenchmark } from "@/lib/benchmark-schema"
 import {
   type BenchmarkEvalListItem,
@@ -31,6 +31,7 @@ import {
   type HFModelCardEntry,
   type HFModelDetail,
   fetchBackendManifest,
+  fetchBackendManifestStatus,
   fetchEvalHierarchy,
   fetchModelCardsList,
   fetchModelCardsListLite,
@@ -1223,6 +1224,10 @@ export async function getDashboardData() {
 
 export async function getBackendManifestData(): Promise<BackendManifest> {
   return fetchBackendManifest()
+}
+
+export async function getBackendManifestStatusData(): Promise<BackendManifestStatus> {
+  return fetchBackendManifestStatus()
 }
 
 export async function getEvalHierarchyData(): Promise<EvalHierarchy> {

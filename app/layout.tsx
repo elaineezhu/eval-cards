@@ -2,6 +2,7 @@ import type React from "react"
 import type { Metadata } from "next"
 import "./globals.css"
 import { AudienceModeProvider } from "@/components/audience-mode-provider"
+import { BackendRefreshListener } from "@/components/backend-refresh-listener"
 import { ThemeProvider } from "@/components/theme-provider"
 
 export const metadata: Metadata = {
@@ -25,6 +26,7 @@ export default function RootLayout({
       <body className="font-sans">
         <ThemeProvider attribute="class" defaultTheme="system" enableSystem disableTransitionOnChange>
           <AudienceModeProvider>
+            <BackendRefreshListener />
             {children}
           </AudienceModeProvider>
         </ThemeProvider>
