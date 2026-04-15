@@ -2,13 +2,14 @@
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react"
 import { useRouter } from "next/navigation"
-import { ArrowLeft, Search, X } from "lucide-react"
+import { ArrowLeft, ChevronDown, Search, SlidersHorizontal, X } from "lucide-react"
 
 import { useAudienceMode } from "@/components/audience-mode-provider"
 import { ListPagination } from "@/components/list-pagination"
 import { Navigation } from "@/components/navigation"
 import { PageHeader } from "@/components/page-header"
 import { Button } from "@/components/ui/button"
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible"
 import { Input } from "@/components/ui/input"
 import type { EvalHierarchy } from "@/lib/backend-artifacts"
 import type { BenchmarkCard, CategoryType } from "@/lib/benchmark-schema"
@@ -262,6 +263,7 @@ interface EvalBrowserNode {
   domains: string[]
   dataType?: string
   license?: string
+  card?: BenchmarkCard
   modelsCount: number
   metricCount: number
   topScore?: number
@@ -351,6 +353,71 @@ function formatCompactScore(value: number | undefined) {
   if (value == null || !Number.isFinite(value)) return "—"
   if (value >= 0 && value <= 1) return `${(value * 100).toFixed(1)}%`
   return value.toFixed(value >= 100 ? 0 : 2)
+}
+
+function hasConcreteText(value: string | undefined | null) {
+  if (!value) return false
+  const normalized = value.trim().toLowerCase()
+  return Boolean(normalized) && normalized !== "not specified" && normalized !== "unknown"
+}
+
+function firstConcreteListValue(value: string[] | string | undefined | null) {
+  if (Array.isArray(value)) {
+    return value.find((entry) => hasConcreteText(entry))
+  }
+
+  return hasConcreteText(value) ? value : undefined
+}
+
+function countConcreteListValues(value: string[] | undefined | null) {
+  return (value ?? []).filter((entry) => hasConcreteText(entry)).length
+}
+
+function getNodePolicySummary(node: EvalBrowserNode) {
+  const card = node.card
+  if (!card) return null
+
+  const riskCount = card.possible_risks?.length ?? 0
+  const reportingGapCount =
+    card.missing_fields?.filter(
+      (field) => field.startsWith("methodology") || field.startsWith("purpose_and_intended_users")
+    ).length ?? 0
+
+  return {
+    goal: hasConcreteText(card.purpose_and_intended_users?.goal)
+      ? card.purpose_and_intended_users.goal
+      : undefined,
+    limitations: hasConcreteText(card.purpose_and_intended_users?.limitations)
+      ? card.purpose_and_intended_users.limitations
+      : undefined,
+    audience: firstConcreteListValue(card.purpose_and_intended_users?.audience),
+    compliance: hasConcreteText(card.ethical_and_legal_considerations?.compliance_with_regulations)
+      ? card.ethical_and_legal_considerations.compliance_with_regulations
+      : undefined,
+    riskCount,
+    reportingGapCount,
+  }
+}
+
+function getNodeResearchSummary(node: EvalBrowserNode) {
+  const card = node.card
+  if (!card) return null
+
+  const similarBenchmarks = Array.isArray(card.benchmark_details?.similar_benchmarks)
+    ? card.benchmark_details.similar_benchmarks
+    : card.benchmark_details?.similar_benchmarks
+      ? [card.benchmark_details.similar_benchmarks]
+      : []
+
+  return {
+    methodsCount: countConcreteListValues(card.methodology?.methods),
+    metricsCount: countConcreteListValues(card.methodology?.metrics),
+    similarCount: countConcreteListValues(similarBenchmarks),
+    interpretation: hasConcreteText(card.methodology?.interpretation)
+      ? card.methodology.interpretation
+      : undefined,
+    missingMethodCount: card.missing_fields?.filter((field) => field.startsWith("methodology")).length ?? 0,
+  }
 }
 
 function getNodeCard(
@@ -452,6 +519,7 @@ function mapHierarchyCategory(value: string | undefined | null): CategoryType {
 export default function EvalsPage() {
   const { mode } = useAudienceMode()
   const router = useRouter()
+  const isResearchView = mode === "research"
 
   const [summaries, setSummaries] = useState<BenchmarkEvalListItem[]>([])
   const [benchmarkCards, setBenchmarkCards] = useState<Record<string, BenchmarkCard>>({})
@@ -464,6 +532,7 @@ export default function EvalsPage() {
   const [selectedNodeKind, setSelectedNodeKind] = useState<EvalBrowserNodeKind | null>(null)
   const [currentNodeId, setCurrentNodeId] = useState<string | null>(null)
   const [page, setPage] = useState(1)
+  const [filtersOpen, setFiltersOpen] = useState(false)
   const pendingHistoryActionRef = useRef<"push" | "replace">("replace")
 
   useEffect(() => {
@@ -635,6 +704,7 @@ export default function EvalsPage() {
         domains: Array.from(new Set(domains.flatMap((domain) => normalizeDomainList(domain)))),
         dataType: card?.benchmark_details?.data_type,
         license: card?.ethical_and_legal_considerations?.data_licensing,
+        card,
         modelsCount: stats.modelsCount,
         metricCount: stats.metricCount,
         topScore: stats.topScore,
@@ -655,9 +725,9 @@ export default function EvalsPage() {
         metrics?: Array<{ key: string; display_name: string }>
       }>,
       scopeKeys: string[]
-    ): EvalBrowserNode["matrixPreview"] | null => {
+    ): EvalBrowserNode["matrixPreview"] | undefined => {
       if (benchmarks.length < 2) {
-        return null
+        return undefined
       }
 
       const metricLabels = new Set<string>()
@@ -665,7 +735,7 @@ export default function EvalsPage() {
 
       for (const benchmark of benchmarks) {
         if ((benchmark.slices?.length ?? 0) > 0 || (benchmark.metrics?.length ?? 0) !== 1) {
-          return null
+          return undefined
         }
 
         const metric = benchmark.metrics?.[0]
@@ -679,7 +749,7 @@ export default function EvalsPage() {
       }
 
       if (metricLabels.size !== 1) {
-        return null
+        return undefined
       }
 
       return {
@@ -747,6 +817,10 @@ export default function EvalsPage() {
       const card = summary?.benchmark_card ?? getNodeCard(benchmarkCards, ...cardCandidates)
       const childSlices = slices.filter((slice) => !isSameHierarchyKey(slice.key, benchmarkKey))
       const drilldownSlices = childSlices.filter((slice) => (slice.metrics?.length ?? 0) > 1)
+      const fallbackSummary =
+        !summary && metrics.length > 0
+          ? scopeKeys.map((scopeKey) => pickSummaryForKey(summariesWithCards, scopeKey, scopeKeys)).find(Boolean)
+          : undefined
       const isParentRollupBenchmark =
         Boolean(parentId) && scopeKeys.some((scopeKey) => isSameHierarchyKey(scopeKey, benchmarkKey))
 
@@ -775,9 +849,14 @@ export default function EvalsPage() {
         domains,
         summaries: summary ? [summary] : [],
         card,
-        href: drilldownSlices.length === 0 && summary
-          ? `/evals/${summary.evaluation_id}`
-          : undefined,
+        href:
+          drilldownSlices.length === 0
+            ? summary
+              ? `/evals/${summary.evaluation_id}`
+              : fallbackSummary
+                ? `/evals/${fallbackSummary.evaluation_id}`
+                : undefined
+            : undefined,
         scopeKeys,
         descriptionFallback: `Browse the {label} benchmark and its lower-level breakdowns.`,
       })
@@ -874,6 +953,8 @@ export default function EvalsPage() {
           const suiteBenchmarks = (composite.benchmarks ?? []).filter((benchmark) => !isSameHierarchyKey(benchmark.key, composite.key))
           const suiteMatrixPreview = buildSingleMetricMatrixPreview(suiteBenchmarks, suiteScopeKeys)
           const rollupSummary = pickSummaryForKey(summariesWithCards, composite.key, suiteScopeKeys)
+          const hasSuiteRollup = Boolean(rollupBenchmark && rollupSummary)
+          const syntheticMatrixEvalId = suiteMatrixPreview && !hasSuiteRollup ? `matrix__${composite.key}` : undefined
 
           buildNode({
             id: suiteId,
@@ -886,7 +967,13 @@ export default function EvalsPage() {
             summaries: suiteSummaries,
             card: suiteCard,
             sourceLabel: suiteLabel,
-            href: suiteMatrixPreview && rollupSummary ? `/evals/${rollupSummary.evaluation_id}` : undefined,
+            href: suiteMatrixPreview
+              ? hasSuiteRollup
+                ? `/evals/${rollupSummary.evaluation_id}`
+                : syntheticMatrixEvalId
+                  ? `/evals/${syntheticMatrixEvalId}`
+                  : undefined
+              : undefined,
             scopeKeys: suiteScopeKeys,
             matrixPreview: suiteMatrixPreview,
             descriptionFallback: `Browse the {label} suite and then open its benchmark children.`,
@@ -928,8 +1015,12 @@ export default function EvalsPage() {
           }
 
           const suiteNode = nodes.get(suiteId)
-          if (suiteNode && suiteNode.childIds.length === 0 && rollupSummary) {
-            suiteNode.href = `/evals/${rollupSummary.evaluation_id}`
+          if (suiteNode && suiteNode.childIds.length === 0) {
+            if (hasSuiteRollup) {
+              suiteNode.href = `/evals/${rollupSummary.evaluation_id}`
+            } else if (syntheticMatrixEvalId) {
+              suiteNode.href = `/evals/${syntheticMatrixEvalId}`
+            }
           }
         }
 
@@ -979,6 +1070,8 @@ export default function EvalsPage() {
         const visibleBenchmarks = suiteBenchmarks.filter((benchmark) => !isSameHierarchyKey(benchmark.key, suiteKey))
         const suiteMatrixPreview = buildSingleMetricMatrixPreview(visibleBenchmarks, suiteScopeKeys)
         const rollupSummary = pickSummaryForKey(summariesWithCards, suiteKey, suiteScopeKeys)
+        const hasSuiteRollup = Boolean(rollupBenchmark && rollupSummary)
+        const syntheticMatrixEvalId = suiteMatrixPreview && !hasSuiteRollup ? `matrix__${suiteKey}` : undefined
         const suiteSummaries = summariesWithCards.filter((summary) => {
           const familyScope = getSummaryScopeKey(summary.benchmark_family_key ?? summary.composite_benchmark_key)
           return familyScope === getSummaryScopeKey(suiteKey)
@@ -1002,7 +1095,13 @@ export default function EvalsPage() {
             family.key
           ),
           sourceLabel: suiteLabel,
-          href: suiteMatrixPreview && rollupSummary ? `/evals/${rollupSummary.evaluation_id}` : undefined,
+          href: suiteMatrixPreview
+            ? hasSuiteRollup
+              ? `/evals/${rollupSummary.evaluation_id}`
+              : syntheticMatrixEvalId
+                ? `/evals/${syntheticMatrixEvalId}`
+                : undefined
+            : undefined,
           scopeKeys: suiteScopeKeys,
           matrixPreview: suiteMatrixPreview,
           descriptionFallback: `Browse the {label} suite and then open its benchmark children.`,
@@ -1044,8 +1143,12 @@ export default function EvalsPage() {
         }
 
         const suiteNode = nodes.get(suiteId)
-        if (suiteNode && suiteNode.childIds.length === 0 && rollupSummary) {
-          suiteNode.href = `/evals/${rollupSummary.evaluation_id}`
+        if (suiteNode && suiteNode.childIds.length === 0) {
+          if (hasSuiteRollup) {
+            suiteNode.href = `/evals/${rollupSummary.evaluation_id}`
+          } else if (syntheticMatrixEvalId) {
+            suiteNode.href = `/evals/${syntheticMatrixEvalId}`
+          }
         }
 
         continue
@@ -1249,6 +1352,12 @@ export default function EvalsPage() {
       setSelectedNodeKind(null)
     }
   }, [currentLevelKinds, selectedNodeKind])
+
+  useEffect(() => {
+    if (activeFilterCount > 0) {
+      setFiltersOpen(true)
+    }
+  }, [activeFilterCount])
 
   const handleNodeOpen = useCallback(
     (node: EvalBrowserNode) => {
@@ -1455,116 +1564,150 @@ export default function EvalsPage() {
             </div>
           </div>
 
-          {currentLevelKinds.length > 1 && (
-            <div className="mt-4 space-y-1.5">
-              <div className="text-[11px] font-semibold uppercase tracking-[0.2em] text-stone-500 dark:text-stone-400">
-                Granularity
-              </div>
-              <div className="flex flex-wrap items-center gap-1.5">
-                <button
-                  type="button"
-                  onClick={() => setSelectedNodeKind(null)}
-                  className={cn(
-                    "shrink-0 rounded-full border px-3 py-1.5 text-xs font-medium transition-colors",
-                    selectedNodeKind === null
-                      ? "border-stone-950 bg-stone-950 text-stone-50 dark:border-stone-100 dark:bg-stone-100 dark:text-stone-950"
-                      : "border-stone-200/80 bg-stone-50/80 text-stone-600 hover:bg-stone-100 dark:border-stone-700/80 dark:bg-stone-900/70 dark:text-stone-300 dark:hover:bg-stone-800"
+          <Collapsible
+            open={filtersOpen}
+            onOpenChange={setFiltersOpen}
+            className="mt-4 rounded-[1.35rem] border border-stone-200/80 bg-white/70 dark:border-stone-800/80 dark:bg-stone-950/60"
+          >
+            <CollapsibleTrigger asChild>
+              <button type="button" className="flex w-full items-center justify-between gap-3 px-4 py-3 text-left">
+                <div className="min-w-0">
+                  <div className="flex items-center gap-2 text-[11px] font-semibold uppercase tracking-[0.2em] text-stone-500 dark:text-stone-400">
+                    <SlidersHorizontal className="h-3.5 w-3.5" />
+                    Refine this list
+                  </div>
+                  <p className="mt-1 text-sm text-stone-600 dark:text-stone-300">
+                    {activeFilterCount > 0
+                      ? `${activeFilterCount} filter${activeFilterCount === 1 ? "" : "s"} active`
+                      : "Open filters only when you need to narrow by node type, domain tags, or category."}
+                  </p>
+                </div>
+                <div className="flex items-center gap-2">
+                  {activeFilterCount > 0 && (
+                    <span className="rounded-full border border-stone-200/80 bg-stone-100/80 px-2.5 py-1 text-[11px] font-medium text-stone-700 dark:border-stone-700/80 dark:bg-stone-900/80 dark:text-stone-200">
+                      {activeFilterCount} active
+                    </span>
                   )}
-                >
-                  All
-                </button>
-                {currentLevelKinds.map((kind) => (
-                  <button
-                    key={kind}
-                    type="button"
-                    onClick={() => setSelectedNodeKind(selectedNodeKind === kind ? null : kind)}
-                    className={cn(
-                      "shrink-0 rounded-full border px-3 py-1.5 text-xs font-medium transition-colors",
-                      selectedNodeKind === kind
-                        ? "border-sky-300 bg-sky-50 text-sky-800 dark:border-sky-800 dark:bg-sky-950/50 dark:text-sky-200"
-                        : "border-stone-200/80 bg-white text-stone-600 hover:bg-stone-50 dark:border-stone-700/80 dark:bg-stone-900 dark:text-stone-300 dark:hover:bg-stone-800"
-                    )}
-                  >
-                    {getBrowserNodeKindLabel(kind)}
-                  </button>
-                ))}
-              </div>
-            </div>
-          )}
+                  <ChevronDown className={cn("h-4 w-4 text-stone-500 transition-transform dark:text-stone-400", filtersOpen && "rotate-180")} />
+                </div>
+              </button>
+            </CollapsibleTrigger>
 
-          {allDomains.length > 0 && (
-            <div className="mt-4 space-y-1.5">
-              <div className="text-[11px] font-semibold uppercase tracking-[0.2em] text-stone-500 dark:text-stone-400">
-                Domain
-              </div>
-              <div className="flex flex-wrap items-center gap-1.5">
-                  <button
-                    type="button"
-                    onClick={() => setSelectedDomain(null)}
-                    className={cn(
-                      "shrink-0 rounded-full border px-3 py-1.5 text-xs font-medium transition-colors",
-                      selectedDomain === null
-                        ? "border-stone-950 bg-stone-950 text-stone-50 dark:border-stone-100 dark:bg-stone-100 dark:text-stone-950"
-                        : "border-stone-200/80 bg-stone-50/80 text-stone-600 hover:bg-stone-100 dark:border-stone-700/80 dark:bg-stone-900/70 dark:text-stone-300 dark:hover:bg-stone-800"
-                    )}
-                  >
-                    All
-                  </button>
-                  {allDomains.map((domain) => (
-                    <button
-                      key={domain}
-                      type="button"
-                      onClick={() => setSelectedDomain(selectedDomain === domain ? null : domain)}
-                      className={cn(
-                        "shrink-0 rounded-full border px-3 py-1.5 text-xs font-medium transition-colors",
-                        selectedDomain === domain
-                          ? "border-sky-300 bg-sky-50 text-sky-800 dark:border-sky-800 dark:bg-sky-950/50 dark:text-sky-200"
-                          : "border-stone-200/80 bg-white text-stone-600 hover:bg-stone-50 dark:border-stone-700/80 dark:bg-stone-900 dark:text-stone-300 dark:hover:bg-stone-800"
-                      )}
-                    >
-                      {domain}
-                    </button>
-                  ))}
-              </div>
-            </div>
-          )}
+            <CollapsibleContent>
+              <div className="border-t border-stone-200/80 px-4 pb-4 pt-4 dark:border-stone-800/80">
+                {currentLevelKinds.length > 1 && (
+                  <div className="space-y-1.5">
+                    <div className="text-[11px] font-semibold uppercase tracking-[0.2em] text-stone-500 dark:text-stone-400">
+                      Node type
+                    </div>
+                    <div className="flex flex-wrap items-center gap-1.5">
+                      <button
+                        type="button"
+                        onClick={() => setSelectedNodeKind(null)}
+                        className={cn(
+                          "shrink-0 rounded-full border px-3 py-1.5 text-xs font-medium transition-colors",
+                          selectedNodeKind === null
+                            ? "border-stone-950 bg-stone-950 text-stone-50 dark:border-stone-100 dark:bg-stone-100 dark:text-stone-950"
+                            : "border-stone-200/80 bg-stone-50/80 text-stone-600 hover:bg-stone-100 dark:border-stone-700/80 dark:bg-stone-900/70 dark:text-stone-300 dark:hover:bg-stone-800"
+                        )}
+                      >
+                        All
+                      </button>
+                      {currentLevelKinds.map((kind) => (
+                        <button
+                          key={kind}
+                          type="button"
+                          onClick={() => setSelectedNodeKind(selectedNodeKind === kind ? null : kind)}
+                          className={cn(
+                            "shrink-0 rounded-full border px-3 py-1.5 text-xs font-medium transition-colors",
+                            selectedNodeKind === kind
+                              ? "border-sky-300 bg-sky-50 text-sky-800 dark:border-sky-800 dark:bg-sky-950/50 dark:text-sky-200"
+                              : "border-stone-200/80 bg-white text-stone-600 hover:bg-stone-50 dark:border-stone-700/80 dark:bg-stone-900 dark:text-stone-300 dark:hover:bg-stone-800"
+                          )}
+                        >
+                          {getBrowserNodeKindLabel(kind)}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                )}
 
-          {allCategories.length > 0 && (
-            <div className="mt-4 space-y-1.5">
-              <div className="text-[11px] font-semibold uppercase tracking-[0.2em] text-stone-500 dark:text-stone-400">
-                Category
+                {allDomains.length > 0 && (
+                  <div className="mt-4 space-y-1.5">
+                    <div className="text-[11px] font-semibold uppercase tracking-[0.2em] text-stone-500 dark:text-stone-400">
+                      Domain tags
+                    </div>
+                    <div className="flex max-h-40 flex-wrap items-center gap-1.5 overflow-y-auto pr-1">
+                      <button
+                        type="button"
+                        onClick={() => setSelectedDomain(null)}
+                        className={cn(
+                          "shrink-0 rounded-full border px-3 py-1.5 text-xs font-medium transition-colors",
+                          selectedDomain === null
+                            ? "border-stone-950 bg-stone-950 text-stone-50 dark:border-stone-100 dark:bg-stone-100 dark:text-stone-950"
+                            : "border-stone-200/80 bg-stone-50/80 text-stone-600 hover:bg-stone-100 dark:border-stone-700/80 dark:bg-stone-900/70 dark:text-stone-300 dark:hover:bg-stone-800"
+                        )}
+                      >
+                        All
+                      </button>
+                      {allDomains.map((domain) => (
+                        <button
+                          key={domain}
+                          type="button"
+                          onClick={() => setSelectedDomain(selectedDomain === domain ? null : domain)}
+                          className={cn(
+                            "shrink-0 rounded-full border px-3 py-1.5 text-xs font-medium transition-colors",
+                            selectedDomain === domain
+                              ? "border-sky-300 bg-sky-50 text-sky-800 dark:border-sky-800 dark:bg-sky-950/50 dark:text-sky-200"
+                              : "border-stone-200/80 bg-white text-stone-600 hover:bg-stone-50 dark:border-stone-700/80 dark:bg-stone-900 dark:text-stone-300 dark:hover:bg-stone-800"
+                          )}
+                        >
+                          {domain}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+                {allCategories.length > 0 && (
+                  <div className="mt-4 space-y-1.5">
+                    <div className="text-[11px] font-semibold uppercase tracking-[0.2em] text-stone-500 dark:text-stone-400">
+                      Category
+                    </div>
+                    <div className="flex flex-wrap items-center gap-1.5">
+                      <button
+                        type="button"
+                        onClick={() => setSelectedCategory(null)}
+                        className={cn(
+                          "shrink-0 rounded-full border px-3 py-1.5 text-xs font-medium transition-colors",
+                          selectedCategory === null
+                            ? "border-stone-950 bg-stone-950 text-stone-50 dark:border-stone-100 dark:bg-stone-100 dark:text-stone-950"
+                            : "border-stone-200/80 bg-stone-50/80 text-stone-600 hover:bg-stone-100 dark:border-stone-700/80 dark:bg-stone-900/70 dark:text-stone-300 dark:hover:bg-stone-800"
+                        )}
+                      >
+                        All
+                      </button>
+                      {allCategories.map((category) => (
+                        <button
+                          key={category}
+                          type="button"
+                          onClick={() => setSelectedCategory(selectedCategory === category ? null : category)}
+                          className={cn(
+                            "shrink-0 rounded-full border px-3 py-1.5 text-xs font-medium transition-colors",
+                            selectedCategory === category
+                              ? `${getCategoryColor(category as CategoryType)} border`
+                              : "border-stone-200/80 bg-white text-stone-600 hover:bg-stone-50 dark:border-stone-700/80 dark:bg-stone-900 dark:text-stone-300 dark:hover:bg-stone-800"
+                          )}
+                        >
+                          {category}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                )}
               </div>
-              <div className="flex flex-wrap items-center gap-1.5">
-                  <button
-                    type="button"
-                    onClick={() => setSelectedCategory(null)}
-                    className={cn(
-                      "shrink-0 rounded-full border px-3 py-1.5 text-xs font-medium transition-colors",
-                      selectedCategory === null
-                        ? "border-stone-950 bg-stone-950 text-stone-50 dark:border-stone-100 dark:bg-stone-100 dark:text-stone-950"
-                        : "border-stone-200/80 bg-stone-50/80 text-stone-600 hover:bg-stone-100 dark:border-stone-700/80 dark:bg-stone-900/70 dark:text-stone-300 dark:hover:bg-stone-800"
-                    )}
-                  >
-                    All
-                  </button>
-                  {allCategories.map((category) => (
-                    <button
-                      key={category}
-                      type="button"
-                      onClick={() => setSelectedCategory(selectedCategory === category ? null : category)}
-                      className={cn(
-                        "shrink-0 rounded-full border px-3 py-1.5 text-xs font-medium transition-colors",
-                        selectedCategory === category
-                          ? `${getCategoryColor(category as CategoryType)} border`
-                          : "border-stone-200/80 bg-white text-stone-600 hover:bg-stone-50 dark:border-stone-700/80 dark:bg-stone-900 dark:text-stone-300 dark:hover:bg-stone-800"
-                      )}
-                    >
-                      {category}
-                    </button>
-                  ))}
-              </div>
-            </div>
-          )}
+            </CollapsibleContent>
+          </Collapsible>
         </section>
 
         {filtered.length === 0 ? (
@@ -1580,6 +1723,8 @@ export default function EvalsPage() {
               const isNavigable = node.childIds.length > 0 || Boolean(node.href)
               const actionLabel = node.childIds.length > 0 ? "Open level" : node.matrixPreview ? "View rollup" : "View benchmark"
               const kindLabel = getBrowserNodeKindLabel(node.kind)
+              const policySummary = getNodePolicySummary(node)
+              const researchSummary = getNodeResearchSummary(node)
 
               return (
                 <button
@@ -1655,6 +1800,84 @@ export default function EvalsPage() {
                     </p>
                   )}
 
+                  {!isResearchView && policySummary && (
+                    <div className="mb-4 space-y-2 rounded-[1.1rem] border border-amber-200/80 bg-amber-50/70 p-3 dark:border-amber-900/50 dark:bg-amber-950/20">
+                      <div className="text-[10px] font-semibold uppercase tracking-[0.18em] text-amber-800 dark:text-amber-200">
+                        Policy notes
+                      </div>
+                      {policySummary.goal && (
+                        <p className="text-sm leading-6 text-stone-700 dark:text-stone-200">
+                          <span className="font-semibold">What it measures: </span>
+                          {policySummary.goal}
+                        </p>
+                      )}
+                      {policySummary.limitations && (
+                        <p className="text-sm leading-6 text-stone-700 dark:text-stone-200">
+                          <span className="font-semibold">Main caveat: </span>
+                          {policySummary.limitations}
+                        </p>
+                      )}
+                      <div className="flex flex-wrap gap-2 text-[11px] text-stone-700 dark:text-stone-200">
+                        {policySummary.audience && (
+                          <span className="rounded-full border border-amber-200/80 bg-white/80 px-2.5 py-1 dark:border-amber-900/50 dark:bg-stone-950/70">
+                            Intended for {policySummary.audience}
+                          </span>
+                        )}
+                        {policySummary.compliance && (
+                          <span className="rounded-full border border-amber-200/80 bg-white/80 px-2.5 py-1 dark:border-amber-900/50 dark:bg-stone-950/70">
+                            Regulation note documented
+                          </span>
+                        )}
+                        {policySummary.riskCount > 0 && (
+                          <span className="rounded-full border border-amber-200/80 bg-white/80 px-2.5 py-1 dark:border-amber-900/50 dark:bg-stone-950/70">
+                            {policySummary.riskCount} risk note{policySummary.riskCount === 1 ? "" : "s"}
+                          </span>
+                        )}
+                        {policySummary.reportingGapCount > 0 && (
+                          <span className="rounded-full border border-rose-200/80 bg-white/80 px-2.5 py-1 text-rose-700 dark:border-rose-900/50 dark:bg-stone-950/70 dark:text-rose-200">
+                            {policySummary.reportingGapCount} missing reporting field{policySummary.reportingGapCount === 1 ? "" : "s"}
+                          </span>
+                        )}
+                      </div>
+                    </div>
+                  )}
+
+                  {isResearchView && researchSummary && (
+                    <div className="mb-4 space-y-2 rounded-[1.1rem] border border-sky-200/80 bg-sky-50/70 p-3 dark:border-sky-900/50 dark:bg-sky-950/20">
+                      <div className="text-[10px] font-semibold uppercase tracking-[0.18em] text-sky-800 dark:text-sky-200">
+                        Research notes
+                      </div>
+                      {researchSummary.interpretation && (
+                        <p className="text-sm leading-6 text-stone-700 dark:text-stone-200">
+                          <span className="font-semibold">Score interpretation: </span>
+                          {researchSummary.interpretation}
+                        </p>
+                      )}
+                      <div className="flex flex-wrap gap-2 text-[11px] text-stone-700 dark:text-stone-200">
+                        {researchSummary.methodsCount > 0 && (
+                          <span className="rounded-full border border-sky-200/80 bg-white/80 px-2.5 py-1 dark:border-sky-900/50 dark:bg-stone-950/70">
+                            {researchSummary.methodsCount} method note{researchSummary.methodsCount === 1 ? "" : "s"}
+                          </span>
+                        )}
+                        {researchSummary.metricsCount > 0 && (
+                          <span className="rounded-full border border-sky-200/80 bg-white/80 px-2.5 py-1 dark:border-sky-900/50 dark:bg-stone-950/70">
+                            {researchSummary.metricsCount} documented metric{researchSummary.metricsCount === 1 ? "" : "s"}
+                          </span>
+                        )}
+                        {researchSummary.similarCount > 0 && (
+                          <span className="rounded-full border border-sky-200/80 bg-white/80 px-2.5 py-1 dark:border-sky-900/50 dark:bg-stone-950/70">
+                            {researchSummary.similarCount} related benchmark{researchSummary.similarCount === 1 ? "" : "s"}
+                          </span>
+                        )}
+                        {researchSummary.missingMethodCount > 0 && (
+                          <span className="rounded-full border border-rose-200/80 bg-white/80 px-2.5 py-1 text-rose-700 dark:border-rose-900/50 dark:bg-stone-950/70 dark:text-rose-200">
+                            {researchSummary.missingMethodCount} missing method field{researchSummary.missingMethodCount === 1 ? "" : "s"}
+                          </span>
+                        )}
+                      </div>
+                    </div>
+                  )}
+
                   {node.matrixPreview && (
                     <div className="mb-4 overflow-hidden rounded-[1.2rem] border border-stone-200/80 bg-stone-50/85 dark:border-stone-800/80 dark:bg-stone-900/85">
                       <div className="space-y-2 bg-white/92 px-3 py-3 dark:bg-stone-950/92">
@@ -1679,18 +1902,18 @@ export default function EvalsPage() {
                   <div className="mb-4 grid gap-px overflow-hidden rounded-[1.2rem] border border-stone-200/80 bg-stone-200/80 dark:border-stone-800/80 dark:bg-stone-800/80 sm:grid-cols-2 xl:grid-cols-3">
                     {topScoreLabel !== "—" && (
                       <div className="bg-white/90 px-3 py-3 dark:bg-stone-950/90">
-                        <div className="text-[10px] font-semibold uppercase tracking-[0.16em] text-stone-500 dark:text-stone-400">Top score</div>
+                        <div className="text-[10px] font-semibold uppercase tracking-[0.16em] text-stone-500 dark:text-stone-400">Reported score</div>
                         <div className="mt-1 text-sm font-semibold text-stone-900 dark:text-stone-100">{topScoreLabel}</div>
                       </div>
                     )}
                     <div className="bg-white/90 px-3 py-3 dark:bg-stone-950/90">
-                      <div className="text-[10px] font-semibold uppercase tracking-[0.16em] text-stone-500 dark:text-stone-400">Source</div>
+                      <div className="text-[10px] font-semibold uppercase tracking-[0.16em] text-stone-500 dark:text-stone-400">Dataset or record</div>
                       <div className="mt-1 truncate text-sm font-semibold text-stone-900 dark:text-stone-100">
                         {node.sourceLabel}
                       </div>
                     </div>
                     <div className="bg-white/90 px-3 py-3 dark:bg-stone-950/90">
-                      <div className="text-[10px] font-semibold uppercase tracking-[0.16em] text-stone-500 dark:text-stone-400">Instance data</div>
+                      <div className="text-[10px] font-semibold uppercase tracking-[0.16em] text-stone-500 dark:text-stone-400">Linked instances</div>
                       <div className="mt-1 text-sm font-semibold text-stone-900 dark:text-stone-100">
                         {node.instanceDataLabel}
                       </div>

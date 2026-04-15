@@ -300,6 +300,7 @@ export function EvalDetail({ summary }: EvalDetailProps) {
   const hasMultiMetricLeaderboard =
     (summary.leaderboard_metrics?.length ?? 0) > 1 &&
     (summary.leaderboard_rows?.length ?? 0) > 0
+  const [overviewOpen, setOverviewOpen] = useState(true)
   const [expandedRows, setExpandedRows] = useState<Record<string, boolean>>({})
   const [leaderboardPage, setLeaderboardPage] = useState(1)
   const [minParamStep, setMinParamStep] = useState(0)
@@ -409,203 +410,198 @@ export function EvalDetail({ summary }: EvalDetailProps) {
   return (
     <div className="space-y-6">
       <Card className="overflow-hidden">
-        <CardContent className="space-y-5 p-5 sm:p-6">
-          <div className="flex flex-col gap-5 xl:flex-row xl:items-start xl:justify-between">
-            <div className="space-y-3">
-              <div className="flex flex-wrap items-center gap-2">
-                <Badge variant="outline" className="border-border/60 bg-background/80 text-[11px] uppercase tracking-[0.18em]">
-                  {summary.is_aggregated ? "Merged Benchmark" : "Single Benchmark"}
-                </Badge>
-                {summary.is_aggregated ? (
+        <Collapsible open={overviewOpen} onOpenChange={setOverviewOpen}>
+          <CollapsibleTrigger asChild>
+            <button
+              type="button"
+              className="flex w-full items-center justify-between gap-4 border-b bg-muted/10 px-4 py-3 text-left transition-colors hover:bg-muted/15 sm:px-5"
+            >
+              <div className="min-w-0 space-y-1">
+                <div className="text-[11px] font-semibold uppercase tracking-[0.2em] text-muted-foreground">
+                  {isResearchView ? "Benchmark overview" : "Reading overview"}
+                </div>
+                <div className="flex flex-wrap items-center gap-2">
+                  <span className="text-base font-semibold tracking-tight sm:text-lg">{summary.evaluation_name}</span>
                   <Badge variant="secondary" className="font-normal">
-                    {summary.aggregate_sources?.length ?? 0} composite benchmarks
+                    {summary.models_count} models
                   </Badge>
-                ) : (
                   <Badge variant="secondary" className="font-normal">
-                    Composite: {summary.composite_benchmark_name}
+                    {hasMultiMetricLeaderboard
+                      ? `${summary.metrics_count ?? summary.leaderboard_metrics?.length ?? 1} measures`
+                      : `${summary.metrics_count ?? 1} ${(summary.metrics_count ?? 1) === 1 ? "measure" : "measures"}`}
                   </Badge>
-                )}
-                <Badge variant="secondary" className="font-normal capitalize">
-                  {summary.metric_config.score_type}
-                </Badge>
-                <Badge variant="secondary" className="font-normal">
-                  {summary.metric_config.lower_is_better ? "Lower is better" : "Higher is better"}
-                </Badge>
-                {summary.tags?.languages && summary.tags.languages.length > 0 && (
-                  <Badge variant="secondary" className="font-normal">
-                    {summary.tags.languages.join(", ")}
-                  </Badge>
-                )}
+                </div>
               </div>
-
-              <div className="space-y-1">
-                <div className="text-2xl font-semibold tracking-tight sm:text-[1.9rem]">{summary.evaluation_name}</div>
-                <p className="max-w-3xl text-sm leading-6 text-muted-foreground">
-                  {summary.metric_config.evaluation_description}
-                </p>
-              </div>
-
-              {!isResearchView && (
-                <p className="max-w-3xl text-sm leading-6 text-muted-foreground">
-                  {`${summary.benchmark_card?.purpose_and_intended_users?.goal ?? "This benchmark provides a public-facing capability signal."} Scores should be read alongside benchmark scope, metric definitions, and the source dataset context.`}
-                </p>
+              {overviewOpen ? (
+                <ChevronUp className="h-4 w-4 shrink-0 text-muted-foreground" />
+              ) : (
+                <ChevronDown className="h-4 w-4 shrink-0 text-muted-foreground" />
               )}
-            </div>
+            </button>
+          </CollapsibleTrigger>
 
-            <div className="grid w-full gap-3 grid-cols-2 xl:grid-cols-4">
-              <div className="rounded-2xl border border-sky-200/80 bg-sky-50/80 px-4 py-3 dark:border-sky-900/40 dark:bg-sky-950/20">
-                <div className="text-[11px] font-semibold uppercase tracking-[0.18em] text-sky-700 dark:text-sky-200">Models</div>
-                <div className="mt-1 text-2xl font-semibold text-sky-950 dark:text-sky-50">{summary.models_count}</div>
-              </div>
-              <div className="rounded-2xl border border-border/70 bg-muted/20 px-4 py-3">
-                <div className="text-[11px] font-semibold uppercase tracking-[0.18em] text-muted-foreground">
-                  {hasMultiMetricLeaderboard ? "Metrics" : isResearchView ? "Avg score" : "Metrics"}
-                </div>
-                <div className="mt-1 text-2xl font-semibold">
-                  {hasMultiMetricLeaderboard ? summary.metrics_count ?? summary.leaderboard_metrics?.length ?? 1 : isResearchView ? avgScoreLabel : summary.metrics_count ?? 1}
-                </div>
-              </div>
-              <div className="rounded-2xl border border-emerald-200/80 bg-emerald-50/80 px-4 py-3 dark:border-emerald-900/40 dark:bg-emerald-950/20">
-                <div className="text-[11px] font-semibold uppercase tracking-[0.18em] text-emerald-700 dark:text-emerald-200">
-                  {hasMultiMetricLeaderboard || !isResearchView ? "Source dataset" : "Top model"}
-                </div>
-                <div className="mt-1 text-sm font-semibold text-emerald-950 dark:text-emerald-50">
-                  {hasMultiMetricLeaderboard || !isResearchView
-                    ? sourceDatasetLabel
-                    : summary.best_model?.name ?? "Unknown"}
-                </div>
-                {!hasMultiMetricLeaderboard && isResearchView && summary.best_model && (
-                  <div className="mt-1 text-xs text-emerald-700/80 dark:text-emerald-200/80">
-                    {formatRawScore(summary.best_model.score, summary.metric_config.unit)}
+          <CollapsibleContent>
+            <CardContent className="space-y-4 p-4 sm:p-5">
+              <div className="flex flex-col gap-4 xl:flex-row xl:items-start xl:justify-between">
+                <div className="space-y-2.5">
+                  <div className="flex flex-wrap items-center gap-2">
+                    <Badge variant="outline" className="border-border/60 bg-background/80 text-[11px] uppercase tracking-[0.18em]">
+                      {summary.is_aggregated ? "Merged Benchmark" : "Single Benchmark"}
+                    </Badge>
+                    {summary.is_aggregated ? (
+                      <Badge variant="secondary" className="font-normal">
+                        {summary.aggregate_sources?.length ?? 0} composite benchmarks
+                      </Badge>
+                    ) : (
+                      <Badge variant="secondary" className="font-normal">
+                        Composite: {summary.composite_benchmark_name}
+                      </Badge>
+                    )}
+                    <Badge variant="secondary" className="font-normal capitalize">
+                      {summary.metric_config.score_type}
+                    </Badge>
+                    <Badge variant="secondary" className="font-normal">
+                      {summary.metric_config.lower_is_better ? "Lower is better" : "Higher is better"}
+                    </Badge>
+                    {summary.tags?.languages && summary.tags.languages.length > 0 && (
+                      <Badge variant="secondary" className="font-normal">
+                        {summary.tags.languages.join(", ")}
+                      </Badge>
+                    )}
                   </div>
-                )}
-              </div>
-              <div className="rounded-2xl border border-amber-200/80 bg-amber-50/80 px-4 py-3 dark:border-amber-900/40 dark:bg-amber-950/20">
-                <div className="text-[11px] font-semibold uppercase tracking-[0.18em] text-amber-700 dark:text-amber-200">
-                  {hasMultiMetricLeaderboard || !isResearchView ? "Instance data" : "Bottom model"}
+
+                  <p className="max-w-3xl text-sm leading-6 text-muted-foreground">
+                    {summary.metric_config.evaluation_description}
+                  </p>
+
+                  {!isResearchView && (
+                    <p className="max-w-3xl text-sm leading-6 text-muted-foreground">
+                      {`${summary.benchmark_card?.purpose_and_intended_users?.goal ?? "This benchmark reports a capability result."} Scores should be read alongside benchmark scope, metric definitions, and the source dataset context.`}
+                    </p>
+                  )}
                 </div>
-                <div className="mt-1 text-sm font-semibold text-amber-950 dark:text-amber-50">
-                  {hasMultiMetricLeaderboard || !isResearchView
-                    ? instanceDataLabel
-                    : summary.worst_model?.name ?? "Unknown"}
-                </div>
-                {!hasMultiMetricLeaderboard && isResearchView && summary.worst_model && (
-                  <div className="mt-1 text-xs text-amber-700/80 dark:text-amber-200/80">
-                    {formatRawScore(summary.worst_model.score, summary.metric_config.unit)}
+
+                <div className="grid w-full grid-cols-2 gap-2 xl:grid-cols-4">
+                  <div className="rounded-xl border border-sky-200/80 bg-sky-50/80 px-3 py-2.5 dark:border-sky-900/40 dark:bg-sky-950/20">
+                    <div className="text-[11px] font-semibold uppercase tracking-[0.18em] text-sky-700 dark:text-sky-200">Models</div>
+                    <div className="mt-1 text-xl font-semibold text-sky-950 dark:text-sky-50">{summary.models_count}</div>
                   </div>
-                )}
-              </div>
-            </div>
-          </div>
-
-          <div className="rounded-[1.5rem] border bg-muted/10 p-4">
-            <div className="text-[11px] font-semibold uppercase tracking-[0.2em] text-muted-foreground">
-              {isResearchView ? "Metric specification" : "Reading context"}
-            </div>
-            <dl className="mt-3 grid gap-x-6 gap-y-3 text-sm sm:grid-cols-2 xl:grid-cols-5">
-              <div>
-                <dt className="text-[11px] font-semibold uppercase tracking-[0.16em] text-muted-foreground">
-                  Composite benchmark
-                </dt>
-                <dd className="mt-1 break-words font-medium">
-                  {summary.is_aggregated
-                    ? summary.aggregate_sources?.map((source) => source.composite_benchmark_name).join(", ") || "Multiple composite benchmarks"
-                    : summary.composite_benchmark_name}
-                </dd>
-              </div>
-              <div>
-                <dt className="text-[11px] font-semibold uppercase tracking-[0.16em] text-muted-foreground">
-                  {isResearchView ? "Single benchmark ID" : "What this covers"}
-                </dt>
-                <dd className="mt-1 break-words font-medium">
-                  {isResearchView
-                    ? summary.evaluation_id
-                    : summary.is_aggregated
-                      ? summary.metric_config.evaluation_description
-                      : summary.metric_config.evaluation_description}
-                </dd>
-              </div>
-              <div>
-                <dt className="text-[11px] font-semibold uppercase tracking-[0.16em] text-muted-foreground">
-                  {isResearchView ? "Score scale" : "How to read scores"}
-                </dt>
-                <dd className="mt-1 font-medium">
-                  {isResearchView
-                    ? `${summary.metric_config.min_score ?? 0} - ${summary.metric_config.max_score ?? 1}`
-                    : scoreDirectionLabel}
-                </dd>
-              </div>
-              {summary.tags?.domains && summary.tags.domains.length > 0 && (
-                <div>
-                  <dt className="text-[11px] font-semibold uppercase tracking-[0.16em] text-muted-foreground">Domain coverage</dt>
-                  <dd className="mt-1 font-medium capitalize">
-                    {summary.tags.domains.slice(0, 2).join(", ")}
-                    {summary.tags.domains.length > 2 ? ` +${summary.tags.domains.length - 2} more` : ""}
-                  </dd>
-                </div>
-              )}
-              <div>
-                <dt className="text-[11px] font-semibold uppercase tracking-[0.16em] text-muted-foreground">
-                  {isResearchView ? "Source dataset" : "Instance data"}
-                </dt>
-                <dd className="mt-1 font-medium">
-                  {isResearchView ? sourceDatasetLabel : instanceDataLabel}
-                </dd>
-              </div>
-            </dl>
-          </div>
-        </CardContent>
-      </Card>
-
-      {!hasMultiMetricLeaderboard && (summary.root_metrics?.length || summary.subtasks?.length) ? (
-        <Card className="overflow-hidden">
-          <CardHeader className="border-b bg-muted/10">
-            <CardTitle className="text-xl">Benchmark structure</CardTitle>
-            <CardDescription>
-              Benchmark-level summary metrics and benchmark breakdowns are shown as separate sections.
-            </CardDescription>
-          </CardHeader>
-          <CardContent className="space-y-6 p-5 sm:p-6">
-            {summary.root_metrics && summary.root_metrics.length > 0 && (
-              <section className="space-y-3">
-                <div>
-                  <div className="text-sm font-semibold">Benchmark-level metrics</div>
-                  <div className="text-xs text-muted-foreground">
-                    Benchmark summary metrics used in this evaluation view.
+                  <div className="rounded-xl border border-border/70 bg-muted/20 px-3 py-2.5">
+                    <div className="text-[11px] font-semibold uppercase tracking-[0.18em] text-muted-foreground">
+                      {hasMultiMetricLeaderboard ? "Measures" : isResearchView ? "Avg score" : "Measures"}
+                    </div>
+                    <div className="mt-1 text-xl font-semibold">
+                      {hasMultiMetricLeaderboard ? summary.metrics_count ?? summary.leaderboard_metrics?.length ?? 1 : isResearchView ? avgScoreLabel : summary.metrics_count ?? 1}
+                    </div>
                   </div>
-                </div>
-                <div className="flex flex-wrap gap-2">
-                  {summary.root_metrics.map((metric) => (
-                    <span
-                      key={metric.metric_summary_id}
-                      className="rounded-full border border-border/70 bg-background px-3 py-1.5 text-xs font-medium"
-                      title={metric.canonical_display_name || metric.display_name}
-                    >
-                      {getCompactMetricLabel(metric.display_name)}
-                      {typeof metric.top_score === "number" ? ` · ${formatRawScore(metric.top_score, metric.unit)}` : ""}
-                    </span>
-                  ))}
-                </div>
-              </section>
-            )}
-
-            {summary.subtasks && summary.subtasks.length > 0 && (
-              <section className="space-y-3">
-                <div>
-                  <div className="text-sm font-semibold">Subtask breakdown</div>
-                </div>
-                <div className="grid gap-3 lg:grid-cols-2">
-                  {summary.subtasks.map((subtask) => (
-                    <div key={subtask.subtask_key} className="rounded-2xl border bg-background p-4">
-                      <div className="font-semibold">{subtask.display_name || subtask.subtask_name}</div>
-                      <div className="mt-1 text-xs text-muted-foreground" title={subtask.canonical_display_name || subtask.display_name}>
-                        {subtask.canonical_display_name || subtask.display_name}
+                  <div className="rounded-xl border border-emerald-200/80 bg-emerald-50/80 px-3 py-2.5 dark:border-emerald-900/40 dark:bg-emerald-950/20">
+                    <div className="text-[11px] font-semibold uppercase tracking-[0.18em] text-emerald-700 dark:text-emerald-200">
+                      {hasMultiMetricLeaderboard || !isResearchView ? "Source dataset" : "Top model"}
+                    </div>
+                    <div className="mt-1 text-sm font-semibold text-emerald-950 dark:text-emerald-50">
+                      {hasMultiMetricLeaderboard || !isResearchView
+                        ? sourceDatasetLabel
+                        : summary.best_model?.name ?? "Unknown"}
+                    </div>
+                    {!hasMultiMetricLeaderboard && isResearchView && summary.best_model && (
+                      <div className="mt-1 text-xs text-emerald-700/80 dark:text-emerald-200/80">
+                        {formatRawScore(summary.best_model.score, summary.metric_config.unit)}
                       </div>
-                      <div className="mt-3 flex flex-wrap gap-2">
-                        {subtask.metrics.map((metric) => (
+                    )}
+                  </div>
+                  <div className="rounded-xl border border-amber-200/80 bg-amber-50/80 px-3 py-2.5 dark:border-amber-900/40 dark:bg-amber-950/20">
+                    <div className="text-[11px] font-semibold uppercase tracking-[0.18em] text-amber-700 dark:text-amber-200">
+                      {hasMultiMetricLeaderboard || !isResearchView ? "Instance data" : "Bottom model"}
+                    </div>
+                    <div className="mt-1 text-sm font-semibold text-amber-950 dark:text-amber-50">
+                      {hasMultiMetricLeaderboard || !isResearchView
+                        ? instanceDataLabel
+                        : summary.worst_model?.name ?? "Unknown"}
+                    </div>
+                    {!hasMultiMetricLeaderboard && isResearchView && summary.worst_model && (
+                      <div className="mt-1 text-xs text-amber-700/80 dark:text-amber-200/80">
+                        {formatRawScore(summary.worst_model.score, summary.metric_config.unit)}
+                      </div>
+                    )}
+                  </div>
+                </div>
+              </div>
+
+              <div className="rounded-2xl border bg-muted/10 p-3.5">
+                <div className="text-[11px] font-semibold uppercase tracking-[0.2em] text-muted-foreground">
+                  {isResearchView ? "Metric specification" : "Reading context"}
+                </div>
+                <dl className="mt-3 grid gap-x-5 gap-y-3 text-sm sm:grid-cols-2 xl:grid-cols-5">
+                  <div>
+                    <dt className="text-[11px] font-semibold uppercase tracking-[0.16em] text-muted-foreground">
+                      Composite benchmark
+                    </dt>
+                    <dd className="mt-1 break-words font-medium">
+                      {summary.is_aggregated
+                        ? summary.aggregate_sources?.map((source) => source.composite_benchmark_name).join(", ") || "Multiple composite benchmarks"
+                        : summary.composite_benchmark_name}
+                    </dd>
+                  </div>
+                  <div>
+                    <dt className="text-[11px] font-semibold uppercase tracking-[0.16em] text-muted-foreground">
+                      {isResearchView ? "Single benchmark ID" : "What this covers"}
+                    </dt>
+                    <dd className="mt-1 break-words font-medium">
+                      {isResearchView ? summary.evaluation_id : summary.metric_config.evaluation_description}
+                    </dd>
+                  </div>
+                  <div>
+                    <dt className="text-[11px] font-semibold uppercase tracking-[0.16em] text-muted-foreground">
+                      {isResearchView ? "Score scale" : "How to read scores"}
+                    </dt>
+                    <dd className="mt-1 font-medium">
+                      {isResearchView
+                        ? `${summary.metric_config.min_score ?? 0} - ${summary.metric_config.max_score ?? 1}`
+                        : scoreDirectionLabel}
+                    </dd>
+                  </div>
+                  {summary.tags?.domains && summary.tags.domains.length > 0 && (
+                    <div>
+                      <dt className="text-[11px] font-semibold uppercase tracking-[0.16em] text-muted-foreground">Domain tags</dt>
+                      <dd className="mt-1 font-medium capitalize">
+                        {summary.tags.domains.slice(0, 2).join(", ")}
+                        {summary.tags.domains.length > 2 ? ` +${summary.tags.domains.length - 2} more` : ""}
+                      </dd>
+                    </div>
+                  )}
+                  <div>
+                    <dt className="text-[11px] font-semibold uppercase tracking-[0.16em] text-muted-foreground">
+                      {isResearchView ? "Source dataset" : "Instance data"}
+                    </dt>
+                    <dd className="mt-1 font-medium">
+                      {isResearchView ? sourceDatasetLabel : instanceDataLabel}
+                    </dd>
+                  </div>
+                </dl>
+              </div>
+
+              {!hasMultiMetricLeaderboard && (summary.root_metrics?.length || summary.subtasks?.length) ? (
+                <section className="rounded-2xl border bg-muted/5 p-3.5">
+                  <div className="space-y-1">
+                    <div className="text-sm font-semibold">Benchmark structure</div>
+                    <div className="text-xs text-muted-foreground">
+                      Benchmark-level summary metrics and subtask slices grouped in one compact section.
+                    </div>
+                  </div>
+
+                  {summary.root_metrics && summary.root_metrics.length > 0 && (
+                    <div className="mt-4 space-y-2.5">
+                      <div>
+                        <div className="text-sm font-semibold">Benchmark-level metrics</div>
+                        <div className="text-xs text-muted-foreground">
+                          Benchmark summary metrics used in this evaluation view.
+                        </div>
+                      </div>
+                      <div className="flex flex-wrap gap-2">
+                        {summary.root_metrics.map((metric) => (
                           <span
                             key={metric.metric_summary_id}
-                            className="rounded-full border border-border/70 bg-muted/20 px-2.5 py-1 text-[11px] font-medium"
+                            className="rounded-full border border-border/70 bg-background px-3 py-1.5 text-xs font-medium"
                             title={metric.canonical_display_name || metric.display_name}
                           >
                             {getCompactMetricLabel(metric.display_name)}
@@ -614,18 +610,50 @@ export function EvalDetail({ summary }: EvalDetailProps) {
                         ))}
                       </div>
                     </div>
-                  ))}
-                </div>
-              </section>
-            )}
-          </CardContent>
-        </Card>
-      ) : null}
+                  )}
 
-      {/* Policy: benchmark context BEFORE the leaderboard (context first, numbers second) */}
-      {!isResearchView && summary.benchmark_card && (
-        <BenchmarkCardPanel card={summary.benchmark_card} isResearchView={false} defaultRisksOpen />
-      )}
+                  {summary.subtasks && summary.subtasks.length > 0 && (
+                    <div className="mt-4 space-y-2.5">
+                      <div className="text-sm font-semibold">Subtask breakdown</div>
+                      <div className="grid gap-3 lg:grid-cols-2">
+                        {summary.subtasks.map((subtask) => (
+                          <div key={subtask.subtask_key} className="rounded-xl border bg-background p-3.5">
+                            <div className="font-semibold">{subtask.display_name || subtask.subtask_name}</div>
+                            <div className="mt-1 text-xs text-muted-foreground" title={subtask.canonical_display_name || subtask.display_name}>
+                              {subtask.canonical_display_name || subtask.display_name}
+                            </div>
+                            <div className="mt-3 flex flex-wrap gap-2">
+                              {subtask.metrics.map((metric) => (
+                                <span
+                                  key={metric.metric_summary_id}
+                                  className="rounded-full border border-border/70 bg-muted/20 px-2.5 py-1 text-[11px] font-medium"
+                                  title={metric.canonical_display_name || metric.display_name}
+                                >
+                                  {getCompactMetricLabel(metric.display_name)}
+                                  {typeof metric.top_score === "number" ? ` · ${formatRawScore(metric.top_score, metric.unit)}` : ""}
+                                </span>
+                              ))}
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+                </section>
+              ) : null}
+
+              {summary.benchmark_card && (
+                <BenchmarkCardCollapsible
+                  card={summary.benchmark_card}
+                  isResearchView={isResearchView}
+                  defaultOpen
+                  defaultRisksOpen={!isResearchView}
+                />
+              )}
+            </CardContent>
+          </CollapsibleContent>
+        </Collapsible>
+      </Card>
 
       {hasMultiMetricLeaderboard ? (
         <MultiMetricLeaderboard summary={summary} isResearchView={isResearchView} />
@@ -1135,11 +1163,6 @@ export function EvalDetail({ summary }: EvalDetailProps) {
           </CardContent>
         </Card>
       )}
-
-      {/* Research: benchmark card details AFTER the leaderboard, collapsed by default */}
-      {isResearchView && summary.benchmark_card && (
-        <ResearchBenchmarkCardCollapsible card={summary.benchmark_card} />
-      )}
     </div>
   )
 }
@@ -1433,8 +1456,8 @@ function MultiMetricLeaderboard({
             </div>
             <CardDescription>
               {isResearchView
-                ? "Each column is a reported benchmark metric. Distinct measures stay separate instead of collapsing into a single raw score."
-                : "Each column is a separately reported metric or subtask metric so the benchmark can be read without flattening unlike measures into one number."}
+                ? "Each column is a reported benchmark measure. Distinct measures stay separate instead of collapsing into a single raw score."
+                : "Each column is a separately reported measure so the benchmark can be read without flattening different results into one number."}
             </CardDescription>
           </div>
 
@@ -1446,8 +1469,8 @@ function MultiMetricLeaderboard({
             </Badge>
             <Badge variant="outline">
               {visibleMetrics.length === leaderboardMetrics.length
-                ? `${leaderboardMetrics.length} metrics`
-                : `${visibleMetrics.length} of ${leaderboardMetrics.length} metrics`}
+                ? `${leaderboardMetrics.length} measures`
+                : `${visibleMetrics.length} of ${leaderboardMetrics.length} measures`}
             </Badge>
             {hasParameterData && (numericMinParams != null || numericMaxParams != null) && (
               <Badge variant="outline">
@@ -1462,7 +1485,7 @@ function MultiMetricLeaderboard({
                 </Button>
               </DropdownMenuTrigger>
               <DropdownMenuContent align="end" className="w-80">
-                <DropdownMenuLabel>Visible metric columns</DropdownMenuLabel>
+                <DropdownMenuLabel>Visible measure columns</DropdownMenuLabel>
                 <DropdownMenuItem onSelect={() => setVisibleMetricKeys(allMetricKeys)}>
                   Show all
                 </DropdownMenuItem>
@@ -1638,7 +1661,7 @@ function MultiMetricLeaderboard({
                     onClick={() => handleSort("coverage")}
                     className="w-full text-right font-semibold transition-colors hover:text-primary"
                   >
-                    Coverage{getSortIndicator("coverage")}
+                    Measures present{getSortIndicator("coverage")}
                   </button>
                 </TableHead>
                 {visibleMetrics.map((metric) => (
@@ -1773,8 +1796,18 @@ function MultiMetricLeaderboard({
   )
 }
 
-function ResearchBenchmarkCardCollapsible({ card }: { card: BenchmarkCard }) {
-  const [open, setOpen] = useState(false)
+function BenchmarkCardCollapsible({
+  card,
+  isResearchView,
+  defaultOpen = true,
+  defaultRisksOpen = false,
+}: {
+  card: BenchmarkCard
+  isResearchView: boolean
+  defaultOpen?: boolean
+  defaultRisksOpen?: boolean
+}) {
+  const [open, setOpen] = useState(defaultOpen)
   return (
     <Collapsible open={open} onOpenChange={setOpen}>
       <CollapsibleTrigger asChild>
@@ -1797,7 +1830,11 @@ function ResearchBenchmarkCardCollapsible({ card }: { card: BenchmarkCard }) {
         </button>
       </CollapsibleTrigger>
       <CollapsibleContent className="mt-2">
-        <BenchmarkCardPanel card={card} isResearchView defaultRisksOpen={false} />
+        <BenchmarkCardPanel
+          card={card}
+          isResearchView={isResearchView}
+          defaultRisksOpen={defaultRisksOpen}
+        />
       </CollapsibleContent>
     </Collapsible>
   )

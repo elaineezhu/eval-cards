@@ -1039,6 +1039,179 @@ function aggregateBenchmarkSummaries(
   }
 }
 
+const SYNTHETIC_MATRIX_EVAL_PREFIX = "matrix__"
+
+function buildSingleMetricSuiteMatrixSummary(
+  details: HFEvalDetail[],
+  suiteKey: string
+): BenchmarkEvalSummary | null {
+  if (details.length < 2) {
+    return null
+  }
+
+  const suiteDisplayName = getBenchmarkDisplayName(suiteKey)
+  const validDetails = [...details]
+    .filter((detail) => (detail.metrics?.length ?? 0) === 1 && extractDetailSubtasks(detail).length === 0)
+    .sort((left, right) =>
+      (left.benchmark_leaf_name || left.eval_summary_id).localeCompare(right.benchmark_leaf_name || right.eval_summary_id)
+    )
+
+  if (validDetails.length < 2) {
+    return null
+  }
+
+  const leaderboardMetrics: NonNullable<BenchmarkEvalSummary["leaderboard_metrics"]> = []
+  const rowStates = new Map<
+    string,
+    NonNullable<BenchmarkEvalSummary["leaderboard_rows"]>[number] & { _timestampValue: number }
+  >()
+
+  let metricConfig: BenchmarkEvalSummary["metric_config"] | null = null
+  let benchmarkCard: BenchmarkCard | undefined
+  const metricNames = new Set<string>()
+
+  for (const detail of validDetails) {
+    const metric = detail.metrics?.[0]
+    if (!metric) {
+      continue
+    }
+
+    if (!metricConfig) {
+      metricConfig = toSummaryMetricConfig(metric)
+    }
+
+    if (!benchmarkCard && detail.benchmark_card) {
+      benchmarkCard = detail.benchmark_card
+    }
+
+    const summaryMetric = toBenchmarkSummaryMetric(metric)
+    metricNames.add(summaryMetric.metric_name)
+    const subtaskKey = detail.benchmark_leaf_key || slugifyEvalId(detail.eval_summary_id)
+    const subtaskName = detail.benchmark_leaf_name || detail.canonical_display_name || detail.eval_summary_id || subtaskKey
+    const metricToken =
+      summaryMetric.metric_summary_id ||
+      summaryMetric.metric_key ||
+      slugifyEvalId(summaryMetric.display_name)
+    const columnKey = ["subtask", subtaskKey, metricToken].join(":")
+
+    leaderboardMetrics.push({
+      column_key: columnKey,
+      metric_summary_id: summaryMetric.metric_summary_id,
+      metric_name: summaryMetric.metric_name,
+      display_name: summaryMetric.display_name,
+      canonical_display_name: summaryMetric.canonical_display_name,
+      lower_is_better: summaryMetric.lower_is_better,
+      unit: summaryMetric.unit,
+      scope: "subtask",
+      subtask_key: subtaskKey,
+      subtask_name: subtaskName,
+    })
+
+    const benchmarkKey = detail.benchmark ?? suiteKey
+    const sourceName = detail.source_data?.dataset_name || benchmarkKey
+    const sourceOrganization = detail.source_data?.hf_repo || sourceName
+    const sourceMetadata: SourceMetadata = {
+      source_type: "documentation",
+      source_name: sourceName,
+      source_organization_name: sourceOrganization,
+      evaluator_relationship: "other",
+    }
+    const sourceData = detail.source_data ?? { dataset_name: benchmarkKey }
+
+    for (const modelResult of metric.model_results ?? []) {
+      const modelId = modelResult.model_id || modelResult.model_name
+      if (!modelId) {
+        continue
+      }
+
+      const nextTimestamp = normalizeEvalTimestamp(modelResult.retrieved_timestamp ?? "")
+      const existing = rowStates.get(modelId)
+
+      if (!existing) {
+        rowStates.set(modelId, {
+          model_info: {
+            name: modelResult.model_name ?? "",
+            id: modelId,
+            developer: modelResult.developer ?? "",
+          },
+          model_route_id: modelResult.model_route_id,
+          evaluation_timestamp: modelResult.retrieved_timestamp ?? "",
+          source_metadata: sourceMetadata,
+          source_data: sourceData,
+          values: { [columnKey]: modelResult.score ?? null },
+          metrics_present: 0,
+          _timestampValue: nextTimestamp,
+        })
+        continue
+      }
+
+      existing.values[columnKey] = modelResult.score ?? null
+      if (!existing.model_route_id && modelResult.model_route_id) {
+        existing.model_route_id = modelResult.model_route_id
+      }
+      if (nextTimestamp >= existing._timestampValue) {
+        existing.evaluation_timestamp = modelResult.retrieved_timestamp ?? existing.evaluation_timestamp
+        existing.source_metadata = sourceMetadata
+        existing.source_data = sourceData
+        existing._timestampValue = nextTimestamp
+      }
+    }
+  }
+
+  if (leaderboardMetrics.length < 2) {
+    return null
+  }
+
+  const sharedMetricName = metricNames.size === 1 ? Array.from(metricNames)[0] : undefined
+  const suiteMetricConfig = metricConfig
+    ? {
+        ...metricConfig,
+        evaluation_description: sharedMetricName ?? metricConfig.evaluation_description,
+      }
+    : {
+        evaluation_description: sharedMetricName ?? "",
+        lower_is_better: false,
+        score_type: "continuous" as const,
+        min_score: 0,
+        max_score: 1,
+      }
+
+  const leaderboardRows = Array.from(rowStates.values()).map(({ _timestampValue, ...row }) => ({
+    ...row,
+    metrics_present: leaderboardMetrics.reduce(
+      (count, metric) => count + (typeof row.values[metric.column_key] === "number" ? 1 : 0),
+      0
+    ),
+  }))
+
+  return {
+    evaluation_name: suiteDisplayName,
+    evaluation_id: `${SYNTHETIC_MATRIX_EVAL_PREFIX}${suiteKey}`,
+    canonical_display_name: suiteDisplayName,
+    composite_benchmark_key: suiteKey,
+    composite_benchmark_name: suiteDisplayName,
+    category: inferCategoryFromBenchmark(suiteDisplayName),
+    metric_config: suiteMetricConfig,
+    model_results: [],
+    models_count: leaderboardRows.length,
+    evaluator_names: [],
+    source_types: [],
+    latest_source_name: suiteDisplayName,
+    third_party_ratio: 0,
+    missing_generation_config_count: 0,
+    best_model: null,
+    worst_model: null,
+    avg_score: 0,
+    avg_score_norm: 0,
+    benchmark_card: benchmarkCard,
+    metrics_count: leaderboardMetrics.length,
+    metric_names: leaderboardMetrics.map((metric) => `${metric.subtask_name} / ${metric.metric_name}`),
+    source_data: { dataset_name: suiteDisplayName },
+    leaderboard_metrics: leaderboardMetrics,
+    leaderboard_rows: leaderboardRows,
+  }
+}
+
 // ---------------------------------------------------------------------------
 // Public API
 // ---------------------------------------------------------------------------
@@ -1359,6 +1532,34 @@ export async function getEvalSummaryById(evalId: string) {
 
     const validSummaries = detailSummaries.filter((s): s is BenchmarkEvalSummary => s !== null)
     return aggregateBenchmarkSummaries(validSummaries, aggregateKey)
+  }
+
+  if (evalId.startsWith(SYNTHETIC_MATRIX_EVAL_PREFIX)) {
+    const suiteKey = evalId.replace(new RegExp(`^${SYNTHETIC_MATRIX_EVAL_PREFIX}`), "")
+    const normalizedSuiteKey = normalizeBenchmarkKeyForLookup(suiteKey)
+    const { evals } = await fetchHFEvalListLite()
+    const matchingEvals = evals.filter((entry) => {
+      if (entry.is_summary_score) {
+        return false
+      }
+
+      const parentKey = normalizeBenchmarkKeyForLookup(
+        entry.benchmark_parent_key || entry.benchmark_family_key || entry.benchmark
+      )
+      return parentKey === normalizedSuiteKey
+    })
+
+    if (matchingEvals.length < 2) {
+      return null
+    }
+
+    const details = await Promise.all(
+      matchingEvals.map(async (entry) => fetchHFEvalDetail(entry.eval_summary_id))
+    )
+
+    const validDetails = details.filter((detail): detail is HFEvalDetail => detail !== null)
+    const syntheticSummary = buildSingleMetricSuiteMatrixSummary(validDetails, suiteKey)
+    return syntheticSummary ? attachBenchmarkCardToSummary(syntheticSummary) : null
   }
 
   // Direct eval lookup

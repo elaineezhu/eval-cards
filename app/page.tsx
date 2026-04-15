@@ -57,7 +57,7 @@ export default async function HomePage() {
                   Public reporting for AI evaluations.
                 </h1>
                 <p className="max-w-3xl text-lg leading-8 text-muted-foreground sm:text-xl">
-                  Start from the question you have: which models show broad evidence, which benchmarks have thin reporting, and where the public record is still incomplete.
+                  Start from the question you have: which models have more reported benchmarks, which benchmarks are sparsely reported, and where the record is still incomplete.
                 </p>
               </div>
 
@@ -86,20 +86,20 @@ export default async function HomePage() {
                 <div className="grid md:grid-cols-3 md:divide-x md:divide-border/60">
                   <SignalCard
                     icon={<Database className="h-4 w-4" />}
-                    title="Coverage"
-                    body="Benchmark breadth, setup details, and provenance stay visible."
+                    title="Reported benchmarks"
+                    body="See which benchmarks, settings, and sources are actually documented."
                     tone="sky"
                   />
                   <SignalCard
                     icon={<Scale className="h-4 w-4" />}
-                    title="Comparability"
-                    body="Configuration gaps and evaluator relationships remain part of the reading."
+                    title="Comparison context"
+                    body="Configuration gaps and evaluator relationships stay attached to each record."
                     tone="amber"
                   />
                   <SignalCard
                     icon={<BookOpenText className="h-4 w-4" />}
-                    title="Reading modes"
-                    body="Research and policy views shift emphasis without hiding the record."
+                    title="Reader modes"
+                    body="Research and policy views prioritize different fields without hiding the same record."
                     tone="emerald"
                   />
                 </div>
@@ -113,7 +113,7 @@ export default async function HomePage() {
                     Start from a reader question
                   </div>
                   <div className="mt-1 text-sm leading-6 text-muted-foreground">
-                    The site is strongest when you treat it as an evidence reader, not a leaderboard.
+                    The site works best when you inspect reported records, not just the ranking order.
                   </div>
                 </div>
                 <Database className="h-4 w-4 text-muted-foreground" />
@@ -121,27 +121,27 @@ export default async function HomePage() {
 
               <div className="mt-5 space-y-3">
                 <InquiryRow
-                  title="Which models have broad public evidence?"
-                  body="Use the models view to scan benchmark breadth, reported results, and where coverage is still thin."
+                  title="Which models have the most reported benchmarks?"
+                  body="Use the models view to scan reported benchmarks, result counts, and where reporting is sparse."
                   href="/models"
                 />
                 <InquiryRow
                   title="How is one benchmark being reported?"
-                  body="Use the evaluations view to inspect methodology context, score spread, and missing configuration details."
+                  body="Use the evaluations view to inspect benchmark notes, score ranges, and missing setup details."
                   href="/evals"
                 />
                 <InquiryRow
-                  title="Who is publishing the evidence?"
-                  body="Group models by developer or open a developer page to see which organizations are reporting the most."
+                  title="Which organizations are publishing results?"
+                  body="Open the developer pages to see which organizations appear most often in the reported records."
                   href="/developers"
                 />
               </div>
 
               <div className="mt-5 grid gap-3 border-t border-border/60 pt-5 sm:grid-cols-2">
                 <QuietStat label="Models" value={models.length.toString()} detail="Tracked in the current corpus" tone="amber" />
-                <QuietStat label="Evaluations" value={evalSummaries.length.toString()} detail="Benchmark views with linked details" tone="sky" />
+                <QuietStat label="Evaluations" value={evalSummaries.length.toString()} detail="Benchmark records with linked details" tone="sky" />
                 <QuietStat label="Developers" value={developerCount.toString()} detail="Organizations represented" tone="emerald" />
-                <QuietStat label="Reported results" value={totalReportedResults.toLocaleString()} detail={`Avg ${avgBenchmarksPerModel.toFixed(1)} benchmark suites per model`} tone="slate" />
+                <QuietStat label="Reported results" value={totalReportedResults.toLocaleString()} detail={`Avg ${avgBenchmarksPerModel.toFixed(1)} reported benchmarks per model`} tone="slate" />
               </div>
             </aside>
           </div>
@@ -151,20 +151,20 @@ export default async function HomePage() {
               <RoutePanel
                 href="/models"
                 icon={<Database className="h-4 w-4" />}
-                title="Model-first reading"
-                body="See the reported benchmark footprint of a model, including where evidence is broad, narrow, or missing."
+                title="Model records"
+                body="See which benchmarks are reported for a model and where reporting is missing or thin."
               />
               <RoutePanel
                 href="/evals"
                 icon={<BookOpenText className="h-4 w-4" />}
-                title="Benchmark-first reading"
-                body="Inspect how a benchmark is reported across models, with room to compare slices, setups, and sources."
+                title="Benchmark records"
+                body="Inspect how one benchmark is reported across models, including slices, setup notes, and sources."
               />
               <RoutePanel
                 href="/about"
                 icon={<Scale className="h-4 w-4" />}
-                title="Project framing"
-                body="Read why this reporting format exists and how it supports both research and policy reading modes."
+                title="Project notes"
+                body="Read why this reporting format exists and how the same records support research and policy use."
               />
             </div>
 
@@ -200,7 +200,7 @@ function InquiryRow({
   href: string
 }) {
   return (
-    <Link href={href} className="group rounded-[1.3rem] border border-border/70 bg-muted/10 p-4 transition-colors hover:bg-muted/20">
+    <Link href={href} className="group block rounded-[1.3rem] border border-border/70 bg-muted/10 p-4 transition-colors hover:bg-muted/20">
       <div className="flex items-start justify-between gap-3">
         <div>
           <div className="text-sm font-semibold text-foreground">{title}</div>
