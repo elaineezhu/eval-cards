@@ -133,6 +133,7 @@ const CONTEXT_ROWS = [
   { key: "benchmarks", label: "Benchmark coverage" },
   { key: "variants", label: "Versions" },
   { key: "score_summary", label: "Score range" },
+  { key: "reproducibility", label: "Re-runnability" },
   { key: "latest", label: "Latest summary" },
   { key: "updated", label: "Updated" },
 ] as const
@@ -408,6 +409,20 @@ export function ModelCompareDialog({
                                       Range {formatSummaryScore(model.score_summary?.min ?? null)} to {formatSummaryScore(model.score_summary?.max ?? null)} across {model.score_summary?.count ?? 0} surfaced scores
                                     </div>
                                   </div>
+                                ) : null}
+                                {row.key === "reproducibility" ? (
+                                  model.reproducibility_summary && model.reproducibility_summary.has_reproducibility_gap_count > 0 ? (
+                                    <div className="space-y-1">
+                                      <div className="font-medium">
+                                        {model.reproducibility_summary.has_reproducibility_gap_count} setup gaps
+                                      </div>
+                                      <div className="text-sm text-muted-foreground">
+                                        Out of {model.reproducibility_summary.results_total} reported scores
+                                      </div>
+                                    </div>
+                                  ) : (
+                                    <span className="text-muted-foreground">No setup gaps reported</span>
+                                  )
                                 ) : null}
                                 {row.key === "latest" ? (
                                   <div className="flex items-center gap-2">

@@ -79,6 +79,11 @@ export function EvalCard({ summary, delayMs = 0 }: EvalCardProps) {
   const domainPreview = domains.slice(0, 2)
   // Source provenance pulled from the pipeline's source_data
   const sourceData = summary.source_data
+  const reproducibilitySummary = summary.reproducibility_summary
+  const reproducibilityGapCount =
+    reproducibilitySummary?.has_reproducibility_gap_count ?? summary.missing_generation_config_count
+  const reproducibilityResultsTotal =
+    reproducibilitySummary?.results_total ?? summary.models_count
   const datasetName = sourceData?.dataset_name
   const datasetUrl =
     sourceData?.dataset_url ??
@@ -129,10 +134,10 @@ export function EvalCard({ summary, delayMs = 0 }: EvalCardProps) {
               Independently evaluated
             </Badge>
           )}
-          {summary.missing_generation_config_count > 0 && (
+          {reproducibilityGapCount > 0 && (
             <Badge className="bg-amber-500 text-amber-950 hover:bg-amber-500">
               <AlertTriangle className="mr-1 h-3 w-3" />
-              Partial config
+              Documentation gaps
             </Badge>
           )}
         </div>
@@ -182,8 +187,8 @@ export function EvalCard({ summary, delayMs = 0 }: EvalCardProps) {
                 <DataRow
                   label="Config"
                   value={
-                    summary.missing_generation_config_count > 0
-                      ? `${summary.missing_generation_config_count} result${summary.missing_generation_config_count !== 1 ? "s" : ""} without config`
+                    reproducibilityGapCount > 0
+                      ? `${reproducibilityGapCount} of ${reproducibilityResultsTotal} scores have setup gaps`
                       : "Fully documented"
                   }
                 />
@@ -245,9 +250,9 @@ export function EvalCard({ summary, delayMs = 0 }: EvalCardProps) {
               <div className="space-y-1.5 text-sm">
                 <DataRow label="Avg score" value={scorePercent} />
                 <DataRow label="Reported by" value={summary.evaluator_names.join(", ") || "Unknown"} />
-                {summary.missing_generation_config_count > 0 && (
+                {reproducibilityGapCount > 0 && (
                   <p className="pt-1 text-xs text-muted-foreground">
-                    Some results lack generation settings; compare scores with care.
+                    {reproducibilityGapCount} of {reproducibilityResultsTotal} reported scores are not fully documented.
                   </p>
                 )}
               </div>

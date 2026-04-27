@@ -16,6 +16,12 @@ import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } f
 import { Input } from "@/components/ui/input"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import {
+  getRelationshipBadgeTone,
+  getRelationshipDisplayName,
+  getRelationshipShortLabel,
+} from "@/components/signals/provenance-badge"
+import { SignalsRowBadges } from "@/components/signals/signals-row-badges"
+import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
@@ -257,48 +263,6 @@ function getModelDisplayName(value: string | null | undefined) {
 
 function getOrganizationDisplayName(value: string | null | undefined) {
   return normalizeDisplayLabel(value) || "Unknown Organization"
-}
-
-function getRelationshipDisplayName(value: string | null | undefined) {
-  return normalizeDisplayLabel(value?.replace(/_/g, " ")) || "Unknown"
-}
-
-/**
- * Short, badge-friendly label for evaluator relationships.
- * Unknown / "other" values fall back to the normalized full name.
- */
-function getRelationshipShortLabel(value: string | null | undefined) {
-  switch ((value ?? "").toLowerCase()) {
-    case "first_party":
-      return "1st party"
-    case "third_party":
-      return "3rd party"
-    case "collaborative":
-      return "Collaborative"
-    case "other":
-      return "Other"
-    default:
-      return getRelationshipDisplayName(value)
-  }
-}
-
-/**
- * Tone classes for the relationship badge so readers can scan first-party
- * vs third-party reports at a glance without reading the text.
- */
-function getRelationshipBadgeTone(value: string | null | undefined): string {
-  switch ((value ?? "").toLowerCase()) {
-    case "first_party":
-      // Self-reported by the model's developer — caution tone.
-      return "border-amber-300 bg-amber-50 text-amber-900 dark:border-amber-900/60 dark:bg-amber-950/40 dark:text-amber-100"
-    case "third_party":
-      // Independently evaluated — confidence tone.
-      return "border-emerald-300 bg-emerald-50 text-emerald-900 dark:border-emerald-900/60 dark:bg-emerald-950/40 dark:text-emerald-100"
-    case "collaborative":
-      return "border-sky-300 bg-sky-50 text-sky-900 dark:border-sky-900/60 dark:bg-sky-950/40 dark:text-sky-100"
-    default:
-      return "border-border/70 bg-muted/40 text-muted-foreground"
-  }
 }
 
 function getSourceTypeDisplayName(value: string | null | undefined) {
@@ -1798,6 +1762,10 @@ export function BenchmarkDetail({
       thirdPartyEvaluations,
     }
   }, [allEvaluations])
+  const reproducibilityGapCount =
+    summary.reproducibility_summary?.has_reproducibility_gap_count ?? reportingStats.missingGenerationConfigs
+  const reproducibilityResultsTotal =
+    summary.reproducibility_summary?.results_total ?? summary.total_evaluations
 
   const allCategoryResults = useMemo(
     () =>
@@ -1868,14 +1836,14 @@ export function BenchmarkDetail({
     }
 
     const reproducibilityCopy =
-      reportingStats.missingGenerationConfigs === 0
+      reproducibilityGapCount === 0
         ? null
-        : reportingStats.missingGenerationConfigs === summary.total_evaluations
+        : reproducibilityGapCount === reproducibilityResultsTotal
           ? "How this model was prompted during testing is not documented. Scores cannot be independently confirmed."
-          : "How this model was prompted during testing is missing for some reported results. Score differences may not be fully attributable to model capability alone."
+          : `${reproducibilityGapCount} of ${reproducibilityResultsTotal} reported scores are missing enough setup detail to be re-run as-is.`
 
     const comparabilityCopy =
-      reportingStats.missingGenerationConfigs > 0
+      reproducibilityGapCount > 0
         ? `${benchmarkCount > 0 ? `These results cover ${benchmarkCount} benchmark${benchmarkCount === 1 ? "" : "s"},` : "These results"} but missing prompting details mean apparent score gaps may partly reflect setup differences as well as capability.`
         : "Shared benchmark coverage helps, but evaluator choices, benchmark mix, and model size can still limit direct apples-to-apples comparison."
 
@@ -1898,9 +1866,10 @@ export function BenchmarkDetail({
     allCategoryResults,
     allEvaluations.length,
     reportingStats,
+    reproducibilityGapCount,
+    reproducibilityResultsTotal,
     summary.model_info.additional_details?.params_billions,
     summary.model_info.name,
-    summary.total_evaluations,
   ])
 
   const benchmarkGroups = useMemo(
@@ -3283,6 +3252,14 @@ export function BenchmarkDetail({
                 Mixed scale · renormalized
               </span>
             )}
+            {reproducibilityGapCount > 0 && (
+              <span
+                className="ml-1 inline-flex items-center rounded-full border border-amber-300 bg-amber-50 px-2 py-0.5 text-[10px] tracking-[0.12em] text-amber-900 dark:border-amber-900/60 dark:bg-amber-950/40 dark:text-amber-100"
+                title={`${reproducibilityGapCount} of ${reproducibilityResultsTotal} reported scores are not fully documented.`}
+              >
+                Setup gaps
+              </span>
+            )}
           </div>
 
           {/* Hero: title + developer + stat strip */}
@@ -4663,6 +4640,10 @@ function AggregatedBenchmarkCard({
                                   Score
                                 </div>
                                 <div className="mt-1 text-lg font-semibold tracking-tight">{variant.displayScore}</div>
+                                <SignalsRowBadges
+                                  annotations={variant.result.evalcards?.annotations}
+                                  className="justify-start"
+                                />
                               </div>
 
                               <div className="min-w-0">
@@ -5200,7 +5181,10 @@ function BenchmarkDeepDiveDialogPanel({
                             )}
                           </div>
                         </TableCell>
-                        <TableCell className="px-4 py-3 text-right align-top font-semibold tabular-nums">{variant.displayScore}</TableCell>
+                        <TableCell className="px-4 py-3 text-right align-top font-semibold tabular-nums">
+                          <div>{variant.displayScore}</div>
+                          <SignalsRowBadges annotations={variant.result.evalcards?.annotations} />
+                        </TableCell>
                         <TableCell className="px-4 py-3 text-right align-top tabular-nums text-muted-foreground">
                           {(variant.rankPosition != null || resolvedRank)
                             ? `#${resolvedRank?.position ?? variant.rankPosition}${(resolvedRank?.total ?? variant.rankTotal) ? `/${resolvedRank?.total ?? variant.rankTotal}` : ""}`
@@ -5265,7 +5249,10 @@ function BenchmarkDeepDiveDialogPanel({
                         )}
                       </div>
                     </TableCell>
-                    <TableCell className="px-4 py-3 text-right align-top font-semibold tabular-nums">{variant.displayScore}</TableCell>
+                    <TableCell className="px-4 py-3 text-right align-top font-semibold tabular-nums">
+                      <div>{variant.displayScore}</div>
+                      <SignalsRowBadges annotations={variant.result.evalcards?.annotations} />
+                    </TableCell>
                     <TableCell className="px-4 py-3 text-right align-top tabular-nums text-muted-foreground">
                       {(variant.rankPosition != null || resolvedRank)
                         ? `#${resolvedRank?.position ?? variant.rankPosition}${(resolvedRank?.total ?? variant.rankTotal) ? `/${resolvedRank?.total ?? variant.rankTotal}` : ""}`
@@ -5379,10 +5366,15 @@ function VariantExpandedDetail({
             <Badge variant="outline" className="font-normal">
               {group.title}
             </Badge>
-            <Badge variant="secondary" className="font-normal">
-              {variant.displayScore}
-            </Badge>
-          </div>
+          <Badge variant="secondary" className="font-normal">
+            {variant.displayScore}
+          </Badge>
+          <SignalsRowBadges
+            annotations={variant.result.evalcards?.annotations}
+            className="mt-0 justify-start"
+            hideOnMobile={false}
+          />
+        </div>
           <div className="text-sm text-muted-foreground">{variant.result.metric_config.evaluation_description}</div>
         </div>
 

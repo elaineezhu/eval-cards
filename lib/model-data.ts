@@ -27,6 +27,7 @@ import { getCanonicalModelIdentity, getModelFamilyRouteId } from "@/lib/model-fa
 import { getBenchmarkCard, normalizeBenchmarkKey } from "@/lib/benchmark-metadata"
 import {
   type HFEvalDetail,
+  type HFEvalListEntry,
   type HFEvalModelResult,
   type HFModelCardEntry,
   type HFModelDetail,
@@ -337,6 +338,24 @@ function parseParamsBillions(value: unknown): number | null {
   return Number.isFinite(numeric) && numeric > 0 ? numeric : null
 }
 
+function attachModelSignalSummaries<T extends ReturnType<typeof createModelFamilySummary>>(
+  summary: T,
+  detail: HFModelDetail
+): T {
+  return {
+    ...summary,
+    reproducibility_summary: detail.reproducibility_summary,
+    provenance_summary: detail.provenance_summary,
+    comparability_summary: detail.comparability_summary,
+    variants: summary.variants.map((variant) => ({
+      ...variant,
+      reproducibility_summary: detail.reproducibility_summary,
+      provenance_summary: detail.provenance_summary,
+      comparability_summary: detail.comparability_summary,
+    })),
+  }
+}
+
 // ---------------------------------------------------------------------------
 // HF model-cards.json → EvaluationCardData
 // ---------------------------------------------------------------------------
@@ -391,6 +410,9 @@ function hfModelCardToEvaluationCardData(entry: HFModelCardEntry): EvaluationCar
       ? `${entry.benchmark_names.length} benchmark${entry.benchmark_names.length === 1 ? "" : "s"}`
       : undefined,
     params_billions: parseParamsBillions(entry.params_billions),
+    reproducibility_summary: entry.reproducibility_summary,
+    provenance_summary: entry.provenance_summary,
+    comparability_summary: entry.comparability_summary,
     benchmark_names: (entry.benchmark_names ?? []).map((name) => getBenchmarkDisplayName(name)),
     score_summary: {
       count: entry.score_summary.count,
@@ -408,31 +430,7 @@ function hfModelCardToEvaluationCardData(entry: HFModelCardEntry): EvaluationCar
 // HF eval-list.json → BenchmarkEvalListItem
 // ---------------------------------------------------------------------------
 
-function hfEvalEntryToListItem(entry: {
-  eval_summary_id: string
-  benchmark: string
-  benchmark_family_key: string
-  benchmark_family_name: string
-  benchmark_parent_name?: string
-  benchmark_leaf_key: string
-  benchmark_leaf_name: string
-  evaluation_name?: string
-  display_name: string
-  is_summary_score?: boolean
-  summary_eval_ids?: string[]
-  category: string
-  tags: { domains: string[]; languages: string[]; tasks: string[] }
-  models_count: number
-  metrics_count: number
-  subtasks_count?: number
-  metric_names: string[]
-  primary_metric_name: string
-  benchmark_card: BenchmarkCard | null
-  source_data?: SourceData
-  top_score: number
-  instance_data: { available: boolean; url_count: number; sample_urls: string[]; models_with_loaded_instances: number }
-  metrics: Array<{ metric_summary_id: string; metric_name: string; lower_is_better: boolean; models_count: number; top_score: number }>
-}): BenchmarkEvalListItem {
+function hfEvalEntryToListItem(entry: HFEvalListEntry): BenchmarkEvalListItem {
   // Use the pipeline's category directly, mapped to our CategoryType
   const category = mapHFCategories([entry.category])[0] ?? "General" as CategoryType
 
@@ -486,6 +484,10 @@ function hfEvalEntryToListItem(entry: {
     subtasks_count: entry.subtasks_count ?? 0,
     is_summary_score: entry.is_summary_score ?? false,
     summary_eval_ids: entry.summary_eval_ids ?? [],
+    evalcards: entry.evalcards,
+    reproducibility_summary: entry.reproducibility_summary,
+    provenance_summary: entry.provenance_summary,
+    comparability_summary: entry.comparability_summary,
   }
 }
 
@@ -652,6 +654,7 @@ function buildBenchmarkLeaderboardMatrix(detail: HFEvalDetail) {
           source_metadata: sourceMetadata,
           source_data: sourceData,
           values: { [columnKey]: modelResult.score ?? null },
+          annotations_by_metric: { [columnKey]: modelResult.evalcards?.annotations ?? null },
           metrics_present: 0,
           _timestampValue: nextTimestamp,
         })
@@ -659,6 +662,10 @@ function buildBenchmarkLeaderboardMatrix(detail: HFEvalDetail) {
       }
 
       existing.values[columnKey] = modelResult.score ?? null
+      existing.annotations_by_metric = {
+        ...(existing.annotations_by_metric ?? {}),
+        [columnKey]: modelResult.evalcards?.annotations ?? null,
+      }
       if (!existing.model_route_id && modelResult.model_route_id) {
         existing.model_route_id = modelResult.model_route_id
       }
@@ -725,6 +732,7 @@ function toModelResultsForMetric(
       detailed_evaluation_results_url: getCanonicalInstanceResultsUrl(
         mr.detailed_evaluation_results
       ),
+      evalcards: mr.evalcards,
     }
 
     return {
@@ -797,6 +805,11 @@ function hfEvalDetailToSummary(detail: HFEvalDetail): BenchmarkEvalSummary {
       subtasks,
       leaderboard_metrics: leaderboardMatrix.leaderboard_metrics,
       leaderboard_rows: leaderboardMatrix.leaderboard_rows,
+      source_data: detail.source_data,
+      evalcards: detail.evalcards,
+      reproducibility_summary: detail.reproducibility_summary,
+      provenance_summary: detail.provenance_summary,
+      comparability_summary: detail.comparability_summary,
     }
   }
 
@@ -847,6 +860,11 @@ function hfEvalDetailToSummary(detail: HFEvalDetail): BenchmarkEvalSummary {
     subtasks,
     leaderboard_metrics: leaderboardMatrix.leaderboard_metrics,
     leaderboard_rows: leaderboardMatrix.leaderboard_rows,
+    source_data: detail.source_data,
+    evalcards: detail.evalcards,
+    reproducibility_summary: detail.reproducibility_summary,
+    provenance_summary: detail.provenance_summary,
+    comparability_summary: detail.comparability_summary,
   }
 }
 
@@ -1140,6 +1158,7 @@ function buildSingleMetricSuiteMatrixSummary(
           source_metadata: sourceMetadata,
           source_data: sourceData,
           values: { [columnKey]: modelResult.score ?? null },
+          annotations_by_metric: { [columnKey]: modelResult.evalcards?.annotations ?? null },
           metrics_present: 0,
           _timestampValue: nextTimestamp,
         })
@@ -1147,6 +1166,10 @@ function buildSingleMetricSuiteMatrixSummary(
       }
 
       existing.values[columnKey] = modelResult.score ?? null
+      existing.annotations_by_metric = {
+        ...(existing.annotations_by_metric ?? {}),
+        [columnKey]: modelResult.evalcards?.annotations ?? null,
+      }
       if (!existing.model_route_id && modelResult.model_route_id) {
         existing.model_route_id = modelResult.model_route_id
       }
@@ -1469,7 +1492,7 @@ export async function getModelSummaryById(modelId: string) {
     if (detail) {
       const evaluations = flattenModelEvaluations(detail)
       if (evaluations.length > 0) {
-        return createModelFamilySummary(evaluations)
+        return attachModelSignalSummaries(createModelFamilySummary(evaluations), detail)
       }
     }
   }
@@ -1489,7 +1512,7 @@ export async function getModelSummaryById(modelId: string) {
     if (detail) {
       const evaluations = flattenModelEvaluations(detail)
       if (evaluations.length > 0) {
-        return createModelFamilySummary(evaluations)
+        return attachModelSignalSummaries(createModelFamilySummary(evaluations), detail)
       }
     }
 
@@ -1501,7 +1524,7 @@ export async function getModelSummaryById(modelId: string) {
           if (variantDetail) {
             const evaluations = flattenModelEvaluations(variantDetail)
             if (evaluations.length > 0) {
-              return createModelFamilySummary(evaluations)
+              return attachModelSignalSummaries(createModelFamilySummary(evaluations), variantDetail)
             }
           }
         }

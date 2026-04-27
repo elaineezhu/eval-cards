@@ -2,6 +2,10 @@ export interface BackendManifest {
   generated_at: string
   config_version: number
   skipped_configs: string[]
+  summary_artifacts?: {
+    corpus_aggregates?: string
+    [key: string]: string | undefined
+  }
 }
 
 export interface BackendManifestStatus {
@@ -12,6 +16,209 @@ export interface BackendManifestStatus {
   updateAvailable: boolean
   refreshing: boolean
   pendingRefreshCount: number
+}
+
+// ---------------------------------------------------------------------------
+// EvalCards interpretive signals v1.0
+// ---------------------------------------------------------------------------
+
+export interface ReproducibilityGap {
+  has_reproducibility_gap: boolean
+  missing_fields: string[]
+  required_field_count: number
+  populated_field_count: number
+  signal_version: string
+}
+
+export type ProvenanceSourceType =
+  | "first_party"
+  | "third_party"
+  | "collaborative"
+  | "unspecified"
+
+export interface Provenance {
+  source_type: ProvenanceSourceType
+  is_multi_source: boolean
+  first_party_only: boolean
+  distinct_reporting_organizations: number
+  signal_version: string
+}
+
+export type DivergenceThresholdBasis =
+  | "proportion_or_continuous_normalized"
+  | "percent"
+  | "range_5pct"
+  | "fallback_default"
+
+export interface DifferingSetupField {
+  field: string
+  values: unknown[]
+}
+
+export interface VariantDivergence {
+  has_variant_divergence: boolean
+  group_id: string
+  divergence_magnitude: number
+  threshold_used: number
+  threshold_basis: DivergenceThresholdBasis
+  differing_setup_fields: DifferingSetupField[]
+  scores_in_group: number[]
+  this_triple_score: number | null
+  triple_count_in_group: number
+  score_scale_anomaly: boolean
+  group_variant_breakdown: Array<{ variant_key: string; row_count: number }>
+  signal_version: string
+}
+
+export interface CrossPartyDivergence {
+  has_cross_party_divergence: boolean
+  group_id: string
+  divergence_magnitude: number
+  threshold_used: number
+  threshold_basis: DivergenceThresholdBasis
+  scores_by_organization: Record<string, number>
+  differing_setup_fields: DifferingSetupField[]
+  organization_count: number
+  group_variant_breakdown: Array<{ variant_key: string; row_count: number }>
+  signal_version: string
+}
+
+export interface RowAnnotations {
+  reproducibility_gap: ReproducibilityGap | null
+  provenance: Provenance | null
+  variant_divergence: VariantDivergence | null
+  cross_party_divergence: CrossPartyDivergence | null
+}
+
+export interface ReportingCompleteness {
+  completeness_score: number
+  total_fields_evaluated: number
+  missing_required_fields: string[]
+  partial_fields: Array<{
+    field_path: string
+    score: number
+    populated_subitems: number
+    total_subitems: number
+  }>
+  field_scores: Array<{
+    field_path: string
+    coverage_type: "full" | "partial" | "reserved"
+    score: number
+  }>
+  signal_version: string
+}
+
+export interface BenchmarkComparability {
+  variant_divergence_groups: Array<{
+    group_id: string
+    model_route_id: string
+    divergence_magnitude: number
+    threshold_used: number
+    threshold_basis: DivergenceThresholdBasis
+    differing_setup_fields: DifferingSetupField[]
+  }>
+  cross_party_divergence_groups: Array<{
+    group_id: string
+    model_route_id: string
+    divergence_magnitude: number
+    threshold_used: number
+    threshold_basis: DivergenceThresholdBasis
+    scores_by_organization: Record<string, number>
+    differing_setup_fields: DifferingSetupField[]
+  }>
+}
+
+export interface EvalcardsAnnotations {
+  reporting_completeness?: ReportingCompleteness
+  benchmark_comparability?: BenchmarkComparability
+}
+
+export interface ReproducibilitySummary {
+  results_total: number
+  has_reproducibility_gap_count: number
+  populated_ratio_avg: number | null
+}
+
+export interface ProvenanceSummary {
+  total_results: number
+  total_groups: number
+  multi_source_groups: number
+  first_party_only_groups: number
+  source_type_distribution: Record<ProvenanceSourceType, number>
+}
+
+export interface ComparabilitySummary {
+  total_groups: number
+  groups_with_variant_check: number
+  groups_with_cross_party_check: number
+  variant_divergent_count: number
+  cross_party_divergent_count: number
+}
+
+export interface SignalSummaries {
+  reproducibility_summary?: ReproducibilitySummary
+  provenance_summary?: ProvenanceSummary
+  comparability_summary?: ComparabilitySummary
+}
+
+export interface CorpusAggregates {
+  generated_at: string
+  signal_version: string
+  stratification_dimensions: ["category"]
+  reproducibility: Stratified<ReproducibilityCorpusBlock>
+  completeness: Stratified<CompletenessCorpusBlock>
+  provenance: Stratified<ProvenanceCorpusBlock>
+  comparability: Stratified<ComparabilityCorpusBlock>
+}
+
+export interface Stratified<T> {
+  overall: T
+  by_category: Record<string, T>
+}
+
+export interface ReproducibilityCorpusBlock {
+  total_triples: number
+  triples_with_reproducibility_gap: number
+  reproducibility_gap_rate: number | null
+  agentic_triples: number
+  per_field_missingness: Record<string, {
+    missing_count: number
+    missing_rate: number | null
+    denominator: "all_triples" | "agentic_only"
+    denominator_count: number
+  }>
+}
+
+export interface CompletenessCorpusBlock {
+  total_benchmarks: number
+  completeness_score_mean: number | null
+  completeness_score_median: number | null
+  per_field_population: Record<string, {
+    mean_score: number
+    populated_rate: number
+    fully_populated_rate: number
+    benchmark_count: number
+  }>
+}
+
+export interface ProvenanceCorpusBlock {
+  total_triples: number
+  total_groups: number
+  multi_source_groups: number
+  multi_source_rate: number | null
+  first_party_only_groups: number
+  first_party_only_rate: number | null
+  source_type_distribution: Record<ProvenanceSourceType, number>
+}
+
+export interface ComparabilityCorpusBlock {
+  total_groups: number
+  variant_eligible_groups: number
+  variant_divergent_groups: number
+  variant_divergence_rate: number | null
+  cross_party_eligible_groups: number
+  cross_party_divergent_groups: number
+  cross_party_divergence_rate: number | null
 }
 
 export interface HierarchyTags {
@@ -32,16 +239,17 @@ export interface HierarchySlice {
   metrics: HierarchyMetric[]
 }
 
-export interface HierarchyBenchmark {
+export interface HierarchyBenchmark extends SignalSummaries {
   key: string
   display_name: string
   has_card: boolean
   tags: HierarchyTags
   slices: HierarchySlice[]
   metrics: HierarchyMetric[]
+  summary_eval_ids?: string[]
 }
 
-export interface HierarchyComposite {
+export interface HierarchyComposite extends SignalSummaries {
   key: string
   display_name: string
   has_card: boolean
@@ -51,17 +259,32 @@ export interface HierarchyComposite {
   summary_eval_ids?: string[]
 }
 
-export interface HierarchyFamily {
+export interface HierarchyLeaf extends SignalSummaries {
   key: string
   display_name: string
-  has_card: boolean
   category: string
-  tags: HierarchyTags
+  evals_count?: number
+  eval_summary_ids?: string[]
+  tags?: Partial<HierarchyTags>
+  has_card?: boolean
+}
+
+export interface HierarchyFamily extends SignalSummaries {
+  key: string
+  display_name: string
+  has_card?: boolean
+  category: string
+  tags?: Partial<HierarchyTags>
+  evals_count?: number
+  eval_summary_ids?: string[]
+  // Legacy nested shape (composites + standalone benchmarks)
   standalone_benchmarks?: HierarchyBenchmark[]
   composites?: HierarchyComposite[]
   benchmarks?: HierarchyBenchmark[]
   slices?: HierarchySlice[]
   metrics?: HierarchyMetric[]
+  // Newer 2-level shape (family → leaf)
+  leaves?: HierarchyLeaf[]
 }
 
 export interface EvalHierarchyStats {
@@ -75,7 +298,7 @@ export interface EvalHierarchyStats {
 }
 
 export interface EvalHierarchy {
-  stats: EvalHierarchyStats
+  stats?: EvalHierarchyStats
   families: HierarchyFamily[]
 }
 

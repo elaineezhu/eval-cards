@@ -5,8 +5,22 @@ import { Fragment, useEffect, useMemo, useState } from "react"
 import Link from "next/link"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
+import { CompletenessPanel } from "@/components/signals/completeness-panel"
+import { ComparabilityPanel } from "@/components/signals/comparability-panel"
+import { ReproducibilityPanel } from "@/components/signals/reproducibility-panel"
+import { SignalsRowBadges } from "@/components/signals/signals-row-badges"
+import { SignalTooltip } from "@/components/signals/signal-tooltip"
+import { getCompletenessPopulatedCount } from "@/components/signals/signal-utils"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible"
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog"
+import { Input } from "@/components/ui/input"
 import {
   DropdownMenu,
   DropdownMenuCheckboxItem,
@@ -32,9 +46,11 @@ import {
   Globe,
   Medal,
   Scale,
+  Search,
   Shield,
   SlidersHorizontal,
   Tag,
+  X,
 } from "lucide-react"
 import type { BenchmarkCard } from "@/lib/benchmark-schema"
 import type { BenchmarkEvalSummary, ModelResultForBenchmark } from "@/lib/eval-processing"
@@ -52,6 +68,212 @@ interface LeaderboardRow {
 
 type LeaderboardMetric = NonNullable<BenchmarkEvalSummary["leaderboard_metrics"]>[number]
 type LeaderboardMatrixRow = NonNullable<BenchmarkEvalSummary["leaderboard_rows"]>[number]
+
+/**
+ * Pick a representative row-level annotation for the matrix view.
+ *
+ * Reproducibility and provenance are typically constant across all metrics for
+ * a given (model, benchmark) pair, so rendering them in every cell is just
+ * noise. This helper grabs the first non-null annotation across visible metrics
+ * and returns it for the row-level badge strip.
+ */
+function getRowLevelAnnotations(
+  row: LeaderboardMatrixRow,
+  visibleMetrics: LeaderboardMetric[]
+) {
+  const annotationsByMetric = row.annotations_by_metric
+  if (!annotationsByMetric) {
+    return null
+  }
+
+  for (const metric of visibleMetrics) {
+    const annotations = annotationsByMetric[metric.column_key]
+    if (annotations) {
+      return annotations
+    }
+  }
+
+  return null
+}
+
+const SLICE_PILL_THRESHOLD = 5
+
+interface SliceTab {
+  key: string
+  label: string
+}
+
+/**
+ * Slice picker that adapts to slice count.
+ *
+ * - <= SLICE_PILL_THRESHOLD: render every slice as a pill (current familiar UX).
+ * - > SLICE_PILL_THRESHOLD: render "All slices" + currently-selected pill +
+ *   a "Browse N slices" button that opens a searchable dialog. Hundreds of
+ *   subtasks (e.g. AIRBench's 374) fit cleanly.
+ */
+function SliceSelector({
+  activeSubtaskTab,
+  onChange,
+  tabs,
+}: {
+  activeSubtaskTab: string
+  onChange: (key: string) => void
+  tabs: SliceTab[]
+}) {
+  const [browserOpen, setBrowserOpen] = useState(false)
+  const [search, setSearch] = useState("")
+
+  const useBrowser = tabs.length > SLICE_PILL_THRESHOLD
+  const activeTab = tabs.find((tab) => tab.key === activeSubtaskTab)
+
+  const filteredTabs = useMemo(() => {
+    const query = search.trim().toLowerCase()
+    if (!query) return tabs
+    return tabs.filter((tab) => tab.label.toLowerCase().includes(query))
+  }, [search, tabs])
+
+  if (!useBrowser) {
+    return (
+      <div>
+        <div className="mb-2 text-[11px] font-semibold uppercase tracking-[0.16em] text-muted-foreground">
+          Benchmark slices
+        </div>
+        <div className="flex flex-wrap gap-2">
+          <Button
+            type="button"
+            size="sm"
+            variant={activeSubtaskTab === "all" ? "default" : "outline"}
+            onClick={() => onChange("all")}
+          >
+            All slices
+          </Button>
+          {tabs.map((tab) => (
+            <Button
+              key={tab.key}
+              type="button"
+              size="sm"
+              variant={activeSubtaskTab === tab.key ? "default" : "outline"}
+              onClick={() => onChange(tab.key)}
+            >
+              {tab.label}
+            </Button>
+          ))}
+        </div>
+      </div>
+    )
+  }
+
+  return (
+    <div>
+      <div className="mb-2 flex items-center justify-between gap-2">
+        <div className="text-[11px] font-semibold uppercase tracking-[0.16em] text-muted-foreground">
+          Benchmark slices
+        </div>
+        <span className="text-xs text-muted-foreground">{tabs.length} total</span>
+      </div>
+      <div className="flex flex-wrap items-center gap-2">
+        <Button
+          type="button"
+          size="sm"
+          variant={activeSubtaskTab === "all" ? "default" : "outline"}
+          onClick={() => onChange("all")}
+        >
+          All slices
+        </Button>
+        {activeTab && (
+          <Button
+            type="button"
+            size="sm"
+            variant="default"
+            onClick={() => onChange("all")}
+            className="max-w-[18rem] truncate"
+            title={`Active: ${activeTab.label}. Click to clear.`}
+          >
+            {activeTab.label}
+            <X className="ml-1.5 h-3 w-3 shrink-0" />
+          </Button>
+        )}
+        <Button
+          type="button"
+          size="sm"
+          variant="outline"
+          onClick={() => setBrowserOpen(true)}
+          className="gap-1.5"
+        >
+          <Search className="h-3.5 w-3.5" />
+          {activeTab ? "Change slice" : `Browse ${tabs.length} slices`}
+        </Button>
+      </div>
+
+      <Dialog
+        open={browserOpen}
+        onOpenChange={(open) => {
+          setBrowserOpen(open)
+          if (!open) setSearch("")
+        }}
+      >
+        <DialogContent className="max-w-2xl">
+          <DialogHeader>
+            <DialogTitle>Browse benchmark slices</DialogTitle>
+            <DialogDescription>
+              {tabs.length} slices in this benchmark. Pick one to filter the leaderboard,
+              or close to keep showing all slices.
+            </DialogDescription>
+          </DialogHeader>
+
+          <Input
+            value={search}
+            onChange={(event) => setSearch(event.target.value)}
+            placeholder="Search slices..."
+            autoFocus
+          />
+
+          <div className="max-h-[60vh] overflow-y-auto rounded-md border">
+            <button
+              type="button"
+              onClick={() => {
+                onChange("all")
+                setBrowserOpen(false)
+              }}
+              className={cn(
+                "flex w-full items-center justify-between border-b px-4 py-2.5 text-left text-sm transition-colors hover:bg-muted/40",
+                activeSubtaskTab === "all" && "bg-muted/40 font-semibold"
+              )}
+            >
+              <span>All slices (no filter)</span>
+              {activeSubtaskTab === "all" && <span className="text-xs text-muted-foreground">selected</span>}
+            </button>
+            {filteredTabs.length === 0 ? (
+              <div className="px-4 py-6 text-center text-sm text-muted-foreground">
+                No slices match "{search}".
+              </div>
+            ) : (
+              filteredTabs.map((tab) => (
+                <button
+                  key={tab.key}
+                  type="button"
+                  onClick={() => {
+                    onChange(tab.key)
+                    setBrowserOpen(false)
+                  }}
+                  className={cn(
+                    "flex w-full items-center justify-between border-b px-4 py-2 text-left text-sm transition-colors hover:bg-muted/40 last:border-b-0",
+                    activeSubtaskTab === tab.key && "bg-muted/40 font-semibold"
+                  )}
+                >
+                  <span className="min-w-0 truncate pr-2">{tab.label}</span>
+                  {activeSubtaskTab === tab.key && (
+                    <span className="shrink-0 text-xs text-muted-foreground">selected</span>
+                  )}
+                </button>
+              ))
+            )}
+          </div>
+        </DialogContent>
+      </Dialog>
+    </div>
+  )
+}
 
 const PARAM_RANGE_VALUES = [1, 2, 3, 4, 6, 8, 10, 12, 16, 24, 32, 48, 64, 96, 128, 192, 256, 384, 500] as const
 const PARAM_RANGE_MARKERS = [
@@ -400,6 +622,11 @@ export function EvalDetail({ summary }: EvalDetailProps) {
     : summary.is_aggregated
       ? "Averaged model results across the contributing composite benchmarks, with drill-down to each component score."
       : "Model results with benchmark context, source dataset detail, and optional instance-data links."
+  const reportingCompleteness = summary.evalcards?.annotations?.reporting_completeness
+  const benchmarkComparability = summary.evalcards?.annotations?.benchmark_comparability
+  const documentationPopulatedCount = reportingCompleteness
+    ? getCompletenessPopulatedCount(reportingCompleteness)
+    : null
 
   const toggleRow = (key: string) =>
     setExpandedRows((current) => ({
@@ -430,6 +657,15 @@ export function EvalDetail({ summary }: EvalDetailProps) {
                       ? `${summary.metrics_count ?? summary.leaderboard_metrics?.length ?? 1} measures`
                       : `${summary.metrics_count ?? 1} ${(summary.metrics_count ?? 1) === 1 ? "measure" : "measures"}`}
                   </Badge>
+                  {reportingCompleteness && (
+                    <SignalTooltip
+                      content={`${documentationPopulatedCount} of ${reportingCompleteness.total_fields_evaluated} EvalCards documentation fields populated for this benchmark.`}
+                    >
+                      <Badge variant="outline" className="border-emerald-200 bg-emerald-50 text-emerald-800 dark:border-emerald-900/50 dark:bg-emerald-950/30 dark:text-emerald-200">
+                        Documentation {Math.round(reportingCompleteness.completeness_score * 100)}%
+                      </Badge>
+                    </SignalTooltip>
+                  )}
                 </div>
               </div>
               {overviewOpen ? (
@@ -579,6 +815,12 @@ export function EvalDetail({ summary }: EvalDetailProps) {
                   </div>
                 </dl>
               </div>
+
+              <CompletenessPanel completeness={reportingCompleteness} />
+              <ComparabilityPanel
+                comparability={benchmarkComparability}
+                summary={summary.comparability_summary}
+              />
 
               {!hasMultiMetricLeaderboard && (summary.root_metrics?.length || summary.subtasks?.length) ? (
                 <section className="rounded-2xl border bg-muted/5 p-3.5">
@@ -812,10 +1054,14 @@ export function EvalDetail({ summary }: EvalDetailProps) {
                   const samples = Array.isArray(modelResult.source_data)
                     ? undefined
                     : modelResult.source_data.samples_number
+                  const rowAnnotations = modelResult.result.evalcards?.annotations
 
                   return (
                     <Fragment key={key}>
-                      <TableRow className={cn("group", isExpanded && "bg-muted/15")}>
+                      <TableRow
+                        id={modelResult.model_route_id ? `row-${modelResult.model_route_id}` : undefined}
+                        className={cn("group", isExpanded && "bg-muted/15")}
+                      >
                         <TableCell className="px-4">
                           <div
                             className={cn(
@@ -868,6 +1114,7 @@ export function EvalDetail({ summary }: EvalDetailProps) {
 
                         <TableCell className="text-right">
                           <div className="text-xl font-semibold tabular-nums">{formatRawScore(modelResult.score, summary.metric_config.unit)}</div>
+                          <SignalsRowBadges annotations={rowAnnotations} />
                         </TableCell>
 
                         {isResearchView ? (
@@ -996,6 +1243,8 @@ export function EvalDetail({ summary }: EvalDetailProps) {
                                     />
                                   )}
                                 </DetailPanel>
+
+                                <ReproducibilityPanel gap={rowAnnotations?.reproducibility_gap} />
 
                                 <DetailPanel
                                   title={isResearchView ? "Score Breakdown" : "Metric Summary"}
@@ -1183,7 +1432,14 @@ function MultiMetricLeaderboard({
   const leaderboardMetrics = summary.leaderboard_metrics ?? []
   const leaderboardRows = summary.leaderboard_rows ?? []
   const allMetricKeys = useMemo(() => leaderboardMetrics.map((metric) => metric.column_key), [leaderboardMetrics])
-  const [visibleMetricKeys, setVisibleMetricKeys] = useState<string[]>(() => leaderboardMetrics.map((metric) => metric.column_key))
+  // Cap default visible columns to avoid hangs on benchmarks with hundreds of metrics
+  // (e.g. helm_air_bench has 374 subtask×metric pairs). Users can opt in to more.
+  const DEFAULT_VISIBLE_METRIC_CAP = 24
+  const defaultVisibleMetricKeys = useMemo(
+    () => allMetricKeys.slice(0, DEFAULT_VISIBLE_METRIC_CAP),
+    [allMetricKeys]
+  )
+  const [visibleMetricKeys, setVisibleMetricKeys] = useState<string[]>(() => defaultVisibleMetricKeys)
   const maxParamStepIndex = PARAM_RANGE_VALUES.length - 1
   const leaderboardMetricMap = useMemo(
     () => new Map(leaderboardMetrics.map((metric) => [metric.column_key, metric])),
@@ -1333,8 +1589,8 @@ function MultiMetricLeaderboard({
   }, [maxParamStep, minParamStep, sortDirection, sortKey])
 
   useEffect(() => {
-    setVisibleMetricKeys(allMetricKeys)
-  }, [allMetricKeys, summary.evaluation_id])
+    setVisibleMetricKeys(defaultVisibleMetricKeys)
+  }, [defaultVisibleMetricKeys, summary.evaluation_id])
 
   useEffect(() => {
     setActiveSubtaskTab("all")
@@ -1521,30 +1777,11 @@ function MultiMetricLeaderboard({
       <CardContent className="p-0">
         {hasSubtaskTabs && (
           <div className="border-b bg-background px-5 py-3 sm:px-6">
-            <div className="mb-2 text-[11px] font-semibold uppercase tracking-[0.16em] text-muted-foreground">
-              Benchmark slices
-            </div>
-            <div className="flex flex-wrap gap-2">
-              <Button
-                type="button"
-                size="sm"
-                variant={activeSubtaskTab === "all" ? "default" : "outline"}
-                onClick={() => setActiveSubtaskTab("all")}
-              >
-                All slices
-              </Button>
-              {singleMetricSubtaskTabs.map((tab) => (
-                <Button
-                  key={tab.key}
-                  type="button"
-                  size="sm"
-                  variant={activeSubtaskTab === tab.key ? "default" : "outline"}
-                  onClick={() => setActiveSubtaskTab(tab.key)}
-                >
-                  {tab.label}
-                </Button>
-              ))}
-            </div>
+            <SliceSelector
+              activeSubtaskTab={activeSubtaskTab}
+              onChange={setActiveSubtaskTab}
+              tabs={singleMetricSubtaskTabs}
+            />
           </div>
         )}
 
@@ -1739,6 +1976,12 @@ function MultiMetricLeaderboard({
                         )}
                         <span className="lg:hidden">{row.model_info.developer ?? "Unknown developer"}</span>
                       </div>
+                      <SignalsRowBadges
+                        annotations={getRowLevelAnnotations(row, visibleMetrics)}
+                        variant="row"
+                        className="mt-1 justify-start"
+                        hideOnMobile={false}
+                      />
                     </div>
                   </TableCell>
 
@@ -1754,6 +1997,7 @@ function MultiMetricLeaderboard({
 
                   {visibleMetrics.map((metric) => {
                     const score = row.values[metric.column_key]
+                    const annotations = row.annotations_by_metric?.[metric.column_key]
                     return (
                       <TableCell
                         key={metric.column_key}
@@ -1762,7 +2006,8 @@ function MultiMetricLeaderboard({
                           !isNumericScore(score) && "text-muted-foreground"
                         )}
                       >
-                        {isNumericScore(score) ? formatRawScore(score, metric.unit) : "—"}
+                        <div>{isNumericScore(score) ? formatRawScore(score, metric.unit) : "—"}</div>
+                        <SignalsRowBadges annotations={annotations} variant="cell" />
                       </TableCell>
                     )
                   })}

@@ -3,7 +3,16 @@ import "server-only"
 import { promises as fs } from "fs"
 import path from "path"
 
-import type { BackendManifest, BackendManifestStatus, ComparisonIndex, EvalHierarchy } from "@/lib/backend-artifacts"
+import type {
+  BackendManifest,
+  BackendManifestStatus,
+  ComparisonIndex,
+  CorpusAggregates,
+  EvalHierarchy,
+  EvalcardsAnnotations,
+  RowAnnotations,
+  SignalSummaries,
+} from "@/lib/backend-artifacts"
 import type {
   BenchmarkCard,
   BenchmarkEvaluation,
@@ -436,7 +445,7 @@ async function fetchHFJsonSafe<T>(relativePath: string): Promise<T | null> {
 // HF dataset types (shapes of JSON files in the HF repo)
 // ---------------------------------------------------------------------------
 
-export interface HFModelCardEntry {
+export interface HFModelCardEntry extends SignalSummaries {
   model_family_id: string
   model_route_id: string
   model_family_name: string
@@ -472,7 +481,7 @@ export interface HFModelCardEntry {
   }>
 }
 
-export interface HFEvalListEntry {
+export interface HFEvalListEntry extends SignalSummaries {
   eval_summary_id: string
   benchmark: string
   canonical_display_name?: string
@@ -517,6 +526,7 @@ export interface HFEvalListEntry {
     models_count: number
     top_score: number
   }>
+  evalcards?: { annotations?: EvalcardsAnnotations }
 }
 
 export interface HFEvalModelResult {
@@ -538,6 +548,7 @@ export interface HFEvalModelResult {
   detailed_evaluation_results_meta?: unknown
   instance_level_data?: unknown
   passthrough_top_level_fields?: unknown
+  evalcards?: { annotations?: RowAnnotations }
 }
 
 export interface HFEvalMetric {
@@ -553,7 +564,7 @@ export interface HFEvalMetric {
   model_results: HFEvalModelResult[]
 }
 
-export interface HFEvalDetail {
+export interface HFEvalDetail extends SignalSummaries {
   eval_summary_id: string
   benchmark: string
   canonical_display_name?: string
@@ -566,9 +577,10 @@ export interface HFEvalDetail {
   benchmark_card: BenchmarkCard | null
   metrics: HFEvalMetric[]
   subtasks: unknown[]
+  evalcards?: { annotations?: EvalcardsAnnotations }
 }
 
-export interface HFModelDetail {
+export interface HFModelDetail extends SignalSummaries {
   model_info: ModelInfo & {
     family_id?: string
     family_slug?: string
@@ -846,11 +858,110 @@ export async function fetchBackendManifest(): Promise<BackendManifest> {
 }
 
 export async function fetchEvalHierarchy(): Promise<EvalHierarchy> {
-  return fetchHFJson<EvalHierarchy>("eval-hierarchy.json")
+  const raw = await fetchHFJson<EvalHierarchy>("eval-hierarchy.json")
+  return adaptEvalHierarchy(raw)
+}
+
+/**
+ * The upstream pipeline migrated to a flat 2-level shape (family → leaf).
+ * The evals page still walks the older composites/standalone_benchmarks tree,
+ * so we synthesize the legacy view from `leaves` when the new shape is present.
+ * Also computes a fallback `stats` block when missing.
+ */
+function adaptEvalHierarchy(raw: EvalHierarchy): EvalHierarchy {
+  const families = (raw.families ?? []).map((family) => {
+    const hasLegacyTree =
+      (family.composites && family.composites.length > 0) ||
+      (family.standalone_benchmarks && family.standalone_benchmarks.length > 0) ||
+      (family.benchmarks && family.benchmarks.length > 0)
+
+    if (hasLegacyTree) {
+      return family
+    }
+
+    const leaves = family.leaves ?? []
+    if (leaves.length === 0) {
+      return family
+    }
+
+    const standalone = leaves.map((leaf) => ({
+      key: leaf.key,
+      display_name: leaf.display_name,
+      has_card: leaf.has_card ?? false,
+      tags: {
+        domains: leaf.tags?.domains ?? [],
+        languages: leaf.tags?.languages ?? [],
+        tasks: leaf.tags?.tasks ?? [],
+      },
+      slices: [],
+      metrics: [],
+      reproducibility_summary: leaf.reproducibility_summary,
+      provenance_summary: leaf.provenance_summary,
+      comparability_summary: leaf.comparability_summary,
+      summary_eval_ids: leaf.eval_summary_ids,
+    }))
+
+    return {
+      ...family,
+      tags: {
+        domains: family.tags?.domains ?? [],
+        languages: family.tags?.languages ?? [],
+        tasks: family.tags?.tasks ?? [],
+      },
+      standalone_benchmarks: standalone,
+    }
+  })
+
+  if (raw.stats) {
+    return { ...raw, families }
+  }
+
+  let composite_count = 0
+  let standalone_benchmark_count = 0
+  let single_benchmark_count = 0
+  let slice_count = 0
+  let metric_count = 0
+
+  for (const family of families) {
+    composite_count += family.composites?.length ?? 0
+    const standalone = family.standalone_benchmarks ?? []
+    standalone_benchmark_count += standalone.length
+    if ((family.composites?.length ?? 0) === 0 && standalone.length === 1) {
+      single_benchmark_count += 1
+    }
+    for (const composite of family.composites ?? []) {
+      for (const benchmark of composite.benchmarks ?? []) {
+        slice_count += benchmark.slices?.length ?? 0
+        metric_count += benchmark.metrics?.length ?? 0
+      }
+    }
+    for (const benchmark of standalone) {
+      slice_count += benchmark.slices?.length ?? 0
+      metric_count += benchmark.metrics?.length ?? 0
+    }
+  }
+
+  return {
+    ...raw,
+    families,
+    stats: {
+      family_count: families.length,
+      composite_count,
+      standalone_benchmark_count,
+      single_benchmark_count,
+      slice_count,
+      metric_count,
+      metric_rows_scanned: 0,
+    },
+  }
 }
 
 export async function fetchComparisonIndex(): Promise<ComparisonIndex> {
   return fetchHFJson<ComparisonIndex>("comparison-index.json")
+}
+
+export async function fetchCorpusAggregates(): Promise<CorpusAggregates | null> {
+  return fetchHFJsonSafe<CorpusAggregates>("corpus-aggregates.json")
 }
 
 export async function fetchModelDetail(slug: string): Promise<HFModelDetail | null> {
@@ -1297,6 +1408,7 @@ function flattenHierarchyNode(
         detailed_evaluation_results_url: getCanonicalInstanceResultsUrl(
           result.detailed_evaluation_results
         ),
+        evalcards: result.evalcards,
       }
 
       const existing = resultsByVariant.get(variantKey)

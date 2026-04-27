@@ -15,6 +15,7 @@ import type {
   MetricConfig,
   EvaluationResult,
 } from './benchmark-schema'
+import type { EvalcardsAnnotations, RowAnnotations, SignalSummaries } from './backend-artifacts'
 import type { ModelEvaluationSummary } from './benchmark-schema'
 import type { ModelSummaryCore } from './benchmark-schema'
 import { inferCategoryFromBenchmark } from './benchmark-schema'
@@ -130,7 +131,7 @@ export interface ModelResultForBenchmark {
   }>
 }
 
-export interface BenchmarkEvalSummary {
+export interface BenchmarkEvalSummary extends SignalSummaries {
   evaluation_name: string
   /** URL-safe slug derived from evaluation_name */
   evaluation_id: string
@@ -192,6 +193,7 @@ export interface BenchmarkEvalSummary {
   leaderboard_metrics?: BenchmarkLeaderboardMetric[]
   /** Matrix rows for multi-metric benchmark leaderboards */
   leaderboard_rows?: BenchmarkLeaderboardRow[]
+  evalcards?: { annotations?: EvalcardsAnnotations }
 }
 
 export interface BenchmarkSummaryMetric {
@@ -234,6 +236,7 @@ export interface BenchmarkLeaderboardRow {
   source_metadata: SourceMetadata
   source_data: BenchmarkEvaluation["source_data"]
   values: Record<string, number | null>
+  annotations_by_metric?: Record<string, RowAnnotations | null | undefined>
   metrics_present: number
 }
 
@@ -727,6 +730,9 @@ export function createEvaluationCard(
     eval_libraries: Array.from(evalLibraries.values()).sort((a, b) => a.name.localeCompare(b.name)),
     latest_source_name: latestSourceName,
     params_billions: Number.isFinite(paramsBillions ?? NaN) ? paramsBillions : null,
+    reproducibility_summary: summary.reproducibility_summary,
+    provenance_summary: summary.provenance_summary,
+    comparability_summary: summary.comparability_summary,
     top_scores: topScores,
     source_urls: Array.from(sourceUrls),
     detail_urls: Array.from(detailUrls),

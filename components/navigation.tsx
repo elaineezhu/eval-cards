@@ -39,6 +39,12 @@ export function Navigation() {
       isActive: pathname === "/evals" || pathname?.startsWith("/evals/")
     },
     {
+      href: "/corpus",
+      label: "Corpus",
+      icon: FlaskConical,
+      isActive: pathname === "/corpus" || pathname?.startsWith("/corpus/")
+    },
+    {
       href: "/survey",
       label: "Survey",
       icon: FileText,

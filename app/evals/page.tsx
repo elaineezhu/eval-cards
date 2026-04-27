@@ -11,7 +11,7 @@ import { PageHeader } from "@/components/page-header"
 import { Button } from "@/components/ui/button"
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible"
 import { Input } from "@/components/ui/input"
-import type { EvalHierarchy } from "@/lib/backend-artifacts"
+import type { EvalHierarchy, SignalSummaries } from "@/lib/backend-artifacts"
 import type { BenchmarkCard, CategoryType } from "@/lib/benchmark-schema"
 import type { BenchmarkEvalListItem } from "@/lib/eval-processing"
 import { fetchBenchmarkMetadata, fetchEvalHierarchy, fetchEvalList } from "@/lib/dashboard-data-client"
@@ -251,7 +251,7 @@ interface EvalBrowserMatrixPreviewRow {
   value: string
 }
 
-interface EvalBrowserNode {
+interface EvalBrowserNode extends SignalSummaries {
   id: string
   parentId: string | null
   kind: EvalBrowserNodeKind
@@ -261,6 +261,7 @@ interface EvalBrowserNode {
   description: string
   category: CategoryType
   domains: string[]
+  tasks: string[]
   dataType?: string
   license?: string
   card?: BenchmarkCard
@@ -272,6 +273,8 @@ interface EvalBrowserNode {
   childIds: string[]
   href?: string
   scopeKeys: string[]
+  /** Reporting completeness score in [0, 1] when known, otherwise undefined. */
+  completenessScore?: number
   matrixPreview?: {
     columnLabel: string
     rows: EvalBrowserMatrixPreviewRow[]
@@ -336,6 +339,86 @@ function summarizeNodeStats(
     0
   )
 
+  // Aggregate signals across all summaries under this node so a family card
+  // can show signals that span its children.
+  const reproducibilitySummaries = summaries
+    .map((s) => s.reproducibility_summary)
+    .filter((value): value is NonNullable<typeof value> => Boolean(value))
+  const provenanceSummaries = summaries
+    .map((s) => s.provenance_summary)
+    .filter((value): value is NonNullable<typeof value> => Boolean(value))
+  const comparabilitySummaries = summaries
+    .map((s) => s.comparability_summary)
+    .filter((value): value is NonNullable<typeof value> => Boolean(value))
+
+  const reproducibility_summary = reproducibilitySummaries.length
+    ? reproducibilitySummaries.reduce(
+        (acc, item) => ({
+          results_total: acc.results_total + item.results_total,
+          has_reproducibility_gap_count:
+            acc.has_reproducibility_gap_count + item.has_reproducibility_gap_count,
+          populated_ratio_avg: null,
+        }),
+        { results_total: 0, has_reproducibility_gap_count: 0, populated_ratio_avg: null as number | null }
+      )
+    : undefined
+
+  const provenance_summary = provenanceSummaries.length
+    ? provenanceSummaries.reduce(
+        (acc, item) => {
+          for (const key of ["first_party", "third_party", "collaborative", "unspecified"] as const) {
+            acc.source_type_distribution[key] += item.source_type_distribution[key] ?? 0
+          }
+          return {
+            total_results: acc.total_results + item.total_results,
+            total_groups: acc.total_groups + item.total_groups,
+            multi_source_groups: acc.multi_source_groups + item.multi_source_groups,
+            first_party_only_groups: acc.first_party_only_groups + item.first_party_only_groups,
+            source_type_distribution: acc.source_type_distribution,
+          }
+        },
+        {
+          total_results: 0,
+          total_groups: 0,
+          multi_source_groups: 0,
+          first_party_only_groups: 0,
+          source_type_distribution: {
+            first_party: 0,
+            third_party: 0,
+            collaborative: 0,
+            unspecified: 0,
+          },
+        }
+      )
+    : undefined
+
+  const comparability_summary = comparabilitySummaries.length
+    ? comparabilitySummaries.reduce(
+        (acc, item) => ({
+          total_groups: acc.total_groups + item.total_groups,
+          groups_with_variant_check: acc.groups_with_variant_check + item.groups_with_variant_check,
+          groups_with_cross_party_check: acc.groups_with_cross_party_check + item.groups_with_cross_party_check,
+          variant_divergent_count: acc.variant_divergent_count + item.variant_divergent_count,
+          cross_party_divergent_count: acc.cross_party_divergent_count + item.cross_party_divergent_count,
+        }),
+        {
+          total_groups: 0,
+          groups_with_variant_check: 0,
+          groups_with_cross_party_check: 0,
+          variant_divergent_count: 0,
+          cross_party_divergent_count: 0,
+        }
+      )
+    : undefined
+
+  // Average completeness score across summaries that report one.
+  const completenessScores = summaries
+    .map((s) => s.evalcards?.annotations?.reporting_completeness?.completeness_score)
+    .filter((v): v is number => typeof v === "number" && Number.isFinite(v))
+  const completenessScore = completenessScores.length
+    ? completenessScores.reduce((sum, value) => sum + value, 0) / completenessScores.length
+    : undefined
+
   return {
     category: getDominantCategory(summaries, fallbackCategory),
     modelsCount,
@@ -346,6 +429,10 @@ function summarizeNodeStats(
       summaries[0]?.source_data?.hf_repo ??
       summaries[0]?.source_data?.dataset_name ??
       "Hierarchy summary",
+    reproducibility_summary,
+    provenance_summary,
+    comparability_summary,
+    completenessScore,
   }
 }
 
@@ -433,6 +520,94 @@ function getNodeCard(
   }
 
   return undefined
+}
+
+/**
+ * Compact signal indicators for a node card. Shown alongside (or instead of)
+ * the benchmark-card-derived metadata so that nodes lacking a benchmark card
+ * still surface useful interpretive context.
+ */
+function NodeSignalChips({ node }: { node: EvalBrowserNode }) {
+  const repro = node.reproducibility_summary
+  const prov = node.provenance_summary
+  const comparability = node.comparability_summary
+  const completeness = node.completenessScore
+
+  const reproPercent =
+    repro && repro.results_total > 0
+      ? Math.round((repro.has_reproducibility_gap_count / repro.results_total) * 100)
+      : null
+
+  const firstPartyPercent =
+    prov && prov.total_groups > 0
+      ? Math.round((prov.first_party_only_groups / prov.total_groups) * 100)
+      : null
+
+  const variantDivergent = comparability?.variant_divergent_count ?? 0
+  const crossPartyDivergent = comparability?.cross_party_divergent_count ?? 0
+
+  const completenessPercent = completeness != null ? Math.round(completeness * 100) : null
+
+  const hasAny =
+    reproPercent !== null ||
+    firstPartyPercent !== null ||
+    variantDivergent > 0 ||
+    crossPartyDivergent > 0 ||
+    completenessPercent !== null
+
+  if (!hasAny) {
+    return null
+  }
+
+  return (
+    <div className="mb-3 flex flex-wrap gap-1.5">
+      {completenessPercent !== null && (
+        <span
+          className={cn(
+            "inline-flex items-center gap-1 rounded-full border px-2.5 py-0.5 text-[10px] font-semibold",
+            completenessPercent >= 50
+              ? "border-emerald-200 bg-emerald-50 text-emerald-800 dark:border-emerald-900/50 dark:bg-emerald-950/30 dark:text-emerald-200"
+              : "border-amber-200 bg-amber-50 text-amber-800 dark:border-amber-900/50 dark:bg-amber-950/30 dark:text-amber-200"
+          )}
+          title={`Documentation completeness: ${completenessPercent}% of EvalCards fields populated.`}
+        >
+          {completenessPercent}% documented
+        </span>
+      )}
+      {reproPercent !== null && reproPercent > 0 && (
+        <span
+          className="inline-flex items-center gap-1 rounded-full border border-amber-200 bg-amber-50 px-2.5 py-0.5 text-[10px] font-semibold text-amber-800 dark:border-amber-900/50 dark:bg-amber-950/30 dark:text-amber-200"
+          title={`${repro?.has_reproducibility_gap_count.toLocaleString()} of ${repro?.results_total.toLocaleString()} reported scores missing setup details.`}
+        >
+          {reproPercent}% setup gaps
+        </span>
+      )}
+      {firstPartyPercent !== null && firstPartyPercent >= 50 && (
+        <span
+          className="inline-flex items-center gap-1 rounded-full border border-amber-200 bg-amber-50 px-2.5 py-0.5 text-[10px] font-semibold text-amber-800 dark:border-amber-900/50 dark:bg-amber-950/30 dark:text-amber-200"
+          title={`${firstPartyPercent}% of (model, metric) groups have only first-party reports — no independent replication.`}
+        >
+          {firstPartyPercent}% 1st-party only
+        </span>
+      )}
+      {variantDivergent > 0 && (
+        <span
+          className="inline-flex items-center gap-1 rounded-full border border-rose-200 bg-rose-50 px-2.5 py-0.5 text-[10px] font-semibold text-rose-800 dark:border-rose-900/50 dark:bg-rose-950/30 dark:text-rose-200"
+          title={`${variantDivergent} group${variantDivergent === 1 ? "" : "s"} where setup variations produced diverging scores.`}
+        >
+          {variantDivergent} setup divergence{variantDivergent === 1 ? "" : "s"}
+        </span>
+      )}
+      {crossPartyDivergent > 0 && (
+        <span
+          className="inline-flex items-center gap-1 rounded-full border border-violet-200 bg-violet-50 px-2.5 py-0.5 text-[10px] font-semibold text-violet-800 dark:border-violet-900/50 dark:bg-violet-950/30 dark:text-violet-200"
+          title={`${crossPartyDivergent} group${crossPartyDivergent === 1 ? "" : "s"} where different organizations reported diverging scores.`}
+        >
+          {crossPartyDivergent} source disagreement{crossPartyDivergent === 1 ? "" : "s"}
+        </span>
+      )}
+    </div>
+  )
 }
 
 function looksLikeLanguageSplit(value: string) {
@@ -528,6 +703,7 @@ export default function EvalsPage() {
   const [totalModels, setTotalModels] = useState(0)
   const [searchQuery, setSearchQuery] = useState("")
   const [selectedDomain, setSelectedDomain] = useState<string | null>(null)
+  const [selectedTask, setSelectedTask] = useState<string | null>(null)
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null)
   const [selectedNodeKind, setSelectedNodeKind] = useState<EvalBrowserNodeKind | null>(null)
   const [currentNodeId, setCurrentNodeId] = useState<string | null>(null)
@@ -558,10 +734,12 @@ export default function EvalsPage() {
       const params = new URLSearchParams(window.location.search)
       const incomingSearch = params.get("search") ?? ""
       const incomingDomain = params.get("domain")
+      const incomingTask = params.get("task")
       const incomingCategory = params.get("category")
       const incomingNode = params.get("node")
       setSearchQuery(incomingSearch)
       setSelectedDomain(incomingDomain)
+      setSelectedTask(incomingTask)
       setSelectedCategory(incomingCategory)
       setCurrentNodeId(incomingNode)
     }
@@ -586,6 +764,9 @@ export default function EvalsPage() {
     if (selectedDomain) {
       params.set("domain", selectedDomain)
     }
+    if (selectedTask) {
+      params.set("task", selectedTask)
+    }
     if (selectedCategory) {
       params.set("category", selectedCategory)
     }
@@ -607,7 +788,7 @@ export default function EvalsPage() {
     }
 
     pendingHistoryActionRef.current = "replace"
-  }, [currentNodeId, searchQuery, selectedCategory, selectedDomain])
+  }, [currentNodeId, searchQuery, selectedCategory, selectedDomain, selectedTask])
 
   const summariesWithCards = useMemo(() => {
     return summaries.map((summary) => {
@@ -665,6 +846,7 @@ export default function EvalsPage() {
       suiteLabel,
       category,
       domains,
+      tasks,
       summaries,
       card,
       sourceLabel,
@@ -682,6 +864,7 @@ export default function EvalsPage() {
       suiteLabel?: string
       category: CategoryType
       domains: string[]
+      tasks?: string[]
       summaries: BenchmarkEvalListItem[]
       card?: BenchmarkCard
       sourceLabel?: string
@@ -692,6 +875,7 @@ export default function EvalsPage() {
       descriptionFallback: string
     }) => {
       const stats = summarizeNodeStats(summaries, category)
+      const summaryTasks = summaries.flatMap((summary) => summary.tags?.tasks ?? [])
       addNode({
         id,
         parentId,
@@ -702,6 +886,7 @@ export default function EvalsPage() {
         description: buildDescription(title, card, descriptionFallback),
         category: stats.category,
         domains: Array.from(new Set(domains.flatMap((domain) => normalizeDomainList(domain)))),
+        tasks: Array.from(new Set([...(tasks ?? []), ...summaryTasks].map((task) => task.trim()).filter(Boolean))),
         dataType: card?.benchmark_details?.data_type,
         license: card?.ethical_and_legal_considerations?.data_licensing,
         card,
@@ -714,6 +899,10 @@ export default function EvalsPage() {
         href,
         scopeKeys,
         matrixPreview,
+        reproducibility_summary: stats.reproducibility_summary,
+        provenance_summary: stats.provenance_summary,
+        comparability_summary: stats.comparability_summary,
+        completenessScore: stats.completenessScore,
       })
     }
 
@@ -799,6 +988,7 @@ export default function EvalsPage() {
       slices = [],
       metrics = [],
       scopeKeys,
+      fallbackEvalId,
     }: {
       parentId: string | null
       familyLabel?: string
@@ -812,6 +1002,8 @@ export default function EvalsPage() {
       slices?: Array<{ key: string; display_name: string; metrics: Array<{ key: string; display_name: string }> }>
       metrics?: Array<{ key: string; display_name: string }>
       scopeKeys: string[]
+      /** Final-resort eval id when no summary or fallback summary matches; comes from leaf.eval_summary_ids */
+      fallbackEvalId?: string
     }) => {
       const benchmarkId = `${parentId ?? "root"}::benchmark:${normalizeBenchmarkKey(benchmarkKey)}`
       const card = summary?.benchmark_card ?? getNodeCard(benchmarkCards, ...cardCandidates)
@@ -821,6 +1013,13 @@ export default function EvalsPage() {
         !summary && metrics.length > 0
           ? scopeKeys.map((scopeKey) => pickSummaryForKey(summariesWithCards, scopeKey, scopeKeys)).find(Boolean)
           : undefined
+      const resolvedHref = summary
+        ? `/evals/${summary.evaluation_id}`
+        : fallbackSummary
+          ? `/evals/${fallbackSummary.evaluation_id}`
+          : fallbackEvalId
+            ? `/evals/${fallbackEvalId}`
+            : undefined
       const isParentRollupBenchmark =
         Boolean(parentId) && scopeKeys.some((scopeKey) => isSameHierarchyKey(scopeKey, benchmarkKey))
 
@@ -829,10 +1028,10 @@ export default function EvalsPage() {
 
         if (drilldownSlices.length > 0) {
           createSliceNodes(parentId, parentLabel, summary, drilldownSlices, category, scopeKeys)
-        } else if (summary) {
+        } else if (resolvedHref) {
           const parent = nodes.get(parentId)
           if (parent && !parent.href) {
-            parent.href = `/evals/${summary.evaluation_id}`
+            parent.href = resolvedHref
           }
         }
         return
@@ -849,14 +1048,7 @@ export default function EvalsPage() {
         domains,
         summaries: summary ? [summary] : [],
         card,
-        href:
-          drilldownSlices.length === 0
-            ? summary
-              ? `/evals/${summary.evaluation_id}`
-              : fallbackSummary
-                ? `/evals/${fallbackSummary.evaluation_id}`
-                : undefined
-            : undefined,
+        href: drilldownSlices.length === 0 ? resolvedHref : undefined,
         scopeKeys,
         descriptionFallback: `Browse the {label} benchmark and its lower-level breakdowns.`,
       })
@@ -1038,6 +1230,7 @@ export default function EvalsPage() {
             slices: standalone.slices ?? [],
             metrics: standalone.metrics ?? [],
             scopeKeys: familyScopeKeys,
+            fallbackEvalId: standalone.summary_eval_ids?.[0],
           })
         }
 
@@ -1199,6 +1392,8 @@ export default function EvalsPage() {
               })),
         metrics: benchmarkSource?.metrics ?? family.metrics ?? [],
         scopeKeys: familyScopeKeys,
+        fallbackEvalId:
+          benchmarkSource?.summary_eval_ids?.[0] ?? family.eval_summary_ids?.[0],
       })
     }
 
@@ -1243,6 +1438,7 @@ export default function EvalsPage() {
         node.description,
         node.sourceLabel,
         ...node.domains,
+        ...node.tasks,
       ]
 
       return haystacks.some((value) => value?.toLowerCase().includes(query))
@@ -1261,6 +1457,12 @@ export default function EvalsPage() {
       domainCandidates = domainCandidates.filter((node) => node.category === selectedCategory)
     }
 
+    if (selectedTask) {
+      domainCandidates = domainCandidates.filter((node) =>
+        node.tasks.some((task) => task.toLowerCase() === selectedTask.toLowerCase())
+      )
+    }
+
     for (const node of domainCandidates) {
       for (const domain of node.domains) {
         domainSet.add(domain)
@@ -1268,7 +1470,34 @@ export default function EvalsPage() {
     }
 
     return Array.from(domainSet).sort((a, b) => a.localeCompare(b))
-  }, [nodesMatchingSearch, selectedCategory])
+  }, [nodesMatchingSearch, selectedCategory, selectedNodeKind, selectedTask])
+
+  const allTasks = useMemo(() => {
+    const taskSet = new Set<string>()
+    let taskCandidates = nodesMatchingSearch
+
+    if (selectedNodeKind) {
+      taskCandidates = taskCandidates.filter((node) => node.kind === selectedNodeKind)
+    }
+
+    if (selectedCategory) {
+      taskCandidates = taskCandidates.filter((node) => node.category === selectedCategory)
+    }
+
+    if (selectedDomain) {
+      taskCandidates = taskCandidates.filter((node) =>
+        node.domains.some((domain) => domain.toLowerCase() === selectedDomain.toLowerCase())
+      )
+    }
+
+    for (const node of taskCandidates) {
+      for (const task of node.tasks) {
+        taskSet.add(task)
+      }
+    }
+
+    return Array.from(taskSet).sort((a, b) => a.localeCompare(b)).slice(0, 40)
+  }, [nodesMatchingSearch, selectedCategory, selectedDomain, selectedNodeKind])
 
   const allCategories = useMemo(() => {
     const categorySet = new Set<string>()
@@ -1284,12 +1513,18 @@ export default function EvalsPage() {
       )
     }
 
+    if (selectedTask) {
+      categoryCandidates = categoryCandidates.filter((node) =>
+        node.tasks.some((task) => task.toLowerCase() === selectedTask.toLowerCase())
+      )
+    }
+
     for (const node of categoryCandidates) {
       categorySet.add(node.category)
     }
 
     return Array.from(categorySet).sort((a, b) => a.localeCompare(b))
-  }, [nodesMatchingSearch, selectedDomain])
+  }, [nodesMatchingSearch, selectedDomain, selectedNodeKind, selectedTask])
 
   const filtered = useMemo(() => {
     let list = [...nodesMatchingSearch]
@@ -1306,19 +1541,33 @@ export default function EvalsPage() {
       )
     }
 
+    if (selectedTask) {
+      list = list.filter((node) =>
+        node.tasks.some(
+          (task) => task.toLowerCase() === selectedTask.toLowerCase()
+        )
+      )
+    }
+
     if (selectedCategory) {
       list = list.filter((node) => node.category === selectedCategory)
     }
 
     list.sort((a, b) => a.title.localeCompare(b.title, undefined, { sensitivity: "base" }))
     return list
-  }, [nodesMatchingSearch, selectedCategory, selectedDomain, selectedNodeKind])
+  }, [nodesMatchingSearch, selectedCategory, selectedDomain, selectedNodeKind, selectedTask])
 
   useEffect(() => {
     if (selectedDomain && !allDomains.includes(selectedDomain)) {
       setSelectedDomain(null)
     }
   }, [allDomains, selectedDomain])
+
+  useEffect(() => {
+    if (selectedTask && !allTasks.includes(selectedTask)) {
+      setSelectedTask(null)
+    }
+  }, [allTasks, selectedTask])
 
   useEffect(() => {
     if (selectedCategory && !allCategories.includes(selectedCategory)) {
@@ -1328,7 +1577,7 @@ export default function EvalsPage() {
 
   useEffect(() => {
     setPage(1)
-  }, [currentNodeId, searchQuery, selectedCategory, selectedDomain, selectedNodeKind])
+  }, [currentNodeId, searchQuery, selectedCategory, selectedDomain, selectedNodeKind, selectedTask])
 
   const pagedNodes = useMemo(
     () => filtered.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE),
@@ -1336,7 +1585,7 @@ export default function EvalsPage() {
   )
 
   const currentLevelKinds = Array.from(new Set(currentLevelNodes.map((node) => node.kind)))
-  const activeFilterCount = [searchQuery.trim(), selectedDomain, selectedCategory, selectedNodeKind].filter(Boolean).length
+  const activeFilterCount = [searchQuery.trim(), selectedDomain, selectedTask, selectedCategory, selectedNodeKind].filter(Boolean).length
   const currentLevelLabel =
     currentNodeId === null
       ? "Rollout entry level"
@@ -1480,6 +1729,7 @@ export default function EvalsPage() {
                   onClick={() => {
                     setSearchQuery("")
                     setSelectedDomain(null)
+                    setSelectedTask(null)
                     setSelectedCategory(null)
                     setSelectedNodeKind(null)
                   }}
@@ -1545,7 +1795,7 @@ export default function EvalsPage() {
                 </div>
               </div>
 
-              {hierarchy && (
+              {hierarchy?.stats && (
                 <div className="flex flex-wrap gap-2 text-sm">
                   <span className="rounded-full border border-stone-200/80 bg-stone-50/80 px-3 py-1.5 font-medium text-stone-700 dark:border-stone-700/80 dark:bg-stone-900/70 dark:text-stone-200">
                     {hierarchy.stats.family_count} families
@@ -1663,6 +1913,43 @@ export default function EvalsPage() {
                           )}
                         >
                           {domain}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+                {allTasks.length > 0 && (
+                  <div className="mt-4 space-y-1.5">
+                    <div className="text-[11px] font-semibold uppercase tracking-[0.2em] text-stone-500 dark:text-stone-400">
+                      Task type
+                    </div>
+                    <div className="flex max-h-40 flex-wrap items-center gap-1.5 overflow-y-auto pr-1">
+                      <button
+                        type="button"
+                        onClick={() => setSelectedTask(null)}
+                        className={cn(
+                          "shrink-0 rounded-full border px-3 py-1.5 text-xs font-medium transition-colors",
+                          selectedTask === null
+                            ? "border-stone-950 bg-stone-950 text-stone-50 dark:border-stone-100 dark:bg-stone-100 dark:text-stone-950"
+                            : "border-stone-200/80 bg-stone-50/80 text-stone-600 hover:bg-stone-100 dark:border-stone-700/80 dark:bg-stone-900/70 dark:text-stone-300 dark:hover:bg-stone-800"
+                        )}
+                      >
+                        All
+                      </button>
+                      {allTasks.map((task) => (
+                        <button
+                          key={task}
+                          type="button"
+                          onClick={() => setSelectedTask(selectedTask === task ? null : task)}
+                          className={cn(
+                            "shrink-0 rounded-full border px-3 py-1.5 text-xs font-medium transition-colors capitalize",
+                            selectedTask === task
+                              ? "border-emerald-300 bg-emerald-50 text-emerald-800 dark:border-emerald-800 dark:bg-emerald-950/50 dark:text-emerald-200"
+                              : "border-stone-200/80 bg-white text-stone-600 hover:bg-stone-50 dark:border-stone-700/80 dark:bg-stone-900 dark:text-stone-300 dark:hover:bg-stone-800"
+                          )}
+                        >
+                          {task}
                         </button>
                       ))}
                     </div>
@@ -1793,6 +2080,8 @@ export default function EvalsPage() {
                   <h3 className="relative mb-2 text-lg font-bold tracking-tight text-stone-950 transition-colors group-hover:text-stone-700 dark:text-stone-50 dark:group-hover:text-stone-200">
                     {node.title}
                   </h3>
+
+                  <NodeSignalChips node={node} />
 
                   {node.description && (
                     <p className="mb-4 flex-1 text-sm leading-6 text-stone-600 line-clamp-3 dark:text-stone-300">

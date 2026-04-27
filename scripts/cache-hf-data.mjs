@@ -32,11 +32,13 @@ const CACHE_ROOT_FILES = [
   "benchmark-metadata.json",
   "eval-hierarchy.json",
   "comparison-index.json",
+  "corpus-aggregates.json",
 ]
 
 const OPTIONAL_CACHE_ROOT_FILES = new Set([
   "model-cards-lite.json",
   "eval-list-lite.json",
+  "corpus-aggregates.json",
 ])
 
 const CACHE_DIRECTORIES = ["developers", "evals", "models"]

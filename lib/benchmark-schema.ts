@@ -3,6 +3,8 @@
  * Based on the evalevalai.com schema structure
  */
 
+import type { EvalcardsAnnotations, RowAnnotations, SignalSummaries } from "@/lib/backend-artifacts"
+
 export interface BenchmarkEvaluation {
   schema_version: string
   eval_summary_id?: string
@@ -31,6 +33,7 @@ export interface BenchmarkEvaluation {
   generation_config?: GenerationConfig
   evaluation_results: EvaluationResult[]
   detailed_evaluation_results_per_samples?: SampleResult[]
+  evalcards?: { annotations?: EvalcardsAnnotations }
 }
 
 export interface EvalLibrary {
@@ -96,6 +99,7 @@ export interface EvaluationResult {
   score_details: ScoreDetails
   detailed_evaluation_results_url?: string
   generation_config?: GenerationConfig
+  evalcards?: { annotations?: RowAnnotations }
 }
 
 export interface MetricConfig {
@@ -208,7 +212,7 @@ export function inferCategoryFromBenchmark(benchmarkName: string): CategoryType 
 /**
  * Aggregate evaluations by model
  */
-export interface ModelSummaryCore {
+export interface ModelSummaryCore extends SignalSummaries {
   model_info: ModelInfo
   evaluations_by_category: Record<CategoryType, BenchmarkEvaluation[]>
   total_evaluations: number
@@ -275,6 +279,9 @@ export interface EvaluationCardData {
     max: number
     average: number | null
   }
+  reproducibility_summary?: SignalSummaries["reproducibility_summary"]
+  provenance_summary?: SignalSummaries["provenance_summary"]
+  comparability_summary?: SignalSummaries["comparability_summary"]
   
   // Quick stats
   top_scores: Array<{

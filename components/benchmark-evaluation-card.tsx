@@ -5,6 +5,7 @@ import { useMemo } from "react"
 import { useAudienceMode } from "@/components/audience-mode-provider"
 import { useRouter } from "next/navigation"
 import {
+  AlertTriangle,
   Award,
   ChevronDown,
   ChevronRight,
@@ -14,6 +15,7 @@ import {
 } from "lucide-react"
 
 import type { CategoryType } from "@/lib/benchmark-schema"
+import type { SignalSummaries } from "@/lib/backend-artifacts"
 import { getCategoryColor } from "@/lib/benchmark-schema"
 import type { BenchmarkCard } from "@/lib/benchmark-schema"
 import { lookupBenchmarkCard } from "@/lib/benchmark-metadata-utils"
@@ -59,6 +61,9 @@ export type BenchmarkEvaluationCardData = {
     max: number
     average: number | null
   }
+  reproducibility_summary?: SignalSummaries["reproducibility_summary"]
+  provenance_summary?: SignalSummaries["provenance_summary"]
+  comparability_summary?: SignalSummaries["comparability_summary"]
 
   top_scores: Array<{
     benchmark: string
@@ -262,6 +267,8 @@ export function BenchmarkEvaluationCard({
   const scoreRange = [formatScoreValue(data.score_summary?.min), formatScoreValue(data.score_summary?.max)]
     .filter((value): value is string => Boolean(value))
     .join(" to ")
+  const reproducibilityGapCount = data.reproducibility_summary?.has_reproducibility_gap_count ?? 0
+  const reproducibilityTotal = data.reproducibility_summary?.results_total ?? data.evaluations_count
 
   return (
     <Card
@@ -297,6 +304,12 @@ export function BenchmarkEvaluationCard({
               {paramsBillions && <Badge variant="secondary">{paramsBillions} parameters</Badge>}
               <Badge variant="outline">{data.benchmarks_count} benchmark suites</Badge>
               <Badge variant="outline">{data.evaluations_count} reported results</Badge>
+              {reproducibilityGapCount > 0 && (
+                <Badge className="border-amber-300 bg-amber-50 text-amber-900 hover:bg-amber-50 dark:border-amber-900/60 dark:bg-amber-950/40 dark:text-amber-100">
+                  <AlertTriangle className="h-3 w-3" />
+                  {reproducibilityGapCount} setup gaps
+                </Badge>
+              )}
             </div>
           </div>
 
@@ -446,6 +459,12 @@ export function BenchmarkEvaluationCard({
               {data.architecture && <KeyValueRow label="Architecture" value={data.architecture} />}
               {data.source_types.length > 0 && (
                 <KeyValueRow label="Artifact type" value={data.source_types.map((s) => s.replace(/_/g, " ")).join(", ")} />
+              )}
+              {reproducibilityGapCount > 0 && (
+                <KeyValueRow
+                  label="Re-runnability"
+                  value={`${reproducibilityGapCount} of ${reproducibilityTotal} reported scores are not fully documented`}
+                />
               )}
             </div>
           </CollapsibleContent>

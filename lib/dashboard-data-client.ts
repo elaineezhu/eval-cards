@@ -1,4 +1,4 @@
-import type { BackendManifestStatus, ComparisonIndex, EvalHierarchy } from "@/lib/backend-artifacts"
+import type { BackendManifestStatus, ComparisonIndex, CorpusAggregates, EvalHierarchy } from "@/lib/backend-artifacts"
 import type { BenchmarkEvaluationCardData } from "@/components/benchmark-evaluation-card"
 import type { HFEvalDetail } from "@/lib/hf-data"
 import type {
@@ -107,4 +107,8 @@ export function fetchEvalHierarchy() {
 
 export function fetchComparisonIndex() {
   return fetchJson<ComparisonIndex>("/api/comparison-index")
+}
+
+export function fetchCorpusAggregates() {
+  return fetchJson<CorpusAggregates>("/api/corpus-aggregates")
 }
