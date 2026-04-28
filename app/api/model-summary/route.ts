@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server"
 
-import { getModelSummaryById } from "@/lib/model-data"
+import { getModelSummaryById } from "@/lib/data-backend"
 
 export async function GET(request: Request) {
   const { searchParams } = new URL(request.url)

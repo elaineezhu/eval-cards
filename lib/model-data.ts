@@ -8,7 +8,6 @@ import type {
   EvaluationResult,
   ModelInfo,
   SourceData,
-  SourceMetadata,
 } from "@/lib/benchmark-schema"
 import type { BackendManifest, BackendManifestStatus, EvalHierarchy } from "@/lib/backend-artifacts"
 import { inferCategoryFromBenchmark } from "@/lib/benchmark-schema"
@@ -49,6 +48,23 @@ import {
 // ---------------------------------------------------------------------------
 // Helpers
 // ---------------------------------------------------------------------------
+
+// Pipeline contract: every model_result row carries source_metadata. UI
+// components dereference source_metadata.evaluator_relationship etc. without
+// optional chaining (~30 sites in components/benchmark-detail.tsx), so a
+// silent undefined would surface as a TypeError mid-page-render. Fail loud
+// at the read boundary instead so the offending row is identifiable.
+function assertSourceMetadata(
+  result: { source_metadata?: unknown; evaluation_id?: string; model_id?: string },
+  context: string
+): asserts result is typeof result & { source_metadata: NonNullable<typeof result.source_metadata> } {
+  if (!result.source_metadata) {
+    throw new Error(
+      `Pipeline contract broken: missing source_metadata on model_result ` +
+      `(${context} model=${result.model_id ?? "?"} eval=${result.evaluation_id ?? "?"})`
+    )
+  }
+}
 
 function slugifyEvalId(value: string) {
   return value.toLowerCase().replace(/[^a-z0-9]+/g, "_").replace(/^_|_$/g, "")
@@ -128,7 +144,7 @@ function normalizeBenchmarkKeyForLookup(key: string) {
   return key.toLowerCase().replace(/[-.\s]+/g, "_").replace(/^_+|_+$/g, "")
 }
 
-function getBenchmarkDisplayName(benchmark: string) {
+export function getBenchmarkDisplayName(benchmark: string) {
   return BENCHMARK_NAMES[normalizeBenchmarkKeyForLookup(benchmark)] ?? humanizeToken(benchmark)
 }
 
@@ -141,7 +157,7 @@ function pipelineSlugify(text: string) {
   )
 }
 
-function getDeveloperRouteId(developer: string) {
+export function getDeveloperRouteId(developer: string) {
   return pipelineSlugify(developer.trim().toLowerCase())
 }
 
@@ -169,7 +185,7 @@ function getModelDetailSlugCandidates(modelId: string): string[] {
   return Array.from(candidates)
 }
 
-function getDeveloperSlugCandidates(developerOrRouteId: string): string[] {
+export function getDeveloperSlugCandidates(developerOrRouteId: string): string[] {
   const normalized = developerOrRouteId.trim()
   const candidates = new Set<string>()
   const lowercase = normalized.toLowerCase()
@@ -218,7 +234,7 @@ const KNOWN_DEVELOPER_NAMES: Record<string, string> = {
   "x-ai": "xAI",
 }
 
-function normalizeDeveloperName(name: string): string {
+export function normalizeDeveloperName(name: string): string {
   const key = name.trim().toLowerCase()
   if (KNOWN_DEVELOPER_NAMES[key]) return KNOWN_DEVELOPER_NAMES[key]
   // Title-case if the name is all-lowercase and not a compound like "01-ai"
@@ -277,7 +293,7 @@ function getModelCardTopScores(entry: HFModelCardEntry): EvaluationCardData["top
   ]
 }
 
-function getDeveloperBenchmarkStats(models: HFModelCardEntry[]) {
+export function getDeveloperBenchmarkStats(models: HFModelCardEntry[]) {
   const benchmarkCounts = new Map<string, number>()
 
   for (const model of models) {
@@ -360,7 +376,7 @@ function attachModelSignalSummaries<T extends ReturnType<typeof createModelFamil
 // HF model-cards.json → EvaluationCardData
 // ---------------------------------------------------------------------------
 
-function hfModelCardToEvaluationCardData(entry: HFModelCardEntry): EvaluationCardData {
+export function hfModelCardToEvaluationCardData(entry: HFModelCardEntry): EvaluationCardData {
   const canonicalIdentity = getCanonicalModelIdentity({
     id: entry.model_family_id,
     name: entry.model_family_name,
@@ -430,7 +446,7 @@ function hfModelCardToEvaluationCardData(entry: HFModelCardEntry): EvaluationCar
 // HF eval-list.json → BenchmarkEvalListItem
 // ---------------------------------------------------------------------------
 
-function hfEvalEntryToListItem(entry: HFEvalListEntry): BenchmarkEvalListItem {
+export function hfEvalEntryToListItem(entry: HFEvalListEntry): BenchmarkEvalListItem {
   // Use the pipeline's category directly, mapped to our CategoryType
   const category = mapHFCategories([entry.category])[0] ?? "General" as CategoryType
 
@@ -593,14 +609,6 @@ function extractBenchmarkSubtasks(detail: HFEvalDetail): NonNullable<BenchmarkEv
 
 function buildBenchmarkLeaderboardMatrix(detail: HFEvalDetail) {
   const benchmarkKey = detail.benchmark ?? ""
-  const sourceName = detail.source_data?.dataset_name || benchmarkKey
-  const sourceOrganization = detail.source_data?.hf_repo || sourceName
-  const sourceMetadata: SourceMetadata = {
-    source_type: "documentation",
-    source_name: sourceName,
-    source_organization_name: sourceOrganization,
-    evaluator_relationship: "other",
-  }
   const sourceData = detail.source_data ?? { dataset_name: benchmarkKey }
 
   const leaderboardMetrics: NonNullable<BenchmarkEvalSummary["leaderboard_metrics"]> = []
@@ -639,6 +647,7 @@ function buildBenchmarkLeaderboardMatrix(detail: HFEvalDetail) {
       if (!modelId) {
         continue
       }
+      assertSourceMetadata(modelResult, `eval=${detail.eval_summary_id} metric=${metric.metric_summary_id}`)
 
       const nextTimestamp = normalizeEvalTimestamp(modelResult.retrieved_timestamp ?? "")
       const existing = rowStates.get(modelId)
@@ -651,7 +660,7 @@ function buildBenchmarkLeaderboardMatrix(detail: HFEvalDetail) {
           },
           model_route_id: modelResult.model_route_id,
           evaluation_timestamp: modelResult.retrieved_timestamp ?? "",
-          source_metadata: sourceMetadata,
+          source_metadata: modelResult.source_metadata,
           source_data: sourceData,
           values: { [columnKey]: modelResult.score ?? null },
           annotations_by_metric: { [columnKey]: modelResult.evalcards?.annotations ?? null },
@@ -708,11 +717,10 @@ function toModelResultsForMetric(
   metric: HFEvalDetail["metrics"][number]
 ): ModelResultForBenchmark[] {
   const benchmarkKey = detail.benchmark ?? ""
-  const sourceName = detail.source_data?.dataset_name || benchmarkKey
-  const sourceOrganization = detail.source_data?.hf_repo || sourceName
   const metricConfig = toSummaryMetricConfig(metric)
 
   return (metric.model_results ?? []).map((mr) => {
+    assertSourceMetadata(mr, `eval=${detail.eval_summary_id} metric=${metric.metric_summary_id}`)
     const evaluationTimestamp = mr.retrieved_timestamp ?? ""
     const modelInfo: ModelInfo = {
       name: mr.model_name ?? "",
@@ -741,12 +749,7 @@ function toModelResultsForMetric(
       score: mr.score ?? 0,
       score_details: { score: mr.score ?? 0 },
       evaluation_timestamp: evaluationTimestamp,
-      source_metadata: {
-        source_type: "documentation" as const,
-        source_name: sourceName,
-        source_organization_name: sourceOrganization,
-        evaluator_relationship: "other" as const,
-      },
+      source_metadata: mr.source_metadata,
       source_data: detail.source_data ?? { dataset_name: benchmarkKey },
       result: evaluationResult,
       source_record_url: mr.source_record_url,
@@ -754,7 +757,7 @@ function toModelResultsForMetric(
   })
 }
 
-function hfEvalDetailToSummary(detail: HFEvalDetail): BenchmarkEvalSummary {
+export function hfEvalDetailToSummary(detail: HFEvalDetail): BenchmarkEvalSummary {
   const evalName = detail.benchmark_leaf_name || detail.eval_summary_id || "Unknown"
   const benchmarkKey = detail.benchmark ?? ""
   const allMetrics = detail.metrics ?? []
@@ -873,7 +876,7 @@ function hfEvalDetailToSummary(detail: HFEvalDetail): BenchmarkEvalSummary {
 // Aggregation (for aggregate eval summaries)
 // ---------------------------------------------------------------------------
 
-async function attachBenchmarkCardToSummary(summary: BenchmarkEvalSummary): Promise<BenchmarkEvalSummary> {
+export async function attachBenchmarkCardToSummary(summary: BenchmarkEvalSummary): Promise<BenchmarkEvalSummary> {
   if (summary.benchmark_card) return summary
 
   const candidates = [
@@ -1128,14 +1131,6 @@ function buildSingleMetricSuiteMatrixSummary(
     })
 
     const benchmarkKey = detail.benchmark ?? suiteKey
-    const sourceName = detail.source_data?.dataset_name || benchmarkKey
-    const sourceOrganization = detail.source_data?.hf_repo || sourceName
-    const sourceMetadata: SourceMetadata = {
-      source_type: "documentation",
-      source_name: sourceName,
-      source_organization_name: sourceOrganization,
-      evaluator_relationship: "other",
-    }
     const sourceData = detail.source_data ?? { dataset_name: benchmarkKey }
 
     for (const modelResult of metric.model_results ?? []) {
@@ -1143,6 +1138,7 @@ function buildSingleMetricSuiteMatrixSummary(
       if (!modelId) {
         continue
       }
+      assertSourceMetadata(modelResult, `suite=${suiteKey} metric=${metric.metric_summary_id}`)
 
       const nextTimestamp = normalizeEvalTimestamp(modelResult.retrieved_timestamp ?? "")
       const existing = rowStates.get(modelId)
@@ -1156,7 +1152,7 @@ function buildSingleMetricSuiteMatrixSummary(
           },
           model_route_id: modelResult.model_route_id,
           evaluation_timestamp: modelResult.retrieved_timestamp ?? "",
-          source_metadata: sourceMetadata,
+          source_metadata: modelResult.source_metadata,
           source_data: sourceData,
           values: { [columnKey]: modelResult.score ?? null },
           annotations_by_metric: { [columnKey]: modelResult.evalcards?.annotations ?? null },
@@ -1176,7 +1172,7 @@ function buildSingleMetricSuiteMatrixSummary(
       }
       if (nextTimestamp >= existing._timestampValue) {
         existing.evaluation_timestamp = modelResult.retrieved_timestamp ?? existing.evaluation_timestamp
-        existing.source_metadata = sourceMetadata
+        existing.source_metadata = modelResult.source_metadata
         existing.source_data = sourceData
         existing._timestampValue = nextTimestamp
       }
@@ -1407,6 +1403,35 @@ export async function getDeveloperList() {
   return details.sort((a, b) => a.developer.localeCompare(b.developer))
 }
 
+export function hfDeveloperDetailToSummary(detail: {
+  developer: string
+  models: HFModelCardEntry[]
+}) {
+  const modelCards = detail.models.map(hfModelCardToEvaluationCardData)
+  const benchmarkCounts = getDeveloperBenchmarkStats(detail.models)
+  const evaluationCount = detail.models.reduce(
+    (sum, model) => sum + model.total_evaluations,
+    0
+  )
+  const popularEvals = Array.from(benchmarkCounts.entries())
+    .sort((a, b) => b[1] - a[1])
+    .slice(0, 3)
+    .map(([benchmark, model_count]) => ({
+      benchmark: getBenchmarkDisplayName(benchmark),
+      model_count,
+    }))
+
+  return {
+    developer: normalizeDeveloperName(detail.developer),
+    route_id: getDeveloperRouteId(detail.developer),
+    model_count: detail.models.length,
+    benchmark_count: benchmarkCounts.size,
+    evaluation_count: evaluationCount,
+    popular_evals: popularEvals,
+    models: modelCards,
+  }
+}
+
 export async function getDeveloperSummaryById(routeId: string) {
   // Try direct slug lookup
   for (const slug of getDeveloperSlugCandidates(routeId)) {
@@ -1498,13 +1523,16 @@ export async function getModelSummaryById(modelId: string) {
     }
   }
 
-  // Try model-cards.json to find the right slug
+  // Try model-cards.json to find the right slug. Pipeline contract guarantees
+  // model_route_id === model_family_id.replace(/\//g, "__") on every card
+  // (verified in tests/pipeline-contract.test.ts and tests/upstream-drift.test.ts),
+  // so a separate `getModelFamilyRouteId(family_id) === modelId` clause would
+  // be redundant.
   const modelCards = await fetchModelCardsList()
   const matchedCard = modelCards.find(
     (card) =>
       card.model_family_id === modelId ||
-      card.model_route_id === modelId ||
-      getModelFamilyRouteId(card.model_family_id) === modelId
+      card.model_route_id === modelId
   )
 
   if (matchedCard) {

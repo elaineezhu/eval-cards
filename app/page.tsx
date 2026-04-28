@@ -3,7 +3,7 @@ import { Button } from "@/components/ui/button"
 import { ArrowRight, BookOpenText, Database, MessageSquare, Scale } from "lucide-react"
 import { HomeModeLabel } from "@/components/home-mode-label"
 import { Navigation } from "@/components/navigation"
-import { getBackendManifestData, getEvalListLiteData, getModelCardsLite } from "@/lib/model-data"
+import { getBackendManifestData, getEvalListLiteData, getModelCardsLite } from "@/lib/data-backend"
 
 function formatGeneratedAt(value: string | null | undefined) {
   if (!value) return "Unknown"

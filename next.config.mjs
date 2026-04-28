@@ -1,6 +1,7 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   // output: 'export',
+  serverExternalPackages: ["@duckdb/node-api"],
   eslint: {
     ignoreDuringBuilds: true,
   },

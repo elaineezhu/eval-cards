@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server"
 
-import { getEvalListLiteData } from "@/lib/model-data"
+import { getEvalListLiteData } from "@/lib/data-backend"
 
 export async function GET() {
   const data = await getEvalListLiteData()

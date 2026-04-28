@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server"
 
-import { getDeveloperList } from "@/lib/model-data"
+import { getDeveloperList } from "@/lib/data-backend"
 
 export async function GET() {
   const developers = await getDeveloperList()

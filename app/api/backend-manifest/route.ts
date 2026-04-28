@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server"
 
-import { getBackendManifestStatusData } from "@/lib/model-data"
+import { getBackendManifestStatusData } from "@/lib/data-backend"
 
 export async function GET() {
   const manifestStatus = await getBackendManifestStatusData()

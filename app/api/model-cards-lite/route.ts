@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server"
 
-import { getModelCardsLite } from "@/lib/model-data"
+import { getModelCardsLite } from "@/lib/data-backend"
 
 export async function GET() {
   const models = await getModelCardsLite()

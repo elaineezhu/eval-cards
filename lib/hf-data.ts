@@ -24,7 +24,6 @@ import type {
   SourceData,
   SourceMetadata,
 } from "@/lib/benchmark-schema"
-import { inferCategoryFromBenchmark } from "@/lib/benchmark-schema"
 import { getCanonicalModelIdentity, getModelFamilyRouteId } from "@/lib/model-family"
 
 // ---------------------------------------------------------------------------
@@ -38,7 +37,12 @@ const HF_BASE = `https://huggingface.co/datasets/${HF_DATASET}/resolve/main`
 // Local disk cache (populated by scripts/cache-hf-data.mjs during build)
 // ---------------------------------------------------------------------------
 
-const LOCAL_CACHE_DIR = path.join(process.cwd(), ".cache", "hf-data")
+// HF_DATA_LOCAL_DIR overrides the cache location so the JSON read path can be
+// pointed at a sibling repo's pipeline output for parity testing against the
+// DuckDB backend. Falls back to the cache populated by scripts/cache-hf-data.mjs.
+const LOCAL_CACHE_DIR = process.env.HF_DATA_LOCAL_DIR?.trim()
+  ? path.resolve(process.env.HF_DATA_LOCAL_DIR.trim())
+  : path.join(process.cwd(), ".cache", "hf-data")
 
 async function readLocalCache<T>(relativePath: string): Promise<T | null> {
   try {
@@ -129,7 +133,17 @@ function getManifestSignature(manifest: BackendManifest | null | undefined) {
   })
 }
 
+// HF_DATA_OFFLINE disables every network fetch, so the read path is fully
+// served by LOCAL_CACHE_DIR. Used by the DuckDB parity setup so two servers
+// reading the same on-disk artifacts cannot diverge mid-test via background
+// refresh, and useful generally for offline development.
+const OFFLINE = process.env.HF_DATA_OFFLINE === "1"
+
 async function fetchRemoteJson<T>(relativePath: string): Promise<T> {
+  if (OFFLINE) {
+    throw new Error(`HF_DATA_OFFLINE=1: refusing remote fetch for ${relativePath}`)
+  }
+
   const url = `${HF_BASE}/${relativePath}`
   let lastError: Error | null = null
 
@@ -539,10 +553,9 @@ export interface HFEvalModelResult {
   evaluation_id?: string
   retrieved_timestamp?: string
   source_record_url?: string
-  // Populated by pipeline versions that copy the parent record's provenance
-  // straight onto each hierarchy row. Older exports omit these; fall back to
-  // the evaluations_by_category index when missing.
-  source_metadata?: SourceMetadata
+  // The pipeline copies the parent record's provenance onto every hierarchy
+  // model_result row (commit 9090cc5, 2026-04-26). Required.
+  source_metadata: SourceMetadata
   source_data?: SourceData | string[]
   detailed_evaluation_results?: string | null
   detailed_evaluation_results_meta?: unknown
@@ -573,6 +586,7 @@ export interface HFEvalDetail extends SignalSummaries {
   benchmark_leaf_name: string
   benchmark_parent_key?: string
   benchmark_parent_name?: string
+  category: string
   source_data: SourceData
   benchmark_card: BenchmarkCard | null
   metrics: HFEvalMetric[]
@@ -685,7 +699,7 @@ export interface HFModelHierarchyNode {
   }
 }
 
-type HFModelHierarchySubtask = Partial<Omit<HFModelHierarchyNode, "subtasks">> & {
+export type HFModelHierarchySubtask = Partial<Omit<HFModelHierarchyNode, "subtasks">> & {
   subtask_key?: string
   subtask_name?: string
   canonical_display_name?: string
@@ -1157,23 +1171,6 @@ function toComparableTimestamp(timestamp: string | undefined) {
   return Number.isFinite(parsedTimestamp) ? parsedTimestamp : Number.NEGATIVE_INFINITY
 }
 
-function getCanonicalSourceMetadata(
-  sourceData: SourceData | undefined,
-  fallback: { displayName?: string; benchmarkFamilyName?: string }
-): SourceMetadata {
-  const sourceName = sourceData?.hf_repo ?? sourceData?.dataset_name ?? fallback.displayName
-  const sourceOrganizationName =
-    sourceData?.hf_repo?.split("/")[0] ?? sourceData?.dataset_name ?? fallback.benchmarkFamilyName
-
-  return {
-    source_name: sourceName,
-    source_type: sourceData?.source_type === "url" ? "leaderboard" : "evaluation_run",
-    source_organization_name: sourceOrganizationName ?? "Unknown",
-    source_organization_url: sourceData?.url?.[0],
-    evaluator_relationship: "other",
-  }
-}
-
 function buildVariantLookup(detail: HFModelDetail) {
   const variantLookup = new Map<string, { variantKey: string; variantLabel: string }>()
 
@@ -1292,7 +1289,6 @@ interface FlattenHierarchyContext {
   display_name?: string
   canonical_display_name?: string
   sourceData: SourceData
-  sourceMetadata: SourceMetadata
   benchmark_family_key?: string
   benchmark_family_name?: string
   benchmark_parent_key?: string
@@ -1331,10 +1327,6 @@ function buildFlattenHierarchyContext(
     display_name: displayName,
     canonical_display_name: canonicalDisplayName,
     sourceData,
-    sourceMetadata: getCanonicalSourceMetadata(sourceData, {
-      displayName,
-      benchmarkFamilyName,
-    }),
     benchmark_family_key: node.benchmark_family_key ?? inheritedContext?.benchmark_family_key,
     benchmark_family_name: benchmarkFamilyName,
     benchmark_parent_key: node.benchmark_parent_key ?? inheritedContext?.benchmark_parent_key,
@@ -1350,13 +1342,11 @@ function flattenHierarchyNode(
   category: CategoryType,
   rawModelIds: Set<string>,
   variantLookup: Map<string, { variantKey: string; variantLabel: string }>,
-  inheritedContext?: FlattenHierarchyContext,
-  sourceMetadataByEvaluationId?: Map<string, SourceMetadata>
+  inheritedContext?: FlattenHierarchyContext
 ): BenchmarkEvaluation[] {
   const evaluations: BenchmarkEvaluation[] = []
   const context = buildFlattenHierarchyContext(node, inheritedContext)
   const sourceData = context.sourceData
-  const sourceMetadata = context.sourceMetadata
 
   for (const metric of node.metrics ?? []) {
     const relevantResults = (metric.model_results ?? []).filter((result) =>
@@ -1374,22 +1364,24 @@ function flattenHierarchyNode(
         evaluationResults: EvaluationResult[]
         inlineSamples?: SampleResult[]
         latestTimestamp: string
-        sourceMetadataOverride?: SourceMetadata
+        sourceMetadata: SourceMetadata
       }
     >()
 
     for (const result of relevantResults) {
+      // Pipeline contract (commit 9090cc5): every model_result row carries
+      // source_metadata. Fail loud if a stale dataset breaks the contract —
+      // the UI dereferences source_metadata.* unguarded.
+      if (!result.source_metadata) {
+        throw new Error(
+          `Pipeline contract broken: missing source_metadata on model_result ` +
+          `(model_family=${detail.model_family_id} metric=${metric.metric_summary_id} eval=${result.evaluation_id})`
+        )
+      }
       const variantMeta = resolveVariantMeta(detail, variantLookup, result)
       const variantKey = variantMeta.variantKey || "default"
       const modelInfo = buildModelInfoForVariant(detail, result, variantMeta)
       const inlineSamples = parseInstanceLevelData(result.instance_level_data)
-      // Prefer source_metadata carried directly on the result row (populated
-      // by newer pipeline runs). Fall back to the by-evaluation-id index built
-      // from evaluations_by_category, which older exports still need.
-      const evaluationIdForResult = result.evaluation_id
-      const resolvedSourceMetadata: SourceMetadata | undefined =
-        result.source_metadata ??
-        (evaluationIdForResult ? sourceMetadataByEvaluationId?.get(evaluationIdForResult) : undefined)
       const evaluationResult: EvaluationResult = {
         evaluation_name: metric.metric_name || metric.evaluation_name || metric.display_name,
         display_name: metric.display_name || metric.metric_name || metric.evaluation_name,
@@ -1418,7 +1410,7 @@ function flattenHierarchyNode(
           evaluationResults: [evaluationResult],
           inlineSamples: inlineSamples.length > 0 ? inlineSamples : undefined,
           latestTimestamp: result.retrieved_timestamp ?? detail.last_updated ?? "",
-          sourceMetadataOverride: resolvedSourceMetadata,
+          sourceMetadata: result.source_metadata,
         })
         continue
       }
@@ -1431,14 +1423,10 @@ function flattenHierarchyNode(
         toComparableTimestamp(result.retrieved_timestamp) >=
         toComparableTimestamp(existing.latestTimestamp)
       ) {
+        // When multiple submissions land in the same variant bucket, prefer
+        // provenance from the freshest one.
         existing.latestTimestamp = result.retrieved_timestamp ?? existing.latestTimestamp
-        // Prefer source_metadata from the freshest submission when multiple
-        // submissions land in the same variant bucket.
-        if (resolvedSourceMetadata) {
-          existing.sourceMetadataOverride = resolvedSourceMetadata
-        }
-      } else if (!existing.sourceMetadataOverride && resolvedSourceMetadata) {
-        existing.sourceMetadataOverride = resolvedSourceMetadata
+        existing.sourceMetadata = result.source_metadata
       }
     }
 
@@ -1474,7 +1462,7 @@ function flattenHierarchyNode(
         slice_key: sliceKey,
         slice_name: sliceName,
         source_data: sourceData,
-        source_metadata: variantGroup.sourceMetadataOverride ?? sourceMetadata,
+        source_metadata: variantGroup.sourceMetadata,
         model_info: variantGroup.modelInfo,
         evaluation_results: variantGroup.evaluationResults,
         detailed_evaluation_results_per_samples:
@@ -1493,8 +1481,7 @@ function flattenHierarchyNode(
         category,
         rawModelIds,
         variantLookup,
-        context,
-        sourceMetadataByEvaluationId
+        context
       )
     )
   }
@@ -1519,13 +1506,6 @@ export function flattenModelEvaluations(detail: HFModelDetail): BenchmarkEvaluat
       .filter(Boolean)
   )
   const variantLookup = buildVariantLookup(detail)
-  // evaluations_by_category carries the authoritative source_metadata straight
-  // from the pipeline. The hierarchy branch of this detail file doesn't, so
-  // we build a (evaluation_id -> source_metadata) index here and look values
-  // up per-result inside flattenHierarchyNode. Without this the hierarchy
-  // fallback below hardcodes evaluator_relationship to "other" and every
-  // 1st/3rd-party badge in the UI collapses to "Other".
-  const sourceMetadataByEvaluationId = buildSourceMetadataIndex(detail)
 
   for (const [categoryKey, nodes] of Object.entries(detail.hierarchy_by_category ?? {})) {
     const mappedCategory = mapHFCategories([categoryKey])[0]
@@ -1536,9 +1516,7 @@ export function flattenModelEvaluations(detail: HFModelDetail): BenchmarkEvaluat
           node,
           mappedCategory,
           rawModelIds,
-          variantLookup,
-          undefined,
-          sourceMetadataByEvaluationId
+          variantLookup
         )
       )
     }
@@ -1547,21 +1525,15 @@ export function flattenModelEvaluations(detail: HFModelDetail): BenchmarkEvaluat
   return evaluations
 }
 
-function buildSourceMetadataIndex(detail: HFModelDetail): Map<string, SourceMetadata> {
-  const index = new Map<string, SourceMetadata>()
-  for (const evals of Object.values(detail.evaluations_by_category ?? {})) {
-    for (const evaluation of evals ?? []) {
-      if (evaluation?.source_metadata && evaluation.evaluation_id) {
-        index.set(evaluation.evaluation_id, evaluation.source_metadata)
-      }
-    }
-  }
-  return index
-}
-
 /**
  * Map pipeline category labels to frontend CategoryType.
  */
+// Every category key emitted by the pipeline (verified against production
+// dataset 2026-04-27, 9 distinct keys total). Values for the 3 added keys
+// (coding, instruction_following, language_understanding) match what the
+// previous regex fallback returned for them, preserving prior labelling.
+// Note: `coding` maps to General because "coding" does not contain the
+// substring "code" — see lib/benchmark-schema.ts inferCategoryFromBenchmark.
 const PIPELINE_CATEGORY_MAP: Record<string, CategoryType> = {
   agentic: "Agentic",
   reasoning: "Reasoning",
@@ -1569,13 +1541,16 @@ const PIPELINE_CATEGORY_MAP: Record<string, CategoryType> = {
   safety: "Safety",
   knowledge: "Knowledge",
   other: "General",
+  coding: "General",
+  instruction_following: "General",
+  language_understanding: "General",
 }
 
 export function mapHFCategories(categories: string[]): CategoryType[] {
   const mapped: CategoryType[] = []
   for (const c of categories) {
     if (!c) continue
-    const cat = PIPELINE_CATEGORY_MAP[c.toLowerCase()] ?? inferCategoryFromBenchmark(c)
+    const cat = PIPELINE_CATEGORY_MAP[c.toLowerCase()] ?? "General"
     if (!mapped.includes(cat)) mapped.push(cat)
   }
   return mapped.length > 0 ? mapped : ["General"]
