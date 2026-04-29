@@ -49,7 +49,16 @@ RUN pnpm run build
 FROM node:18-bullseye-slim AS runner
 WORKDIR /app
 
-ENV NODE_ENV=production
+# Runtime needs the same DuckDB-mode envs that the builder used. HF Space
+# Variables aren't set on this Space, and Docker multi-stage doesn't carry
+# ENVs across stages — without these, lib/duckdb-data.ts throws
+# "DATA_BACKEND=duckdb requires LOCAL_PIPELINE_OUTPUT" at request time and
+# every model/eval/developer endpoint returns empty.
+ENV NODE_ENV=production \
+    DATA_BACKEND=duckdb \
+    LOCAL_PIPELINE_OUTPUT=/app/.cache/hf-data \
+    HF_DATA_LOCAL_DIR=/app/.cache/hf-data \
+    HF_DATA_OFFLINE=1
 
 # minimal packages for certificates (if needed by model download / https)
 RUN apt-get update && apt-get install -y ca-certificates --no-install-recommends && rm -rf /var/lib/apt/lists/*
