@@ -18,22 +18,47 @@ import { promisify } from "util"
 const root = path.resolve(new URL(import.meta.url).pathname, "..", "..")
 const cacheDir = path.join(root, ".cache", "hf-data")
 const publicDir = path.join(root, "public")
-const HF_DATASET_REPO = "https://huggingface.co/datasets/evaleval/card_backend"
+const HF_DATASET_REPO = process.env.HF_DATASET_REPO?.trim()
+  || "https://huggingface.co/datasets/evaleval/card_backend"
 const HF_RESOLVE_BASE = `${HF_DATASET_REPO}/resolve/main`
 const execFileAsync = promisify(execFile)
 
-const CACHE_ROOT_FILES = [
+// Lean DuckDB mode: when DATA_BACKEND=duckdb, the runtime reads model/eval/
+// developer/summary data exclusively from `duckdb/v1/*.parquet` (see
+// lib/duckdb-data.ts:48,82). The legacy JSON-fallback artifacts
+// (model-cards*, eval-list*, developers*, plus the per-slug detail
+// directories developers/, evals/, models/) become dead weight — skipping
+// them avoids OOMing the HF Space on a 2.8 GB JSON snapshot.
+//
+// Always keep:
+//   - manifest.json           (lib/data-backend.ts:96 → /api/backend-manifest)
+//   - eval-hierarchy.json     (lib/data-backend.ts:98 → /api/eval-hierarchy)
+//   - benchmark-metadata.json (lib/benchmark-metadata.ts:5 → /api/benchmark-metadata)
+//   - comparison-index.json   (app/api/comparison-index/route.ts:7 → app/models/[id]/page.tsx:157)
+//   - corpus-aggregates.json  (app/corpus/page.tsx via lib/hf-data:fetchCorpusAggregates)
+//   - duckdb/v1/*.parquet     (lib/duckdb-data.ts read path)
+//   - public/peer-ranks.json  (always written outside cacheDir; component fetches HF directly)
+const isDuckDBLean = process.env.DATA_BACKEND?.trim().toLowerCase() === "duckdb"
+
+const ESSENTIAL_CACHE_ROOT_FILES = [
   "manifest.json",
-  "model-cards.json",
-  "model-cards-lite.json",
-  "eval-list.json",
-  "eval-list-lite.json",
-  "developers.json",
   "benchmark-metadata.json",
   "eval-hierarchy.json",
   "comparison-index.json",
   "corpus-aggregates.json",
 ]
+
+const JSON_FALLBACK_CACHE_ROOT_FILES = [
+  "model-cards.json",
+  "model-cards-lite.json",
+  "eval-list.json",
+  "eval-list-lite.json",
+  "developers.json",
+]
+
+const CACHE_ROOT_FILES = isDuckDBLean
+  ? ESSENTIAL_CACHE_ROOT_FILES
+  : [...ESSENTIAL_CACHE_ROOT_FILES, ...JSON_FALLBACK_CACHE_ROOT_FILES]
 
 const OPTIONAL_CACHE_ROOT_FILES = new Set([
   "model-cards-lite.json",
@@ -41,7 +66,12 @@ const OPTIONAL_CACHE_ROOT_FILES = new Set([
   "corpus-aggregates.json",
 ])
 
-const CACHE_DIRECTORIES = ["developers", "evals", "models"]
+const ESSENTIAL_CACHE_DIRECTORIES = ["duckdb"]
+const JSON_FALLBACK_CACHE_DIRECTORIES = ["developers", "evals", "models"]
+
+const CACHE_DIRECTORIES = isDuckDBLean
+  ? ESSENTIAL_CACHE_DIRECTORIES
+  : [...JSON_FALLBACK_CACHE_DIRECTORIES, ...ESSENTIAL_CACHE_DIRECTORIES]
 
 const TOKEN_CASE_MAP = {
   ai: "AI",
@@ -89,15 +119,20 @@ function isGitLfsPointer(contents) {
 }
 
 async function writeRemoteFile(relativePath, destinationPath) {
-  const response = await fetch(`${HF_RESOLVE_BASE}/${relativePath}`)
+  const headers = {}
+  const hfToken = process.env.HF_TOKEN?.trim()
+  if (hfToken) {
+    headers.Authorization = `Bearer ${hfToken}`
+  }
+  const response = await fetch(`${HF_RESOLVE_BASE}/${relativePath}`, { headers })
   if (!response.ok) {
     throw new Error(`Failed to download ${relativePath}: ${response.status} ${response.statusText}`)
   }
 
-  const body = await response.text()
+  const buffer = Buffer.from(await response.arrayBuffer())
   await fs.mkdir(path.dirname(destinationPath), { recursive: true })
-  await fs.writeFile(destinationPath, body)
-  return Buffer.byteLength(body)
+  await fs.writeFile(destinationPath, buffer)
+  return buffer.length
 }
 
 async function copySnapshotFile(snapshotRoot, relativePath, destinationPath) {
@@ -339,6 +374,11 @@ async function countFiles(dirPath) {
 async function main() {
   console.log("Caching HF dataset snapshot for build...\n")
 
+  if (isDuckDBLean) {
+    console.log("Lean DuckDB cache mode: skipping JSON-fallback artifacts (model-cards*, eval-list*, developers*, developers/, evals/, models/)")
+    console.log("")
+  }
+
   await fs.mkdir(cacheDir, { recursive: true })
   await fs.mkdir(publicDir, { recursive: true })
 
@@ -382,9 +422,11 @@ async function main() {
     const peerRanksSuffix = peerRanksResult.source === "remote" ? ", resolved from LFS" : ""
     console.log(`  ✓ peer-ranks.json (${(peerRanksResult.size / 1024).toFixed(0)} KB${peerRanksSuffix})`)
 
-    await normalizeCachedModelCardFile(path.join(cacheDir, "model-cards.json"))
-    await normalizeCachedModelCardFile(path.join(cacheDir, "model-cards-lite.json"))
-    console.log("  ✓ normalized model card artifacts")
+    if (!isDuckDBLean) {
+      await normalizeCachedModelCardFile(path.join(cacheDir, "model-cards.json"))
+      await normalizeCachedModelCardFile(path.join(cacheDir, "model-cards-lite.json"))
+      console.log("  ✓ normalized model card artifacts")
+    }
 
     // ── Phase 3: Detail directories ─────────────────────────────────────
     console.log("\nPhase 3: Copy detail directories")
