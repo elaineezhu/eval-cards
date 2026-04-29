@@ -1,5 +1,11 @@
 "use client"
 
+// TODO: check if deprecated. No production callers as of 2026-04-28 orphan sweep
+// (zero references in app/, components/, lib/, tests/). Original author added
+// this on 2026-04-15 (commit "Differentiate audience modes and tighten eval
+// navigation"). No clear replacement found — could be intended for a future
+// page/route, or could be safe to delete if the intent has changed.
+
 import { useEffect, useMemo, useState } from "react"
 
 import { cn } from "@/lib/utils"

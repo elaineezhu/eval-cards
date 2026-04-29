@@ -7,30 +7,25 @@ import { DuckDBConnection, type DuckDBValue } from "@duckdb/node-api"
 
 import type { BenchmarkEvalListItem, BenchmarkEvalSummary } from "@/lib/eval-processing"
 import type { EvaluationCardData, ModelEvaluationSummary } from "@/lib/benchmark-schema"
-import { getBenchmarkCard } from "@/lib/benchmark-metadata"
-import type { HFEvalDetail, HFModelCardEntry, HFModelDetail } from "@/lib/hf-data"
-import {
-  attachBenchmarkCardToSummary,
-  getBenchmarkDisplayName,
-  getDeveloperBenchmarkStats,
-  getDeveloperRouteId,
-  hfDeveloperDetailToSummary,
-  hfEvalDetailToSummary,
-  hfEvalEntryToListItem,
-  hfModelCardToEvaluationCardData,
-  normalizeDeveloperName,
-} from "@/lib/model-data"
-import { createModelFamilySummary } from "@/lib/eval-processing"
-import { flattenModelEvaluations } from "@/lib/hf-data"
 
-const PARQUET_DIR = path.join("experimental", "parquet")
+// Parity parquet emitted by `eval_cards_backend_pipeline/scripts/parity_outputs.py`.
+// Each table (except model_results, which is long-form relational) carries
+// scalar routing columns plus a `payload_json` column whose value is already
+// in the post-TS-adapter shape. This module is a strict pass-through: if a
+// payload is missing fields the consumer needs, we throw with the file +
+// payload key path so the backend gap is visible. We DO NOT re-run TS
+// adapters or fill defaults here — that policy belongs upstream.
+const PARQUET_DIR = path.join("duckdb", "v1")
 const PARQUET_FILES = {
   modelCards: "model_cards.parquet",
   modelCardsLite: "model_cards_lite.parquet",
   evalList: "eval_list.parquet",
   evalListLite: "eval_list_lite.parquet",
   evalSummaries: "eval_summaries.parquet",
+  aggregateEvalSummaries: "aggregate_eval_summaries.parquet",
+  matrixEvalSummaries: "matrix_eval_summaries.parquet",
   modelSummaries: "model_summaries.parquet",
+  developers: "developers.parquet",
   developerSummaries: "developer_summaries.parquet",
 } as const
 
@@ -56,7 +51,7 @@ async function getParquetPath(key: ParquetFileKey) {
     await fs.access(filePath)
   } catch {
     throw new Error(
-      `DuckDB backend expected ${filePath}. Run the backend pipeline with EXPORT_EXPERIMENTAL_PARQUET=1 first.`
+      `DuckDB backend expected ${filePath}. Re-run the backend pipeline (parity parquet is emitted on every run; no env var required).`
     )
   }
 
@@ -71,10 +66,12 @@ async function getConnection() {
   return connectionPromise
 }
 
-function parsePayload<T>(row: Record<string, unknown>): T {
+function parsePayload<T>(row: Record<string, unknown>, file: ParquetFileKey): T {
   const raw = row.payload_json
   if (typeof raw !== "string") {
-    throw new Error("DuckDB payload row did not include a string payload_json field")
+    throw new Error(
+      `[duckdb-data] ${PARQUET_FILES[file]} row had no payload_json string. Backend parity emitter must populate this column.`
+    )
   }
 
   return JSON.parse(raw) as T
@@ -85,7 +82,7 @@ async function readPayloads<T>(key: ParquetFileKey, orderBy?: string): Promise<T
   const filePath = await getParquetPath(key)
   const sql = `SELECT payload_json FROM read_parquet(?)${orderBy ? ` ${orderBy}` : ""}`
   const reader = await connection.runAndReadAll(sql, [filePath])
-  return reader.getRowObjects().map((row) => parsePayload<T>(row))
+  return reader.getRowObjects().map((row) => parsePayload<T>(row, key))
 }
 
 async function readPayloadById<T>(
@@ -100,7 +97,7 @@ async function readPayloadById<T>(
     [filePath, ...params]
   )
   const rows = reader.getRowObjects()
-  return rows.length > 0 ? parsePayload<T>(rows[0]) : null
+  return rows.length > 0 ? parsePayload<T>(rows[0], key) : null
 }
 
 async function countRows(key: ParquetFileKey) {
@@ -130,95 +127,27 @@ function evalListSort(a: BenchmarkEvalListItem, b: BenchmarkEvalListItem) {
   return (a.evaluation_name ?? "").localeCompare(b.evaluation_name ?? "")
 }
 
-async function attachBenchmarkCardsToEvalListItems(items: BenchmarkEvalListItem[]) {
-  return Promise.all(
-    items.map(async (item) => {
-      if (item.benchmark_card) {
-        return item
-      }
-
-      const candidates = [
-        item.evaluation_name,
-        item.composite_benchmark_key,
-        item.composite_benchmark_name,
-      ].filter(Boolean)
-
-      for (const name of candidates) {
-        const card = await getBenchmarkCard(name)
-        if (card) {
-          return { ...item, benchmark_card: card }
-        }
-      }
-
-      return item
-    })
-  )
-}
-
-function toEvaluationCard(entry: HFModelCardEntry | EvaluationCardData): EvaluationCardData {
-  if ("evaluations_count" in entry && "benchmarks_count" in entry) {
-    return entry as EvaluationCardData
-  }
-
-  return hfModelCardToEvaluationCardData(entry as HFModelCardEntry)
-}
-
-function toEvalListItem(entry: unknown): BenchmarkEvalListItem {
-  if (entry && typeof entry === "object" && "evaluation_id" in entry && "composite_benchmark_key" in entry) {
-    return entry as BenchmarkEvalListItem
-  }
-
-  return hfEvalEntryToListItem(entry as Parameters<typeof hfEvalEntryToListItem>[0])
-}
-
-async function toEvalSummary(payload: unknown): Promise<BenchmarkEvalSummary> {
-  if (payload && typeof payload === "object" && "model_results" in payload && "evaluation_id" in payload) {
-    return payload as BenchmarkEvalSummary
-  }
-
-  return attachBenchmarkCardToSummary(hfEvalDetailToSummary(payload as HFEvalDetail))
-}
-
-function toModelSummary(payload: unknown): ModelEvaluationSummary {
-  // The pipeline payload carries `evaluations_by_category` already, but with
-  // lowercase category keys, raw timestamps, and per-eval benchmark_card
-  // duplicates. The JSON path always re-aggregates via flattenModelEvaluations
-  // + createModelFamilySummary; mirror that here so parity is exact. Pushing
-  // the post-adapter shape into the pipeline is migration item #3 (`hierarchy
-  // → flat BenchmarkEvaluation[] rebuild`).
-  const evaluations = flattenModelEvaluations(payload as HFModelDetail)
-  if (evaluations.length === 0) {
-    throw new Error("DuckDB model summary payload did not contain any model evaluations")
-  }
-
-  return createModelFamilySummary(evaluations)
-}
-
 export async function getModelCardsFromDuckDB(): Promise<EvaluationCardData[]> {
-  const entries = await readPayloads<HFModelCardEntry | EvaluationCardData>("modelCards")
-  return entries.map(toEvaluationCard).sort(modelCardSort)
+  const entries = await readPayloads<EvaluationCardData>("modelCards")
+  return entries.sort(modelCardSort)
 }
 
 export async function getModelCardsLiteFromDuckDB(): Promise<EvaluationCardData[]> {
-  const entries = await readPayloads<HFModelCardEntry | EvaluationCardData>("modelCardsLite")
-  return entries.map(toEvaluationCard).sort(modelCardLiteSort)
+  const entries = await readPayloads<EvaluationCardData>("modelCardsLite")
+  return entries.sort(modelCardLiteSort)
 }
 
 export async function getEvalListDataFromDuckDB(): Promise<{
   evals: BenchmarkEvalListItem[]
   totalModels: number
 }> {
-  const [entries, totalModels] = await Promise.all([
-    readPayloads<unknown>("evalList"),
+  const [evals, totalModels] = await Promise.all([
+    readPayloads<BenchmarkEvalListItem>("evalList"),
     countRows("modelCards"),
   ])
-  const evals = entries
-    .map(toEvalListItem)
-    .filter((entry) => !(typeof entry.source_data?.hf_repo === "string" && entry.source_data.hf_repo.startsWith("example://")))
-  const evalsWithCards = await attachBenchmarkCardsToEvalListItems(evals)
 
   return {
-    evals: evalsWithCards.sort(evalListSort),
+    evals: evals.sort(evalListSort),
     totalModels,
   }
 }
@@ -227,16 +156,13 @@ export async function getEvalListLiteDataFromDuckDB(): Promise<{
   evals: BenchmarkEvalListItem[]
   totalModels: number
 }> {
-  const [entries, totalModels] = await Promise.all([
-    readPayloads<unknown>("evalListLite"),
+  const [evals, totalModels] = await Promise.all([
+    readPayloads<BenchmarkEvalListItem>("evalListLite"),
     countRows("modelCardsLite"),
   ])
 
   return {
-    evals: entries
-      .map(toEvalListItem)
-      .filter((entry) => !(typeof entry.source_data?.hf_repo === "string" && entry.source_data.hf_repo.startsWith("example://")))
-      .sort(evalListSort),
+    evals: evals.sort(evalListSort),
     totalModels,
   }
 }
@@ -254,62 +180,98 @@ export async function getDashboardDataFromDuckDB() {
   return { models, evals }
 }
 
+// Resolve `evalId` across the three eval-summary tables. The pipeline emits
+// direct evals into `eval_summaries`, `aggregate__<suite>` rows into
+// `aggregate_eval_summaries`, and `matrix__<suite>` rows into
+// `matrix_eval_summaries`. The TS-side `getEvalSummaryById` (lib/model-data.ts)
+// dispatches by id prefix; the DuckDB path mirrors that without re-running
+// any aggregation TS — the parity payloads already carry the post-TS shape.
 export async function getEvalSummaryByIdFromDuckDB(evalId: string) {
-  const payload = await readPayloadById<unknown>(
+  if (evalId.startsWith("aggregate__")) {
+    return readPayloadById<BenchmarkEvalSummary>(
+      "aggregateEvalSummaries",
+      "eval_summary_id = ?",
+      [evalId]
+    )
+  }
+
+  if (evalId.startsWith("matrix__")) {
+    return readPayloadById<BenchmarkEvalSummary>(
+      "matrixEvalSummaries",
+      "eval_summary_id = ?",
+      [evalId]
+    )
+  }
+
+  return readPayloadById<BenchmarkEvalSummary>(
     "evalSummaries",
     "eval_summary_id = ?",
     [evalId]
   )
-
-  return payload ? toEvalSummary(payload) : null
 }
 
 export async function getModelSummaryByIdFromDuckDB(modelId: string) {
-  const payload = await readPayloadById<unknown>(
+  return readPayloadById<ModelEvaluationSummary>(
     "modelSummaries",
     "model_route_id = ? OR model_family_id = ?",
     [modelId, modelId]
   )
+}
 
-  return payload ? toModelSummary(payload) : null
+// Shape contract for `developers.parquet` and `developer_summaries.parquet`
+// payloads. The summary table additionally carries a `models[]` array of
+// post-`hfModelCardToEvaluationCardData` rows (matching the JSON-path
+// `hfDeveloperDetailToSummary` output). If the backend has not yet run the
+// adapter, the parity verifier will flag the divergence.
+interface DeveloperListEntry {
+  developer: string
+  route_id: string
+  model_count: number
+  benchmark_count: number
+  evaluation_count: number
+  popular_evals: Array<{ benchmark: string; model_count: number }>
+}
+
+interface DeveloperSummaryPayload extends DeveloperListEntry {
+  models: EvaluationCardData[]
+}
+
+function assertDeveloperListShape(payload: unknown, source: string): asserts payload is DeveloperListEntry {
+  if (!payload || typeof payload !== "object") {
+    throw new Error(`[duckdb-data] ${source}: payload was not an object.`)
+  }
+  const required = ["developer", "route_id", "model_count", "benchmark_count", "evaluation_count", "popular_evals"]
+  for (const key of required) {
+    if (!(key in payload)) {
+      throw new Error(
+        `[duckdb-data] ${source}: payload missing field \`${key}\`. Backend parity emitter must run hf_developer_detail_to_summary before writing parquet.`
+      )
+    }
+  }
 }
 
 export async function getDeveloperSummaryByIdFromDuckDB(routeId: string) {
-  const payload = await readPayloadById<{ developer: string; models: HFModelCardEntry[] }>(
+  const payload = await readPayloadById<unknown>(
     "developerSummaries",
     "developer_route_id = ?",
     [routeId]
   )
-
-  return payload ? hfDeveloperDetailToSummary(payload) : null
+  if (!payload) return null
+  assertDeveloperListShape(payload, `developer_summaries.parquet (route_id=${routeId})`)
+  if (!Array.isArray((payload as DeveloperSummaryPayload).models)) {
+    throw new Error(
+      `[duckdb-data] developer_summaries.parquet (route_id=${routeId}): payload missing \`models\` array.`
+    )
+  }
+  return payload as DeveloperSummaryPayload
 }
 
 export async function getDeveloperListFromDuckDB() {
-  const summaries = await readPayloads<{ developer: string; models: HFModelCardEntry[] }>("developerSummaries")
-
-  return summaries
-    .map((detail) => {
-      const benchmarkCounts = getDeveloperBenchmarkStats(detail.models)
-      const evaluationCount = detail.models.reduce(
-        (sum, model) => sum + model.total_evaluations,
-        0
-      )
-      const popularEvals = Array.from(benchmarkCounts.entries())
-        .sort((a, b) => b[1] - a[1])
-        .slice(0, 3)
-        .map(([benchmark, model_count]) => ({
-          benchmark: getBenchmarkDisplayName(benchmark),
-          model_count,
-        }))
-
-      return {
-        developer: normalizeDeveloperName(detail.developer),
-        route_id: getDeveloperRouteId(detail.developer),
-        model_count: detail.models.length,
-        benchmark_count: benchmarkCounts.size,
-        evaluation_count: evaluationCount,
-        popular_evals: popularEvals,
-      }
-    })
+  const summaries = await readPayloads<unknown>("developers")
+  for (const payload of summaries) {
+    assertDeveloperListShape(payload, "developers.parquet")
+  }
+  return (summaries as DeveloperListEntry[])
+    .slice()
     .sort((a, b) => a.developer.localeCompare(b.developer))
 }

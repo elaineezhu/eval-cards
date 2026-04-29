@@ -195,6 +195,47 @@ describe("Tier A — pipeline contracts (eval-detail files)", () => {
     }
     expect(violations, formatViolations(violations)).toEqual([])
   })
+
+  // Replaces the deleted `prefersBenchmarkName` heuristic in
+  // `lib/model-data.ts hfEvalEntryToListItem`. That heuristic detected when a
+  // display string was in a "<generic-metric> on <benchmark>" / "for scorer" /
+  // "model_graded" shape and substituted the benchmark name. Audit against the
+  // full corpus showed 0/587 matches (verified 2026-04-28). The heuristic was
+  // deleted in favor of this explicit contract; if pipeline ever starts
+  // emitting display strings in those shapes again, this test fails loudly.
+  //
+  // The four fields below mirror the resolution order the deleted code used
+  // (`entry.evaluation_name || entry.display_name || entry.benchmark_leaf_name
+  // || entry.eval_summary_id`).
+  it("eval-list display strings don't match prefersBenchmarkName patterns (deleted heuristic)", () => {
+    const violations: Violation[] = []
+    for (const { id, data } of evals) {
+      // Pipeline emits `evaluation_name` and `display_name` on eval entries
+      // even though they're not on HFEvalDetail (TS type is a subset of the
+      // actual cache shape). Cast to access them.
+      const extras = data as unknown as { evaluation_name?: string; display_name?: string }
+      const raw =
+        extras.evaluation_name ||
+        extras.display_name ||
+        data.benchmark_leaf_name ||
+        data.eval_summary_id ||
+        ""
+      const normalized = raw.trim().toLowerCase()
+      const reasons: string[] = []
+      if (normalized.startsWith("accuracy on ")) reasons.push("startsWith('accuracy on ')")
+      if (normalized.startsWith("score on ")) reasons.push("startsWith('score on ')")
+      if (normalized.includes("for scorer")) reasons.push("includes('for scorer')")
+      if (normalized.includes("model_graded")) reasons.push("includes('model_graded')")
+      if (reasons.length > 0) {
+        violations.push({
+          fixture: id,
+          path: "evaluation_name|display_name|benchmark_leaf_name|eval_summary_id",
+          detail: `${JSON.stringify(raw)} matches: ${reasons.join(", ")}`,
+        })
+      }
+    }
+    expect(violations, formatViolations(violations)).toEqual([])
+  })
 })
 
 describe("Tier A — pipeline contracts (model card list entries)", () => {

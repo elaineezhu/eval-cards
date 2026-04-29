@@ -2,6 +2,11 @@
 // It intentionally only treats the category as NA when the category-level field
 // `additionalAspects` explicitly marks it as not applicable. Question-level/source
 // markers are ignored for category selectability (they are relevant to question details).
+//
+// TODO: check if deprecated. No production callers as of 2026-04-28 orphan sweep
+// (only consumer is tests/na-utils.test.ts). Original author added this with
+// thorough tests on 2025-08-16 — possibly intended for an unshipped UI feature,
+// possibly disconnected during a refactor.
 export function naReasonForCategoryFromEval(
   catEval: any,
   benchmarkQuestionIds: string[] = [],

@@ -1,5 +1,5 @@
 {
-  "$comment": "Pinned snapshot of HF cache files used by Tier A pipeline-contract tests and Tier B adapter snapshot tests. Refresh via `pnpm refresh-fixtures`. Each fixture earns its place by exercising a specific code path documented in `notes/testing-strategy.md` (curation criteria).",
+  "$comment": "Pinned snapshot of HF cache files used by Tier A pipeline-contract tests and Tier B adapter snapshot tests. Refresh via `pnpm refresh-fixtures`. Each fixture entry has a `why` field explaining the specific code path it exercises (multi-variant model, first/third-party badge, Safety regression-bait, coding hierarchy key, etc). Curation rule: every fixture must justify its inclusion via `why`; no random sampling.",
   "snapshot_source": ".cache/hf-data",
   "snapshot_ts": "2026-04-27T22:32:59.376Z",
   "evals": [

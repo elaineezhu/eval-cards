@@ -8,11 +8,6 @@ import type {
   ModelEvaluationSummary,
 } from "@/lib/eval-processing"
 
-export interface DashboardDataResponse {
-  models: BenchmarkEvaluationCardData[]
-  evals: BenchmarkEvalListItem[]
-}
-
 export interface EvalListResponse {
   evals: BenchmarkEvalListItem[]
   totalModels: number
@@ -51,10 +46,6 @@ async function fetchJson<T>(input: string): Promise<T> {
   }
 
   return response.json() as Promise<T>
-}
-
-export function fetchDashboardData() {
-  return fetchJson<DashboardDataResponse>("/api/data")
 }
 
 export function fetchModelCards() {

@@ -126,4 +126,39 @@ describe.skipIf(!shouldRun)(`Tier A drift — live cache contracts (${modelFiles
     const summary = Array.from(counts.entries()).map(([k, n]) => `${k}=${n}`).join(", ")
     expect(counts.size, `Unknown evaluator_relationship values: ${summary}`).toBe(0)
   })
+
+  // Mirrors the fixture-based contract added in pipeline-contract.test.ts
+  // when the `prefersBenchmarkName` heuristic was deleted from
+  // lib/model-data.ts. Audit against full corpus on 2026-04-28 found 0/587
+  // matches; this drift check fails loudly if pipeline ever starts emitting
+  // display strings in those shapes again.
+  it("eval-list display strings don't match deleted prefersBenchmarkName patterns", () => {
+    const cachePath = path.resolve(import.meta.dirname, "..", ".cache", "hf-data", "eval-list.json")
+    if (!fs.existsSync(cachePath)) {
+      throw new Error(`eval-list.json missing from live cache (expected at ${cachePath}); run pnpm cache-hf-data`)
+    }
+    const data = JSON.parse(fs.readFileSync(cachePath, "utf8")) as { evals?: Array<Record<string, unknown>> }
+    const entries = data.evals ?? []
+    let violations = 0
+    const examples: string[] = []
+    for (const entry of entries) {
+      const raw =
+        ((entry.evaluation_name as string | undefined) ||
+          (entry.display_name as string | undefined) ||
+          (entry.benchmark_leaf_name as string | undefined) ||
+          (entry.eval_summary_id as string | undefined) ||
+          ""
+        ).trim().toLowerCase()
+      if (
+        raw.startsWith("accuracy on ") ||
+        raw.startsWith("score on ") ||
+        raw.includes("for scorer") ||
+        raw.includes("model_graded")
+      ) {
+        violations += 1
+        if (examples.length < 5) examples.push(`${entry.eval_summary_id}: ${JSON.stringify(raw)}`)
+      }
+    }
+    expect(violations, `${violations}/${entries.length} eval-list entries match deleted heuristic patterns. Examples: ${examples.join(", ")}`).toBe(0)
+  })
 })
