@@ -7,6 +7,16 @@ WORKDIR /app
 
 ARG PNPM_VERSION=10.25.0
 
+# Build-time data-source configuration. HF Spaces "Variables" are NOT injected
+# into Docker RUN steps automatically — only into the final runtime — so we
+# bake the DuckDB-mode defaults here. `cache-hf-data.mjs` reads these to know
+# which dataset to clone and to apply lean cache mode (skip JSON-fallback
+# artifacts). Override at build time via `--build-arg HF_DATASET_REPO=...`.
+ARG DATA_BACKEND=duckdb
+ARG HF_DATASET_REPO=https://huggingface.co/datasets/j-chim/temp_evalcard_backend
+ENV DATA_BACKEND=${DATA_BACKEND} \
+    HF_DATASET_REPO=${HF_DATASET_REPO}
+
 # install OS build deps required by some native node modules and package manager
 # copy lockfile first to leverage Docker layer caching
 COPY package*.json ./
