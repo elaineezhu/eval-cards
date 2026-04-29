@@ -13,7 +13,7 @@ ARG PNPM_VERSION=10.25.0
 # which dataset to clone and to apply lean cache mode (skip JSON-fallback
 # artifacts). Override at build time via `--build-arg HF_DATASET_REPO=...`.
 ARG DATA_BACKEND=duckdb
-ARG HF_DATASET_REPO=https://huggingface.co/datasets/j-chim/temp_evalcard_backend
+ARG HF_DATASET_REPO=https://huggingface.co/datasets/evaleval/card_backend
 # Static prerender (`next build`) executes route handlers, which call
 # `getModelCards` etc. → `lib/duckdb-data.ts`, which requires
 # `LOCAL_PIPELINE_OUTPUT`. The cache populated by `cache-hf-data.mjs`
