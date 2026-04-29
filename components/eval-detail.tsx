@@ -9,6 +9,7 @@ import { CompletenessPanel } from "@/components/signals/completeness-panel"
 import { ComparabilityPanel } from "@/components/signals/comparability-panel"
 import { ReproducibilityPanel } from "@/components/signals/reproducibility-panel"
 import { SignalsRowBadges } from "@/components/signals/signals-row-badges"
+import { RowSignalsCompact } from "@/components/signals/row-signals-compact"
 import { SignalTooltip } from "@/components/signals/signal-tooltip"
 import { getCompletenessPopulatedCount } from "@/components/signals/signal-utils"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
@@ -54,6 +55,12 @@ import {
 } from "lucide-react"
 import type { BenchmarkCard } from "@/lib/benchmark-schema"
 import type { BenchmarkEvalSummary, ModelResultForBenchmark } from "@/lib/eval-processing"
+import { PolicyOverview } from "@/components/policy-overview"
+import { ResearcherReproducibilityCard } from "@/components/researcher-reproducibility-card"
+import { KnownIssuesPanel } from "@/components/known-issues-panel"
+import { getKnownIssues, type KnownIssue } from "@/lib/known-issues"
+import { ApplesToApplesBanner } from "@/components/apples-to-apples-banner"
+import { FlagScoreButton } from "@/components/flag-score-button"
 
 interface EvalDetailProps {
   summary: BenchmarkEvalSummary
@@ -523,6 +530,11 @@ export function EvalDetail({ summary }: EvalDetailProps) {
     (summary.leaderboard_metrics?.length ?? 0) > 1 &&
     (summary.leaderboard_rows?.length ?? 0) > 0
   const [overviewOpen, setOverviewOpen] = useState(true)
+  // Collapse the dense technical overview by default in policy mode; expand
+  // for researchers. Reset whenever the user switches modes.
+  useEffect(() => {
+    setOverviewOpen(isResearchView)
+  }, [isResearchView])
   const [expandedRows, setExpandedRows] = useState<Record<string, boolean>>({})
   const [leaderboardPage, setLeaderboardPage] = useState(1)
   const [minParamStep, setMinParamStep] = useState(0)
@@ -636,6 +648,7 @@ export function EvalDetail({ summary }: EvalDetailProps) {
 
   return (
     <div className="space-y-6">
+      {!isResearchView && <PolicyOverview summary={summary} />}
       <Card className="overflow-hidden">
         <Collapsible open={overviewOpen} onOpenChange={setOverviewOpen}>
           <CollapsibleTrigger asChild>
@@ -645,7 +658,7 @@ export function EvalDetail({ summary }: EvalDetailProps) {
             >
               <div className="min-w-0 space-y-1">
                 <div className="text-[11px] font-semibold uppercase tracking-[0.2em] text-muted-foreground">
-                  {isResearchView ? "Benchmark overview" : "Reading overview"}
+                  {isResearchView ? "Benchmark overview" : "Technical details"}
                 </div>
                 <div className="flex flex-wrap items-center gap-2">
                   <span className="text-base font-semibold tracking-tight sm:text-lg">{summary.evaluation_name}</span>
@@ -710,11 +723,6 @@ export function EvalDetail({ summary }: EvalDetailProps) {
                     {summary.metric_config.evaluation_description}
                   </p>
 
-                  {!isResearchView && (
-                    <p className="max-w-3xl text-sm leading-6 text-muted-foreground">
-                      {`${summary.benchmark_card?.purpose_and_intended_users?.goal ?? "This benchmark reports a capability result."} Scores should be read alongside benchmark scope, metric definitions, and the source dataset context.`}
-                    </p>
-                  )}
                 </div>
 
                 <div className="grid w-full grid-cols-2 gap-2 xl:grid-cols-4">
@@ -890,6 +898,14 @@ export function EvalDetail({ summary }: EvalDetailProps) {
                   isResearchView={isResearchView}
                   defaultOpen
                   defaultRisksOpen={!isResearchView}
+                  knownIssues={getKnownIssues(
+                    summary.evaluation_name,
+                    summary.composite_benchmark_name,
+                    summary.composite_benchmark_key,
+                    summary.benchmark_family_key,
+                    summary.benchmark_leaf_key,
+                    summary.benchmark_card.benchmark_details?.name,
+                  )}
                 />
               )}
             </CardContent>
@@ -901,7 +917,11 @@ export function EvalDetail({ summary }: EvalDetailProps) {
         <MultiMetricLeaderboard summary={summary} isResearchView={isResearchView} />
       ) : (
         <Card className="overflow-hidden">
-          <CardHeader className="border-b bg-muted/10">
+          <CardHeader className="border-b bg-muted/10 space-y-3">
+            <ApplesToApplesBanner
+              summary={summary.comparability_summary}
+              detailsAnchorId="comparability-panel"
+            />
             <div className="flex flex-col gap-3 lg:flex-row lg:items-end lg:justify-between">
               <div className="space-y-2">
                 <div className="flex items-center gap-2">
@@ -1034,7 +1054,6 @@ export function EvalDetail({ summary }: EvalDetailProps) {
                     {isResearchView ? "Evaluator" : "Reporting Org"}
                   </TableHead>
                   <TableHead className="hidden min-w-[120px] lg:table-cell">Updated</TableHead>
-                  <TableHead className="w-16 px-4 text-right">Details</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -1044,6 +1063,7 @@ export function EvalDetail({ summary }: EvalDetailProps) {
                     ? Object.entries(modelResult.score_details.details).filter(([, value]) => typeof value === "number")
                     : []
                   const hasExpandableDetails =
+                    isResearchView ||
                     (modelResult.aggregate_components && modelResult.aggregate_components.length > 1) ||
                     subtasks.length > 1
 
@@ -1075,7 +1095,18 @@ export function EvalDetail({ summary }: EvalDetailProps) {
 
                         <TableCell className="whitespace-normal">
                           <div className="space-y-1">
-                            <div className="font-semibold leading-tight">
+                            <div className="flex items-center gap-1.5 font-semibold leading-tight">
+                              {hasExpandableDetails && (
+                                <button
+                                  type="button"
+                                  onClick={() => toggleRow(key)}
+                                  aria-label={isExpanded ? "Collapse details" : "Expand details"}
+                                  aria-expanded={isExpanded}
+                                  className="-ml-1 inline-flex h-5 w-5 items-center justify-center rounded text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
+                                >
+                                  {isExpanded ? <ChevronUp className="h-3.5 w-3.5" /> : <ChevronDown className="h-3.5 w-3.5" />}
+                                </button>
+                              )}
                               <Link
                                 href={`/models/${getModelFamilyRouteId(modelResult.model_info)}`}
                                 className="underline decoration-dotted underline-offset-4 hover:text-primary"
@@ -1113,8 +1144,10 @@ export function EvalDetail({ summary }: EvalDetailProps) {
                         </TableCell>
 
                         <TableCell className="text-right">
-                          <div className="text-xl font-semibold tabular-nums">{formatRawScore(modelResult.score, summary.metric_config.unit)}</div>
-                          <SignalsRowBadges annotations={rowAnnotations} />
+                          <div className="flex items-center justify-end gap-1.5">
+                            <div className="text-xl font-semibold tabular-nums">{formatRawScore(modelResult.score, summary.metric_config.unit)}</div>
+                            <RowSignalsCompact annotations={rowAnnotations} />
+                          </div>
                         </TableCell>
 
                         {isResearchView ? (
@@ -1160,24 +1193,11 @@ export function EvalDetail({ summary }: EvalDetailProps) {
                         <TableCell className="hidden lg:table-cell">
                           <div className="text-sm text-muted-foreground">{formatDate(modelResult.evaluation_timestamp)}</div>
                         </TableCell>
-
-                        <TableCell className="px-4 text-right">
-                          {hasExpandableDetails && (
-                            <Button
-                              variant="ghost"
-                              size="icon"
-                              aria-label={isExpanded ? "Collapse details" : "Expand details"}
-                              onClick={() => toggleRow(key)}
-                            >
-                              {isExpanded ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
-                            </Button>
-                          )}
-                        </TableCell>
                       </TableRow>
 
                       {isExpanded && (
                         <TableRow className="hover:bg-transparent">
-                          <TableCell colSpan={8} className="bg-muted/10 px-0 py-0">
+                          <TableCell colSpan={7} className="bg-muted/10 px-0 py-0">
                             <div className="space-y-5 px-4 py-5 sm:px-6">
                               <div className="grid gap-4 xl:grid-cols-3">
                                 <DetailPanel
@@ -1244,13 +1264,15 @@ export function EvalDetail({ summary }: EvalDetailProps) {
                                   )}
                                 </DetailPanel>
 
-                                <ReproducibilityPanel gap={rowAnnotations?.reproducibility_gap} />
+                                {!isResearchView && (
+                                  <ReproducibilityPanel gap={rowAnnotations?.reproducibility_gap} />
+                                )}
 
                                 <DetailPanel
                                   title={isResearchView ? "Score Breakdown" : "Metric Summary"}
                                   subtitle={
                                     isResearchView
-                                      ? "Raw metric values and uncertainty details."
+                                      ? "Raw score and scale."
                                       : "Raw performance plus uncertainty and sample details."
                                   }
                                 >
@@ -1260,19 +1282,23 @@ export function EvalDetail({ summary }: EvalDetailProps) {
                                   />
                                   <MetaRow label="Score Type" value={modelResult.result.metric_config.score_type} />
                                   <MetaRow label="Range" value={`${minScore} - ${maxScore}`} />
-                                  <MetaRow
-                                    label="Sample Size"
-                                    value={modelResult.score_details.sample_size ?? "Unknown"}
-                                  />
-                                  <MetaRow
-                                    label="Standard Error"
-                                    value={modelResult.score_details.standard_error ?? "Unknown"}
-                                  />
-                                  {modelResult.score_details.confidence_interval && (
-                                    <MetaRow
-                                      label="Confidence Interval"
-                                      value={`${modelResult.score_details.confidence_interval.lower} - ${modelResult.score_details.confidence_interval.upper} (${modelResult.score_details.confidence_interval.confidence_level}%)`}
-                                    />
+                                  {!isResearchView && (
+                                    <>
+                                      <MetaRow
+                                        label="Sample Size"
+                                        value={modelResult.score_details.sample_size ?? "Unknown"}
+                                      />
+                                      <MetaRow
+                                        label="Standard Error"
+                                        value={modelResult.score_details.standard_error ?? "Unknown"}
+                                      />
+                                      {modelResult.score_details.confidence_interval && (
+                                        <MetaRow
+                                          label="Confidence Interval"
+                                          value={`${modelResult.score_details.confidence_interval.lower} - ${modelResult.score_details.confidence_interval.upper} (${modelResult.score_details.confidence_interval.confidence_level}%)`}
+                                        />
+                                      )}
+                                    </>
                                   )}
                                 </DetailPanel>
                               </div>
@@ -1334,53 +1360,74 @@ export function EvalDetail({ summary }: EvalDetailProps) {
                                 </div>
                               )}
 
-                              {modelResult.result.generation_config && (
+                              {isResearchView ? (
                                 <div className="space-y-3">
-                                  <div>
-                                    <div className="text-xs font-semibold uppercase tracking-[0.2em] text-muted-foreground">
-                                      Generation Config
-                                    </div>
-                                    <div className="text-sm text-muted-foreground">
-                                      Evaluation-time generation parameters.
-                                    </div>
-                                  </div>
-
-                                  <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-3">
-                                    {modelResult.result.generation_config.generation_args &&
-                                      Object.entries(modelResult.result.generation_config.generation_args).map(([key, value]) => (
-                                        <div key={key} className="rounded-xl border bg-background/70 p-4">
-                                          <div className="text-xs uppercase tracking-[0.16em] text-muted-foreground">
-                                            {key.replace(/_/g, " ")}
-                                          </div>
-                                          <div className="mt-2 text-sm font-medium">
-                                            {formatMetadataValue(value)}
-                                          </div>
-                                        </div>
-                                      ))}
-
-                                    {modelResult.result.generation_config.additional_details && (
-                                      <div className="rounded-xl border bg-background/70 p-4 md:col-span-2 xl:col-span-3">
-                                        <div className="text-xs uppercase tracking-[0.16em] text-muted-foreground">
-                                          Additional Details
-                                        </div>
-                                        <div className="mt-2 text-sm font-medium whitespace-pre-wrap">
-                                          {formatMetadataValue(modelResult.result.generation_config.additional_details)}
-                                        </div>
-                                      </div>
-                                    )}
-
-                                    {modelResult.result.generation_config.prompt_template && (
-                                      <div className="rounded-xl border bg-background/70 p-4 md:col-span-2 xl:col-span-3">
-                                        <div className="text-xs uppercase tracking-[0.16em] text-muted-foreground">
-                                          Prompt Template
-                                        </div>
-                                        <div className="mt-2 text-sm font-medium whitespace-pre-wrap">
-                                          {formatMetadataValue(modelResult.result.generation_config.prompt_template)}
-                                        </div>
-                                      </div>
-                                    )}
+                                  <ResearcherReproducibilityCard
+                                    modelResult={modelResult}
+                                    benchmarkKey={summary.benchmark_leaf_key ?? summary.composite_benchmark_key}
+                                    evalName={summary.evaluation_name}
+                                  />
+                                  <div className="flex justify-end">
+                                    <FlagScoreButton
+                                      modelName={modelResult.model_info.name}
+                                      modelId={modelResult.model_info.id}
+                                      benchmarkName={summary.evaluation_name}
+                                      benchmarkId={summary.evaluation_id}
+                                      score={formatRawScore(modelResult.score, summary.metric_config.unit)}
+                                      sourceUrl={modelResult.source_metadata.source_url}
+                                      sourceRecordUrl={modelResult.source_record_url}
+                                    />
                                   </div>
                                 </div>
+                              ) : (
+                                modelResult.result.generation_config && (
+                                  <div className="space-y-3">
+                                    <div>
+                                      <div className="text-xs font-semibold uppercase tracking-[0.2em] text-muted-foreground">
+                                        Generation Config
+                                      </div>
+                                      <div className="text-sm text-muted-foreground">
+                                        Evaluation-time generation parameters.
+                                      </div>
+                                    </div>
+
+                                    <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-3">
+                                      {modelResult.result.generation_config.generation_args &&
+                                        Object.entries(modelResult.result.generation_config.generation_args).map(([key, value]) => (
+                                          <div key={key} className="rounded-xl border bg-background/70 p-4">
+                                            <div className="text-xs uppercase tracking-[0.16em] text-muted-foreground">
+                                              {key.replace(/_/g, " ")}
+                                            </div>
+                                            <div className="mt-2 text-sm font-medium">
+                                              {formatMetadataValue(value)}
+                                            </div>
+                                          </div>
+                                        ))}
+
+                                      {modelResult.result.generation_config.additional_details && (
+                                        <div className="rounded-xl border bg-background/70 p-4 md:col-span-2 xl:col-span-3">
+                                          <div className="text-xs uppercase tracking-[0.16em] text-muted-foreground">
+                                            Additional Details
+                                          </div>
+                                          <div className="mt-2 text-sm font-medium whitespace-pre-wrap">
+                                            {formatMetadataValue(modelResult.result.generation_config.additional_details)}
+                                          </div>
+                                        </div>
+                                      )}
+
+                                      {modelResult.result.generation_config.prompt_template && (
+                                        <div className="rounded-xl border bg-background/70 p-4 md:col-span-2 xl:col-span-3">
+                                          <div className="text-xs uppercase tracking-[0.16em] text-muted-foreground">
+                                            Prompt Template
+                                          </div>
+                                          <div className="mt-2 text-sm font-medium whitespace-pre-wrap">
+                                            {formatMetadataValue(modelResult.result.generation_config.prompt_template)}
+                                          </div>
+                                        </div>
+                                      )}
+                                    </div>
+                                  </div>
+                                )
                               )}
                             </div>
                           </TableCell>
@@ -1391,7 +1438,7 @@ export function EvalDetail({ summary }: EvalDetailProps) {
                 })}
                 {leaderboardRows.length === 0 && (
                   <TableRow>
-                    <TableCell colSpan={8} className="px-6 py-12 text-center text-sm text-muted-foreground">
+                    <TableCell colSpan={7} className="px-6 py-12 text-center text-sm text-muted-foreground">
                       No leaderboard entries match the selected parameter range.
                     </TableCell>
                   </TableRow>
@@ -1429,6 +1476,32 @@ function MultiMetricLeaderboard({
   const [activeSubtaskTab, setActiveSubtaskTab] = useState<string>("all")
   const [minParamStep, setMinParamStep] = useState(0)
   const [maxParamStep, setMaxParamStep] = useState(PARAM_RANGE_VALUES.length - 1)
+  const [expandedRows, setExpandedRows] = useState<Record<string, boolean>>({})
+
+  // Index ModelResultForBenchmark entries by model_info.id so we can power the
+  // research-mode reproducibility card from a multi-metric row. There may be
+  // several entries per model (one per metric); we prefer one with a recorded
+  // generation_config so the card has the most data to show.
+  const modelResultByModelId = useMemo(() => {
+    const map = new Map<string, ModelResultForBenchmark>()
+    for (const result of summary.model_results) {
+      const id = result.model_info.id
+      const existing = map.get(id)
+      if (!existing) {
+        map.set(id, result)
+        continue
+      }
+      const existingHasGen = existing.result.generation_config != null
+      const candidateHasGen = result.result.generation_config != null
+      if (!existingHasGen && candidateHasGen) {
+        map.set(id, result)
+      }
+    }
+    return map
+  }, [summary.model_results])
+
+  const toggleExpandedRow = (key: string) =>
+    setExpandedRows((current) => ({ ...current, [key]: !current[key] }))
   const leaderboardMetrics = summary.leaderboard_metrics ?? []
   const leaderboardRows = summary.leaderboard_rows ?? []
   const allMetricKeys = useMemo(() => leaderboardMetrics.map((metric) => metric.column_key), [leaderboardMetrics])
@@ -1703,7 +1776,11 @@ function MultiMetricLeaderboard({
 
   return (
     <Card className="overflow-hidden">
-      <CardHeader className="border-b bg-muted/10">
+      <CardHeader className="border-b bg-muted/10 space-y-3">
+        <ApplesToApplesBanner
+          summary={summary.comparability_summary}
+          detailsAnchorId="comparability-panel"
+        />
         <div className="flex flex-col gap-3 lg:flex-row lg:items-end lg:justify-between">
           <div className="space-y-2">
             <div className="flex items-center gap-2">
@@ -1940,9 +2017,13 @@ function MultiMetricLeaderboard({
             <TableBody>
               {pagedRows.map((row) => {
                 const rank = rankByModelId.get(row.model_info.id) ?? 0
+                const expandKey = row.model_info.id
+                const isExpanded = expandedRows[expandKey] ?? false
+                const matchingResult = modelResultByModelId.get(row.model_info.id)
 
                 return (
-                <TableRow key={row.model_info.id} className="hover:bg-muted/10">
+                <Fragment key={row.model_info.id}>
+                <TableRow className={cn("hover:bg-muted/10", isExpanded && "bg-muted/15")}>
                   <TableCell className="px-4">
                     <div
                       className={cn(
@@ -1955,13 +2036,28 @@ function MultiMetricLeaderboard({
                   </TableCell>
                   <TableCell className="px-4 whitespace-normal">
                     <div className="space-y-1">
-                      <div className="font-semibold leading-tight">
+                      <div className="flex items-center gap-1.5 font-semibold leading-tight">
+                        {isResearchView && matchingResult && (
+                          <button
+                            type="button"
+                            onClick={() => toggleExpandedRow(expandKey)}
+                            aria-label={isExpanded ? "Hide reproducibility" : "Show reproducibility"}
+                            aria-expanded={isExpanded}
+                            className="-ml-1 inline-flex h-5 w-5 items-center justify-center rounded text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
+                          >
+                            {isExpanded ? <ChevronUp className="h-3.5 w-3.5" /> : <ChevronDown className="h-3.5 w-3.5" />}
+                          </button>
+                        )}
                         <Link
                           href={`/models/${getModelFamilyRouteId(row.model_info)}`}
                           className="underline decoration-dotted underline-offset-4 hover:text-primary"
                         >
                           {row.model_info.name}
                         </Link>
+                        <RowSignalsCompact
+                          annotations={getRowLevelAnnotations(row, visibleMetrics)}
+                          className="ml-1"
+                        />
                       </div>
                       <div className="flex flex-wrap items-center gap-2 text-xs text-muted-foreground">
                         {row.model_info.parameter_count && (
@@ -1976,12 +2072,6 @@ function MultiMetricLeaderboard({
                         )}
                         <span className="lg:hidden">{row.model_info.developer ?? "Unknown developer"}</span>
                       </div>
-                      <SignalsRowBadges
-                        annotations={getRowLevelAnnotations(row, visibleMetrics)}
-                        variant="row"
-                        className="mt-1 justify-start"
-                        hideOnMobile={false}
-                      />
                     </div>
                   </TableCell>
 
@@ -2016,6 +2106,34 @@ function MultiMetricLeaderboard({
                     {formatDate(row.evaluation_timestamp)}
                   </TableCell>
                 </TableRow>
+                {isResearchView && isExpanded && matchingResult && (
+                  <TableRow className="hover:bg-transparent">
+                    <TableCell
+                      colSpan={visibleMetrics.length + 5}
+                      className="bg-muted/10 px-4 py-5 sm:px-6"
+                    >
+                      <div className="space-y-3">
+                        <ResearcherReproducibilityCard
+                          modelResult={matchingResult}
+                          benchmarkKey={summary.benchmark_leaf_key ?? summary.composite_benchmark_key}
+                          evalName={summary.evaluation_name}
+                        />
+                        <div className="flex justify-end">
+                          <FlagScoreButton
+                            modelName={matchingResult.model_info.name}
+                            modelId={matchingResult.model_info.id}
+                            benchmarkName={summary.evaluation_name}
+                            benchmarkId={summary.evaluation_id}
+                            score={formatRawScore(matchingResult.score, summary.metric_config.unit)}
+                            sourceUrl={matchingResult.source_metadata.source_url}
+                            sourceRecordUrl={matchingResult.source_record_url}
+                          />
+                        </div>
+                      </div>
+                    </TableCell>
+                  </TableRow>
+                )}
+                </Fragment>
               )})}
 
               {filteredRows.length === 0 && (
@@ -2046,11 +2164,13 @@ function BenchmarkCardCollapsible({
   isResearchView,
   defaultOpen = true,
   defaultRisksOpen = false,
+  knownIssues = [],
 }: {
   card: BenchmarkCard
   isResearchView: boolean
   defaultOpen?: boolean
   defaultRisksOpen?: boolean
+  knownIssues?: KnownIssue[]
 }) {
   const [open, setOpen] = useState(defaultOpen)
   return (
@@ -2079,6 +2199,7 @@ function BenchmarkCardCollapsible({
           card={card}
           isResearchView={isResearchView}
           defaultRisksOpen={defaultRisksOpen}
+          knownIssues={knownIssues}
         />
       </CollapsibleContent>
     </Collapsible>
@@ -2095,12 +2216,12 @@ function DetailPanel({
   children: React.ReactNode
 }) {
   return (
-    <div className="rounded-2xl border bg-background/70 p-4">
+    <div className="min-w-0 rounded-2xl border bg-background/70 p-4">
       <div className="mb-4">
         <div className="font-semibold">{title}</div>
         <div className="text-sm text-muted-foreground">{subtitle}</div>
       </div>
-      <div className="space-y-2.5">{children}</div>
+      <div className="min-w-0 space-y-2.5">{children}</div>
     </div>
   )
 }
@@ -2129,9 +2250,28 @@ function MetaRow({
     }
   }
   return (
-    <div className="flex gap-3 text-sm">
-      <span className="w-32 shrink-0 text-muted-foreground">{label}</span>
-      <span className="min-w-0 flex-1 break-words font-medium">{value}</span>
+    <div
+      className="text-sm"
+      style={{
+        display: "grid",
+        gridTemplateColumns: "8rem minmax(0, 1fr)",
+        columnGap: "0.75rem",
+        width: "100%",
+        minWidth: 0,
+      }}
+    >
+      <div className="text-muted-foreground">{label}</div>
+      <div
+        className="font-medium"
+        style={{
+          minWidth: 0,
+          maxWidth: "100%",
+          overflowWrap: "anywhere",
+          wordBreak: "break-word",
+        }}
+      >
+        {value}
+      </div>
     </div>
   )
 }
@@ -2183,10 +2323,12 @@ function BenchmarkCardPanel({
   card,
   isResearchView,
   defaultRisksOpen = false,
+  knownIssues = [],
 }: {
   card: BenchmarkCard
   isResearchView: boolean
   defaultRisksOpen?: boolean
+  knownIssues?: KnownIssue[]
 }) {
   const [risksOpen, setRisksOpen] = useState(defaultRisksOpen)
   const details = card.benchmark_details
@@ -2236,6 +2378,8 @@ function BenchmarkCardPanel({
       </CardHeader>
 
       <CardContent className="space-y-6 p-5 sm:p-6">
+        {knownIssues.length > 0 && <KnownIssuesPanel issues={knownIssues} variant="full" />}
+
         {/* Overview + domains */}
         <div className="space-y-3">
           <p className="text-sm leading-6 text-muted-foreground">{details.overview}</p>
@@ -2288,6 +2432,52 @@ function BenchmarkCardPanel({
           </div>
         </div>
 
+        {(methodology.methods?.length > 0 ||
+          (methodology.calculation && methodology.calculation !== "Not specified") ||
+          (methodology.validation && methodology.validation !== "Not specified")) && (
+          <div className="rounded-[1.25rem] border border-border/70 bg-muted/10 p-4">
+            <div className="mb-3 text-[11px] font-semibold uppercase tracking-[0.2em] text-muted-foreground">
+              How tasks were sourced and scored
+            </div>
+            <div className="grid gap-4 lg:grid-cols-2">
+              {methodology.methods?.length > 0 && (
+                <div>
+                  <div className="mb-1.5 text-xs font-semibold text-foreground/80">
+                    Task setup
+                  </div>
+                  <ol className="list-decimal space-y-1.5 pl-4 text-sm leading-5 text-muted-foreground">
+                    {methodology.methods.map((m, i) => (
+                      <li key={i}>{m}</li>
+                    ))}
+                  </ol>
+                </div>
+              )}
+              <div className="space-y-3">
+                {methodology.calculation && methodology.calculation !== "Not specified" && (
+                  <div>
+                    <div className="mb-1.5 text-xs font-semibold text-foreground/80">
+                      Score calculation
+                    </div>
+                    <p className="text-sm leading-5 text-muted-foreground">
+                      {methodology.calculation}
+                    </p>
+                  </div>
+                )}
+                {methodology.validation && methodology.validation !== "Not specified" && (
+                  <div>
+                    <div className="mb-1.5 text-xs font-semibold text-foreground/80">
+                      Validation
+                    </div>
+                    <p className="text-sm leading-5 text-muted-foreground">
+                      {methodology.validation}
+                    </p>
+                  </div>
+                )}
+              </div>
+            </div>
+          </div>
+        )}
+
         {/* Research-only: methodology + dataset details */}
         {isResearchView && (
           <div className="grid gap-4 sm:grid-cols-2">
@@ -2339,8 +2529,12 @@ function BenchmarkCardPanel({
           </div>
         )}
 
-        {/* Risks (collapsible) */}
-        {risks.length > 0 && (
+        {/* Generic IBM-style AI risks. These are boilerplate (per audit
+            feedback: "least useful feature for policy users"), so in policy
+            mode we hide them entirely — the curated known-issues panel above
+            carries the benchmark-specific concerns. Researchers still get the
+            full collapsible list. */}
+        {risks.length > 0 && isResearchView && (
           <Collapsible open={risksOpen} onOpenChange={setRisksOpen}>
             <CollapsibleTrigger asChild>
               <button

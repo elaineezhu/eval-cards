@@ -22,7 +22,7 @@ export function ReproducibilityPanel({
     <div className="rounded-2xl border bg-background/70 p-4">
       <div className="mb-4 flex items-start gap-2">
         <AlertTriangle className="mt-0.5 h-4 w-4 shrink-0 text-amber-600 dark:text-amber-300" />
-        <div>
+        <div className="min-w-0 flex-1">
           <div className="font-semibold">
             {isResearchView ? "Reproducibility" : "Re-runnability"}
           </div>

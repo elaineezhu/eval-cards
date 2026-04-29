@@ -749,6 +749,7 @@ function toModelResultsForMetric(
       },
       source_data: detail.source_data ?? { dataset_name: benchmarkKey },
       result: evaluationResult,
+      source_record_url: mr.source_record_url,
     }
   })
 }

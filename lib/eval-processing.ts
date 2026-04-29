@@ -117,6 +117,8 @@ export interface ModelResultForBenchmark {
   source_metadata: SourceMetadata
   source_data: BenchmarkEvaluation['source_data']
   result: EvaluationResult
+  /** URL to the underlying record JSON in the upstream HF dataset, when known. */
+  source_record_url?: string
   aggregate_components?: Array<{
     evaluation_id: string
     composite_benchmark_key: string
