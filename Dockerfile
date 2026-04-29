@@ -14,8 +14,18 @@ ARG PNPM_VERSION=10.25.0
 # artifacts). Override at build time via `--build-arg HF_DATASET_REPO=...`.
 ARG DATA_BACKEND=duckdb
 ARG HF_DATASET_REPO=https://huggingface.co/datasets/j-chim/temp_evalcard_backend
+# Static prerender (`next build`) executes route handlers, which call
+# `getModelCards` etc. → `lib/duckdb-data.ts`, which requires
+# `LOCAL_PIPELINE_OUTPUT`. The cache populated by `cache-hf-data.mjs`
+# lives at `/app/.cache/hf-data`. `HF_DATA_OFFLINE=1` keeps the metadata
+# fetchers (`lib/hf-data.ts`) from attempting `evaleval/card_backend`
+# network reads with `revalidate: 0` (which Next 15 treats as dynamic
+# and fails the static export of `/`).
 ENV DATA_BACKEND=${DATA_BACKEND} \
-    HF_DATASET_REPO=${HF_DATASET_REPO}
+    HF_DATASET_REPO=${HF_DATASET_REPO} \
+    LOCAL_PIPELINE_OUTPUT=/app/.cache/hf-data \
+    HF_DATA_LOCAL_DIR=/app/.cache/hf-data \
+    HF_DATA_OFFLINE=1
 
 # install OS build deps required by some native node modules and package manager
 # copy lockfile first to leverage Docker layer caching
