@@ -1159,13 +1159,20 @@ export default function EvalsPage() {
             summaries: suiteSummaries,
             card: suiteCard,
             sourceLabel: suiteLabel,
-            href: suiteMatrixPreview
-              ? hasSuiteRollup
-                ? `/evals/${rollupSummary.evaluation_id}`
-                : syntheticMatrixEvalId
-                  ? `/evals/${syntheticMatrixEvalId}`
-                  : undefined
-              : undefined,
+            // Suite href priority: real rollup > synthetic matrix >
+            // synthetic aggregate (`aggregate__<suite_key>`). The
+            // aggregate fallback was missing so suites with neither a
+            // parent rollup nor a single-metric matrix (e.g.
+            // `fibble_arena` — 5 leaves but no rollup) used to land on
+            // a leaf-eval href that leaked from a child node, navigating
+            // users to the alphabetically-first sub-eval. The aggregate
+            // exists in `aggregate_eval_summaries.parquet` whenever the
+            // suite has ≥2 distinct sub-evals.
+            href: hasSuiteRollup
+              ? `/evals/${rollupSummary.evaluation_id}`
+              : syntheticMatrixEvalId
+                ? `/evals/${syntheticMatrixEvalId}`
+                : `/evals/aggregate__${composite.key}`,
             scopeKeys: suiteScopeKeys,
             matrixPreview: suiteMatrixPreview,
             descriptionFallback: `Browse the {label} suite and then open its benchmark children.`,
@@ -1288,13 +1295,13 @@ export default function EvalsPage() {
             family.key
           ),
           sourceLabel: suiteLabel,
-          href: suiteMatrixPreview
-            ? hasSuiteRollup
-              ? `/evals/${rollupSummary.evaluation_id}`
-              : syntheticMatrixEvalId
-                ? `/evals/${syntheticMatrixEvalId}`
-                : undefined
-            : undefined,
+          // Same fallback chain as the nested-suite branch above:
+          // rollup > matrix > aggregate.
+          href: hasSuiteRollup
+            ? `/evals/${rollupSummary.evaluation_id}`
+            : syntheticMatrixEvalId
+              ? `/evals/${syntheticMatrixEvalId}`
+              : `/evals/aggregate__${suiteKey}`,
           scopeKeys: suiteScopeKeys,
           matrixPreview: suiteMatrixPreview,
           descriptionFallback: `Browse the {label} suite and then open its benchmark children.`,
