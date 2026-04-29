@@ -223,9 +223,17 @@ dumped.push({
   ),
 })
 
-const evalDetails: Array<Record<string, any>> = listJSONFiles(evalsDir).map((file) =>
-  readJSON<Record<string, any>>(join(evalsDir, file))
-)
+// Sort eval-detail filenames by codepoint so iteration order matches
+// Python's default string comparison on the parity side (which sorts
+// `parity_outputs.build_aggregate_eval_summaries` inputs by
+// `eval_summary_id`). `localeCompare` treats `_` as collation-ignorable
+// at primary level, putting `foo_25.json` before `foo.json` — Python's
+// codepoint sort orders them the other way. Plain `.sort()` (no
+// compareFn) does the same codepoint comparison Python does.
+const evalDetails: Array<Record<string, any>> = listJSONFiles(evalsDir)
+  .slice()
+  .sort()
+  .map((file) => readJSON<Record<string, any>>(join(evalsDir, file)))
 
 dumped.push({
   surface: "eval_summaries",
