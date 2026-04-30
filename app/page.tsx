@@ -1,256 +1,213 @@
 import Link from "next/link"
+import { ArrowRight } from "lucide-react"
+
 import { Button } from "@/components/ui/button"
-import { ArrowRight, BookOpenText, Database, MessageSquare, Scale } from "lucide-react"
+import { Badge } from "@/components/ui/badge"
 import { HomeModeLabel } from "@/components/home-mode-label"
 import { Navigation } from "@/components/navigation"
-import { getBackendManifestData, getEvalListLiteData, getModelCardsLite } from "@/lib/data-backend"
+import { CorpusSignalsStrip } from "@/components/signals/corpus-signals-strip"
+import { getDeveloperList } from "@/lib/data-backend"
+import {
+  fetchBackendManifest,
+  fetchCorpusAggregates,
+  fetchEvalHierarchy,
+} from "@/lib/hf-data"
 
 function formatGeneratedAt(value: string | null | undefined) {
-  if (!value) return "Unknown"
-
+  if (!value) return null
   try {
-    return new Date(value).toLocaleString("en-US", {
-      month: "short",
+    const date = new Date(value)
+    if (Number.isNaN(date.getTime())) return value
+    return date.toLocaleDateString("en-US", {
+      year: "numeric",
+      month: "long",
       day: "numeric",
-      hour: "numeric",
-      minute: "2-digit",
     })
   } catch {
     return value
   }
 }
 
+function formatNumber(value: number | undefined | null): string {
+  if (value == null || !Number.isFinite(value)) return "—"
+  return value.toLocaleString("en-US")
+}
+
 export default async function HomePage() {
-  const [models, evalList, manifest] = await Promise.all([
-    getModelCardsLite(),
-    getEvalListLiteData(),
-    getBackendManifestData(),
+  const [aggregates, manifest, hierarchy, developers] = await Promise.all([
+    fetchCorpusAggregates(),
+    fetchBackendManifest(),
+    fetchEvalHierarchy(),
+    getDeveloperList().catch(() => []),
   ])
 
-  const evalSummaries = evalList.evals
-  const developerCount = new Set(models.map((entry) => entry.developer).filter(Boolean)).size
-  const avgBenchmarksPerModel =
-    models.length > 0
-      ? models.reduce((sum, entry) => sum + entry.benchmarks_count, 0) / models.length
-      : 0
-  const totalReportedResults = models.reduce((sum, entry) => sum + entry.evaluations_count, 0)
+  const stats = hierarchy.stats
+  const familyCount = stats?.family_count ?? hierarchy.families.length
+  const compositeCount = stats?.composite_count ?? 0
+  const singleBenchmarkCount = stats?.single_benchmark_count ?? 0
+  const standaloneBenchmarkCount = stats?.standalone_benchmark_count ?? 0
+  const benchmarkLeafCount = singleBenchmarkCount + standaloneBenchmarkCount
+  const sliceCount = stats?.slice_count ?? 0
+  const metricCount = stats?.metric_count ?? 0
+  const tripleCount = stats?.metric_rows_scanned ?? 0
+  const modelCount = manifest?.model_count ?? 0
+  const developerCount = developers.length
+  const generatedAt = formatGeneratedAt(manifest?.generated_at)
 
   return (
     <div className="min-h-screen bg-background">
       <Navigation />
-      <main className="relative overflow-hidden">
-        <div className="absolute inset-x-0 top-0 -z-10 h-[24rem] bg-[radial-gradient(circle_at_top,rgba(196,167,96,0.12),transparent_60%)]" />
-        <div className="absolute inset-y-0 right-0 -z-10 hidden w-[36rem] bg-[radial-gradient(circle_at_center,rgba(71,129,177,0.08),transparent_66%)] lg:block" />
 
-        <section className="mx-auto flex min-h-[calc(100vh-4.25rem)] w-full max-w-[92rem] flex-col gap-10 px-4 pb-10 pt-12 sm:px-6 sm:pt-16 lg:px-8 lg:pb-12">
-          <div className="flex flex-col gap-8 xl:flex-row xl:items-stretch">
-            <div className="flex flex-1 flex-col gap-6">
-              <div className="flex flex-wrap items-center gap-x-4 gap-y-2 text-[11px] font-semibold uppercase tracking-[0.24em] text-muted-foreground">
-                <span className="rounded-full border border-border/70 bg-background px-3 py-1">Beta preview</span>
-                <HomeModeLabel />
-                {manifest ? <span>Updated {formatGeneratedAt(manifest.generated_at)}</span> : null}
-              </div>
-
-              <div className="space-y-4">
-                <h1 className="max-w-4xl text-balance text-4xl font-semibold tracking-[-0.05em] text-foreground sm:text-5xl lg:text-[4.25rem] lg:leading-[1.02]">
-                  Public reporting for AI evaluations
-                </h1>
-                <p className="max-w-2xl text-base leading-7 text-muted-foreground">
-                  Explore which models and benchmarks are reported, where coverage is sparse, and what details are missing.
-                </p>
-              </div>
-
-              <div className="flex flex-wrap gap-3 pt-1">
-                <Link href="/models">
-                  <Button size="lg" className="gap-2 rounded-full px-6">
-                    Browse models
-                    <ArrowRight className="h-4 w-4" />
-                  </Button>
-                </Link>
-                <Link href="/evals">
-                  <Button size="lg" variant="outline" className="gap-2 rounded-full px-6">
-                    Browse evaluations
-                    <ArrowRight className="h-4 w-4" />
-                  </Button>
-                </Link>
-                <Link href="/survey">
-                  <Button size="lg" variant="ghost" className="gap-2 rounded-full px-4 text-foreground">
-                    Leave feedback
-                    <ArrowRight className="h-4 w-4" />
-                  </Button>
-                </Link>
-              </div>
-            </div>
-
-            <aside className="flex min-w-[300px] flex-col rounded-[2rem] border border-border/70 bg-card/80 p-5 shadow-[0_18px_50px_rgba(15,23,42,0.06)] xl:max-w-[22rem]">
-              <div className="grid grid-cols-2 gap-3">
-                <QuietStat label="Models" value={models.length.toString()} detail="Tracked" tone="amber" />
-                <QuietStat label="Evaluations" value={evalSummaries.length.toString()} detail="Benchmarks" tone="sky" />
-                <QuietStat label="Developers" value={developerCount.toString()} detail="Organizations" tone="emerald" />
-                <QuietStat
-                  label="Results"
-                  value={totalReportedResults.toLocaleString()}
-                  detail={`${avgBenchmarksPerModel.toFixed(1)} avg per model`}
-                  tone="slate"
-                />
-              </div>
-            </aside>
+      <main className="mx-auto w-full max-w-[88rem] px-4 py-12 sm:px-6 lg:px-8 lg:py-16">
+        {/* Masthead */}
+        <section className="border-b border-border/60 pb-10">
+          <div className="flex flex-wrap items-center gap-x-4 gap-y-2 text-[11px] font-semibold uppercase tracking-[0.24em] text-muted-foreground">
+            <HomeModeLabel />
+            {generatedAt && <span>Snapshot · {generatedAt}</span>}
+            {aggregates && (
+              <Badge variant="outline" className="font-normal tracking-normal">
+                Signals v{aggregates.signal_version}
+              </Badge>
+            )}
           </div>
 
-          <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
-            <SignalCard
-              icon={<Database className="h-4 w-4" />}
-              title="Reported benchmarks"
-              body="Which benchmarks, settings, and sources are documented."
-              tone="sky"
-            />
-            <SignalCard
-              icon={<Scale className="h-4 w-4" />}
-              title="Comparison context"
-              body="Evaluator relationships and config gaps attached to each record."
-              tone="amber"
-            />
-            <SignalCard
-              icon={<BookOpenText className="h-4 w-4" />}
-              title="Reader modes"
-              body="Research and policy views highlight different fields."
-              tone="emerald"
-            />
-          </div>
+          <h1 className="mt-5 max-w-4xl text-balance text-4xl font-semibold tracking-[-0.04em] text-foreground sm:text-5xl lg:text-[3.75rem] lg:leading-[1.05]">
+            Eval Cards
+          </h1>
+          <p className="mt-3 max-w-3xl text-base leading-7 text-muted-foreground sm:text-lg sm:leading-8">
+            An interpretative integration layer for AI evaluation reporting. Eval Cards composes
+            benchmark metadata, evaluation run data, and provenance into a single reading surface,
+            and surfaces four interpretive signals — reproducibility, reporting completeness,
+            provenance, and comparability — over a public corpus of reported scores.
+          </p>
 
-          <div className="grid grid-cols-1 gap-4 border-t border-border/60 pt-8 sm:grid-cols-2 lg:grid-cols-4">
-            <RoutePanel
-              href="/models"
-              icon={<Database className="h-4 w-4" />}
-              title="Model records"
-              body="Reported benchmarks per model, plus what's missing."
-            />
-            <RoutePanel
-              href="/evals"
-              icon={<BookOpenText className="h-4 w-4" />}
-              title="Benchmark records"
-              body="How a benchmark is reported across models."
-            />
-            <RoutePanel
-              href="/about"
-              icon={<Scale className="h-4 w-4" />}
-              title="Project notes"
-              body="Why this reporting format exists."
-            />
-            <Link
-              href="/survey"
-              className="group flex h-full flex-col rounded-[1.5rem] border border-border/70 bg-muted/20 p-5 transition-colors hover:bg-muted/30"
-            >
-              <div className="flex items-center gap-2 text-sm font-semibold text-foreground">
-                <span className="rounded-full bg-rose-50 p-2 text-rose-600 dark:bg-rose-950/30">
-                  <MessageSquare className="h-4 w-4" />
-                </span>
-                Feedback
-              </div>
-              <p className="mt-3 text-sm leading-7 text-muted-foreground">
-                Flag missing fields or unclear labels.
-              </p>
-              <div className="mt-auto pt-4 inline-flex items-center gap-2 text-sm font-semibold text-foreground">
-                Open survey
+          <div className="mt-6 flex flex-wrap gap-3">
+            <Link href="/models">
+              <Button size="lg" className="gap-2 rounded-full px-6">
+                Browse models
                 <ArrowRight className="h-4 w-4" />
-              </div>
+              </Button>
+            </Link>
+            <Link href="/evals">
+              <Button size="lg" variant="outline" className="gap-2 rounded-full px-6">
+                Browse evaluations
+                <ArrowRight className="h-4 w-4" />
+              </Button>
+            </Link>
+            <Link href="/about">
+              <Button size="lg" variant="ghost" className="gap-2 rounded-full px-4 text-foreground">
+                About this project
+                <ArrowRight className="h-4 w-4" />
+              </Button>
             </Link>
           </div>
+        </section>
+
+        {/* Corpus stats — paper §5.1 */}
+        <section className="border-b border-border/60 py-10">
+          <div className="grid gap-6 lg:grid-cols-[minmax(220px,0.34fr)_minmax(0,1fr)] lg:gap-12">
+            <div>
+              <div className="text-[11px] font-semibold uppercase tracking-[0.22em] text-muted-foreground">
+                Corpus
+              </div>
+              <h2 className="mt-2 text-2xl font-semibold tracking-tight text-foreground sm:text-[1.75rem]">
+                What this snapshot covers
+              </h2>
+              <p className="mt-3 max-w-md text-sm leading-7 text-muted-foreground">
+                Reports are organized through a six-level rollout hierarchy
+                (family → suite → single benchmark → split → subtask → metric) so that
+                aggregate claims can be drilled down to the evidence supporting them.
+              </p>
+            </div>
+
+            <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
+              <CorpusStat
+                label="Models"
+                value={formatNumber(modelCount)}
+                detail="Tracked across reporting sources"
+              />
+              <CorpusStat
+                label="Reported results"
+                value={formatNumber(tripleCount)}
+                detail="(model, benchmark, metric) triples"
+              />
+              <CorpusStat
+                label="Reporting organizations"
+                value={formatNumber(developerCount)}
+                detail="Developers and third-party evaluators"
+              />
+              <CorpusStat
+                label="Benchmark families"
+                value={formatNumber(familyCount)}
+                detail="Top of the rollout hierarchy"
+              />
+              <CorpusStat
+                label="Suites"
+                value={formatNumber(compositeCount)}
+                detail="Composite reporting units"
+              />
+              <CorpusStat
+                label="Single benchmarks"
+                value={formatNumber(benchmarkLeafCount)}
+                detail={`${formatNumber(sliceCount)} slices · ${formatNumber(metricCount)} metrics`}
+              />
+            </div>
+          </div>
+        </section>
+
+        {/* Four interpretive signals */}
+        <section className="py-10">
+          <div className="mb-6 grid gap-4 lg:grid-cols-[minmax(220px,0.34fr)_minmax(0,1fr)] lg:gap-12">
+            <div>
+              <div className="text-[11px] font-semibold uppercase tracking-[0.22em] text-muted-foreground">
+                Interpretive signals
+              </div>
+              <h2 className="mt-2 text-2xl font-semibold tracking-tight text-foreground sm:text-[1.75rem]">
+                Reproducibility, completeness, provenance, comparability
+              </h2>
+            </div>
+            <p className="max-w-3xl text-sm leading-7 text-muted-foreground">
+              Each signal answers a question a reader brings to a reported score. Per-record
+              instances appear on every model and benchmark page. Corpus-level rollups below
+              show how reporting practice looks across the public record as a whole.
+            </p>
+          </div>
+
+          {aggregates ? (
+            <CorpusSignalsStrip aggregates={aggregates} />
+          ) : (
+            <div className="rounded-2xl border border-dashed border-border/70 bg-muted/10 p-8 text-center">
+              <h3 className="text-lg font-semibold tracking-tight">Corpus aggregates unavailable</h3>
+              <p className="mx-auto mt-2 max-w-2xl text-sm leading-6 text-muted-foreground">
+                The current backend snapshot does not include <code>corpus-aggregates.json</code>.
+                When it does, this section will render the four corpus-level rollups.
+              </p>
+            </div>
+          )}
         </section>
       </main>
     </div>
   )
 }
 
-function QuietStat({
+function CorpusStat({
   label,
   value,
   detail,
-  tone,
 }: {
   label: string
   value: string
   detail: string
-  tone: "amber" | "emerald" | "rose" | "sky" | "slate"
 }) {
-  const toneClasses = {
-    amber: "border-amber-200/80 bg-amber-50/70 dark:border-amber-900/50 dark:bg-amber-950/20",
-    emerald: "border-emerald-200/80 bg-emerald-50/70 dark:border-emerald-900/50 dark:bg-emerald-950/20",
-    rose: "border-rose-200/80 bg-rose-50/70 dark:border-rose-900/50 dark:bg-rose-950/20",
-    sky: "border-sky-200/80 bg-sky-50/70 dark:border-sky-900/50 dark:bg-sky-950/20",
-    slate: "border-border/70 bg-muted/25",
-  }[tone]
-
   return (
-    <div className={`flex h-full flex-col rounded-[1.35rem] border p-4 ${toneClasses}`}>
-      <div className="text-[10px] font-semibold uppercase tracking-[0.18em] text-muted-foreground">{label}</div>
-      <div className="mt-2 text-2xl font-semibold tracking-tight text-foreground tabular-nums">{value}</div>
-      <p className="text-sm leading-6 text-muted-foreground">{detail}</p>
+    <div className="rounded-2xl border border-border/70 bg-card p-4">
+      <div className="text-[10px] font-semibold uppercase tracking-[0.22em] text-muted-foreground">
+        {label}
+      </div>
+      <div className="mt-2 text-2xl font-semibold tracking-tight text-foreground tabular-nums sm:text-[1.625rem]">
+        {value}
+      </div>
+      <p className="mt-1 text-xs leading-5 text-muted-foreground">{detail}</p>
     </div>
-  )
-}
-
-function SignalCard({
-  icon,
-  title,
-  body,
-  tone,
-}: {
-  icon: React.ReactNode
-  title: string
-  body: string
-  tone: "amber" | "emerald" | "sky"
-}) {
-  const toneClasses = {
-    amber: "bg-amber-50 text-amber-800 dark:bg-amber-950/30 dark:text-amber-300",
-    emerald: "bg-emerald-50 text-emerald-800 dark:bg-emerald-950/30 dark:text-emerald-300",
-    sky: "bg-sky-50 text-sky-800 dark:bg-sky-950/30 dark:text-sky-300",
-  }[tone]
-
-  const surfaceClasses = {
-    amber: "border-amber-200/70 bg-amber-50/40 dark:border-amber-900/40 dark:bg-amber-950/15",
-    emerald: "border-emerald-200/70 bg-emerald-50/40 dark:border-emerald-900/40 dark:bg-emerald-950/15",
-    sky: "border-sky-200/70 bg-sky-50/40 dark:border-sky-900/40 dark:bg-sky-950/15",
-  }[tone]
-
-  return (
-    <div className={`flex h-full flex-col gap-3 rounded-[1.5rem] border p-5 ${surfaceClasses}`}>
-      <div className="flex items-center gap-2 text-sm font-semibold text-foreground">
-        <span className={`rounded-full p-2 ${toneClasses}`}>{icon}</span>
-        {title}
-      </div>
-      <p className="text-sm leading-6 text-muted-foreground">{body}</p>
-    </div>
-  )
-}
-
-function RoutePanel({
-  href,
-  icon,
-  title,
-  body,
-}: {
-  href: string
-  icon: React.ReactNode
-  title: string
-  body: string
-}) {
-  return (
-    <Link
-      href={href}
-      className="group flex h-full flex-col rounded-[1.5rem] border border-border/70 bg-background/80 p-5 transition-colors hover:bg-muted/20"
-    >
-      <div className="flex items-center gap-2 text-sm font-semibold text-foreground">
-        <span className="rounded-full bg-muted/60 p-2 text-muted-foreground transition-colors group-hover:text-foreground">
-          {icon}
-        </span>
-        {title}
-      </div>
-      <p className="mt-3 text-sm leading-7 text-muted-foreground">{body}</p>
-      <div className="mt-auto pt-4 inline-flex items-center gap-2 text-sm font-semibold text-foreground">
-        Open
-        <ArrowRight className="h-4 w-4" />
-      </div>
-    </Link>
   )
 }

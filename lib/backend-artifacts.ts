@@ -2,6 +2,14 @@ export interface BackendManifest {
   generated_at: string
   config_version: number
   skipped_configs: string[]
+  // Counts the upstream pipeline already records in manifest.json. The home
+  // page reads these directly so it does not have to load model-cards-lite
+  // (~20MB) just to display headline numbers.
+  model_count?: number
+  eval_count?: number
+  metric_eval_count?: number
+  source_config_count?: number
+  skipped_config_count?: number
   summary_artifacts?: {
     corpus_aggregates?: string
     [key: string]: string | undefined

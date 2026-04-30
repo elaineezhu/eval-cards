@@ -32,9 +32,16 @@ const SOURCE_COLORS: Record<string, string> = {
 export function CorpusDashboard({
   aggregates,
   completenessScores,
+  embedded = false,
 }: {
   aggregates: CorpusAggregates
   completenessScores: number[]
+  /**
+   * When true, hides the dashboard's own masthead card. The host page is
+   * expected to provide its own title and generated-date badge. The view
+   * toggle is preserved inline above the signal sections.
+   */
+  embedded?: boolean
 }) {
   const { mode } = useAudienceMode()
   const [view, setView] = useState<"overall" | "category">("overall")
@@ -56,44 +63,72 @@ export function CorpusDashboard({
 
   return (
     <div className="space-y-6">
-      <section className="rounded-2xl border border-border/70 bg-card p-5 shadow-sm">
-        <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
-          <div>
-            <div className="text-[11px] font-semibold uppercase tracking-[0.22em] text-muted-foreground">
-              Interpretive signals
-            </div>
-            <h1 className="mt-2 text-3xl font-semibold tracking-tight">Corpus Dashboard</h1>
-            <p className="mt-2 max-w-3xl text-sm leading-6 text-muted-foreground">
-              Corpus-level rollups for reproducibility, documentation completeness, source provenance, and comparability.
-            </p>
+      {embedded ? (
+        <div className="flex flex-wrap items-center justify-between gap-3">
+          <div className="text-[11px] font-semibold uppercase tracking-[0.22em] text-muted-foreground">
+            Interpretive signals
           </div>
-
-          <div className="flex flex-wrap items-center gap-2">
-            <Badge variant="outline">Signals v{aggregates.signal_version}</Badge>
-            <Badge variant="outline">Generated {formatGeneratedDate(aggregates.generated_at)}</Badge>
-            <div className="inline-flex rounded-full border bg-muted/20 p-1">
-              <Button
-                type="button"
-                size="sm"
-                variant={view === "overall" ? "default" : "ghost"}
-                className="h-8 rounded-full"
-                onClick={() => setView("overall")}
-              >
-                Overall
-              </Button>
-              <Button
-                type="button"
-                size="sm"
-                variant={view === "category" ? "default" : "ghost"}
-                className="h-8 rounded-full"
-                onClick={() => setView("category")}
-              >
-                By category
-              </Button>
-            </div>
+          <div className="inline-flex rounded-full border bg-muted/20 p-1">
+            <Button
+              type="button"
+              size="sm"
+              variant={view === "overall" ? "default" : "ghost"}
+              className="h-8 rounded-full"
+              onClick={() => setView("overall")}
+            >
+              Overall
+            </Button>
+            <Button
+              type="button"
+              size="sm"
+              variant={view === "category" ? "default" : "ghost"}
+              className="h-8 rounded-full"
+              onClick={() => setView("category")}
+            >
+              By category
+            </Button>
           </div>
         </div>
-      </section>
+      ) : (
+        <section className="rounded-2xl border border-border/70 bg-card p-5 shadow-sm">
+          <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
+            <div>
+              <div className="text-[11px] font-semibold uppercase tracking-[0.22em] text-muted-foreground">
+                Interpretive signals
+              </div>
+              <h1 className="mt-2 text-3xl font-semibold tracking-tight">Corpus Dashboard</h1>
+              <p className="mt-2 max-w-3xl text-sm leading-6 text-muted-foreground">
+                Corpus-level rollups for reproducibility, reporting completeness, provenance, and comparability.
+              </p>
+            </div>
+
+            <div className="flex flex-wrap items-center gap-2">
+              <Badge variant="outline">Signals v{aggregates.signal_version}</Badge>
+              <Badge variant="outline">Generated {formatGeneratedDate(aggregates.generated_at)}</Badge>
+              <div className="inline-flex rounded-full border bg-muted/20 p-1">
+                <Button
+                  type="button"
+                  size="sm"
+                  variant={view === "overall" ? "default" : "ghost"}
+                  className="h-8 rounded-full"
+                  onClick={() => setView("overall")}
+                >
+                  Overall
+                </Button>
+                <Button
+                  type="button"
+                  size="sm"
+                  variant={view === "category" ? "default" : "ghost"}
+                  className="h-8 rounded-full"
+                  onClick={() => setView("category")}
+                >
+                  By category
+                </Button>
+              </div>
+            </div>
+          </div>
+        </section>
+      )}
 
       {view === "overall" ? (
         <div className="grid gap-6">
