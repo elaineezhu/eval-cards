@@ -2859,11 +2859,11 @@ export function BenchmarkDetail({
                     className={`inline-flex items-center rounded-full border px-2 py-0.5 text-[10px] font-semibold ${getRelationshipBadgeTone(relationship)}`}
                     title={
                       relationship === "first_party"
-                        ? "Self-reported by the model's developer."
+                        ? "Reported by the model's developer (first-party)."
                         : relationship === "third_party"
-                          ? "Independently evaluated by an outside party."
+                          ? "Reported by an independent third party."
                           : relationship === "collaborative"
-                            ? "Joint evaluation by the developer and an outside party."
+                            ? "Collaborative report by the developer and a third party."
                             : undefined
                     }
                   >
@@ -5060,11 +5060,11 @@ function BenchmarkDeepDiveDialogPanel({
                         className={`inline-flex items-center rounded-full border px-2 py-0.5 text-[10px] font-semibold ${getRelationshipBadgeTone(entry.relationship)}`}
                         title={
                           entry.relationship === "first_party"
-                            ? "Reported by the model's developer."
+                            ? "Reported by the model's developer (first-party)."
                             : entry.relationship === "third_party"
-                              ? "Independently evaluated by an outside party."
+                              ? "Reported by an independent third party."
                               : entry.relationship === "collaborative"
-                                ? "Joint evaluation by the developer and an outside party."
+                                ? "Collaborative report by the developer and a third party."
                                 : undefined
                         }
                       >

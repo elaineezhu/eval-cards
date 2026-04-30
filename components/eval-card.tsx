@@ -120,7 +120,7 @@ export function EvalCard({ summary, delayMs = 0 }: EvalCardProps) {
         <div className="min-w-0">
           <div className="text-xl font-bold">{summary.evaluation_name}</div>
           <div className="mt-1 text-xs font-medium uppercase tracking-[0.18em] text-muted-foreground">
-            Composite benchmark: {summary.composite_benchmark_name}
+            Suite: {summary.composite_benchmark_name}
           </div>
           <div className="mt-1 text-sm text-muted-foreground line-clamp-2">
             {overviewText ?? summary.metric_config.evaluation_description}
@@ -131,13 +131,13 @@ export function EvalCard({ summary, delayMs = 0 }: EvalCardProps) {
           {summary.third_party_ratio > 0 && (
             <Badge className="bg-emerald-600 text-white hover:bg-emerald-600">
               <BadgeCheck className="mr-1 h-3 w-3" />
-              Independently evaluated
+              Third-party reported
             </Badge>
           )}
           {reproducibilityGapCount > 0 && (
             <Badge className="bg-amber-500 text-amber-950 hover:bg-amber-500">
               <AlertTriangle className="mr-1 h-3 w-3" />
-              Documentation gaps
+              Reproducibility gap
             </Badge>
           )}
         </div>

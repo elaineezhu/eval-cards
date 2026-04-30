@@ -183,7 +183,7 @@ export function Navigation() {
 
               <div className="mt-3 border-t border-border/60 pt-3">
                 <div className="text-[10px] font-semibold uppercase tracking-[0.18em] text-muted-foreground">
-                  Reading mode
+                  Reader mode
                 </div>
                 <div className="mt-2 grid grid-cols-2 gap-2">
                   <button

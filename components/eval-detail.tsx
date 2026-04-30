@@ -629,10 +629,10 @@ export function EvalDetail({ summary }: EvalDetailProps) {
     : "Not linked"
   const leaderboardDescription = isResearchView
     ? summary.is_aggregated
-      ? "Models ranked by average raw score across the contributing composite benchmarks."
+      ? "Models ranked by average raw score across the suite's component benchmarks."
       : "Models ranked by raw score for this benchmark."
     : summary.is_aggregated
-      ? "Averaged model results across the contributing composite benchmarks, with drill-down to each component score."
+      ? "Averaged model results across the suite's component benchmarks, with drill-down to each component score."
       : "Model results with benchmark context, source dataset detail, and optional instance-data links."
   const reportingCompleteness = summary.evalcards?.annotations?.reporting_completeness
   const benchmarkComparability = summary.evalcards?.annotations?.benchmark_comparability
@@ -695,15 +695,15 @@ export function EvalDetail({ summary }: EvalDetailProps) {
                 <div className="space-y-2.5">
                   <div className="flex flex-wrap items-center gap-2">
                     <Badge variant="outline" className="border-border/60 bg-background/80 text-[11px] uppercase tracking-[0.18em]">
-                      {summary.is_aggregated ? "Merged Benchmark" : "Single Benchmark"}
+                      {summary.is_aggregated ? "Suite" : "Single Benchmark"}
                     </Badge>
                     {summary.is_aggregated ? (
                       <Badge variant="secondary" className="font-normal">
-                        {summary.aggregate_sources?.length ?? 0} composite benchmarks
+                        {summary.aggregate_sources?.length ?? 0} component benchmarks
                       </Badge>
                     ) : (
                       <Badge variant="secondary" className="font-normal">
-                        Composite: {summary.composite_benchmark_name}
+                        Suite: {summary.composite_benchmark_name}
                       </Badge>
                     )}
                     <Badge variant="secondary" className="font-normal capitalize">
@@ -778,11 +778,11 @@ export function EvalDetail({ summary }: EvalDetailProps) {
                 <dl className="mt-3 grid gap-x-5 gap-y-3 text-sm sm:grid-cols-2 xl:grid-cols-5">
                   <div>
                     <dt className="text-[11px] font-semibold uppercase tracking-[0.16em] text-muted-foreground">
-                      Composite benchmark
+                      Suite
                     </dt>
                     <dd className="mt-1 break-words font-medium">
                       {summary.is_aggregated
-                        ? summary.aggregate_sources?.map((source) => source.composite_benchmark_name).join(", ") || "Multiple composite benchmarks"
+                        ? summary.aggregate_sources?.map((source) => source.composite_benchmark_name).join(", ") || "Multiple suites"
                         : summary.composite_benchmark_name}
                     </dd>
                   </div>
@@ -1160,7 +1160,7 @@ export function EvalDetail({ summary }: EvalDetailProps) {
                           <TableCell className="hidden md:table-cell">
                             <div className="text-sm text-muted-foreground capitalize">
                               {modelResult.aggregate_components && modelResult.aggregate_components.length > 1
-                                ? `average of ${modelResult.aggregate_components.length} composite scores`
+                                ? `average of ${modelResult.aggregate_components.length} component scores`
                                 : datasetName ?? "Detailed result source"}
                             </div>
                           </TableCell>

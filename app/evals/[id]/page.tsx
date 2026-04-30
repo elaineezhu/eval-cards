@@ -167,7 +167,7 @@ export default function EvalDetailPage() {
             </Button>
             <div className="text-center">
               <h2 className="text-xl font-medium tracking-tight text-foreground/90 md:text-2xl">
-                {isComposite ? "Composite benchmark" : "Single benchmark details"}
+                {isComposite ? "Suite" : "Single benchmark details"}
               </h2>
             </div>
             <div />
@@ -178,7 +178,7 @@ export default function EvalDetailPage() {
             </Button>
             <div className="flex-1 text-center">
               <h2 className="text-base font-medium tracking-tight text-foreground/90">
-                {isComposite ? "Composite benchmark" : "Single benchmark details"}
+                {isComposite ? "Suite" : "Single benchmark details"}
               </h2>
             </div>
           </div>
@@ -202,7 +202,7 @@ export default function EvalDetailPage() {
 }
 
 // ---------------------------------------------------------------------------
-// Composite benchmark view
+// Suite view (paper §3.2 — composite reporting unit)
 // ---------------------------------------------------------------------------
 
 function CompositeEvalView({
@@ -225,7 +225,7 @@ function CompositeEvalView({
         <CardContent className="p-5 sm:p-6 space-y-4">
           <div className="flex flex-wrap items-center gap-2">
             <Badge variant="outline" className="text-[11px] uppercase tracking-[0.18em]">
-              Composite Benchmark
+              Suite
             </Badge>
             <Badge variant="secondary">
               {summary.aggregate_sources?.length ?? 0} metrics
@@ -241,7 +241,7 @@ function CompositeEvalView({
             </h1>
             <p className="mt-2 max-w-3xl text-sm leading-6 text-muted-foreground">
               {summary.benchmark_card?.purpose_and_intended_users?.goal
-                ?? `Composite benchmark suite with ${summary.aggregate_sources?.length ?? 0} metrics evaluated across ${summary.models_count.toLocaleString()} models.`}
+                ?? `Suite aggregating ${summary.aggregate_sources?.length ?? 0} metrics across ${summary.models_count.toLocaleString()} models.`}
             </p>
           </div>
         </CardContent>
