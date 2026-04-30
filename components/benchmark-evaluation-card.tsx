@@ -305,9 +305,18 @@ export function BenchmarkEvaluationCard({
               <Badge variant="outline">{data.benchmarks_count} benchmark suites</Badge>
               <Badge variant="outline">{data.evaluations_count} reported results</Badge>
               {reproducibilityGapCount > 0 && (
-                <Badge className="border-amber-300 bg-amber-50 text-amber-900 hover:bg-amber-50 dark:border-amber-900/60 dark:bg-amber-950/40 dark:text-amber-100">
+                <Badge
+                  className="border-amber-300 bg-amber-50 text-amber-900 hover:bg-amber-50 dark:border-amber-900/60 dark:bg-amber-950/40 dark:text-amber-100"
+                  title={
+                    isResearchView
+                      ? `${reproducibilityGapCount} of ${reproducibilityTotal} reported scores have at least one missing setup field.`
+                      : `${reproducibilityGapCount} of ${reproducibilityTotal} reported scores cannot be independently re-run because the setup is not documented.`
+                  }
+                >
                   <AlertTriangle className="h-3 w-3" />
-                  {reproducibilityGapCount} setup gaps
+                  {isResearchView
+                    ? `${reproducibilityGapCount} reproducibility gaps`
+                    : `${reproducibilityGapCount} re-run gaps`}
                 </Badge>
               )}
             </div>
@@ -454,16 +463,27 @@ export function BenchmarkEvaluationCard({
               {topBenchmarks.length > 0 && (
                 <KeyValueRow label="Benchmarks" value={topBenchmarks.slice(0, 6).join(", ")} />
               )}
-              {scoreRange && <KeyValueRow label="Score span" value={scoreRange} />}
+              {scoreRange && (
+                <KeyValueRow label={isResearchView ? "Score span" : "Score range"} value={scoreRange} />
+              )}
               <KeyValueRow label="Updated" value={formatDate(data.latest_timestamp)} />
-              {data.architecture && <KeyValueRow label="Architecture" value={data.architecture} />}
+              {data.architecture && isResearchView && (
+                <KeyValueRow label="Architecture" value={data.architecture} />
+              )}
               {data.source_types.length > 0 && (
-                <KeyValueRow label="Artifact type" value={data.source_types.map((s) => s.replace(/_/g, " ")).join(", ")} />
+                <KeyValueRow
+                  label={isResearchView ? "Artifact type" : "Source type"}
+                  value={data.source_types.map((s) => s.replace(/_/g, " ")).join(", ")}
+                />
               )}
               {reproducibilityGapCount > 0 && (
                 <KeyValueRow
-                  label="Re-runnability"
-                  value={`${reproducibilityGapCount} of ${reproducibilityTotal} reported scores are not fully documented`}
+                  label={isResearchView ? "Re-runnability" : "Re-run readiness"}
+                  value={
+                    isResearchView
+                      ? `${reproducibilityGapCount} of ${reproducibilityTotal} reported scores are not fully documented`
+                      : `${reproducibilityGapCount} of ${reproducibilityTotal} scores cannot be re-run with the information available`
+                  }
                 />
               )}
             </div>

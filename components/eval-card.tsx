@@ -123,7 +123,15 @@ export function EvalCard({ summary, delayMs = 0 }: EvalCardProps) {
             Suite: {summary.composite_benchmark_name}
           </div>
           <div className="mt-1 text-sm text-muted-foreground line-clamp-2">
-            {overviewText ?? summary.metric_config.evaluation_description}
+            {/*
+             * Policy readers benefit from a plain-language framing of what
+             * the benchmark is for. The Auto-BenchmarkCards `goal` field is
+             * usually written for non-experts; the `overview` field is more
+             * technical. Prefer goal in policy mode, overview in research.
+             */}
+            {isResearchView
+              ? overviewText ?? policyGoal ?? summary.metric_config.evaluation_description
+              : policyGoal ?? overviewText ?? summary.metric_config.evaluation_description}
           </div>
         </div>
 
