@@ -3,14 +3,20 @@
 import { useAudienceMode } from "@/components/audience-mode-provider"
 import { Fragment, useEffect, useMemo, useState } from "react"
 import Link from "next/link"
+import { BenchmarkSignalsStrip } from "@/components/signals/benchmark-signals-strip"
 import { CompletenessPanel } from "@/components/signals/completeness-panel"
 import { ComparabilityPanel } from "@/components/signals/comparability-panel"
-import { ReproducibilityPanel } from "@/components/signals/reproducibility-panel"
 import { SignalsRowBadges } from "@/components/signals/signals-row-badges"
-import { RowSignalsCompact } from "@/components/signals/row-signals-compact"
 import { getCompletenessPopulatedCount } from "@/components/signals/signal-utils"
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible"
 import { ScoreDistribution } from "@/components/score-distribution"
+import { ParamRangePicker } from "@/components/param-range-picker"
+import {
+  PARAM_RANGE_MAX_INDEX,
+  paramStepToNumeric,
+  parseParamsBillionsFromText,
+  parseParamsBillionsFromModelName,
+} from "@/lib/param-range"
 import {
   Dialog,
   DialogContent,
@@ -264,107 +270,6 @@ function SliceSelector({
   )
 }
 
-const PARAM_RANGE_VALUES = [1, 2, 3, 4, 6, 8, 10, 12, 16, 24, 32, 48, 64, 96, 128, 192, 256, 384, 500] as const
-const PARAM_RANGE_MARKERS = [
-  { label: "< 1B", step: 0 },
-  { label: "6B", step: PARAM_RANGE_VALUES.indexOf(6) },
-  { label: "12B", step: PARAM_RANGE_VALUES.indexOf(12) },
-  { label: "32B", step: PARAM_RANGE_VALUES.indexOf(32) },
-  { label: "128B", step: PARAM_RANGE_VALUES.indexOf(128) },
-  { label: "> 500B", step: PARAM_RANGE_VALUES.length - 1 },
-] as const
-
-function formatParamBoundLabel(step: number, bound: "min" | "max") {
-  const maxStepIndex = PARAM_RANGE_VALUES.length - 1
-
-  if (bound === "min" && step <= 0) {
-    return "< 1B"
-  }
-
-  if (bound === "max" && step >= maxStepIndex) {
-    return "> 500B"
-  }
-
-  const value = PARAM_RANGE_VALUES[step]
-  return value != null ? `${value}B` : "Not reported"
-}
-
-function parseParamsBillionsFromText(value: string | null | undefined) {
-  if (!value) {
-    return null
-  }
-
-  const normalized = value.trim().toLowerCase()
-  if (!normalized) {
-    return null
-  }
-
-  const compact = normalized.replace(/,/g, "")
-  const tokenMatch = compact.match(/(\d+(?:\.\d+)?)\s*(trillion|tn|t|billion|bn|b|million|mn|m|thousand|k)\b/)
-  if (tokenMatch) {
-    const amount = Number.parseFloat(tokenMatch[1])
-    if (!Number.isFinite(amount)) {
-      return null
-    }
-
-    const unit = tokenMatch[2]
-    if (unit === "trillion" || unit === "tn" || unit === "t") {
-      return amount * 1000
-    }
-
-    if (unit === "billion" || unit === "bn" || unit === "b") {
-      return amount
-    }
-
-    if (unit === "million" || unit === "mn" || unit === "m") {
-      return amount / 1000
-    }
-
-    if (unit === "thousand" || unit === "k") {
-      return amount / 1_000_000
-    }
-  }
-
-  const numeric = Number.parseFloat(compact)
-  return Number.isFinite(numeric) ? numeric : null
-}
-
-function parseParamsBillionsFromModelName(modelName: string | null | undefined) {
-  if (!modelName) {
-    return null
-  }
-
-  const sizeTokens = Array.from(modelName.matchAll(/\b(\d+(?:\.\d+)?)\s*([tmbk])\b/gi))
-  if (sizeTokens.length === 0) {
-    return null
-  }
-
-  const lastToken = sizeTokens[sizeTokens.length - 1]
-  const numericValue = Number.parseFloat(lastToken[1])
-  if (!Number.isFinite(numericValue)) {
-    return null
-  }
-
-  const unit = lastToken[2].toLowerCase()
-  if (unit === "t") {
-    return numericValue * 1000
-  }
-
-  if (unit === "b") {
-    return numericValue
-  }
-
-  if (unit === "m") {
-    return numericValue / 1000
-  }
-
-  if (unit === "k") {
-    return numericValue / 1_000_000
-  }
-
-  return null
-}
-
 function getParamsBillionsFromModelInfo(modelInfo: ModelResultForBenchmark["model_info"]) {
   const additionalDetails = modelInfo.additional_details
   const rawParamsBillions =
@@ -568,32 +473,16 @@ export function EvalDetail({ summary }: EvalDetailProps) {
   const [expandedRows, setExpandedRows] = useState<Record<string, boolean>>({})
   const [leaderboardPage, setLeaderboardPage] = useState(1)
   const [minParamStep, setMinParamStep] = useState(0)
-  const [maxParamStep, setMaxParamStep] = useState(PARAM_RANGE_VALUES.length - 1)
+  const [maxParamStep, setMaxParamStep] = useState(PARAM_RANGE_MAX_INDEX)
 
   const maxScore = summary.metric_config.max_score ?? 1
   const minScore = summary.metric_config.min_score ?? 0
   const range = maxScore - minScore
 
   const normalizeScore = (raw: number) => (range > 0 ? (raw - minScore) / range : raw)
-  const maxParamStepIndex = PARAM_RANGE_VALUES.length - 1
-  const minHandlePercent = (minParamStep / maxParamStepIndex) * 100
-  const maxHandlePercent = (maxParamStep / maxParamStepIndex) * 100
 
-  const numericMinParams = useMemo(() => {
-    if (minParamStep <= 0) {
-      return null
-    }
-
-    return PARAM_RANGE_VALUES[minParamStep] ?? null
-  }, [minParamStep])
-
-  const numericMaxParams = useMemo(() => {
-    if (maxParamStep >= PARAM_RANGE_VALUES.length - 1) {
-      return null
-    }
-
-    return PARAM_RANGE_VALUES[maxParamStep] ?? null
-  }, [maxParamStep])
+  const numericMinParams = useMemo(() => paramStepToNumeric(minParamStep, "min"), [minParamStep])
+  const numericMaxParams = useMemo(() => paramStepToNumeric(maxParamStep, "max"), [maxParamStep])
 
   const sortedResults = useMemo(
     () =>
@@ -602,6 +491,8 @@ export function EvalDetail({ summary }: EvalDetailProps) {
       ),
     [summary.model_results, summary.metric_config.lower_is_better]
   )
+
+  const [showUnknownSize, setShowUnknownSize] = useState(true)
 
   const hasParameterData = useMemo(
     () => sortedResults.some((result) => getParamsBillions(result) != null),
@@ -612,17 +503,13 @@ export function EvalDetail({ summary }: EvalDetailProps) {
     return sortedResults.filter((modelResult) => {
       const paramsBillions = getParamsBillions(modelResult)
 
-      if (numericMinParams != null && (paramsBillions == null || paramsBillions < numericMinParams)) {
-        return false
-      }
+      if (paramsBillions == null) return showUnknownSize
 
-      if (numericMaxParams != null && (paramsBillions == null || paramsBillions > numericMaxParams)) {
-        return false
-      }
-
+      if (numericMinParams != null && paramsBillions < numericMinParams) return false
+      if (numericMaxParams != null && paramsBillions > numericMaxParams) return false
       return true
     })
-  }, [numericMaxParams, numericMinParams, sortedResults])
+  }, [numericMaxParams, numericMinParams, showUnknownSize, sortedResults])
 
   const leaderboardRows = useMemo<LeaderboardRow[]>(() => {
     let currentRank = 0
@@ -675,10 +562,6 @@ export function EvalDetail({ summary }: EvalDetailProps) {
       [key]: !current[key],
     }))
 
-  const evalKindLabel = summary.is_aggregated
-    ? (isResearchView ? "Composite · §3.2" : "Benchmark suite")
-    : (isResearchView ? "Single benchmark" : "Benchmark")
-
   const headerOrg = summary.composite_benchmark_name && summary.composite_benchmark_name !== summary.evaluation_name
     ? summary.composite_benchmark_name
     : null
@@ -693,10 +576,9 @@ export function EvalDetail({ summary }: EvalDetailProps) {
     <div className="space-y-12">
       {/* HERO — paper §3.1 ------------------------------------------------ */}
       <header className="motion-academic-enter">
-        <div className="kicker kicker-accent mb-2">{evalKindLabel}</div>
         <h1
           className="font-bold tracking-[-0.025em]"
-          style={{ fontSize: "clamp(40px, 5vw, 60px)", lineHeight: 1.04, margin: "8px 0 12px" }}
+          style={{ fontSize: "clamp(40px, 5vw, 60px)", lineHeight: 1.04, margin: "0 0 12px" }}
         >
           {summary.evaluation_name}
         </h1>
@@ -790,6 +672,9 @@ export function EvalDetail({ summary }: EvalDetailProps) {
 
         <CollapsibleContent className="mt-3">
           <div className="space-y-4">
+            {/* Four interpretive signals (paper §4.2.1), benchmark-level. */}
+            <BenchmarkSignalsStrip summary={summary} />
+
             {/* Metric spec / nested datalist (paper-aligned hairline def-list) */}
             <div className="ec-card warm" style={{ padding: "18px 22px" }}>
               <div className="kicker mb-3">
@@ -992,96 +877,27 @@ export function EvalDetail({ summary }: EvalDetailProps) {
             </div>
           )}
 
-          <div className="ec-card" style={{ padding: 0, overflow: "hidden" }}>
-            {hasParameterData && (
-              <div
-                style={{
-                  borderBottom: "1px solid var(--border-soft)",
-                  background: "var(--bg-warm)",
-                  padding: "16px 20px",
+          {hasParameterData && (
+            <div className="mb-4">
+              <ParamRangePicker
+                variant="promo"
+                headline="Parameter range"
+                subline="Narrow the leaderboard to comparable model sizes."
+                minStep={minParamStep}
+                maxStep={maxParamStep}
+                onMinChange={setMinParamStep}
+                onMaxChange={setMaxParamStep}
+                onReset={() => {
+                  setMinParamStep(0)
+                  setMaxParamStep(PARAM_RANGE_MAX_INDEX)
                 }}
-              >
-                <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
-                  <div className="space-y-1">
-                    <div className="text-[11px] font-semibold uppercase tracking-[0.18em] text-muted-foreground">
-                      Parameter range
-                    </div>
-                    <div className="text-sm text-muted-foreground">
-                      Narrow the leaderboard to comparable model sizes.
-                    </div>
-                  </div>
+                showUnknownSize={showUnknownSize}
+                onShowUnknownSizeChange={setShowUnknownSize}
+              />
+            </div>
+          )}
 
-                  <div className="flex min-w-0 flex-1 items-center gap-4 lg:max-w-[40rem]">
-                    <div className="min-w-0 flex-1">
-                      <div className="mb-2 flex items-center justify-between text-[10px] font-medium uppercase tracking-[0.14em] text-muted-foreground">
-                        {PARAM_RANGE_MARKERS.map((marker) => (
-                          <span key={marker.label} className="text-center">
-                            {marker.label}
-                          </span>
-                        ))}
-                      </div>
-
-                      <div className="relative h-4">
-                        <div className="absolute inset-x-1.5 top-1/2 h-[3px] -translate-y-1/2 rounded-full bg-border/80" />
-                        <div className="absolute inset-x-1.5 top-1/2 h-[3px] -translate-y-1/2">
-                          <div
-                            className="absolute inset-y-0 rounded-full bg-foreground"
-                            style={{
-                              left: `${minHandlePercent}%`,
-                              right: `${Math.max(100 - maxHandlePercent, 0)}%`,
-                            }}
-                          />
-                        </div>
-
-                        <div className="absolute inset-x-1.5 top-1/2 -translate-y-1/2">
-                          {PARAM_RANGE_VALUES.map((_, stepIndex) => (
-                            <span
-                              key={`param-tick-${stepIndex}`}
-                              className="absolute top-0 h-2 w-px -translate-x-1/2 rounded-full bg-border"
-                              style={{ left: `${(stepIndex / maxParamStepIndex) * 100}%` }}
-                              aria-hidden="true"
-                            />
-                          ))}
-                        </div>
-
-                        <input
-                          type="range"
-                          min={0}
-                          max={maxParamStepIndex}
-                          step={1}
-                          value={minParamStep}
-                          onChange={(event) => {
-                            const nextMin = Number(event.target.value)
-                            setMinParamStep(Math.min(nextMin, maxParamStep))
-                          }}
-                          className="param-range-input"
-                          aria-label="Minimum parameter filter"
-                        />
-
-                        <input
-                          type="range"
-                          min={0}
-                          max={maxParamStepIndex}
-                          step={1}
-                          value={maxParamStep}
-                          onChange={(event) => {
-                            const nextMax = Number(event.target.value)
-                            setMaxParamStep(Math.max(nextMax, minParamStep))
-                          }}
-                          className="param-range-input"
-                          aria-label="Maximum parameter filter"
-                        />
-                      </div>
-                    </div>
-
-                    <span className="shrink-0 text-[11px] text-muted-foreground">
-                      {formatParamBoundLabel(minParamStep, "min")} to {formatParamBoundLabel(maxParamStep, "max")}
-                    </span>
-                  </div>
-                </div>
-              </div>
-            )}
-
+          <div className="ec-card" style={{ padding: 0, overflow: "hidden" }}>
             <div className="overflow-x-auto">
             <table className="ec-htable" style={{ minWidth: 980 }}>
               <thead>
@@ -1204,7 +1020,6 @@ export function EvalDetail({ summary }: EvalDetailProps) {
                                   Avg of {modelResult.aggregate_components.length}
                                 </div>
                               )}
-                              <RowSignalsCompact annotations={rowAnnotations} className="mt-1" />
                             </div>
                           </div>
                         </td>
@@ -1374,10 +1189,6 @@ export function EvalDetail({ summary }: EvalDetailProps) {
                                     />
                                   )}
                                 </DetailPanel>
-
-                                {!isResearchView && (
-                                  <ReproducibilityPanel gap={rowAnnotations?.reproducibility_gap} />
-                                )}
 
                                 <DetailPanel
                                   title={isResearchView ? "Score Breakdown" : "Metric Summary"}
@@ -1636,11 +1447,19 @@ function MultiMetricLeaderboard({
   isResearchView: boolean
 }) {
   const [page, setPage] = useState(1)
-  const [sortKey, setSortKey] = useState<string>("coverage")
+  // Default sort: the first root-scope metric (the benchmark's overall
+  // score), falling back to the first metric overall, then to model name.
+  // We don't sort by metric coverage by default — coverage tells you how
+  // many slices reported, not how the model performed.
+  const [sortKey, setSortKey] = useState<string>(() => {
+    const metrics = summary.leaderboard_metrics ?? []
+    const root = metrics.find((m) => m.scope === "root")
+    return root?.column_key ?? metrics[0]?.column_key ?? "model"
+  })
   const [sortDirection, setSortDirection] = useState<"asc" | "desc">("desc")
   const [activeSubtaskTab, setActiveSubtaskTab] = useState<string>("all")
   const [minParamStep, setMinParamStep] = useState(0)
-  const [maxParamStep, setMaxParamStep] = useState(PARAM_RANGE_VALUES.length - 1)
+  const [maxParamStep, setMaxParamStep] = useState(PARAM_RANGE_MAX_INDEX)
   const [expandedRows, setExpandedRows] = useState<Record<string, boolean>>({})
 
   // Index ModelResultForBenchmark entries by model_info.id so we can power the
@@ -1678,7 +1497,6 @@ function MultiMetricLeaderboard({
     [allMetricKeys]
   )
   const [visibleMetricKeys, setVisibleMetricKeys] = useState<string[]>(() => defaultVisibleMetricKeys)
-  const maxParamStepIndex = PARAM_RANGE_VALUES.length - 1
   const leaderboardMetricMap = useMemo(
     () => new Map(leaderboardMetrics.map((metric) => [metric.column_key, metric])),
     [leaderboardMetrics]
@@ -1725,38 +1543,26 @@ function MultiMetricLeaderboard({
     [visibleMetrics]
   )
 
-  const numericMinParams = useMemo(() => {
-    if (minParamStep <= 0) {
-      return null
-    }
+  const numericMinParams = useMemo(() => paramStepToNumeric(minParamStep, "min"), [minParamStep])
+  const numericMaxParams = useMemo(() => paramStepToNumeric(maxParamStep, "max"), [maxParamStep])
+  const [showUnknownSize, setShowUnknownSize] = useState(true)
 
-    return PARAM_RANGE_VALUES[minParamStep] ?? null
-  }, [minParamStep])
-
-  const numericMaxParams = useMemo(() => {
-    if (maxParamStep >= PARAM_RANGE_VALUES.length - 1) {
-      return null
-    }
-
-    return PARAM_RANGE_VALUES[maxParamStep] ?? null
-  }, [maxParamStep])
+  const hasParameterData = useMemo(
+    () => leaderboardRows.some((row) => getParamsBillionsFromModelInfo(row.model_info) != null),
+    [leaderboardRows]
+  )
 
   const filteredRows = useMemo(() => {
-    return leaderboardRows
-      .filter((row) => {
-        const paramsBillions = getParamsBillionsFromModelInfo(row.model_info)
+    return leaderboardRows.filter((row) => {
+      const paramsBillions = getParamsBillionsFromModelInfo(row.model_info)
 
-        if (numericMinParams != null && (paramsBillions == null || paramsBillions < numericMinParams)) {
-          return false
-        }
+      if (paramsBillions == null) return showUnknownSize
 
-        if (numericMaxParams != null && (paramsBillions == null || paramsBillions > numericMaxParams)) {
-          return false
-        }
-
-        return true
-      })
-  }, [leaderboardRows, numericMaxParams, numericMinParams])
+      if (numericMinParams != null && paramsBillions < numericMinParams) return false
+      if (numericMaxParams != null && paramsBillions > numericMaxParams) return false
+      return true
+    })
+  }, [leaderboardRows, numericMaxParams, numericMinParams, showUnknownSize])
 
   const sortedRows = useMemo(() => {
     const rows = [...filteredRows]
@@ -1786,11 +1592,6 @@ function MultiMetricLeaderboard({
       if (sortKey === "developer") {
         const comparison =
           (left.model_info.developer ?? "").localeCompare(right.model_info.developer ?? "") || compareNames(left, right)
-        return sortDirection === "asc" ? comparison : -comparison
-      }
-
-      if (sortKey === "coverage") {
-        const comparison = left.metrics_present - right.metrics_present || compareNames(left, right)
         return sortDirection === "asc" ? comparison : -comparison
       }
 
@@ -1836,10 +1637,19 @@ function MultiMetricLeaderboard({
 
   useEffect(() => {
     if (leaderboardMetricMap.has(sortKey) && !visibleMetricColumnKeySet.has(sortKey)) {
-      setSortKey("coverage")
+      // The currently-sorted metric was hidden — fall back to the first
+      // visible root-scope metric, then the first visible metric overall,
+      // then to the model name.
+      const visibleRoot = leaderboardMetrics.find(
+        (m) => m.scope === "root" && visibleMetricColumnKeySet.has(m.column_key),
+      )
+      const fallback = visibleRoot?.column_key
+        ?? leaderboardMetrics.find((m) => visibleMetricColumnKeySet.has(m.column_key))?.column_key
+        ?? "model"
+      setSortKey(fallback)
       setSortDirection("desc")
     }
-  }, [leaderboardMetricMap, sortKey, visibleMetricColumnKeySet])
+  }, [leaderboardMetricMap, leaderboardMetrics, sortKey, visibleMetricColumnKeySet])
 
   useEffect(() => {
     if (!hasSubtaskTabs) {
@@ -1857,11 +1667,6 @@ function MultiMetricLeaderboard({
       setActiveSubtaskTab("all")
     }
   }, [activeSubtaskTab, hasSubtaskTabs, singleMetricSubtaskTabs])
-
-  const hasParameterData = useMemo(
-    () => leaderboardRows.some((row) => getParamsBillionsFromModelInfo(row.model_info) != null),
-    [leaderboardRows]
-  )
 
   const pagedRows = useMemo(
     () => sortedRows.slice(0, page * 50),
@@ -1883,18 +1688,12 @@ function MultiMetricLeaderboard({
     })
   }
 
-  const getVisibleMetricCount = (row: LeaderboardMatrixRow) =>
-    visibleMetrics.reduce(
-      (count, metric) => count + (isNumericScore(row.values[metric.column_key]) ? 1 : 0),
-      0
-    )
-
   const getDefaultSortDirection = (key: string): "asc" | "desc" => {
     if (key === "model" || key === "developer") {
       return "asc"
     }
 
-    if (key === "updated" || key === "coverage") {
+    if (key === "updated") {
       return "desc"
     }
 
@@ -2033,84 +1832,21 @@ function MultiMetricLeaderboard({
 
         {hasParameterData && (
           <div className="border-b bg-background px-5 py-4 sm:px-6">
-            <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
-              <div className="space-y-1">
-                <div className="text-[11px] font-semibold uppercase tracking-[0.18em] text-muted-foreground">
-                  Parameter range
-                </div>
-                <div className="text-sm text-muted-foreground">
-                  Narrow the matrix to comparable model sizes.
-                </div>
-              </div>
-
-              <div className="flex min-w-0 flex-1 items-center gap-4 lg:max-w-[40rem]">
-                <div className="min-w-0 flex-1">
-                  <div className="mb-2 flex items-center justify-between text-[10px] font-medium uppercase tracking-[0.14em] text-muted-foreground">
-                    {PARAM_RANGE_MARKERS.map((marker) => (
-                      <span key={marker.label} className="text-center">
-                        {marker.label}
-                      </span>
-                    ))}
-                  </div>
-
-                  <div className="relative h-4">
-                    <div className="absolute inset-x-1.5 top-1/2 h-[3px] -translate-y-1/2 rounded-full bg-border/80" />
-                    <div className="absolute inset-x-1.5 top-1/2 h-[3px] -translate-y-1/2">
-                      <div
-                        className="absolute inset-y-0 rounded-full bg-foreground"
-                        style={{
-                          left: `${(minParamStep / maxParamStepIndex) * 100}%`,
-                          right: `${Math.max(100 - (maxParamStep / maxParamStepIndex) * 100, 0)}%`,
-                        }}
-                      />
-                    </div>
-
-                    <div className="absolute inset-x-1.5 top-1/2 -translate-y-1/2">
-                      {PARAM_RANGE_VALUES.map((_, stepIndex) => (
-                        <span
-                          key={`param-matrix-tick-${stepIndex}`}
-                          className="absolute top-0 h-2 w-px -translate-x-1/2 rounded-full bg-border"
-                          style={{ left: `${(stepIndex / maxParamStepIndex) * 100}%` }}
-                          aria-hidden="true"
-                        />
-                      ))}
-                    </div>
-
-                    <input
-                      type="range"
-                      min={0}
-                      max={maxParamStepIndex}
-                      step={1}
-                      value={minParamStep}
-                      onChange={(event) => {
-                        const nextMin = Number(event.target.value)
-                        setMinParamStep(Math.min(nextMin, maxParamStep))
-                      }}
-                      className="param-range-input"
-                      aria-label="Minimum parameter filter"
-                    />
-
-                    <input
-                      type="range"
-                      min={0}
-                      max={maxParamStepIndex}
-                      step={1}
-                      value={maxParamStep}
-                      onChange={(event) => {
-                        const nextMax = Number(event.target.value)
-                        setMaxParamStep(Math.max(nextMax, minParamStep))
-                      }}
-                      className="param-range-input"
-                      aria-label="Maximum parameter filter"
-                    />
-                  </div>
-                </div>
-
-                <span className="shrink-0 text-[11px] text-muted-foreground">
-                  {formatParamBoundLabel(minParamStep, "min")} to {formatParamBoundLabel(maxParamStep, "max")}
-                </span>
-              </div>
-            </div>
+            <ParamRangePicker
+              variant="promo"
+              headline="Parameter range"
+              subline="Narrow the matrix to comparable model sizes."
+              minStep={minParamStep}
+              maxStep={maxParamStep}
+              onMinChange={setMinParamStep}
+              onMaxChange={setMaxParamStep}
+              onReset={() => {
+                setMinParamStep(0)
+                setMaxParamStep(PARAM_RANGE_MAX_INDEX)
+              }}
+              showUnknownSize={showUnknownSize}
+              onShowUnknownSizeChange={setShowUnknownSize}
+            />
           </div>
         )}
 
@@ -2134,13 +1870,6 @@ function MultiMetricLeaderboard({
                 >
                   {isResearchView ? "Developer" : "Provider"}
                   {getSortIndicator("developer")}
-                </th>
-                <th
-                  className="num"
-                  style={{ width: 110, cursor: "pointer" }}
-                  onClick={() => handleSort("coverage")}
-                >
-                  Coverage{getSortIndicator("coverage")}
                 </th>
                 {visibleMetrics.map((metric) => {
                   const showSubtaskTopline =
@@ -2248,10 +1977,6 @@ function MultiMetricLeaderboard({
                         >
                           {row.model_info.developer ?? "Unknown developer"}
                         </div>
-                        <RowSignalsCompact
-                          annotations={getRowLevelAnnotations(row, visibleMetrics)}
-                          className="mt-1"
-                        />
                       </div>
                     </div>
                   </td>
@@ -2260,11 +1985,6 @@ function MultiMetricLeaderboard({
                     <div className="text-[13px] truncate" style={{ color: "var(--fg-muted)" }}>
                       {row.model_info.developer ?? "Unknown developer"}
                     </div>
-                  </td>
-
-                  <td className="num align-top tabular-nums" style={{ fontSize: 13, fontWeight: 600 }}>
-                    {getVisibleMetricCount(row)}
-                    <span style={{ color: "var(--fg-subtle)", fontWeight: 400 }}>/{visibleMetrics.length}</span>
                   </td>
 
                   {visibleMetrics.map((metric) => {
@@ -2561,23 +2281,40 @@ function BenchmarkCardPanel({
   const license = ethical.data_licensing ?? ""
   const shortLicense = license && license !== "Not specified" ? license : null
 
+  // The outer collapsible trigger names the panel; the prominent top
+  // strip surfaces what readers most often want at a glance — domain
+  // and language tags, license, and any flagged/missing-field badge.
+  const hasChipStrip =
+    domains.length > 0 ||
+    languages.length > 0 ||
+    Boolean(shortLicense) ||
+    flaggedFields.length > 0 ||
+    missingFields.length > 0
+
   return (
     <div className="ec-card" style={{ padding: 0, overflow: "hidden" }}>
-      <div
-        style={{
-          padding: "16px 20px",
-          background: "var(--bg-warm)",
-          borderBottom: "1px solid var(--border-soft)",
-        }}
-      >
-        <div className="flex flex-wrap items-center gap-3 mb-1.5">
-          <BookOpen className="h-4 w-4" style={{ color: "var(--fg-muted)" }} />
-          <span className="kicker kicker-fg" style={{ fontSize: 12, letterSpacing: "0.16em" }}>
-            Benchmark Card
-          </span>
-          {shortLicense && (
-            <span className="ec-tag outline">{shortLicense}</span>
-          )}
+      {hasChipStrip && (
+        <div
+          className="flex flex-wrap items-center gap-2"
+          style={{
+            padding: "10px 20px",
+            background: "var(--bg-warm)",
+            borderBottom: "1px solid var(--border-soft)",
+          }}
+        >
+          {domains.map((d) => (
+            <span key={`d-${d}`} className="ec-tag outline">
+              <Tag className="h-3 w-3 shrink-0" />
+              {d}
+            </span>
+          ))}
+          {languages.map((l) => (
+            <span key={`l-${l}`} className="ec-tag outline">
+              <Globe className="h-3 w-3 shrink-0" />
+              {l}
+            </span>
+          ))}
+          {shortLicense && <span className="ec-tag outline">{shortLicense}</span>}
           {(flaggedFields.length > 0 || missingFields.length > 0) && (
             <span
               className="font-mono inline-flex items-center gap-1"
@@ -2596,33 +2333,10 @@ function BenchmarkCardPanel({
             </span>
           )}
         </div>
-        <div className="text-[12px]" style={{ color: "var(--fg-muted)" }}>
-          Structured metadata about this benchmark: what it measures, how it was built, and known limitations.
-        </div>
-      </div>
+      )}
 
       <div className="space-y-6 p-5 sm:p-6">
         {knownIssues.length > 0 && <KnownIssuesPanel issues={knownIssues} variant="full" />}
-
-        {/* Overview + domains */}
-        <div className="space-y-3">
-          <p className="text-sm leading-6 text-muted-foreground">{details.overview}</p>
-
-          <div className="flex flex-wrap gap-2">
-            {domains.map((d) => (
-              <span key={d} className="ec-tag outline">
-                <Tag className="h-3 w-3 shrink-0" />
-                {d}
-              </span>
-            ))}
-            {languages.map((l) => (
-              <span key={l} className="ec-tag outline">
-                <Globe className="h-3 w-3 shrink-0" />
-                {l}
-              </span>
-            ))}
-          </div>
-        </div>
 
         <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
           {/* Goal */}

@@ -4205,10 +4205,10 @@ function SampleDataDialog({
 
   return (
     <>
-      <Button variant="outline" size="sm" className="gap-2" onClick={handleOpenToggle}>
-        <Database className="h-4 w-4" />
+      <button type="button" className="btn-ec outline inline-flex items-center gap-2" onClick={handleOpenToggle}>
+        <Database className="h-3.5 w-3.5" />
         {open ? "Hide instances" : "View all instances"}
-      </Button>
+      </button>
       {open && (
       <div className="rounded-xl border bg-background p-4 space-y-3">
         <div>

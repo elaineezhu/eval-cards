@@ -9,7 +9,6 @@ import { InfiniteScrollSentinel } from "@/components/infinite-scroll"
 import { ModelTable } from "@/components/model-table"
 import { Navigation } from "@/components/navigation"
 import type { BenchmarkCard } from "@/lib/benchmark-schema"
-import { lookupBenchmarkCard } from "@/lib/benchmark-metadata-utils"
 import { fetchDeveloperSummary, fetchBenchmarkMetadata } from "@/lib/dashboard-data-client"
 
 const PAGE_SIZE = 40
@@ -58,24 +57,6 @@ export default function DeveloperDetailPage() {
     () => models.reduce((sum, model) => sum + model.evaluations_count, 0),
     [models]
   )
-
-  // Collect unique domains from benchmarks this developer's models are evaluated on
-  const domainCoverage = useMemo(() => {
-    const domainMap = new Map<string, Set<string>>()
-    for (const model of models) {
-      for (const { benchmark } of model.top_scores) {
-        const card = lookupBenchmarkCard(benchmarkCards, benchmark)
-        for (const domain of card?.benchmark_details?.domains ?? []) {
-          const existing = domainMap.get(domain) ?? new Set()
-          existing.add(benchmark)
-          domainMap.set(domain, existing)
-        }
-      }
-    }
-    return Array.from(domainMap.entries())
-      .map(([domain, benchmarks]) => ({ domain, count: benchmarks.size }))
-      .sort((a, b) => b.count - a.count)
-  }, [models, benchmarkCards])
 
   const filteredModels = useMemo(() => {
     const query = searchQuery.trim().toLowerCase()
@@ -207,12 +188,6 @@ export default function DeveloperDetailPage() {
               · <span className="text-[color:var(--fg)] tabular-nums font-semibold mr-1">{totalResults.toLocaleString()}</span>
               results
             </span>
-            {domainCoverage.length > 0 && (
-              <span>
-                · <span className="text-[color:var(--fg)] tabular-nums font-semibold mr-1">{domainCoverage.length}</span>
-                domains
-              </span>
-            )}
           </div>
 
           <span className="hidden h-5 w-px bg-[color:var(--border-soft)] sm:block" />
@@ -238,27 +213,6 @@ export default function DeveloperDetailPage() {
             <option value="name">Sort · Name (A–Z)</option>
           </select>
         </div>
-
-        {/* DOMAIN COVERAGE — hairline tag row ---------------------- */}
-        {domainCoverage.length > 0 && (
-          <div className="mb-8">
-            <div className="kicker mb-3">Benchmark domain coverage</div>
-            <div className="flex flex-wrap gap-1.5">
-              {domainCoverage.map(({ domain, count }) => (
-                <span
-                  key={domain}
-                  className="ec-tag outline"
-                  style={{ textTransform: "none", letterSpacing: "normal", fontFamily: "var(--font-sans)" }}
-                >
-                  <span className="text-[12px] font-medium text-[color:var(--fg)] capitalize">{domain}</span>
-                  <span className="font-mono text-[10px] tabular-nums text-[color:var(--fg-muted)]">
-                    {count}
-                  </span>
-                </span>
-              ))}
-            </div>
-          </div>
-        )}
 
         {/* TABLE ---------------------------------------------------- */}
         {filteredModels.length === 0 ? (
