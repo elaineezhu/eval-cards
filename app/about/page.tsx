@@ -1,302 +1,353 @@
 import Link from "next/link"
-import {
-  ArrowRight,
-  BookOpenText,
-  ClipboardCheck,
-  Database,
-  GitCompareArrows,
-  Layers,
-  Scale,
-  ShieldCheck,
-  Users,
-} from "lucide-react"
+import { ArrowRight } from "lucide-react"
 
 import { Navigation } from "@/components/navigation"
-import { PageHeader } from "@/components/page-header"
-import { Button } from "@/components/ui/button"
 
 export default function AboutPage() {
   return (
     <div className="min-h-screen bg-background">
       <Navigation />
 
-      <PageHeader
-        eyebrow="About"
-        title="About Eval Cards"
-        description="An interpretative integration layer for AI evaluation reporting. Eval Cards composes existing evaluation infrastructure into a single reading surface, organizes reported scores through a six-level rollout hierarchy, and surfaces four interpretive signals that help readers decide whether to trust a reported result."
-        size="wide"
-        metaItems={[
-          { label: "Reader modes", value: "Research + Policy" },
-          { label: "Signal layers", value: "Reproducibility · Completeness · Provenance · Comparability" },
-        ]}
-      />
+      <main className="mx-auto w-full max-w-[64rem] px-4 pb-24 pt-12 sm:px-8">
+        {/* HEADER --------------------------------------------------------- */}
+        <div className="kicker">About · Working paper v0.4</div>
+        <h1
+          className="mt-2 mb-7"
+          style={{
+            fontSize: "clamp(40px, 5.2vw, 56px)",
+            fontWeight: 700,
+            letterSpacing: "-0.03em",
+            lineHeight: 1.05,
+            color: "var(--fg)",
+          }}
+        >
+          A reporting layer for AI evaluation.
+        </h1>
+        <p className="mb-6 text-[19px] leading-[1.6] text-[color:var(--fg-muted)]">
+          <strong className="text-[color:var(--fg)] font-semibold">Eval Cards</strong> is a
+          structured registry of how AI models are evaluated — and, just as importantly, of
+          what is left undocumented. It composes existing evaluation infrastructure into a
+          single audience-agnostic reading surface. It is a research artifact of the{" "}
+          <strong className="text-[color:var(--fg)] font-semibold">EvalEval Coalition</strong>,
+          a community of academic and industrial labs working on broader-impact evaluation of
+          AI systems.
+        </p>
+        <p className="mb-5 text-base leading-[1.75] text-[color:var(--fg)]">
+          Benchmark scores are routinely reported without the context required to interpret
+          them: prompts, decoding parameters, evaluator identity, reproduction artifacts,
+          scope of validity. Eval Cards treats every published evaluation as a{" "}
+          <em>claim</em>, and every absent field as a claim <em>not made</em>. Neither is an
+          error — the distinction is what makes the public record useful.
+        </p>
+        <p className="mb-14 text-base leading-[1.75] text-[color:var(--fg)]">
+          The card format is audience-agnostic. A researcher and a policy analyst look at
+          different fields on the same record. Reader modes (Research · Policy) surface the
+          fields most load-bearing for each audience; the underlying data is shared.
+        </p>
 
-      <main className="mx-auto w-full max-w-[88rem] px-4 py-12 sm:px-6 lg:px-8">
-        <div className="space-y-14">
-          {/* The framing problem */}
-          <section className="grid gap-8 border-b border-border/60 pb-12 lg:grid-cols-[minmax(220px,0.34fr)_minmax(0,1fr)] lg:gap-12">
-            <div className="space-y-3">
-              <SectionLabel label="The problem" />
-              <h2 className="max-w-sm text-2xl font-semibold tracking-[-0.03em] text-foreground sm:text-[1.75rem]">
-                Evaluation results travel faster than the context needed to interpret them.
-              </h2>
-            </div>
+        {/* BUILT ON ------------------------------------------------------- */}
+        <section className="mb-14">
+          <div className="section-head">
+            <h2>What it is built on</h2>
+          </div>
+          <div className="grid gap-5 sm:grid-cols-2">
+            {[
+              [
+                "Auto-BenchmarkCards",
+                "A schema for benchmark-level metadata — what a benchmark measures, its splits, intended use, validity scope, and known limitations. Each benchmark family in this registry has an Auto-BenchmarkCard at the family root and a Policy Note compressed for plain-language reading.",
+              ],
+              [
+                "Every Eval Ever",
+                "A run-level corpus of public evaluation results — (model, benchmark, metric-path, value, source) tuples extracted from papers, model cards and leaderboards. Provides the raw rows the registry canonicalises and joins.",
+              ],
+              [
+                "IBM Risk Atlas alignment",
+                "Risk-domain annotations on benchmarks (capability, robustness, safety, agentic risk, fairness) so policy readers can locate which deployment-relevant property a number speaks to.",
+              ],
+              [
+                "Six-level hierarchy",
+                "Family → Suite → Single benchmark → Split → Subtask → Metric. Every score resolves to an explicit path, so aggregate claims drill down to the evidence supporting them.",
+              ],
+            ].map(([h, p]) => (
+              <div
+                key={h}
+                className="border border-[color:var(--border-soft)] bg-[color:var(--bg-warm)] p-[22px]"
+              >
+                <h3 className="m-0 mb-2 text-base font-semibold tracking-[-0.005em] text-[color:var(--fg)]">
+                  {h}
+                </h3>
+                <p className="m-0 text-[13.5px] leading-[1.6] text-[color:var(--fg-muted)]">
+                  {p}
+                </p>
+              </div>
+            ))}
+          </div>
+        </section>
 
-            <div className="space-y-4 text-base leading-7 text-muted-foreground">
-              <p>
-                AI evaluations are produced at scale and reported through papers, leaderboards, model cards, and
-                framework outputs that rarely share conventions. The cost of fragmentation is paid at the point
-                of interpretation: provenance gets lost, configurations differ silently, and incomplete reporting
-                is treated indistinguishably from complete reporting.
-              </p>
-              <p>
-                Eval Cards composes three existing sources into a single record — Auto-BenchmarkCards for
-                benchmark metadata, the EEE schema for evaluation run data, and voluntary developer disclosure
-                for fields neither captures — then exposes interpretive signals over the result.
-              </p>
-            </div>
-          </section>
-
-          {/* Six-level rollout hierarchy */}
-          <section className="grid gap-8 border-b border-border/60 pb-12 lg:grid-cols-[minmax(220px,0.34fr)_minmax(0,1fr)] lg:gap-12">
-            <div className="space-y-3">
-              <SectionLabel label="Rollout hierarchy" />
-              <h2 className="text-2xl font-semibold tracking-[-0.03em] text-foreground sm:text-[1.75rem]">
-                Six levels from a benchmark family down to a single metric.
-              </h2>
-              <p className="max-w-md text-sm leading-7 text-muted-foreground">
-                Reports are not flat (model, benchmark, score) triples. Every score resolves to an explicit
-                path through this hierarchy, which makes drill-down and apples-to-apples comparison possible.
-              </p>
-            </div>
-
-            <ol className="space-y-3">
-              <RollupRow
-                index="1"
-                title="Family"
-                body="A related collection sharing a common object of measurement or methodological lineage (e.g., the SWE-bench family, the MMLU family)."
-              />
-              <RollupRow
-                index="2"
-                title="Suite"
-                body="A named composite reporting unit that aggregates multiple benchmarks under a unified presentation (e.g., Open LLM Leaderboard v2, HELM Instruct)."
-              />
-              <RollupRow
-                index="3"
-                title="Single benchmark"
-                body="An individual evaluation with a defined dataset and scoring method (e.g., GSM8K, IFEval, MMLU-Pro)."
-              />
-              <RollupRow
-                index="4"
-                title="Split"
-                body="A named partition of a benchmark's item set (e.g., test, validation, or a language-specific subset)."
-              />
-              <RollupRow
-                index="5"
-                title="Subtask"
-                body="A capability- or construct-level decomposition within a benchmark (e.g., algebra within MATH)."
-              />
-              <RollupRow
-                index="6"
-                title="Metric"
-                body="The specific scoring rule attached to a result (e.g., pass@1, accuracy, F1)."
-              />
-            </ol>
-          </section>
-
-          {/* Four interpretive signals */}
-          <section className="grid gap-8 border-b border-border/60 pb-12 lg:grid-cols-[minmax(220px,0.34fr)_minmax(0,1fr)] lg:gap-12">
-            <div className="space-y-3">
-              <SectionLabel label="Interpretive signals" />
-              <h2 className="text-2xl font-semibold tracking-[-0.03em] text-foreground sm:text-[1.75rem]">
-                Four signals that help readers decide whether to trust a reported score.
-              </h2>
-              <p className="max-w-md text-sm leading-7 text-muted-foreground">
-                Each signal is computed at the record level and rolled up at the corpus level. Per-record
-                instances appear on every model and benchmark page; rollups appear on the home page.
-              </p>
-            </div>
-
-            <div className="grid gap-3 sm:grid-cols-2">
-              <SignalCard
-                icon={<ShieldCheck className="h-4 w-4" />}
-                label="Reproducibility"
-                question="Can this be reproduced?"
-                body="Flags reported scores whose generation and prompting setup is too underspecified to re-run independently."
-              />
-              <SignalCard
-                icon={<ClipboardCheck className="h-4 w-4" />}
-                label="Reporting completeness"
-                question="Is the documentation complete?"
-                body="Measures the fraction of operationalized framework fields that are populated for a benchmark."
-              />
-              <SignalCard
-                icon={<Users className="h-4 w-4" />}
-                label="Provenance"
-                question="Who reported this, and what risks does the benchmark carry?"
-                body="Distinguishes first-party, third-party, and collaborative reporting and surfaces multi-source coverage."
-              />
-              <SignalCard
-                icon={<GitCompareArrows className="h-4 w-4" />}
-                label="Comparability"
-                question="Are these scores really comparable?"
-                body="Flags score divergence across setup variants and across reporting parties for the same (model, benchmark, metric)."
-              />
-            </div>
-          </section>
-
-          {/* Two reader modes */}
-          <section className="grid gap-8 border-b border-border/60 pb-12 lg:grid-cols-[minmax(220px,0.34fr)_minmax(0,1fr)] lg:gap-12">
-            <div className="space-y-3">
-              <SectionLabel label="Reader modes" />
-              <h2 className="text-2xl font-semibold tracking-[-0.03em] text-foreground sm:text-[1.75rem]">
-                Two renderings of the same record.
-              </h2>
-              <p className="max-w-md text-sm leading-7 text-muted-foreground">
-                The two modes operate on the same underlying data. The difference is which fields are
-                surfaced, which are compressed, and which framing is used.
+        {/* TWO READER MODES ---------------------------------------------- */}
+        <section className="mb-14">
+          <div className="section-head">
+            <h2>Two reader modes, one record</h2>
+          </div>
+          <p className="mb-5 max-w-[700px] text-[15px] leading-[1.7] text-[color:var(--fg-muted)]">
+            The same evaluation record renders differently depending on the question the
+            reader brings to it. Toggle in the topbar; the URL, the data and the citations
+            are unchanged.
+          </p>
+          <div className="grid grid-cols-1 sm:grid-cols-2 border border-[color:var(--border-soft)]">
+            <div className="p-6 sm:border-r border-[color:var(--border-soft)]">
+              <div className="kicker mb-2">Research</div>
+              <h3 className="m-0 mb-2.5 text-lg font-semibold text-[color:var(--fg)]">
+                Methodology read
+              </h3>
+              <p className="m-0 text-[13.5px] leading-[1.65] text-[color:var(--fg-muted)]">
+                Setup variants, n-shot, decoding parameters, evaluator identity, confidence
+                intervals, and the specific schema fields missing for reproduction are
+                foregrounded on every metric row.
               </p>
             </div>
-
-            <div className="grid gap-3 sm:grid-cols-2">
-              <ModeCard
-                title="Research mode"
-                body="Foregrounds methodology and configuration. Reproducibility gaps list specific missing fields. Comparability surfaces the underlying setup differences. Default for technical evaluators, benchmark developers, and meta-analysis."
-              />
-              <ModeCard
-                title="Policy mode"
-                body="Foregrounds accountability and plain-language interpretation. The same signals render with narrative caveats and compressed metric configuration. Default for regulators, standards bodies, and non-technical readers."
-              />
-            </div>
-          </section>
-
-          {/* Composition + sources */}
-          <section className="grid gap-8 lg:grid-cols-[minmax(220px,0.34fr)_minmax(0,1fr)] lg:gap-12">
-            <div className="space-y-3">
-              <SectionLabel label="Composition" />
-              <h2 className="text-2xl font-semibold tracking-[-0.03em] text-foreground sm:text-[1.75rem]">
-                Eval Cards does not collect evaluation data directly.
-              </h2>
-              <p className="max-w-md text-sm leading-7 text-muted-foreground">
-                It composes three existing sources and applies a canonicalization layer that maps surface
-                identifiers to nodes in the rollout hierarchy.
+            <div className="p-6 bg-[color:var(--fg)] text-[color:var(--bg)]">
+              <div className="kicker mb-2" style={{ color: "var(--accent)" }}>
+                Policy
+              </div>
+              <h3 className="m-0 mb-2.5 text-lg font-semibold">Plain-language read</h3>
+              <p className="m-0 text-[13.5px] leading-[1.65]" style={{ color: "rgba(240,237,232,0.78)" }}>
+                Policy Notes (measures · caveat · intended for), risk-domain annotations,
+                first/third-party evaluator tags, and disclosure-gap flags are foregrounded;
+                metric configuration is compressed.
               </p>
             </div>
+          </div>
+        </section>
 
-            <div className="space-y-3">
-              <SourceRow
-                icon={<BookOpenText className="h-4 w-4" />}
-                title="Auto-BenchmarkCards"
-                body="Benchmark metadata: design intent, scoring methodology, data licensing, risk annotations."
-              />
-              <SourceRow
-                icon={<Database className="h-4 w-4" />}
-                title="EEE (evaluation run data)"
-                body="Generation configuration, evaluator relationships, and per-instance results from major frameworks."
-              />
-              <SourceRow
-                icon={<Scale className="h-4 w-4" />}
-                title="Voluntary disclosure"
-                body="Two reserved fields accept developer-supplied disclosure: preregistration links and lifecycle status."
-              />
+        {/* FOUR SIGNALS --------------------------------------------------- */}
+        <section className="mb-14">
+          <div className="section-head">
+            <h2>Four interpretive signals</h2>
+          </div>
+          <p className="mb-5 max-w-[700px] text-[15px] leading-[1.7] text-[color:var(--fg-muted)]">
+            Computed over each <code className="font-mono text-[12px]">(model, benchmark, metric-path)</code> record and aggregated to the
+            corpus. Per-record instances appear on every model and benchmark page;
+            corpus rollups appear on the home page.
+          </p>
+          <ol className="list-none p-0 m-0">
+            {[
+              [
+                "Reproducibility",
+                "Can a third party run this evaluation and obtain a comparable number? Tracks setup-variant disclosure, prompt and decoding parameters, harness version, seed, and code/artifact availability.",
+              ],
+              [
+                "Completeness",
+                "Does the record meet the standard report card for this class of model? Tracks coverage across capability, robustness, safety and fairness benchmarks expected for the model's claimed use.",
+              ],
+              [
+                "Provenance & risk",
+                "Who produced this number, and which deployment-relevant property does it speak to? Tracks evaluator identity (first-party / third-party), source citation, and IBM Risk Atlas-aligned risk domain.",
+              ],
+              [
+                "Comparability",
+                "Can two scores under the same benchmark be put side-by-side? Tracks split, subtask, metric variant, and unit harmonisation; flags rows that cannot be ranked together.",
+              ],
+            ].map(([h, p], i) => (
+              <li
+                key={h}
+                className="grid grid-cols-[50px_1fr] gap-5 border-b border-[color:var(--border-soft)] py-5"
+              >
+                <span
+                  className="font-mono"
+                  style={{
+                    fontSize: 11,
+                    color: "var(--accent)",
+                    letterSpacing: "0.1em",
+                  }}
+                >
+                  0{i + 1}
+                </span>
+                <div>
+                  <h3 className="m-0 text-[17px] font-semibold text-[color:var(--fg)]">{h}</h3>
+                  <p className="mt-1.5 m-0 text-sm leading-[1.65] text-[color:var(--fg-muted)]">
+                    {p}
+                  </p>
+                </div>
+              </li>
+            ))}
+          </ol>
+        </section>
+
+        {/* METHODOLOGY ---------------------------------------------------- */}
+        <section className="mb-14">
+          <div className="section-head">
+            <h2>Methodology</h2>
+          </div>
+          <ol className="list-none p-0 m-0">
+            {[
+              [
+                "Canonicalisation",
+                "Heterogeneous score reports — papers, model cards, leaderboards, blog posts — are normalised to (model, benchmark, split, subtask, metric, value, source) tuples. Model name aliases and benchmark version aliases are resolved against a curated mapping.",
+              ],
+              [
+                "Source attribution",
+                "Each record cites the document of record with a line reference. Where multiple sources report the same configuration, the developer's primary source is preferred and discrepancies are flagged.",
+              ],
+              [
+                "Evaluator identity",
+                "Two categories only: first-party (the model developer) and third-party (an independent evaluator). The two are tagged distinctly and never silently merged; if both have reported on a (model, benchmark) pair, both rows appear separately.",
+              ],
+              [
+                "No imputation",
+                "Empty cells are empty. The registry never estimates, infers, or cross-fills missing values. Disclosure gaps are surfaced as such.",
+              ],
+              [
+                "Snapshot discipline",
+                "Each release is a dated snapshot. Numbers are not back-edited; corrections add a new version with provenance preserved.",
+              ],
+            ].map(([h, p], i) => (
+              <li
+                key={h}
+                className="grid grid-cols-[50px_1fr] gap-5 border-b border-[color:var(--border-soft)] py-5"
+              >
+                <span
+                  className="font-mono"
+                  style={{
+                    fontSize: 11,
+                    color: "var(--fg-subtle)",
+                    letterSpacing: "0.1em",
+                  }}
+                >
+                  M.{i + 1}
+                </span>
+                <div>
+                  <h3 className="m-0 text-[17px] font-semibold text-[color:var(--fg)]">{h}</h3>
+                  <p className="mt-1.5 m-0 text-sm leading-[1.65] text-[color:var(--fg-muted)]">
+                    {p}
+                  </p>
+                </div>
+              </li>
+            ))}
+          </ol>
+        </section>
+
+        {/* PRINCIPLES ----------------------------------------------------- */}
+        <section className="mb-14">
+          <div className="section-head">
+            <h2>Principles</h2>
+          </div>
+          <ol className="list-none p-0 m-0">
+            {[
+              [
+                "We do not impute.",
+                "If a developer did not publish a score, the cell is empty. We do not estimate, infer, or cross-fill.",
+              ],
+              [
+                "Every number cites its source.",
+                "Each reported score resolves to a specific document — paper, model card, blog post — with a line reference.",
+              ],
+              [
+                "Evaluator identity matters.",
+                "First-party and third-party results are visually distinct and never silently merged. When both have reported on the same (model, benchmark) pair, both rows are kept side by side.",
+              ],
+              [
+                "Gaps are data.",
+                "Undisclosed fields appear alongside disclosed ones. Silence about a safety benchmark is itself information.",
+              ],
+              [
+                "Aggregates resolve to evidence.",
+                "Every corpus-level claim drills down to the (model, benchmark, metric-path) records that support it. No black-box scores.",
+              ],
+              [
+                "Corrections are welcome.",
+                "Each record links a correction path. The registry is a living artifact; coverage improves as developers publish.",
+              ],
+            ].map(([h, p], i) => (
+              <li
+                key={i}
+                className="grid grid-cols-[60px_1fr] gap-6 border-b border-[color:var(--border-soft)] py-6"
+              >
+                <span
+                  className="font-mono"
+                  style={{
+                    fontSize: 12,
+                    color: "var(--accent)",
+                    letterSpacing: "0.1em",
+                  }}
+                >
+                  0{i + 1}
+                </span>
+                <div>
+                  <h3 className="m-0 text-xl font-semibold text-[color:var(--fg)]">{h}</h3>
+                  <p className="mt-2 m-0 text-[15px] leading-[1.65] text-[color:var(--fg-muted)]">
+                    {p}
+                  </p>
+                </div>
+              </li>
+            ))}
+          </ol>
+        </section>
+
+        {/* OUT OF SCOPE --------------------------------------------------- */}
+        <section className="mb-14">
+          <div className="section-head">
+            <h2>What this registry does not do</h2>
+          </div>
+          <ul className="list-none p-0 m-0 text-[14.5px] leading-[1.75]">
+            {[
+              "Produce a single capability ranking. Metrics across benchmarks are heterogeneous and not commensurable; rolling them into one score throws away the information that makes evaluation useful.",
+              "Evaluate models. Eval Cards reports on what others have already evaluated. New runs go through the upstream Every Eval Ever pipeline, not this surface.",
+              "Endorse a benchmark. Inclusion in the registry is a statement about disclosure prevalence, not benchmark quality. Policy Notes describe limitations; reading them is part of using the registry.",
+              "Replace model cards or system cards. Eval Cards complements them — it is the cross-model, cross-benchmark reading surface that individual cards alone cannot provide.",
+            ].map((t, i) => (
+              <li
+                key={i}
+                className="grid grid-cols-[24px_1fr] gap-4 border-b border-[color:var(--border-soft)] py-3.5 text-[color:var(--fg-muted)]"
+              >
+                <span className="font-mono text-[color:var(--fg-subtle)]">—</span>
+                <span>{t}</span>
+              </li>
+            ))}
+          </ul>
+        </section>
+
+        {/* CITATION & CORRECTIONS ----------------------------------------- */}
+        <section className="mb-8">
+          <div className="section-head">
+            <h2>Citation &amp; corrections</h2>
+          </div>
+          <div className="grid gap-5 sm:grid-cols-2">
+            <div className="border border-[color:var(--border-soft)] p-[22px]">
+              <div className="kicker mb-2.5">Cite as</div>
+              <p className="font-mono m-0 text-[12px] leading-[1.7] text-[color:var(--fg)]">
+                EvalEval Coalition. (2026). Eval Cards: a reporting layer for AI evaluation
+                (Working paper v0.4, snapshot 18 Apr 2026). evalcards.evalevalai.com
+              </p>
             </div>
-          </section>
+            <div className="border border-[color:var(--border-soft)] p-[22px]">
+              <div className="kicker mb-2.5">Submit a correction</div>
+              <p className="m-0 mb-2 text-[13.5px] leading-[1.65] text-[color:var(--fg-muted)]">
+                Each record links a correction path. Disclosure gaps close as developers and
+                third parties publish; we accept patches against any (model, benchmark,
+                metric-path) tuple with a citation.
+              </p>
+              <span className="font-mono text-[color:var(--fg-subtle)] text-[11px] uppercase tracking-[0.1em]">
+                corrections@evalevalai.com
+              </span>
+            </div>
+          </div>
+        </section>
 
-          {/* CTAs */}
-          <section className="flex flex-wrap gap-3 border-t border-border/60 pt-10">
-            <Link href="/">
-              <Button className="gap-2 rounded-full px-5">
-                Back to home
-                <ArrowRight className="h-4 w-4" />
-              </Button>
-            </Link>
-            <Link href="/models">
-              <Button variant="outline" className="gap-2 rounded-full px-5">
-                Browse models
-                <ArrowRight className="h-4 w-4" />
-              </Button>
-            </Link>
-            <Link href="/evals">
-              <Button variant="outline" className="gap-2 rounded-full px-5">
-                Browse evaluations
-                <ArrowRight className="h-4 w-4" />
-              </Button>
-            </Link>
-            <Link href="/survey">
-              <Button variant="ghost" className="gap-2 rounded-full px-4 text-foreground">
-                Leave feedback
-                <ArrowRight className="h-4 w-4" />
-              </Button>
-            </Link>
-          </section>
-        </div>
+        {/* CTA ROW -------------------------------------------------------- */}
+        <section className="mt-12 flex flex-wrap gap-3 border-t border-[color:var(--border-soft)] pt-10">
+          <Link href="/" className="btn-ec">
+            Back to home
+            <ArrowRight className="h-3.5 w-3.5" aria-hidden />
+          </Link>
+          <Link href="/models" className="btn-ec outline">
+            Browse models
+          </Link>
+          <Link href="/evals" className="btn-ec outline">
+            Browse evaluations
+          </Link>
+        </section>
       </main>
-    </div>
-  )
-}
-
-function SectionLabel({ label }: { label: string }) {
-  return (
-    <div className="text-[11px] font-semibold uppercase tracking-[0.22em] text-muted-foreground">
-      {label}
-    </div>
-  )
-}
-
-function RollupRow({ index, title, body }: { index: string; title: string; body: string }) {
-  return (
-    <li className="flex gap-4 rounded-2xl border border-border/70 bg-card p-4">
-      <div className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-muted/70 text-xs font-semibold text-muted-foreground">
-        {index}
-      </div>
-      <div className="min-w-0">
-        <div className="text-sm font-semibold text-foreground">{title}</div>
-        <p className="mt-1 text-sm leading-6 text-muted-foreground">{body}</p>
-      </div>
-    </li>
-  )
-}
-
-function SignalCard({
-  icon,
-  label,
-  question,
-  body,
-}: {
-  icon: React.ReactNode
-  label: string
-  question: string
-  body: string
-}) {
-  return (
-    <div className="flex flex-col gap-2 rounded-2xl border border-border/70 bg-card p-4">
-      <div className="flex items-center gap-2">
-        <span className="rounded-full bg-muted/60 p-1.5 text-muted-foreground">{icon}</span>
-        <div className="text-[10px] font-semibold uppercase tracking-[0.22em] text-muted-foreground">{label}</div>
-      </div>
-      <div className="text-sm font-semibold text-foreground">{question}</div>
-      <p className="text-sm leading-6 text-muted-foreground">{body}</p>
-    </div>
-  )
-}
-
-function ModeCard({ title, body }: { title: string; body: string }) {
-  return (
-    <div className="rounded-2xl border border-border/70 bg-card p-4">
-      <div className="text-sm font-semibold text-foreground">{title}</div>
-      <p className="mt-2 text-sm leading-6 text-muted-foreground">{body}</p>
-    </div>
-  )
-}
-
-function SourceRow({ icon, title, body }: { icon: React.ReactNode; title: string; body: string }) {
-  return (
-    <div className="flex items-start gap-3 rounded-2xl border border-border/70 bg-card p-4">
-      <span className="rounded-full bg-muted/60 p-1.5 text-muted-foreground">{icon}</span>
-      <div className="min-w-0">
-        <div className="text-sm font-semibold text-foreground">{title}</div>
-        <p className="mt-1 text-sm leading-6 text-muted-foreground">{body}</p>
-      </div>
     </div>
   )
 }

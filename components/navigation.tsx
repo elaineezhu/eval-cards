@@ -2,9 +2,7 @@
 
 import { useEffect, useState } from "react"
 import { useAudienceMode } from "@/components/audience-mode-provider"
-import { Button } from "@/components/ui/button"
-import { Collapsible, CollapsibleContent } from "@/components/ui/collapsible"
-import { FlaskConical, Moon, Scale, Sun, Home, Info, BarChart3, LayoutGrid, FileText, Menu } from "lucide-react"
+import { Eye, Menu, Moon, Sun, X } from "lucide-react"
 import { useTheme } from "next-themes"
 import Link from "next/link"
 import { usePathname } from "next/navigation"
@@ -14,210 +12,178 @@ export function Navigation() {
   const { theme, setTheme } = useTheme()
   const { mode, setMode } = useAudienceMode()
   const pathname = usePathname()
-  const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
+  const [mobileOpen, setMobileOpen] = useState(false)
 
   const navItems = [
     {
       href: "/",
-      label: "Home",
-      icon: Home,
-      isActive: pathname === "/"
+      label: "Overview",
+      isActive: pathname === "/",
     },
     {
       href: "/models",
       label: "Models",
-      icon: LayoutGrid,
       isActive:
         pathname === "/models" ||
         pathname?.startsWith("/models/") ||
-        pathname?.startsWith("/developers/")
+        pathname?.startsWith("/developers/"),
     },
     {
       href: "/evals",
       label: "Evaluations",
-      icon: BarChart3,
-      isActive: pathname === "/evals" || pathname?.startsWith("/evals/")
-    },
-    {
-      href: "/survey",
-      label: "Survey",
-      icon: FileText,
-      isActive: pathname === "/survey" || pathname?.startsWith("/survey/")
+      isActive: pathname === "/evals" || pathname?.startsWith("/evals/"),
     },
     {
       href: "/about",
       label: "About",
-      icon: Info,
-      isActive: pathname === "/about"
-    }
+      isActive: pathname === "/about",
+    },
   ]
 
   useEffect(() => {
-    setMobileMenuOpen(false)
+    setMobileOpen(false)
   }, [pathname])
 
   return (
-    <header className="motion-academic-enter-soft border-b bg-card">
-      <div className="container mx-auto px-4 py-4 sm:px-6">
-        <div className="flex items-center justify-between gap-3">
-          <div className="flex items-center gap-3">
-            <Link href="/" className="flex-shrink-0">
-              <img
-                src="https://evalevalai.com/assets/img/logo-square.png"
-                alt="EvalEval Logo"
-                className="motion-academic-button h-8 w-8 rounded-md transition-opacity hover:opacity-80"
-              />
-            </Link>
+    <>
+      <header className="ec-topbar motion-academic-enter-soft">
+        <div className="ec-topbar-inner">
+          <Link href="/" className="ec-brand">
+            <img
+              src="https://evalevalai.com/assets/img/logo-square.png"
+              alt=""
+              className="ec-brand-mark-img h-7 w-7 shrink-0"
+              width={28}
+              height={28}
+            />
+            <span>Eval Cards</span>
+            <span className="ec-brand-sub hidden lg:inline">Beta · EvalEval</span>
+          </Link>
 
-            <Link href="/" className="motion-academic-button flex items-center gap-2 font-bold text-lg tracking-tight transition-colors hover:text-primary/80">
-              <span>Eval Cards</span>
-              <span className="rounded-full border border-amber-200/80 bg-amber-50 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-[0.16em] text-amber-800 dark:border-amber-900/50 dark:bg-amber-950/30 dark:text-amber-300">
-                Beta
+          <nav className="ec-nav-links hidden lg:flex">
+            {navItems.map((item) => (
+              <Link
+                key={item.href}
+                href={item.href}
+                className={cn(item.isActive && "active")}
+              >
+                {item.label}
+              </Link>
+            ))}
+          </nav>
+
+          <div className="ml-auto flex items-center gap-3 lg:ml-0">
+            <div
+              className="ec-mode-toggle hidden sm:inline-flex"
+              title="Reader mode — same evidence, different rendering."
+            >
+              <span className="ec-mode-toggle-label" aria-label="Reader mode">
+                <Eye className="h-3.5 w-3.5" />
               </span>
-            </Link>
-          </div>
-
-          <div className="flex items-center gap-2 sm:hidden">
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={() => setTheme(theme === "dark" ? "light" : "dark")}
-              className="motion-academic-button h-10 w-10 shrink-0 p-0"
-            >
-              <Sun className="h-4 w-4 rotate-0 scale-100 transition-all dark:-rotate-90 dark:scale-0" />
-              <Moon className="absolute h-4 w-4 rotate-90 scale-0 transition-all dark:rotate-0 dark:scale-100" />
-              <span className="sr-only">Toggle theme</span>
-            </Button>
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => setMobileMenuOpen((current) => !current)}
-              className="motion-academic-button h-10 w-10 shrink-0 rounded-full p-0"
-              aria-expanded={mobileMenuOpen}
-              aria-label="Toggle navigation menu"
-            >
-              <Menu className="h-4 w-4" />
-            </Button>
-          </div>
-
-          <div className="hidden items-center gap-3 sm:flex">
-            <nav className="flex items-center gap-1">
-              {navItems.map((item) => (
-                <Link key={item.href} href={item.href}>
-                  <Button
-                    variant={item.isActive ? "default" : "ghost"}
-                    size="sm"
-                    className={cn(
-                      "motion-academic-button gap-2",
-                      item.isActive && "bg-primary text-primary-foreground"
-                    )}
-                  >
-                    <item.icon className="h-4 w-4" />
-                    <span>{item.label}</span>
-                  </Button>
-                </Link>
-              ))}
-            </nav>
-
-            <div className="inline-flex rounded-full border bg-muted/20 p-1">
               <button
                 type="button"
-                onClick={() => setMode("research")}
-                className={cn(
-                  "motion-academic-button inline-flex items-center gap-1.5 rounded-full px-3 py-1.5 text-xs font-medium transition-colors sm:text-sm",
-                  mode === "research"
-                    ? "bg-background text-foreground shadow-sm"
-                    : "text-muted-foreground hover:text-foreground"
-                )}
+                className={mode === "policy" ? "on" : ""}
+                onClick={() => setMode("policy")}
               >
-                <FlaskConical className="h-3.5 w-3.5" />
-                <span>Research</span>
+                Policy
               </button>
               <button
                 type="button"
-                onClick={() => setMode("policy")}
-                className={cn(
-                  "motion-academic-button inline-flex items-center gap-1.5 rounded-full px-3 py-1.5 text-xs font-medium transition-colors sm:text-sm",
-                  mode === "policy"
-                    ? "bg-background text-foreground shadow-sm"
-                    : "text-muted-foreground hover:text-foreground"
-                )}
+                className={mode === "research" ? "on" : ""}
+                onClick={() => setMode("research")}
               >
-                <Scale className="h-3.5 w-3.5" />
-                <span>Policy</span>
+                Research
               </button>
             </div>
 
-            <Button
-              variant="ghost"
-              size="sm"
+            <button
+              type="button"
+              className="ec-icon-btn"
               onClick={() => setTheme(theme === "dark" ? "light" : "dark")}
-              className="motion-academic-button h-9 w-9 p-0"
+              aria-label="Toggle theme"
+              title="Toggle theme"
             >
-              <Sun className="h-4 w-4 rotate-0 scale-100 transition-all dark:-rotate-90 dark:scale-0" />
-              <Moon className="absolute h-4 w-4 rotate-90 scale-0 transition-all dark:rotate-0 dark:scale-100" />
-              <span className="sr-only">Toggle theme</span>
-            </Button>
+              <Sun className="h-3.5 w-3.5 dark:hidden" />
+              <Moon className="hidden h-3.5 w-3.5 dark:block" />
+            </button>
+
+            <button
+              type="button"
+              className="ec-icon-btn lg:hidden"
+              onClick={() => setMobileOpen((current) => !current)}
+              aria-expanded={mobileOpen}
+              aria-label="Toggle navigation menu"
+            >
+              {mobileOpen ? <X className="h-3.5 w-3.5" /> : <Menu className="h-3.5 w-3.5" />}
+            </button>
           </div>
         </div>
 
-        <Collapsible open={mobileMenuOpen} onOpenChange={setMobileMenuOpen} className="sm:hidden">
-          <CollapsibleContent className="pt-3">
-            <div className="rounded-[1.35rem] border border-border/70 bg-background/95 p-3 shadow-sm backdrop-blur">
-              <nav className="grid gap-2">
+        {mobileOpen && (
+          <div className="lg:hidden border-t border-[color:var(--border-soft)] bg-[color:var(--bg)]">
+            <div className="mx-auto w-full max-w-[96rem] px-4 py-3 sm:px-8">
+              <nav className="grid gap-0.5">
                 {navItems.map((item) => (
-                  <Link key={item.href} href={item.href}>
-                    <Button
-                      variant={item.isActive ? "default" : "ghost"}
-                      className={cn(
-                        "motion-academic-button h-11 w-full justify-start gap-3 rounded-xl px-4 text-sm",
-                        item.isActive && "bg-primary text-primary-foreground"
-                      )}
-                    >
-                      <item.icon className="h-4 w-4" />
-                      <span>{item.label}</span>
-                    </Button>
+                  <Link
+                    key={item.href}
+                    href={item.href}
+                    className={cn(
+                      "block px-2 py-2.5 font-mono text-[11px] uppercase tracking-[0.12em] transition-colors",
+                      item.isActive
+                        ? "text-[color:var(--fg)]"
+                        : "text-[color:var(--fg-muted)] hover:text-[color:var(--fg)]"
+                    )}
+                  >
+                    {item.label}
                   </Link>
                 ))}
               </nav>
 
-              <div className="mt-3 border-t border-border/60 pt-3">
-                <div className="text-[10px] font-semibold uppercase tracking-[0.18em] text-muted-foreground">
-                  Reader mode
-                </div>
-                <div className="mt-2 grid grid-cols-2 gap-2">
-                  <button
-                    type="button"
-                    onClick={() => setMode("research")}
-                    className={cn(
-                      "motion-academic-button inline-flex min-h-11 items-center justify-center gap-2 rounded-xl border px-3 py-2 text-sm font-medium transition-colors",
-                      mode === "research"
-                        ? "border-foreground/15 bg-muted text-foreground shadow-sm"
-                        : "border-border/70 bg-background text-muted-foreground"
-                    )}
-                  >
-                    <FlaskConical className="h-4 w-4" />
-                    <span>Research</span>
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => setMode("policy")}
-                    className={cn(
-                      "motion-academic-button inline-flex min-h-11 items-center justify-center gap-2 rounded-xl border px-3 py-2 text-sm font-medium transition-colors",
-                      mode === "policy"
-                        ? "border-foreground/15 bg-muted text-foreground shadow-sm"
-                        : "border-border/70 bg-background text-muted-foreground"
-                    )}
-                  >
-                    <Scale className="h-4 w-4" />
-                    <span>Policy</span>
-                  </button>
-                </div>
+              <div className="ec-mode-toggle mt-3 inline-flex w-full sm:hidden">
+                <span className="ec-mode-toggle-label">
+                  <Eye className="h-3.5 w-3.5" />
+                </span>
+                <button
+                  type="button"
+                  className={cn("flex-1", mode === "policy" && "on")}
+                  onClick={() => setMode("policy")}
+                >
+                  Policy
+                </button>
+                <button
+                  type="button"
+                  className={cn("flex-1", mode === "research" && "on")}
+                  onClick={() => setMode("research")}
+                >
+                  Research
+                </button>
               </div>
             </div>
-          </CollapsibleContent>
-        </Collapsible>
+          </div>
+        )}
+      </header>
+      <ReaderModeBanner />
+    </>
+  )
+}
+
+function ReaderModeBanner() {
+  const { mode } = useAudienceMode()
+  return (
+    <div className={cn("mode-banner", `mode-${mode}`)}>
+      <div className="mode-banner-inner">
+        <span className="mode-banner-tag">
+          {mode === "research" ? "Research mode" : "Policy mode"}
+        </span>
+        <span className="mode-banner-dot">·</span>
+        <span className="mode-banner-text">
+          {mode === "research"
+            ? "Methodology and configuration foregrounded — specific missing fields, setup-variant differences, expanded metric configuration."
+            : "Plain-language interpretation foregrounded — Policy Notes (what / caveat / intended for), accountability framings, compressed metric detail."}
+        </span>
+        <span className="mode-banner-spacer" />
+        <span className="mode-banner-meta">Snapshot · Apr 30 2026</span>
       </div>
-    </header>
+    </div>
   )
 }

@@ -228,200 +228,202 @@ export function ModelCompareDialog({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="h-[85dvh] max-h-[85dvh] max-w-[min(96vw,1220px)] overflow-hidden p-0 sm:max-w-[min(96vw,1220px)]">
+      <DialogContent className="h-[85dvh] max-h-[85dvh] max-w-[min(96vw,1220px)] overflow-hidden rounded-none border-[var(--border-soft)] p-0 sm:max-w-[min(96vw,1220px)]">
         <div className="flex h-full min-h-0 flex-col">
-          <DialogHeader className="border-b border-border/70 px-6 py-5">
-            <div className="text-[11px] font-semibold uppercase tracking-[0.22em] text-muted-foreground">
-              Side-By-Side Comparison
-            </div>
-            <DialogTitle>Compare Selected Models</DialogTitle>
-            <DialogDescription>
+          <DialogHeader className="border-b border-[var(--border-soft)] px-6 py-5 space-y-2">
+            <div className="kicker">Side-By-Side Comparison</div>
+            <DialogTitle className="text-2xl font-bold tracking-tight">Compare Selected Models</DialogTitle>
+            <DialogDescription className="text-sm leading-relaxed">
               Start with the benchmark table. Use the context table when you need coverage breadth, version spread, or score range detail.
             </DialogDescription>
           </DialogHeader>
 
           <div className="min-h-0 flex-1 overflow-auto px-6 py-6">
-            <div className="min-w-[920px] space-y-6">
-              <div className="rounded-[1.5rem] border border-border/70 bg-background">
-                <div className="border-b border-border/60 px-5 py-4">
-                  <div className="flex flex-col gap-3 lg:flex-row lg:items-start lg:justify-between">
-                    <div>
-                      <div className="text-[11px] font-semibold uppercase tracking-[0.22em] text-muted-foreground">
-                        Benchmark Comparison
-                      </div>
-                      <div className="mt-2 text-sm text-muted-foreground">
-                        Rows are drawn from the most relevant surfaced benchmarks across the selected models, closer to how release posts present comparison tables.
-                      </div>
-                      <div className="mt-3 flex flex-wrap gap-2 text-xs text-muted-foreground">
-                        <Badge variant="outline">{benchmarkRows.length} surfaced benchmarks</Badge>
-                        <Badge variant="outline">{sharedBenchmarkCount} shared across all selected models</Badge>
-                      </div>
-                    </div>
-                    <Button
-                      type="button"
-                      variant={sharedOnly ? "default" : "outline"}
-                      size="sm"
-                      onClick={() => setSharedOnly((current) => !current)}
-                    >
-                      {sharedOnly ? "Showing shared only" : "Show shared only"}
-                    </Button>
-                  </div>
+            <div className="min-w-[920px] space-y-10">
+              <section>
+                <div className="section-head">
+                  <h2>Benchmark comparison</h2>
+                  <button
+                    type="button"
+                    onClick={() => setSharedOnly((current) => !current)}
+                    className={`btn-ec ${sharedOnly ? "" : "outline"}`}
+                    style={{ padding: "7px 14px", fontSize: 11 }}
+                  >
+                    {sharedOnly ? "Showing shared only" : "Show shared only"}
+                  </button>
+                </div>
+
+                <p className="mb-3 max-w-[60rem] text-[13px] leading-[1.65] text-[color:var(--fg-muted)]">
+                  Rows are drawn from the most relevant surfaced benchmarks across the selected models, closer to how release posts present comparison tables.
+                </p>
+                <div className="mb-4 flex flex-wrap gap-x-4 gap-y-1 font-mono text-[10px] uppercase tracking-[0.15em] text-[color:var(--fg-subtle)]">
+                  <span>{benchmarkRows.length} surfaced benchmarks</span>
+                  <span>· {sharedBenchmarkCount} shared across all selected models</span>
                 </div>
 
                 <div className="overflow-auto">
-                  <Table>
-                    <TableHeader>
-                      <TableRow>
-                        <TableHead className="w-[260px]">Benchmark</TableHead>
+                  <table className="ec-htable">
+                    <thead>
+                      <tr>
+                        <th className="w-[260px]">Benchmark</th>
                         {models.map((model) => (
-                          <TableHead key={model.id} className="min-w-[170px] align-top">
-                            <div className="space-y-2">
-                              <div>
-                                <div className="font-semibold text-foreground">{model.model_name}</div>
-                                <div className="text-xs font-medium uppercase tracking-[0.14em] text-muted-foreground">
-                                  {model.developer || "Unknown developer"}
-                                </div>
-                              </div>
-                              <div className="flex flex-wrap gap-2">
-                                <Badge variant="outline">
-                                  {formatParamsBillions(model.params_billions, model.model_name)}
-                                </Badge>
-                                <Button asChild variant="ghost" size="sm">
-                                  <Link href={`/models/${model.route_id}`}>View</Link>
-                                </Button>
-                              </div>
+                          <th key={model.id} className="min-w-[170px] align-top">
+                            <div className="text-[13px] font-semibold normal-case tracking-normal text-[color:var(--fg)]">
+                              {model.model_name}
                             </div>
-                          </TableHead>
+                            <div className="mt-0.5 font-mono text-[10px] uppercase tracking-[0.14em] text-[color:var(--fg-subtle)]">
+                              {model.developer || "Unknown"}
+                            </div>
+                            <div className="mt-1.5 flex flex-wrap items-center gap-2 normal-case tracking-normal">
+                              <span className="ec-tag" style={{ fontSize: 9.5 }}>
+                                {formatParamsBillions(model.params_billions, model.model_name)}
+                              </span>
+                              <Link
+                                href={`/models/${model.route_id}`}
+                                className="font-mono text-[10px] uppercase tracking-[0.12em] text-[color:var(--fg-muted)] hover:text-[color:var(--accent)]"
+                              >
+                                View →
+                              </Link>
+                            </div>
+                          </th>
                         ))}
-                      </TableRow>
-                    </TableHeader>
-                    <TableBody>
+                      </tr>
+                    </thead>
+                    <tbody>
                       {visibleBenchmarkSections.map((group) => (
                         <Fragment key={group.section}>
-                          <TableRow key={`${group.section}-heading`}>
-                            <TableCell
+                          <tr>
+                            <td
                               colSpan={models.length + 1}
-                              className="bg-muted/25 text-[11px] font-semibold uppercase tracking-[0.22em] text-muted-foreground"
+                              style={{
+                                borderBottom: "1px solid var(--border-soft)",
+                                borderTop: "1px solid var(--fg)",
+                                background: "var(--bg-warm)",
+                                padding: "8px 16px",
+                              }}
+                              className="font-mono text-[10px] uppercase tracking-[0.18em] text-[color:var(--accent)] font-semibold"
                             >
                               {group.section}
-                            </TableCell>
-                          </TableRow>
+                            </td>
+                          </tr>
                           {group.rows.map((row) => {
                             const rowValues = Object.values(row.values).map((value) => value.score)
                             const maxScore = rowValues.length > 0 ? Math.max(...rowValues) : null
 
                             return (
-                              <TableRow key={row.benchmark}>
-                                <TableCell className="whitespace-normal">
-                                  <div className="font-medium">{row.benchmark}</div>
-                                  <div className="mt-1 text-xs text-muted-foreground">{row.metric}</div>
-                                </TableCell>
+                              <tr key={row.benchmark}>
+                                <td className="whitespace-normal">
+                                  <div className="text-[13px] font-medium">{row.benchmark}</div>
+                                  <div className="mt-0.5 font-mono text-[10.5px] text-[color:var(--fg-subtle)]">{row.metric}</div>
+                                </td>
                                 {models.map((model) => {
                                   const value = row.values[model.id]
                                   const isBest = value && maxScore != null && value.score === maxScore
 
                                   return (
-                                    <TableCell
+                                    <td
                                       key={`${row.benchmark}-${model.id}`}
-                                      className={isBest ? "bg-emerald-50/70 dark:bg-emerald-950/20" : ""}
+                                      style={{
+                                        background: isBest ? "var(--bg-warm)" : undefined,
+                                      }}
                                     >
                                       {value ? (
-                                        <div className="text-base font-semibold tabular-nums">
+                                        <div className="font-mono text-[15px] font-semibold tabular-nums" style={{ color: isBest ? "var(--accent)" : "var(--fg)" }}>
                                           {formatBenchmarkScore(value.score, value.unit)}
                                         </div>
                                       ) : (
-                                        <div className="text-muted-foreground">--</div>
+                                        <div className="font-mono text-[12px] text-[color:var(--fg-subtle)]">––</div>
                                       )}
-                                    </TableCell>
+                                    </td>
                                   )
                                 })}
-                              </TableRow>
+                              </tr>
                             )
                           })}
                         </Fragment>
                       ))}
-                    </TableBody>
-                  </Table>
+                    </tbody>
+                  </table>
                 </div>
-              </div>
+              </section>
 
-              <Collapsible className="rounded-[1.5rem] border border-border/70 bg-muted/10">
+              <Collapsible className="border-t border-[color:var(--border-soft)] pt-4">
                 <CollapsibleTrigger asChild>
                   <button
                     type="button"
-                    className="flex w-full items-center justify-between px-5 py-4 text-left"
+                    className="flex w-full items-center justify-between gap-3 py-2 text-left transition-colors hover:text-[color:var(--accent)]"
                   >
                     <div>
-                      <div className="text-[11px] font-semibold uppercase tracking-[0.22em] text-muted-foreground">
-                        Dive Deeper
-                      </div>
-                      <div className="mt-1 font-semibold text-foreground">
-                        Show coverage and score summary context
+                      <div className="kicker">Dive deeper</div>
+                      <div className="mt-1 text-[14px] font-semibold text-[color:var(--fg)]">
+                        Show coverage and score-summary context
                       </div>
                     </div>
-                    <ChevronDown className="h-4 w-4 text-muted-foreground" />
+                    <ChevronDown className="h-4 w-4 text-[color:var(--fg-muted)]" />
                   </button>
                 </CollapsibleTrigger>
-                <CollapsibleContent className="border-t border-border/60 px-5 py-5">
-                  <div className="overflow-auto rounded-[1.25rem] border border-border/70 bg-background">
-                    <Table>
-                      <TableHeader>
-                        <TableRow>
-                          <TableHead className="w-[220px]">Signal</TableHead>
+                <CollapsibleContent className="pt-4">
+                  <div className="overflow-auto">
+                    <table className="ec-htable">
+                      <thead>
+                        <tr>
+                          <th className="w-[220px]">Signal</th>
                           {models.map((model) => (
-                            <TableHead key={`${model.id}-context`} className="min-w-[220px]">
-                              <div className="font-semibold">{model.model_name}</div>
-                            </TableHead>
+                            <th key={`${model.id}-context`} className="min-w-[220px]">
+                              <div className="text-[13px] font-semibold normal-case tracking-normal text-[color:var(--fg)]">
+                                {model.model_name}
+                              </div>
+                            </th>
                           ))}
-                        </TableRow>
-                      </TableHeader>
-                      <TableBody>
+                        </tr>
+                      </thead>
+                      <tbody>
                         {CONTEXT_ROWS.map((row) => (
-                          <TableRow key={row.key}>
-                            <TableCell className="font-medium text-muted-foreground">{row.label}</TableCell>
+                          <tr key={row.key}>
+                            <td className="font-mono text-[11px] uppercase tracking-[0.1em] text-[color:var(--fg-subtle)]">
+                              {row.label}
+                            </td>
                             {models.map((model) => (
-                              <TableCell key={`${model.id}-${row.key}`} className="align-top whitespace-normal">
+                              <td key={`${model.id}-${row.key}`} className="align-top whitespace-normal text-[13px]">
                                 {row.key === "developer" ? model.developer || "Unknown developer" : null}
                                 {row.key === "params"
                                   ? formatParamsBillions(model.params_billions, model.model_name)
                                   : null}
                                 {row.key === "benchmarks" ? (
-                                  <div className="space-y-1">
+                                  <div>
                                     <div className="font-medium">{model.benchmarks_count} covered benchmarks</div>
-                                    <div className="text-sm text-muted-foreground">
+                                    <div className="mt-0.5 text-[12px] text-[color:var(--fg-muted)]">
                                       {(model.benchmark_names ?? []).slice(0, 4).join(", ") || `${model.evaluations_count} reported result${model.evaluations_count !== 1 ? "s" : ""}`}
                                     </div>
                                   </div>
                                 ) : null}
                                 {row.key === "variants" ? (
-                                  <div className="space-y-1">
+                                  <div>
                                     <div className="font-medium">
                                       {model.variant_count} version{model.variant_count !== 1 ? "s" : ""}
                                     </div>
-                                    <div className="text-sm text-muted-foreground">
+                                    <div className="mt-0.5 text-[12px] text-[color:var(--fg-muted)]">
                                       {model.variant_count > 1 ? "Family-level summary spans multiple published variants" : "Single summarized variant"}
                                     </div>
                                   </div>
                                 ) : null}
                                 {row.key === "score_summary" ? (
-                                  <div className="space-y-2">
-                                    <div className="text-sm text-muted-foreground">
-                                      Range {formatSummaryScore(model.score_summary?.min ?? null)} to {formatSummaryScore(model.score_summary?.max ?? null)} across {model.score_summary?.count ?? 0} surfaced scores
-                                    </div>
+                                  <div className="text-[12px] text-[color:var(--fg-muted)]">
+                                    Range {formatSummaryScore(model.score_summary?.min ?? null)} to {formatSummaryScore(model.score_summary?.max ?? null)} across {model.score_summary?.count ?? 0} surfaced scores
                                   </div>
                                 ) : null}
                                 {row.key === "reproducibility" ? (
                                   model.reproducibility_summary && model.reproducibility_summary.has_reproducibility_gap_count > 0 ? (
-                                    <div className="space-y-1">
+                                    <div>
                                       <div className="font-medium">
                                         {model.reproducibility_summary.has_reproducibility_gap_count} setup gaps
                                       </div>
-                                      <div className="text-sm text-muted-foreground">
+                                      <div className="mt-0.5 text-[12px] text-[color:var(--fg-muted)]">
                                         Out of {model.reproducibility_summary.results_total} reported scores
                                       </div>
                                     </div>
                                   ) : (
-                                    <span className="text-muted-foreground">No setup gaps reported</span>
+                                    <span className="text-[color:var(--fg-muted)]">No setup gaps reported</span>
                                   )
                                 ) : null}
                                 {row.key === "latest" ? (
@@ -432,7 +434,7 @@ export function ModelCompareDialog({
                                         href={model.source_urls[0]}
                                         target="_blank"
                                         rel="noopener noreferrer"
-                                        className="text-muted-foreground hover:text-foreground"
+                                        className="text-[color:var(--fg-muted)] hover:text-[color:var(--accent)]"
                                       >
                                         <ExternalLink className="h-3.5 w-3.5" />
                                       </a>
@@ -440,12 +442,12 @@ export function ModelCompareDialog({
                                   </div>
                                 ) : null}
                                 {row.key === "updated" ? formatDate(model.latest_timestamp) : null}
-                              </TableCell>
+                              </td>
                             ))}
-                          </TableRow>
+                          </tr>
                         ))}
-                      </TableBody>
-                    </Table>
+                      </tbody>
+                    </table>
                   </div>
                 </CollapsibleContent>
               </Collapsible>

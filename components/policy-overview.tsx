@@ -195,12 +195,27 @@ export function PolicyOverview({ summary }: PolicyOverviewProps) {
     ? "Lower scores are better"
     : "Higher scores are better"
 
+  // Policy-note triple (paper §4.2.2): What it measures · Main caveat · Intended for.
+  const measuresText = visibleText
+  const caveatText = card?.purpose_and_intended_users?.limitations?.trim() || null
+  const audienceArr = card?.purpose_and_intended_users?.audience
+  const audienceText = Array.isArray(audienceArr)
+    ? audienceArr.filter(Boolean).join("; ")
+    : (typeof audienceArr === "string" ? audienceArr : "")
+
   return (
-    <section className="rounded-3xl border bg-card p-5 sm:p-6">
-      <header className="mb-4 flex flex-wrap items-center gap-2">
-        <BookOpen className="h-5 w-5 text-primary" />
-        <h2 className="text-lg font-semibold tracking-tight">{summary.evaluation_name}</h2>
-        <span className="text-xs text-muted-foreground">In plain language</span>
+    <section className="ec-card warm" style={{ padding: "20px 24px" }}>
+      <header className="mb-3 flex flex-wrap items-center gap-3">
+        <BookOpen className="h-4 w-4" style={{ color: "var(--fg-muted)" }} />
+        <span className="kicker kicker-fg" style={{ fontSize: 12, letterSpacing: "0.16em" }}>
+          Policy note
+        </span>
+        <span
+          className="font-mono text-[10px] uppercase tracking-[0.12em]"
+          style={{ color: "var(--fg-subtle)" }}
+        >
+          {summary.evaluation_name} · in plain language
+        </span>
       </header>
 
       {knownIssues.length > 0 && (
@@ -209,54 +224,110 @@ export function PolicyOverview({ summary }: PolicyOverviewProps) {
         </div>
       )}
 
-      <p className="text-base leading-7 text-foreground/90">
-        {visibleText}
-        {isLong && (
-          <button
-            type="button"
-            onClick={() => setExpanded((v) => !v)}
-            className="ml-1 text-sm font-medium text-primary underline-offset-4 hover:underline"
-          >
-            {expanded ? "Show less" : "Read more"}
-          </button>
-        )}
-      </p>
-
-      <p className="mt-3 text-sm text-muted-foreground">
-        <SignalTooltip
-          content={
-            summary.metric_config.lower_is_better
-              ? "On this benchmark, a lower number means the model did better."
-              : "On this benchmark, a higher number means the model did better."
-          }
+      <dl
+        className="grid gap-y-3 text-[14px]"
+        style={{ gridTemplateColumns: "max-content 1fr", columnGap: 24 }}
+      >
+        <dt
+          className="font-mono uppercase tracking-[0.14em]"
+          style={{ fontSize: 10, color: "var(--fg-subtle)", paddingTop: 3 }}
         >
-          <span className="underline decoration-dotted decoration-muted-foreground/60 underline-offset-4 cursor-help">
-            {directionLabel}.
+          Measures
+        </dt>
+        <dd style={{ color: "var(--fg)", lineHeight: 1.6, margin: 0 }}>
+          {measuresText}
+          {isLong && (
+            <button
+              type="button"
+              onClick={() => setExpanded((v) => !v)}
+              className="ml-1 text-[13px] font-medium underline-offset-4 hover:underline"
+              style={{ color: "var(--accent)" }}
+            >
+              {expanded ? "Show less" : "Read more"}
+            </button>
+          )}
+        </dd>
+
+        {caveatText && (
+          <>
+            <dt
+              className="font-mono uppercase tracking-[0.14em]"
+              style={{ fontSize: 10, color: "var(--accent)", paddingTop: 3 }}
+            >
+              Caveat
+            </dt>
+            <dd style={{ color: "var(--fg)", lineHeight: 1.6, margin: 0 }}>{caveatText}</dd>
+          </>
+        )}
+
+        {audienceText && (
+          <>
+            <dt
+              className="font-mono uppercase tracking-[0.14em]"
+              style={{ fontSize: 10, color: "var(--fg-subtle)", paddingTop: 3 }}
+            >
+              Intended for
+            </dt>
+            <dd style={{ color: "var(--fg)", lineHeight: 1.6, margin: 0 }}>{audienceText}</dd>
+          </>
+        )}
+
+        <dt
+          className="font-mono uppercase tracking-[0.14em]"
+          style={{ fontSize: 10, color: "var(--fg-subtle)", paddingTop: 3 }}
+        >
+          How to read
+        </dt>
+        <dd style={{ color: "var(--fg)", lineHeight: 1.6, margin: 0 }}>
+          <SignalTooltip
+            content={
+              summary.metric_config.lower_is_better
+                ? "On this benchmark, a lower number means the model did better."
+                : "On this benchmark, a higher number means the model did better."
+            }
+          >
+            <span
+              className="underline decoration-dotted underline-offset-4 cursor-help"
+              style={{ textDecorationColor: "var(--fg-subtle)" }}
+            >
+              {directionLabel}.
+            </span>
+          </SignalTooltip>{" "}
+          <span style={{ color: "var(--fg-muted)" }}>
+            Compared across {summary.models_count} model{summary.models_count === 1 ? "" : "s"}.
           </span>
-        </SignalTooltip>{" "}
-        Compared across {summary.models_count} model{summary.models_count === 1 ? "" : "s"}.
-      </p>
+        </dd>
+      </dl>
 
       {isParentPage && subtaskLabels.length > 1 && (
-        <div className="mt-4 rounded-2xl border border-border/60 bg-muted/10">
+        <div
+          className="mt-4"
+          style={{ border: "1px solid var(--border-soft)", background: "var(--bg)" }}
+        >
           <button
             type="button"
             onClick={() => setSubtasksOpen((v) => !v)}
             aria-expanded={subtasksOpen}
-            className="flex w-full items-center justify-between gap-3 px-3.5 py-2.5 text-left transition-colors hover:bg-muted/20 rounded-2xl"
+            className="flex w-full items-center justify-between gap-3 px-3.5 py-2.5 text-left transition-colors hover:bg-[color:var(--bg-warm)]"
           >
-            <span className="flex items-center gap-1.5 text-[11px] font-semibold uppercase tracking-[0.18em] text-muted-foreground">
+            <span
+              className="flex items-center gap-1.5 font-mono uppercase"
+              style={{ fontSize: 10, letterSpacing: "0.14em", color: "var(--fg-muted)" }}
+            >
               <Layers className="h-3.5 w-3.5" />
               {isAggregated ? `Component benchmarks (${subtaskLabels.length})` : `Subtasks (${subtaskLabels.length})`}
             </span>
             {subtasksOpen ? (
-              <ChevronUp className="h-4 w-4 text-muted-foreground" />
+              <ChevronUp className="h-4 w-4" style={{ color: "var(--fg-muted)" }} />
             ) : (
-              <ChevronDown className="h-4 w-4 text-muted-foreground" />
+              <ChevronDown className="h-4 w-4" style={{ color: "var(--fg-muted)" }} />
             )}
           </button>
           {subtasksOpen && (
-            <ul className="grid list-disc gap-x-6 gap-y-1 px-3.5 pb-3.5 pl-9 text-sm sm:grid-cols-2 lg:grid-cols-3">
+            <ul
+              className="grid list-disc gap-x-6 gap-y-1 px-3.5 pb-3.5 pl-9 text-[13px] sm:grid-cols-2 lg:grid-cols-3"
+              style={{ color: "var(--fg)" }}
+            >
               {subtaskLabels.map((name) => (
                 <li key={name} className="capitalize">
                   {name}
@@ -268,29 +339,27 @@ export function PolicyOverview({ summary }: PolicyOverviewProps) {
       )}
 
       {(domains.length > 0 || languages.length > 0 || showLicense) && (
-        <div className="mt-4 flex flex-wrap gap-2">
+        <div className="mt-4 flex flex-wrap gap-1.5">
           {domains.map((d) => (
             <span
               key={`d-${d}`}
-              className="inline-flex items-center gap-1 rounded-full border border-border/60 bg-muted/30 px-2.5 py-1 text-xs font-medium capitalize"
+              className="ec-tag"
+              style={{ textTransform: "uppercase" }}
             >
-              <Tag className="h-3 w-3 shrink-0 text-muted-foreground" />
+              <Tag className="h-3 w-3 shrink-0" />
               {d}
             </span>
           ))}
           {languages.map((l) => (
-            <span
-              key={`l-${l}`}
-              className="inline-flex items-center gap-1 rounded-full border border-sky-200/70 bg-sky-50/60 px-2.5 py-1 text-xs font-medium dark:border-sky-900/40 dark:bg-sky-950/20"
-            >
-              <Globe className="h-3 w-3 shrink-0 text-sky-600" />
+            <span key={`l-${l}`} className="ec-tag accent" style={{ textTransform: "uppercase" }}>
+              <Globe className="h-3 w-3 shrink-0" />
               {l}
             </span>
           ))}
           {showLicense && (
             <SignalTooltip content="The license under which the benchmark dataset is released.">
-              <span className="inline-flex items-center gap-1 rounded-full border border-border/60 bg-background px-2.5 py-1 text-xs font-medium cursor-help">
-                <ScrollText className="h-3 w-3 shrink-0 text-muted-foreground" />
+              <span className="ec-tag outline cursor-help">
+                <ScrollText className="h-3 w-3 shrink-0" />
                 {license}
               </span>
             </SignalTooltip>
@@ -299,22 +368,29 @@ export function PolicyOverview({ summary }: PolicyOverviewProps) {
       )}
 
       {(resources.length > 0 || evaluators.length > 0) && (
-        <div className="mt-5 border-t pt-4">
-          <div className="mb-2 text-[11px] font-semibold uppercase tracking-[0.18em] text-muted-foreground">
+        <div
+          className="mt-5 pt-4"
+          style={{ borderTop: "1px dashed var(--border-soft)" }}
+        >
+          <div
+            className="mb-2 font-mono uppercase"
+            style={{ fontSize: 10, letterSpacing: "0.14em", color: "var(--fg-subtle)" }}
+          >
             Where this comes from
           </div>
-          <div className="flex flex-wrap items-center gap-3">
+          <div className="flex flex-wrap items-center gap-2">
             {resources.map((r) => (
               <a
                 key={r.url}
                 href={r.url}
                 target="_blank"
                 rel="noreferrer"
-                className="inline-flex items-center gap-1.5 rounded-full border border-border/60 bg-background px-3 py-1.5 text-xs font-medium text-muted-foreground transition-colors hover:border-primary/40 hover:text-primary"
+                className="ec-tag outline inline-flex items-center gap-1.5"
+                style={{ textDecoration: "none" }}
               >
                 <FileText className="h-3 w-3 shrink-0" />
-                <span className="font-semibold text-foreground">{r.label}</span>
-                <span className="text-muted-foreground">{shortHost(r.url)}</span>
+                <span style={{ color: "var(--fg)" }}>{r.label}</span>
+                <span style={{ color: "var(--fg-muted)" }}>{shortHost(r.url)}</span>
                 <ExternalLink className="h-3 w-3 shrink-0" />
               </a>
             ))}
@@ -332,10 +408,10 @@ export function PolicyOverview({ summary }: PolicyOverviewProps) {
                   </span>
                 }
               >
-                <span className="inline-flex items-center gap-1.5 rounded-full border border-border/60 bg-background px-3 py-1.5 text-xs font-medium cursor-help">
-                  <Users className="h-3 w-3 shrink-0 text-muted-foreground" />
-                  <span className="font-semibold text-foreground">Reported by</span>
-                  <span className="text-muted-foreground">
+                <span className="ec-tag outline cursor-help inline-flex items-center gap-1.5">
+                  <Users className="h-3 w-3 shrink-0" />
+                  <span style={{ color: "var(--fg)" }}>Reported by</span>
+                  <span style={{ color: "var(--fg-muted)" }}>
                     {evaluators.join(", ")}
                     {hasMoreEvaluators ? ` +${(summary.evaluator_names?.length ?? 0) - evaluators.length} more` : ""}
                   </span>

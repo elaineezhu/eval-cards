@@ -5,14 +5,55 @@ import { AudienceModeProvider } from "@/components/audience-mode-provider"
 import { BackendRefreshListener } from "@/components/backend-refresh-listener"
 import { ThemeProvider } from "@/components/theme-provider"
 
+const SITE_URL = "https://evalcards.evalevalai.com"
+const SITE_NAME = "Eval Cards"
+const SITE_TITLE = "Eval Cards — a reporting layer for AI evaluations"
+const SITE_DESCRIPTION =
+  "A public registry of reported model–benchmark results, organised under a six-level rollout hierarchy and four interpretive signals: reproducibility, completeness, provenance, and comparability."
+
 export const metadata: Metadata = {
-  title: "Eval Cards",
-  description: "Professional AI system evaluation and assessment tool",
-  generator: "v0.app",
+  metadataBase: new URL(SITE_URL),
+  title: {
+    default: SITE_TITLE,
+    template: "%s · Eval Cards",
+  },
+  description: SITE_DESCRIPTION,
+  applicationName: SITE_NAME,
+  keywords: [
+    "AI evaluation",
+    "benchmark",
+    "model card",
+    "reproducibility",
+    "EvalEval",
+    "Hugging Face",
+    "LLM benchmarks",
+    "evaluation cards",
+  ],
+  authors: [{ name: "EvalEval Coalition", url: "https://evalevalai.com" }],
+  creator: "EvalEval Coalition",
+  publisher: "EvalEval Coalition",
   icons: {
     icon: "https://evalevalai.com/assets/img/logo-square.png",
     shortcut: "https://evalevalai.com/assets/img/logo-square.png",
     apple: "https://evalevalai.com/assets/img/logo-square.png",
+  },
+  openGraph: {
+    type: "website",
+    siteName: SITE_NAME,
+    title: SITE_TITLE,
+    description: SITE_DESCRIPTION,
+    url: SITE_URL,
+    locale: "en_US",
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: SITE_TITLE,
+    description: SITE_DESCRIPTION,
+    creator: "@huggingface",
+  },
+  robots: {
+    index: true,
+    follow: true,
   },
 }
 

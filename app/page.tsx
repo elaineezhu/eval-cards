@@ -1,12 +1,10 @@
+import { Fragment } from "react"
 import Link from "next/link"
 import { ArrowRight } from "lucide-react"
 
-import { Button } from "@/components/ui/button"
-import { Badge } from "@/components/ui/badge"
-import { HomeModeLabel } from "@/components/home-mode-label"
 import { Navigation } from "@/components/navigation"
 import { CorpusSignalsStrip } from "@/components/signals/corpus-signals-strip"
-import { getDeveloperList } from "@/lib/data-backend"
+import { getDeveloperList, getEvalList } from "@/lib/data-backend"
 import {
   fetchBackendManifest,
   fetchCorpusAggregates,
@@ -33,12 +31,23 @@ function formatNumber(value: number | undefined | null): string {
   return value.toLocaleString("en-US")
 }
 
+const FAMILY_KIND_LABELS: Record<string, string> = {
+  General: "General capability",
+  Reasoning: "Reasoning",
+  Agentic: "Agentic",
+  Safety: "Safety",
+  Code: "Code",
+  Math: "Math",
+  Multilingual: "Multilingual",
+}
+
 export default async function HomePage() {
-  const [aggregates, manifest, hierarchy, developers] = await Promise.all([
+  const [aggregates, manifest, hierarchy, developers, evals] = await Promise.all([
     fetchCorpusAggregates(),
     fetchBackendManifest(),
     fetchEvalHierarchy(),
     getDeveloperList().catch(() => []),
+    getEvalList().catch(() => [] as Awaited<ReturnType<typeof getEvalList>>),
   ])
 
   const stats = hierarchy.stats
@@ -52,139 +61,230 @@ export default async function HomePage() {
   const tripleCount = stats?.metric_rows_scanned ?? 0
   const modelCount = manifest?.model_count ?? 0
   const developerCount = developers.length
+  // Reporting initiatives — distinct evaluation submissions in the corpus
+  // (each `eval` here is a benchmark-publication artifact, e.g. HELM Lite,
+  // BFCL, Open LLM Leaderboard v2). This is closer to "reporting evaluators"
+  // than a model-developer count.
+  const evaluatorCount = evals.length
   const generatedAt = formatGeneratedAt(manifest?.generated_at)
+
+  // Featured family cards — pick the first six families with summaries.
+  const featuredFamilies = hierarchy.families.slice(0, 6).map((family) => {
+    const benches: unknown[] =
+      family.benchmarks ?? family.standalone_benchmarks ?? family.leaves ?? []
+    let slices = 0
+    for (const b of benches) {
+      const benchSlices = (b as { slices?: unknown[] }).slices
+      if (Array.isArray(benchSlices)) slices += benchSlices.length
+    }
+    return {
+      key: family.key,
+      name: family.display_name,
+      kind: FAMILY_KIND_LABELS[family.category] ?? family.category ?? "Benchmark family",
+      benchCount: benches.length,
+      sliceCount: slices,
+    }
+  })
 
   return (
     <div className="min-h-screen bg-background">
       <Navigation />
 
-      <main className="mx-auto w-full max-w-[88rem] px-4 py-12 sm:px-6 lg:px-8 lg:py-16">
-        {/* Masthead */}
-        <section className="border-b border-border/60 pb-10">
-          <div className="flex flex-wrap items-center gap-x-4 gap-y-2 text-[11px] font-semibold uppercase tracking-[0.24em] text-muted-foreground">
-            <HomeModeLabel />
-            {generatedAt && <span>Snapshot · {generatedAt}</span>}
-            {aggregates && (
-              <Badge variant="outline" className="font-normal tracking-normal">
-                Signals v{aggregates.signal_version}
-              </Badge>
-            )}
-          </div>
-
-          <h1 className="mt-5 max-w-4xl text-balance text-4xl font-semibold tracking-[-0.04em] text-foreground sm:text-5xl lg:text-[3.75rem] lg:leading-[1.05]">
-            Eval Cards
-          </h1>
-          <p className="mt-3 max-w-3xl text-base leading-7 text-muted-foreground sm:text-lg sm:leading-8">
-            An interpretative integration layer for AI evaluation reporting. Eval Cards composes
-            benchmark metadata, evaluation run data, and provenance into a single reading surface,
-            and surfaces four interpretive signals — reproducibility, reporting completeness,
-            provenance, and comparability — over a public corpus of reported scores.
-          </p>
-
-          <div className="mt-6 flex flex-wrap gap-3">
-            <Link href="/models">
-              <Button size="lg" className="gap-2 rounded-full px-6">
-                Browse models
-                <ArrowRight className="h-4 w-4" />
-              </Button>
-            </Link>
-            <Link href="/evals">
-              <Button size="lg" variant="outline" className="gap-2 rounded-full px-6">
-                Browse evaluations
-                <ArrowRight className="h-4 w-4" />
-              </Button>
-            </Link>
-            <Link href="/about">
-              <Button size="lg" variant="ghost" className="gap-2 rounded-full px-4 text-foreground">
-                About this project
-                <ArrowRight className="h-4 w-4" />
-              </Button>
-            </Link>
-          </div>
-        </section>
-
-        {/* Corpus stats — paper §5.1 */}
-        <section className="border-b border-border/60 py-10">
-          <div className="grid gap-6 lg:grid-cols-[minmax(220px,0.34fr)_minmax(0,1fr)] lg:gap-12">
-            <div>
-              <div className="text-[11px] font-semibold uppercase tracking-[0.22em] text-muted-foreground">
-                Corpus
-              </div>
-              <h2 className="mt-2 text-2xl font-semibold tracking-tight text-foreground sm:text-[1.75rem]">
-                What this snapshot covers
-              </h2>
-              <p className="mt-3 max-w-md text-sm leading-7 text-muted-foreground">
-                Reports are organized through a six-level rollout hierarchy
-                (family → suite → single benchmark → split → subtask → metric) so that
-                aggregate claims can be drilled down to the evidence supporting them.
-              </p>
+      <main className="mx-auto w-full max-w-[96rem] px-4 pb-24 pt-12 sm:px-8 lg:pt-12">
+        {/* HERO ----------------------------------------------------------- */}
+        <section className="home-hero">
+          <div>
+            <div className="kicker kicker-accent">
+              {aggregates ? `Signals v${aggregates.signal_version}` : "Eval Cards · Beta"}
             </div>
-
-            <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
-              <CorpusStat
-                label="Models"
-                value={formatNumber(modelCount)}
-                detail="Tracked across reporting sources"
-              />
-              <CorpusStat
-                label="Reported results"
-                value={formatNumber(tripleCount)}
-                detail="(model, benchmark, metric) triples"
-              />
-              <CorpusStat
-                label="Reporting organizations"
-                value={formatNumber(developerCount)}
-                detail="Developers and third-party evaluators"
-              />
-              <CorpusStat
-                label="Benchmark families"
-                value={formatNumber(familyCount)}
-                detail="Top of the rollout hierarchy"
-              />
-              <CorpusStat
-                label="Suites"
-                value={formatNumber(compositeCount)}
-                detail="Composite reporting units"
-              />
-              <CorpusStat
-                label="Single benchmarks"
-                value={formatNumber(benchmarkLeafCount)}
-                detail={`${formatNumber(sliceCount)} slices · ${formatNumber(metricCount)} metrics`}
-              />
-            </div>
-          </div>
-        </section>
-
-        {/* Four interpretive signals */}
-        <section className="py-10">
-          <div className="mb-6 grid gap-4 lg:grid-cols-[minmax(220px,0.34fr)_minmax(0,1fr)] lg:gap-12">
-            <div>
-              <div className="text-[11px] font-semibold uppercase tracking-[0.22em] text-muted-foreground">
-                Interpretive signals
-              </div>
-              <h2 className="mt-2 text-2xl font-semibold tracking-tight text-foreground sm:text-[1.75rem]">
-                Reproducibility, completeness, provenance, comparability
-              </h2>
-            </div>
-            <p className="max-w-3xl text-sm leading-7 text-muted-foreground">
-              Each signal answers a question a reader brings to a reported score. Per-record
-              instances appear on every model and benchmark page. Corpus-level rollups below
-              show how reporting practice looks across the public record as a whole.
+            <h1 className="home-hero-h1">
+              A reporting <em className="accent-em">layer</em>
+              <br />
+              over evaluation
+              <br />
+              infrastructure.
+            </h1>
+            <p className="home-hero-lede">
+              <strong>Eval Cards</strong> is a registry of reported model–benchmark results,
+              organised under a six-level rollout hierarchy and four interpretive signals
+              computed over the joined record.
             </p>
+            <div className="flex flex-wrap items-center gap-3">
+              <Link href="/models" className="btn-ec">
+                Browse models
+                <ArrowRight className="h-3.5 w-3.5" aria-hidden />
+              </Link>
+              <Link href="/evals" className="btn-ec outline">
+                Browse evaluations
+              </Link>
+              <Link href="/about" className="btn-ec ghost">
+                About
+              </Link>
+            </div>
           </div>
+
+          <div>
+            <div className="corpus-meta">
+              <div className="kicker">
+                Corpus snapshot{generatedAt ? ` · ${generatedAt}` : ""}
+              </div>
+              <div className="corpus-grid">
+                <CorpusStat
+                  value={formatNumber(modelCount)}
+                  label="Models"
+                  detail="Tracked across reporting sources"
+                />
+                <CorpusStat
+                  value={formatNumber(tripleCount)}
+                  label="Reported results"
+                  detail="(model, benchmark, metric) triples"
+                />
+                <CorpusStat
+                  value={formatNumber(evaluatorCount)}
+                  label="Reporting organizations"
+                  detail="Distinct evaluator initiatives in this corpus"
+                />
+                <CorpusStat
+                  value={formatNumber(developerCount)}
+                  label="Model developers"
+                  detail="Distinct model-publishing organizations"
+                />
+                <CorpusStat
+                  value={formatNumber(familyCount)}
+                  label="Benchmark families"
+                  detail="Top of the rollout hierarchy"
+                />
+                <CorpusStat
+                  value={formatNumber(benchmarkLeafCount)}
+                  label="Single benchmarks"
+                  detail={`${formatNumber(sliceCount)} slices · ${formatNumber(metricCount)} metrics`}
+                />
+              </div>
+            </div>
+          </div>
+        </section>
+
+        {/* SIX-LEVEL HIERARCHY STRIP -------------------------------------- */}
+        <section className="hierarchy-strip">
+          <div className="kicker">Six-level rollout hierarchy</div>
+          <div className="hierarchy-row">
+            {[
+              {
+                name: "Family",
+                count: formatNumber(familyCount),
+                ex: "SWE-bench family, MMLU family",
+              },
+              {
+                name: "Suite",
+                count: formatNumber(compositeCount),
+                ex: "Open LLM Leaderboard v2, HELM Instruct",
+              },
+              {
+                name: "Single benchmark",
+                count: formatNumber(benchmarkLeafCount),
+                ex: "GSM8K, IFEval, MMLU-Pro",
+              },
+              {
+                name: "Split",
+                count: formatNumber(sliceCount),
+                ex: "algebra (within MATH), Python (Multi-SWE-Bench)",
+              },
+              {
+                name: "Subtask",
+                count: "—",
+                ex: "level-5, multi-turn",
+              },
+              {
+                name: "Metric",
+                count: formatNumber(metricCount),
+                ex: "pass@1, accuracy, F1",
+              },
+            ].map((node, i, arr) => (
+              <Fragment key={node.name}>
+                <div className="hierarchy-node">
+                  <div className="hier-num">{String(i + 1).padStart(2, "0")}</div>
+                  <div className="hier-name">{node.name}</div>
+                  <div className="hier-count">{node.count}</div>
+                  <div className="hier-ex">{node.ex}</div>
+                </div>
+                {i < arr.length - 1 && (
+                  <div className="hier-arrow" aria-hidden>
+                    →
+                  </div>
+                )}
+              </Fragment>
+            ))}
+          </div>
+          <p className="hierarchy-note">
+            Every score resolves to an explicit path through this hierarchy, so aggregate claims
+            drill down to the evidence supporting them.
+          </p>
+        </section>
+
+        {/* FOUR INTERPRETIVE SIGNALS -------------------------------------- */}
+        <section className="signals-section">
+          <div className="kicker">Interpretive signals</div>
+          <h2 className="signals-h2">
+            Reproducibility · Completeness ·<br />
+            Provenance &amp; risk · Comparability
+          </h2>
+          <p className="signals-lede">
+            Four signals computed over each <em>(model, benchmark, metric-path)</em> record and
+            aggregated to the corpus level. Per-record instances appear on every model and
+            benchmark page.
+          </p>
 
           {aggregates ? (
             <CorpusSignalsStrip aggregates={aggregates} />
           ) : (
-            <div className="rounded-2xl border border-dashed border-border/70 bg-muted/10 p-8 text-center">
-              <h3 className="text-lg font-semibold tracking-tight">Corpus aggregates unavailable</h3>
-              <p className="mx-auto mt-2 max-w-2xl text-sm leading-6 text-muted-foreground">
-                The current backend snapshot does not include <code>corpus-aggregates.json</code>.
-                When it does, this section will render the four corpus-level rollups.
+            <div className="border border-dashed border-[color:var(--border-soft)] bg-[color:var(--bg-warm)] p-8 text-center">
+              <h3 className="text-lg font-semibold tracking-tight">
+                Corpus aggregates unavailable
+              </h3>
+              <p className="mx-auto mt-2 max-w-2xl text-sm leading-6 text-[color:var(--fg-muted)]">
+                The current backend snapshot does not include{" "}
+                <code className="rounded-sm bg-[color:var(--bg-surface)] px-1.5 py-0.5 font-mono text-xs">
+                  corpus-aggregates.json
+                </code>
+                . When it does, this section will render the four corpus-level rollups.
               </p>
             </div>
           )}
         </section>
+
+        {/* FEATURED BENCHMARK FAMILIES ------------------------------------ */}
+        {featuredFamilies.length > 0 && (
+          <section className="mb-24">
+            <div className="section-head">
+              <h2>Benchmark families</h2>
+              <Link href="/evals" className="micro-meta-link">
+                All {formatNumber(familyCount)} →
+              </Link>
+            </div>
+            <div className="fam-grid">
+              {featuredFamilies.map((fam) => (
+                <Link
+                  key={fam.key}
+                  href={`/evals?family=${encodeURIComponent(fam.key)}`}
+                  className="fam-card"
+                >
+                  <div className="mb-3 flex items-center justify-between">
+                    <div className="fam-card-kind">{fam.kind}</div>
+                    <div className="fam-card-counts">
+                      {fam.benchCount} bench · {fam.sliceCount} slices
+                    </div>
+                  </div>
+                  <h3 className="fam-card-name">{fam.name}</h3>
+                  <p className="fam-card-summary">
+                    {fam.benchCount > 0
+                      ? `${fam.benchCount} reported benchmark${fam.benchCount === 1 ? "" : "s"} across this family.`
+                      : "No reported results yet for this family."}
+                  </p>
+                </Link>
+              ))}
+            </div>
+          </section>
+        )}
       </main>
     </div>
   )
@@ -200,14 +300,10 @@ function CorpusStat({
   detail: string
 }) {
   return (
-    <div className="rounded-2xl border border-border/70 bg-card p-4">
-      <div className="text-[10px] font-semibold uppercase tracking-[0.22em] text-muted-foreground">
-        {label}
-      </div>
-      <div className="mt-2 text-2xl font-semibold tracking-tight text-foreground tabular-nums sm:text-[1.625rem]">
-        {value}
-      </div>
-      <p className="mt-1 text-xs leading-5 text-muted-foreground">{detail}</p>
+    <div>
+      <div className="corpus-stat-n">{value}</div>
+      <div className="corpus-stat-l">{label}</div>
+      <div className="corpus-stat-sub">{detail}</div>
     </div>
   )
 }

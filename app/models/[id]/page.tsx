@@ -16,7 +16,6 @@ import {
 } from "@/lib/dashboard-data-client"
 import type { BenchmarkEvaluationCardData } from "@/components/benchmark-evaluation-card"
 import type { ComparisonIndex, EvalHierarchy } from "@/lib/backend-artifacts"
-import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs"
 
 export default function ModelDetailPage() {
   const params = useParams()
@@ -249,9 +248,9 @@ export default function ModelDetailPage() {
     return (
       <div className="min-h-screen bg-background">
         <Navigation />
-        <main className="container mx-auto px-4 py-8">
+        <main className="ec-page">
           <div className="flex items-center justify-center h-96">
-            <div className="text-lg text-muted-foreground">Loading model details...</div>
+            <div className="kicker">Loading model record…</div>
           </div>
         </main>
       </div>
@@ -262,13 +261,13 @@ export default function ModelDetailPage() {
     return (
       <div className="min-h-screen bg-background">
         <Navigation />
-        <main className="container mx-auto px-4 py-8">
+        <main className="ec-page">
           <div className="flex flex-col items-center justify-center h-96 space-y-4">
-            <div className="text-lg text-muted-foreground">{error || "Model not found"}</div>
-            <Button onClick={handleBack}>
+            <div className="kicker">{error || "Model not found"}</div>
+            <button type="button" onClick={handleBack} className="btn-ec outline">
               <ArrowLeft className="mr-2 h-4 w-4" />
               Back
-            </Button>
+            </button>
           </div>
         </main>
       </div>
@@ -281,67 +280,38 @@ export default function ModelDetailPage() {
   return (
     <div className="min-h-screen bg-background">
       <Navigation />
-      <div className="border-b bg-muted/30">
-        <div className="container mx-auto px-4 sm:px-6 py-4 sm:py-6">
-          <div className="flex items-center gap-3 sm:hidden">
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={handleBack}
-              className="shrink-0"
-            >
-              <ArrowLeft className="h-4 w-4" />
-            </Button>
-            <div className="flex-1 text-center">
-              <h2 className="text-base font-medium tracking-tight text-foreground/90 sm:text-lg">
-                Model details
-              </h2>
-            </div>
-          </div>
+      <main className="ec-page">
+        <button
+          type="button"
+          onClick={handleBack}
+          className="ec-crumb mb-6 inline-flex items-center gap-1.5"
+        >
+          <ArrowLeft className="h-3 w-3" />
+          Models
+        </button>
 
-          <div className="hidden sm:grid sm:grid-cols-[auto_1fr_auto] sm:items-center sm:gap-4">
-            <Button
-              variant="ghost"
-              onClick={handleBack}
-            >
-              <ArrowLeft className="mr-2 h-4 w-4" />
-              Back
-            </Button>
-            <div className="text-center">
-              <h2 className="text-xl font-medium tracking-tight text-foreground/90 md:text-2xl">
-                Model details
-              </h2>
-            </div>
-            <div />
-          </div>
-
-          {hasVariantTabs ? (
-            <div className="mt-4 rounded-2xl border border-border/70 bg-background/80 px-3 py-3 shadow-sm">
-              <div className="mb-2 text-[11px] font-semibold uppercase tracking-[0.18em] text-muted-foreground">
-                Versions
+        {hasVariantTabs ? (
+          <div className="mb-8 border-y border-[var(--border-soft)] py-3">
+            <div className="flex flex-wrap items-center gap-3">
+              <span className="kicker">Versions</span>
+              <div className="flex flex-wrap gap-1.5">
+                {summary.variants.map((variant) => (
+                  <button
+                    key={variant.variant_id}
+                    type="button"
+                    onClick={() => handleVariantChange(variant.variant_id)}
+                    className={`ec-pill ${
+                      (selectedVariantId ?? summary.variants[0].variant_id) === variant.variant_id ? "on" : ""
+                    }`}
+                  >
+                    {variant.variant_label}
+                  </button>
+                ))}
               </div>
-              <Tabs
-                value={selectedVariantId ?? summary.variants[0].variant_id}
-                onValueChange={handleVariantChange}
-                className="gap-0"
-              >
-                <TabsList className="flex w-full flex-wrap gap-2">
-                  {summary.variants.map((variant) => (
-                    <TabsTrigger
-                      key={variant.variant_id}
-                      value={variant.variant_id}
-                      className="h-auto rounded-full border border-border/80 bg-muted/30 px-3 py-1.5 text-xs sm:text-sm data-[state=active]:border-foreground/20 data-[state=active]:bg-background"
-                    >
-                      {variant.variant_label}
-                    </TabsTrigger>
-                  ))}
-                </TabsList>
-              </Tabs>
             </div>
-          ) : null}
-        </div>
-      </div>
-      <main className="container mx-auto px-4 py-8">
+          </div>
+        ) : null}
+
         <BenchmarkDetail
           summary={detailSummary}
           benchmarkCards={benchmarkCards}

@@ -32,7 +32,7 @@ import {
 import {
   ExternalLink, TrendingUp, Info, Database, Settings, FileCode, Building, Calendar, User, Server,
   ChevronDown, ChevronUp, BarChart3, Award, AlertTriangle,
-  Cpu, Tag, Globe, Network, Activity, MessageSquare, Clock, Hash, Layers, Search, FlaskConical, Scale, BookOpenText, Plus, X
+  Cpu, Tag, Globe, Network, Activity, MessageSquare, Clock, Hash, Layers, Search, FlaskConical, Scale, BookOpenText, Plus, X, List, LayoutGrid
 } from "lucide-react"
 import type { BenchmarkCard, BenchmarkEvaluation, CategoryType, EvaluationResult } from "@/lib/benchmark-schema"
 import { getCategoryColor as getCategoryTone, inferCategoryFromBenchmark } from "@/lib/benchmark-schema"
@@ -1649,6 +1649,15 @@ export function BenchmarkDetail({
   const [selectedCategories, setSelectedCategories] = useState<CategoryType[]>([])
   const [expandedSuites, setExpandedSuites] = useState<Set<string>>(new Set())
   const [activeBenchmarkGroupKey, setActiveBenchmarkGroupKey] = useState<string | null>(null)
+  const [benchmarkViewMode, setBenchmarkViewMode] = useState<"grid" | "list">("grid")
+  const [expandedFamilies, setExpandedFamilies] = useState<Set<string>>(new Set())
+  const toggleFamily = (key: string) =>
+    setExpandedFamilies((prev) => {
+      const next = new Set(prev)
+      if (next.has(key)) next.delete(key)
+      else next.add(key)
+      return next
+    })
 
   const currentDetailHref = useMemo(() => {
     const query = searchParams.toString()
@@ -1877,6 +1886,44 @@ export function BenchmarkDetail({
     [allCategoryResults, benchmarkCards, currentDetailHref]
   )
 
+  // First-party vs third-party split per category (for the donut + bars).
+  const evaluatorMix = useMemo(() => {
+    const order = new Map(summary.categories_covered.map((cat, i) => [cat, i]))
+    const byCat = new Map<CategoryType, { first: number; third: number; collab: number; other: number }>()
+    let firstTotal = 0
+    let thirdTotal = 0
+    let collabTotal = 0
+    let otherTotal = 0
+    for (const group of benchmarkGroups) {
+      const slot = byCat.get(group.category) ?? { first: 0, third: 0, collab: 0, other: 0 }
+      for (const variant of group.variants) {
+        const rel = variant.evaluation.source_metadata.evaluator_relationship
+        if (rel === "first_party") { slot.first++; firstTotal++ }
+        else if (rel === "third_party") { slot.third++; thirdTotal++ }
+        else if (rel === "collaborative") { slot.collab++; collabTotal++ }
+        else { slot.other++; otherTotal++ }
+      }
+      byCat.set(group.category, slot)
+    }
+    const rows = Array.from(byCat.entries())
+      .map(([category, counts]) => ({
+        category,
+        ...counts,
+        total: counts.first + counts.third + counts.collab + counts.other,
+      }))
+      .filter((row) => row.total > 0)
+      .sort((a, b) => (order.get(a.category) ?? 999) - (order.get(b.category) ?? 999))
+    const grand = firstTotal + thirdTotal + collabTotal + otherTotal
+    return {
+      rows,
+      firstTotal,
+      thirdTotal,
+      collabTotal,
+      otherTotal,
+      grand,
+    }
+  }, [benchmarkGroups, summary.categories_covered])
+
   const availableCategories = useMemo(() => {
     const presentCategories = new Set(benchmarkGroups.map((group) => group.category))
     return summary.categories_covered.filter((category) => presentCategories.has(category))
@@ -1942,6 +1989,59 @@ export function BenchmarkDetail({
       .sort((a, b) => (order.get(a[0]) ?? 999) - (order.get(b[0]) ?? 999))
       .map(([category, groups]) => ({ category, groups }))
   }, [filteredBenchmarkGroups, summary.categories_covered])
+
+  // Family-bucketed groups for the list view, mirroring plotboxUnits logic.
+  // When comparisonIndex is available we use the backend-authoritative
+  // benchmark_family_key; otherwise we fall back to the group's own key so each
+  // BenchmarkGroup forms its own family.
+  type ListFamily = {
+    familyKey: string
+    familyName: string
+    kind: "single-eval" | "multi-eval"
+    groups: BenchmarkGroup[]
+    totalRows: number
+  }
+  const listFamiliesByCategory = useMemo(() => {
+    const order = new Map(
+      summary.categories_covered.map((category, index) => [category, index])
+    )
+    const byCategory = new Map<CategoryType, Map<string, ListFamily>>()
+
+    for (const group of filteredBenchmarkGroups) {
+      const evalId = group.variants.find((v) => v.evaluation.eval_summary_id)
+        ?.evaluation.eval_summary_id
+      const evalEntry =
+        evalId && comparisonIndex ? comparisonIndex.evals[evalId] : null
+      const famKey = evalEntry?.benchmark_family_key ?? group.key
+      const famName =
+        evalEntry?.benchmark_family_name ||
+        evalEntry?.display_name ||
+        group.title
+
+      const catBucket = byCategory.get(group.category) ?? new Map<string, ListFamily>()
+      const family = catBucket.get(famKey) ?? {
+        familyKey: famKey,
+        familyName: famName,
+        kind: "single-eval" as const,
+        groups: [] as BenchmarkGroup[],
+        totalRows: 0,
+      }
+      family.groups.push(group)
+      family.totalRows += group.variants.length
+      catBucket.set(famKey, family)
+      byCategory.set(group.category, catBucket)
+    }
+
+    return Array.from(byCategory.entries())
+      .sort((a, b) => (order.get(a[0]) ?? 999) - (order.get(b[0]) ?? 999))
+      .map(([category, fams]) => ({
+        category,
+        families: Array.from(fams.values()).map((f) => ({
+          ...f,
+          kind: f.groups.length > 1 ? "multi-eval" as const : "single-eval" as const,
+        })),
+      }))
+  }, [filteredBenchmarkGroups, comparisonIndex, summary.categories_covered])
 
   const suiteGroups = useMemo(() => {
     const groups = groupBySuite(filteredBenchmarkGroups, modelIds, peerRanks)
@@ -2828,35 +2928,33 @@ export function BenchmarkDetail({
     return (
       <div
         key={plotboxKey}
-        className="flex h-full flex-col rounded-2xl border border-border/70 bg-card p-4 shadow-sm"
+        className="flex h-full flex-col border-r border-b border-[color:var(--border-soft)] bg-[color:var(--bg)] p-5 transition-colors hover:bg-[color:var(--bg-warm)]"
       >
         {/* Header */}
         <div className="flex items-start justify-between gap-2">
           <div className="min-w-0 flex-1">
-            <div className="flex flex-wrap items-center gap-1.5">
-              <span
-                className={`inline-flex items-center rounded-full border px-2 py-0.5 text-[10px] font-semibold ${getCategoryTone(unit.category)}`}
-              >
+            <div className="flex flex-wrap items-center gap-2">
+              <span className="font-mono text-[9px] uppercase tracking-[0.18em] text-[color:var(--fg-subtle)] font-semibold">
                 {unit.category}
               </span>
               {showChildKindBadge && (
-                <span className="inline-flex items-center rounded-full border border-border/60 bg-muted/30 px-2 py-0.5 text-[10px] font-medium text-muted-foreground">
-                  {childKindCount} {childKindPlural}
+                <span className="font-mono text-[9px] uppercase tracking-[0.15em] text-[color:var(--fg-subtle)]">
+                  · {childKindCount} {childKindPlural}
                 </span>
               )}
               {rank && (
-                <span className="inline-flex items-center rounded-full border border-border/60 bg-background px-2 py-0.5 text-[10px] font-semibold tabular-nums text-muted-foreground">
-                  #{rank.position}
-                  {rank.total ? `/${rank.total}` : ""}
+                <span className="font-mono text-[10px] tabular-nums text-[color:var(--fg)] font-semibold">
+                  #{rank.position}{rank.total ? `/${rank.total}` : ""}
                 </span>
               )}
               {(() => {
                 const relationship =
                   activeTab.variant.evaluation.source_metadata.evaluator_relationship
                 if (!relationship) return null
+                const isFirst = relationship === "first_party"
                 return (
                   <span
-                    className={`inline-flex items-center rounded-full border px-2 py-0.5 text-[10px] font-semibold ${getRelationshipBadgeTone(relationship)}`}
+                    className={`font-mono text-[9px] uppercase tracking-[0.15em] ${isFirst ? "text-[color:var(--fg-muted)]" : "text-[color:var(--accent)]"}`}
                     title={
                       relationship === "first_party"
                         ? "Reported by the model's developer (first-party)."
@@ -2867,7 +2965,7 @@ export function BenchmarkDetail({
                             : undefined
                     }
                   >
-                    {getRelationshipShortLabel(relationship)}
+                    · {getRelationshipShortLabel(relationship)}
                   </span>
                 )
               })()}
@@ -2875,12 +2973,12 @@ export function BenchmarkDetail({
             <button
               type="button"
               onClick={() => jumpToDeepDive(activeView.group.key)}
-              className="mt-2 block w-full truncate text-left text-sm font-semibold underline decoration-dotted underline-offset-4 hover:text-primary"
+              className="mt-2 block w-full truncate text-left text-[15px] font-semibold tracking-[-0.01em] text-[color:var(--fg)] hover:text-[color:var(--accent)] transition-colors"
               title={unit.familyName}
             >
               {unit.familyName}
             </button>
-            <div className="mt-0.5 flex items-center gap-1 text-[10px] uppercase tracking-[0.14em] text-muted-foreground">
+            <div className="mt-1 flex items-center gap-1 font-mono text-[9px] uppercase tracking-[0.15em] text-[color:var(--fg-subtle)]">
               <span>{activeHist.lowerIsBetter ? "Lower is better" : "Higher is better"}</span>
               {(averaged || rescaled) && (
                 <DropdownMenu>
@@ -2968,31 +3066,25 @@ export function BenchmarkDetail({
 
         {/* View selector */}
         {hasViewSelector && (
-          <div className="mt-3 rounded-xl border border-border/60 bg-muted/20 p-2">
+          <div className="mt-3 border-t border-[color:var(--border-soft)] pt-2">
             <div className="flex items-center justify-between gap-3">
-              <div className="min-w-0">
-                <div className="text-[10px] font-semibold uppercase tracking-[0.14em] text-muted-foreground">
-                  View
-                </div>
-              </div>
-              <span className="shrink-0 rounded-full border border-border/60 bg-background px-2 py-0.5 text-[10px] font-medium tabular-nums text-muted-foreground">
+              <span className="kicker">View</span>
+              <span className="font-mono text-[9px] tabular-nums text-[color:var(--fg-subtle)]">
                 {activeViewIndex + 1}/{unit.views.length}
               </span>
             </div>
-
-            <div className="mt-1.5 flex items-center gap-2">
-              <Select value={activeView.viewKey} onValueChange={setPlotboxActiveView}>
-                <SelectTrigger className="h-8 min-w-0 flex-1 bg-background/90 text-xs font-normal text-foreground">
-                  <SelectValue placeholder="Choose a view" />
-                </SelectTrigger>
-                <SelectContent>
-                  {unit.views.map((view) => (
-                    <SelectItem key={view.viewKey} value={view.viewKey} className="text-xs">
-                      {normalizeDisplayLabel(view.label.replace(/^artificial_analysis\.?/i, ""))}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+            <div className="mt-1.5">
+              <select
+                className="ec-select w-full"
+                value={activeView.viewKey}
+                onChange={(e) => setPlotboxActiveView(e.target.value)}
+              >
+                {unit.views.map((view) => (
+                  <option key={view.viewKey} value={view.viewKey}>
+                    {normalizeDisplayLabel(view.label.replace(/^artificial_analysis\.?/i, ""))}
+                  </option>
+                ))}
+              </select>
             </div>
           </div>
         )}
@@ -3191,33 +3283,33 @@ export function BenchmarkDetail({
         )}
 
         {hasMetricTabs && (
-          <Tabs value={activeTab.tabKey} onValueChange={setPlotboxActiveMetric} className="mt-3">
-            <TabsList className="flex w-full flex-wrap justify-center gap-1 rounded-xl border border-border/50 bg-muted/15 p-1">
-              {activeView.tabs.map((tab) => (
-                <TabsTrigger
-                  key={tab.tabKey}
-                  value={tab.tabKey}
-                  className="min-w-0 flex-none rounded-lg px-2.5 py-1 text-[10px] font-medium text-muted-foreground data-[state=active]:text-foreground"
-                >
-                  <span className="truncate">{normalizeDisplayLabel(tab.label.replace(/^artificial_analysis\.?/i, ""))}</span>
-                </TabsTrigger>
-              ))}
-            </TabsList>
-          </Tabs>
+          <div className="mt-3 flex flex-wrap gap-1">
+            {activeView.tabs.map((tab) => (
+              <button
+                key={tab.tabKey}
+                type="button"
+                onClick={() => setPlotboxActiveMetric(tab.tabKey)}
+                className={`ec-pill ${tab.tabKey === activeTab.tabKey ? "on" : ""}`}
+                style={{ fontSize: 9, padding: "4px 9px", letterSpacing: "0.08em" }}
+              >
+                {normalizeDisplayLabel(tab.label.replace(/^artificial_analysis\.?/i, ""))}
+              </button>
+            ))}
+          </div>
         )}
 
-        <div className="mt-3 border-t border-border/40 pt-3">
+        <div className="mt-3 border-t border-[color:var(--border-soft)] pt-3">
           <button
             type="button"
             onClick={() => jumpToDeepDive(activeView.group.key)}
-            className="text-[11px] font-medium text-primary underline decoration-dotted underline-offset-4 hover:text-primary/80"
+            className="font-mono text-[10px] uppercase tracking-[0.12em] text-[color:var(--fg-muted)] hover:text-[color:var(--accent)] transition-colors"
           >
             View deep dive →
           </button>
         </div>
 
         {!hist && (
-          <div className="mt-2 text-[10px] text-muted-foreground/70">
+          <div className="mt-2 font-mono text-[9px] uppercase tracking-[0.15em] text-[color:var(--fg-subtle)]">
             {comparisonIndex ? "No peer scores for this metric." : "Loading comparison data…"}
           </div>
         )}
@@ -3225,223 +3317,407 @@ export function BenchmarkDetail({
     )
   }
 
+  const documentedPct = Math.round(
+    (summary.total_evaluations > 0 && reproducibilityResultsTotal > 0
+      ? Math.max(0, reproducibilityResultsTotal - reproducibilityGapCount) / reproducibilityResultsTotal
+      : 1) * 100
+  )
+
   return (
-    <div className="space-y-4">
-      <Card className="overflow-hidden">
-        <CardContent className="space-y-5 p-5 sm:p-6">
-          {/* Eyebrow: kind + model attributes + optional scale warning */}
-          <div className="flex flex-wrap items-center gap-x-3 gap-y-1.5 text-[11px] font-semibold uppercase tracking-[0.22em] text-muted-foreground">
-            <span>Model Metadata</span>
-            <span className="text-border">·</span>
-            <span className="text-foreground/70">
-              {summary.model_info.architecture || summary.model_info.inference_engine || "Model"}
-            </span>
-            {formatParamsBillions(summary.model_info.additional_details?.params_billions) && (
-              <>
-                <span className="text-border">·</span>
-                <span className="text-foreground/70">
-                  {formatParamsBillions(summary.model_info.additional_details?.params_billions)}
-                </span>
-              </>
-            )}
-            {benchmarkGroups.some((g) => (g as { __scaleWarning?: boolean }).__scaleWarning) && (
-              <span
-                className="ml-1 inline-flex items-center rounded-full border border-amber-300 bg-amber-50 px-2 py-0.5 text-[10px] tracking-[0.12em] text-amber-900 dark:border-amber-900/60 dark:bg-amber-950/40 dark:text-amber-100"
-                title="Some scores were auto-renormalized due to mixed scales (e.g., 0-1 vs 0-100)."
-              >
-                Mixed scale · renormalized
-              </span>
-            )}
-            {reproducibilityGapCount > 0 && (
-              <span
-                className="ml-1 inline-flex items-center rounded-full border border-amber-300 bg-amber-50 px-2 py-0.5 text-[10px] tracking-[0.12em] text-amber-900 dark:border-amber-900/60 dark:bg-amber-950/40 dark:text-amber-100"
-                title={`${reproducibilityGapCount} of ${reproducibilityResultsTotal} reported scores are not fully documented.`}
-              >
-                Setup gaps
-              </span>
-            )}
+    <div className="space-y-12">
+      {/* ============================================================
+         Header — paper-style document hero
+         ============================================================ */}
+      <header className="border-b border-[color:var(--fg)] pb-6">
+        <div className="kicker">Eval Card · Registry Entry</div>
+        <div className="mt-3 flex flex-col gap-6 lg:flex-row lg:items-start lg:justify-between">
+          <div className="min-w-0">
+            <h1 className="ec-page-h1">{getModelDisplayName(summary.model_info.name)}</h1>
+            <div className="mt-2 flex flex-wrap items-center gap-x-3 gap-y-1 text-[13px] text-[color:var(--fg-muted)]">
+              <span>{getOrganizationDisplayName(summary.model_info.developer)}</span>
+              {summary.model_info.release_date && (
+                <>
+                  <span className="text-[color:var(--fg-subtle)]">·</span>
+                  <span>Released {formatDate(summary.model_info.release_date).split(",")[0]}</span>
+                </>
+              )}
+              {summary.model_info.additional_details?.deployment_context && (
+                <>
+                  <span className="text-[color:var(--fg-subtle)]">·</span>
+                  <span>{summary.model_info.additional_details.deployment_context}</span>
+                </>
+              )}
+              {formatParamsBillions(summary.model_info.additional_details?.params_billions) && (
+                <>
+                  <span className="text-[color:var(--fg-subtle)]">·</span>
+                  <span>{formatParamsBillions(summary.model_info.additional_details?.params_billions)}</span>
+                </>
+              )}
+            </div>
           </div>
 
-          {/* Hero: title + developer + stat strip */}
-          <div className="flex flex-col gap-5 xl:flex-row xl:items-start xl:justify-between">
-            <div className="min-w-0 space-y-1.5">
-              <h2 className="text-3xl font-semibold tracking-tight sm:text-[2.1rem] sm:leading-[1.05]">
-                {getModelDisplayName(summary.model_info.name)}
-              </h2>
-              <div className="text-sm text-muted-foreground">
-                {getOrganizationDisplayName(summary.model_info.developer)}
-                {policySummary.modelScaleDescription ? ` · ${policySummary.modelScaleDescription}` : ""}
+          <div className="lg:w-[280px]">
+            <div className="kicker mb-2">Registry ID</div>
+            <div className="font-mono text-[12px] text-[color:var(--fg)] break-all">
+              ec/models/{summary.model_info.id}
+            </div>
+            <div className="mt-4 flex items-center gap-2">
+              <span className="kicker shrink-0">Documented</span>
+              <div className="relative h-[3px] flex-1 bg-[color:var(--bg-surface)]">
+                <div
+                  className="absolute inset-y-0 left-0 bg-[color:var(--accent)]"
+                  style={{ width: `${documentedPct}%` }}
+                />
               </div>
+              <span className="font-mono text-[11px] tabular-nums text-[color:var(--fg)]">
+                {documentedPct}%
+              </span>
             </div>
-
-            <div className="grid w-full gap-0 overflow-hidden rounded-2xl border border-border/70 bg-background/70 sm:grid-cols-4 xl:w-[540px]">
-              <HeroStat label="Benchmarks" value={benchmarkGroups.length} tone="sky" />
-              <HeroStat label="Results" value={summary.total_evaluations} tone="slate" />
-              <HeroStat label="Reporting orgs" value={reportingStats.organizationCount} tone="emerald" />
-              <HeroStat label="Source types" value={reportingStats.sourceTypeCount} tone="amber" />
+            <div className="mt-1 text-right font-mono text-[10px] uppercase tracking-[0.15em] text-[color:var(--fg-subtle)]">
+              {Math.max(0, reproducibilityResultsTotal - reproducibilityGapCount)} / {reproducibilityResultsTotal} reported
             </div>
           </div>
+        </div>
+      </header>
 
-          {/* Inline metadata strip — only renders fields we actually have */}
-          <dl className="flex flex-wrap items-baseline gap-x-6 gap-y-2 border-y border-border/60 py-3 text-sm">
-            <MetaFact label="System ID" mono>
-              {summary.model_info.id}
-            </MetaFact>
-            <MetaFact label="Updated">{formatDate(summary.last_updated).split(",")[0]}</MetaFact>
-            {summary.model_info.model_version && (
-              <MetaFact label="Version">{summary.model_info.model_version}</MetaFact>
+      {/* ============================================================
+         Lede — paper-style abstract
+         ============================================================ */}
+      <section>
+        {isResearchView ? (
+          <div className="space-y-3 max-w-[64rem]">
+            <p className="text-[16px] leading-[1.7] text-[color:var(--fg)]">
+              <strong>{getModelDisplayName(summary.model_info.name)}</strong> reports{" "}
+              <strong>{summary.total_evaluations}</strong> result{summary.total_evaluations === 1 ? "" : "s"} across{" "}
+              <strong>{benchmarkGroups.length}</strong> benchmark{benchmarkGroups.length === 1 ? "" : "s"}, sourced from{" "}
+              <strong>{reportingStats.organizationCount}</strong> reporting organization{reportingStats.organizationCount === 1 ? "" : "s"} ({reportingStats.sourceTypeCount} source type{reportingStats.sourceTypeCount === 1 ? "" : "s"}).{" "}
+              {reportingStats.missingGenerationConfigs > 0
+                ? `${reportingStats.missingGenerationConfigs} entries are missing generation config, limiting cross-slice comparability.`
+                : "Generation configuration is present across the result set."}
+            </p>
+            {(setupDrivenBenchmarkCount > 0 || subtaskDrivenBenchmarkCount > 0) && (
+              <p className="text-[13px] leading-[1.7] text-[color:var(--fg-muted)]">
+                Decomposition: <span className="text-[color:var(--fg)]">{setupDrivenBenchmarkCount}</span> setup-aware ·{" "}
+                <span className="text-[color:var(--fg)]">{subtaskDrivenBenchmarkCount}</span> subtask-aware.
+                {reportingStats.libraryList.length > 0 && (
+                  <>
+                    {" "}Eval libraries: <span className="text-[color:var(--fg)]">{reportingStats.libraryList.join(", ")}</span>.
+                  </>
+                )}
+              </p>
             )}
-            {summary.model_info.release_date && (
-              <MetaFact label="Release">{formatDate(summary.model_info.release_date).split(",")[0]}</MetaFact>
+          </div>
+        ) : (
+          <div className="space-y-3 max-w-[64rem]">
+            <p className="text-[16px] leading-[1.7] text-[color:var(--fg)]">
+              {policySummary.testedByCopy}
+            </p>
+            {policySummary.reproducibilityCopy && (
+              <div className="border border-[color:var(--border-soft)] bg-[color:var(--bg-warm)] px-4 py-3">
+                <span className="kicker kicker-accent mr-2">Reproducibility gap</span>
+                <span className="text-[13px] leading-[1.6] text-[color:var(--fg)]">
+                  {policySummary.reproducibilityCopy}
+                </span>
+              </div>
             )}
-            {summary.model_info.additional_details?.deployment_context && (
-              <MetaFact label="Deployment">
-                {summary.model_info.additional_details.deployment_context}
-              </MetaFact>
-            )}
-            {(summary.model_info.modalities?.input?.length || summary.model_info.modalities?.output?.length) && (
-              <MetaFact label="Modalities">
-                {(summary.model_info.modalities?.input?.join(", ") || "Text")}/{(summary.model_info.modalities?.output?.join(", ") || "Text")}
-              </MetaFact>
-            )}
-            {summary.model_info.model_url && (
-              <MetaFact label="Reference">
+            <p className="text-[13px] leading-[1.7] text-[color:var(--fg-muted)]">
+              {policySummary.comparabilityCopy}
+              {policySummary.sizeCaveat ? ` ${policySummary.sizeCaveat}` : ""}
+            </p>
+          </div>
+        )}
+      </section>
+
+      {/* ============================================================
+         §1 Identification — hairline data list
+         ============================================================ */}
+      <section>
+        <div className="section-head">
+          <h2>
+            <span className="font-mono text-[12px] tracking-[0.1em] text-[color:var(--accent)] mr-3">§1</span>
+            Identification
+          </h2>
+          <span className="micro-meta-link font-mono text-[11px] tracking-[0.1em]">Model record</span>
+        </div>
+        <dl className="ec-datalist max-w-[64rem]">
+          <dt>Model name</dt>
+          <dd>{getModelDisplayName(summary.model_info.name)}</dd>
+
+          <dt>Developer</dt>
+          <dd>{getOrganizationDisplayName(summary.model_info.developer)}</dd>
+
+          {summary.model_info.model_version && (
+            <>
+              <dt>Version</dt>
+              <dd>{summary.model_info.model_version}</dd>
+            </>
+          )}
+
+          {summary.model_info.release_date && (
+            <>
+              <dt>Released</dt>
+              <dd>{formatDate(summary.model_info.release_date).split(",")[0]}</dd>
+            </>
+          )}
+
+          {formatParamsBillions(summary.model_info.additional_details?.params_billions) && (
+            <>
+              <dt>Parameters</dt>
+              <dd>{formatParamsBillions(summary.model_info.additional_details?.params_billions)}</dd>
+            </>
+          )}
+
+          {(summary.model_info.architecture || summary.model_info.inference_engine) && (
+            <>
+              <dt>Architecture</dt>
+              <dd>{summary.model_info.architecture || summary.model_info.inference_engine}</dd>
+            </>
+          )}
+
+          {(summary.model_info.modalities?.input?.length || summary.model_info.modalities?.output?.length) && (
+            <>
+              <dt>Modalities</dt>
+              <dd>
+                {(summary.model_info.modalities?.input?.join(", ") || "Text")} → {(summary.model_info.modalities?.output?.join(", ") || "Text")}
+              </dd>
+            </>
+          )}
+
+          {summary.model_info.additional_details?.deployment_context && (
+            <>
+              <dt>Access</dt>
+              <dd>{summary.model_info.additional_details.deployment_context}</dd>
+            </>
+          )}
+
+          <dt>System ID</dt>
+          <dd className="font-mono text-[13px]">{summary.model_info.id}</dd>
+
+          {summary.model_info.model_url && (
+            <>
+              <dt>Reference</dt>
+              <dd>
                 <a
                   href={summary.model_info.model_url}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="inline-flex items-center gap-1 font-medium text-primary underline decoration-dotted underline-offset-4 hover:text-primary/80"
+                  className="inline-flex items-center gap-1 text-[color:var(--accent)] hover:text-[color:var(--accent-hover)]"
                 >
                   {summary.model_info.model_url.replace(/^https?:\/\//, "").replace(/\/$/, "")}
                   <ExternalLink className="h-3 w-3" />
                 </a>
-              </MetaFact>
+              </dd>
+            </>
+          )}
+
+          <dt>Updated</dt>
+          <dd>{formatDate(summary.last_updated).split(",")[0]}</dd>
+        </dl>
+      </section>
+
+      {/* ============================================================
+         §2 Coverage of registry benchmarks
+         ============================================================ */}
+      <section>
+        <div className="section-head">
+          <h2>
+            <span className="font-mono text-[12px] tracking-[0.1em] text-[color:var(--accent)] mr-3">§2</span>
+            Coverage of registry benchmarks
+          </h2>
+          <span className="font-mono text-[10px] uppercase tracking-[0.15em] text-[color:var(--fg-subtle)]">
+            {filteredBenchmarkGroups.length} shown · {benchmarkGroups.length} reported
+          </span>
+        </div>
+
+        <p className="text-[14px] leading-[1.7] text-[color:var(--fg-muted)] max-w-[64rem] mb-6">
+          {isResearchView
+            ? "Benchmark-first view of this model's reported results, grouped by category. Setup spread and subtask-vs-setup differences surface up-front."
+            : "The public evidence behind this model, grouped by category. The strongest and most variable signals are listed first."}
+          {policyHighlights.length > 0 && !isResearchView && (
+            <>
+              {" "}
+              <span className="text-[color:var(--fg)]">{policyHighlights.length} headline finding{policyHighlights.length === 1 ? "" : "s"}.</span>
+            </>
+          )}
+        </p>
+
+        {/* Strong / Weak / Spread — hairline rows */}
+        {(strongRankedBenchmarks.length > 0 || weakRankedBenchmarks.length > 0 || repeatedBenchmarkCount > 0) && (
+          <dl className="ec-datalist max-w-[64rem] mb-8">
+            {strongRankedBenchmarks.length > 0 && (
+              <>
+                <dt>Strong scores</dt>
+                <dd>
+                  <div className="flex flex-wrap gap-1.5">
+                    {strongRankedBenchmarks.map((group) => {
+                      const rank = getGroupPeerRank(group, modelIds, peerRanks)
+                      return (
+                        <button
+                          key={`strong-${group.key}`}
+                          type="button"
+                          onClick={() => jumpToDeepDive(group.key)}
+                          className="ec-tag outline hover:border-[color:var(--accent)] hover:text-[color:var(--accent)] transition-colors"
+                          title={group.title}
+                        >
+                          <span className="truncate max-w-[14rem] normal-case tracking-normal text-[12px] font-medium text-[color:var(--fg)]">
+                            {group.title}
+                          </span>
+                          {rank && (
+                            <span className="font-mono tabular-nums text-[color:var(--fg-muted)]">
+                              #{rank.position}{rank.total ? `/${rank.total}` : ""}
+                            </span>
+                          )}
+                        </button>
+                      )
+                    })}
+                  </div>
+                </dd>
+              </>
+            )}
+            {weakRankedBenchmarks.length > 0 && (
+              <>
+                <dt>Weak scores</dt>
+                <dd>
+                  <div className="flex flex-wrap gap-1.5">
+                    {weakRankedBenchmarks.map((group) => {
+                      const rank = getGroupPeerRank(group, modelIds, peerRanks)
+                      return (
+                        <button
+                          key={`weak-${group.key}`}
+                          type="button"
+                          onClick={() => jumpToDeepDive(group.key)}
+                          className="ec-tag outline hover:border-[color:var(--accent)] hover:text-[color:var(--accent)] transition-colors"
+                          title={group.title}
+                        >
+                          <span className="truncate max-w-[14rem] normal-case tracking-normal text-[12px] font-medium text-[color:var(--fg)]">
+                            {group.title}
+                          </span>
+                          {rank && (
+                            <span className="font-mono tabular-nums text-[color:var(--fg-muted)]">
+                              #{rank.position}{rank.total ? `/${rank.total}` : ""}
+                            </span>
+                          )}
+                        </button>
+                      )
+                    })}
+                  </div>
+                </dd>
+              </>
+            )}
+            {repeatedBenchmarkCount > 0 && (
+              <>
+                <dt>Subtask spread</dt>
+                <dd>
+                  {repeatedBenchmarkCount} benchmark{repeatedBenchmarkCount === 1 ? "" : "s"} include multiple subtasks or setups.
+                </dd>
+              </>
+            )}
+            {benchmarkGroups.some((g) => (g as { __scaleWarning?: boolean }).__scaleWarning) && (
+              <>
+                <dt>Scale notes</dt>
+                <dd className="text-[color:var(--fg-muted)]">
+                  Some scores were auto-renormalized due to mixed scales (e.g., 0–1 vs 0–100).
+                </dd>
+              </>
             )}
           </dl>
+        )}
+      </section>
 
-          {/* Audience-specific note: content only, no label. */}
-          {isResearchView ? (
-            <div className="space-y-2 text-sm leading-6 text-muted-foreground">
-              <p>
-                {reportingStats.missingGenerationConfigs > 0
-                  ? `${reportingStats.missingGenerationConfigs} result entries are missing generation configuration, so some score differences may reflect setup choices rather than model capability alone.`
-                  : "Generation configuration is present across the current result set, which makes cross-slice comparison more trustworthy."}
-              </p>
-              <div className="flex flex-wrap gap-x-4 gap-y-1 text-xs">
-                {reportingStats.libraryList.length > 0 && (
-                  <span>
-                    <span className="text-muted-foreground/70">Eval libraries · </span>
-                    <span className="font-medium text-foreground">{reportingStats.libraryList.join(", ")}</span>
-                  </span>
-                )}
-                <span>
-                  <span className="text-muted-foreground/70">Evidence · </span>
-                  <span className="font-medium text-foreground">
-                    {reportingStats.organizationCount} orgs / {reportingStats.sourceTypeCount} types
-                  </span>
-                </span>
-                {(setupDrivenBenchmarkCount > 0 || subtaskDrivenBenchmarkCount > 0) && (
-                  <span>
-                    <span className="text-muted-foreground/70">Decomposition · </span>
-                    <span className="font-medium text-foreground">
-                      {setupDrivenBenchmarkCount} setup-aware · {subtaskDrivenBenchmarkCount} subtask-aware
-                    </span>
-                  </span>
-                )}
-              </div>
-            </div>
-          ) : (
-            <div className="space-y-2 text-sm leading-6 text-muted-foreground">
-              <p className="text-foreground/85">{policySummary.testedByCopy}</p>
-              {policySummary.reproducibilityCopy && (
-                <p className="rounded-lg border border-amber-200/80 bg-amber-50/70 px-3 py-2 text-sm text-amber-900 dark:border-amber-900/40 dark:bg-amber-950/30 dark:text-amber-100">
-                  <span className="font-semibold">Reproducibility gap.</span> {policySummary.reproducibilityCopy}
-                </p>
-              )}
-              <p>{policySummary.comparabilityCopy}</p>
-              {policySummary.sizeCaveat && <p>{policySummary.sizeCaveat}</p>}
-              {policyHighlights.length > 0 && (
-                <div className="pt-1">
-                  <div className="mb-1.5 text-[11px] font-semibold uppercase tracking-[0.16em] text-muted-foreground">
-                    What was tested
-                  </div>
-                  <div className="flex flex-col gap-1.5">
-                    {policyHighlights.slice(0, 3).map((item) => (
-                      <div key={item.key} className="flex items-start justify-between gap-3 rounded-lg bg-muted/30 px-3 py-1.5">
-                        <div className="min-w-0">
-                          <div className="text-sm font-medium text-foreground">{item.label}</div>
-                          <div className="text-xs text-muted-foreground">{item.description}</div>
-                        </div>
-                        <Badge className={item.level.tone}>{item.scoreText}</Badge>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              )}
-            </div>
-          )}
-        </CardContent>
-      </Card>
-
-      <section className="space-y-4">
-        <div className="flex flex-col gap-3 lg:flex-row lg:items-end lg:justify-between">
-          <div className="space-y-1">
-            <h3 className="text-xl font-semibold">
-              {isResearchView ? "Benchmark Explorer" : "Reported Benchmark Signals"}
-            </h3>
-            <p className="max-w-3xl text-[13px] leading-5 text-muted-foreground">
-              {isResearchView
-                ? "A benchmark-first view of this model's reported results, with setup spread and subtask-vs-setup differences surfaced up front."
-                : "A benchmark-first view of the public evidence behind this model, with the strongest and most variable signals grouped in one place."}
-            </p>
+      {/* ============================================================
+         §3 Who reports what — evaluator-mix donut + per-category bars
+         ============================================================ */}
+      {evaluatorMix.grand > 0 && (
+        <section>
+          <div className="section-head">
+            <h2>
+              <span className="font-mono text-[12px] tracking-[0.1em] text-[color:var(--accent)] mr-3">§3</span>
+              Who reports what
+            </h2>
+            <span className="font-mono text-[10px] uppercase tracking-[0.15em] text-[color:var(--fg-subtle)]">
+              First-party · third-party · per category
+            </span>
           </div>
+          <EvaluatorMix mix={evaluatorMix} />
+        </section>
+      )}
 
-          <div className="flex flex-col gap-2.5 sm:flex-row sm:flex-wrap sm:justify-end">
-            <div className="relative w-full sm:w-[260px]">
-              <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-              <Input
-                value={benchmarkSearch}
-                onChange={(event) => setBenchmarkSearch(event.target.value)}
-                placeholder="Search benchmarks or setups"
-                className="pl-9"
-              />
+      {/* ============================================================
+         §4 Reported metrics — filter bar + view toggle + grid/list
+         ============================================================ */}
+      <section>
+        <div className="section-head">
+          <h2>
+            <span className="font-mono text-[12px] tracking-[0.1em] text-[color:var(--accent)] mr-3">§4</span>
+            Reported metrics
+          </h2>
+          <div className="flex items-center gap-3">
+            <span className="font-mono text-[10px] uppercase tracking-[0.15em] text-[color:var(--fg-subtle)]">
+              {filteredBenchmarkGroups.length} shown
+            </span>
+            <div className="ec-mode-toggle">
+              <button
+                type="button"
+                className={benchmarkViewMode === "grid" ? "on" : ""}
+                onClick={() => setBenchmarkViewMode("grid")}
+                aria-label="Grid view"
+                title="Grid (plots)"
+              >
+                <LayoutGrid className="h-3 w-3" />
+              </button>
+              <button
+                type="button"
+                className={benchmarkViewMode === "list" ? "on" : ""}
+                onClick={() => setBenchmarkViewMode("list")}
+                aria-label="List view"
+                title="List (table)"
+              >
+                <List className="h-3 w-3" />
+              </button>
             </div>
-
-            <Select value={benchmarkSort} onValueChange={(value) => setBenchmarkSort(value as typeof benchmarkSort)}>
-              <SelectTrigger className="w-full sm:w-[200px]">
-                <SelectValue placeholder="Sort benchmarks" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="relevance">Most relevant</SelectItem>
-                <SelectItem value="rank">Best rank first</SelectItem>
-                <SelectItem value="score">Highest score first</SelectItem>
-                <SelectItem value="name">Name (A-Z)</SelectItem>
-                <SelectItem value="variants">Most subtasks</SelectItem>
-                <SelectItem value="spread">Largest setup swing</SelectItem>
-              </SelectContent>
-            </Select>
           </div>
         </div>
 
+        {/* Filter bar */}
+        <div className="mb-5 flex flex-wrap items-center gap-3 border-b border-[color:var(--border-soft)] pb-5">
+          <div className="relative w-full sm:max-w-sm">
+            <Search className="pointer-events-none absolute left-3 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-[color:var(--fg-subtle)]" />
+            <input
+              className="ec-input pl-9"
+              value={benchmarkSearch}
+              onChange={(event) => setBenchmarkSearch(event.target.value)}
+              placeholder="Search benchmarks or setups…"
+            />
+          </div>
+
+          <div className="grow" />
+
+          <select
+            className="ec-select"
+            value={benchmarkSort}
+            onChange={(event) => setBenchmarkSort(event.target.value as typeof benchmarkSort)}
+          >
+            <option value="relevance">Sort · Most relevant</option>
+            <option value="rank">Sort · Best rank</option>
+            <option value="score">Sort · Highest score</option>
+            <option value="name">Sort · Name (A–Z)</option>
+            <option value="variants">Sort · Most subtasks</option>
+            <option value="spread">Sort · Largest spread</option>
+          </select>
+        </div>
+
         {availableCategories.length > 0 && (
-          <div className="flex flex-wrap items-center gap-2">
-            <span className="text-[11px] font-semibold uppercase tracking-[0.18em] text-muted-foreground">
-              Category
-            </span>
+          <div className="mb-5 flex flex-wrap items-center gap-2">
+            <span className="kicker mr-2">Category</span>
             <button
               type="button"
               onClick={() => setSelectedCategories([])}
-              className={`inline-flex items-center rounded-full border px-3 py-1 text-sm font-medium transition-colors ${
-                selectedCategories.length === 0
-                  ? "border-foreground bg-foreground text-background"
-                  : "border-border/70 bg-background text-muted-foreground hover:text-foreground"
-              }`}
+              className={`ec-pill ${selectedCategories.length === 0 ? "on" : ""}`}
             >
               All
             </button>
             {availableCategories.map((category) => {
               const isSelected = selectedCategories.includes(category)
-
               return (
                 <button
                   key={category}
@@ -3453,11 +3729,7 @@ export function BenchmarkDetail({
                         : [...current, category]
                     )
                   }
-                  className={`inline-flex items-center rounded-full border px-3 py-1 text-sm font-medium transition-colors ${
-                    isSelected
-                      ? getCategoryTone(category)
-                      : "border-border/70 bg-background text-muted-foreground hover:text-foreground"
-                  }`}
+                  className={`ec-pill ${isSelected ? "on" : ""}`}
                 >
                   {category}
                 </button>
@@ -3466,97 +3738,12 @@ export function BenchmarkDetail({
           </div>
         )}
 
-        <div className={`grid gap-3 ${isResearchView ? "md:grid-cols-3" : "md:grid-cols-2 xl:grid-cols-3"}`}>
-          <div className="rounded-2xl border bg-emerald-50/70 p-3.5 dark:bg-emerald-950/20">
-            <div className="text-[10px] font-semibold uppercase tracking-[0.16em] text-emerald-700/90 dark:text-emerald-300">
-              Strong scores
-            </div>
-            <div className="mt-2 flex flex-wrap gap-1.5">
-              {strongRankedBenchmarks.length > 0 ? (
-                strongRankedBenchmarks.map((group) => {
-                  const rank = getGroupPeerRank(group, modelIds, peerRanks)
-                  return (
-                    <div key={`strong-${group.key}`} className="inline-flex flex-col items-start">
-                      {(group as any).__scaleWarning && (
-                        <span className="mb-1 inline-flex items-center rounded border border-amber-300 bg-amber-50 px-2 py-0.5 text-[10px] font-semibold text-amber-900 dark:border-amber-900/60 dark:bg-amber-950/40 dark:text-amber-100" title="Some scores were auto-renormalized due to mixed scales (e.g., 0-1 vs 0-100).">
-                          Mixed scale detected: scores renormalized
-                        </span>
-                      )}
-                      <button
-                        type="button"
-                        onClick={() => jumpToDeepDive(group.key)}
-                        className="inline-flex items-center gap-1.5 rounded-full border border-emerald-200/80 bg-background px-2.5 py-1 text-xs font-medium text-emerald-900 hover:border-emerald-300 dark:border-emerald-900/60 dark:text-emerald-100"
-                      >
-                        <span className="truncate max-w-[14rem]">{group.title}</span>
-                        {rank && (
-                          <span className="tabular-nums text-emerald-700/80 dark:text-emerald-300/80">
-                            #{rank.position}{rank.total ? `/${rank.total}` : ""}
-                          </span>
-                        )}
-                      </button>
-                    </div>
-                  )
-                })
-              ) : (
-                <div className="text-xs text-muted-foreground">No ranked benchmarks available for this model yet.</div>
-              )}
-            </div>
+        {filteredBenchmarkGroups.length === 0 || (benchmarkViewMode === "grid" && plotboxUnits.length === 0) ? (
+          <div className="border border-dashed border-[color:var(--border-soft)] bg-[color:var(--bg-warm)] py-12 px-6 text-center font-mono text-[11px] uppercase tracking-[0.2em] text-[color:var(--fg-subtle)]">
+            No benchmarks match the current search or category filters
           </div>
-
-          <div className="rounded-2xl border bg-rose-50/70 p-3.5 dark:bg-rose-950/20">
-            <div className="text-[10px] font-semibold uppercase tracking-[0.16em] text-rose-700/90 dark:text-rose-300">
-              Weak scores
-            </div>
-            <div className="mt-2 flex flex-wrap gap-1.5">
-              {weakRankedBenchmarks.length > 0 ? (
-                weakRankedBenchmarks.map((group) => {
-                  const rank = getGroupPeerRank(group, modelIds, peerRanks)
-                  return (
-                    <button
-                      key={`weak-${group.key}`}
-                      type="button"
-                      onClick={() => jumpToDeepDive(group.key)}
-                      className="inline-flex items-center gap-1.5 rounded-full border border-rose-200/80 bg-background px-2.5 py-1 text-xs font-medium text-rose-900 hover:border-rose-300 dark:border-rose-900/60 dark:text-rose-100"
-                    >
-                      <span className="truncate max-w-[14rem]">{group.title}</span>
-                      {rank && (
-                        <span className="tabular-nums text-rose-700/80 dark:text-rose-300/80">
-                          #{rank.position}{rank.total ? `/${rank.total}` : ""}
-                        </span>
-                      )}
-                    </button>
-                  )
-                })
-              ) : (
-                <div className="text-xs text-muted-foreground">No ranked benchmarks available for this model yet.</div>
-              )}
-            </div>
-          </div>
-
-          <div className="rounded-2xl border bg-sky-50/70 p-3.5 dark:bg-sky-950/20">
-            <div className="text-[10px] font-semibold uppercase tracking-[0.16em] text-sky-700/90 dark:text-sky-300">
-              Coverage Snapshot
-            </div>
-            <div className="mt-1.5 text-sm font-semibold tracking-tight">{benchmarkGroups.length} benchmarks</div>
-                <div className="mt-1 text-xs leading-5 text-muted-foreground">
-              {repeatedBenchmarkCount} benchmark{repeatedBenchmarkCount === 1 ? "" : "s"} include multiple subtasks.
-                </div>
-            <div className="mt-2 text-xs font-medium text-sky-700 dark:text-sky-300">
-              {filteredBenchmarkGroups.length} shown after filters
-            </div>
-          </div>
-        </div>
-
-        {filteredBenchmarkGroups.length === 0 || plotboxUnits.length === 0 ? (
-          <div className="rounded-2xl border border-dashed p-8 text-center text-sm text-muted-foreground">
-            No benchmarks match the current search or category filters.
-          </div>
-        ) : (
+        ) : benchmarkViewMode === "grid" ? (
           (() => {
-            // Group plotbox units by category, preserving the order in
-            // summary.categories_covered. Within each category, standalone
-            // families render as a visually grouped block (e.g. Fibble), while
-            // composite benchmarks and single leaves share one responsive grid.
             const categoryOrder = new Map(
               summary.categories_covered.map((cat, i) => [cat, i])
             )
@@ -3578,8 +3765,6 @@ export function BenchmarkDetail({
                   const familyCount = units.filter(
                     (u) => u.kind === "multi-eval"
                   ).length
-                  // Each visible view/metric combination represents one
-                  // comparison cell.
                   const totalBenchmarks = units.reduce(
                     (sum, u) => sum + u.views.reduce((viewSum, view) => viewSum + view.tabs.length, 0),
                     0
@@ -3588,26 +3773,26 @@ export function BenchmarkDetail({
                   return (
                     <section
                       key={`category-section-${category}`}
-                      className="space-y-3"
+                      className="space-y-4"
                     >
-                      <div className="flex flex-wrap items-center gap-2">
-                        <span
-                          className={`inline-flex items-center rounded-full border px-3 py-1 text-xs font-semibold ${getCategoryTone(category)}`}
-                        >
-                          {category}
-                        </span>
-                        <span className="text-xs text-muted-foreground">
-                          {totalBenchmarks} benchmark{totalBenchmarks === 1 ? "" : "s"}
-                          {familyCount > 0 && (
-                            <>
-                              {" "}· {familyCount}{" "}
-                              {familyCount === 1 ? "family" : "families"}
-                            </>
-                          )}
-                        </span>
+                      <div className="flex items-baseline justify-between gap-3 border-b border-[color:var(--border-soft)] pb-2">
+                        <div className="flex items-baseline gap-3">
+                          <span className="font-mono text-[10px] uppercase tracking-[0.2em] text-[color:var(--accent)] font-semibold">
+                            {category}
+                          </span>
+                          <span className="font-mono text-[10px] uppercase tracking-[0.15em] text-[color:var(--fg-subtle)]">
+                            {totalBenchmarks} benchmark{totalBenchmarks === 1 ? "" : "s"}
+                            {familyCount > 0 && (
+                              <>
+                                {" "}· {familyCount}{" "}
+                                {familyCount === 1 ? "family" : "families"}
+                              </>
+                            )}
+                          </span>
+                        </div>
                       </div>
 
-                      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
+                      <div className="grid grid-cols-1 gap-0 border-t border-l border-[color:var(--border-soft)] sm:grid-cols-2 lg:grid-cols-3">
                         {units.map((unit) => renderPlotbox(unit))}
                       </div>
                     </section>
@@ -3616,6 +3801,312 @@ export function BenchmarkDetail({
               </div>
             )
           })()
+        ) : (
+          /* List view — accordions per benchmark family, grouped by category.
+             Family bucketing mirrors the grid view's plotboxUnits logic. */
+          <div className="space-y-10">
+            {(() => {
+              const allFamilyKeys = listFamiliesByCategory.flatMap(({ families }) =>
+                families.map((f) => f.familyKey)
+              )
+              const allExpanded =
+                allFamilyKeys.length > 0 && allFamilyKeys.every((k) => expandedFamilies.has(k))
+              return (
+                <div className="-mt-2 mb-2 flex justify-end">
+                  <button
+                    type="button"
+                    onClick={() =>
+                      setExpandedFamilies(allExpanded ? new Set() : new Set(allFamilyKeys))
+                    }
+                    className="font-mono text-[10px] uppercase tracking-[0.12em] text-[color:var(--fg-muted)] hover:text-[color:var(--accent)] transition-colors"
+                  >
+                    {allExpanded ? "Collapse all ↑" : "Expand all ↓"}
+                  </button>
+                </div>
+              )
+            })()}
+
+            {listFamiliesByCategory.map(({ category, families }) => {
+              const totalRows = families.reduce((sum, f) => sum + f.totalRows, 0)
+              const totalBenchmarks = families.reduce((sum, f) => sum + f.groups.length, 0)
+
+              const renderRow = (
+                row: { group: BenchmarkGroup; variant: BenchmarkVariant },
+                isLast: boolean
+              ) => {
+                const unit = row.variant.result.metric_config.unit
+                const lower = row.variant.result.metric_config.lower_is_better
+                const variantLabel = getVariantPrimaryLabel(row.variant, row.group.title)
+                const rel = row.variant.evaluation.source_metadata.evaluator_relationship
+                return (
+                  <button
+                    key={`${row.group.key}::${row.variant.evaluation.evaluation_id}::${row.variant.label}`}
+                    type="button"
+                    onClick={() => jumpToDeepDive(row.group.key)}
+                    className="grid w-full items-center gap-4 px-1 py-2.5 text-left transition-colors hover:bg-[color:var(--bg-warm)] sm:grid-cols-[1fr_90px_110px_100px]"
+                    style={{ borderBottom: isLast ? "none" : "1px solid var(--border-soft)" }}
+                  >
+                    <div className="min-w-0">
+                      <div className="text-[13px] truncate text-[color:var(--fg)]">
+                        {variantLabel && variantLabel !== row.group.title ? variantLabel : row.group.canonicalTitle}
+                      </div>
+                      {isResearchView && (
+                        <div className="mt-0.5 flex flex-wrap gap-x-2 gap-y-0.5 font-mono text-[10.5px] text-[color:var(--fg-subtle)]">
+                          {row.variant.result.generation_config?.num_few_shot != null && (
+                            <span>{row.variant.result.generation_config.num_few_shot}-shot</span>
+                          )}
+                          {row.variant.setupLabel && <span>· {row.variant.setupLabel}</span>}
+                          {row.variant.subtaskLabel && <span>· {row.variant.subtaskLabel}</span>}
+                        </div>
+                      )}
+                    </div>
+                    <div>
+                      <span className="ec-tag" style={{ fontSize: 9.5 }}>
+                        {unit || "score"}
+                        {lower != null && (
+                          <span style={{ color: "var(--accent)", fontWeight: 600, marginLeft: 4 }}>
+                            {lower ? "↓" : "↑"}
+                          </span>
+                        )}
+                      </span>
+                    </div>
+                    <div className="text-right font-mono text-[14px] tabular-nums text-[color:var(--fg)]">
+                      {row.variant.displayScore}
+                    </div>
+                    <div className="flex justify-end">
+                      <span
+                        className="font-mono text-[9.5px] uppercase tracking-[0.12em]"
+                        style={{
+                          color:
+                            rel === "first_party"
+                              ? "var(--fg-muted)"
+                              : rel === "third_party"
+                                ? "var(--accent)"
+                                : "var(--fg-subtle)",
+                        }}
+                      >
+                        {rel === "first_party"
+                          ? "first-party"
+                          : rel === "third_party"
+                            ? "third-party"
+                            : rel === "collaborative"
+                              ? "collaborative"
+                              : "—"}
+                      </span>
+                    </div>
+                  </button>
+                )
+              }
+
+              const partyRowsFor = (rowsAll: { group: BenchmarkGroup; variant: BenchmarkVariant }[]) => ({
+                firstParty: rowsAll.filter(
+                  (r) => r.variant.evaluation.source_metadata.evaluator_relationship === "first_party"
+                ),
+                thirdParty: rowsAll.filter(
+                  (r) => r.variant.evaluation.source_metadata.evaluator_relationship === "third_party"
+                ),
+                otherRows: rowsAll.filter((r) => {
+                  const rel = r.variant.evaluation.source_metadata.evaluator_relationship
+                  return rel !== "first_party" && rel !== "third_party"
+                }),
+              })
+
+              const renderPartyBreakdown = (
+                rowsAll: { group: BenchmarkGroup; variant: BenchmarkVariant }[]
+              ) => {
+                const { firstParty, thirdParty, otherRows } = partyRowsFor(rowsAll)
+                return (
+                  <>
+                    {firstParty.length > 0 && (
+                      <>
+                        <div
+                          className="flex items-baseline justify-between pb-1.5 pt-2"
+                          style={{ borderBottom: "1px solid var(--border-soft)" }}
+                        >
+                          <span className="font-mono text-[10px] uppercase tracking-[0.15em] font-semibold text-[color:var(--fg-subtle)]">
+                            First-party
+                          </span>
+                          <span className="font-mono text-[10px] tracking-[0.1em] text-[color:var(--fg-subtle)]">
+                            · {firstParty.length} row{firstParty.length === 1 ? "" : "s"}
+                          </span>
+                        </div>
+                        <div>
+                          {firstParty.map((row, i) => renderRow(row, i === firstParty.length - 1))}
+                        </div>
+                      </>
+                    )}
+                    {thirdParty.length > 0 && (
+                      <>
+                        <div
+                          className="flex items-baseline justify-between pb-1.5 pt-2"
+                          style={{ borderBottom: "1px solid var(--border-soft)" }}
+                        >
+                          <span className="font-mono text-[10px] uppercase tracking-[0.15em] font-semibold" style={{ color: "var(--accent)" }}>
+                            Third-party · independent evaluators
+                          </span>
+                          <span className="font-mono text-[10px] tracking-[0.1em] text-[color:var(--fg-subtle)]">
+                            · {thirdParty.length} row{thirdParty.length === 1 ? "" : "s"}
+                          </span>
+                        </div>
+                        <div>
+                          {thirdParty.map((row, i) => renderRow(row, i === thirdParty.length - 1))}
+                        </div>
+                      </>
+                    )}
+                    {otherRows.length > 0 && (
+                      <>
+                        <div
+                          className="flex items-baseline justify-between pb-1.5 pt-2"
+                          style={{ borderBottom: "1px solid var(--border-soft)" }}
+                        >
+                          <span className="font-mono text-[10px] uppercase tracking-[0.15em] font-semibold text-[color:var(--fg-subtle)]">
+                            Other / unspecified
+                          </span>
+                          <span className="font-mono text-[10px] tracking-[0.1em] text-[color:var(--fg-subtle)]">
+                            · {otherRows.length} row{otherRows.length === 1 ? "" : "s"}
+                          </span>
+                        </div>
+                        <div>
+                          {otherRows.map((row, i) => renderRow(row, i === otherRows.length - 1))}
+                        </div>
+                      </>
+                    )}
+                  </>
+                )
+              }
+
+              return (
+                <section key={`list-cat-${category}`}>
+                  <div className="mb-3 flex items-baseline justify-between gap-3 border-b border-[color:var(--fg)] pb-2">
+                    <span className="font-mono text-[10px] uppercase tracking-[0.2em] text-[color:var(--accent)] font-semibold">
+                      {category}
+                    </span>
+                    <span className="font-mono text-[10px] uppercase tracking-[0.15em] text-[color:var(--fg-subtle)]">
+                      {families.length} {families.length === 1 ? "family" : "families"} · {totalBenchmarks} benchmark{totalBenchmarks === 1 ? "" : "s"} · {totalRows} row{totalRows === 1 ? "" : "s"}
+                    </span>
+                  </div>
+
+                  <div>
+                    {families.map((family) => {
+                      const isOpen = expandedFamilies.has(family.familyKey)
+                      const allRows = family.groups.flatMap((g) =>
+                        g.variants.map((v) => ({ group: g, variant: v }))
+                      )
+                      const { firstParty, thirdParty } = partyRowsFor(allRows)
+                      // Family-level summary score = avg of avgs across child groups
+                      const avgScores = family.groups
+                        .map((g) => g.avgNormalizedScore)
+                        .filter((v) => Number.isFinite(v) && v >= 0)
+                      const familyAvg = avgScores.length
+                        ? avgScores.reduce((s, v) => s + v, 0) / avgScores.length
+                        : null
+                      const familyAvgDisplay = familyAvg != null
+                        ? `${(familyAvg * 100).toFixed(1)}%`
+                        : family.groups[0]?.avgDisplayScore ?? "–"
+                      // Best peer rank across this family's groups
+                      let bestRank: { position: number; total: number } | null = null
+                      for (const g of family.groups) {
+                        const r = getGroupPeerRank(g, modelIds, peerRanks)
+                        if (!r) continue
+                        if (!bestRank || r.position < bestRank.position) bestRank = r
+                      }
+
+                      return (
+                        <div
+                          key={`fam-${family.familyKey}`}
+                          style={{ borderBottom: "1px solid var(--border-soft)" }}
+                        >
+                          <button
+                            type="button"
+                            onClick={() => toggleFamily(family.familyKey)}
+                            className="grid w-full grid-cols-[16px_1fr_auto_auto] items-center gap-3 px-1 py-3 text-left transition-colors hover:bg-[color:var(--bg-warm)]"
+                            aria-expanded={isOpen}
+                          >
+                            <ChevronDown
+                              className="h-3.5 w-3.5 text-[color:var(--fg-muted)] transition-transform"
+                              style={{ transform: isOpen ? "rotate(0deg)" : "rotate(-90deg)" }}
+                            />
+                            <div className="min-w-0">
+                              <div className="flex items-baseline gap-2">
+                                <div className="truncate text-[14px] font-semibold tracking-[-0.01em] text-[color:var(--fg)]">
+                                  {family.familyName}
+                                </div>
+                                {family.kind === "multi-eval" && (
+                                  <span className="font-mono text-[9px] uppercase tracking-[0.18em] text-[color:var(--accent)] font-semibold">
+                                    {family.groups.length} evals
+                                  </span>
+                                )}
+                              </div>
+                              <div className="mt-0.5 flex flex-wrap gap-x-2 font-mono text-[10px] uppercase tracking-[0.12em] text-[color:var(--fg-subtle)]">
+                                <span>{allRows.length} row{allRows.length === 1 ? "" : "s"}</span>
+                                {firstParty.length > 0 && (
+                                  <span>· {firstParty.length} first-party</span>
+                                )}
+                                {thirdParty.length > 0 && (
+                                  <span style={{ color: "var(--accent)" }}>
+                                    · {thirdParty.length} third-party
+                                  </span>
+                                )}
+                              </div>
+                            </div>
+                            <div className="font-mono text-[13px] tabular-nums text-[color:var(--fg)]">
+                              {familyAvgDisplay}
+                            </div>
+                            <div className="font-mono text-[10.5px] tabular-nums text-[color:var(--fg-muted)] min-w-[60px] text-right">
+                              {bestRank
+                                ? `#${bestRank.position}${bestRank.total ? `/${bestRank.total}` : ""}`
+                                : "—"}
+                            </div>
+                          </button>
+
+                          {isOpen && (
+                            <div className="pl-7 pr-1 pb-3 pt-1">
+                              {family.kind === "single-eval" ? (
+                                renderPartyBreakdown(allRows)
+                              ) : (
+                                /* Multi-eval — sub-section per child eval. */
+                                <div className="space-y-3">
+                                  {family.groups.map((childGroup) => {
+                                    const childRows = childGroup.variants.map((v) => ({
+                                      group: childGroup,
+                                      variant: v,
+                                    }))
+                                    const childRank = getGroupPeerRank(childGroup, modelIds, peerRanks)
+                                    return (
+                                      <div key={`fam-${family.familyKey}-eval-${childGroup.key}`}>
+                                        <div className="flex items-baseline justify-between gap-3 pb-1.5 pt-1">
+                                          <button
+                                            type="button"
+                                            onClick={() => jumpToDeepDive(childGroup.key)}
+                                            className="text-left text-[13px] font-semibold tracking-[-0.005em] text-[color:var(--fg)] hover:text-[color:var(--accent)] transition-colors"
+                                          >
+                                            {childGroup.canonicalTitle}
+                                          </button>
+                                          <span className="font-mono text-[10px] tabular-nums text-[color:var(--fg-muted)]">
+                                            {childGroup.avgDisplayScore}
+                                            {childRank && (
+                                              <span className="ml-2 text-[color:var(--fg-subtle)]">
+                                                #{childRank.position}{childRank.total ? `/${childRank.total}` : ""}
+                                              </span>
+                                            )}
+                                          </span>
+                                        </div>
+                                        {renderPartyBreakdown(childRows)}
+                                      </div>
+                                    )
+                                  })}
+                                </div>
+                              )}
+                            </div>
+                          )}
+                        </div>
+                      )
+                    })}
+                  </div>
+                </section>
+              )
+            })}
+          </div>
         )}
       </section>
 
@@ -4908,97 +5399,84 @@ function BenchmarkDeepDiveDialogPanel({
 
   return (
     <>
-      <DialogHeader className="gap-3 border-b border-border/60 px-5 py-4 text-left sm:px-6">
-        <div className="flex items-start justify-between gap-3 pr-8">
-          <div className="min-w-0">
-            <div className="flex flex-wrap items-center gap-1.5">
-              <span className={`inline-flex items-center rounded-full border px-2 py-0.5 text-[10px] font-semibold ${getCategoryTone(group.category)}`}>
-                {group.category}
-              </span>
-              {group.benchmarkCard && (
-                <span className="rounded-full border border-border/50 bg-muted/20 px-1.5 py-0.5 text-[9px] font-semibold uppercase tracking-[0.12em] text-muted-foreground">
-                  Card
-                </span>
-              )}
-              {compactDomains.map((domain) => (
-                <span
-                  key={`${group.key}-${domain}`}
-                  className="inline-flex items-center rounded-full border border-border/50 bg-background/70 px-2 py-0.5 text-[10px] font-medium capitalize text-muted-foreground"
-                >
-                  {domain}
-                </span>
-              ))}
-              {group.domains.length > compactDomains.length && (
-                <span className="inline-flex items-center rounded-full border border-border/50 bg-background/70 px-2 py-0.5 text-[10px] font-medium text-muted-foreground">
-                  +{group.domains.length - compactDomains.length}
-                </span>
-              )}
+      <DialogHeader className="gap-0 border-b border-[color:var(--fg)] px-6 py-5 text-left">
+        <div className="flex items-start justify-between gap-4 pr-6">
+          <div className="min-w-0 flex-1">
+            <div className="kicker mb-2">
+              <span className="text-[color:var(--accent)] font-semibold mr-2">{group.category}</span>
+              <span className="text-[color:var(--fg-subtle)]">· Benchmark deep dive</span>
             </div>
-            <DialogTitle className="mt-2 pr-4">{getBenchmarkGroupHeading(group)}</DialogTitle>
-            <DialogDescription>
+            <DialogTitle className="text-[28px] leading-[1.05] tracking-[-0.02em] font-bold text-[color:var(--fg)]">
+              {getBenchmarkGroupHeading(group)}
+            </DialogTitle>
+            <DialogDescription className="mt-1.5 text-[13px] leading-[1.5] text-[color:var(--fg-muted)]">
               {isResearchView
                 ? "Inspect setup subtasks, score details, and source provenance in one focused view."
                 : "Inspect reporting setup and evidence details before interpreting benchmark position."}
             </DialogDescription>
+            {(compactDomains.length > 0 || group.benchmarkCard) && (
+              <div className="mt-3 flex flex-wrap items-center gap-x-3 gap-y-1 font-mono text-[10px] uppercase tracking-[0.15em] text-[color:var(--fg-subtle)]">
+                {compactDomains.map((domain) => (
+                  <span key={`${group.key}-${domain}`}>{domain}</span>
+                ))}
+                {group.domains.length > compactDomains.length && (
+                  <span>+{group.domains.length - compactDomains.length}</span>
+                )}
+                {group.benchmarkCard && <span>· Card available</span>}
+              </div>
+            )}
           </div>
 
-          <div className="text-right">
-            <div className="text-sm font-semibold tabular-nums">{group.avgDisplayScore}</div>
+          <div className="text-right shrink-0">
+            <div className="kicker mb-1">Avg score</div>
+            <div className="text-[24px] font-semibold tabular-nums leading-none">
+              {group.avgDisplayScore}
+            </div>
             {group.bestRankPosition != null && (
-              <div className="text-[11px] tabular-nums text-muted-foreground">
-                {`#${group.bestRankPosition}${group.bestRankTotal ? `/${group.bestRankTotal}` : ""}`}
+              <div className="mt-2 font-mono text-[11px] tabular-nums text-[color:var(--fg-muted)]">
+                #{group.bestRankPosition}{group.bestRankTotal ? `/${group.bestRankTotal}` : ""}
               </div>
             )}
           </div>
         </div>
-
-        <div className="flex flex-wrap items-center justify-between gap-x-4 gap-y-1 text-[11px] text-muted-foreground">
-          <span>{group.variants.length} {group.variants.length === 1 ? "reported row" : "reported rows"}</span>
-          <span className="flex flex-wrap items-center gap-2">
-            {hasSubtaskMatrix && (
-              <span className="rounded-full border border-emerald-200/80 bg-emerald-50/70 px-1.5 py-0.5 text-[9px] font-semibold text-emerald-700 dark:border-emerald-900/60 dark:bg-emerald-950/30 dark:text-emerald-300">
-                {subtaskCount} benchmark subtask{subtaskCount === 1 ? "" : "s"}
-              </span>
-            )}
-            {group.variants.some(v => v.evaluation.detailed_evaluation_results_per_samples && v.evaluation.detailed_evaluation_results_per_samples.length > 0) && (
-              <span className="rounded-full border border-sky-200/80 bg-sky-50/60 px-1.5 py-0.5 text-[9px] font-semibold text-sky-700 dark:border-sky-900/60 dark:bg-sky-950/30 dark:text-sky-300">
-                Has samples
-              </span>
-            )}
-            <span>{sourceOrganizations.size} source{sourceOrganizations.size === 1 ? "" : "s"}</span>
-          </span>
-        </div>
       </DialogHeader>
 
-      <div className="flex min-h-0 flex-col gap-4 overflow-y-auto px-5 py-4 sm:px-6">
-        <div className="grid gap-3 sm:grid-cols-3">
-          <div className="rounded-xl border bg-muted/10 p-3">
-            <div className="text-[11px] font-semibold uppercase tracking-[0.16em] text-muted-foreground">Avg score</div>
-            <div className="mt-1 text-lg font-semibold tabular-nums">{group.avgDisplayScore}</div>
+      <div className="flex min-h-0 flex-col gap-6 overflow-y-auto px-6 py-5">
+        {/* Stat strip — paper-style hairline grid */}
+        <div className="grid grid-cols-3 border-t border-l border-[color:var(--border-soft)]">
+          <div className="border-r border-b border-[color:var(--border-soft)] px-4 py-3">
+            <div className="kicker">Reported rows</div>
+            <div className="mt-1 text-[18px] font-semibold tabular-nums">{group.variants.length}</div>
           </div>
-          <div className="rounded-xl border bg-muted/10 p-3">
-            <div className="text-[11px] font-semibold uppercase tracking-[0.16em] text-muted-foreground">Best rank</div>
-            <div className="mt-1 text-lg font-semibold tabular-nums">
+          <div className="border-r border-b border-[color:var(--border-soft)] px-4 py-3">
+            <div className="kicker">Best rank</div>
+            <div className="mt-1 text-[18px] font-semibold tabular-nums">
               {bestResolvedRank != null
                 ? `#${bestResolvedRank.position}${bestResolvedRank.total ? `/${bestResolvedRank.total}` : ""}`
                 : isResolvingRanks
                   ? "…"
                   : "N/A"}
             </div>
-            {isResolvingRanks && (
-              <div className="mt-1 text-[11px] text-muted-foreground">Resolving peer rank…</div>
-            )}
           </div>
-          <div className="rounded-xl border bg-muted/10 p-3">
-            <div className="text-[11px] font-semibold uppercase tracking-[0.16em] text-muted-foreground">Sources</div>
-            <div className="mt-1 text-lg font-semibold tabular-nums">{sourceOrganizations.size}</div>
+          <div className="border-r border-b border-[color:var(--border-soft)] px-4 py-3">
+            <div className="kicker">Sources</div>
+            <div className="mt-1 text-[18px] font-semibold tabular-nums">
+              {sourceOrganizations.size}
+              {hasSubtaskMatrix && (
+                <span className="ml-2 font-mono text-[10px] tracking-[0.12em] uppercase text-[color:var(--fg-subtle)]">
+                  · {subtaskCount} subtask{subtaskCount === 1 ? "" : "s"}
+                </span>
+              )}
+            </div>
           </div>
         </div>
 
         {group.benchmarkCard && (
-          <div className="rounded-xl border bg-background p-3">
-            <div className="text-[11px] font-semibold uppercase tracking-[0.16em] text-muted-foreground">Benchmark context</div>
-            <p className="mt-1 text-sm text-muted-foreground line-clamp-3">{group.benchmarkCard.benchmark_details.overview}</p>
+          <div>
+            <div className="kicker mb-2">Benchmark context</div>
+            <p className="text-[14px] leading-[1.65] text-[color:var(--fg-muted)] line-clamp-3 max-w-[60rem]">
+              {group.benchmarkCard.benchmark_details.overview}
+            </p>
           </div>
         )}
 
@@ -5034,30 +5512,41 @@ function BenchmarkDeepDiveDialogPanel({
           }
           if (entries.length === 0) return null
           return (
-            <div className="rounded-xl border bg-background p-3">
-              <div className="text-[11px] font-semibold uppercase tracking-[0.16em] text-muted-foreground">
-                Sources
-              </div>
-              <ul className="mt-2 flex flex-col gap-1.5 text-sm">
-                {entries.map((entry) => {
+            <div>
+              <div className="kicker mb-3">Sources</div>
+              <ul className="flex flex-col">
+                {entries.map((entry, i) => {
                   const showDataset = Boolean(entry.datasetHref) && entry.datasetHref !== entry.orgHref
+                  const isFirst = entry.relationship === "first_party"
+                  const isThird = entry.relationship === "third_party"
                   return (
-                    <li key={entry.key} className="flex flex-wrap items-center gap-x-3 gap-y-1">
+                    <li
+                      key={entry.key}
+                      className="flex flex-wrap items-center gap-x-4 gap-y-1 py-2"
+                      style={{ borderBottom: i < entries.length - 1 ? "1px solid var(--border-soft)" : "none" }}
+                    >
                       {entry.orgHref ? (
                         <a
                           href={entry.orgHref}
                           target="_blank"
                           rel="noopener noreferrer"
-                          className="inline-flex items-center gap-1 font-medium text-primary hover:underline"
+                          className="inline-flex items-center gap-1 text-[14px] font-medium text-[color:var(--fg)] hover:text-[color:var(--accent)]"
                         >
                           {entry.orgName}
                           <ExternalLink className="h-3 w-3" />
                         </a>
                       ) : (
-                        <span className="font-medium">{entry.orgName}</span>
+                        <span className="text-[14px] font-medium text-[color:var(--fg)]">{entry.orgName}</span>
                       )}
                       <span
-                        className={`inline-flex items-center rounded-full border px-2 py-0.5 text-[10px] font-semibold ${getRelationshipBadgeTone(entry.relationship)}`}
+                        className="font-mono text-[10px] uppercase tracking-[0.15em]"
+                        style={{
+                          color: isFirst
+                            ? "var(--fg-muted)"
+                            : isThird
+                              ? "var(--accent)"
+                              : "var(--fg-subtle)",
+                        }}
                         title={
                           entry.relationship === "first_party"
                             ? "Reported by the model's developer (first-party)."
@@ -5068,16 +5557,16 @@ function BenchmarkDeepDiveDialogPanel({
                                 : undefined
                         }
                       >
-                        {getRelationshipShortLabel(entry.relationship)}
+                        · {getRelationshipShortLabel(entry.relationship)}
                       </span>
                       {showDataset && (
                         <a
                           href={entry.datasetHref!}
                           target="_blank"
                           rel="noopener noreferrer"
-                          className="inline-flex items-center gap-1 text-xs text-muted-foreground hover:text-primary hover:underline"
+                          className="inline-flex items-center gap-1 font-mono text-[10px] uppercase tracking-[0.12em] text-[color:var(--fg-muted)] hover:text-[color:var(--accent)]"
                         >
-                          Dataset
+                          · Dataset
                           <ExternalLink className="h-3 w-3" />
                         </a>
                       )}
@@ -5090,47 +5579,38 @@ function BenchmarkDeepDiveDialogPanel({
         })()}
 
         {useSingleSetupOverview ? (
-          <section className="space-y-2">
-            <div className="flex items-center justify-between gap-3">
-              <div>
-                <h4 className="text-sm font-semibold">
-                  {hasAmbiguousPrimaryLabels ? "Reported runs" : "Subtask overview"}
-                </h4>
-                <p className="text-xs text-muted-foreground">
-                  {hasAmbiguousPrimaryLabels
-                    ? isResearchView
-                      ? "These rows share the same benchmark label, so run names or differing config fields are surfaced to show what changed across reports."
-                      : "These rows describe the same benchmark view, so the table surfaces the reported run name or setup differences that separate them."
-                    : isResearchView
-                      ? "This benchmark reports one setup, so subtasks, scores, and provenance are merged into one comparison view."
-                      : "This benchmark only reports one setup, so the subtask evidence is consolidated into a single reader-friendly view."}
-                </p>
-              </div>
-              <div className="flex flex-wrap items-center gap-2">
-                {singleSetupDisplayLabel && (
-                  <span className="rounded-full border border-sky-200/80 bg-sky-50/70 px-2 py-1 text-[10px] font-semibold text-sky-700 dark:border-sky-900/60 dark:bg-sky-950/30 dark:text-sky-300">
-                    {singleSetupDisplayLabel}
-                  </span>
-                )}
-                <span className="rounded-full border border-border/60 bg-background px-2 py-1 text-[10px] font-medium text-muted-foreground">
-                  {variantRows.length} row{variantRows.length === 1 ? "" : "s"}
-                </span>
-              </div>
+          <section>
+            <div className="section-head">
+              <h2>{hasAmbiguousPrimaryLabels ? "Reported runs" : "Subtask overview"}</h2>
+              <span className="font-mono text-[10px] uppercase tracking-[0.15em] text-[color:var(--fg-subtle)]">
+                {singleSetupDisplayLabel ? `${singleSetupDisplayLabel} · ` : ""}
+                {variantRows.length} row{variantRows.length === 1 ? "" : "s"}
+              </span>
             </div>
 
-            <div className="min-h-0 overflow-auto rounded-xl border border-border/70 bg-background">
-              <Table className="table-fixed">
-                <TableHeader className="bg-muted/20">
-                  <TableRow className="hover:bg-transparent">
-                    <TableHead className="w-[60%] px-4 py-3 text-[11px] font-semibold uppercase tracking-[0.14em] text-muted-foreground">
+            <p className="mb-4 max-w-[60rem] text-[13px] leading-[1.65] text-[color:var(--fg-muted)]">
+              {hasAmbiguousPrimaryLabels
+                ? isResearchView
+                  ? "These rows share the same benchmark label, so run names or differing config fields are surfaced to show what changed across reports."
+                  : "These rows describe the same benchmark view, so the table surfaces the reported run name or setup differences that separate them."
+                : isResearchView
+                  ? "This benchmark reports one setup, so subtasks, scores, and provenance are merged into one comparison view."
+                  : "This benchmark only reports one setup, so the subtask evidence is consolidated into a single reader-friendly view."}
+            </p>
+
+            <div className="min-h-0 overflow-auto">
+              <table className="ec-htable table-fixed">
+                <thead>
+                  <tr>
+                    <th className="w-[60%]">
                       {hasAmbiguousPrimaryLabels ? "Reported row" : "Subtask"}
-                    </TableHead>
-                    <TableHead className="w-[20%] px-4 py-3 text-[11px] font-semibold uppercase tracking-[0.14em] text-muted-foreground">Setup detail</TableHead>
-                    <TableHead className="w-[10%] px-4 py-3 text-right text-[11px] font-semibold uppercase tracking-[0.14em] text-muted-foreground">Score</TableHead>
-                    <TableHead className="w-[10%] px-4 py-3 text-right text-[11px] font-semibold uppercase tracking-[0.14em] text-muted-foreground">Rank</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
+                    </th>
+                    <th className="w-[20%]">Setup detail</th>
+                    <th className="num w-[10%]">Score</th>
+                    <th className="num w-[10%]">Rank</th>
+                  </tr>
+                </thead>
+                <tbody>
                   {variantRows.map((row, index) => {
                     const { rowKey, variant, configEntries } = row
                     const resolvedRank = resolvedRanks[rowKey]
@@ -5147,122 +5627,109 @@ function BenchmarkDeepDiveDialogPanel({
                         : null
 
                     return (
-                      <TableRow key={rowKey} className="align-top hover:bg-muted/10">
-                        <TableCell className="px-4 py-3 align-top whitespace-normal">
-                          <div className="space-y-1.5">
-                            <div className="font-medium leading-5">{leadLabel}</div>
-                            {supportingLabel && (
-                              <div className="text-xs text-muted-foreground">{supportingLabel}</div>
-                            )}
-                            <div className="flex flex-wrap items-center gap-2">
-                              {!variant.evaluation.slice_key && (
-                                <span className="rounded-full border border-border/60 bg-muted/30 px-2 py-0.5 text-[10px] font-medium text-muted-foreground">
-                                  Benchmark-level metric
-                                </span>
-                              )}
-                              {variant.variantType !== "default" && (
-                                <span className={`inline-flex items-center rounded-full px-2 py-0.5 text-[10px] font-medium ${getVariantTypeTone(variant.variantType)}`}>
-                                  {getVariantTypeLabel(variant.variantType)}
-                                </span>
-                              )}
+                      <tr key={rowKey} className="align-top">
+                        <td className="align-top">
+                          <div className="text-[14px] font-medium leading-[1.4]">{leadLabel}</div>
+                          {supportingLabel && (
+                            <div className="mt-0.5 text-[12px] text-[color:var(--fg-muted)]">{supportingLabel}</div>
+                          )}
+                          {(!variant.evaluation.slice_key || variant.variantType !== "default") && (
+                            <div className="mt-1 flex flex-wrap gap-x-2 font-mono text-[10px] uppercase tracking-[0.12em] text-[color:var(--fg-subtle)]">
+                              {!variant.evaluation.slice_key && <span>Benchmark-level metric</span>}
+                              {variant.variantType !== "default" && <span>· {getVariantTypeLabel(variant.variantType)}</span>}
                             </div>
-                          </div>
-                        </TableCell>
-                        <TableCell className="px-4 py-3 align-top whitespace-normal">
-                          <div className="space-y-1 text-xs text-muted-foreground">
-                            <div>{singleSetupDisplayLabel}</div>
-                            {filteredConfigEntries.length > 0 && (
-                              <div className="line-clamp-2">
-                                {filteredConfigEntries
-                                  .slice(0, 2)
-                                  .map(([key, value]) => `${formatConfigLabel(key)}=${getConfigDisplayValue(value)}`)
-                                  .join(" · ")}
-                              </div>
-                            )}
-                          </div>
-                        </TableCell>
-                        <TableCell className="px-4 py-3 text-right align-top font-semibold tabular-nums">
+                          )}
+                        </td>
+                        <td className="align-top text-[12px] text-[color:var(--fg-muted)]">
+                          <div>{singleSetupDisplayLabel}</div>
+                          {filteredConfigEntries.length > 0 && (
+                            <div className="mt-0.5 line-clamp-2 font-mono text-[10.5px] text-[color:var(--fg-subtle)]">
+                              {filteredConfigEntries
+                                .slice(0, 2)
+                                .map(([key, value]) => `${formatConfigLabel(key)}=${getConfigDisplayValue(value)}`)
+                                .join(" · ")}
+                            </div>
+                          )}
+                        </td>
+                        <td className="num align-top font-semibold tabular-nums">
                           <div>{variant.displayScore}</div>
-                          <SignalsRowBadges annotations={variant.result.evalcards?.annotations} />
-                        </TableCell>
-                        <TableCell className="px-4 py-3 text-right align-top tabular-nums text-muted-foreground">
+                          <SignalsRowBadges annotations={variant.result.evalcards?.annotations} className="justify-end mt-0.5" />
+                        </td>
+                        <td className="num align-top tabular-nums text-[color:var(--fg-muted)]">
                           {(variant.rankPosition != null || resolvedRank)
                             ? `#${resolvedRank?.position ?? variant.rankPosition}${(resolvedRank?.total ?? variant.rankTotal) ? `/${resolvedRank?.total ?? variant.rankTotal}` : ""}`
                             : "N/A"}
-                        </TableCell>
-                      </TableRow>
+                        </td>
+                      </tr>
                     )
                   })}
-                </TableBody>
-              </Table>
+                </tbody>
+              </table>
             </div>
           </section>
         ) : null}
 
         {!useSingleSetupOverview && (
-        <section className="space-y-2">
-          <div className="flex items-center justify-between gap-3">
-            <div>
-              <h4 className="text-sm font-semibold">Benchmark breakdown</h4>
-              <p className="text-xs text-muted-foreground">
-                Primary row labels show the benchmark slice or subtask. Setup and source details sit alongside each row.
-              </p>
-            </div>
+        <section>
+          <div className="section-head">
+            <h2>Benchmark breakdown</h2>
+            <span className="font-mono text-[10px] uppercase tracking-[0.15em] text-[color:var(--fg-subtle)]">
+              {variantRows.length} row{variantRows.length === 1 ? "" : "s"}
+            </span>
           </div>
+          <p className="mb-4 max-w-[60rem] text-[13px] leading-[1.65] text-[color:var(--fg-muted)]">
+            Primary row labels show the benchmark slice or subtask. Setup and source details sit alongside each row.
+          </p>
 
-          <div className="min-h-0 overflow-auto rounded-xl border border-border/70 bg-background">
-          <Table className="table-fixed">
-            <TableHeader className="bg-muted/20">
-              <TableRow className="hover:bg-transparent">
-                <TableHead className="w-[46%] px-4 py-3 text-[11px] font-semibold uppercase tracking-[0.14em] text-muted-foreground">Subtask</TableHead>
-                <TableHead className="w-[36%] px-4 py-3 text-[11px] font-semibold uppercase tracking-[0.14em] text-muted-foreground">Reporting setup</TableHead>
-                <TableHead className="w-[9%] px-4 py-3 text-right text-[11px] font-semibold uppercase tracking-[0.14em] text-muted-foreground">Score</TableHead>
-                <TableHead className="w-[9%] px-4 py-3 text-right text-[11px] font-semibold uppercase tracking-[0.14em] text-muted-foreground">Rank</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {variantRows.map((row) => {
-                const { rowKey, variant, configEntries } = row
-                const resolvedRank = resolvedRanks[rowKey]
-                const primaryLabel = getVariantPrimaryLabel(variant, group.title)
-                const setupDisplayLabel = formatSetupDisplayLabel(variant.setupLabel)
-                const rawVariantLabel = variant.label !== primaryLabel ? variant.label : null
+          <div className="min-h-0 overflow-auto">
+            <table className="ec-htable table-fixed">
+              <thead>
+                <tr>
+                  <th className="w-[46%]">Subtask</th>
+                  <th className="w-[36%]">Reporting setup</th>
+                  <th className="num w-[9%]">Score</th>
+                  <th className="num w-[9%]">Rank</th>
+                </tr>
+              </thead>
+              <tbody>
+                {variantRows.map((row) => {
+                  const { rowKey, variant, configEntries } = row
+                  const resolvedRank = resolvedRanks[rowKey]
+                  const primaryLabel = getVariantPrimaryLabel(variant, group.title)
+                  const setupDisplayLabel = formatSetupDisplayLabel(variant.setupLabel)
+                  const rawVariantLabel = variant.label !== primaryLabel ? variant.label : null
 
-                return (
-                  <TableRow key={rowKey} className="align-top hover:bg-muted/20">
-                    <TableCell className="px-4 py-3 align-top whitespace-normal">
-                      <div className="space-y-1">
-                        <div className="font-medium leading-5">{primaryLabel}</div>
-                        <div className="flex flex-wrap items-center gap-2 text-xs text-muted-foreground">
-                          <span className={`inline-flex items-center rounded-full px-2 py-0.5 font-medium ${getVariantTypeTone(variant.variantType)}`}>{getVariantTypeLabel(variant.variantType)}</span>
-                          {rawVariantLabel && <span className="line-clamp-1">{rawVariantLabel}</span>}
+                  return (
+                    <tr key={rowKey} className="align-top">
+                      <td className="align-top">
+                        <div className="text-[14px] font-medium leading-[1.4]">{primaryLabel}</div>
+                        <div className="mt-1 flex flex-wrap gap-x-2 font-mono text-[10px] uppercase tracking-[0.12em] text-[color:var(--fg-subtle)]">
+                          <span>{getVariantTypeLabel(variant.variantType)}</span>
+                          {rawVariantLabel && <span className="line-clamp-1 normal-case tracking-normal text-[color:var(--fg-muted)] text-[12px]">· {rawVariantLabel}</span>}
                         </div>
-                      </div>
-                    </TableCell>
-                    <TableCell className="px-4 py-3 align-top whitespace-normal">
-                      <div className="space-y-1">
-                        <div className="text-sm font-medium leading-5">{setupDisplayLabel}</div>
+                      </td>
+                      <td className="align-top text-[12px] text-[color:var(--fg-muted)]">
+                        <div className="text-[14px] text-[color:var(--fg)] font-medium">{setupDisplayLabel}</div>
                         {configEntries.length > 0 && (
-                          <div className="text-xs text-muted-foreground line-clamp-2">
+                          <div className="mt-0.5 line-clamp-2 font-mono text-[10.5px] text-[color:var(--fg-subtle)]">
                             {configEntries.slice(0, 3).map(([key, value]) => `${formatConfigLabel(key)}=${getConfigDisplayValue(value)}`).join(" · ")}
                           </div>
                         )}
-                      </div>
-                    </TableCell>
-                    <TableCell className="px-4 py-3 text-right align-top font-semibold tabular-nums">
-                      <div>{variant.displayScore}</div>
-                      <SignalsRowBadges annotations={variant.result.evalcards?.annotations} />
-                    </TableCell>
-                    <TableCell className="px-4 py-3 text-right align-top tabular-nums text-muted-foreground">
-                      {(variant.rankPosition != null || resolvedRank)
-                        ? `#${resolvedRank?.position ?? variant.rankPosition}${(resolvedRank?.total ?? variant.rankTotal) ? `/${resolvedRank?.total ?? variant.rankTotal}` : ""}`
-                        : "N/A"}
-                    </TableCell>
-                  </TableRow>
-                )
-              })}
-            </TableBody>
-          </Table>
+                      </td>
+                      <td className="num align-top font-semibold tabular-nums">
+                        <div>{variant.displayScore}</div>
+                        <SignalsRowBadges annotations={variant.result.evalcards?.annotations} className="justify-end mt-0.5" />
+                      </td>
+                      <td className="num align-top tabular-nums text-[color:var(--fg-muted)]">
+                        {(variant.rankPosition != null || resolvedRank)
+                          ? `#${resolvedRank?.position ?? variant.rankPosition}${(resolvedRank?.total ?? variant.rankTotal) ? `/${resolvedRank?.total ?? variant.rankTotal}` : ""}`
+                          : "N/A"}
+                      </td>
+                    </tr>
+                  )
+                })}
+              </tbody>
+            </table>
           </div>
         </section>
         )}
@@ -5274,48 +5741,63 @@ function BenchmarkDeepDiveDialogPanel({
           const fullDataUrl = variantWithSamples.result.detailed_evaluation_results_url
             ?? variantWithSamples.evaluation.evaluation_results.find(r => r.detailed_evaluation_results_url)?.detailed_evaluation_results_url
           return (
-            <div className="space-y-2 rounded-xl border border-sky-200/60 bg-sky-50/30 p-3 dark:border-sky-900/40 dark:bg-sky-950/20">
-              <div className="text-[11px] font-semibold uppercase tracking-[0.18em] text-sky-700 dark:text-sky-300">
-                Sample data preview ({samples.length} examples)
+            <section>
+              <div className="section-head">
+                <h2>Sample data preview</h2>
+                <span className="font-mono text-[10px] uppercase tracking-[0.15em] text-[color:var(--fg-subtle)]">
+                  {samples.length} example{samples.length === 1 ? "" : "s"}
+                </span>
               </div>
-              <div className="space-y-2">
+              <div className="flex flex-col">
                 {samples.slice(0, INSTANCE_PREVIEW_LIMIT).map((sample, idx) => (
-                  <div key={idx} className="rounded-lg border bg-background/80 p-3 text-sm">
+                  <div
+                    key={idx}
+                    className="py-3"
+                    style={{ borderBottom: idx < Math.min(INSTANCE_PREVIEW_LIMIT, samples.length) - 1 ? "1px solid var(--border-soft)" : "none" }}
+                  >
                     {sample.input && (
                       <div className="mb-2">
-                        <span className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">Input</span>
-                        <div className="mt-0.5 max-h-28 overflow-y-auto whitespace-pre-wrap text-xs">{sample.input.slice(0, 400)}{sample.input.length > 400 ? "..." : ""}</div>
+                        <div className="kicker mb-1">Input</div>
+                        <div className="max-h-28 overflow-y-auto whitespace-pre-wrap text-[12px] leading-[1.55]">
+                          {sample.input.slice(0, 400)}{sample.input.length > 400 ? "..." : ""}
+                        </div>
                       </div>
                     )}
                     {sample.response && (
                       <div className="mb-2">
-                        <span className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">Response</span>
-                        <div className="mt-0.5 max-h-20 overflow-y-auto whitespace-pre-wrap text-xs">{sample.response.slice(0, 300)}{sample.response.length > 300 ? "..." : ""}</div>
+                        <div className="kicker mb-1">Response</div>
+                        <div className="max-h-20 overflow-y-auto whitespace-pre-wrap text-[12px] leading-[1.55]">
+                          {sample.response.slice(0, 300)}{sample.response.length > 300 ? "..." : ""}
+                        </div>
                       </div>
                     )}
                     {sample.ground_truth && (
                       <div>
-                        <span className="text-[10px] font-semibold uppercase tracking-wider text-green-700 dark:text-green-400">Ground truth</span>
-                        <div className="mt-0.5 whitespace-pre-wrap text-xs text-green-900 dark:text-green-100">{sample.ground_truth.slice(0, 200)}</div>
+                        <div className="kicker kicker-accent mb-1">Ground truth</div>
+                        <div className="whitespace-pre-wrap text-[12px] leading-[1.55] text-[color:var(--fg)]">
+                          {sample.ground_truth.slice(0, 200)}
+                        </div>
                       </div>
                     )}
                   </div>
                 ))}
               </div>
               {(samples.length > INSTANCE_PREVIEW_LIMIT || fullDataUrl) && (
-                <SampleDataDialog
-                  samples={samples}
-                  evaluationName={variantWithSamples.result.evaluation_name}
-                  fullDataUrl={fullDataUrl}
-                />
+                <div className="mt-3">
+                  <SampleDataDialog
+                    samples={samples}
+                    evaluationName={variantWithSamples.result.evaluation_name}
+                    fullDataUrl={fullDataUrl}
+                  />
+                </div>
               )}
-            </div>
+            </section>
           )
         })()}
 
-        <div className="flex justify-end">
-          <Link href={group.evalDetailHref}>
-            <Button variant="outline">View full leaderboard</Button>
+        <div className="flex justify-end border-t border-[color:var(--border-soft)] pt-4">
+          <Link href={group.evalDetailHref} className="btn-ec outline">
+            View full leaderboard
           </Link>
         </div>
       </div>
@@ -5689,6 +6171,168 @@ function HeroStat({
       </div>
       <div className="mt-0.5 text-[1.55rem] font-semibold leading-none tabular-nums">
         {typeof value === "number" ? value.toLocaleString() : value}
+      </div>
+    </div>
+  )
+}
+
+type EvaluatorMixData = {
+  rows: Array<{
+    category: CategoryType
+    first: number
+    third: number
+    collab: number
+    other: number
+    total: number
+  }>
+  firstTotal: number
+  thirdTotal: number
+  collabTotal: number
+  otherTotal: number
+  grand: number
+}
+
+/**
+ * Donut + per-category bars showing first-party vs third-party row counts.
+ * Adapted from mock_design/model_detail_a.jsx#EvaluatorMix.
+ */
+function EvaluatorMix({ mix }: { mix: EvaluatorMixData }) {
+  const { rows, firstTotal, thirdTotal, collabTotal, otherTotal, grand } = mix
+  const R = 64
+  const sw = 18
+  const C = 2 * Math.PI * R
+  const fFirst = firstTotal / grand
+  const fThird = thirdTotal / grand
+  const fCollab = collabTotal / grand
+  const fOther = otherTotal / grand
+  const lFirst = C * fFirst
+  const lThird = C * fThird
+  const lCollab = C * fCollab
+  const lOther = C * fOther
+
+  return (
+    <div className="grid grid-cols-1 gap-10 lg:grid-cols-[220px_1fr] lg:items-start">
+      {/* Donut */}
+      <div className="relative mx-auto h-[200px] w-[200px] lg:mx-0">
+        <svg width="200" height="200" viewBox="-100 -100 200 200" style={{ transform: "rotate(-90deg)" }}>
+          <circle r={R} cx="0" cy="0" fill="none" stroke="var(--bg-surface)" strokeWidth={sw} />
+          <circle
+            r={R} cx="0" cy="0" fill="none"
+            stroke="var(--fg)" strokeWidth={sw}
+            strokeDasharray={`${lFirst} ${C - lFirst}`}
+            strokeDashoffset="0"
+          />
+          <circle
+            r={R} cx="0" cy="0" fill="none"
+            stroke="var(--accent)" strokeWidth={sw}
+            strokeDasharray={`${lThird} ${C - lThird}`}
+            strokeDashoffset={`${-lFirst}`}
+          />
+          <circle
+            r={R} cx="0" cy="0" fill="none"
+            stroke="var(--accent-hover)" strokeWidth={sw}
+            strokeDasharray={`${lCollab} ${C - lCollab}`}
+            strokeDashoffset={`${-(lFirst + lThird)}`}
+          />
+          <circle
+            r={R} cx="0" cy="0" fill="none"
+            stroke="var(--fg-subtle)" strokeWidth={sw}
+            strokeDasharray={`${lOther} ${C - lOther}`}
+            strokeDashoffset={`${-(lFirst + lThird + lCollab)}`}
+          />
+        </svg>
+        <div className="absolute inset-0 flex flex-col items-center justify-center">
+          <div className="font-mono text-[9.5px] uppercase tracking-[0.16em] text-[color:var(--fg-subtle)]">
+            Total rows
+          </div>
+          <div className="text-[36px] font-bold leading-[1.05] tracking-[-0.02em] text-[color:var(--fg)] tabular-nums">
+            {grand}
+          </div>
+        </div>
+      </div>
+
+      {/* Legend + per-category bars */}
+      <div>
+        <div className="flex flex-wrap items-baseline gap-x-6 gap-y-2 mb-4">
+          <div className="flex items-center gap-2">
+            <span className="inline-block h-3.5 w-3.5" style={{ background: "var(--fg)" }} />
+            <span className="text-[13px]">
+              <strong className="font-semibold tabular-nums">{firstTotal}</strong>
+              <span className="text-[color:var(--fg-muted)]"> first-party</span>
+              <span className="ml-1.5 font-mono text-[11px] text-[color:var(--fg-subtle)] tabular-nums">
+                {Math.round(fFirst * 100)}%
+              </span>
+            </span>
+          </div>
+          <div className="flex items-center gap-2">
+            <span className="inline-block h-3.5 w-3.5" style={{ background: "var(--accent)" }} />
+            <span className="text-[13px]">
+              <strong className="font-semibold tabular-nums">{thirdTotal}</strong>
+              <span className="text-[color:var(--fg-muted)]"> third-party · independent</span>
+              <span className="ml-1.5 font-mono text-[11px] text-[color:var(--fg-subtle)] tabular-nums">
+                {Math.round(fThird * 100)}%
+              </span>
+            </span>
+          </div>
+          {collabTotal > 0 && (
+            <div className="flex items-center gap-2">
+              <span className="inline-block h-3.5 w-3.5" style={{ background: "var(--accent-hover)" }} />
+              <span className="text-[13px]">
+                <strong className="font-semibold tabular-nums">{collabTotal}</strong>
+                <span className="text-[color:var(--fg-muted)]"> collaborative</span>
+              </span>
+            </div>
+          )}
+          {otherTotal > 0 && (
+            <div className="flex items-center gap-2">
+              <span className="inline-block h-3.5 w-3.5" style={{ background: "var(--fg-subtle)" }} />
+              <span className="text-[13px]">
+                <strong className="font-semibold tabular-nums">{otherTotal}</strong>
+                <span className="text-[color:var(--fg-muted)]"> unspecified</span>
+              </span>
+            </div>
+          )}
+        </div>
+
+        <div className="border-t border-[color:var(--border-soft)]">
+          {rows.map((row, i) => {
+            const f = row.first / row.total
+            const t = row.third / row.total
+            const c = row.collab / row.total
+            const o = row.other / row.total
+            return (
+              <div
+                key={row.category}
+                className="grid items-center gap-4 py-3 sm:grid-cols-[180px_1fr_140px]"
+                style={{ borderBottom: i < rows.length - 1 ? "1px solid var(--border-soft)" : "none" }}
+              >
+                <div>
+                  <div className="text-[13px] font-medium capitalize">{row.category}</div>
+                  <div className="font-mono text-[10px] uppercase tracking-[0.1em] text-[color:var(--fg-subtle)] mt-0.5">
+                    {row.total} row{row.total === 1 ? "" : "s"}
+                  </div>
+                </div>
+                <div className="flex h-3 overflow-hidden bg-[color:var(--bg-surface)]">
+                  {f > 0 && <div style={{ width: `${f * 100}%`, background: "var(--fg)" }} title={`${row.first} first-party`} />}
+                  {t > 0 && <div style={{ width: `${t * 100}%`, background: "var(--accent)" }} title={`${row.third} third-party`} />}
+                  {c > 0 && <div style={{ width: `${c * 100}%`, background: "var(--accent-hover)" }} title={`${row.collab} collaborative`} />}
+                  {o > 0 && <div style={{ width: `${o * 100}%`, background: "var(--fg-subtle)" }} title={`${row.other} unspecified`} />}
+                </div>
+                <div className="text-right font-mono text-[11px] tabular-nums text-[color:var(--fg-muted)]">
+                  <span className="text-[color:var(--fg)]">{row.first}</span>
+                  <span className="text-[color:var(--fg-subtle)]"> · </span>
+                  <span style={{ color: "var(--accent)" }}>{row.third}</span>
+                  {(row.collab > 0 || row.other > 0) && (
+                    <>
+                      <span className="text-[color:var(--fg-subtle)]"> · </span>
+                      <span className="text-[color:var(--fg-subtle)]">{row.collab + row.other}</span>
+                    </>
+                  )}
+                </div>
+              </div>
+            )
+          })}
+        </div>
       </div>
     </div>
   )

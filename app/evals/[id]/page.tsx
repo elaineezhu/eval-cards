@@ -3,17 +3,12 @@
 import { useCallback, useEffect, useMemo, useState } from "react"
 import { useParams, usePathname, useRouter, useSearchParams } from "next/navigation"
 import Link from "next/link"
-import { Button } from "@/components/ui/button"
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { Badge } from "@/components/ui/badge"
-import { Input } from "@/components/ui/input"
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
-import { ArrowLeft, BarChart3, Grid3X3, Search } from "lucide-react"
+import { ArrowLeft, ArrowUpRight, BarChart3, Grid3X3, Search } from "lucide-react"
 import { Navigation } from "@/components/navigation"
 import { EvalDetail } from "@/components/eval-detail"
+import { useAudienceMode } from "@/components/audience-mode-provider"
 import type { BenchmarkEvalSummary } from "@/lib/eval-processing"
 import { fetchEvalSummary } from "@/lib/dashboard-data-client"
-import { getCategoryColor } from "@/lib/benchmark-schema"
 
 const PARAM_RANGE_VALUES = [1, 2, 3, 4, 6, 8, 10, 12, 16, 24, 32, 48, 64, 96, 128, 192, 256, 384, 500] as const
 const PARAM_RANGE_MARKERS = [
@@ -31,33 +26,6 @@ function formatParamBoundLabel(step: number, bound: "min" | "max") {
   if (bound === "max" && step >= maxStepIndex) return "> 500B"
   const value = PARAM_RANGE_VALUES[step]
   return value != null ? `${value}B` : "Not reported"
-}
-
-function normalizeMetadataList(value: unknown): string[] {
-  if (Array.isArray(value)) {
-    return value
-      .filter((item): item is string => typeof item === "string")
-      .map((item) => item.trim())
-      .filter(Boolean)
-  }
-
-  if (typeof value !== "string") return []
-
-  const normalized = value.trim()
-  if (!normalized) return []
-
-  const looksDelimited = /[,;|]/.test(normalized)
-  if (looksDelimited) {
-    return normalized
-      .split(/[,;|]/)
-      .map((item) => item.trim())
-      .filter(Boolean)
-  }
-
-  // Treat long prose values as invalid list data rather than rendering oversized chips.
-  if (normalized.length > 40 || /\s/.test(normalized)) return []
-
-  return [normalized]
 }
 
 export default function EvalDetailPage() {
@@ -100,7 +68,6 @@ export default function EvalDetailPage() {
         setSummary(found)
         document.title = `${found.evaluation_name} | Benchmark`
 
-        // If aggregated, fetch each sub-eval for the matrix view
         if (found.is_aggregated && found.aggregate_sources?.length) {
           const subs = await Promise.all(
             found.aggregate_sources.map(async (source) => {
@@ -127,9 +94,9 @@ export default function EvalDetailPage() {
     return (
       <div className="min-h-screen bg-background">
         <Navigation />
-        <main className="container mx-auto px-4 py-8">
+        <main className="ec-page">
           <div className="flex items-center justify-center h-96">
-            <div className="text-lg text-muted-foreground">Loading evaluation details...</div>
+            <div className="kicker">Loading evaluation record…</div>
           </div>
         </main>
       </div>
@@ -140,13 +107,13 @@ export default function EvalDetailPage() {
     return (
       <div className="min-h-screen bg-background">
         <Navigation />
-        <main className="container mx-auto px-4 py-8">
+        <main className="ec-page">
           <div className="flex flex-col items-center justify-center h-96 space-y-4">
-            <div className="text-lg text-muted-foreground">{error ?? "Evaluation not found"}</div>
-            <Button onClick={handleBack}>
+            <div className="kicker">{error ?? "Evaluation not found"}</div>
+            <button type="button" onClick={handleBack} className="btn-ec outline">
               <ArrowLeft className="mr-2 h-4 w-4" />
-              Back to Evaluations
-            </Button>
+              Evaluations
+            </button>
           </div>
         </main>
       </div>
@@ -158,33 +125,15 @@ export default function EvalDetailPage() {
   return (
     <div className="min-h-screen bg-background">
       <Navigation />
-      <div className="border-b bg-muted/30">
-        <div className="container mx-auto px-4 sm:px-6 py-4 sm:py-6">
-          <div className="hidden sm:grid sm:grid-cols-[auto_1fr_auto] sm:items-center sm:gap-4">
-            <Button variant="ghost" onClick={handleBack}>
-              <ArrowLeft className="mr-2 h-4 w-4" />
-              Back
-            </Button>
-            <div className="text-center">
-              <h2 className="text-xl font-medium tracking-tight text-foreground/90 md:text-2xl">
-                {isComposite ? "Suite" : "Single benchmark details"}
-              </h2>
-            </div>
-            <div />
-          </div>
-          <div className="flex items-center gap-3 sm:hidden">
-            <Button variant="ghost" size="sm" onClick={handleBack} className="shrink-0">
-              <ArrowLeft className="h-4 w-4" />
-            </Button>
-            <div className="flex-1 text-center">
-              <h2 className="text-base font-medium tracking-tight text-foreground/90">
-                {isComposite ? "Suite" : "Single benchmark details"}
-              </h2>
-            </div>
-          </div>
-        </div>
-      </div>
-      <main className="container mx-auto px-4 py-8">
+      <main className="ec-page">
+        <button
+          type="button"
+          onClick={handleBack}
+          className="ec-crumb mb-6 inline-flex items-center gap-1.5"
+        >
+          <ArrowLeft className="h-3 w-3" />
+          Evaluations
+        </button>
         {isComposite ? (
           <CompositeEvalView
             summary={summary}
@@ -202,8 +151,13 @@ export default function EvalDetailPage() {
 }
 
 // ---------------------------------------------------------------------------
-// Suite view (paper §3.2 — composite reporting unit)
+// Composite (suite) view — paper §3.2 "composite reporting unit"
+// Surfaces sub-benchmarks as a hairline grid and a per-model × per-metric
+// matrix table. Both modes (research / policy) share the same chrome; the
+// policy-note panel changes per benchmark, surfaced from the sub-summary card.
 // ---------------------------------------------------------------------------
+
+type Tab = "metrics" | "matrix"
 
 function CompositeEvalView({
   summary,
@@ -218,73 +172,162 @@ function CompositeEvalView({
   onMatrixSearchChange: (v: string) => void
   currentDetailHref: string
 }) {
+  const { mode } = useAudienceMode()
+  const isPolicy = mode === "policy"
+  const [tab, setTab] = useState<Tab>("metrics")
+
+  const sources = summary.aggregate_sources ?? []
+  const subBenchmarkCount = sources.length
+  const card = summary.benchmark_card
+  const goal = card?.purpose_and_intended_users?.goal?.trim()
+  const overview = card?.benchmark_details?.overview?.trim()
+  const limitations = card?.purpose_and_intended_users?.limitations?.trim()
+  const audience = card?.purpose_and_intended_users?.audience
+  const audienceText = Array.isArray(audience) ? audience.join("; ") : audience
+  const lede = isPolicy
+    ? overview || goal || `Suite aggregating ${subBenchmarkCount} component benchmarks across ${summary.models_count.toLocaleString()} models.`
+    : goal || overview || `Suite aggregating ${subBenchmarkCount} component benchmarks across ${summary.models_count.toLocaleString()} models.`
+
   return (
-    <div className="space-y-6">
-      {/* Header */}
-      <Card>
-        <CardContent className="p-5 sm:p-6 space-y-4">
-          <div className="flex flex-wrap items-center gap-2">
-            <Badge variant="outline" className="text-[11px] uppercase tracking-[0.18em]">
-              Suite
-            </Badge>
-            <Badge variant="secondary">
-              {summary.aggregate_sources?.length ?? 0} metrics
-            </Badge>
-            <Badge variant="secondary">{summary.models_count.toLocaleString()} models</Badge>
-            <Badge className={getCategoryColor(summary.category)}>
-              {summary.category}
-            </Badge>
-          </div>
-          <div>
-            <h1 className="text-2xl font-semibold tracking-tight sm:text-3xl">
-              {summary.evaluation_name}
-            </h1>
-            <p className="mt-2 max-w-3xl text-sm leading-6 text-muted-foreground">
-              {summary.benchmark_card?.purpose_and_intended_users?.goal
-                ?? `Suite aggregating ${summary.aggregate_sources?.length ?? 0} metrics across ${summary.models_count.toLocaleString()} models.`}
-            </p>
-          </div>
-        </CardContent>
-      </Card>
+    <div className="space-y-10">
+      {/* HERO ------------------------------------------------------------- */}
+      <header className="motion-academic-enter">
+        <div className="kicker kicker-accent mb-2">
+          {isPolicy ? "Benchmark suite" : "Composite · §3.2"}
+        </div>
+        <h1 className="ec-page-h1" style={{ marginTop: 4 }}>{summary.evaluation_name}</h1>
+        <div
+          className="mb-5 flex flex-wrap items-center gap-3 font-mono text-[11px] uppercase tracking-[0.12em]"
+          style={{ color: "var(--fg-muted)" }}
+        >
+          {summary.composite_benchmark_name && summary.composite_benchmark_name !== summary.evaluation_name && (
+            <>
+              <span>{summary.composite_benchmark_name}</span>
+              <span style={{ color: "var(--fg-subtle)" }}>·</span>
+            </>
+          )}
+          <span>{summary.category}</span>
+          <span style={{ color: "var(--fg-subtle)" }}>·</span>
+          <span>{summary.metric_config.lower_is_better ? "Lower is better ↓" : "Higher is better ↑"}</span>
+        </div>
+        <p className="ec-page-lede">{lede}</p>
 
-      <Tabs defaultValue="metrics">
-        <TabsList>
-          <TabsTrigger value="metrics" className="gap-2">
-            <BarChart3 className="h-4 w-4" />
-            Sub-Benchmarks
-          </TabsTrigger>
-          <TabsTrigger value="matrix" className="gap-2">
-            <Grid3X3 className="h-4 w-4" />
-            Score breakdown
-          </TabsTrigger>
-        </TabsList>
+        <div className="ec-page-meta mt-2">
+          <div className="ec-page-meta-item">
+            <span className="ec-page-meta-item-l">Components</span>
+            <span className="ec-page-meta-item-v">{subBenchmarkCount}</span>
+          </div>
+          <div className="ec-page-meta-item">
+            <span className="ec-page-meta-item-l">Models</span>
+            <span className="ec-page-meta-item-v">{summary.models_count.toLocaleString()}</span>
+          </div>
+          <div className="ec-page-meta-item">
+            <span className="ec-page-meta-item-l">Metrics</span>
+            <span className="ec-page-meta-item-v">{summary.metrics_count ?? subBenchmarkCount}</span>
+          </div>
+          {summary.tags?.languages && summary.tags.languages.length > 0 && (
+            <div className="ec-page-meta-item">
+              <span className="ec-page-meta-item-l">Languages</span>
+              <span className="ec-page-meta-item-v">{summary.tags.languages.slice(0, 3).join(", ")}</span>
+            </div>
+          )}
+        </div>
+      </header>
 
-        <TabsContent value="metrics" className="mt-6">
-          <SubBenchmarkCards
-            sources={summary.aggregate_sources ?? []}
+      {/* POLICY NOTE (policy mode only) ----------------------------------- */}
+      {isPolicy && (overview || limitations || audienceText) && (
+        <section className="ec-card warm" style={{ padding: "20px 24px" }}>
+          <div className="kicker mb-3">Policy note</div>
+          <dl className="grid gap-y-2.5 text-[14px]" style={{ gridTemplateColumns: "max-content 1fr", columnGap: 24 }}>
+            {overview && (
+              <>
+                <dt className="font-mono text-[10px] uppercase tracking-[0.14em]" style={{ color: "var(--fg-subtle)", paddingTop: 3 }}>
+                  Measures
+                </dt>
+                <dd style={{ color: "var(--fg)", lineHeight: 1.6 }}>{overview}</dd>
+              </>
+            )}
+            {limitations && (
+              <>
+                <dt className="font-mono text-[10px] uppercase tracking-[0.14em]" style={{ color: "var(--accent)", paddingTop: 3 }}>
+                  Caveat
+                </dt>
+                <dd style={{ color: "var(--fg)", lineHeight: 1.6 }}>{limitations}</dd>
+              </>
+            )}
+            {audienceText && (
+              <>
+                <dt className="font-mono text-[10px] uppercase tracking-[0.14em]" style={{ color: "var(--fg-subtle)", paddingTop: 3 }}>
+                  Intended for
+                </dt>
+                <dd style={{ color: "var(--fg)", lineHeight: 1.6 }}>{audienceText}</dd>
+              </>
+            )}
+          </dl>
+        </section>
+      )}
+
+      {/* TAB SWITCH ------------------------------------------------------- */}
+      <div>
+        <div className="section-head">
+          <h2>{tab === "metrics" ? "Sub-benchmarks" : "Score breakdown"}</h2>
+          <div className="flex items-center gap-1">
+            <button
+              type="button"
+              onClick={() => setTab("metrics")}
+              className={`ec-pill ${tab === "metrics" ? "on" : ""}`}
+            >
+              <span className="inline-flex items-center gap-1.5">
+                <BarChart3 className="h-3 w-3" />
+                Sub-benchmarks · {subBenchmarkCount}
+              </span>
+            </button>
+            <button
+              type="button"
+              onClick={() => setTab("matrix")}
+              className={`ec-pill ${tab === "matrix" ? "on" : ""}`}
+            >
+              <span className="inline-flex items-center gap-1.5">
+                <Grid3X3 className="h-3 w-3" />
+                Matrix view
+              </span>
+            </button>
+          </div>
+        </div>
+
+        <p
+          className="text-[13px] leading-[1.6] mb-6"
+          style={{ color: "var(--fg-muted)", maxWidth: 720 }}
+        >
+          {tab === "metrics"
+            ? "Each card is one component benchmark inside this suite. Click a card to inspect its leaderboard, sub-tasks and benchmark card."
+            : "Per-model scores across every component metric. Each column is a separately reported measure — distinct measures stay separate instead of collapsing into one number."}
+        </p>
+
+        {tab === "metrics" ? (
+          <SubBenchmarkGrid
+            sources={sources}
             subSummaries={subSummaries}
             currentDetailHref={currentDetailHref}
           />
-        </TabsContent>
-
-        <TabsContent value="matrix" className="mt-6">
+        ) : (
           <MatrixLeaderboard
             summary={summary}
             subSummaries={subSummaries}
             search={matrixSearch}
             onSearchChange={onMatrixSearchChange}
           />
-        </TabsContent>
-      </Tabs>
+        )}
+      </div>
     </div>
   )
 }
 
 // ---------------------------------------------------------------------------
-// Sub-benchmark cards
+// Sub-benchmark cards (paper-aligned fam-grid)
 // ---------------------------------------------------------------------------
 
-function SubBenchmarkCards({
+function SubBenchmarkGrid({
   sources,
   subSummaries,
   currentDetailHref,
@@ -298,76 +341,72 @@ function SubBenchmarkCards({
     [subSummaries]
   )
 
+  if (sources.length === 0) {
+    return (
+      <div className="ec-card" style={{ padding: 32, textAlign: "center" }}>
+        <div className="kicker">No component benchmarks reported</div>
+      </div>
+    )
+  }
+
   return (
-    <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+    <div className="fam-grid">
       {sources.map((source) => {
         const sub = subMap.get(source.evaluation_id)
         const card = sub?.benchmark_card
         const overview = card?.benchmark_details?.overview ?? sub?.metric_config?.evaluation_description
-        const domains = normalizeMetadataList(card?.benchmark_details?.domains)
         const goal = card?.purpose_and_intended_users?.goal
+        const summaryLine = goal || overview
 
         return (
           <Link
             key={source.evaluation_id}
             href={`/evals/${source.evaluation_id}?from=${encodeURIComponent(currentDetailHref)}`}
-            className="group"
+            className="fam-card group block"
+            style={{ textDecoration: "none", color: "inherit" }}
           >
-            <Card className="h-full transition-all hover:-translate-y-0.5 hover:shadow-lg">
-              <CardHeader className="pb-3">
-                <div className="flex items-center justify-between gap-2">
-                  <CardTitle className="text-base font-semibold transition-colors group-hover:text-primary">
-                    {card?.benchmark_details?.name ?? source.composite_benchmark_name}
-                  </CardTitle>
-                  <Badge variant="outline" className="text-xs shrink-0">
-                    {source.models_count} models
-                  </Badge>
-                </div>
-              </CardHeader>
-              <CardContent className="pt-0 space-y-3">
-                {overview && (
-                  <p className="text-sm text-muted-foreground line-clamp-3">
-                    {overview}
-                  </p>
-                )}
-
-                {sub?.best_model && (
-                  <div className="text-sm">
-                    <span className="text-muted-foreground">Top: </span>
-                    <span className="font-medium">{sub.best_model.name}</span>
-                    <span className="ml-1 text-muted-foreground">
-                      ({(sub.best_model.score * 100).toFixed(1)}%)
-                    </span>
-                  </div>
-                )}
-
-                {domains.length > 0 && (
-                  <div className="flex flex-wrap gap-1.5">
-                    {domains.slice(0, 3).map((domain) => (
-                      <span
-                        key={domain}
-                        className="rounded-full border border-border/60 bg-muted/30 px-2 py-0.5 text-[10px] font-medium capitalize text-muted-foreground"
-                      >
-                        {domain}
-                      </span>
-                    ))}
-                    {domains.length > 3 && (
-                      <span className="rounded-full border border-border/60 bg-muted/30 px-2 py-0.5 text-[10px] text-muted-foreground">
-                        +{domains.length - 3}
-                      </span>
-                    )}
-                  </div>
-                )}
-
-                <div className="flex flex-wrap items-center gap-1.5">
-                  {sub?.category && (
-                    <Badge className={`${getCategoryColor(sub.category)} text-[10px]`}>
-                      {sub.category}
-                    </Badge>
-                  )}
-                </div>
-              </CardContent>
-            </Card>
+            <div className="flex items-start justify-between gap-2 mb-1">
+              <div className="fam-card-kind">Component benchmark</div>
+              <div className="fam-card-counts">
+                {source.models_count} model{source.models_count === 1 ? "" : "s"}
+              </div>
+            </div>
+            <h3 className="fam-card-name group-hover:text-[color:var(--accent)] transition-colors">
+              {card?.benchmark_details?.name ?? source.composite_benchmark_name}
+            </h3>
+            <div className="fam-card-org">{source.evaluation_id}</div>
+            {summaryLine && (
+              <p className="fam-card-summary line-clamp-3">{summaryLine}</p>
+            )}
+            {sub?.best_model && (
+              <div
+                className="mt-3 pt-3 text-[12px]"
+                style={{
+                  borderTop: "1px dashed var(--border-soft)",
+                  color: "var(--fg-muted)",
+                }}
+              >
+                <span
+                  className="font-mono uppercase tracking-[0.12em] mr-2"
+                  style={{ fontSize: 9.5, color: "var(--fg-subtle)" }}
+                >
+                  Top
+                </span>
+                <span style={{ color: "var(--fg)", fontWeight: 600 }}>
+                  {sub.best_model.name}
+                </span>
+                <span className="ml-1 font-mono tabular-nums" style={{ color: "var(--fg-muted)" }}>
+                  {(sub.best_model.score * 100).toFixed(1)}%
+                </span>
+              </div>
+            )}
+            <div
+              className="mt-3 inline-flex items-center gap-1 font-mono text-[10px] uppercase tracking-[0.12em]"
+              style={{ color: "var(--accent)" }}
+            >
+              Open
+              <ArrowUpRight className="h-3 w-3" />
+            </div>
           </Link>
         )
       })}
@@ -376,11 +415,11 @@ function SubBenchmarkCards({
 }
 
 // ---------------------------------------------------------------------------
-// Matrix leaderboard (models × metrics)
+// Matrix leaderboard (models × metrics) — paper-aligned ec-htable
 // ---------------------------------------------------------------------------
 
 function MatrixLeaderboard({
-  summary,
+  summary: _summary,
   subSummaries,
   search,
   onSearchChange,
@@ -431,7 +470,6 @@ function MatrixLeaderboard({
         const avg = validScores.length > 0
           ? validScores.reduce((a, b) => a + b, 0) / validScores.length
           : 0
-        // Parse model size from name (e.g., "70B", "8b", "1.5B", "405b")
         let sizeB: number | null = null
         const sizeMatch = (data.name + " " + id).match(/\b(\d+(?:\.\d+)?)\s*[bB]\b/)
         if (sizeMatch) sizeB = parseFloat(sizeMatch[1])
@@ -477,7 +515,6 @@ function MatrixLeaderboard({
   const pagedModels = filteredModels.slice(0, page * PAGE_SIZE)
   const hasMore = pagedModels.length < filteredModels.length
 
-  // Color coding per column
   const metricRanges = useMemo(() => {
     const ranges = new Map<string, { min: number; max: number }>()
     for (const metric of visibleMetrics) {
@@ -533,175 +570,215 @@ function MatrixLeaderboard({
 
   if (subSummaries.length === 0) {
     return (
-      <div className="py-12 text-center text-muted-foreground">
-        Loading sub-benchmark data for the matrix view...
+      <div className="ec-card" style={{ padding: 32, textAlign: "center" }}>
+        <div className="kicker">Loading component benchmark data…</div>
       </div>
     )
   }
 
   return (
-    <div className="space-y-4">
-      <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
+    <div className="space-y-5">
+      {/* Filter row */}
+      <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:flex-wrap">
         <div className="relative w-full max-w-sm">
-          <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-          <Input
+          <Search
+            className="pointer-events-none absolute left-3 top-1/2 h-3.5 w-3.5 -translate-y-1/2"
+            style={{ color: "var(--fg-subtle)" }}
+          />
+          <input
             value={search}
             onChange={(e) => onSearchChange(e.target.value)}
-            placeholder="Search models..."
-            className="pl-9"
+            placeholder="Search models…"
+            className="ec-input"
+            style={{ paddingLeft: 36 }}
           />
         </div>
-        <div className="rounded-xl border border-border/70 bg-muted/15 px-4 py-2">
-          <div className="flex items-center gap-3">
-            <span className="shrink-0 text-sm font-medium text-foreground">Parameters</span>
 
-            <div className="min-w-0 flex-1 w-[min(92vw,300px)]">
-              <div className="relative mb-1 h-4 text-[11px] text-muted-foreground">
-                {PARAM_RANGE_MARKERS.map((marker) => (
-                  <span
-                    key={marker.label}
-                    className="absolute top-0 whitespace-nowrap"
-                    style={{
-                      left: `${(marker.step / maxStepIndex) * 100}%`,
-                      transform:
-                        marker.step === 0 ? "translateX(0)"
-                          : marker.step === maxStepIndex ? "translateX(-100%)"
+        {/* Param slider */}
+        <div
+          className="flex items-center gap-3 px-4 py-2"
+          style={{ border: "1px solid var(--border-soft)", background: "var(--bg-warm)" }}
+        >
+          <span
+            className="shrink-0 font-mono uppercase tracking-[0.14em]"
+            style={{ fontSize: 10, color: "var(--fg-subtle)" }}
+          >
+            Params
+          </span>
+          <div className="min-w-0 flex-1 w-[min(92vw,300px)]">
+            <div className="relative mb-1 h-4 text-[10px]" style={{ color: "var(--fg-subtle)" }}>
+              {PARAM_RANGE_MARKERS.map((marker) => (
+                <span
+                  key={marker.label}
+                  className="absolute top-0 whitespace-nowrap font-mono"
+                  style={{
+                    left: `${(marker.step / maxStepIndex) * 100}%`,
+                    transform:
+                      marker.step === 0 ? "translateX(0)"
+                        : marker.step === maxStepIndex ? "translateX(-100%)"
                           : "translateX(-50%)",
-                    }}
-                  >
-                    {marker.label}
-                  </span>
+                  }}
+                >
+                  {marker.label}
+                </span>
+              ))}
+            </div>
+
+            <div className="relative h-4">
+              <div
+                className="absolute inset-x-1.5 top-1/2 h-[3px] -translate-y-1/2"
+                style={{ background: "var(--border-strong)" }}
+              />
+              <div className="absolute inset-x-1.5 top-1/2 h-[3px] -translate-y-1/2">
+                <div
+                  className="absolute inset-y-0"
+                  style={{
+                    background: "var(--fg)",
+                    left: `${(minParamStep / maxStepIndex) * 100}%`,
+                    right: `${Math.max(100 - (maxParamStep / maxStepIndex) * 100, 0)}%`,
+                  }}
+                />
+              </div>
+
+              <div className="absolute inset-x-1.5 top-1/2 -translate-y-1/2">
+                {PARAM_RANGE_VALUES.map((_, stepIndex) => (
+                  <span
+                    key={`param-tick-${stepIndex}`}
+                    className="absolute top-0 h-2 w-px -translate-x-1/2"
+                    style={{ left: `${(stepIndex / maxStepIndex) * 100}%`, background: "var(--border-soft)" }}
+                    aria-hidden="true"
+                  />
                 ))}
               </div>
 
-              <div className="relative h-4">
-                <div className="absolute inset-x-1.5 top-1/2 h-[3px] -translate-y-1/2 rounded-full bg-border/80" />
-                <div className="absolute inset-x-1.5 top-1/2 h-[3px] -translate-y-1/2">
-                  <div
-                    className="absolute inset-y-0 rounded-full bg-foreground transition-[left,right] duration-300 ease-[var(--ease-out-quint)]"
-                    style={{
-                      left: `${(minParamStep / maxStepIndex) * 100}%`,
-                      right: `${Math.max(100 - (maxParamStep / maxStepIndex) * 100, 0)}%`,
-                    }}
-                  />
-                </div>
-
-                <div className="absolute inset-x-1.5 top-1/2 -translate-y-1/2">
-                  {PARAM_RANGE_VALUES.map((_, stepIndex) => (
-                    <span
-                      key={`param-tick-${stepIndex}`}
-                      className="absolute top-0 h-2 w-px -translate-x-1/2 rounded-full bg-border"
-                      style={{ left: `${(stepIndex / maxStepIndex) * 100}%` }}
-                      aria-hidden="true"
-                    />
-                  ))}
-                </div>
-
-                <input
-                  type="range"
-                  min={0}
-                  max={maxStepIndex}
-                  step={1}
-                  value={minParamStep}
-                  onChange={(e) => {
-                    const v = Number(e.target.value)
-                    setMinParamStep(Math.min(v, maxParamStep))
-                  }}
-                  className="param-range-input"
-                  aria-label="Minimum parameter filter"
-                />
-                <input
-                  type="range"
-                  min={0}
-                  max={maxStepIndex}
-                  step={1}
-                  value={maxParamStep}
-                  onChange={(e) => {
-                    const v = Number(e.target.value)
-                    setMaxParamStep(Math.max(v, minParamStep))
-                  }}
-                  className="param-range-input"
-                  aria-label="Maximum parameter filter"
-                />
-              </div>
+              <input
+                type="range"
+                min={0}
+                max={maxStepIndex}
+                step={1}
+                value={minParamStep}
+                onChange={(e) => {
+                  const v = Number(e.target.value)
+                  setMinParamStep(Math.min(v, maxParamStep))
+                }}
+                className="param-range-input"
+                aria-label="Minimum parameter filter"
+              />
+              <input
+                type="range"
+                min={0}
+                max={maxStepIndex}
+                step={1}
+                value={maxParamStep}
+                onChange={(e) => {
+                  const v = Number(e.target.value)
+                  setMaxParamStep(Math.max(v, minParamStep))
+                }}
+                className="param-range-input"
+                aria-label="Maximum parameter filter"
+              />
             </div>
-
-            <span className="shrink-0 text-[11px] text-muted-foreground">
-              {formatParamBoundLabel(minParamStep, "min")} to {formatParamBoundLabel(maxParamStep, "max")}
-            </span>
           </div>
+
+          <span
+            className="shrink-0 font-mono"
+            style={{ fontSize: 10, color: "var(--fg-muted)" }}
+          >
+            {formatParamBoundLabel(minParamStep, "min")} – {formatParamBoundLabel(maxParamStep, "max")}
+          </span>
         </div>
-        <div className="text-sm text-muted-foreground whitespace-nowrap">
+
+        <div
+          className="font-mono uppercase tracking-[0.14em] whitespace-nowrap ml-auto"
+          style={{ fontSize: 10, color: "var(--fg-subtle)" }}
+        >
           {filteredModels.length} models × {visibleMetrics.length} metrics
         </div>
       </div>
 
       {/* Column toggles */}
       <div className="flex flex-wrap gap-1.5">
-        {metrics.map((metric) => (
-          <button
-            key={metric}
-            type="button"
-            onClick={() => toggleCol(metric)}
-            className={`rounded-full border px-2.5 py-1 text-[11px] font-medium transition-colors ${
-              hiddenCols.has(metric)
-                ? "border-border/40 bg-muted/20 text-muted-foreground/50 line-through"
-                : "border-border/70 bg-background text-foreground hover:border-primary/50"
-            }`}
-          >
-            {metric}
-          </button>
-        ))}
+        {metrics.map((metric) => {
+          const off = hiddenCols.has(metric)
+          return (
+            <button
+              key={metric}
+              type="button"
+              onClick={() => toggleCol(metric)}
+              className="ec-pill"
+              style={{
+                opacity: off ? 0.5 : 1,
+                textDecoration: off ? "line-through" : "none",
+                background: off ? "transparent" : "var(--bg)",
+              }}
+            >
+              {metric}
+            </button>
+          )
+        })}
       </div>
 
-      <div className="overflow-x-auto rounded-lg border">
-        <table className="w-full text-sm" style={{ tableLayout: "fixed" }}>
+      {/* Matrix table */}
+      <div className="overflow-x-auto" style={{ border: "1px solid var(--border-soft)" }}>
+        <table className="ec-htable" style={{ tableLayout: "fixed", minWidth: "max-content" }}>
           <colgroup>
             <col style={{ width: 48 }} />
-            <col style={{ width: 220 }} />
+            <col style={{ width: 240 }} />
             <col style={{ width: 90 }} />
             {visibleMetrics.map((m) => (
-              <col key={m} style={{ width: 110 }} />
+              <col key={m} style={{ width: 130 }} />
             ))}
           </colgroup>
           <thead>
-            <tr className="border-b bg-muted/30">
-              <th className="sticky left-0 z-10 bg-muted/30 px-3 py-2 text-left font-semibold">#</th>
+            <tr>
+              <th>#</th>
               <th
-                className="sticky left-[48px] z-10 bg-muted/30 px-3 py-2 text-left font-semibold cursor-pointer select-none hover:text-primary"
                 onClick={() => handleSort("name")}
+                style={{ cursor: "pointer" }}
               >
                 Model{sortIndicator("name")}
               </th>
               <th
-                className="px-3 py-2 text-right font-semibold cursor-pointer select-none hover:text-primary"
+                className="num"
                 onClick={() => handleSort("avg")}
+                style={{ cursor: "pointer" }}
               >
                 Avg{sortIndicator("avg")}
               </th>
               {visibleMetrics.map((metric) => (
                 <th
                   key={metric}
-                  className="px-3 py-2 text-right font-semibold cursor-pointer select-none hover:text-primary truncate"
+                  className="num"
                   onClick={() => handleSort(metric)}
+                  style={{ cursor: "pointer" }}
                   title={metric}
                 >
-                  {metric}{sortIndicator(metric)}
+                  <span className="truncate inline-block max-w-full">
+                    {metric}{sortIndicator(metric)}
+                  </span>
                 </th>
               ))}
             </tr>
           </thead>
           <tbody>
             {pagedModels.map((model, idx) => (
-              <tr key={model.id} className="border-b hover:bg-muted/20 transition-colors">
-                <td className="sticky left-0 z-10 bg-background px-3 py-2 text-muted-foreground tabular-nums">
+              <tr key={model.id}>
+                <td
+                  className="font-mono tabular-nums"
+                  style={{ color: idx < 3 ? "var(--accent)" : "var(--fg-muted)", fontSize: 12 }}
+                >
                   {idx + 1}
                 </td>
-                <td className="sticky left-[48px] z-10 bg-background px-3 py-2">
-                  <div className="font-medium truncate">{model.name}</div>
-                  <div className="text-xs text-muted-foreground truncate">{model.developer}</div>
+                <td>
+                  <div className="font-semibold text-[14px] truncate">{model.name}</div>
+                  <div
+                    className="font-mono text-[10px] uppercase tracking-[0.08em] mt-0.5 truncate"
+                    style={{ color: "var(--fg-subtle)" }}
+                  >
+                    {model.developer}
+                  </div>
                 </td>
-                <td className="px-3 py-2 text-right font-semibold tabular-nums">
+                <td className="num font-mono tabular-nums" style={{ fontWeight: 600, fontSize: 14 }}>
                   {formatScore(model.avg)}
                 </td>
                 {visibleMetrics.map((metric) => {
@@ -710,7 +787,8 @@ function MatrixLeaderboard({
                   return (
                     <td
                       key={metric}
-                      className={`px-3 py-2 text-right tabular-nums ${valid ? scoreColor(metric, score) : "text-muted-foreground"}`}
+                      className={`num font-mono tabular-nums ${valid ? scoreColor(metric, score) : ""}`}
+                      style={{ color: valid ? undefined : "var(--fg-subtle)", fontSize: 13 }}
                     >
                       {valid ? formatScore(score) : "—"}
                     </td>
@@ -724,9 +802,13 @@ function MatrixLeaderboard({
 
       {hasMore && (
         <div className="text-center">
-          <Button variant="outline" onClick={() => setPage((p) => p + 1)}>
+          <button
+            type="button"
+            className="btn-ec outline"
+            onClick={() => setPage((p) => p + 1)}
+          >
             Load more ({filteredModels.length - pagedModels.length} remaining)
-          </Button>
+          </button>
         </div>
       )}
     </div>

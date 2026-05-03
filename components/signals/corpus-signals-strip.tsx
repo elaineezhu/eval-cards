@@ -1,9 +1,22 @@
 import type { CorpusAggregates } from "@/lib/backend-artifacts"
 
+type SignalId =
+  | "reproducibility"
+  | "completeness"
+  | "provenance"
+  | "comparability"
+
+const SIGNAL_GLYPHS: Record<SignalId, string> = {
+  reproducibility: "R",
+  completeness: "C",
+  provenance: "P",
+  comparability: "X",
+}
+
 /**
- * Compact 4-tile rollup of the four interpretive signals (paper §4.2.1).
- * Designed for the home page: one headline per signal, one caption, one
- * sub-detail line. Drill-down lives on per-record pages.
+ * Corpus-level rollup of the four interpretive signals (paper §4.2.1).
+ * Renders as a 4-up grid of "signal tiles" matching the EvalEval design system:
+ * monochrome typography, mono numerals, glyphs that double as colour anchors.
  */
 export function CorpusSignalsStrip({
   aggregates,
@@ -15,94 +28,123 @@ export function CorpusSignalsStrip({
   const prov = aggregates.provenance.overall
   const cmp = aggregates.comparability.overall
 
-  // Invert the gap rate so the headline reads as "how many are documented",
-  // not "how many have gaps". The inverse is more impactful and lower-is-worse,
-  // which matches the user's intuition. The gap rate stays in the detail line.
-  const reproDocumentedRate =
+  // Invert the gap rate to read as "documented", which matches reader intuition.
+  const reproDocumented =
     repro.reproducibility_gap_rate == null
       ? null
       : Math.max(0, 1 - repro.reproducibility_gap_rate)
-  const reproDocumentedRateText = formatPct(reproDocumentedRate)
-  const reproGapRateText = formatPct(repro.reproducibility_gap_rate)
   const reproDetail = topMissingFields(repro.per_field_missingness, 2)
 
-  const compMean = formatPct(comp.completeness_score_mean)
-  const compMedian = formatPct(comp.completeness_score_median)
-
-  const provMulti = formatPct(prov.multi_source_rate)
   const totalReports = prov.total_triples
   const tpShare = totalReports > 0 ? prov.source_type_distribution.third_party / totalReports : 0
   const fpShare = totalReports > 0 ? prov.source_type_distribution.first_party / totalReports : 0
 
-  const cmpRate = formatPct(cmp.variant_divergence_rate)
+  const cmpRate = cmp.variant_divergence_rate
   const crossPartyAvailable = cmp.cross_party_eligible_groups > 0
 
   return (
-    <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
+    <div className="signals-grid">
       <SignalTile
-        label="Reproducibility"
-        value={reproDocumentedRateText}
-        caption="of reported scores have a complete setup recorded — the rest cannot be independently re-run"
+        id="reproducibility"
+        statValue={pctNum(reproDocumented)}
+        statUnit="%"
+        headline="of reported scores have a complete setup recorded — the rest cannot be independently re-run."
         detail={
           reproDetail
-            ? `${reproGapRateText} have at least one undocumented field. Most often missing: ${reproDetail}`
-            : `${reproGapRateText} have at least one undocumented field`
+            ? `${formatPct(repro.reproducibility_gap_rate)} have at least one undocumented field. Most often missing: ${reproDetail}.`
+            : `${formatPct(repro.reproducibility_gap_rate)} have at least one undocumented field.`
         }
+        asks="Can someone else run this evaluation and get the same number?"
       />
-
       <SignalTile
-        label="Reporting completeness"
-        value={compMean}
-        caption={`mean across ${comp.total_benchmarks.toLocaleString()} benchmarks (median ${compMedian})`}
-        detail="Source-provenance fields populate fully; preregistration fields are unmet"
+        id="completeness"
+        statValue={pctNum(comp.completeness_score_mean)}
+        statUnit="%"
+        headline={`mean across ${comp.total_benchmarks.toLocaleString()} benchmarks (median ${formatPct(comp.completeness_score_median)}).`}
+        detail="Source-provenance fields populate fully; preregistration fields are unmet."
+        asks="Is the benchmark itself documented well enough to interpret a score on it?"
       />
-
       <SignalTile
-        label="Provenance"
-        value={provMulti}
-        caption="of (model, benchmark) groups have reports from more than one party"
-        detail={`${formatPct(tpShare)} third-party, ${formatPct(fpShare)} first-party of ${totalReports.toLocaleString()} results`}
+        id="provenance"
+        statValue={pctNum(prov.multi_source_rate)}
+        statUnit="%"
+        headline="of (model, benchmark) groups have reports from more than one party."
+        detail={`${formatPct(tpShare)} third-party, ${formatPct(fpShare)} first-party of ${totalReports.toLocaleString()} results.`}
+        asks="Who reported this score, and have others reproduced it?"
       />
-
       <SignalTile
-        label="Comparability"
-        value={cmpRate}
-        caption={`of setup-eligible groups diverge across variants (${cmp.variant_divergent_groups.toLocaleString()} of ${cmp.variant_eligible_groups.toLocaleString()})`}
+        id="comparability"
+        statValue={pctNum(cmpRate)}
+        statUnit="%"
+        headline={`of setup-eligible groups diverge across variants (${cmp.variant_divergent_groups.toLocaleString()} of ${cmp.variant_eligible_groups.toLocaleString()}).`}
         detail={
           crossPartyAvailable
-            ? `Cross-party divergence: ${formatPct(cmp.cross_party_divergence_rate)}`
-            : "Cross-party divergence not yet computable — too few multi-org reports"
+            ? `Cross-party divergence: ${formatPct(cmp.cross_party_divergence_rate)}.`
+            : "Cross-party divergence not yet computable — too few multi-org reports."
         }
+        asks="Are scores on the same benchmark actually measuring the same thing?"
       />
     </div>
   )
 }
 
 function SignalTile({
-  label,
-  value,
-  caption,
+  id,
+  statValue,
+  statUnit,
+  headline,
   detail,
+  asks,
 }: {
-  label: string
-  value: string
-  caption: string
+  id: SignalId
+  statValue: string
+  statUnit: string
+  headline: string
   detail: string
+  asks: string
 }) {
+  const name =
+    id === "reproducibility"
+      ? "Reproducibility"
+      : id === "completeness"
+      ? "Completeness"
+      : id === "provenance"
+      ? "Provenance"
+      : "Comparability"
+
   return (
-    <div className="flex flex-col gap-2 rounded-2xl border border-border/70 bg-card p-4">
-      <div className="text-[10px] font-semibold uppercase tracking-[0.22em] text-muted-foreground">
-        {label}
-      </div>
-      <div className="flex items-baseline gap-2">
-        <span className="text-3xl font-semibold tabular-nums tracking-tight text-foreground">
-          {value}
+    <div className="sig-tile">
+      <div className="sig-tile-head">
+        <span
+          className={`sig-glyph sig-${id}`}
+          style={{ width: 32, height: 32, fontSize: "0.825rem" }}
+        >
+          <span>{SIGNAL_GLYPHS[id]}</span>
         </span>
+        <span className="sig-tile-name">{name}</span>
       </div>
-      <p className="text-sm leading-snug text-muted-foreground">{caption}.</p>
-      <p className="mt-auto text-xs leading-snug text-muted-foreground/80">{detail}.</p>
+
+      <div className="sig-tile-stat">
+        <span className="sig-tile-num">{statValue}</span>
+        <span className="sig-tile-unit">{statUnit}</span>
+      </div>
+
+      <p className="sig-tile-headline">{headline}</p>
+      <p className="sig-tile-detail">{detail}</p>
+
+      <div className="sig-tile-asks">
+        <span className="kicker">Asks</span>
+        <span className="sig-tile-asks-text">{asks}</span>
+      </div>
     </div>
   )
+}
+
+function pctNum(value: number | null | undefined): string {
+  if (value == null || !Number.isFinite(value)) return "—"
+  if (value === 0) return "0"
+  if (value > 0 && value < 0.01) return "<1"
+  return `${Math.round(value * 100)}`
 }
 
 function formatPct(value: number | null | undefined): string {
@@ -121,11 +163,6 @@ const FIELD_LABELS: Record<string, string> = {
   eval_limits: "eval limits",
 }
 
-/**
- * Returns a short comma-separated list of the top-N missing fields, ranked by
- * missing count. We rank by count rather than rate so cross-denominator fields
- * (agentic-only vs all-triples) don't get artificially boosted.
- */
 function topMissingFields(
   perField: Record<
     string,

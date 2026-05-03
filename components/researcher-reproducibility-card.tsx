@@ -378,20 +378,42 @@ export function ResearcherReproducibilityCard({
   const isCompact = shouldStartCompact && !showAll
 
   return (
-    <section className="rounded-2xl border bg-background/70 p-4">
+    <section
+      style={{
+        padding: 16,
+        border: "1px solid var(--border-soft)",
+        background: "var(--bg)",
+      }}
+    >
       <header className="mb-3 flex items-start justify-between gap-3">
         <div className="flex items-start gap-2 min-w-0">
-          <FlaskConical className="mt-0.5 h-4 w-4 shrink-0 text-primary" />
+          <FlaskConical className="mt-0.5 h-4 w-4 shrink-0" style={{ color: "var(--fg-muted)" }} />
           <div className="min-w-0">
-            <div className="text-sm font-semibold">Reproducibility</div>
-            <div className="text-xs text-muted-foreground">
+            <div
+              className="font-mono uppercase mb-1"
+              style={{ fontSize: 10, letterSpacing: "0.14em", color: "var(--fg-subtle)" }}
+            >
+              Reproducibility
+            </div>
+            <div className="text-[12px]" style={{ color: "var(--fg-muted)" }}>
               {isCompact
                 ? `Limited disclosure — only ${disclosedFields} of ${totalFields} reproducibility fields are reported.`
                 : "Everything someone would need to re-run this evaluation. Missing fields are flagged."}
             </div>
           </div>
         </div>
-        <span className="shrink-0 rounded-full border border-border/60 bg-muted/30 px-2 py-0.5 text-[11px] font-medium tabular-nums text-muted-foreground">
+        <span
+          className="shrink-0 font-mono tabular-nums"
+          style={{
+            fontSize: 10,
+            padding: "3px 8px",
+            letterSpacing: "0.06em",
+            border: "1px solid var(--border-soft)",
+            background: "var(--bg-warm)",
+            color: "var(--fg-muted)",
+            textTransform: "uppercase",
+          }}
+        >
           {loading ? "loading…" : `${disclosedFields}/${totalFields} disclosed`}
         </span>
       </header>
@@ -402,7 +424,10 @@ export function ResearcherReproducibilityCard({
             <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
               {disclosedGroups.map((g) => (
                 <div key={g.title}>
-                  <div className="mb-2 text-[10px] font-semibold uppercase tracking-[0.18em] text-muted-foreground">
+                  <div
+                    className="mb-2 font-mono uppercase"
+                    style={{ fontSize: 10, letterSpacing: "0.14em", color: "var(--fg-subtle)" }}
+                  >
                     {g.title}
                   </div>
                   {g.fields.map((f) => (
@@ -412,7 +437,15 @@ export function ResearcherReproducibilityCard({
               ))}
             </div>
           ) : (
-            <div className="rounded-xl border border-dashed border-amber-300/60 bg-amber-50/40 px-3 py-2 text-xs text-amber-800 dark:border-amber-900/60 dark:bg-amber-950/20 dark:text-amber-200">
+            <div
+              style={{
+                padding: "8px 12px",
+                fontSize: 12,
+                border: "1px dashed var(--accent)",
+                background: "var(--bg-warm)",
+                color: "var(--accent)",
+              }}
+            >
               No reproducibility metadata was disclosed by the source.
             </div>
           )}
@@ -436,7 +469,8 @@ export function ResearcherReproducibilityCard({
         <button
           type="button"
           onClick={() => setShowAll((v) => !v)}
-          className="mt-3 inline-flex items-center text-xs font-medium text-primary underline-offset-4 hover:underline"
+          className="mt-3 inline-flex items-center font-mono uppercase underline-offset-4 hover:underline"
+          style={{ fontSize: 10, letterSpacing: "0.12em", color: "var(--accent)" }}
         >
           {showAll
             ? "Hide undisclosed fields"
@@ -445,17 +479,32 @@ export function ResearcherReproducibilityCard({
       )}
 
       {promptTemplate && (
-        <details className="mt-4 rounded-xl border bg-muted/10">
-          <summary className="cursor-pointer px-3 py-2 text-xs font-semibold uppercase tracking-[0.16em] text-muted-foreground">
+        <details className="mt-4" style={{ border: "1px solid var(--border-soft)", background: "var(--bg-warm)" }}>
+          <summary
+            className="cursor-pointer px-3 py-2 font-mono uppercase"
+            style={{ fontSize: 10, letterSpacing: "0.14em", color: "var(--fg-subtle)" }}
+          >
             Prompt template
           </summary>
-          <pre className="max-h-[18rem] overflow-auto whitespace-pre-wrap break-words border-t bg-background/60 px-3 py-3 text-xs leading-5">
+          <pre
+            className="max-h-[18rem] overflow-auto whitespace-pre-wrap break-words px-3 py-3 text-[12px] leading-5 font-mono"
+            style={{ borderTop: "1px solid var(--border-soft)", background: "var(--bg)" }}
+          >
             {promptTemplate}
           </pre>
         </details>
       )}
       {!promptTemplate && !isCompact && (
-        <div className="mt-4 flex items-center gap-1.5 rounded-xl border border-dashed border-amber-300/60 bg-amber-50/40 px-3 py-2 text-xs text-amber-800 dark:border-amber-900/60 dark:bg-amber-950/20 dark:text-amber-200">
+        <div
+          className="mt-4 flex items-center gap-1.5"
+          style={{
+            padding: "8px 12px",
+            fontSize: 12,
+            border: "1px dashed var(--accent)",
+            background: "var(--bg-warm)",
+            color: "var(--accent)",
+          }}
+        >
           <AlertTriangle className="h-3.5 w-3.5" />
           <span>
             Prompt template not disclosed by the source.
@@ -467,12 +516,13 @@ export function ResearcherReproducibilityCard({
       )}
 
       {modelResult.source_metadata.source_url && (
-        <div className="mt-3 text-xs">
+        <div className="mt-3">
           <a
             href={modelResult.source_metadata.source_url}
             target="_blank"
             rel="noreferrer"
-            className="inline-flex items-center gap-1 text-primary underline-offset-4 hover:underline"
+            className="inline-flex items-center gap-1 font-mono uppercase underline-offset-4 hover:underline"
+            style={{ fontSize: 10, letterSpacing: "0.12em", color: "var(--accent)" }}
           >
             View original source <ExternalLink className="h-3 w-3" />
           </a>
