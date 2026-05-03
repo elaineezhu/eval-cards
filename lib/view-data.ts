@@ -38,7 +38,7 @@ const MODEL_CARD_COLUMNS = `
   params_billions, benchmark_names, score_summary,
   reproducibility_summary, provenance_summary, comparability_summary,
   top_scores, source_urls, detail_urls,
-  model_url, release_date, input_modalities, output_modalities,
+  model_url, release_date,
   architecture, params, inference_engine, inference_platform
 `
 
