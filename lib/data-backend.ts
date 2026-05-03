@@ -1,6 +1,7 @@
 import "server-only"
 
 import type { BackendManifestStatus } from "@/lib/backend-artifacts"
+import { normalizeEvalSummary } from "@/lib/eval-processing"
 
 const BACKEND_VERSION = process.env.DATA_BACKEND?.trim().toLowerCase() ?? "duckdb"
 
@@ -101,7 +102,8 @@ export async function getEvalSummaryById(evalId: string) {
     return (await viewBackend()).getEvalSummaryById(evalId)
   }
 
-  return (await legacyBackend()).getEvalSummaryByIdFromDuckDB(evalId)
+  const summary = await (await legacyBackend()).getEvalSummaryByIdFromDuckDB(evalId)
+  return summary ? normalizeEvalSummary(summary) : summary
 }
 
 export async function getBackendManifestData() {

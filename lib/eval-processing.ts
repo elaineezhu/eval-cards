@@ -245,6 +245,56 @@ export interface BenchmarkLeaderboardRow {
 export type BenchmarkEvalListItem = Omit<BenchmarkEvalSummary, "model_results">
 
 /**
+ * Fill in derived fields the upstream pipeline sometimes leaves blank.
+ *
+ * Currently: `instance_data`. The pipeline that emits eval-summary parquets
+ * occasionally ships rows where `instance_data` is null even though every
+ * `model_results[].result.detailed_evaluation_results_url` is populated
+ * (Wordle Arena is one example — 42 models, every one with a per-model
+ * JSONL URL on `evaleval/card_backend`, but `instance_data` was null).
+ *
+ * Rather than patching this at one render site we derive it once here so
+ * every consumer of the summary — eval detail page, modal previews,
+ * cross-referenced model summaries, etc. — sees the same picture.
+ */
+export function normalizeEvalSummary<T extends BenchmarkEvalSummary>(summary: T): T {
+  if (summary.instance_data?.available && summary.instance_data.url_count > 0) {
+    return summary
+  }
+
+  const distinctUrls = new Set<string>()
+  const modelsWithUrl = new Set<string>()
+  for (const result of summary.model_results ?? []) {
+    const url = result?.result?.detailed_evaluation_results_url
+    if (typeof url === "string" && url.length > 0) {
+      distinctUrls.add(url)
+      const modelId = result.model_info?.id
+      if (modelId) modelsWithUrl.add(modelId)
+    }
+  }
+
+  if (distinctUrls.size === 0) {
+    // Nothing to derive — preserve whatever the upstream said (typically
+    // `available: false` or absent).
+    return summary
+  }
+
+  // Take a small sample so callers can show example URLs without paying
+  // for the full set, mirroring the upstream pipeline's contract.
+  const sampleUrls = Array.from(distinctUrls).slice(0, 8)
+
+  return {
+    ...summary,
+    instance_data: {
+      available: true,
+      url_count: distinctUrls.size,
+      sample_urls: sampleUrls,
+      models_with_loaded_instances: modelsWithUrl.size,
+    },
+  }
+}
+
+/**
  * Group multiple evaluations by model
  */
 export function groupEvaluationsByModel(

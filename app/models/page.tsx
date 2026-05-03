@@ -9,29 +9,13 @@ import { InfiniteScrollSentinel } from "@/components/infinite-scroll"
 import { ModelCompareDialog } from "@/components/model-compare-dialog"
 import { ModelTable } from "@/components/model-table"
 import { Navigation } from "@/components/navigation"
+import { ParamRangePicker } from "@/components/param-range-picker"
 import { fetchDevelopers, fetchModelCards, fetchBenchmarkMetadata, type DeveloperListItem } from "@/lib/dashboard-data-client"
 import type { BenchmarkCard } from "@/lib/benchmark-schema"
+import { PARAM_RANGE_MAX_INDEX, paramStepToNumeric } from "@/lib/param-range"
 
 const PAGE_SIZE = 40
 const MAX_COMPARE_MODELS = 4
-
-const PARAM_RANGE_VALUES = [1, 2, 3, 4, 6, 8, 10, 12, 16, 24, 32, 48, 64, 96, 128, 192, 256, 384, 500] as const
-const PARAM_RANGE_MARKERS = [
-  { label: "< 1B", step: 0 },
-  { label: "6B", step: PARAM_RANGE_VALUES.indexOf(6) },
-  { label: "12B", step: PARAM_RANGE_VALUES.indexOf(12) },
-  { label: "32B", step: PARAM_RANGE_VALUES.indexOf(32) },
-  { label: "128B", step: PARAM_RANGE_VALUES.indexOf(128) },
-  { label: "> 500B", step: PARAM_RANGE_VALUES.length - 1 },
-] as const
-
-function formatParamBoundLabel(step: number, bound: "min" | "max") {
-  const maxStepIndex = PARAM_RANGE_VALUES.length - 1
-  if (bound === "min" && step <= 0) return "< 1B"
-  if (bound === "max" && step >= maxStepIndex) return "> 500B"
-  const value = PARAM_RANGE_VALUES[step]
-  return value != null ? `${value}B` : "?"
-}
 
 type ModelSort = "benchmarks" | "results" | "name" | "released" | "params"
 type DevSort = "coverage" | "evaluated" | "models" | "name"
@@ -61,17 +45,11 @@ export default function ModelsPage() {
   const [compareOpen, setCompareOpen] = useState(false)
   const [visibleCount, setVisibleCount] = useState(PAGE_SIZE)
   const [minParamStep, setMinParamStep] = useState(0)
-  const [maxParamStep, setMaxParamStep] = useState(PARAM_RANGE_VALUES.length - 1)
+  const [maxParamStep, setMaxParamStep] = useState(PARAM_RANGE_MAX_INDEX)
+  const [showUnknownSize, setShowUnknownSize] = useState(true)
   const deferredSearchQuery = useDeferredValue(searchQuery)
-  const maxParamStepIndex = PARAM_RANGE_VALUES.length - 1
-  const numericMinParams = useMemo(
-    () => (minParamStep <= 0 ? null : PARAM_RANGE_VALUES[minParamStep] ?? null),
-    [minParamStep]
-  )
-  const numericMaxParams = useMemo(
-    () => (maxParamStep >= PARAM_RANGE_VALUES.length - 1 ? null : PARAM_RANGE_VALUES[maxParamStep] ?? null),
-    [maxParamStep]
-  )
+  const numericMinParams = useMemo(() => paramStepToNumeric(minParamStep, "min"), [minParamStep])
+  const numericMaxParams = useMemo(() => paramStepToNumeric(maxParamStep, "max"), [maxParamStep])
 
   useEffect(() => {
     Promise.all([fetchModelCards(), fetchBenchmarkMetadata()])
@@ -106,16 +84,12 @@ export default function ModelsPage() {
     const query = deferredSearchQuery.trim().toLowerCase()
     let filtered = evaluations
 
-    if (numericMinParams != null) {
-      filtered = filtered.filter(
-        (row) => row.params_billions != null && row.params_billions >= numericMinParams
-      )
-    }
-    if (numericMaxParams != null) {
-      filtered = filtered.filter(
-        (row) => row.params_billions != null && row.params_billions <= numericMaxParams
-      )
-    }
+    filtered = filtered.filter((row) => {
+      if (row.params_billions == null) return showUnknownSize
+      if (numericMinParams != null && row.params_billions < numericMinParams) return false
+      if (numericMaxParams != null && row.params_billions > numericMaxParams) return false
+      return true
+    })
 
     if (query) {
       filtered = filtered.filter((row) => {
@@ -143,7 +117,7 @@ export default function ModelsPage() {
           return b.benchmarks_count - a.benchmarks_count
       }
     })
-  }, [evaluations, deferredSearchQuery, modelSortBy, numericMinParams, numericMaxParams])
+  }, [evaluations, deferredSearchQuery, modelSortBy, numericMinParams, numericMaxParams, showUnknownSize])
 
   // Developers — filter + sort
   const sortedDevelopers = useMemo(() => {
@@ -176,7 +150,7 @@ export default function ModelsPage() {
   // Reset visible window when filter/sort changes
   useEffect(() => {
     setVisibleCount(PAGE_SIZE)
-  }, [groupByDeveloper, modelSortBy, developerSortBy, deferredSearchQuery, minParamStep, maxParamStep])
+  }, [groupByDeveloper, modelSortBy, developerSortBy, deferredSearchQuery, minParamStep, maxParamStep, showUnknownSize])
 
   const totalCount = groupByDeveloper ? sortedDevelopers.length : sortedEvaluations.length
   const visibleEvaluations = useMemo(
@@ -292,69 +266,6 @@ export default function ModelsPage() {
             />
           </div>
 
-          {!groupByDeveloper && (
-            <>
-              <span className="hidden h-5 w-px bg-[color:var(--border-soft)] sm:block" />
-
-              {/* Compact param picker — kicker + slider + readout, all inline */}
-              <div className="flex min-w-[260px] flex-1 items-center gap-4 sm:max-w-[300px]">
-                <span className="kicker shrink-0">Params</span>
-                <div className="relative h-4 min-w-0 flex-1">
-                  <div className="absolute inset-x-2 top-1/2 h-[2px] -translate-y-1/2 bg-[color:var(--border-soft)]" />
-                  <div className="absolute inset-x-2 top-1/2 h-[2px] -translate-y-1/2">
-                    <div
-                      className="absolute inset-y-0 bg-[color:var(--fg)] transition-[left,right] duration-200 ease-[var(--ease-out-quart)]"
-                      style={{
-                        left: `${(minParamStep / maxParamStepIndex) * 100}%`,
-                        right: `${Math.max(100 - (maxParamStep / maxParamStepIndex) * 100, 0)}%`,
-                      }}
-                    />
-                  </div>
-                  <input
-                    type="range"
-                    min={0}
-                    max={maxParamStepIndex}
-                    step={1}
-                    value={minParamStep}
-                    onChange={(event) =>
-                      setMinParamStep(Math.min(Number(event.target.value), maxParamStep))
-                    }
-                    className="param-range-input"
-                    aria-label="Minimum parameter filter"
-                  />
-                  <input
-                    type="range"
-                    min={0}
-                    max={maxParamStepIndex}
-                    step={1}
-                    value={maxParamStep}
-                    onChange={(event) =>
-                      setMaxParamStep(Math.max(Number(event.target.value), minParamStep))
-                    }
-                    className="param-range-input"
-                    aria-label="Maximum parameter filter"
-                  />
-                </div>
-                <span className="shrink-0 whitespace-nowrap font-mono text-[11px] tabular-nums text-[color:var(--fg-muted)]">
-                  {formatParamBoundLabel(minParamStep, "min")} – {formatParamBoundLabel(maxParamStep, "max")}
-                </span>
-                {(minParamStep > 0 || maxParamStep < maxParamStepIndex) && (
-                  <button
-                    type="button"
-                    onClick={() => {
-                      setMinParamStep(0)
-                      setMaxParamStep(maxParamStepIndex)
-                    }}
-                    className="shrink-0 font-mono text-[10px] uppercase tracking-[0.12em] text-[color:var(--fg-subtle)] hover:text-[color:var(--accent)] transition-colors"
-                    aria-label="Reset parameters filter"
-                  >
-                    Reset
-                  </button>
-                )}
-              </div>
-            </>
-          )}
-
           <select
             className="ec-select ml-auto shrink-0"
             value={groupByDeveloper ? developerSortBy : modelSortBy}
@@ -382,6 +293,27 @@ export default function ModelsPage() {
             )}
           </select>
         </div>
+
+        {/* PARAM RANGE — its own row so the rail has room to breathe.
+            Sharing the toolbar with stats / search / sort squished it. */}
+        {!groupByDeveloper && (
+          <div className="mb-6 -mt-2">
+            <ParamRangePicker
+              variant="inline"
+              headline="Params"
+              minStep={minParamStep}
+              maxStep={maxParamStep}
+              onMinChange={setMinParamStep}
+              onMaxChange={setMaxParamStep}
+              onReset={() => {
+                setMinParamStep(0)
+                setMaxParamStep(PARAM_RANGE_MAX_INDEX)
+              }}
+              showUnknownSize={showUnknownSize}
+              onShowUnknownSizeChange={setShowUnknownSize}
+            />
+          </div>
+        )}
 
         {/* TABLE ---------------------------------------------------- */}
         {loading ? (

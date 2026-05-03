@@ -6,27 +6,11 @@ import Link from "next/link"
 import { ArrowLeft, ArrowUpRight, BarChart3, Grid3X3, Search } from "lucide-react"
 import { Navigation } from "@/components/navigation"
 import { EvalDetail } from "@/components/eval-detail"
+import { ParamRangePicker } from "@/components/param-range-picker"
 import { useAudienceMode } from "@/components/audience-mode-provider"
 import type { BenchmarkEvalSummary } from "@/lib/eval-processing"
 import { fetchEvalSummary } from "@/lib/dashboard-data-client"
-
-const PARAM_RANGE_VALUES = [1, 2, 3, 4, 6, 8, 10, 12, 16, 24, 32, 48, 64, 96, 128, 192, 256, 384, 500] as const
-const PARAM_RANGE_MARKERS = [
-  { label: "< 1B", step: 0 },
-  { label: "6B", step: PARAM_RANGE_VALUES.indexOf(6) },
-  { label: "12B", step: PARAM_RANGE_VALUES.indexOf(12) },
-  { label: "32B", step: PARAM_RANGE_VALUES.indexOf(32) },
-  { label: "128B", step: PARAM_RANGE_VALUES.indexOf(128) },
-  { label: "> 500B", step: PARAM_RANGE_VALUES.length - 1 },
-] as const
-
-function formatParamBoundLabel(step: number, bound: "min" | "max") {
-  const maxStepIndex = PARAM_RANGE_VALUES.length - 1
-  if (bound === "min" && step <= 0) return "< 1B"
-  if (bound === "max" && step >= maxStepIndex) return "> 500B"
-  const value = PARAM_RANGE_VALUES[step]
-  return value != null ? `${value}B` : "Not reported"
-}
+import { PARAM_RANGE_MAX_INDEX, parseParamsBillionsFromModelName, paramStepToNumeric } from "@/lib/param-range"
 
 export default function EvalDetailPage() {
   const params = useParams()
@@ -192,10 +176,7 @@ function CompositeEvalView({
     <div className="space-y-10">
       {/* HERO ------------------------------------------------------------- */}
       <header className="motion-academic-enter">
-        <div className="kicker kicker-accent mb-2">
-          {isPolicy ? "Benchmark suite" : "Composite · §3.2"}
-        </div>
-        <h1 className="ec-page-h1" style={{ marginTop: 4 }}>{summary.evaluation_name}</h1>
+        <h1 className="ec-page-h1">{summary.evaluation_name}</h1>
         <div
           className="mb-5 flex flex-wrap items-center gap-3 font-mono text-[11px] uppercase tracking-[0.12em]"
           style={{ color: "var(--fg-muted)" }}
@@ -434,7 +415,7 @@ function MatrixLeaderboard({
   const [page, setPage] = useState(1)
   const [hiddenCols, setHiddenCols] = useState<Set<string>>(new Set())
   const [minParamStep, setMinParamStep] = useState(0)
-  const [maxParamStep, setMaxParamStep] = useState(PARAM_RANGE_VALUES.length - 1)
+  const [maxParamStep, setMaxParamStep] = useState(PARAM_RANGE_MAX_INDEX)
   const PAGE_SIZE = 50
 
   const metricDirection = useMemo(() => {
@@ -470,9 +451,9 @@ function MatrixLeaderboard({
         const avg = validScores.length > 0
           ? validScores.reduce((a, b) => a + b, 0) / validScores.length
           : 0
-        let sizeB: number | null = null
-        const sizeMatch = (data.name + " " + id).match(/\b(\d+(?:\.\d+)?)\s*[bB]\b/)
-        if (sizeMatch) sizeB = parseFloat(sizeMatch[1])
+        const sizeB =
+          parseParamsBillionsFromModelName(data.name) ??
+          parseParamsBillionsFromModelName(id)
 
         return { id, name: data.name, developer: data.developer, avg, scores: data.scores, sizeB }
       })
@@ -496,9 +477,11 @@ function MatrixLeaderboard({
     })
   }, [models, sortCol, sortAsc])
 
-  const maxStepIndex = PARAM_RANGE_VALUES.length - 1
-  const numericMinParams = minParamStep <= 0 ? null : (PARAM_RANGE_VALUES[minParamStep] ?? null)
-  const numericMaxParams = maxParamStep >= maxStepIndex ? null : (PARAM_RANGE_VALUES[maxParamStep] ?? null)
+  const numericMinParams = paramStepToNumeric(minParamStep, "min")
+  const numericMaxParams = paramStepToNumeric(maxParamStep, "max")
+  const [showUnknownSize, setShowUnknownSize] = useState(true)
+
+  const hasParameterData = useMemo(() => models.some((m) => m.sizeB != null), [models])
 
   const query = search.trim().toLowerCase()
   const filteredModels = sortedModels.filter((m) => {
@@ -507,8 +490,9 @@ function MatrixLeaderboard({
       m.developer.toLowerCase().includes(query) ||
       m.id.toLowerCase().includes(query)
     )) return false
-    if (numericMinParams != null && (m.sizeB == null || m.sizeB < numericMinParams)) return false
-    if (numericMaxParams != null && (m.sizeB == null || m.sizeB > numericMaxParams)) return false
+    if (m.sizeB == null) return showUnknownSize
+    if (numericMinParams != null && m.sizeB < numericMinParams) return false
+    if (numericMaxParams != null && m.sizeB > numericMaxParams) return false
     return true
   })
 
@@ -594,99 +578,23 @@ function MatrixLeaderboard({
           />
         </div>
 
-        {/* Param slider */}
-        <div
-          className="flex items-center gap-3 px-4 py-2"
-          style={{ border: "1px solid var(--border-soft)", background: "var(--bg-warm)" }}
-        >
-          <span
-            className="shrink-0 font-mono uppercase tracking-[0.14em]"
-            style={{ fontSize: 10, color: "var(--fg-subtle)" }}
-          >
-            Params
-          </span>
-          <div className="min-w-0 flex-1 w-[min(92vw,300px)]">
-            <div className="relative mb-1 h-4 text-[10px]" style={{ color: "var(--fg-subtle)" }}>
-              {PARAM_RANGE_MARKERS.map((marker) => (
-                <span
-                  key={marker.label}
-                  className="absolute top-0 whitespace-nowrap font-mono"
-                  style={{
-                    left: `${(marker.step / maxStepIndex) * 100}%`,
-                    transform:
-                      marker.step === 0 ? "translateX(0)"
-                        : marker.step === maxStepIndex ? "translateX(-100%)"
-                          : "translateX(-50%)",
-                  }}
-                >
-                  {marker.label}
-                </span>
-              ))}
-            </div>
-
-            <div className="relative h-4">
-              <div
-                className="absolute inset-x-1.5 top-1/2 h-[3px] -translate-y-1/2"
-                style={{ background: "var(--border-strong)" }}
-              />
-              <div className="absolute inset-x-1.5 top-1/2 h-[3px] -translate-y-1/2">
-                <div
-                  className="absolute inset-y-0"
-                  style={{
-                    background: "var(--fg)",
-                    left: `${(minParamStep / maxStepIndex) * 100}%`,
-                    right: `${Math.max(100 - (maxParamStep / maxStepIndex) * 100, 0)}%`,
-                  }}
-                />
-              </div>
-
-              <div className="absolute inset-x-1.5 top-1/2 -translate-y-1/2">
-                {PARAM_RANGE_VALUES.map((_, stepIndex) => (
-                  <span
-                    key={`param-tick-${stepIndex}`}
-                    className="absolute top-0 h-2 w-px -translate-x-1/2"
-                    style={{ left: `${(stepIndex / maxStepIndex) * 100}%`, background: "var(--border-soft)" }}
-                    aria-hidden="true"
-                  />
-                ))}
-              </div>
-
-              <input
-                type="range"
-                min={0}
-                max={maxStepIndex}
-                step={1}
-                value={minParamStep}
-                onChange={(e) => {
-                  const v = Number(e.target.value)
-                  setMinParamStep(Math.min(v, maxParamStep))
-                }}
-                className="param-range-input"
-                aria-label="Minimum parameter filter"
-              />
-              <input
-                type="range"
-                min={0}
-                max={maxStepIndex}
-                step={1}
-                value={maxParamStep}
-                onChange={(e) => {
-                  const v = Number(e.target.value)
-                  setMaxParamStep(Math.max(v, minParamStep))
-                }}
-                className="param-range-input"
-                aria-label="Maximum parameter filter"
-              />
-            </div>
-          </div>
-
-          <span
-            className="shrink-0 font-mono"
-            style={{ fontSize: 10, color: "var(--fg-muted)" }}
-          >
-            {formatParamBoundLabel(minParamStep, "min")} – {formatParamBoundLabel(maxParamStep, "max")}
-          </span>
-        </div>
+        {hasParameterData && (
+          <ParamRangePicker
+            variant="inline"
+            headline="Params"
+            minStep={minParamStep}
+            maxStep={maxParamStep}
+            onMinChange={setMinParamStep}
+            onMaxChange={setMaxParamStep}
+            onReset={() => {
+              setMinParamStep(0)
+              setMaxParamStep(PARAM_RANGE_MAX_INDEX)
+            }}
+            showUnknownSize={showUnknownSize}
+            onShowUnknownSizeChange={setShowUnknownSize}
+            className="min-w-[260px] flex-1 sm:max-w-[420px]"
+          />
+        )}
 
         <div
           className="font-mono uppercase tracking-[0.14em] whitespace-nowrap ml-auto"

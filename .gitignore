@@ -31,3 +31,14 @@ next-env.d.ts
 .cache/
 pipeline_revised.py
 .local-data/
+
+# Local data dumps. The runtime reads from .cache/hf-data/duckdb parquets;
+# anything under /data/ is leftover from offline scripts and should not
+# ship in git. The survey schema (loaded statically by app/survey) is the
+# one exception.
+/data/*
+!/data/survey/
+/data/survey/*
+!/data/survey/eval-schema-fields.json
+mock_design/
+shoot.mjs
