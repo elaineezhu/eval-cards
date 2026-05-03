@@ -12,22 +12,16 @@ interface KnownIssuesPanelProps {
   variant?: "compact" | "full"
 }
 
-const SEVERITY_STYLE: Record<KnownIssue["severity"], { wrap: string; icon: React.ComponentType<{ className?: string }>; label: string }> = {
-  info: {
-    wrap: "border-sky-300/60 bg-sky-50/60 text-sky-900 dark:border-sky-900/50 dark:bg-sky-950/20 dark:text-sky-100",
-    icon: Info,
-    label: "Note",
-  },
-  warning: {
-    wrap: "border-amber-300/60 bg-amber-50/60 text-amber-900 dark:border-amber-900/50 dark:bg-amber-950/20 dark:text-amber-100",
-    icon: AlertTriangle,
-    label: "Known issue",
-  },
-  critical: {
-    wrap: "border-rose-300/60 bg-rose-50/60 text-rose-900 dark:border-rose-900/50 dark:bg-rose-950/20 dark:text-rose-100",
-    icon: AlertOctagon,
-    label: "Critical issue",
-  },
+const SEVERITY_ACCENT: Record<KnownIssue["severity"], string> = {
+  info: "var(--accent)",
+  warning: "oklch(0.65 0.14 75)",
+  critical: "var(--destructive)",
+}
+
+const SEVERITY_STYLE: Record<KnownIssue["severity"], { Icon: React.ComponentType<{ className?: string }>; label: string }> = {
+  info: { Icon: Info, label: "Note" },
+  warning: { Icon: AlertTriangle, label: "Known issue" },
+  critical: { Icon: AlertOctagon, label: "Critical issue" },
 }
 
 export function KnownIssuesPanel({ issues, variant = "full" }: KnownIssuesPanelProps) {
@@ -36,17 +30,28 @@ export function KnownIssuesPanel({ issues, variant = "full" }: KnownIssuesPanelP
   const sorted = [...issues].sort((a, b) => severityRank(b.severity) - severityRank(a.severity))
   const headlineSeverity = sorted[0].severity
   const Style = SEVERITY_STYLE[headlineSeverity]
-  const Icon = Style.icon
+  const Icon = Style.Icon
+  const accent = SEVERITY_ACCENT[headlineSeverity]
 
   if (variant === "compact") {
     return (
-      <div className={`flex items-start gap-2 rounded-2xl border px-3 py-2 text-sm ${Style.wrap}`}>
-        <Icon className="mt-0.5 h-4 w-4 shrink-0" />
+      <div
+        className="flex items-start gap-2 text-sm"
+        style={{
+          border: "1px solid var(--border-strong)",
+          borderLeft: `3px solid ${accent}`,
+          background: "var(--bg-warm)",
+          padding: "10px 14px",
+          color: "var(--fg-muted)",
+          lineHeight: 1.6,
+        }}
+      >
+        <span style={{ color: accent, flexShrink: 0, marginTop: 2 }}><Icon className="h-4 w-4" /></span>
         <div className="min-w-0">
-          <span className="font-semibold">
+          <strong style={{ color: "var(--fg)", fontWeight: 600 }}>
             {issues.length} known issue{issues.length === 1 ? "" : "s"} documented
-          </span>
-          <span className="ml-1 text-muted-foreground">— see below for detail.</span>
+          </strong>
+          <span className="ml-1">— see below for detail.</span>
         </div>
       </div>
     )
@@ -54,41 +59,49 @@ export function KnownIssuesPanel({ issues, variant = "full" }: KnownIssuesPanelP
 
   return (
     <section className="space-y-2">
-      <div className="text-[11px] font-semibold uppercase tracking-[0.2em] text-muted-foreground">
-        Known issues with this benchmark
-      </div>
+      <div className="kicker mb-2">Known issues with this benchmark</div>
       <ul className="space-y-2">
         {sorted.map((issue, idx) => {
           const S = SEVERITY_STYLE[issue.severity]
-          const I = S.icon
+          const I = S.Icon
+          const a = SEVERITY_ACCENT[issue.severity]
           return (
             <li
               key={`${issue.title}-${idx}`}
-              className={`rounded-2xl border px-3.5 py-3 ${S.wrap}`}
+              style={{
+                border: "1px solid var(--border-strong)",
+                borderLeft: `3px solid ${a}`,
+                background: "var(--bg-warm)",
+                padding: "12px 16px",
+              }}
             >
               <div className="flex items-start gap-2">
-                <I className="mt-0.5 h-4 w-4 shrink-0" />
+                <span style={{ color: a, flexShrink: 0, marginTop: 2 }}><I className="h-4 w-4" /></span>
                 <div className="min-w-0 flex-1">
                   <div className="flex flex-wrap items-baseline gap-2">
-                    <span className="text-[10px] font-semibold uppercase tracking-[0.18em] opacity-80">
+                    <span
+                      className="font-mono uppercase"
+                      style={{ fontSize: 10, letterSpacing: "0.18em", color: a, fontWeight: 600 }}
+                    >
                       {S.label}
                     </span>
-                    <span className="font-semibold leading-tight">{issue.title}</span>
+                    <span style={{ fontSize: 14, fontWeight: 600, color: "var(--fg)" }}>{issue.title}</span>
                   </div>
-                  <p className="mt-1 text-sm leading-5 opacity-90">{issue.summary}</p>
+                  <p style={{ marginTop: 6, fontSize: 13, lineHeight: 1.55, color: "var(--fg-muted)" }}>{issue.summary}</p>
                   {(issue.source_url || issue.published) && (
-                    <div className="mt-2 flex flex-wrap items-center gap-3 text-xs opacity-80">
+                    <div className="mt-2 flex flex-wrap items-center gap-3" style={{ fontSize: 11 }}>
                       {issue.source_url && (
                         <a
                           href={issue.source_url}
                           target="_blank"
                           rel="noreferrer"
-                          className="inline-flex items-center gap-1 underline-offset-4 hover:underline"
+                          className="inline-flex items-center gap-1"
+                          style={{ color: "var(--accent)", borderBottom: "1px solid var(--border-strong)" }}
                         >
                           Source <ExternalLink className="h-3 w-3" />
                         </a>
                       )}
-                      {issue.published && <span>Published {issue.published}</span>}
+                      {issue.published && <span style={{ color: "var(--fg-subtle)" }}>Published {issue.published}</span>}
                     </div>
                   )}
                 </div>

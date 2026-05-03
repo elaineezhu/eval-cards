@@ -3,17 +3,14 @@
 import { useAudienceMode } from "@/components/audience-mode-provider"
 import { Fragment, useEffect, useMemo, useState } from "react"
 import Link from "next/link"
-import { Badge } from "@/components/ui/badge"
-import { Button } from "@/components/ui/button"
 import { CompletenessPanel } from "@/components/signals/completeness-panel"
 import { ComparabilityPanel } from "@/components/signals/comparability-panel"
 import { ReproducibilityPanel } from "@/components/signals/reproducibility-panel"
 import { SignalsRowBadges } from "@/components/signals/signals-row-badges"
 import { RowSignalsCompact } from "@/components/signals/row-signals-compact"
-import { SignalTooltip } from "@/components/signals/signal-tooltip"
 import { getCompletenessPopulatedCount } from "@/components/signals/signal-utils"
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible"
+import { ScoreDistribution } from "@/components/score-distribution"
 import {
   Dialog,
   DialogContent,
@@ -31,8 +28,6 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
-import { Progress } from "@/components/ui/progress"
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import { getModelFamilyRouteId } from "@/lib/model-family"
 import { cn } from "@/lib/utils"
 import {
@@ -41,11 +36,9 @@ import {
   BookOpen,
   ChevronDown,
   ChevronUp,
-  Database,
   ExternalLink,
   FileText,
   Globe,
-  Medal,
   Scale,
   Search,
   Shield,
@@ -142,28 +135,24 @@ function SliceSelector({
   if (!useBrowser) {
     return (
       <div>
-        <div className="mb-2 text-[11px] font-semibold uppercase tracking-[0.16em] text-muted-foreground">
-          Benchmark slices
-        </div>
+        <div className="kicker mb-2">Benchmark slices</div>
         <div className="flex flex-wrap gap-2">
-          <Button
+          <button
             type="button"
-            size="sm"
-            variant={activeSubtaskTab === "all" ? "default" : "outline"}
+            className={`ec-pill${activeSubtaskTab === "all" ? " on" : ""}`}
             onClick={() => onChange("all")}
           >
             All slices
-          </Button>
+          </button>
           {tabs.map((tab) => (
-            <Button
+            <button
               key={tab.key}
               type="button"
-              size="sm"
-              variant={activeSubtaskTab === tab.key ? "default" : "outline"}
+              className={`ec-pill${activeSubtaskTab === tab.key ? " on" : ""}`}
               onClick={() => onChange(tab.key)}
             >
               {tab.label}
-            </Button>
+            </button>
           ))}
         </div>
       </div>
@@ -173,43 +162,36 @@ function SliceSelector({
   return (
     <div>
       <div className="mb-2 flex items-center justify-between gap-2">
-        <div className="text-[11px] font-semibold uppercase tracking-[0.16em] text-muted-foreground">
-          Benchmark slices
-        </div>
-        <span className="text-xs text-muted-foreground">{tabs.length} total</span>
+        <div className="kicker">Benchmark slices</div>
+        <span className="kicker">{tabs.length} total</span>
       </div>
       <div className="flex flex-wrap items-center gap-2">
-        <Button
+        <button
           type="button"
-          size="sm"
-          variant={activeSubtaskTab === "all" ? "default" : "outline"}
+          className={`ec-pill${activeSubtaskTab === "all" ? " on" : ""}`}
           onClick={() => onChange("all")}
         >
           All slices
-        </Button>
+        </button>
         {activeTab && (
-          <Button
+          <button
             type="button"
-            size="sm"
-            variant="default"
+            className="ec-pill on max-w-[18rem] truncate"
             onClick={() => onChange("all")}
-            className="max-w-[18rem] truncate"
             title={`Active: ${activeTab.label}. Click to clear.`}
           >
             {activeTab.label}
-            <X className="ml-1.5 h-3 w-3 shrink-0" />
-          </Button>
+            <X className="ml-1.5 inline-block h-3 w-3 shrink-0" />
+          </button>
         )}
-        <Button
+        <button
           type="button"
-          size="sm"
-          variant="outline"
+          className="ec-pill"
           onClick={() => setBrowserOpen(true)}
-          className="gap-1.5"
         >
-          <Search className="h-3.5 w-3.5" />
+          <Search className="mr-1.5 inline-block h-3 w-3" />
           {activeTab ? "Change slice" : `Browse ${tabs.length} slices`}
-        </Button>
+        </button>
       </div>
 
       <Dialog
@@ -235,7 +217,7 @@ function SliceSelector({
             autoFocus
           />
 
-          <div className="max-h-[60vh] overflow-y-auto rounded-md border">
+          <div className="max-h-[60vh] overflow-y-auto border" style={{ borderRadius: 0 }}>
             <button
               type="button"
               onClick={() => {
@@ -507,20 +489,68 @@ function getCompactMetricLabel(value: string | undefined) {
   return parts[parts.length - 1] ?? value
 }
 
-function getRankBadgeClass(rank: number) {
-  if (rank === 1) {
-    return "border-amber-300 bg-amber-100 text-amber-800"
+/**
+ * Best-effort "setup" caption for a row (e.g. "8-shot CoT", "0-shot").
+ *
+ * Different sources record shots/CoT in different fields, so we look across
+ * the common ones in priority order. If nothing useful is recorded we return
+ * an empty string and the caller hides the caption rather than printing a
+ * placeholder.
+ */
+function getSetupLabel(modelResult: ModelResultForBenchmark): string {
+  const gen = modelResult.result.generation_config
+  const args: Record<string, unknown> | undefined = gen?.generation_args as Record<string, unknown> | undefined
+  const additional: Record<string, unknown> | undefined =
+    typeof gen?.additional_details === "object" && gen?.additional_details !== null
+      ? (gen.additional_details as Record<string, unknown>)
+      : undefined
+
+  const pickNumber = (...candidates: Array<unknown>) => {
+    for (const c of candidates) {
+      if (typeof c === "number" && Number.isFinite(c)) return c
+      if (typeof c === "string" && /^\d+$/.test(c.trim())) return Number(c.trim())
+    }
+    return null
+  }
+  const pickString = (...candidates: Array<unknown>) => {
+    for (const c of candidates) {
+      if (typeof c === "string" && c.trim()) return c.trim()
+    }
+    return null
   }
 
-  if (rank === 2) {
-    return "border-slate-300 bg-slate-100 text-slate-700"
-  }
+  const shots = pickNumber(
+    args?.num_shots,
+    args?.n_shots,
+    args?.shots,
+    args?.num_few_shot,
+    additional?.num_shots,
+    additional?.n_shots,
+    additional?.shots,
+  )
+  const promptingHint = pickString(
+    args?.prompting_strategy,
+    args?.reasoning,
+    additional?.prompting_strategy,
+    additional?.reasoning,
+  )
+  const isCot = (() => {
+    const candidates = [
+      args?.chain_of_thought,
+      args?.cot,
+      additional?.chain_of_thought,
+      additional?.cot,
+    ]
+    if (candidates.some((c) => c === true)) return true
+    if (promptingHint && /\bcot\b|chain.of.thought/i.test(promptingHint)) return true
+    return false
+  })()
 
-  if (rank === 3) {
-    return "border-orange-300 bg-orange-100 text-orange-800"
-  }
-
-  return "border-border bg-background text-foreground"
+  const parts: string[] = []
+  if (shots != null) parts.push(`${shots}-shot`)
+  if (isCot) parts.push("CoT")
+  if (parts.length === 0 && promptingHint) parts.push(promptingHint)
+  return parts.join(" ")
 }
 
 export function EvalDetail({ summary }: EvalDetailProps) {
@@ -545,7 +575,6 @@ export function EvalDetail({ summary }: EvalDetailProps) {
   const range = maxScore - minScore
 
   const normalizeScore = (raw: number) => (range > 0 ? (raw - minScore) / range : raw)
-  const formatPercent = (normalized: number) => `${(normalized * 100).toFixed(1)}%`
   const maxParamStepIndex = PARAM_RANGE_VALUES.length - 1
   const minHandlePercent = (minParamStep / maxParamStepIndex) * 100
   const maxHandlePercent = (maxParamStep / maxParamStepIndex) * 100
@@ -646,315 +675,332 @@ export function EvalDetail({ summary }: EvalDetailProps) {
       [key]: !current[key],
     }))
 
+  const evalKindLabel = summary.is_aggregated
+    ? (isResearchView ? "Composite · §3.2" : "Benchmark suite")
+    : (isResearchView ? "Single benchmark" : "Benchmark")
+
+  const headerOrg = summary.composite_benchmark_name && summary.composite_benchmark_name !== summary.evaluation_name
+    ? summary.composite_benchmark_name
+    : null
+
+  const heroLede = isResearchView
+    ? summary.metric_config.evaluation_description
+    : (summary.benchmark_card?.benchmark_details?.overview?.trim()
+       || summary.benchmark_card?.purpose_and_intended_users?.goal?.trim()
+       || summary.metric_config.evaluation_description)
+
   return (
-    <div className="space-y-6">
+    <div className="space-y-12">
+      {/* HERO — paper §3.1 ------------------------------------------------ */}
+      <header className="motion-academic-enter">
+        <div className="kicker kicker-accent mb-2">{evalKindLabel}</div>
+        <h1
+          className="font-bold tracking-[-0.025em]"
+          style={{ fontSize: "clamp(40px, 5vw, 60px)", lineHeight: 1.04, margin: "8px 0 12px" }}
+        >
+          {summary.evaluation_name}
+        </h1>
+        <div
+          className="mb-6 flex flex-wrap items-center gap-3 font-mono text-[11px] uppercase tracking-[0.12em]"
+          style={{ color: "var(--fg-muted)" }}
+        >
+          {headerOrg && (
+            <>
+              <span>{headerOrg}</span>
+              <span style={{ color: "var(--fg-subtle)" }}>·</span>
+            </>
+          )}
+          <span>{summary.metric_config.score_type}</span>
+          <span style={{ color: "var(--fg-subtle)" }}>·</span>
+          <span>{summary.metric_config.lower_is_better ? "Lower is better ↓" : "Higher is better ↑"}</span>
+          {summary.tags?.languages && summary.tags.languages.length > 0 && (
+            <>
+              <span style={{ color: "var(--fg-subtle)" }}>·</span>
+              <span>{summary.tags.languages.slice(0, 3).join(", ")}</span>
+            </>
+          )}
+        </div>
+        <p
+          style={{
+            fontSize: 17,
+            lineHeight: 1.65,
+            color: "var(--fg)",
+            maxWidth: 760,
+            margin: 0,
+          }}
+        >
+          {heroLede}
+        </p>
+      </header>
+
+      {/* BENCHMARK CARD (top-level collapsible, default open) ------------ */}
+      {summary.benchmark_card && (
+        <BenchmarkCardCollapsible
+          card={summary.benchmark_card}
+          isResearchView={isResearchView}
+          defaultOpen
+          defaultRisksOpen={!isResearchView}
+          knownIssues={getKnownIssues(
+            summary.evaluation_name,
+            summary.composite_benchmark_name,
+            summary.composite_benchmark_key,
+            summary.benchmark_family_key,
+            summary.benchmark_leaf_key,
+            summary.benchmark_card.benchmark_details?.name,
+          )}
+        />
+      )}
+
+      {/* POLICY NOTE (policy mode only) ---------------------------------- */}
       {!isResearchView && <PolicyOverview summary={summary} />}
-      <Card className="overflow-hidden">
-        <Collapsible open={overviewOpen} onOpenChange={setOverviewOpen}>
-          <CollapsibleTrigger asChild>
-            <button
-              type="button"
-              className="flex w-full items-center justify-between gap-4 border-b bg-muted/10 px-4 py-3 text-left transition-colors hover:bg-muted/15 sm:px-5"
-            >
-              <div className="min-w-0 space-y-1">
-                <div className="text-[11px] font-semibold uppercase tracking-[0.2em] text-muted-foreground">
-                  {isResearchView ? "Benchmark overview" : "Technical details"}
-                </div>
-                <div className="flex flex-wrap items-center gap-2">
-                  <span className="text-base font-semibold tracking-tight sm:text-lg">{summary.evaluation_name}</span>
-                  <Badge variant="secondary" className="font-normal">
-                    {summary.models_count} models
-                  </Badge>
-                  <Badge variant="secondary" className="font-normal">
-                    {hasMultiMetricLeaderboard
-                      ? `${summary.metrics_count ?? summary.leaderboard_metrics?.length ?? 1} measures`
-                      : `${summary.metrics_count ?? 1} ${(summary.metrics_count ?? 1) === 1 ? "measure" : "measures"}`}
-                  </Badge>
-                  {reportingCompleteness && (
-                    <SignalTooltip
-                      content={`${documentationPopulatedCount} of ${reportingCompleteness.total_fields_evaluated} EvalCards documentation fields populated for this benchmark.`}
+
+      {/* TECHNICAL OVERVIEW — secondary, collapsed by default in policy mode.
+          Holds metric spec, completeness/comparability signals, and benchmark
+          structure (sub-tasks). Tucked away so the hero / card / policy note
+          carry the page's primary read. -------------------------------- */}
+      <Collapsible open={overviewOpen} onOpenChange={setOverviewOpen}>
+        <CollapsibleTrigger asChild>
+          <button
+            type="button"
+            className="flex w-full items-center justify-between text-left transition-colors hover:bg-[color:var(--bg-warm)]"
+            style={{
+              padding: "12px 20px",
+              border: "1px solid var(--border-soft)",
+              background: "var(--bg)",
+            }}
+          >
+            <div className="flex items-center gap-3">
+              <span className="kicker kicker-fg">
+                {isResearchView ? "Metric & signals" : "Technical details"}
+              </span>
+              <span
+                className="font-mono text-[10px] uppercase tracking-[0.12em]"
+                style={{ color: "var(--fg-subtle)" }}
+              >
+                metric spec · completeness · comparability{summary.subtasks?.length ? " · subtasks" : ""}
+              </span>
+            </div>
+            {overviewOpen ? (
+              <ChevronUp className="h-4 w-4 shrink-0" style={{ color: "var(--fg-muted)" }} />
+            ) : (
+              <ChevronDown className="h-4 w-4 shrink-0" style={{ color: "var(--fg-muted)" }} />
+            )}
+          </button>
+        </CollapsibleTrigger>
+
+        <CollapsibleContent className="mt-3">
+          <div className="space-y-4">
+            {/* Metric spec / nested datalist (paper-aligned hairline def-list) */}
+            <div className="ec-card warm" style={{ padding: "18px 22px" }}>
+              <div className="kicker mb-3">
+                {isResearchView ? "Metric specification" : "Reading context"}
+              </div>
+              <dl className="ec-datalist">
+                <dt>Suite</dt>
+                <dd>
+                  {summary.is_aggregated
+                    ? summary.aggregate_sources?.map((source) => source.composite_benchmark_name).join(", ") || "Multiple suites"
+                    : summary.composite_benchmark_name}
+                </dd>
+                <dt>{isResearchView ? "Benchmark ID" : "What this covers"}</dt>
+                <dd className="break-words">
+                  {isResearchView ? summary.evaluation_id : summary.metric_config.evaluation_description}
+                </dd>
+                <dt>{isResearchView ? "Score scale" : "How to read scores"}</dt>
+                <dd>
+                  {isResearchView
+                    ? `${summary.metric_config.min_score ?? 0} – ${summary.metric_config.max_score ?? 1}`
+                    : scoreDirectionLabel}
+                </dd>
+                <dt>Models</dt>
+                <dd className="font-mono tabular-nums">{summary.models_count.toLocaleString()}</dd>
+                <dt>{hasMultiMetricLeaderboard ? "Measures" : "Avg score"}</dt>
+                <dd className="font-mono tabular-nums">
+                  {hasMultiMetricLeaderboard
+                    ? summary.metrics_count ?? summary.leaderboard_metrics?.length ?? 1
+                    : avgScoreLabel}
+                </dd>
+                {summary.tags?.domains && summary.tags.domains.length > 0 && (
+                  <>
+                    <dt>Domain tags</dt>
+                    <dd className="capitalize">
+                      {summary.tags.domains.slice(0, 4).join(", ")}
+                      {summary.tags.domains.length > 4 ? ` +${summary.tags.domains.length - 4} more` : ""}
+                    </dd>
+                  </>
+                )}
+                <dt>Source dataset</dt>
+                <dd>{sourceDatasetLabel}</dd>
+                <dt>Instance data</dt>
+                <dd>{instanceDataLabel}</dd>
+                {reportingCompleteness && (
+                  <>
+                    <dt>Card completeness</dt>
+                    <dd className="font-mono tabular-nums" style={{ color: "var(--accent)" }}>
+                      {Math.round(reportingCompleteness.completeness_score * 100)}%
+                      <span className="ml-1" style={{ color: "var(--fg-muted)" }}>
+                        ({documentationPopulatedCount}/{reportingCompleteness.total_fields_evaluated} fields)
+                      </span>
+                    </dd>
+                  </>
+                )}
+              </dl>
+            </div>
+
+            <CompletenessPanel completeness={reportingCompleteness} />
+            <ComparabilityPanel
+              comparability={benchmarkComparability}
+              summary={summary.comparability_summary}
+            />
+
+            {!hasMultiMetricLeaderboard && (summary.root_metrics?.length || summary.subtasks?.length) ? (
+              <section
+                style={{
+                  padding: 22,
+                  border: "1px solid var(--border-soft)",
+                  background: "var(--bg)",
+                }}
+              >
+                <div className="kicker mb-2">Benchmark structure</div>
+                <p className="text-[13px] mb-4" style={{ color: "var(--fg-muted)", maxWidth: 640 }}>
+                  Benchmark-level summary metrics and subtask slices grouped in one compact section.
+                </p>
+
+                {summary.root_metrics && summary.root_metrics.length > 0 && (
+                  <div className="space-y-2 mb-4">
+                    <div
+                      className="font-mono uppercase"
+                      style={{ fontSize: 10, letterSpacing: "0.14em", color: "var(--fg-subtle)" }}
                     >
-                      <Badge variant="outline" className="border-emerald-200 bg-emerald-50 text-emerald-800 dark:border-emerald-900/50 dark:bg-emerald-950/30 dark:text-emerald-200">
-                        Documentation {Math.round(reportingCompleteness.completeness_score * 100)}%
-                      </Badge>
-                    </SignalTooltip>
-                  )}
-                </div>
-              </div>
-              {overviewOpen ? (
-                <ChevronUp className="h-4 w-4 shrink-0 text-muted-foreground" />
-              ) : (
-                <ChevronDown className="h-4 w-4 shrink-0 text-muted-foreground" />
-              )}
-            </button>
-          </CollapsibleTrigger>
-
-          <CollapsibleContent>
-            <CardContent className="space-y-4 p-4 sm:p-5">
-              <div className="flex flex-col gap-4 xl:flex-row xl:items-start xl:justify-between">
-                <div className="space-y-2.5">
-                  <div className="flex flex-wrap items-center gap-2">
-                    <Badge variant="outline" className="border-border/60 bg-background/80 text-[11px] uppercase tracking-[0.18em]">
-                      {summary.is_aggregated ? "Suite" : "Single Benchmark"}
-                    </Badge>
-                    {summary.is_aggregated ? (
-                      <Badge variant="secondary" className="font-normal">
-                        {summary.aggregate_sources?.length ?? 0} component benchmarks
-                      </Badge>
-                    ) : (
-                      <Badge variant="secondary" className="font-normal">
-                        Suite: {summary.composite_benchmark_name}
-                      </Badge>
-                    )}
-                    <Badge variant="secondary" className="font-normal capitalize">
-                      {summary.metric_config.score_type}
-                    </Badge>
-                    <Badge variant="secondary" className="font-normal">
-                      {summary.metric_config.lower_is_better ? "Lower is better" : "Higher is better"}
-                    </Badge>
-                    {summary.tags?.languages && summary.tags.languages.length > 0 && (
-                      <Badge variant="secondary" className="font-normal">
-                        {summary.tags.languages.join(", ")}
-                      </Badge>
-                    )}
-                  </div>
-
-                  <p className="max-w-3xl text-sm leading-6 text-muted-foreground">
-                    {summary.metric_config.evaluation_description}
-                  </p>
-
-                </div>
-
-                <div className="grid w-full grid-cols-2 gap-2 xl:grid-cols-4">
-                  <div className="rounded-xl border border-sky-200/80 bg-sky-50/80 px-3 py-2.5 dark:border-sky-900/40 dark:bg-sky-950/20">
-                    <div className="text-[11px] font-semibold uppercase tracking-[0.18em] text-sky-700 dark:text-sky-200">Models</div>
-                    <div className="mt-1 text-xl font-semibold text-sky-950 dark:text-sky-50">{summary.models_count}</div>
-                  </div>
-                  <div className="rounded-xl border border-border/70 bg-muted/20 px-3 py-2.5">
-                    <div className="text-[11px] font-semibold uppercase tracking-[0.18em] text-muted-foreground">
-                      {hasMultiMetricLeaderboard ? "Measures" : isResearchView ? "Avg score" : "Measures"}
+                      Benchmark-level metrics
                     </div>
-                    <div className="mt-1 text-xl font-semibold">
-                      {hasMultiMetricLeaderboard ? summary.metrics_count ?? summary.leaderboard_metrics?.length ?? 1 : isResearchView ? avgScoreLabel : summary.metrics_count ?? 1}
+                    <div className="flex flex-wrap gap-1.5">
+                      {summary.root_metrics.map((metric) => (
+                        <span
+                          key={metric.metric_summary_id}
+                          className="ec-tag outline"
+                          title={metric.canonical_display_name || metric.display_name}
+                        >
+                          {getCompactMetricLabel(metric.display_name)}
+                          {typeof metric.top_score === "number" ? ` · ${formatRawScore(metric.top_score, metric.unit)}` : ""}
+                        </span>
+                      ))}
                     </div>
                   </div>
-                  <div className="rounded-xl border border-emerald-200/80 bg-emerald-50/80 px-3 py-2.5 dark:border-emerald-900/40 dark:bg-emerald-950/20">
-                    <div className="text-[11px] font-semibold uppercase tracking-[0.18em] text-emerald-700 dark:text-emerald-200">
-                      {hasMultiMetricLeaderboard || !isResearchView ? "Source dataset" : "Top model"}
-                    </div>
-                    <div className="mt-1 text-sm font-semibold text-emerald-950 dark:text-emerald-50">
-                      {hasMultiMetricLeaderboard || !isResearchView
-                        ? sourceDatasetLabel
-                        : summary.best_model?.name ?? "Unknown"}
-                    </div>
-                    {!hasMultiMetricLeaderboard && isResearchView && summary.best_model && (
-                      <div className="mt-1 text-xs text-emerald-700/80 dark:text-emerald-200/80">
-                        {formatRawScore(summary.best_model.score, summary.metric_config.unit)}
-                      </div>
-                    )}
-                  </div>
-                  <div className="rounded-xl border border-amber-200/80 bg-amber-50/80 px-3 py-2.5 dark:border-amber-900/40 dark:bg-amber-950/20">
-                    <div className="text-[11px] font-semibold uppercase tracking-[0.18em] text-amber-700 dark:text-amber-200">
-                      {hasMultiMetricLeaderboard || !isResearchView ? "Instance data" : "Bottom model"}
-                    </div>
-                    <div className="mt-1 text-sm font-semibold text-amber-950 dark:text-amber-50">
-                      {hasMultiMetricLeaderboard || !isResearchView
-                        ? instanceDataLabel
-                        : summary.worst_model?.name ?? "Unknown"}
-                    </div>
-                    {!hasMultiMetricLeaderboard && isResearchView && summary.worst_model && (
-                      <div className="mt-1 text-xs text-amber-700/80 dark:text-amber-200/80">
-                        {formatRawScore(summary.worst_model.score, summary.metric_config.unit)}
-                      </div>
-                    )}
-                  </div>
-                </div>
-              </div>
+                )}
 
-              <div className="rounded-2xl border bg-muted/10 p-3.5">
-                <div className="text-[11px] font-semibold uppercase tracking-[0.2em] text-muted-foreground">
-                  {isResearchView ? "Metric specification" : "Reading context"}
-                </div>
-                <dl className="mt-3 grid gap-x-5 gap-y-3 text-sm sm:grid-cols-2 xl:grid-cols-5">
-                  <div>
-                    <dt className="text-[11px] font-semibold uppercase tracking-[0.16em] text-muted-foreground">
-                      Suite
-                    </dt>
-                    <dd className="mt-1 break-words font-medium">
-                      {summary.is_aggregated
-                        ? summary.aggregate_sources?.map((source) => source.composite_benchmark_name).join(", ") || "Multiple suites"
-                        : summary.composite_benchmark_name}
-                    </dd>
-                  </div>
-                  <div>
-                    <dt className="text-[11px] font-semibold uppercase tracking-[0.16em] text-muted-foreground">
-                      {isResearchView ? "Single benchmark ID" : "What this covers"}
-                    </dt>
-                    <dd className="mt-1 break-words font-medium">
-                      {isResearchView ? summary.evaluation_id : summary.metric_config.evaluation_description}
-                    </dd>
-                  </div>
-                  <div>
-                    <dt className="text-[11px] font-semibold uppercase tracking-[0.16em] text-muted-foreground">
-                      {isResearchView ? "Score scale" : "How to read scores"}
-                    </dt>
-                    <dd className="mt-1 font-medium">
-                      {isResearchView
-                        ? `${summary.metric_config.min_score ?? 0} - ${summary.metric_config.max_score ?? 1}`
-                        : scoreDirectionLabel}
-                    </dd>
-                  </div>
-                  {summary.tags?.domains && summary.tags.domains.length > 0 && (
-                    <div>
-                      <dt className="text-[11px] font-semibold uppercase tracking-[0.16em] text-muted-foreground">Domain tags</dt>
-                      <dd className="mt-1 font-medium capitalize">
-                        {summary.tags.domains.slice(0, 2).join(", ")}
-                        {summary.tags.domains.length > 2 ? ` +${summary.tags.domains.length - 2} more` : ""}
-                      </dd>
+                {summary.subtasks && summary.subtasks.length > 0 && (
+                  <div className="space-y-2">
+                    <div
+                      className="font-mono uppercase mb-1"
+                      style={{ fontSize: 10, letterSpacing: "0.14em", color: "var(--fg-subtle)" }}
+                    >
+                      Subtask breakdown · {summary.subtasks.length}
                     </div>
-                  )}
-                  <div>
-                    <dt className="text-[11px] font-semibold uppercase tracking-[0.16em] text-muted-foreground">
-                      {isResearchView ? "Source dataset" : "Instance data"}
-                    </dt>
-                    <dd className="mt-1 font-medium">
-                      {isResearchView ? sourceDatasetLabel : instanceDataLabel}
-                    </dd>
-                  </div>
-                </dl>
-              </div>
-
-              <CompletenessPanel completeness={reportingCompleteness} />
-              <ComparabilityPanel
-                comparability={benchmarkComparability}
-                summary={summary.comparability_summary}
-              />
-
-              {!hasMultiMetricLeaderboard && (summary.root_metrics?.length || summary.subtasks?.length) ? (
-                <section className="rounded-2xl border bg-muted/5 p-3.5">
-                  <div className="space-y-1">
-                    <div className="text-sm font-semibold">Benchmark structure</div>
-                    <div className="text-xs text-muted-foreground">
-                      Benchmark-level summary metrics and subtask slices grouped in one compact section.
-                    </div>
-                  </div>
-
-                  {summary.root_metrics && summary.root_metrics.length > 0 && (
-                    <div className="mt-4 space-y-2.5">
-                      <div>
-                        <div className="text-sm font-semibold">Benchmark-level metrics</div>
-                        <div className="text-xs text-muted-foreground">
-                          Benchmark summary metrics used in this evaluation view.
-                        </div>
-                      </div>
-                      <div className="flex flex-wrap gap-2">
-                        {summary.root_metrics.map((metric) => (
-                          <span
-                            key={metric.metric_summary_id}
-                            className="rounded-full border border-border/70 bg-background px-3 py-1.5 text-xs font-medium"
-                            title={metric.canonical_display_name || metric.display_name}
-                          >
-                            {getCompactMetricLabel(metric.display_name)}
-                            {typeof metric.top_score === "number" ? ` · ${formatRawScore(metric.top_score, metric.unit)}` : ""}
-                          </span>
-                        ))}
-                      </div>
-                    </div>
-                  )}
-
-                  {summary.subtasks && summary.subtasks.length > 0 && (
-                    <div className="mt-4 space-y-2.5">
-                      <div className="text-sm font-semibold">Subtask breakdown</div>
-                      <div className="grid gap-3 lg:grid-cols-2">
-                        {summary.subtasks.map((subtask) => (
-                          <div key={subtask.subtask_key} className="rounded-xl border bg-background p-3.5">
-                            <div className="font-semibold">{subtask.display_name || subtask.subtask_name}</div>
-                            <div className="mt-1 text-xs text-muted-foreground" title={subtask.canonical_display_name || subtask.display_name}>
-                              {subtask.canonical_display_name || subtask.display_name}
+                    <ul
+                      className="flex flex-col"
+                      style={{ borderTop: "1px solid var(--border-soft)" }}
+                    >
+                      {summary.subtasks.map((subtask) => (
+                        <li
+                          key={subtask.subtask_key}
+                          className="grid gap-x-4 py-3"
+                          style={{
+                            gridTemplateColumns: "minmax(160px, 280px) 1fr",
+                            borderBottom: "1px solid var(--border-soft)",
+                          }}
+                        >
+                          <div className="min-w-0">
+                            <div className="font-semibold text-[13px] truncate">
+                              {subtask.display_name || subtask.subtask_name}
                             </div>
-                            <div className="mt-3 flex flex-wrap gap-2">
-                              {subtask.metrics.map((metric) => (
-                                <span
-                                  key={metric.metric_summary_id}
-                                  className="rounded-full border border-border/70 bg-muted/20 px-2.5 py-1 text-[11px] font-medium"
-                                  title={metric.canonical_display_name || metric.display_name}
-                                >
-                                  {getCompactMetricLabel(metric.display_name)}
-                                  {typeof metric.top_score === "number" ? ` · ${formatRawScore(metric.top_score, metric.unit)}` : ""}
-                                </span>
-                              ))}
-                            </div>
+                            {subtask.canonical_display_name && subtask.canonical_display_name !== (subtask.display_name || subtask.subtask_name) && (
+                              <div
+                                className="mt-0.5 font-mono text-[10px] uppercase tracking-[0.08em] truncate"
+                                style={{ color: "var(--fg-subtle)" }}
+                                title={subtask.canonical_display_name}
+                              >
+                                {subtask.canonical_display_name}
+                              </div>
+                            )}
                           </div>
-                        ))}
-                      </div>
-                    </div>
-                  )}
-                </section>
-              ) : null}
-
-              {summary.benchmark_card && (
-                <BenchmarkCardCollapsible
-                  card={summary.benchmark_card}
-                  isResearchView={isResearchView}
-                  defaultOpen
-                  defaultRisksOpen={!isResearchView}
-                  knownIssues={getKnownIssues(
-                    summary.evaluation_name,
-                    summary.composite_benchmark_name,
-                    summary.composite_benchmark_key,
-                    summary.benchmark_family_key,
-                    summary.benchmark_leaf_key,
-                    summary.benchmark_card.benchmark_details?.name,
-                  )}
-                />
-              )}
-            </CardContent>
-          </CollapsibleContent>
-        </Collapsible>
-      </Card>
+                          <div className="flex flex-wrap items-center gap-1.5">
+                            {subtask.metrics.map((metric) => (
+                              <span
+                                key={metric.metric_summary_id}
+                                className="ec-tag"
+                                title={metric.canonical_display_name || metric.display_name}
+                              >
+                                {getCompactMetricLabel(metric.display_name)}
+                                {typeof metric.top_score === "number" ? ` · ${formatRawScore(metric.top_score, metric.unit)}` : ""}
+                              </span>
+                            ))}
+                          </div>
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+                )}
+              </section>
+            ) : null}
+          </div>
+        </CollapsibleContent>
+      </Collapsible>
 
       {hasMultiMetricLeaderboard ? (
         <MultiMetricLeaderboard summary={summary} isResearchView={isResearchView} />
       ) : (
-        <Card className="overflow-hidden">
-          <CardHeader className="border-b bg-muted/10 space-y-3">
-            <ApplesToApplesBanner
-              summary={summary.comparability_summary}
-              detailsAnchorId="comparability-panel"
-            />
-            <div className="flex flex-col gap-3 lg:flex-row lg:items-end lg:justify-between">
-              <div className="space-y-2">
-                <div className="flex items-center gap-2">
-                  <Medal className="h-5 w-5 text-primary" />
-                  <CardTitle className="text-xl">{leaderboardTitle}</CardTitle>
-                </div>
-                <CardDescription>{leaderboardDescription}</CardDescription>
-              </div>
+        <section>
+          <ApplesToApplesBanner
+            summary={summary.comparability_summary}
+            detailsAnchorId="comparability-panel"
+          />
+          <div className="section-head">
+            <h2>{leaderboardTitle}</h2>
+            <span
+              className="font-mono text-[10px] uppercase tracking-[0.12em]"
+              style={{ color: "var(--fg-muted)" }}
+            >
+              {leaderboardRows.length === summary.models_count
+                ? `${summary.models_count} models`
+                : `${leaderboardRows.length} of ${summary.models_count}`}
+              {" · "}
+              {summary.metric_config.lower_is_better ? "lower is better ↓" : "higher is better ↑"}
+              {isResearchView && (
+                <>
+                  {" · "}scale {summary.metric_config.min_score ?? 0}–{summary.metric_config.max_score ?? 1}
+                </>
+              )}
+            </span>
+          </div>
+          <p
+            className="text-[13px] leading-[1.6] mb-4"
+            style={{ color: "var(--fg-muted)", maxWidth: 720 }}
+          >
+            {leaderboardDescription}
+          </p>
 
-              <div className="flex flex-wrap items-center gap-2 text-xs text-muted-foreground">
-                <Badge variant="secondary">
-                  {leaderboardRows.length === summary.models_count
-                    ? `${summary.models_count} models`
-                    : `${leaderboardRows.length} of ${summary.models_count} models`}
-                </Badge>
-                <Badge variant="outline">{scoreDirectionLabel}</Badge>
-                {hasParameterData && (numericMinParams != null || numericMaxParams != null) && (
-                  <Badge variant="outline">
-                    Params {formatParamBoundLabel(minParamStep, "min")} to {formatParamBoundLabel(maxParamStep, "max")}
-                  </Badge>
-                )}
-                {isResearchView && (
-                  <Badge variant="outline">
-                    Scale {summary.metric_config.min_score ?? 0} - {summary.metric_config.max_score ?? 1}
-                  </Badge>
-                )}
-              </div>
+          {/* Score distribution — paper-themed mean/median/quartile summary */}
+          {leaderboardRows.length >= 3 && (
+            <div className="mb-4">
+              <ScoreDistribution
+                values={leaderboardRows.map((r) => r.modelResult.score)}
+                label={summary.metric_config.unit ?? "Score"}
+                unit={summary.metric_config.unit}
+                lowerIsBetter={summary.metric_config.lower_is_better}
+              />
             </div>
-          </CardHeader>
+          )}
 
-          <CardContent className="p-0">
+          <div className="ec-card" style={{ padding: 0, overflow: "hidden" }}>
             {hasParameterData && (
-              <div className="border-b bg-background px-5 py-4 sm:px-6">
+              <div
+                style={{
+                  borderBottom: "1px solid var(--border-soft)",
+                  background: "var(--bg-warm)",
+                  padding: "16px 20px",
+                }}
+              >
                 <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
                   <div className="space-y-1">
                     <div className="text-[11px] font-semibold uppercase tracking-[0.18em] text-muted-foreground">
@@ -979,7 +1025,7 @@ export function EvalDetail({ summary }: EvalDetailProps) {
                         <div className="absolute inset-x-1.5 top-1/2 h-[3px] -translate-y-1/2 rounded-full bg-border/80" />
                         <div className="absolute inset-x-1.5 top-1/2 h-[3px] -translate-y-1/2">
                           <div
-                            className="absolute inset-y-0 rounded-full bg-foreground transition-[left,right] duration-300 ease-[var(--ease-out-quint)]"
+                            className="absolute inset-y-0 rounded-full bg-foreground"
                             style={{
                               left: `${minHandlePercent}%`,
                               right: `${Math.max(100 - maxHandlePercent, 0)}%`,
@@ -1036,27 +1082,29 @@ export function EvalDetail({ summary }: EvalDetailProps) {
               </div>
             )}
 
-            <Table className="min-w-[980px]">
-              <TableHeader>
-                <TableRow className="hover:bg-transparent">
-                  <TableHead className="w-20 px-4">Rank</TableHead>
-                  <TableHead className="min-w-[260px]">Model</TableHead>
-                  <TableHead className="hidden min-w-[180px] lg:table-cell">
+            <div className="overflow-x-auto">
+            <table className="ec-htable" style={{ minWidth: 980 }}>
+              <thead>
+                <tr>
+                  <th style={{ width: 64 }} className="num">Rank</th>
+                  <th style={{ minWidth: 260 }}>Model</th>
+                  <th className="hidden lg:table-cell" style={{ minWidth: 160 }}>
                     {isResearchView ? "Developer" : "Provider"}
-                  </TableHead>
-                  <TableHead className="text-right">Score</TableHead>
-                  {isResearchView ? (
-                    <TableHead className="hidden min-w-[220px] md:table-cell">Performance</TableHead>
-                  ) : (
-                    <TableHead className="hidden min-w-[220px] md:table-cell">Source type</TableHead>
-                  )}
-                  <TableHead className="hidden min-w-[180px] xl:table-cell">
-                    {isResearchView ? "Evaluator" : "Reporting Org"}
-                  </TableHead>
-                  <TableHead className="hidden min-w-[120px] lg:table-cell">Updated</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
+                  </th>
+                  <th className="hidden md:table-cell" style={{ minWidth: 220 }}>
+                    {summary.composite_benchmark_name && summary.composite_benchmark_name !== summary.evaluation_name
+                      ? `${summary.composite_benchmark_name} · ${summary.evaluation_name}`
+                      : summary.evaluation_name}
+                  </th>
+                  <th className="num" style={{ width: 130 }}>
+                    {summary.metric_config.unit ?? "Score"}
+                  </th>
+                  <th className="hidden lg:table-cell" style={{ width: 110 }}>Evaluator</th>
+                  <th className="num hidden lg:table-cell" style={{ width: 100 }}>Source</th>
+                  <th className="hidden xl:table-cell num" style={{ width: 110 }}>Updated</th>
+                </tr>
+              </thead>
+              <tbody>
                 {pagedLeaderboardRows.map(({ key, rank, modelResult, normalizedScore }) => {
                   const isExpanded = expandedRows[key] ?? false
                   const subtasks = modelResult.score_details.details
@@ -1075,129 +1123,192 @@ export function EvalDetail({ summary }: EvalDetailProps) {
                     ? undefined
                     : modelResult.source_data.samples_number
                   const rowAnnotations = modelResult.result.evalcards?.annotations
+                  const setupLabel = getSetupLabel(modelResult)
+                  const evaluatorRel = modelResult.source_metadata.evaluator_relationship
+                  const evaluatorTag = evaluatorRel === "first_party"
+                    ? "SELF"
+                    : evaluatorRel === "third_party"
+                      ? "THIRD-PARTY"
+                      : "—"
+                  const isThirdParty = evaluatorRel === "third_party"
+                  const sourceTypeLabel = (
+                    !Array.isArray(modelResult.source_data) && modelResult.source_data.source_type
+                  ) || modelResult.source_metadata.source_type || ""
+                  const familyLabel = modelResult.model_info.architecture
+                    ?? modelResult.model_info.parameter_count
+                    ?? null
+                  const isTopRank = rank === 1
+                  const rankColor = rank === 1 ? "var(--accent)" : "var(--fg-muted)"
 
                   return (
                     <Fragment key={key}>
-                      <TableRow
+                      <tr
                         id={modelResult.model_route_id ? `row-${modelResult.model_route_id}` : undefined}
-                        className={cn("group", isExpanded && "bg-muted/15")}
+                        className={cn("align-top", isExpanded && "bg-[color:var(--bg-warm)]")}
                       >
-                        <TableCell className="px-4">
-                          <div
-                            className={cn(
-                              "inline-flex h-9 w-9 items-center justify-center rounded-full border text-sm font-semibold",
-                              getRankBadgeClass(rank)
-                            )}
+                        <td className="num align-top">
+                          <span
+                            className="font-mono tabular-nums"
+                            style={{
+                              fontSize: 14,
+                              fontWeight: isTopRank ? 600 : 500,
+                              color: rankColor,
+                            }}
                           >
-                            {rank}
-                          </div>
-                        </TableCell>
+                            #{rank}
+                          </span>
+                        </td>
 
-                        <TableCell className="whitespace-normal">
-                          <div className="space-y-1">
-                            <div className="flex items-center gap-1.5 font-semibold leading-tight">
-                              {hasExpandableDetails && (
-                                <button
-                                  type="button"
-                                  onClick={() => toggleRow(key)}
-                                  aria-label={isExpanded ? "Collapse details" : "Expand details"}
-                                  aria-expanded={isExpanded}
-                                  className="-ml-1 inline-flex h-5 w-5 items-center justify-center rounded text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
-                                >
-                                  {isExpanded ? <ChevronUp className="h-3.5 w-3.5" /> : <ChevronDown className="h-3.5 w-3.5" />}
-                                </button>
-                              )}
+                        <td className="align-top whitespace-normal">
+                          <div className="flex items-start gap-1.5 leading-tight">
+                            {hasExpandableDetails && (
+                              <button
+                                type="button"
+                                onClick={() => toggleRow(key)}
+                                aria-label={isExpanded ? "Collapse details" : "Expand details"}
+                                aria-expanded={isExpanded}
+                                className="-ml-1 mt-0.5 inline-flex h-4 w-4 items-center justify-center transition-colors hover:text-[color:var(--accent)]"
+                                style={{ color: "var(--fg-muted)" }}
+                              >
+                                {isExpanded ? <ChevronUp className="h-3 w-3" /> : <ChevronDown className="h-3 w-3" />}
+                              </button>
+                            )}
+                            <div className="min-w-0">
                               <Link
                                 href={`/models/${getModelFamilyRouteId(modelResult.model_info)}`}
-                                className="underline decoration-dotted underline-offset-4 hover:text-primary"
+                                className="font-semibold text-[14px] hover:text-[color:var(--accent)] transition-colors"
+                                style={{ color: "var(--fg)" }}
                               >
                                 {modelResult.model_info.name}
                               </Link>
-                            </div>
-                            <div className="flex flex-wrap items-center gap-2 text-xs text-muted-foreground">
-                              {modelResult.model_info.parameter_count && (
-                                <Badge variant="secondary" className="font-normal">
-                                  {modelResult.model_info.parameter_count}
-                                </Badge>
+                              {familyLabel && (
+                                <div
+                                  className="mt-0.5 font-mono uppercase truncate"
+                                  style={{ fontSize: 10, letterSpacing: "0.08em", color: "var(--fg-subtle)" }}
+                                >
+                                  {familyLabel}
+                                </div>
                               )}
-                              {modelResult.model_info.architecture && (
-                                <Badge variant="outline" className="font-normal">
-                                  {modelResult.model_info.architecture}
-                                </Badge>
-                              )}
-                              <span className="lg:hidden">
+                              {/* mobile-only developer line */}
+                              <div
+                                className="mt-0.5 lg:hidden text-[12px]"
+                                style={{ color: "var(--fg-muted)" }}
+                              >
                                 {modelResult.model_info.developer ?? "Unknown developer"}
-                              </span>
+                              </div>
                               {modelResult.aggregate_components && modelResult.aggregate_components.length > 1 && (
-                                <Badge variant="outline" className="font-normal">
+                                <div
+                                  className="mt-0.5 font-mono uppercase"
+                                  style={{ fontSize: 9.5, letterSpacing: "0.1em", color: "var(--fg-subtle)" }}
+                                >
                                   Avg of {modelResult.aggregate_components.length}
-                                </Badge>
+                                </div>
                               )}
+                              <RowSignalsCompact annotations={rowAnnotations} className="mt-1" />
                             </div>
                           </div>
-                        </TableCell>
+                        </td>
 
-                        <TableCell className="hidden whitespace-normal lg:table-cell">
-                          <div className="max-w-[180px] truncate text-sm text-muted-foreground">
+                        <td className="hidden lg:table-cell align-top">
+                          <div className="text-[13px] truncate" style={{ color: "var(--fg-muted)" }}>
                             {modelResult.model_info.developer ?? "Unknown developer"}
                           </div>
-                        </TableCell>
+                        </td>
 
-                        <TableCell className="text-right">
-                          <div className="flex items-center justify-end gap-1.5">
-                            <div className="text-xl font-semibold tabular-nums">{formatRawScore(modelResult.score, summary.metric_config.unit)}</div>
-                            <RowSignalsCompact annotations={rowAnnotations} />
+                        <td className="hidden md:table-cell align-top">
+                          {/* Performance bar with shot/setup caption */}
+                          <div className="min-w-[200px] py-0.5">
+                            <div
+                              style={{
+                                position: "relative",
+                                height: 6,
+                                background: "var(--bg-surface)",
+                                overflow: "hidden",
+                              }}
+                            >
+                              <div
+                                style={{
+                                  position: "absolute",
+                                  inset: 0,
+                                  width: `${Math.max(2, normalizedScore * 100)}%`,
+                                  background: isTopRank ? "var(--accent)" : "var(--fg-muted)",
+                                  opacity: isTopRank ? 1 : 0.55,
+                                }}
+                              />
+                            </div>
+                            {setupLabel && (
+                              <div
+                                className="mt-1 font-mono uppercase truncate"
+                                style={{ fontSize: 10, letterSpacing: "0.06em", color: "var(--fg-subtle)" }}
+                              >
+                                {setupLabel}
+                              </div>
+                            )}
+                            {!setupLabel && datasetName && !isResearchView && (
+                              <div
+                                className="mt-1 font-mono truncate"
+                                style={{ fontSize: 10, color: "var(--fg-subtle)" }}
+                              >
+                                {datasetName}
+                              </div>
+                            )}
                           </div>
-                        </TableCell>
+                        </td>
 
-                        {isResearchView ? (
-                          <TableCell className="hidden md:table-cell">
-                            <div className="min-w-[220px]">
-                              <Progress value={normalizedScore * 100} className="h-2" />
-                            </div>
-                          </TableCell>
-                        ) : (
-                          <TableCell className="hidden md:table-cell">
-                            <div className="text-sm text-muted-foreground capitalize">
-                              {modelResult.aggregate_components && modelResult.aggregate_components.length > 1
-                                ? `average of ${modelResult.aggregate_components.length} component scores`
-                                : datasetName ?? "Detailed result source"}
-                            </div>
-                          </TableCell>
-                        )}
+                        <td className="num align-top tabular-nums" style={{ fontSize: 15, fontWeight: 600 }}>
+                          {formatRawScore(modelResult.score, undefined)}
+                        </td>
 
-                        <TableCell className="hidden whitespace-normal xl:table-cell">
-                          {modelResult.aggregate_components && modelResult.aggregate_components.length > 1 ? (
-                            <div className="space-y-1">
-                              <div className="font-medium">
-                                {Array.from(new Set(modelResult.aggregate_components.map((component) => component.source_organization_name))).join(", ")}
-                              </div>
-                              <div className="text-xs text-muted-foreground">
-                                {modelResult.aggregate_components
-                                  .map((component) => component.composite_benchmark_name)
-                                  .join(", ")}
-                              </div>
-                            </div>
+                        <td className="hidden lg:table-cell align-top">
+                          <span
+                            className="font-mono uppercase inline-flex items-center"
+                            style={{
+                              fontSize: 9.5,
+                              padding: "2px 6px",
+                              letterSpacing: "0.08em",
+                              background: isThirdParty ? "var(--accent)" : "var(--bg-surface)",
+                              color: isThirdParty ? "var(--accent-fg)" : "var(--fg-muted)",
+                              border: isThirdParty ? "none" : "1px solid var(--border-soft)",
+                            }}
+                          >
+                            {evaluatorTag}
+                          </span>
+                        </td>
+
+                        <td className="num hidden lg:table-cell align-top">
+                          {sourceTypeLabel ? (
+                            modelResult.source_metadata.source_url ? (
+                              <a
+                                href={modelResult.source_metadata.source_url}
+                                target="_blank"
+                                rel="noreferrer"
+                                className="font-mono lowercase hover:text-[color:var(--accent)]"
+                                style={{ fontSize: 11, color: "var(--fg-muted)" }}
+                                onClick={(e) => e.stopPropagation()}
+                              >
+                                {sourceTypeLabel}
+                              </a>
+                            ) : (
+                              <span
+                                className="font-mono lowercase"
+                                style={{ fontSize: 11, color: "var(--fg-muted)" }}
+                              >
+                                {sourceTypeLabel}
+                              </span>
+                            )
                           ) : (
-                            <div className="space-y-1">
-                              <div className="font-medium">{datasetName ?? sourceDatasetLabel}</div>
-                              <div className="text-xs text-muted-foreground">
-                                {Array.isArray(modelResult.source_data)
-                                  ? "Detailed result source"
-                                  : modelResult.source_data.hf_repo ?? modelResult.source_data.source_type ?? "Detailed result source"}
-                              </div>
-                            </div>
+                            <span style={{ color: "var(--fg-subtle)" }}>—</span>
                           )}
-                        </TableCell>
+                        </td>
 
-                        <TableCell className="hidden lg:table-cell">
-                          <div className="text-sm text-muted-foreground">{formatDate(modelResult.evaluation_timestamp)}</div>
-                        </TableCell>
-                      </TableRow>
+                        <td className="num hidden xl:table-cell align-top font-mono tabular-nums" style={{ fontSize: 11, color: "var(--fg-muted)" }}>
+                          {formatDate(modelResult.evaluation_timestamp)}
+                        </td>
+                      </tr>
 
                       {isExpanded && (
-                        <TableRow className="hover:bg-transparent">
-                          <TableCell colSpan={7} className="bg-muted/10 px-0 py-0">
+                        <tr>
+                          <td colSpan={8} style={{ background: "var(--bg-warm)", padding: 0 }}>
                             <div className="space-y-5 px-4 py-5 sm:px-6">
                               <div className="grid gap-4 xl:grid-cols-3">
                                 <DetailPanel
@@ -1305,24 +1416,31 @@ export function EvalDetail({ summary }: EvalDetailProps) {
 
                               {modelResult.aggregate_components && modelResult.aggregate_components.length > 1 && (
                                 <div className="space-y-2">
-                                  <div className="text-xs font-semibold uppercase tracking-[0.2em] text-muted-foreground">
-                                    Composite Score Breakdown
+                                  <div
+                                    className="font-mono uppercase"
+                                    style={{ fontSize: 10, letterSpacing: "0.14em", color: "var(--fg-subtle)" }}
+                                  >
+                                    Composite score breakdown
                                   </div>
-                                  <div className="overflow-hidden rounded-xl border">
-                                    <table className="w-full text-sm">
+                                  <div className="overflow-x-auto" style={{ border: "1px solid var(--border-soft)" }}>
+                                    <table className="ec-htable">
                                       <thead>
-                                        <tr className="border-b bg-muted/30">
-                                          <th className="px-3 py-2 text-left text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">Benchmark</th>
-                                          <th className="px-3 py-2 text-left text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">Source</th>
-                                          <th className="px-3 py-2 text-right text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">Raw</th>
+                                        <tr>
+                                          <th>Benchmark</th>
+                                          <th>Source</th>
+                                          <th className="num">Raw</th>
                                         </tr>
                                       </thead>
                                       <tbody>
                                         {modelResult.aggregate_components.map((component, i) => (
-                                          <tr key={`${component.evaluation_id}-${i}`} className="border-b last:border-0 hover:bg-muted/10">
-                                            <td className="px-3 py-2 font-medium">{component.composite_benchmark_name}</td>
-                                            <td className="px-3 py-2 text-muted-foreground">{component.source_organization_name}</td>
-                                            <td className="px-3 py-2 text-right tabular-nums text-muted-foreground">{formatRawScore(component.score)}</td>
+                                          <tr key={`${component.evaluation_id}-${i}`}>
+                                            <td className="font-medium text-[13px]">{component.composite_benchmark_name}</td>
+                                            <td className="text-[13px]" style={{ color: "var(--fg-muted)" }}>
+                                              {component.source_organization_name}
+                                            </td>
+                                            <td className="num font-mono tabular-nums text-[13px]" style={{ color: "var(--fg-muted)" }}>
+                                              {formatRawScore(component.score)}
+                                            </td>
                                           </tr>
                                         ))}
                                       </tbody>
@@ -1333,24 +1451,29 @@ export function EvalDetail({ summary }: EvalDetailProps) {
 
                               {subtasks.length > 1 && (
                                 <div className="space-y-2">
-                                  <div className="text-xs font-semibold uppercase tracking-[0.2em] text-muted-foreground">
-                                    Subtask Breakdown
+                                  <div
+                                    className="font-mono uppercase"
+                                    style={{ fontSize: 10, letterSpacing: "0.14em", color: "var(--fg-subtle)" }}
+                                  >
+                                    Subtask breakdown
                                   </div>
-                                  <div className="overflow-hidden rounded-xl border">
-                                    <table className="w-full text-sm">
+                                  <div className="overflow-x-auto" style={{ border: "1px solid var(--border-soft)" }}>
+                                    <table className="ec-htable">
                                       <thead>
-                                        <tr className="border-b bg-muted/30">
-                                          <th className="px-3 py-2 text-left text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">Subtask</th>
-                                          <th className="px-3 py-2 text-right text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">Raw</th>
+                                        <tr>
+                                          <th>Subtask</th>
+                                          <th className="num">Raw</th>
                                         </tr>
                                       </thead>
                                       <tbody>
                                         {subtasks.map(([subtaskName, value]) => {
                                           const numericValue = value as number
                                           return (
-                                            <tr key={subtaskName} className="border-b last:border-0 hover:bg-muted/10">
-                                              <td className="px-3 py-2 font-medium capitalize">{subtaskName.replace(/_/g, " ")}</td>
-                                              <td className="px-3 py-2 text-right tabular-nums text-muted-foreground">{formatRawScore(numericValue, summary.metric_config.unit)}</td>
+                                            <tr key={subtaskName}>
+                                              <td className="font-medium text-[13px] capitalize">{subtaskName.replace(/_/g, " ")}</td>
+                                              <td className="num font-mono tabular-nums text-[13px]" style={{ color: "var(--fg-muted)" }}>
+                                                {formatRawScore(numericValue, summary.metric_config.unit)}
+                                              </td>
                                             </tr>
                                           )
                                         })}
@@ -1383,44 +1506,77 @@ export function EvalDetail({ summary }: EvalDetailProps) {
                                 modelResult.result.generation_config && (
                                   <div className="space-y-3">
                                     <div>
-                                      <div className="text-xs font-semibold uppercase tracking-[0.2em] text-muted-foreground">
-                                        Generation Config
+                                      <div
+                                        className="font-mono uppercase"
+                                        style={{ fontSize: 10, letterSpacing: "0.14em", color: "var(--fg-subtle)" }}
+                                      >
+                                        Generation config
                                       </div>
-                                      <div className="text-sm text-muted-foreground">
+                                      <div className="text-[12px]" style={{ color: "var(--fg-muted)" }}>
                                         Evaluation-time generation parameters.
                                       </div>
                                     </div>
 
-                                    <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-3">
+                                    <div className="grid gap-2 md:grid-cols-2 xl:grid-cols-3">
                                       {modelResult.result.generation_config.generation_args &&
                                         Object.entries(modelResult.result.generation_config.generation_args).map(([key, value]) => (
-                                          <div key={key} className="rounded-xl border bg-background/70 p-4">
-                                            <div className="text-xs uppercase tracking-[0.16em] text-muted-foreground">
+                                          <div
+                                            key={key}
+                                            style={{
+                                              padding: 14,
+                                              border: "1px solid var(--border-soft)",
+                                              background: "var(--bg)",
+                                            }}
+                                          >
+                                            <div
+                                              className="font-mono uppercase"
+                                              style={{ fontSize: 10, letterSpacing: "0.12em", color: "var(--fg-subtle)" }}
+                                            >
                                               {key.replace(/_/g, " ")}
                                             </div>
-                                            <div className="mt-2 text-sm font-medium">
+                                            <div className="mt-2 text-[13px] font-medium font-mono tabular-nums">
                                               {formatMetadataValue(value)}
                                             </div>
                                           </div>
                                         ))}
 
                                       {modelResult.result.generation_config.additional_details && (
-                                        <div className="rounded-xl border bg-background/70 p-4 md:col-span-2 xl:col-span-3">
-                                          <div className="text-xs uppercase tracking-[0.16em] text-muted-foreground">
-                                            Additional Details
+                                        <div
+                                          className="md:col-span-2 xl:col-span-3"
+                                          style={{
+                                            padding: 14,
+                                            border: "1px solid var(--border-soft)",
+                                            background: "var(--bg)",
+                                          }}
+                                        >
+                                          <div
+                                            className="font-mono uppercase"
+                                            style={{ fontSize: 10, letterSpacing: "0.12em", color: "var(--fg-subtle)" }}
+                                          >
+                                            Additional details
                                           </div>
-                                          <div className="mt-2 text-sm font-medium whitespace-pre-wrap">
+                                          <div className="mt-2 text-[13px] font-medium whitespace-pre-wrap">
                                             {formatMetadataValue(modelResult.result.generation_config.additional_details)}
                                           </div>
                                         </div>
                                       )}
 
                                       {modelResult.result.generation_config.prompt_template && (
-                                        <div className="rounded-xl border bg-background/70 p-4 md:col-span-2 xl:col-span-3">
-                                          <div className="text-xs uppercase tracking-[0.16em] text-muted-foreground">
-                                            Prompt Template
+                                        <div
+                                          className="md:col-span-2 xl:col-span-3"
+                                          style={{
+                                            padding: 14,
+                                            border: "1px solid var(--border-soft)",
+                                            background: "var(--bg)",
+                                          }}
+                                        >
+                                          <div
+                                            className="font-mono uppercase"
+                                            style={{ fontSize: 10, letterSpacing: "0.12em", color: "var(--fg-subtle)" }}
+                                          >
+                                            Prompt template
                                           </div>
-                                          <div className="mt-2 text-sm font-medium whitespace-pre-wrap">
+                                          <div className="mt-2 text-[12.5px] font-mono whitespace-pre-wrap">
                                             {formatMetadataValue(modelResult.result.generation_config.prompt_template)}
                                           </div>
                                         </div>
@@ -1430,34 +1586,43 @@ export function EvalDetail({ summary }: EvalDetailProps) {
                                 )
                               )}
                             </div>
-                          </TableCell>
-                        </TableRow>
+                          </td>
+                        </tr>
                       )}
                     </Fragment>
                   )
                 })}
                 {leaderboardRows.length === 0 && (
-                  <TableRow>
-                    <TableCell colSpan={7} className="px-6 py-12 text-center text-sm text-muted-foreground">
+                  <tr>
+                    <td colSpan={8} style={{ padding: "32px 16px", textAlign: "center", color: "var(--fg-muted)" }}>
                       No leaderboard entries match the selected parameter range.
-                    </TableCell>
-                  </TableRow>
+                    </td>
+                  </tr>
                 )}
-              </TableBody>
-            </Table>
+              </tbody>
+            </table>
+            </div>
 
             {pagedLeaderboardRows.length < leaderboardRows.length && (
-              <div className="border-t px-6 py-4 text-center">
-                <Button
-                  variant="outline"
+              <div
+                style={{
+                  borderTop: "1px solid var(--border-soft)",
+                  background: "var(--bg-warm)",
+                  padding: "16px",
+                  textAlign: "center",
+                }}
+              >
+                <button
+                  type="button"
+                  className="btn-ec outline"
                   onClick={() => setLeaderboardPage((p) => p + 1)}
                 >
                   Load more ({leaderboardRows.length - pagedLeaderboardRows.length} remaining)
-                </Button>
+                </button>
               </div>
             )}
-          </CardContent>
-        </Card>
+          </div>
+        </section>
       )}
     </div>
   )
@@ -1698,25 +1863,6 @@ function MultiMetricLeaderboard({
     [leaderboardRows]
   )
 
-  const metricRanges = useMemo(() => {
-    const ranges = new Map<string, { min: number; max: number }>()
-
-    for (const metric of leaderboardMetrics) {
-      const scores = filteredRows
-        .map((row) => row.values[metric.column_key])
-        .filter(isNumericScore)
-
-      if (scores.length > 0) {
-        ranges.set(metric.column_key, {
-          min: Math.min(...scores),
-          max: Math.max(...scores),
-        })
-      }
-    }
-
-    return ranges
-  }, [filteredRows, leaderboardMetrics])
-
   const pagedRows = useMemo(
     () => sortedRows.slice(0, page * 50),
     [page, sortedRows]
@@ -1775,83 +1921,106 @@ function MultiMetricLeaderboard({
 
 
   return (
-    <Card className="overflow-hidden">
-      <CardHeader className="border-b bg-muted/10 space-y-3">
-        <ApplesToApplesBanner
-          summary={summary.comparability_summary}
-          detailsAnchorId="comparability-panel"
-        />
-        <div className="flex flex-col gap-3 lg:flex-row lg:items-end lg:justify-between">
-          <div className="space-y-2">
-            <div className="flex items-center gap-2">
-              <BarChart3 className="h-5 w-5 text-primary" />
-              <CardTitle className="text-xl">{isResearchView ? "Leaderboard" : "Reporting Comparison"}</CardTitle>
-            </div>
-            <CardDescription>
-              {isResearchView
-                ? "Each column is a reported benchmark measure. Distinct measures stay separate instead of collapsing into a single raw score."
-                : "Each column is a separately reported measure so the benchmark can be read without flattening different results into one number."}
-            </CardDescription>
+    <section>
+      <ApplesToApplesBanner
+        summary={summary.comparability_summary}
+        detailsAnchorId="comparability-panel"
+      />
+      <div className="section-head">
+        <h2>{isResearchView ? "Leaderboard" : "Reporting Comparison"}</h2>
+        <span
+          className="font-mono text-[10px] uppercase tracking-[0.12em]"
+          style={{ color: "var(--fg-muted)" }}
+        >
+          {filteredRows.length === leaderboardRows.length
+            ? `${leaderboardRows.length} models`
+            : `${filteredRows.length} of ${leaderboardRows.length} models`}
+          {" · "}
+          {visibleMetrics.length === leaderboardMetrics.length
+            ? `${leaderboardMetrics.length} measures`
+            : `${visibleMetrics.length} of ${leaderboardMetrics.length} measures`}
+        </span>
+      </div>
+      <div className="flex flex-col gap-3 lg:flex-row lg:items-start lg:justify-between mb-4">
+        <p
+          className="text-[13px] leading-[1.6]"
+          style={{ color: "var(--fg-muted)", maxWidth: 720 }}
+        >
+          {isResearchView
+            ? "Each column is a reported benchmark measure. Distinct measures stay separate instead of collapsing into a single raw score."
+            : "Each column is a separately reported measure so the benchmark can be read without flattening different results into one number."}
+        </p>
+        <DropdownMenu>
+          <DropdownMenuTrigger asChild>
+            <button type="button" className="ec-pill inline-flex items-center gap-1.5 shrink-0">
+              <SlidersHorizontal className="h-3 w-3" />
+              Columns
+            </button>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent align="end" className="w-80">
+            <DropdownMenuLabel>Visible measure columns</DropdownMenuLabel>
+            <DropdownMenuItem onSelect={() => setVisibleMetricKeys(allMetricKeys)}>
+              Show all
+            </DropdownMenuItem>
+            <DropdownMenuSeparator />
+            {leaderboardMetrics.map((metric) => {
+              const isVisible = visibleMetricKeySet.has(metric.column_key)
+              const isLastVisible = isVisible && visibleMetrics.length === 1
+              const visibleLabel = metric.scope === "subtask" && metric.subtask_key && subtaskMetricCounts.get(metric.subtask_key) === 1 && metric.subtask_name
+                ? metric.subtask_name
+                : getCompactMetricLabel(metric.display_name)
+
+              return (
+                <DropdownMenuCheckboxItem
+                  key={metric.column_key}
+                  checked={isVisible}
+                  disabled={isLastVisible}
+                  onCheckedChange={(checked) => setMetricVisibility(metric.column_key, checked === true)}
+                  className="items-start"
+                >
+                  <div className="flex min-w-0 flex-col gap-0.5">
+                    <span className="font-medium leading-tight text-foreground">{visibleLabel}</span>
+                    <span className="text-xs leading-tight text-muted-foreground">{describeLeaderboardMetric(metric)}</span>
+                  </div>
+                </DropdownMenuCheckboxItem>
+              )
+            })}
+          </DropdownMenuContent>
+        </DropdownMenu>
+      </div>
+
+      {/* Distribution panel — one curve, dropdown swaps between metrics */}
+      {(() => {
+        const distSeries = visibleMetrics
+          .map((metric) => {
+            const values = filteredRows
+              .map((r) => r.values[metric.column_key])
+              .filter((v): v is number => isNumericScore(v))
+            if (values.length < 3) return null
+            const label =
+              metric.scope === "subtask" && metric.subtask_key && subtaskMetricCounts.get(metric.subtask_key) === 1 && metric.subtask_name
+                ? metric.subtask_name
+                : getCompactMetricLabel(metric.display_name)
+            return {
+              key: metric.column_key,
+              label,
+              caption: metric.unit ?? undefined,
+              values,
+              unit: metric.unit ?? undefined,
+              lowerIsBetter: metric.lower_is_better,
+            }
+          })
+          .filter((entry): entry is NonNullable<typeof entry> => entry !== null)
+
+        if (distSeries.length === 0) return null
+        return (
+          <div className="mb-4">
+            <ScoreDistribution series={distSeries} />
           </div>
+        )
+      })()}
 
-          <div className="flex flex-wrap items-center justify-end gap-2 text-xs text-muted-foreground">
-            <Badge variant="secondary">
-              {filteredRows.length === leaderboardRows.length
-                ? `${leaderboardRows.length} models`
-                : `${filteredRows.length} of ${leaderboardRows.length} models`}
-            </Badge>
-            <Badge variant="outline">
-              {visibleMetrics.length === leaderboardMetrics.length
-                ? `${leaderboardMetrics.length} measures`
-                : `${visibleMetrics.length} of ${leaderboardMetrics.length} measures`}
-            </Badge>
-            {hasParameterData && (numericMinParams != null || numericMaxParams != null) && (
-              <Badge variant="outline">
-                Params {formatParamBoundLabel(minParamStep, "min")} to {formatParamBoundLabel(maxParamStep, "max")}
-              </Badge>
-            )}
-            <DropdownMenu>
-              <DropdownMenuTrigger asChild>
-                <Button variant="outline" size="sm" className="h-8 gap-2">
-                  <SlidersHorizontal className="h-3.5 w-3.5" />
-                  Columns
-                </Button>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent align="end" className="w-80">
-                <DropdownMenuLabel>Visible measure columns</DropdownMenuLabel>
-                <DropdownMenuItem onSelect={() => setVisibleMetricKeys(allMetricKeys)}>
-                  Show all
-                </DropdownMenuItem>
-                <DropdownMenuSeparator />
-                {leaderboardMetrics.map((metric) => {
-                  const isVisible = visibleMetricKeySet.has(metric.column_key)
-                  const isLastVisible = isVisible && visibleMetrics.length === 1
-                  const visibleLabel = metric.scope === "subtask" && metric.subtask_key && subtaskMetricCounts.get(metric.subtask_key) === 1 && metric.subtask_name
-                    ? metric.subtask_name
-                    : getCompactMetricLabel(metric.display_name)
-
-                  return (
-                    <DropdownMenuCheckboxItem
-                      key={metric.column_key}
-                      checked={isVisible}
-                      disabled={isLastVisible}
-                      onCheckedChange={(checked) => setMetricVisibility(metric.column_key, checked === true)}
-                      className="items-start"
-                    >
-                      <div className="flex min-w-0 flex-col gap-0.5">
-                        <span className="font-medium leading-tight text-foreground">{visibleLabel}</span>
-                        <span className="text-xs leading-tight text-muted-foreground">{describeLeaderboardMetric(metric)}</span>
-                      </div>
-                    </DropdownMenuCheckboxItem>
-                  )
-                })}
-              </DropdownMenuContent>
-            </DropdownMenu>
-          </div>
-        </div>
-      </CardHeader>
-
-      <CardContent className="p-0">
+      <div className="ec-card" style={{ padding: 0, overflow: "hidden" }}>
         {hasSubtaskTabs && (
           <div className="border-b bg-background px-5 py-3 sm:px-6">
             <SliceSelector
@@ -1888,7 +2057,7 @@ function MultiMetricLeaderboard({
                     <div className="absolute inset-x-1.5 top-1/2 h-[3px] -translate-y-1/2 rounded-full bg-border/80" />
                     <div className="absolute inset-x-1.5 top-1/2 h-[3px] -translate-y-1/2">
                       <div
-                        className="absolute inset-y-0 rounded-full bg-foreground transition-[left,right] duration-300 ease-[var(--ease-out-quint)]"
+                        className="absolute inset-y-0 rounded-full bg-foreground"
                         style={{
                           left: `${(minParamStep / maxParamStepIndex) * 100}%`,
                           right: `${Math.max(100 - (maxParamStep / maxParamStepIndex) * 100, 0)}%`,
@@ -1946,171 +2115,187 @@ function MultiMetricLeaderboard({
         )}
 
         <div className="overflow-x-auto">
-          <Table className="min-w-[1080px]">
-            <TableHeader>
-              <TableRow className="hover:bg-transparent">
-                <TableHead className="w-20 px-4">Rank</TableHead>
-                <TableHead className="min-w-[260px] px-4">
-                  <button
-                    type="button"
-                    onClick={() => handleSort("model")}
-                    className="w-full text-left font-semibold transition-colors hover:text-primary"
-                  >
-                    Model{getSortIndicator("model")}
-                  </button>
-                </TableHead>
-                <TableHead className="hidden min-w-[180px] lg:table-cell">
-                  <button
-                    type="button"
-                    onClick={() => handleSort("developer")}
-                    className="w-full text-left font-semibold transition-colors hover:text-primary"
-                  >
-                    {isResearchView ? "Developer" : "Provider"}
-                    {getSortIndicator("developer")}
-                  </button>
-                </TableHead>
-                <TableHead className="text-right">
-                  <button
-                    type="button"
-                    onClick={() => handleSort("coverage")}
-                    className="w-full text-right font-semibold transition-colors hover:text-primary"
-                  >
-                    Measures present{getSortIndicator("coverage")}
-                  </button>
-                </TableHead>
-                {visibleMetrics.map((metric) => (
-                  <TableHead key={metric.column_key} className="min-w-[150px] text-right">
-                    <button
-                      type="button"
+          <table className="ec-htable" style={{ minWidth: 1080 }}>
+            <thead>
+              <tr>
+                <th className="num" style={{ width: 64 }}>
+                  Rank
+                </th>
+                <th
+                  style={{ minWidth: 260, cursor: "pointer" }}
+                  onClick={() => handleSort("model")}
+                >
+                  Model{getSortIndicator("model")}
+                </th>
+                <th
+                  className="hidden lg:table-cell"
+                  style={{ minWidth: 160, cursor: "pointer" }}
+                  onClick={() => handleSort("developer")}
+                >
+                  {isResearchView ? "Developer" : "Provider"}
+                  {getSortIndicator("developer")}
+                </th>
+                <th
+                  className="num"
+                  style={{ width: 110, cursor: "pointer" }}
+                  onClick={() => handleSort("coverage")}
+                >
+                  Coverage{getSortIndicator("coverage")}
+                </th>
+                {visibleMetrics.map((metric) => {
+                  const showSubtaskTopline =
+                    !hasSubtaskTabs &&
+                    !(metric.scope === "subtask" && metric.subtask_key && subtaskMetricCounts.get(metric.subtask_key) === 1) &&
+                    metric.scope === "subtask" &&
+                    metric.subtask_name
+                  const mainLabel =
+                    metric.scope === "subtask" && metric.subtask_key && subtaskMetricCounts.get(metric.subtask_key) === 1 && metric.subtask_name
+                      ? metric.subtask_name
+                      : getCompactMetricLabel(metric.display_name)
+                  return (
+                    <th
+                      key={metric.column_key}
+                      className="num"
+                      style={{ minWidth: 130, cursor: "pointer" }}
                       onClick={() => handleSort(metric.column_key)}
-                      aria-label={describeLeaderboardMetric(metric)}
-                      className="group relative flex w-full flex-col items-end leading-tight transition-colors hover:text-primary focus-visible:text-primary"
+                      title={describeLeaderboardMetric(metric)}
                     >
-                      {!hasSubtaskTabs && !(metric.scope === "subtask" && metric.subtask_key && subtaskMetricCounts.get(metric.subtask_key) === 1) && metric.scope === "subtask" && metric.subtask_name && (
-                        <span className="text-[10px] font-medium uppercase tracking-[0.14em] text-muted-foreground">
+                      {showSubtaskTopline && (
+                        <div
+                          className="font-mono normal-case"
+                          style={{
+                            fontSize: 9,
+                            letterSpacing: "0.1em",
+                            color: "var(--fg-subtle)",
+                            marginBottom: 2,
+                          }}
+                        >
                           {metric.subtask_name}
-                        </span>
+                        </div>
                       )}
-                      <span>
-                        {metric.scope === "subtask" && metric.subtask_key && subtaskMetricCounts.get(metric.subtask_key) === 1 && metric.subtask_name
-                          ? metric.subtask_name
-                          : getCompactMetricLabel(metric.display_name)}
-                        {getSortIndicator(metric.column_key)}
-                      </span>
-                      <span className="pointer-events-none absolute right-0 top-full z-20 mt-2 w-56 rounded-md border border-border/70 bg-background px-2.5 py-2 text-left text-[11px] font-normal normal-case tracking-normal text-foreground opacity-0 shadow-lg transition-opacity duration-150 group-hover:opacity-100 group-focus-visible:opacity-100">
-                        {describeLeaderboardMetric(metric)}
-                      </span>
-                    </button>
-                  </TableHead>
-                ))}
-                <TableHead className="hidden min-w-[120px] xl:table-cell">
-                  <button
-                    type="button"
-                    onClick={() => handleSort("updated")}
-                    className="w-full text-left font-semibold transition-colors hover:text-primary"
-                  >
-                    Updated{getSortIndicator("updated")}
-                  </button>
-                </TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
+                      {mainLabel}
+                      {getSortIndicator(metric.column_key)}
+                    </th>
+                  )
+                })}
+                <th
+                  className="num hidden xl:table-cell"
+                  style={{ width: 110, cursor: "pointer" }}
+                  onClick={() => handleSort("updated")}
+                >
+                  Updated{getSortIndicator("updated")}
+                </th>
+              </tr>
+            </thead>
+            <tbody>
               {pagedRows.map((row) => {
                 const rank = rankByModelId.get(row.model_info.id) ?? 0
                 const expandKey = row.model_info.id
                 const isExpanded = expandedRows[expandKey] ?? false
                 const matchingResult = modelResultByModelId.get(row.model_info.id)
+                const isTopRank = rank === 1
+                const rankColor = rank === 1 ? "var(--accent)" : "var(--fg-muted)"
+                const familyLabel = row.model_info.architecture ?? row.model_info.parameter_count ?? null
 
                 return (
                 <Fragment key={row.model_info.id}>
-                <TableRow className={cn("hover:bg-muted/10", isExpanded && "bg-muted/15")}>
-                  <TableCell className="px-4">
-                    <div
-                      className={cn(
-                        "inline-flex h-9 w-9 items-center justify-center rounded-full border text-sm font-semibold",
-                        getRankBadgeClass(rank)
-                      )}
+                <tr className={cn("align-top", isExpanded && "bg-[color:var(--bg-warm)]")}>
+                  <td className="num align-top">
+                    <span
+                      className="font-mono tabular-nums"
+                      style={{
+                        fontSize: 14,
+                        fontWeight: isTopRank ? 600 : 500,
+                        color: rankColor,
+                      }}
                     >
-                      {rank}
-                    </div>
-                  </TableCell>
-                  <TableCell className="px-4 whitespace-normal">
-                    <div className="space-y-1">
-                      <div className="flex items-center gap-1.5 font-semibold leading-tight">
-                        {isResearchView && matchingResult && (
-                          <button
-                            type="button"
-                            onClick={() => toggleExpandedRow(expandKey)}
-                            aria-label={isExpanded ? "Hide reproducibility" : "Show reproducibility"}
-                            aria-expanded={isExpanded}
-                            className="-ml-1 inline-flex h-5 w-5 items-center justify-center rounded text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
-                          >
-                            {isExpanded ? <ChevronUp className="h-3.5 w-3.5" /> : <ChevronDown className="h-3.5 w-3.5" />}
-                          </button>
-                        )}
+                      #{rank}
+                    </span>
+                  </td>
+                  <td className="align-top whitespace-normal">
+                    <div className="flex items-start gap-1.5 leading-tight">
+                      {isResearchView && matchingResult && (
+                        <button
+                          type="button"
+                          onClick={() => toggleExpandedRow(expandKey)}
+                          aria-label={isExpanded ? "Hide reproducibility" : "Show reproducibility"}
+                          aria-expanded={isExpanded}
+                          className="-ml-1 mt-0.5 inline-flex h-4 w-4 items-center justify-center transition-colors hover:text-[color:var(--accent)]"
+                          style={{ color: "var(--fg-muted)" }}
+                        >
+                          {isExpanded ? <ChevronUp className="h-3 w-3" /> : <ChevronDown className="h-3 w-3" />}
+                        </button>
+                      )}
+                      <div className="min-w-0">
                         <Link
                           href={`/models/${getModelFamilyRouteId(row.model_info)}`}
-                          className="underline decoration-dotted underline-offset-4 hover:text-primary"
+                          className="font-semibold text-[14px] hover:text-[color:var(--accent)] transition-colors"
+                          style={{ color: "var(--fg)" }}
                         >
                           {row.model_info.name}
                         </Link>
+                        {familyLabel && (
+                          <div
+                            className="mt-0.5 font-mono uppercase truncate"
+                            style={{ fontSize: 10, letterSpacing: "0.08em", color: "var(--fg-subtle)" }}
+                          >
+                            {familyLabel}
+                          </div>
+                        )}
+                        <div
+                          className="mt-0.5 lg:hidden text-[12px]"
+                          style={{ color: "var(--fg-muted)" }}
+                        >
+                          {row.model_info.developer ?? "Unknown developer"}
+                        </div>
                         <RowSignalsCompact
                           annotations={getRowLevelAnnotations(row, visibleMetrics)}
-                          className="ml-1"
+                          className="mt-1"
                         />
                       </div>
-                      <div className="flex flex-wrap items-center gap-2 text-xs text-muted-foreground">
-                        {row.model_info.parameter_count && (
-                          <Badge variant="secondary" className="font-normal">
-                            {row.model_info.parameter_count}
-                          </Badge>
-                        )}
-                        {row.model_info.architecture && (
-                          <Badge variant="outline" className="font-normal">
-                            {row.model_info.architecture}
-                          </Badge>
-                        )}
-                        <span className="lg:hidden">{row.model_info.developer ?? "Unknown developer"}</span>
-                      </div>
                     </div>
-                  </TableCell>
+                  </td>
 
-                  <TableCell className="hidden lg:table-cell">
-                    <div className="max-w-[180px] truncate text-sm text-muted-foreground">
+                  <td className="hidden lg:table-cell align-top">
+                    <div className="text-[13px] truncate" style={{ color: "var(--fg-muted)" }}>
                       {row.model_info.developer ?? "Unknown developer"}
                     </div>
-                  </TableCell>
+                  </td>
 
-                  <TableCell className="text-right tabular-nums text-sm font-semibold">
-                    {getVisibleMetricCount(row)}/{visibleMetrics.length}
-                  </TableCell>
+                  <td className="num align-top tabular-nums" style={{ fontSize: 13, fontWeight: 600 }}>
+                    {getVisibleMetricCount(row)}
+                    <span style={{ color: "var(--fg-subtle)", fontWeight: 400 }}>/{visibleMetrics.length}</span>
+                  </td>
 
                   {visibleMetrics.map((metric) => {
                     const score = row.values[metric.column_key]
                     const annotations = row.annotations_by_metric?.[metric.column_key]
+                    const valid = isNumericScore(score)
                     return (
-                      <TableCell
+                      <td
                         key={metric.column_key}
-                        className={cn(
-                          "text-right tabular-nums",
-                          !isNumericScore(score) && "text-muted-foreground"
-                        )}
+                        className="num align-top tabular-nums"
+                        style={{
+                          fontSize: 13,
+                          fontWeight: valid ? 600 : 400,
+                          color: valid ? "var(--fg)" : "var(--fg-subtle)",
+                        }}
                       >
-                        <div>{isNumericScore(score) ? formatRawScore(score, metric.unit) : "—"}</div>
+                        <div>{valid ? formatRawScore(score, undefined) : "—"}</div>
                         <SignalsRowBadges annotations={annotations} variant="cell" />
-                      </TableCell>
+                      </td>
                     )
                   })}
 
-                  <TableCell className="hidden xl:table-cell text-sm text-muted-foreground">
+                  <td className="num hidden xl:table-cell align-top font-mono tabular-nums" style={{ fontSize: 11, color: "var(--fg-muted)" }}>
                     {formatDate(row.evaluation_timestamp)}
-                  </TableCell>
-                </TableRow>
+                  </td>
+                </tr>
                 {isResearchView && isExpanded && matchingResult && (
-                  <TableRow className="hover:bg-transparent">
-                    <TableCell
+                  <tr>
+                    <td
                       colSpan={visibleMetrics.length + 5}
-                      className="bg-muted/10 px-4 py-5 sm:px-6"
+                      style={{ background: "var(--bg-warm)", padding: "20px 24px" }}
                     >
                       <div className="space-y-3">
                         <ResearcherReproducibilityCard
@@ -2130,32 +2315,43 @@ function MultiMetricLeaderboard({
                           />
                         </div>
                       </div>
-                    </TableCell>
-                  </TableRow>
+                    </td>
+                  </tr>
                 )}
                 </Fragment>
               )})}
 
               {filteredRows.length === 0 && (
-                <TableRow>
-                  <TableCell colSpan={visibleMetrics.length + 5} className="px-6 py-12 text-center text-sm text-muted-foreground">
+                <tr>
+                  <td colSpan={visibleMetrics.length + 5} style={{ padding: "32px 16px", textAlign: "center", color: "var(--fg-muted)" }}>
                     No models match the selected parameter range.
-                  </TableCell>
-                </TableRow>
+                  </td>
+                </tr>
               )}
-            </TableBody>
-          </Table>
+            </tbody>
+          </table>
         </div>
 
         {pagedRows.length < filteredRows.length && (
-          <div className="border-t px-6 py-4 text-center">
-            <Button variant="outline" onClick={() => setPage((current) => current + 1)}>
+          <div
+            style={{
+              borderTop: "1px solid var(--border-soft)",
+              background: "var(--bg-warm)",
+              padding: "16px",
+              textAlign: "center",
+            }}
+          >
+            <button
+              type="button"
+              className="btn-ec outline"
+              onClick={() => setPage((current) => current + 1)}
+            >
               Load more ({filteredRows.length - pagedRows.length} remaining)
-            </Button>
+            </button>
           </div>
         )}
-      </CardContent>
-    </Card>
+      </div>
+    </section>
   )
 }
 
@@ -2178,19 +2374,23 @@ function BenchmarkCardCollapsible({
       <CollapsibleTrigger asChild>
         <button
           type="button"
-          className="flex w-full items-center justify-between rounded-[1.5rem] border border-border/70 bg-muted/10 px-5 py-4 text-left transition-colors hover:bg-muted/20"
+          className="ec-card flex w-full items-center justify-between text-left transition-colors hover:bg-[color:var(--bg-warm)]"
+          style={{ padding: "14px 20px" }}
         >
-          <div className="flex items-center gap-2">
-            <BookOpen className="h-4 w-4 text-muted-foreground" />
-            <span className="text-sm font-semibold">Benchmark card details</span>
-            <span className="text-xs text-muted-foreground">
-              dataset, methodology, risks, resources
+          <div className="flex items-center gap-3">
+            <BookOpen className="h-4 w-4" style={{ color: "var(--fg-muted)" }} />
+            <span className="kicker kicker-fg">Benchmark card</span>
+            <span
+              className="font-mono text-[10px] uppercase tracking-[0.12em]"
+              style={{ color: "var(--fg-subtle)" }}
+            >
+              dataset · methodology · risks · resources
             </span>
           </div>
           {open ? (
-            <ChevronUp className="h-4 w-4 text-muted-foreground" />
+            <ChevronUp className="h-4 w-4" style={{ color: "var(--fg-muted)" }} />
           ) : (
-            <ChevronDown className="h-4 w-4 text-muted-foreground" />
+            <ChevronDown className="h-4 w-4" style={{ color: "var(--fg-muted)" }} />
           )}
         </button>
       </CollapsibleTrigger>
@@ -2216,12 +2416,24 @@ function DetailPanel({
   children: React.ReactNode
 }) {
   return (
-    <div className="min-w-0 rounded-2xl border bg-background/70 p-4">
-      <div className="mb-4">
-        <div className="font-semibold">{title}</div>
-        <div className="text-sm text-muted-foreground">{subtitle}</div>
+    <div
+      className="min-w-0"
+      style={{
+        padding: 16,
+        border: "1px solid var(--border-soft)",
+        background: "var(--bg)",
+      }}
+    >
+      <div className="mb-3">
+        <div
+          className="font-mono uppercase mb-1"
+          style={{ fontSize: 10, letterSpacing: "0.14em", color: "var(--fg-subtle)" }}
+        >
+          {title}
+        </div>
+        <div className="text-[12px]" style={{ color: "var(--fg-muted)" }}>{subtitle}</div>
       </div>
-      <div className="min-w-0 space-y-2.5">{children}</div>
+      <div className="min-w-0 space-y-2">{children}</div>
     </div>
   )
 }
@@ -2350,34 +2562,46 @@ function BenchmarkCardPanel({
   const shortLicense = license && license !== "Not specified" ? license : null
 
   return (
-    <Card className="overflow-hidden">
-      <CardHeader className="border-b bg-muted/10">
-        <div className="flex flex-wrap items-center gap-3">
-          <BookOpen className="h-5 w-5 text-primary" />
-          <CardTitle className="text-xl">Benchmark Card</CardTitle>
+    <div className="ec-card" style={{ padding: 0, overflow: "hidden" }}>
+      <div
+        style={{
+          padding: "16px 20px",
+          background: "var(--bg-warm)",
+          borderBottom: "1px solid var(--border-soft)",
+        }}
+      >
+        <div className="flex flex-wrap items-center gap-3 mb-1.5">
+          <BookOpen className="h-4 w-4" style={{ color: "var(--fg-muted)" }} />
+          <span className="kicker kicker-fg" style={{ fontSize: 12, letterSpacing: "0.16em" }}>
+            Benchmark Card
+          </span>
           {shortLicense && (
-            <Badge variant="outline" className="font-normal">
-              {shortLicense}
-            </Badge>
+            <span className="ec-tag outline">{shortLicense}</span>
           )}
           {(flaggedFields.length > 0 || missingFields.length > 0) && (
-            <Badge className="bg-amber-500 text-amber-950 hover:bg-amber-500">
-              <AlertTriangle className="mr-1 h-3 w-3" />
+            <span
+              className="font-mono inline-flex items-center gap-1"
+              style={{
+                fontSize: 10,
+                padding: "2px 8px",
+                letterSpacing: "0.06em",
+                background: "var(--bg)",
+                color: "var(--accent)",
+                border: "1px solid var(--accent)",
+                textTransform: "uppercase",
+              }}
+            >
+              <AlertTriangle className="h-3 w-3" />
               {flaggedFields.length} flagged · {missingFields.length} missing
-            </Badge>
-          )}
-        </div>
-        <CardDescription>
-          Structured metadata about this benchmark: what it measures, how it was built, and known limitations.
-          {card.card_info?.llm && (
-            <span className="ml-1 text-muted-foreground/70">
-              Card generated by {card.card_info.llm}.
             </span>
           )}
-        </CardDescription>
-      </CardHeader>
+        </div>
+        <div className="text-[12px]" style={{ color: "var(--fg-muted)" }}>
+          Structured metadata about this benchmark: what it measures, how it was built, and known limitations.
+        </div>
+      </div>
 
-      <CardContent className="space-y-6 p-5 sm:p-6">
+      <div className="space-y-6 p-5 sm:p-6">
         {knownIssues.length > 0 && <KnownIssuesPanel issues={knownIssues} variant="full" />}
 
         {/* Overview + domains */}
@@ -2386,57 +2610,87 @@ function BenchmarkCardPanel({
 
           <div className="flex flex-wrap gap-2">
             {domains.map((d) => (
-              <span
-                key={d}
-                className="inline-flex items-center gap-1 rounded-full border border-border/60 bg-muted/30 px-2.5 py-1 text-xs font-medium capitalize"
-              >
-                <Tag className="h-3 w-3 shrink-0 text-muted-foreground" />
+              <span key={d} className="ec-tag outline">
+                <Tag className="h-3 w-3 shrink-0" />
                 {d}
               </span>
             ))}
             {languages.map((l) => (
-              <span
-                key={l}
-                className="inline-flex items-center gap-1 rounded-full border border-sky-200/70 bg-sky-50/60 px-2.5 py-1 text-xs font-medium dark:border-sky-900/40 dark:bg-sky-950/20"
-              >
-                <Globe className="h-3 w-3 shrink-0 text-sky-600" />
+              <span key={l} className="ec-tag outline">
+                <Globe className="h-3 w-3 shrink-0" />
                 {l}
               </span>
             ))}
           </div>
         </div>
 
-        <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
+        <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
           {/* Goal */}
-          <div className="rounded-[1.25rem] border border-border/70 bg-muted/10 p-4">
-            <div className="mb-2 flex items-center gap-2 text-[11px] font-semibold uppercase tracking-[0.2em] text-muted-foreground">
-              <Scale className="h-3.5 w-3.5" /> Goal
+          <div
+            style={{
+              padding: 16,
+              border: "1px solid var(--border-soft)",
+              background: "var(--bg)",
+            }}
+          >
+            <div
+              className="mb-2 flex items-center gap-2 font-mono uppercase"
+              style={{ fontSize: 10, letterSpacing: "0.14em", color: "var(--fg-subtle)" }}
+            >
+              <Scale className="h-3 w-3" /> Goal
             </div>
-            <p className="text-sm leading-5 text-foreground">{purpose.goal}</p>
+            <p className="text-[13px] leading-[1.55]" style={{ color: "var(--fg)" }}>{purpose.goal}</p>
           </div>
 
           {/* Metric interpretation */}
-          <div className="rounded-[1.25rem] border border-border/70 bg-muted/10 p-4">
-            <div className="mb-2 flex items-center gap-2 text-[11px] font-semibold uppercase tracking-[0.2em] text-muted-foreground">
-              <BarChart3 className="h-3.5 w-3.5" /> Score interpretation
+          <div
+            style={{
+              padding: 16,
+              border: "1px solid var(--border-soft)",
+              background: "var(--bg)",
+            }}
+          >
+            <div
+              className="mb-2 flex items-center gap-2 font-mono uppercase"
+              style={{ fontSize: 10, letterSpacing: "0.14em", color: "var(--fg-subtle)" }}
+            >
+              <BarChart3 className="h-3 w-3" /> Score interpretation
             </div>
-            <p className="text-sm leading-5 text-foreground">{methodology.interpretation}</p>
+            <p className="text-[13px] leading-[1.55]" style={{ color: "var(--fg)" }}>{methodology.interpretation}</p>
           </div>
 
           {/* Limitations */}
-          <div className="rounded-[1.25rem] border border-amber-200/60 bg-amber-50/60 p-4 dark:border-amber-900/40 dark:bg-amber-950/15">
-            <div className="mb-2 flex items-center gap-2 text-[11px] font-semibold uppercase tracking-[0.2em] text-amber-700 dark:text-amber-300">
-              <AlertTriangle className="h-3.5 w-3.5" /> Limitations
+          <div
+            style={{
+              padding: 16,
+              border: "1px solid var(--accent)",
+              background: "var(--bg-warm)",
+            }}
+          >
+            <div
+              className="mb-2 flex items-center gap-2 font-mono uppercase"
+              style={{ fontSize: 10, letterSpacing: "0.14em", color: "var(--accent)" }}
+            >
+              <AlertTriangle className="h-3 w-3" /> Limitations
             </div>
-            <p className="text-sm leading-5 text-amber-900/90 dark:text-amber-100/90">{purpose.limitations}</p>
+            <p className="text-[13px] leading-[1.55]" style={{ color: "var(--accent)" }}>{purpose.limitations}</p>
           </div>
         </div>
 
         {(methodology.methods?.length > 0 ||
           (methodology.calculation && methodology.calculation !== "Not specified") ||
           (methodology.validation && methodology.validation !== "Not specified")) && (
-          <div className="rounded-[1.25rem] border border-border/70 bg-muted/10 p-4">
-            <div className="mb-3 text-[11px] font-semibold uppercase tracking-[0.2em] text-muted-foreground">
+          <div
+            style={{
+              padding: 16,
+              border: "1px solid var(--border-soft)",
+              background: "var(--bg)",
+            }}
+          >
+            <div
+              className="mb-3 font-mono uppercase"
+              style={{ fontSize: 10, letterSpacing: "0.14em", color: "var(--fg-subtle)" }}
+            >
               How tasks were sourced and scored
             </div>
             <div className="grid gap-4 lg:grid-cols-2">
@@ -2480,47 +2734,65 @@ function BenchmarkCardPanel({
 
         {/* Research-only: methodology + dataset details */}
         {isResearchView && (
-          <div className="grid gap-4 sm:grid-cols-2">
-            <div className="rounded-[1.25rem] border border-border/70 bg-muted/10 p-4">
-              <div className="mb-3 text-[11px] font-semibold uppercase tracking-[0.2em] text-muted-foreground">
+          <div className="grid gap-3 sm:grid-cols-2">
+            <div
+              style={{
+                padding: 16,
+                border: "1px solid var(--border-soft)",
+                background: "var(--bg)",
+              }}
+            >
+              <div
+                className="mb-3 font-mono uppercase"
+                style={{ fontSize: 10, letterSpacing: "0.14em", color: "var(--fg-subtle)" }}
+              >
                 Dataset
               </div>
-              <dl className="space-y-2 text-sm">
+              <dl className="space-y-2 text-[13px]">
                 <div className="flex gap-2">
-                  <dt className="w-20 shrink-0 text-muted-foreground">Size</dt>
+                  <dt className="w-20 shrink-0" style={{ color: "var(--fg-muted)" }}>Size</dt>
                   <dd className="font-medium">{data.size}</dd>
                 </div>
                 <div className="flex gap-2">
-                  <dt className="w-20 shrink-0 text-muted-foreground">Format</dt>
+                  <dt className="w-20 shrink-0" style={{ color: "var(--fg-muted)" }}>Format</dt>
                   <dd className="font-medium capitalize">{data.format}</dd>
                 </div>
                 <div className="flex gap-2">
-                  <dt className="w-20 shrink-0 text-muted-foreground">Source</dt>
+                  <dt className="w-20 shrink-0" style={{ color: "var(--fg-muted)" }}>Source</dt>
                   <dd className="font-medium">{data.source}</dd>
                 </div>
               </dl>
             </div>
 
-            <div className="rounded-[1.25rem] border border-border/70 bg-muted/10 p-4">
-              <div className="mb-3 text-[11px] font-semibold uppercase tracking-[0.2em] text-muted-foreground">
+            <div
+              style={{
+                padding: 16,
+                border: "1px solid var(--border-soft)",
+                background: "var(--bg)",
+              }}
+            >
+              <div
+                className="mb-3 font-mono uppercase"
+                style={{ fontSize: 10, letterSpacing: "0.14em", color: "var(--fg-subtle)" }}
+              >
                 Methodology
               </div>
-              <dl className="space-y-2 text-sm">
+              <dl className="space-y-2 text-[13px]">
                 {methodology.metrics.length > 0 && (
                   <div className="flex gap-2">
-                    <dt className="w-20 shrink-0 text-muted-foreground">Metrics</dt>
+                    <dt className="w-20 shrink-0" style={{ color: "var(--fg-muted)" }}>Metrics</dt>
                     <dd className="font-medium">{methodology.metrics.join(", ")}</dd>
                   </div>
                 )}
                 {tasks.length > 0 && (
                   <div className="flex gap-2">
-                    <dt className="w-20 shrink-0 text-muted-foreground">Tasks</dt>
+                    <dt className="w-20 shrink-0" style={{ color: "var(--fg-muted)" }}>Tasks</dt>
                     <dd className="font-medium">{tasks.join(", ")}</dd>
                   </div>
                 )}
                 {audience.length > 0 && (
                   <div className="flex gap-2">
-                    <dt className="w-20 shrink-0 text-muted-foreground">Audience</dt>
+                    <dt className="w-20 shrink-0" style={{ color: "var(--fg-muted)" }}>Audience</dt>
                     <dd className="font-medium">{audience.join("; ")}</dd>
                   </div>
                 )}
@@ -2539,44 +2811,60 @@ function BenchmarkCardPanel({
             <CollapsibleTrigger asChild>
               <button
                 type="button"
-                className="flex w-full items-center justify-between rounded-[1.25rem] border border-border/70 bg-muted/10 p-4 text-left transition-colors hover:bg-muted/20"
+                className="flex w-full items-center justify-between text-left transition-colors hover:bg-[color:var(--bg-warm)]"
+                style={{
+                  padding: "12px 16px",
+                  border: "1px solid var(--border-soft)",
+                  background: "var(--bg)",
+                }}
               >
                 <div className="flex items-center gap-2">
-                  <Shield className="h-4 w-4 text-muted-foreground" />
-                  <span className="text-sm font-semibold">
+                  <Shield className="h-4 w-4" style={{ color: "var(--fg-muted)" }} />
+                  <span
+                    className="font-mono uppercase"
+                    style={{ fontSize: 11, letterSpacing: "0.12em", color: "var(--fg)" }}
+                  >
                     Risk considerations ({risks.length})
                   </span>
                 </div>
                 {risksOpen ? (
-                  <ChevronUp className="h-4 w-4 text-muted-foreground" />
+                  <ChevronUp className="h-4 w-4" style={{ color: "var(--fg-muted)" }} />
                 ) : (
-                  <ChevronDown className="h-4 w-4 text-muted-foreground" />
+                  <ChevronDown className="h-4 w-4" style={{ color: "var(--fg-muted)" }} />
                 )}
               </button>
             </CollapsibleTrigger>
             <CollapsibleContent>
-              <div className="mt-2 grid gap-3 sm:grid-cols-2">
+              <div className="mt-2 grid gap-2 sm:grid-cols-2">
                 {risks.map((risk, i) => (
                   <div
                     key={i}
-                    className="rounded-[1.25rem] border border-border/60 bg-background p-4"
+                    style={{
+                      padding: 14,
+                      border: "1px solid var(--border-soft)",
+                      background: "var(--bg)",
+                    }}
                   >
                     <div className="mb-1.5 flex items-start justify-between gap-2">
-                      <span className="text-sm font-semibold">{risk.category}</span>
+                      <span className="text-[13px] font-semibold">{risk.category}</span>
                       {risk.url && (
                         <a
                           href={risk.url}
                           target="_blank"
                           rel="noreferrer"
                           onClick={(e) => e.stopPropagation()}
-                          className="shrink-0 text-muted-foreground hover:text-primary"
+                          className="shrink-0 hover:text-[color:var(--accent)]"
+                          style={{ color: "var(--fg-muted)" }}
                         >
                           <ExternalLink className="h-3.5 w-3.5" />
                         </a>
                       )}
                     </div>
                     {risk.description?.[0] && (
-                      <p className="text-xs leading-5 text-muted-foreground line-clamp-3">
+                      <p
+                        className="text-[12px] leading-[1.55] line-clamp-3"
+                        style={{ color: "var(--fg-muted)" }}
+                      >
                         {risk.description[0]}
                       </p>
                     )}
@@ -2589,26 +2877,35 @@ function BenchmarkCardPanel({
 
         {/* Compliance / ethical notes (policy view emphasis) */}
         {!isResearchView && (
-          <div className="rounded-[1.25rem] border border-border/70 bg-muted/10 p-4">
-            <div className="mb-3 text-[11px] font-semibold uppercase tracking-[0.2em] text-muted-foreground">
+          <div
+            style={{
+              padding: 16,
+              border: "1px solid var(--border-soft)",
+              background: "var(--bg)",
+            }}
+          >
+            <div
+              className="mb-3 font-mono uppercase"
+              style={{ fontSize: 10, letterSpacing: "0.14em", color: "var(--fg-subtle)" }}
+            >
               Ethical &amp; legal
             </div>
-            <dl className="grid gap-x-6 gap-y-2 text-sm sm:grid-cols-2">
+            <dl className="grid gap-x-6 gap-y-2 text-[13px] sm:grid-cols-2">
               {shortLicense && (
                 <div className="flex gap-2">
-                  <dt className="w-28 shrink-0 text-muted-foreground">License</dt>
+                  <dt className="w-28 shrink-0" style={{ color: "var(--fg-muted)" }}>License</dt>
                   <dd className="font-medium">{license}</dd>
                 </div>
               )}
               {ethical.compliance_with_regulations && ethical.compliance_with_regulations !== "Not specified" && (
                 <div className="flex gap-2">
-                  <dt className="w-28 shrink-0 text-muted-foreground">Compliance</dt>
+                  <dt className="w-28 shrink-0" style={{ color: "var(--fg-muted)" }}>Compliance</dt>
                   <dd className="font-medium">{ethical.compliance_with_regulations}</dd>
                 </div>
               )}
               {ethical.privacy_and_anonymity && ethical.privacy_and_anonymity !== "Not specified" && (
                 <div className="col-span-full flex gap-2">
-                  <dt className="w-28 shrink-0 text-muted-foreground">Privacy</dt>
+                  <dt className="w-28 shrink-0" style={{ color: "var(--fg-muted)" }}>Privacy</dt>
                   <dd className="font-medium">{ethical.privacy_and_anonymity}</dd>
                 </div>
               )}
@@ -2618,12 +2915,21 @@ function BenchmarkCardPanel({
 
         {/* Flagged / missing fields warning */}
         {(flaggedFields.length > 0 || missingFields.length > 0) && isResearchView && (
-          <div className="rounded-[1.25rem] border border-amber-200/60 bg-amber-50/50 p-4 dark:border-amber-900/40 dark:bg-amber-950/15">
-            <div className="mb-2 text-[11px] font-semibold uppercase tracking-[0.2em] text-amber-700 dark:text-amber-300">
+          <div
+            style={{
+              padding: 14,
+              border: "1px solid var(--accent)",
+              background: "var(--bg-warm)",
+            }}
+          >
+            <div
+              className="mb-2 font-mono uppercase"
+              style={{ fontSize: 10, letterSpacing: "0.14em", color: "var(--accent)" }}
+            >
               Card quality notes
             </div>
             {flaggedFields.length > 0 && (
-              <ul className="space-y-1 text-xs text-amber-900/80 dark:text-amber-100/80">
+              <ul className="space-y-1 text-[12px]" style={{ color: "var(--fg)" }}>
                 {flaggedFields.map(([field, note]) => (
                   <li key={field}>
                     <span className="font-semibold">{field}:</span> {note}
@@ -2632,7 +2938,7 @@ function BenchmarkCardPanel({
               </ul>
             )}
             {missingFields.length > 0 && (
-              <p className="mt-1 text-xs text-amber-900/70 dark:text-amber-100/70">
+              <p className="mt-1 text-[12px]" style={{ color: "var(--fg-muted)" }}>
                 Missing: {missingFields.join(", ")}
               </p>
             )}
@@ -2642,7 +2948,10 @@ function BenchmarkCardPanel({
         {/* External resources */}
         {resources.length > 0 && (
           <div>
-            <div className="mb-2 text-[11px] font-semibold uppercase tracking-[0.2em] text-muted-foreground">
+            <div
+              className="mb-2 font-mono uppercase"
+              style={{ fontSize: 10, letterSpacing: "0.14em", color: "var(--fg-subtle)" }}
+            >
               Resources
             </div>
             <div className="flex flex-wrap gap-2">
@@ -2653,7 +2962,8 @@ function BenchmarkCardPanel({
                   target="_blank"
                   rel="noreferrer"
                   onClick={(e) => e.stopPropagation()}
-                  className="inline-flex items-center gap-1 rounded-full border border-border/60 bg-background px-3 py-1.5 text-xs font-medium text-muted-foreground hover:text-primary hover:border-primary/40 transition-colors"
+                  className="ec-tag outline inline-flex items-center gap-1.5"
+                  style={{ textDecoration: "none" }}
                 >
                   <FileText className="h-3 w-3 shrink-0" />
                   {url.replace(/^https?:\/\//, "").replace(/\/.+/, "")}
@@ -2663,7 +2973,7 @@ function BenchmarkCardPanel({
             </div>
           </div>
         )}
-      </CardContent>
-    </Card>
+      </div>
+    </div>
   )
 }
