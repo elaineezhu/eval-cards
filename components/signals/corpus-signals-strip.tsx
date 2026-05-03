@@ -39,8 +39,13 @@ export function CorpusSignalsStrip({
   const tpShare = totalReports > 0 ? prov.source_type_distribution.third_party / totalReports : 0
   const fpShare = totalReports > 0 ? prov.source_type_distribution.first_party / totalReports : 0
 
-  const cmpRate = cmp.variant_divergence_rate
-  const crossPartyAvailable = cmp.cross_party_eligible_groups > 0
+  const multiSourceRate = rate(prov.multi_source_triples, prov.total_triples)
+  const cmpRate = rate(cmp.variant_divergent_count, cmp.groups_with_variant_check)
+  const crossPartyRate = rate(
+    cmp.cross_party_divergent_count,
+    cmp.groups_with_cross_party_check
+  )
+  const crossPartyAvailable = cmp.groups_with_cross_party_check > 0
 
   return (
     <div className="signals-grid">
@@ -58,29 +63,29 @@ export function CorpusSignalsStrip({
       />
       <SignalTile
         id="completeness"
-        statValue={pctNum(comp.completeness_score_mean)}
+        statValue={pctNum(comp.completeness_avg)}
         statUnit="%"
-        headline={`mean across ${comp.total_benchmarks.toLocaleString()} benchmarks (median ${formatPct(comp.completeness_score_median)}).`}
-        detail="Source-provenance fields populate fully; preregistration fields are unmet."
+        headline={`mean across ${comp.total_triples.toLocaleString()} reported score triples.`}
+        detail={`Observed range: ${formatPct(comp.completeness_min)} to ${formatPct(comp.completeness_max)}.`}
         asks="Is the benchmark itself documented well enough to interpret a score on it?"
       />
       <SignalTile
         id="provenance"
-        statValue={pctNum(prov.multi_source_rate)}
+        statValue={pctNum(multiSourceRate)}
         statUnit="%"
-        headline="of (model, benchmark) groups have reports from more than one party."
-        detail={`${formatPct(tpShare)} third-party, ${formatPct(fpShare)} first-party of ${totalReports.toLocaleString()} results.`}
+        headline="of reported score triples have reports from more than one party."
+        detail={`${formatPct(tpShare)} third-party, ${formatPct(fpShare)} first-party of ${totalReports.toLocaleString()} triples.`}
         asks="Who reported this score, and have others reproduced it?"
       />
       <SignalTile
         id="comparability"
         statValue={pctNum(cmpRate)}
         statUnit="%"
-        headline={`of setup-eligible groups diverge across variants (${cmp.variant_divergent_groups.toLocaleString()} of ${cmp.variant_eligible_groups.toLocaleString()}).`}
+        headline={`of setup-eligible groups diverge across variants (${cmp.variant_divergent_count.toLocaleString()} of ${cmp.groups_with_variant_check.toLocaleString()}).`}
         detail={
           crossPartyAvailable
-            ? `Cross-party divergence: ${formatPct(cmp.cross_party_divergence_rate)}.`
-            : "Cross-party divergence not yet computable — too few multi-org reports."
+            ? `Cross-party divergence: ${formatPct(crossPartyRate)}.`
+            : "Cross-party divergence not yet computable: too few multi-org reports."
         }
         asks="Are scores on the same benchmark actually measuring the same thing?"
       />
@@ -152,6 +157,11 @@ function formatPct(value: number | null | undefined): string {
   if (value === 0) return "0%"
   if (value > 0 && value < 0.01) return "<1%"
   return `${Math.round(value * 100)}%`
+}
+
+function rate(numerator: number | null | undefined, denominator: number | null | undefined) {
+  if (numerator == null || denominator == null || denominator <= 0) return null
+  return numerator / denominator
 }
 
 const FIELD_LABELS: Record<string, string> = {

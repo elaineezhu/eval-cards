@@ -138,6 +138,15 @@ function getManifestSignature(manifest: BackendManifest | null | undefined) {
 // reading the same on-disk artifacts cannot diverge mid-test via background
 // refresh, and useful generally for offline development.
 const OFFLINE = process.env.HF_DATA_OFFLINE === "1"
+const DATA_BACKEND_VERSION = process.env.DATA_BACKEND?.trim().toLowerCase()
+
+function useViewLayerBackend() {
+  return DATA_BACKEND_VERSION === "v2" || DATA_BACKEND_VERSION === "stage-j"
+}
+
+async function fetchSnapshotSidecars() {
+  return import("@/lib/sidecars")
+}
 
 async function fetchRemoteJson<T>(relativePath: string): Promise<T> {
   if (OFFLINE) {
@@ -423,6 +432,19 @@ async function fetchHFJson<T>(relativePath: string): Promise<T> {
 }
 
 export async function fetchBackendManifestStatus(): Promise<BackendManifestStatus> {
+  if (useViewLayerBackend()) {
+    const manifest = await (await fetchSnapshotSidecars()).fetchManifest()
+    return {
+      currentManifest: manifest,
+      latestManifest: manifest,
+      currentManifestSignature: manifest.generated_at,
+      latestManifestSignature: manifest.generated_at,
+      updateAvailable: false,
+      refreshing: false,
+      pendingRefreshCount: 0,
+    }
+  }
+
   const snapshot = await getManifestSnapshot()
   const currentManifest = getCurrentManifestFromSnapshot(snapshot)
   const currentManifestSignature = getManifestSignature(currentManifest)
@@ -864,14 +886,26 @@ export async function fetchDevelopersList(): Promise<HFDeveloperEntry[]> {
 }
 
 export async function fetchBenchmarkMetadataMap(): Promise<Record<string, BenchmarkCard>> {
+  if (useViewLayerBackend()) {
+    return (await import("@/lib/view-data")).getBenchmarkMetadataMap()
+  }
+
   return fetchHFJson<Record<string, BenchmarkCard>>("benchmark-metadata.json")
 }
 
 export async function fetchBackendManifest(): Promise<BackendManifest> {
+  if (useViewLayerBackend()) {
+    return (await fetchSnapshotSidecars()).fetchManifest()
+  }
+
   return fetchHFJson<BackendManifest>("manifest.json")
 }
 
 export async function fetchEvalHierarchy(): Promise<EvalHierarchy> {
+  if (useViewLayerBackend()) {
+    return adaptEvalHierarchy(await (await fetchSnapshotSidecars()).fetchHierarchy())
+  }
+
   const raw = await fetchHFJson<EvalHierarchy>("eval-hierarchy.json")
   return adaptEvalHierarchy(raw)
 }
@@ -975,6 +1009,10 @@ export async function fetchComparisonIndex(): Promise<ComparisonIndex> {
 }
 
 export async function fetchCorpusAggregates(): Promise<CorpusAggregates | null> {
+  if (useViewLayerBackend()) {
+    return (await fetchSnapshotSidecars()).fetchHeadline()
+  }
+
   return fetchHFJsonSafe<CorpusAggregates>("corpus-aggregates.json")
 }
 
