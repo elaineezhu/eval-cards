@@ -20,7 +20,7 @@ import {
   formatPercent,
 } from "./signal-utils"
 
-const CATEGORY_ORDER = ["agentic", "general", "knowledge", "reasoning", "safety", "other"]
+const CATEGORY_ORDER = ["Agentic", "General", "Knowledge", "Reasoning", "Safety", "Other"]
 
 const SOURCE_COLORS: Record<string, string> = {
   first_party: "bg-amber-500",
@@ -51,13 +51,21 @@ export function CorpusDashboard({
   }, [mode])
 
   const categoryKeys = useMemo(
-    () =>
-      CATEGORY_ORDER.filter((category) =>
-        aggregates.reproducibility.by_category[category] ||
-        aggregates.completeness.by_category[category] ||
-        aggregates.provenance.by_category[category] ||
-        aggregates.comparability.by_category[category]
-      ),
+    () => {
+      const available = new Set([
+        ...Object.keys(aggregates.reproducibility.by_category),
+        ...Object.keys(aggregates.completeness.by_category),
+        ...Object.keys(aggregates.provenance.by_category),
+        ...Object.keys(aggregates.comparability.by_category),
+      ])
+
+      return [
+        ...CATEGORY_ORDER.filter((category) => available.has(category)),
+        ...Array.from(available)
+          .filter((category) => !CATEGORY_ORDER.includes(category))
+          .sort((a, b) => a.localeCompare(b)),
+      ]
+    },
     [aggregates]
   )
 
@@ -190,25 +198,14 @@ function CompletenessSection({
       icon={<ClipboardCheck className="h-5 w-5" />}
       title="Reporting Completeness"
       subtitle="How much benchmark documentation is populated."
-      headline={formatPercent(block.completeness_score_mean)}
-      headlineLabel={`Median ${formatPercent(block.completeness_score_median)} across ${block.total_benchmarks.toLocaleString()} benchmarks`}
+      headline={formatPercent(block.completeness_avg)}
+      headlineLabel={`Range ${formatPercent(block.completeness_min)} to ${formatPercent(block.completeness_max)} across ${block.total_triples.toLocaleString()} reported score triples`}
     >
       {scores.length > 0 && <Histogram scores={scores} />}
-      <div className="mt-4 grid gap-2">
-        {Object.entries(block.per_field_population).slice(0, 10).map(([field, value]) => (
-          <div key={field} className="rounded-xl border border-border/60 bg-background px-3 py-2">
-            <div className="flex items-start justify-between gap-3 text-sm">
-              <span className="font-medium">{formatFieldLabel(field)}</span>
-              <span className="shrink-0 tabular-nums text-muted-foreground">
-                {formatPercent(value.mean_score)}
-              </span>
-            </div>
-            <div className="mt-2 grid gap-1.5">
-              <MetricBar label="Any data" value={value.populated_rate} compact />
-              <MetricBar label="Fully populated" value={value.fully_populated_rate} compact />
-            </div>
-          </div>
-        ))}
+      <div className="mt-4 grid gap-2 sm:grid-cols-3">
+        <MiniMetric label="Minimum" value={formatPercent(block.completeness_min)} />
+        <MiniMetric label="Average" value={formatPercent(block.completeness_avg)} />
+        <MiniMetric label="Maximum" value={formatPercent(block.completeness_max)} />
       </div>
     </DashboardSection>
   )
@@ -217,14 +214,16 @@ function CompletenessSection({
 function ProvenanceSection({ block }: { block: ProvenanceCorpusBlock }) {
   const distribution = block.source_type_distribution
   const total = Object.values(distribution).reduce((sum, value) => sum + value, 0)
+  const multiSourceRate = rate(block.multi_source_triples, block.total_triples)
+  const firstPartyOnlyRate = rate(block.first_party_only_triples, block.total_triples)
 
   return (
     <DashboardSection
       icon={<BarChart3 className="h-5 w-5" />}
       title="Provenance"
       subtitle="Who reported the scores, and whether groups have multiple sources."
-      headline={formatPercent(block.multi_source_rate)}
-      headlineLabel="of (model, benchmark, metric) groups have multiple reporting sources"
+      headline={formatPercent(multiSourceRate)}
+      headlineLabel="of reported score triples have multiple reporting sources"
     >
       <div className="overflow-hidden rounded-full border border-border/70 bg-muted/30">
         <div className="flex h-4 w-full">
@@ -240,34 +239,40 @@ function ProvenanceSection({ block }: { block: ProvenanceCorpusBlock }) {
       </div>
 
       <div className="mt-3 grid gap-2 sm:grid-cols-2">
-        <RatioTile label="Multi-source groups" value={block.multi_source_rate} count={block.multi_source_groups} />
-        <RatioTile label="First-party only groups" value={block.first_party_only_rate} count={block.first_party_only_groups} />
+        <RatioTile label="Multi-source triples" value={multiSourceRate} count={block.multi_source_triples} />
+        <RatioTile label="First-party only triples" value={firstPartyOnlyRate} count={block.first_party_only_triples} />
       </div>
     </DashboardSection>
   )
 }
 
 function ComparabilitySection({ block }: { block: ComparabilityCorpusBlock }) {
+  const variantRate = rate(block.variant_divergent_count, block.groups_with_variant_check)
+  const crossPartyRate = rate(
+    block.cross_party_divergent_count,
+    block.groups_with_cross_party_check
+  )
+
   return (
     <DashboardSection
       icon={<GitCompareArrows className="h-5 w-5" />}
       title="Comparability"
       subtitle="Eligible groups where scores diverge across setups or reporting organizations."
-      headline={formatNullableRate(block.variant_divergence_rate)}
-      headlineLabel={`${block.variant_divergent_groups.toLocaleString()} of ${block.variant_eligible_groups.toLocaleString()} setup-eligible groups diverge`}
+      headline={formatNullableRate(variantRate)}
+      headlineLabel={`${block.variant_divergent_count.toLocaleString()} of ${block.groups_with_variant_check.toLocaleString()} setup-eligible groups diverge`}
     >
       <div className="grid gap-3 md:grid-cols-2">
         <ComparabilityRateCard
           title="Variant divergence"
-          rate={block.variant_divergence_rate}
-          eligible={block.variant_eligible_groups}
-          divergent={block.variant_divergent_groups}
+          rate={variantRate}
+          eligible={block.groups_with_variant_check}
+          divergent={block.variant_divergent_count}
         />
         <ComparabilityRateCard
           title="Cross-party divergence"
-          rate={block.cross_party_divergence_rate}
-          eligible={block.cross_party_eligible_groups}
-          divergent={block.cross_party_divergent_groups}
+          rate={crossPartyRate}
+          eligible={block.groups_with_cross_party_check}
+          divergent={block.cross_party_divergent_count}
         />
       </div>
     </DashboardSection>
@@ -288,6 +293,15 @@ function CategoryPanel({
   comparability?: ComparabilityCorpusBlock
 }) {
   const categoryLabel = `${category.charAt(0).toUpperCase()}${category.slice(1)}`
+  const multiSourceRate = rate(provenance?.multi_source_triples, provenance?.total_triples)
+  const variantRate = rate(
+    comparability?.variant_divergent_count,
+    comparability?.groups_with_variant_check
+  )
+  const crossPartyRate = rate(
+    comparability?.cross_party_divergent_count,
+    comparability?.groups_with_cross_party_check
+  )
 
   return (
     <section className="rounded-2xl border border-border/70 bg-card p-4 shadow-sm">
@@ -297,11 +311,11 @@ function CategoryPanel({
       </div>
       <div className="grid gap-3 sm:grid-cols-2">
         <MiniMetric label="Reproducibility gaps" value={formatPercent(reproducibility?.reproducibility_gap_rate)} />
-        <MiniMetric label="Documentation mean" value={formatPercent(completeness?.completeness_score_mean)} />
-        <MiniMetric label="Multi-source groups" value={formatPercent(provenance?.multi_source_rate)} />
-        <MiniMetric label="Variant divergence" value={formatNullableRate(comparability?.variant_divergence_rate)} />
+        <MiniMetric label="Documentation mean" value={formatPercent(completeness?.completeness_avg)} />
+        <MiniMetric label="Multi-source triples" value={formatPercent(multiSourceRate)} />
+        <MiniMetric label="Variant divergence" value={formatNullableRate(variantRate)} />
       </div>
-      {comparability?.cross_party_divergence_rate == null && (
+      {crossPartyRate == null && (
         <div className="mt-3 rounded-xl border border-dashed border-border/70 bg-muted/10 px-3 py-2 text-sm text-muted-foreground">
           Cross-party divergence: N/A - not enough multi-org coverage.
         </div>
@@ -411,7 +425,7 @@ function RatioTile({ label, value, count }: { label: string; value: number | nul
       <div className="text-sm font-medium">{label}</div>
       <div className="mt-1 flex items-baseline justify-between gap-2">
         <span className="text-xl font-semibold tabular-nums">{formatPercent(value)}</span>
-        <span className="text-xs text-muted-foreground">{count.toLocaleString()} groups</span>
+        <span className="text-xs text-muted-foreground">{count.toLocaleString()} triples</span>
       </div>
     </div>
   )
@@ -461,6 +475,11 @@ function MiniMetric({ label, value }: { label: string; value: string }) {
 
 function formatNullableRate(value: number | null | undefined) {
   return value == null ? "N/A" : formatPercent(value)
+}
+
+function rate(numerator: number | null | undefined, denominator: number | null | undefined) {
+  if (numerator == null || denominator == null || denominator <= 0) return null
+  return numerator / denominator
 }
 
 function formatGeneratedDate(value: string) {

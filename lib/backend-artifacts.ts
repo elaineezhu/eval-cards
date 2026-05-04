@@ -12,6 +12,7 @@ export interface BackendManifest {
   skipped_config_count?: number
   summary_artifacts?: {
     corpus_aggregates?: string
+    eval_hierarchy?: string
     [key: string]: string | undefined
   }
 }
@@ -177,6 +178,27 @@ export interface CorpusAggregates {
   completeness: Stratified<CompletenessCorpusBlock>
   provenance: Stratified<ProvenanceCorpusBlock>
   comparability: Stratified<ComparabilityCorpusBlock>
+  developers?: DeveloperListEntry[]
+  families?: Array<{
+    family_key: string
+    display_name: string
+    model_count: number
+    eval_count: number
+  }>
+  categories?: Array<{
+    category: string
+    model_count: number
+    eval_count: number
+  }>
+}
+
+export interface DeveloperListEntry {
+  developer: string
+  route_id: string
+  model_count: number
+  benchmark_count: number
+  evaluation_count: number
+  popular_evals: Array<{ benchmark: string; model_count: number }>
 }
 
 export interface Stratified<T> {
@@ -198,35 +220,25 @@ export interface ReproducibilityCorpusBlock {
 }
 
 export interface CompletenessCorpusBlock {
-  total_benchmarks: number
-  completeness_score_mean: number | null
-  completeness_score_median: number | null
-  per_field_population: Record<string, {
-    mean_score: number
-    populated_rate: number
-    fully_populated_rate: number
-    benchmark_count: number
-  }>
+  total_triples: number
+  completeness_avg: number | null
+  completeness_min: number | null
+  completeness_max: number | null
 }
 
 export interface ProvenanceCorpusBlock {
   total_triples: number
-  total_groups: number
-  multi_source_groups: number
-  multi_source_rate: number | null
-  first_party_only_groups: number
-  first_party_only_rate: number | null
+  multi_source_triples: number
+  first_party_only_triples: number
   source_type_distribution: Record<ProvenanceSourceType, number>
 }
 
 export interface ComparabilityCorpusBlock {
-  total_groups: number
-  variant_eligible_groups: number
-  variant_divergent_groups: number
-  variant_divergence_rate: number | null
-  cross_party_eligible_groups: number
-  cross_party_divergent_groups: number
-  cross_party_divergence_rate: number | null
+  total_triples: number
+  variant_divergent_count: number
+  cross_party_divergent_count: number
+  groups_with_variant_check: number
+  groups_with_cross_party_check: number
 }
 
 export interface HierarchyTags {

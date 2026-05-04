@@ -12,27 +12,13 @@ function sqlString(value: string) {
 }
 
 async function writeParquetPayload(outputDir: string, fileName: string, payloads: unknown[]) {
-  const parquetDir = path.join(outputDir, "experimental", "parquet")
+  const parquetDir = path.join(outputDir, "duckdb", "v1")
   await mkdir(parquetDir, { recursive: true })
 
   const selects = payloads
-    .map((payload, index) => {
-      const record = payload as Record<string, unknown>
+    .map((payload) => {
       const payloadJson = JSON.stringify(payload)
-      return [
-        `SELECT 'model_card_lite' AS record_type`,
-        `${sqlString(String(record.model_route_id ?? index))} AS model_route_id`,
-        `${sqlString(String(record.model_family_id ?? ""))} AS model_family_id`,
-        `${sqlString(String(record.developer ?? ""))} AS developer`,
-        `NULL AS eval_summary_id`,
-        `NULL AS developer_route_id`,
-        `NULL AS category`,
-        `NULL AS benchmark_family_key`,
-        `${Number(record.benchmark_family_count ?? 0)} AS models_count`,
-        `${Number(record.total_evaluations ?? 0)} AS total_evaluations`,
-        `${sqlString(String(record.last_updated ?? ""))} AS last_updated`,
-        `${sqlString(payloadJson)} AS payload_json`,
-      ].join(", ")
+      return `SELECT ${sqlString(payloadJson)} AS payload_json`
     })
     .join(" UNION ALL ")
 
@@ -49,22 +35,36 @@ describe("DuckDB local data backend", () => {
       process.env.LOCAL_PIPELINE_OUTPUT = outputDir
       await writeParquetPayload(outputDir, "model_cards_lite.parquet", [
         {
-          model_family_id: "openai/gpt-5",
-          model_route_id: "openai__gpt-5",
-          model_family_name: "GPT 5",
-          developer: "openai",
+          id: "openai/gpt-5",
+          route_id: "openai__gpt-5",
+          model_name: "GPT 5",
+          model_id: "openai/gpt-5",
+          canonical_model_name: "GPT 5",
+          developer: "OpenAI",
+          evaluations_count: 3,
+          benchmarks_count: 2,
+          variant_count: 1,
+          categories: ["Reasoning"],
+          category_stats: { General: 0, Reasoning: 2, Agentic: 0, Safety: 0, Knowledge: 0 },
+          latest_timestamp: "2026-01-01T00:00:00Z",
+          evaluator_count: 1,
+          evaluator_names: ["OpenAI"],
+          source_type_count: 1,
+          source_types: ["documentation"],
+          evidence_count: 3,
+          missing_generation_config_count: 0,
+          third_party_eval_count: 0,
+          independent_verification_ratio: 0,
+          reproducibility_status: "complete",
+          eval_libraries: [],
           params_billions: 100,
-          total_evaluations: 3,
-          benchmark_count: 2,
-          benchmark_family_count: 2,
-          categories_covered: ["reasoning"],
-          last_updated: "2026-01-01T00:00:00Z",
-          variants: [],
           score_summary: { count: 1, min: 0.7, max: 0.9, average: 0.8 },
           benchmark_names: ["mmlu"],
-          top_benchmark_scores: [
+          top_scores: [
             { benchmark: "mmlu", score: 0.9, metric: "accuracy" },
           ],
+          source_urls: [],
+          detail_urls: [],
         },
       ])
 
@@ -93,7 +93,7 @@ describe("DuckDB local data backend", () => {
     try {
       process.env.LOCAL_PIPELINE_OUTPUT = outputDir
       await expect(getModelCardsLiteFromDuckDB()).rejects.toThrow(
-        /EXPORT_EXPERIMENTAL_PARQUET=1/
+        /duckdb\/v1\/model_cards_lite\.parquet/
       )
     } finally {
       if (previousOutput == null) {

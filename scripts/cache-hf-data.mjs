@@ -18,6 +18,13 @@ import { promisify } from "util"
 const root = path.resolve(new URL(import.meta.url).pathname, "..", "..")
 const cacheDir = path.join(root, ".cache", "hf-data")
 const publicDir = path.join(root, "public")
+const dataBackend = process.env.DATA_BACKEND?.trim().toLowerCase()
+if (dataBackend === "v2" || dataBackend === "stage-j") {
+  await fs.mkdir(cacheDir, { recursive: true })
+  console.log("[cache-hf-data] DATA_BACKEND=v2: skipping legacy HF cache; runtime reads SNAPSHOT_URL")
+  process.exit(0)
+}
+
 const HF_DATASET_REPO = process.env.HF_DATASET_REPO?.trim()
   || "https://huggingface.co/datasets/evaleval/card_backend"
 const HF_RESOLVE_BASE = `${HF_DATASET_REPO}/resolve/main`

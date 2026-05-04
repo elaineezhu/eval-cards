@@ -244,7 +244,7 @@ export default async function HomePage() {
               <p className="mx-auto mt-2 max-w-2xl text-sm leading-6 text-[color:var(--fg-muted)]">
                 The current backend snapshot does not include{" "}
                 <code className="rounded-sm bg-[color:var(--bg-surface)] px-1.5 py-0.5 font-mono text-xs">
-                  corpus-aggregates.json
+                  headline.json
                 </code>
                 . When it does, this section will render the four corpus-level rollups.
               </p>

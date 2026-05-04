@@ -1,49 +1,140 @@
 import "server-only"
 
-import {
-  getDashboardDataFromDuckDB,
-  getModelCardsFromDuckDB,
-  getModelCardsLiteFromDuckDB,
-  getEvalListDataFromDuckDB,
-  getEvalListLiteDataFromDuckDB,
-  getEvalListFromDuckDB,
-  getDeveloperListFromDuckDB,
-  getDeveloperSummaryByIdFromDuckDB,
-  getModelSummaryByIdFromDuckDB,
-  getEvalSummaryByIdFromDuckDB,
-} from "@/lib/duckdb-data"
+import type { BackendManifestStatus } from "@/lib/backend-artifacts"
 import { normalizeEvalSummary } from "@/lib/eval-processing"
-import {
-  fetchBackendManifest,
-  fetchBackendManifestStatus,
-  fetchEvalHierarchy,
-} from "@/lib/hf-data"
 
-export const getDashboardData = getDashboardDataFromDuckDB
-export const getModelCards = getModelCardsFromDuckDB
-export const getModelCardsLite = getModelCardsLiteFromDuckDB
-export const getEvalListData = getEvalListDataFromDuckDB
-export const getEvalListLiteData = getEvalListLiteDataFromDuckDB
-export const getEvalList = getEvalListFromDuckDB
-export const getDeveloperList = getDeveloperListFromDuckDB
-export const getDeveloperSummaryById = getDeveloperSummaryByIdFromDuckDB
-export const getModelSummaryById = getModelSummaryByIdFromDuckDB
+const BACKEND_VERSION = process.env.DATA_BACKEND?.trim().toLowerCase() ?? "duckdb"
 
-/**
- * Eval summary lookups go through `normalizeEvalSummary` so derivable but
- * sometimes-blank fields (currently `instance_data`) are reconciled from
- * `model_results` before they reach any consumer. The strict pass-through
- * contract of `duckdb-data.ts` stays intact — reconciliation of known
- * upstream gaps belongs in this thin adapter layer.
- */
+function useViewLayerBackend() {
+  return BACKEND_VERSION === "v2" || BACKEND_VERSION === "stage-j"
+}
+
+async function legacyBackend() {
+  return import("@/lib/duckdb-data")
+}
+
+async function viewBackend() {
+  return import("@/lib/view-data")
+}
+
+async function sidecars() {
+  return import("@/lib/sidecars")
+}
+
+async function hfData() {
+  return import("@/lib/hf-data")
+}
+
+export async function getModelCards() {
+  if (useViewLayerBackend()) {
+    return (await viewBackend()).getModelCards()
+  }
+
+  return (await legacyBackend()).getModelCardsFromDuckDB()
+}
+
+export async function getModelCardsLite() {
+  if (useViewLayerBackend()) {
+    return (await viewBackend()).getModelCardsLite()
+  }
+
+  return (await legacyBackend()).getModelCardsLiteFromDuckDB()
+}
+
+export async function getEvalListData() {
+  if (useViewLayerBackend()) {
+    return (await viewBackend()).getEvalListData()
+  }
+
+  return (await legacyBackend()).getEvalListDataFromDuckDB()
+}
+
+export async function getEvalListLiteData() {
+  if (useViewLayerBackend()) {
+    return (await viewBackend()).getEvalListLiteData()
+  }
+
+  return (await legacyBackend()).getEvalListLiteDataFromDuckDB()
+}
+
+export async function getEvalList() {
+  if (useViewLayerBackend()) {
+    return (await viewBackend()).getEvalList()
+  }
+
+  return (await legacyBackend()).getEvalListFromDuckDB()
+}
+
+export async function getDashboardData() {
+  if (useViewLayerBackend()) {
+    return (await viewBackend()).getDashboardData()
+  }
+
+  return (await legacyBackend()).getDashboardDataFromDuckDB()
+}
+
+export async function getDeveloperList() {
+  if (useViewLayerBackend()) {
+    return (await viewBackend()).getDeveloperList()
+  }
+
+  return (await legacyBackend()).getDeveloperListFromDuckDB()
+}
+
+export async function getDeveloperSummaryById(routeId: string) {
+  if (useViewLayerBackend()) {
+    return (await viewBackend()).getDeveloperSummaryById(routeId)
+  }
+
+  return (await legacyBackend()).getDeveloperSummaryByIdFromDuckDB(routeId)
+}
+
+export async function getModelSummaryById(modelId: string) {
+  if (useViewLayerBackend()) {
+    return (await viewBackend()).getModelSummaryById(modelId)
+  }
+
+  return (await legacyBackend()).getModelSummaryByIdFromDuckDB(modelId)
+}
+
 export async function getEvalSummaryById(evalId: string) {
-  const summary = await getEvalSummaryByIdFromDuckDB(evalId)
+  if (useViewLayerBackend()) {
+    return (await viewBackend()).getEvalSummaryById(evalId)
+  }
+
+  const summary = await (await legacyBackend()).getEvalSummaryByIdFromDuckDB(evalId)
   return summary ? normalizeEvalSummary(summary) : summary
 }
 
-// Metadata-style artifacts are still read through the existing JSON/HF path.
-// They are not request-time processing hotspots and the DuckDB shadow doesn't
-// re-shape them, so calling lib/hf-data directly avoids needless indirection.
-export const getBackendManifestData = fetchBackendManifest
-export const getBackendManifestStatusData = fetchBackendManifestStatus
-export const getEvalHierarchyData = fetchEvalHierarchy
+export async function getBackendManifestData() {
+  if (useViewLayerBackend()) {
+    return (await sidecars()).fetchManifest()
+  }
+
+  return (await hfData()).fetchBackendManifest()
+}
+
+export async function getBackendManifestStatusData(): Promise<BackendManifestStatus> {
+  if (useViewLayerBackend()) {
+    const manifest = await (await sidecars()).fetchManifest()
+    return {
+      currentManifest: manifest,
+      latestManifest: manifest,
+      currentManifestSignature: manifest.generated_at,
+      latestManifestSignature: manifest.generated_at,
+      updateAvailable: false,
+      refreshing: false,
+      pendingRefreshCount: 0,
+    }
+  }
+
+  return (await hfData()).fetchBackendManifestStatus()
+}
+
+export async function getEvalHierarchyData() {
+  if (useViewLayerBackend()) {
+    return (await sidecars()).fetchHierarchy()
+  }
+
+  return (await hfData()).fetchEvalHierarchy()
+}

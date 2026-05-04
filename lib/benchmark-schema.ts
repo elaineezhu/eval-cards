@@ -124,6 +124,7 @@ export interface ScoreDetails {
 }
 
 export interface GenerationConfig {
+  num_few_shot?: number
   generation_args?: {
     temperature?: number
     top_p?: number

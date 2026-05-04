@@ -9,20 +9,18 @@ ARG PNPM_VERSION=10.25.0
 
 # Build-time data-source configuration. HF Spaces "Variables" are NOT injected
 # into Docker RUN steps automatically — only into the final runtime — so we
-# bake the DuckDB-mode defaults here. `cache-hf-data.mjs` reads these to know
-# which dataset to clone and to apply lean cache mode (skip JSON-fallback
-# artifacts). Override at build time via `--build-arg HF_DATASET_REPO=...`.
-ARG DATA_BACKEND=duckdb
+# bake the selected backend here. `DATA_BACKEND=v2` reads `SNAPSHOT_URL`
+# directly; legacy DuckDB mode still clones `HF_DATASET_REPO` into the cache.
+# Override at build time via `--build-arg ...`.
+ARG DATA_BACKEND=v2
 ARG HF_DATASET_REPO=https://huggingface.co/datasets/evaleval/card_backend
-# Static prerender (`next build`) executes route handlers, which call
-# `getModelCards` etc. → `lib/duckdb-data.ts`, which requires
-# `LOCAL_PIPELINE_OUTPUT`. The cache populated by `cache-hf-data.mjs`
-# lives at `/app/.cache/hf-data`. `HF_DATA_OFFLINE=1` keeps the metadata
-# fetchers (`lib/hf-data.ts`) from attempting `evaleval/card_backend`
-# network reads with `revalidate: 0` (which Next 15 treats as dynamic
-# and fails the static export of `/`).
+ARG SNAPSHOT_URL=https://huggingface.co/datasets/j-chim/temp_evalcard_backend/resolve/main/warehouse/2026-05-03T21-46-50Z
+# Static prerender (`next build`) executes route handlers. In legacy mode the
+# cache populated by `cache-hf-data.mjs` lives at `/app/.cache/hf-data`; in v2
+# the cache step is skipped and the app reads the pinned Stage J snapshot.
 ENV DATA_BACKEND=${DATA_BACKEND} \
     HF_DATASET_REPO=${HF_DATASET_REPO} \
+    SNAPSHOT_URL=${SNAPSHOT_URL} \
     LOCAL_PIPELINE_OUTPUT=/app/.cache/hf-data \
     HF_DATA_LOCAL_DIR=/app/.cache/hf-data \
     HF_DATA_OFFLINE=1
@@ -49,13 +47,15 @@ RUN pnpm run build
 FROM node:18-bullseye-slim AS runner
 WORKDIR /app
 
-# Runtime needs the same DuckDB-mode envs that the builder used. HF Space
-# Variables aren't set on this Space, and Docker multi-stage doesn't carry
-# ENVs across stages — without these, lib/duckdb-data.ts throws
-# "DATA_BACKEND=duckdb requires LOCAL_PIPELINE_OUTPUT" at request time and
-# every model/eval/developer endpoint returns empty.
+ARG DATA_BACKEND=v2
+ARG SNAPSHOT_URL=https://huggingface.co/datasets/j-chim/temp_evalcard_backend/resolve/main/warehouse/2026-05-03T21-46-50Z
+
+# Runtime needs the same data-source envs that the builder used. Docker
+# multi-stage doesn't carry ENVs across stages, so keep backend selection and
+# snapshot/cache pointers explicit here too.
 ENV NODE_ENV=production \
-    DATA_BACKEND=duckdb \
+    DATA_BACKEND=${DATA_BACKEND} \
+    SNAPSHOT_URL=${SNAPSHOT_URL} \
     LOCAL_PIPELINE_OUTPUT=/app/.cache/hf-data \
     HF_DATA_LOCAL_DIR=/app/.cache/hf-data \
     HF_DATA_OFFLINE=1
