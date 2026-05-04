@@ -4,8 +4,6 @@ import { useAudienceMode } from "@/components/audience-mode-provider"
 import { Fragment, useEffect, useMemo, useState } from "react"
 import Link from "next/link"
 import { BenchmarkSignalsStrip } from "@/components/signals/benchmark-signals-strip"
-import { CompletenessPanel } from "@/components/signals/completeness-panel"
-import { ComparabilityPanel } from "@/components/signals/comparability-panel"
 import { SignalsRowBadges } from "@/components/signals/signals-row-badges"
 import { getCompletenessPopulatedCount } from "@/components/signals/signal-utils"
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible"
@@ -551,7 +549,6 @@ export function EvalDetail({ summary }: EvalDetailProps) {
       ? "Averaged model results across the suite's component benchmarks, with drill-down to each component score."
       : "Model results with benchmark context, source dataset detail, and optional instance-data links."
   const reportingCompleteness = summary.evalcards?.annotations?.reporting_completeness
-  const benchmarkComparability = summary.evalcards?.annotations?.benchmark_comparability
   const documentationPopulatedCount = reportingCompleteness
     ? getCompletenessPopulatedCount(reportingCompleteness)
     : null
@@ -732,11 +729,10 @@ export function EvalDetail({ summary }: EvalDetailProps) {
               </dl>
             </div>
 
-            <CompletenessPanel completeness={reportingCompleteness} />
-            <ComparabilityPanel
-              comparability={benchmarkComparability}
-              summary={summary.comparability_summary}
-            />
+            {/* The compact BenchmarkSignalsStrip above already covers
+             *  completeness and comparability with paper-aligned framing,
+             *  so the standalone rounded shadcn cards that used to live
+             *  here are intentionally dropped. */}
 
             {!hasMultiMetricLeaderboard && (summary.root_metrics?.length || summary.subtasks?.length) ? (
               <section

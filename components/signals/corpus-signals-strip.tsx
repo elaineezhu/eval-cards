@@ -23,29 +23,38 @@ export function CorpusSignalsStrip({
 }: {
   aggregates: CorpusAggregates
 }) {
-  const repro = aggregates.reproducibility.overall
-  const comp = aggregates.completeness.overall
-  const prov = aggregates.provenance.overall
-  const cmp = aggregates.comparability.overall
+  // Each block can be partly missing if the backend hasn't computed it
+  // for the snapshot in use; guard every read so a partial payload
+  // renders as "—" instead of crashing the route.
+  const repro = aggregates.reproducibility?.overall ?? null
+  const comp = aggregates.completeness?.overall ?? null
+  const prov = aggregates.provenance?.overall ?? null
+  const cmp = aggregates.comparability?.overall ?? null
 
   // Invert the gap rate to read as "documented", which matches reader intuition.
-  const reproDocumented =
-    repro.reproducibility_gap_rate == null
-      ? null
-      : Math.max(0, 1 - repro.reproducibility_gap_rate)
-  const reproDetail = topMissingFields(repro.per_field_missingness, 2)
+  const reproGapRate = repro?.reproducibility_gap_rate ?? null
+  const reproDocumented = reproGapRate == null ? null : Math.max(0, 1 - reproGapRate)
+  const reproDetail = topMissingFields(repro?.per_field_missingness ?? {}, 2)
 
-  const totalReports = prov.total_triples
-  const tpShare = totalReports > 0 ? prov.source_type_distribution.third_party / totalReports : 0
-  const fpShare = totalReports > 0 ? prov.source_type_distribution.first_party / totalReports : 0
+  const totalReports = prov?.total_triples ?? 0
+  const sourceDist = prov?.source_type_distribution
+  const tpShare = totalReports > 0 && sourceDist?.third_party != null
+    ? sourceDist.third_party / totalReports
+    : null
+  const fpShare = totalReports > 0 && sourceDist?.first_party != null
+    ? sourceDist.first_party / totalReports
+    : null
 
-  const multiSourceRate = rate(prov.multi_source_triples, prov.total_triples)
-  const cmpRate = rate(cmp.variant_divergent_count, cmp.groups_with_variant_check)
+  const multiSourceRate = rate(prov?.multi_source_triples, prov?.total_triples)
+  const cmpRate = rate(cmp?.variant_divergent_count, cmp?.groups_with_variant_check)
   const crossPartyRate = rate(
-    cmp.cross_party_divergent_count,
-    cmp.groups_with_cross_party_check
+    cmp?.cross_party_divergent_count,
+    cmp?.groups_with_cross_party_check,
   )
-  const crossPartyAvailable = cmp.groups_with_cross_party_check > 0
+  const crossPartyAvailable = (cmp?.groups_with_cross_party_check ?? 0) > 0
+  const variantDivergent = cmp?.variant_divergent_count ?? null
+  const variantEligible = cmp?.groups_with_variant_check ?? null
+  const completenessTotal = comp?.total_triples ?? null
 
   return (
     <div className="signals-grid">
@@ -56,17 +65,21 @@ export function CorpusSignalsStrip({
         headline="of reported scores have a complete setup recorded — the rest cannot be independently re-run."
         detail={
           reproDetail
-            ? `${formatPct(repro.reproducibility_gap_rate)} have at least one undocumented field. Most often missing: ${reproDetail}.`
-            : `${formatPct(repro.reproducibility_gap_rate)} have at least one undocumented field.`
+            ? `${formatPct(reproGapRate)} have at least one undocumented field. Most often missing: ${reproDetail}.`
+            : `${formatPct(reproGapRate)} have at least one undocumented field.`
         }
         asks="Can someone else run this evaluation and get the same number?"
       />
       <SignalTile
         id="completeness"
-        statValue={pctNum(comp.completeness_avg)}
+        statValue={pctNum(comp?.completeness_avg)}
         statUnit="%"
-        headline={`mean across ${comp.total_triples.toLocaleString()} reported score triples.`}
-        detail={`Observed range: ${formatPct(comp.completeness_min)} to ${formatPct(comp.completeness_max)}.`}
+        headline={
+          completenessTotal != null
+            ? `mean across ${completenessTotal.toLocaleString()} reported score triples.`
+            : "mean across reported score triples."
+        }
+        detail={`Observed range: ${formatPct(comp?.completeness_min)} to ${formatPct(comp?.completeness_max)}.`}
         asks="Is the benchmark itself documented well enough to interpret a score on it?"
       />
       <SignalTile
@@ -81,7 +94,11 @@ export function CorpusSignalsStrip({
         id="comparability"
         statValue={pctNum(cmpRate)}
         statUnit="%"
-        headline={`of setup-eligible groups diverge across variants (${cmp.variant_divergent_count.toLocaleString()} of ${cmp.groups_with_variant_check.toLocaleString()}).`}
+        headline={
+          variantEligible != null && variantDivergent != null
+            ? `of setup-eligible groups diverge across variants (${variantDivergent.toLocaleString()} of ${variantEligible.toLocaleString()}).`
+            : "of setup-eligible groups diverge across variants."
+        }
         detail={
           crossPartyAvailable
             ? `Cross-party divergence: ${formatPct(crossPartyRate)}.`

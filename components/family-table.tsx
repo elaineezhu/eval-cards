@@ -73,7 +73,19 @@ function collectLeafEntries(
 ): LeafEntry[] {
   const out: LeafEntry[] = []
   for (const leaf of fam.leaves ?? []) {
-    const ids = leaf.eval_summary_ids ?? []
+    // Backends differ in whether leaves carry an explicit
+    // `eval_summary_ids` array. When absent, fall back to the
+    // pipeline's standard `${fam.key}_${leaf.key}` naming, then to the
+    // bare leaf key — both are stable enough for the detail page to
+    // resolve. This stops the inline benchmarks grid from disappearing
+    // on a backend that ships hierarchy.json without leaf eval ids.
+    const explicit = leaf.eval_summary_ids ?? []
+    const ids =
+      explicit.length > 0
+        ? explicit
+        : leaf.key
+        ? [`${fam.key}_${leaf.key}`, leaf.key]
+        : []
     if (ids.length === 0) continue
     // Domain sources, in order of trust:
     //   (1) hierarchy `leaf.tags.domains` — sometimes absent
