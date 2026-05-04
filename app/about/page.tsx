@@ -65,8 +65,8 @@ export default function AboutPage() {
                 "Risk-domain annotations on benchmarks (capability, robustness, safety, agentic risk, fairness) so policy readers can locate which deployment-relevant property a number speaks to.",
               ],
               [
-                "Six-level hierarchy",
-                "Family → Suite → Single benchmark → Split → Subtask → Metric. Every score resolves to an explicit path, so aggregate claims drill down to the evidence supporting them.",
+                "Five-level hierarchy",
+                "Family → Composite → Single benchmark → Slice → Metric. Every score resolves to an explicit path, so aggregate claims drill down to the evidence supporting them.",
               ],
             ].map(([h, p]) => (
               <div
@@ -146,7 +146,7 @@ export default function AboutPage() {
               ],
               [
                 "Comparability",
-                "Can two scores under the same benchmark be put side-by-side? Tracks split, subtask, metric variant, and unit harmonisation; flags rows that cannot be ranked together.",
+                "Can two scores under the same benchmark be put side-by-side? Tracks slice, metric variant, and unit harmonisation; flags rows that cannot be ranked together.",
               ],
             ].map(([h, p], i) => (
               <li
@@ -183,7 +183,7 @@ export default function AboutPage() {
             {[
               [
                 "Canonicalisation",
-                "Heterogeneous score reports — papers, model cards, leaderboards, blog posts — are normalised to (model, benchmark, split, subtask, metric, value, source) tuples. Model name aliases and benchmark version aliases are resolved against a curated mapping.",
+                "Heterogeneous score reports — papers, model cards, leaderboards, blog posts — are normalised to (model, benchmark, slice, metric, value, source) tuples. Model name aliases and benchmark version aliases are resolved against a curated mapping.",
               ],
               [
                 "Source attribution",

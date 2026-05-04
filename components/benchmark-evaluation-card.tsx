@@ -135,7 +135,7 @@ function formatScoreValue(value: number | null | undefined) {
 
 function getCoverageSummaryLabel(data: BenchmarkEvaluationCardData) {
   if (data.benchmarks_count > 0) {
-    return `${data.benchmarks_count} benchmark suite${data.benchmarks_count === 1 ? "" : "s"} surfaced`
+    return `${data.benchmarks_count} benchmark composite${data.benchmarks_count === 1 ? "" : "s"} surfaced`
   }
 
   if (data.latest_source_name) {
@@ -302,7 +302,7 @@ export function BenchmarkEvaluationCard({
                 <Badge variant="secondary">{data.variant_count} versions</Badge>
               )}
               {paramsBillions && <Badge variant="secondary">{paramsBillions} parameters</Badge>}
-              <Badge variant="outline">{data.benchmarks_count} benchmark suites</Badge>
+              <Badge variant="outline">{data.benchmarks_count} benchmark composites</Badge>
               <Badge variant="outline">{data.evaluations_count} reported results</Badge>
               {reproducibilityGapCount > 0 && (
                 <Badge

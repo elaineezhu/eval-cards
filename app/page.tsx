@@ -106,7 +106,7 @@ export default async function HomePage() {
             </h1>
             <p className="home-hero-lede">
               <strong>Eval Cards</strong> is a registry of reported model–benchmark results,
-              organised under a six-level rollout hierarchy and four interpretive signals
+              organised under a five-level rollout hierarchy and four interpretive signals
               computed over the joined record.
             </p>
             <div className="flex flex-wrap items-center gap-3">
@@ -164,9 +164,9 @@ export default async function HomePage() {
           </div>
         </section>
 
-        {/* SIX-LEVEL HIERARCHY STRIP -------------------------------------- */}
+        {/* FIVE-LEVEL HIERARCHY STRIP -------------------------------------- */}
         <section className="hierarchy-strip">
-          <div className="kicker">Six-level rollout hierarchy</div>
+          <div className="kicker">Five-level rollout hierarchy</div>
           <div className="hierarchy-row">
             {[
               {
@@ -175,7 +175,7 @@ export default async function HomePage() {
                 ex: "SWE-bench family, MMLU family",
               },
               {
-                name: "Suite",
+                name: "Composite",
                 count: formatNumber(compositeCount),
                 ex: "Open LLM Leaderboard v2, HELM Instruct",
               },
@@ -185,14 +185,9 @@ export default async function HomePage() {
                 ex: "GSM8K, IFEval, MMLU-Pro",
               },
               {
-                name: "Split",
+                name: "Slice",
                 count: formatNumber(sliceCount),
-                ex: "algebra (within MATH), Python (Multi-SWE-Bench)",
-              },
-              {
-                name: "Subtask",
-                count: "—",
-                ex: "level-5, multi-turn",
+                ex: "algebra (within MATH), level-5, multi-turn",
               },
               {
                 name: "Metric",

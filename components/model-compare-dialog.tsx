@@ -428,7 +428,7 @@ export function ModelCompareDialog({
                                 ) : null}
                                 {row.key === "latest" ? (
                                   <div className="flex items-center gap-2">
-                                    <span>{model.latest_source_name || `${model.benchmarks_count} benchmark suites summarized`}</span>
+                                    <span>{model.latest_source_name || `${model.benchmarks_count} benchmark composites summarized`}</span>
                                     {model.source_urls[0] ? (
                                       <a
                                         href={model.source_urls[0]}

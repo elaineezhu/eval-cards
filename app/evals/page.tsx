@@ -98,11 +98,31 @@ export default function EvalsPage() {
     }
     for (const fam of families) {
       const seen = new Set<string>()
+      // Family-level fallback first (cards keyed by family slug).
       for (const d of lookupDomains(fam.key)) seen.add(d.trim().toLowerCase())
+
+      // v2 primary path: walk every nested benchmark across composites,
+      // standalone benchmarks, and any family-level benchmarks array.
+      const nestedBenchmarks = [
+        ...(fam.standalone_benchmarks ?? []),
+        ...(fam.benchmarks ?? []),
+        ...(fam.composites ?? []).flatMap((c) => c.benchmarks ?? []),
+      ]
+      for (const benchmark of nestedBenchmarks) {
+        for (const d of benchmark.tags?.domains ?? []) seen.add(d.trim().toLowerCase())
+        for (const d of lookupDomains(benchmark.key)) seen.add(d.trim().toLowerCase())
+        for (const id of benchmark.summary_eval_ids ?? []) {
+          for (const d of lookupDomains(id)) seen.add(d.trim().toLowerCase())
+        }
+      }
+
+      // Legacy fallback: per-leaf tags + cards keyed by leaf slug.
       for (const leaf of fam.leaves ?? []) {
         for (const d of leaf.tags?.domains ?? []) seen.add(d.trim().toLowerCase())
         for (const d of lookupDomains(leaf.key)) seen.add(d.trim().toLowerCase())
       }
+
+      // Family-level eval_summary_ids cover both shapes.
       for (const id of fam.eval_summary_ids ?? []) {
         for (const d of lookupDomains(id)) seen.add(d.trim().toLowerCase())
       }
@@ -126,6 +146,14 @@ export default function EvalsPage() {
       for (const d of card?.benchmark_details?.domains ?? []) recordLabel(d)
     }
     for (const fam of families) {
+      const nestedBenchmarks = [
+        ...(fam.standalone_benchmarks ?? []),
+        ...(fam.benchmarks ?? []),
+        ...(fam.composites ?? []).flatMap((c) => c.benchmarks ?? []),
+      ]
+      for (const benchmark of nestedBenchmarks) {
+        for (const d of benchmark.tags?.domains ?? []) recordLabel(d)
+      }
       for (const leaf of fam.leaves ?? []) {
         for (const d of leaf.tags?.domains ?? []) recordLabel(d)
       }
@@ -244,7 +272,7 @@ export default function EvalsPage() {
               </span>
             </div>
             <div className="ec-page-meta-item">
-              <span className="ec-page-meta-item-l">Suites</span>
+              <span className="ec-page-meta-item-l">Composites</span>
               <span className="ec-page-meta-item-v">
                 {stats.composite_count.toLocaleString()}
               </span>

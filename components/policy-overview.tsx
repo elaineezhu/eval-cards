@@ -51,7 +51,7 @@ export function PolicyOverview({ summary }: PolicyOverviewProps) {
   const card = summary.benchmark_card
 
   // Defensive check: pipelines older than the "ancestor card leak" fix
-  // sometimes attach the parent suite's card to a leaf benchmark (e.g.
+  // sometimes attach the parent composite's card to a leaf benchmark (e.g.
   // helm_classic's card embedded under XSUM). Detect when the card's own
   // name is clearly not this benchmark and ignore its narrative text — the
   // synthesized fallback below produces something accurate instead.
@@ -81,17 +81,20 @@ export function PolicyOverview({ summary }: PolicyOverviewProps) {
   const goal = cardMatchesEval ? card?.purpose_and_intended_users?.goal?.trim() || "" : ""
 
   // Detect "parent" benchmark pages — either an aggregated composite or a
-  // multi-metric matrix where each column is a subtask. In both cases the
+  // multi-metric matrix where each column is a slice. In both cases the
   // per-evaluation `metric_config.evaluation_description` belongs to whichever
   // component was processed first (e.g. just the "airline" subset of Tau
   // Bench 2) and would mislead a policy reader. Synthesize parent framing
-  // instead and surface the subtasks separately.
+  // instead and surface the slices separately.
+  // Note: at the data layer the backend still ships these as `subtasks` /
+  // `metric.scope === "subtask"`; we read those fields directly but label
+  // them "slice" in the UI.
   const isAggregated = summary.is_aggregated === true
   const aggregateNames = (summary.aggregate_sources ?? [])
     .map((s) => s.composite_benchmark_name)
     .filter((s): s is string => typeof s === "string" && s.length > 0)
 
-  const subtaskLabels = useMemo(() => {
+  const sliceLabels = useMemo(() => {
     const seen = new Set<string>()
     const labels: string[] = []
     const add = (raw: string | undefined | null) => {
@@ -103,8 +106,8 @@ export function PolicyOverview({ summary }: PolicyOverviewProps) {
       seen.add(key)
       labels.push(trimmed)
     }
-    for (const subtask of summary.subtasks ?? []) {
-      add(subtask.display_name || subtask.subtask_name)
+    for (const slice of summary.subtasks ?? []) {
+      add(slice.display_name || slice.subtask_name)
     }
     for (const metric of summary.leaderboard_metrics ?? []) {
       if (metric.scope === "subtask") {
@@ -116,14 +119,14 @@ export function PolicyOverview({ summary }: PolicyOverviewProps) {
   }, [summary.subtasks, summary.leaderboard_metrics, aggregateNames])
 
   const isMatrix = (summary.leaderboard_metrics?.length ?? 0) > 1
-  const isParentPage = isAggregated || (isMatrix && subtaskLabels.length > 1)
+  const isParentPage = isAggregated || (isMatrix && sliceLabels.length > 1)
   const useComponentDescription = !isParentPage
 
-  const parentFallback = isParentPage && subtaskLabels.length > 1
-    ? `${summary.evaluation_name} reports results across ${subtaskLabels.length} ${
-        isAggregated ? "component benchmarks" : "subtasks"
+  const parentFallback = isParentPage && sliceLabels.length > 1
+    ? `${summary.evaluation_name} reports results across ${sliceLabels.length} ${
+        isAggregated ? "component benchmarks" : "slices"
       }. Each is evaluated separately; the score shown is the ${
-        isAggregated ? "average" : "per-subtask result"
+        isAggregated ? "average" : "per-slice result"
       }.`
     : null
 
@@ -134,7 +137,7 @@ export function PolicyOverview({ summary }: PolicyOverviewProps) {
     (useComponentDescription ? summary.metric_config.evaluation_description : summary.evaluation_name)
 
   const [expanded, setExpanded] = useState(false)
-  const [subtasksOpen, setSubtasksOpen] = useState(false)
+  const [slicesOpen, setSlicesOpen] = useState(false)
   const isLong = summaryText.length > SUMMARY_PREVIEW_CHARS
   const visibleText = expanded || !isLong
     ? summaryText
@@ -299,15 +302,15 @@ export function PolicyOverview({ summary }: PolicyOverviewProps) {
         </dd>
       </dl>
 
-      {isParentPage && subtaskLabels.length > 1 && (
+      {isParentPage && sliceLabels.length > 1 && (
         <div
           className="mt-4"
           style={{ border: "1px solid var(--border-soft)", background: "var(--bg)" }}
         >
           <button
             type="button"
-            onClick={() => setSubtasksOpen((v) => !v)}
-            aria-expanded={subtasksOpen}
+            onClick={() => setSlicesOpen((v) => !v)}
+            aria-expanded={slicesOpen}
             className="flex w-full items-center justify-between gap-3 px-3.5 py-2.5 text-left transition-colors hover:bg-[color:var(--bg-warm)]"
           >
             <span
@@ -315,20 +318,20 @@ export function PolicyOverview({ summary }: PolicyOverviewProps) {
               style={{ fontSize: 10, letterSpacing: "0.14em", color: "var(--fg-muted)" }}
             >
               <Layers className="h-3.5 w-3.5" />
-              {isAggregated ? `Component benchmarks (${subtaskLabels.length})` : `Subtasks (${subtaskLabels.length})`}
+              {isAggregated ? `Component benchmarks (${sliceLabels.length})` : `Slices (${sliceLabels.length})`}
             </span>
-            {subtasksOpen ? (
+            {slicesOpen ? (
               <ChevronUp className="h-4 w-4" style={{ color: "var(--fg-muted)" }} />
             ) : (
               <ChevronDown className="h-4 w-4" style={{ color: "var(--fg-muted)" }} />
             )}
           </button>
-          {subtasksOpen && (
+          {slicesOpen && (
             <ul
               className="grid list-disc gap-x-6 gap-y-1 px-3.5 pb-3.5 pl-9 text-[13px] sm:grid-cols-2 lg:grid-cols-3"
               style={{ color: "var(--fg)" }}
             >
-              {subtaskLabels.map((name) => (
+              {sliceLabels.map((name) => (
                 <li key={name} className="capitalize">
                   {name}
                 </li>

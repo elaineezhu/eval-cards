@@ -110,7 +110,7 @@ export default function OpenGraphImage() {
               maxWidth: "920px",
             }}
           >
-            A registry of reported model–benchmark results, organised under a six-level
+            A registry of reported model–benchmark results, organised under a five-level
             rollout hierarchy and four interpretive signals.
           </div>
         </div>

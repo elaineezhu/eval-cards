@@ -4,7 +4,7 @@ import { Fragment, useMemo, useState } from "react"
 import { useRouter } from "next/navigation"
 import { ArrowUpRight, ChevronDown, ChevronRight } from "lucide-react"
 
-import type { HierarchyFamily, HierarchyLeaf } from "@/lib/backend-artifacts"
+import type { HierarchyBenchmark, HierarchyFamily, HierarchyLeaf } from "@/lib/backend-artifacts"
 import type { BenchmarkCard, CategoryType } from "@/lib/benchmark-schema"
 import type { BenchmarkEvalListItem } from "@/lib/eval-processing"
 
@@ -67,18 +67,60 @@ interface LeafEntry {
   domains: string[]
 }
 
+/**
+ * Build the per-row list of expandable benchmarks under a family.
+ *
+ * Primary path: the v2 production shape, where the hierarchy nests
+ * benchmarks under `families[].composites[].benchmarks[]` (plus
+ * `standalone_benchmarks[]` and the family-level `benchmarks[]`). Each
+ * benchmark carries its own `summary_eval_ids` for navigation.
+ *
+ * Fallback path: the legacy `families[].leaves[]` shape used by older
+ * snapshots. Kept for compatibility while older caches are still in
+ * circulation.
+ */
 function collectLeafEntries(
   fam: HierarchyFamily,
   benchmarkCards?: Record<string, BenchmarkCard>,
 ): LeafEntry[] {
   const out: LeafEntry[] = []
+
+  // ── Primary: nested benchmarks (v2) ────────────────────────────────
+  const nested: HierarchyBenchmark[] = [
+    ...(fam.standalone_benchmarks ?? []),
+    ...(fam.benchmarks ?? []),
+    ...(fam.composites ?? []).flatMap((c) => c.benchmarks ?? []),
+  ]
+  for (const benchmark of nested) {
+    const summaryIds = benchmark.summary_eval_ids ?? []
+    const ids =
+      summaryIds.length > 0
+        ? summaryIds
+        : benchmark.key
+        ? [`${fam.key}_${benchmark.key}`, benchmark.key]
+        : []
+    if (ids.length === 0) continue
+    const collected = new Set<string>()
+    for (const d of benchmark.tags?.domains ?? []) collected.add(d.toLowerCase())
+    const cardByKey = benchmarkCards?.[benchmark.key]
+    for (const d of cardByKey?.benchmark_details?.domains ?? []) collected.add(d.toLowerCase())
+    for (const id of ids) {
+      const cardById = benchmarkCards?.[id]
+      for (const d of cardById?.benchmark_details?.domains ?? []) collected.add(d.toLowerCase())
+    }
+    out.push({
+      id: ids[0],
+      leafKey: benchmark.key,
+      leafName: benchmark.display_name || benchmark.key,
+      evalsCount: ids.length,
+      domains: Array.from(collected),
+    })
+  }
+
+  if (out.length > 0) return out
+
+  // ── Fallback: legacy `leaves` shape ────────────────────────────────
   for (const leaf of fam.leaves ?? []) {
-    // Backends differ in whether leaves carry an explicit
-    // `eval_summary_ids` array. When absent, fall back to the
-    // pipeline's standard `${fam.key}_${leaf.key}` naming, then to the
-    // bare leaf key — both are stable enough for the detail page to
-    // resolve. This stops the inline benchmarks grid from disappearing
-    // on a backend that ships hierarchy.json without leaf eval ids.
     const explicit = leaf.eval_summary_ids ?? []
     const ids =
       explicit.length > 0
@@ -87,10 +129,6 @@ function collectLeafEntries(
         ? [`${fam.key}_${leaf.key}`, leaf.key]
         : []
     if (ids.length === 0) continue
-    // Domain sources, in order of trust:
-    //   (1) hierarchy `leaf.tags.domains` — sometimes absent
-    //   (2) benchmark-metadata keyed by leaf.key
-    //   (3) benchmark-metadata keyed by the leaf's eval_summary_id
     const collected = new Set<string>()
     for (const d of leaf.tags?.domains ?? []) collected.add(d.toLowerCase())
     const cardByLeaf = benchmarkCards?.[leaf.key]
@@ -107,6 +145,7 @@ function collectLeafEntries(
       domains: Array.from(collected),
     })
   }
+
   return out
 }
 

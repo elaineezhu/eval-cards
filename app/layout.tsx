@@ -9,7 +9,7 @@ const SITE_URL = "https://evalcards.evalevalai.com"
 const SITE_NAME = "Eval Cards"
 const SITE_TITLE = "Eval Cards — a reporting layer for AI evaluations"
 const SITE_DESCRIPTION =
-  "A public registry of reported model–benchmark results, organised under a six-level rollout hierarchy and four interpretive signals: reproducibility, completeness, provenance, and comparability."
+  "A public registry of reported model–benchmark results, organised under a five-level rollout hierarchy and four interpretive signals: reproducibility, completeness, provenance, and comparability."
 
 export const metadata: Metadata = {
   metadataBase: new URL(SITE_URL),

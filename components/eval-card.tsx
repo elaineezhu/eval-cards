@@ -120,7 +120,7 @@ export function EvalCard({ summary, delayMs = 0 }: EvalCardProps) {
         <div className="min-w-0">
           <div className="text-xl font-bold">{summary.evaluation_name}</div>
           <div className="mt-1 text-xs font-medium uppercase tracking-[0.18em] text-muted-foreground">
-            Suite: {summary.composite_benchmark_name}
+            Composite: {summary.composite_benchmark_name}
           </div>
           <div className="mt-1 text-sm text-muted-foreground line-clamp-2">
             {/*

@@ -62,10 +62,10 @@ interface BenchmarkVariant {
   evaluation: BenchmarkEvaluation
   result: EvaluationResult
   label: string
-  variantType: "setup" | "subtask" | "setup+subtask" | "default"
+  variantType: "setup" | "slice" | "setup+slice" | "default"
   metricLabel: string
   setupLabel: string | null
-  subtaskLabel: string | null
+  sliceLabel: string | null
   displayScore: string
   normalizedScore: number
   rankPosition: number | null
@@ -92,9 +92,9 @@ interface BenchmarkGroup {
   variants: BenchmarkVariant[]
 }
 
-interface SuiteGroup {
-  suiteKey: string
-  suiteName: string
+interface CompositeGroup {
+  compositeKey: string
+  compositeName: string
   benchmarks: BenchmarkGroup[]
   avgRawScore: number
   avgNormalizedScore: number
@@ -269,77 +269,77 @@ function getSourceTypeDisplayName(value: string | null | undefined) {
   return normalizeDisplayLabel(value?.replace(/_/g, " ")) || "Unknown"
 }
 
-function normalizeSuiteKey(key: string): string {
+function normalizeCompositeKey(key: string): string {
   const k = key.toLowerCase().replace(/[-.\s]+/g, "_").replace(/^_+|_+$/g, "")
   if (/^fibble\d*_arena$/.test(k)) return "fibble_arena"
   if (/^arc_agi_v\d+/.test(k)) return "arc_agi"
   return k
 }
 
-function doesLabelMatchSuiteKey(label: string | null | undefined, suiteKey: string) {
+function doesLabelMatchSuiteKey(label: string | null | undefined, compositeKey: string) {
   if (!label) {
     return false
   }
 
-  return normalizeSuiteKey(normalizeDisplayKey(label)) === normalizeSuiteKey(suiteKey)
+  return normalizeCompositeKey(normalizeDisplayKey(label)) === normalizeCompositeKey(compositeKey)
 }
 
-function getSuiteKey(group: BenchmarkGroup): string {
+function getCompositeKey(group: BenchmarkGroup): string {
   const evaluation = group.variants[0]?.evaluation
   const backendSuiteKey =
     evaluation?.benchmark_parent_key ||
     evaluation?.benchmark_family_key ||
     evaluation?.benchmark
 
-  return normalizeSuiteKey(backendSuiteKey ?? group.key)
+  return normalizeCompositeKey(backendSuiteKey ?? group.key)
 }
 
-function getSuiteDisplayName(key: string): string {
-  const normalizedKey = normalizeSuiteKey(key)
+function getCompositeDisplayName(key: string): string {
+  const normalizedKey = normalizeCompositeKey(key)
   return SUITE_DISPLAY_NAMES[normalizedKey] ?? normalizeDisplayLabel(key)
 }
 
-function getSuiteName(group: BenchmarkGroup, suiteKey: string): string {
+function getCompositeName(group: BenchmarkGroup, compositeKey: string): string {
   const evaluation = group.variants[0]?.evaluation
   const benchmarkCardName = group.benchmarkCard?.benchmark_details?.name
   const backendParentName = evaluation?.benchmark_parent_name
   const backendFamilyName = evaluation?.benchmark_family_name
 
-  if (doesLabelMatchSuiteKey(backendParentName, suiteKey)) {
+  if (doesLabelMatchSuiteKey(backendParentName, compositeKey)) {
     return normalizeDisplayLabel(backendParentName)
   }
 
-  if (doesLabelMatchSuiteKey(backendFamilyName, suiteKey)) {
+  if (doesLabelMatchSuiteKey(backendFamilyName, compositeKey)) {
     return normalizeDisplayLabel(backendFamilyName)
   }
 
-  if (doesLabelMatchSuiteKey(benchmarkCardName, suiteKey)) {
+  if (doesLabelMatchSuiteKey(benchmarkCardName, compositeKey)) {
     return normalizeDisplayLabel(benchmarkCardName)
   }
 
-  return getSuiteDisplayName(suiteKey)
+  return getCompositeDisplayName(compositeKey)
 }
 
-function groupBySuite(
+function groupByComposite(
   groups: BenchmarkGroup[],
   modelIds: string[],
   peerRanks: PeerRanksMap
-): SuiteGroup[] {
-  const suites = new Map<string, BenchmarkGroup[]>()
+): CompositeGroup[] {
+  const composites = new Map<string, BenchmarkGroup[]>()
   for (const group of groups) {
-    const key = getSuiteKey(group)
-    const existing = suites.get(key) ?? []
+    const key = getCompositeKey(group)
+    const existing = composites.get(key) ?? []
     existing.push(group)
-    suites.set(key, existing)
+    composites.set(key, existing)
   }
 
-  return Array.from(suites.entries()).map(([suiteKey, benchmarks]) => {
+  return Array.from(composites.entries()).map(([compositeKey, benchmarks]) => {
     const scores = benchmarks.map(b => b.avgNormalizedScore).filter(Number.isFinite)
     const avgScore = scores.length > 0 ? scores.reduce((a, b) => a + b, 0) / scores.length : 0
     const rawScores = benchmarks.map((benchmark) => benchmark.avgRawScore).filter(Number.isFinite)
     const avgRawScore = rawScores.length > 0 ? rawScores.reduce((a, b) => a + b, 0) / rawScores.length : 0
 
-    // Find best rank across all benchmarks in suite
+    // Find best rank across all benchmarks in the composite
     let bestRank: { position: number; total: number } | null = null
     for (const b of benchmarks) {
       const rank = getGroupPeerRank(b, modelIds, peerRanks)
@@ -350,8 +350,8 @@ function groupBySuite(
     }
 
     return {
-      suiteKey,
-      suiteName: benchmarks[0] ? getSuiteName(benchmarks[0], suiteKey) : getSuiteDisplayName(suiteKey),
+      compositeKey,
+      compositeName: benchmarks[0] ? getCompositeName(benchmarks[0], compositeKey) : getCompositeDisplayName(compositeKey),
       benchmarks,
       avgRawScore,
       avgNormalizedScore: avgScore,
@@ -359,7 +359,7 @@ function groupBySuite(
       bestRank,
     }
   }).sort((a, b) => {
-    // Sort by best peer rank ratio (lower = better); unranked suites go to the bottom
+    // Sort by best peer rank ratio (lower = better); unranked composites go to the bottom
     const aRatio = a.bestRank ? a.bestRank.position / (a.bestRank.total || a.bestRank.position) : Infinity
     const bRatio = b.bestRank ? b.bestRank.position / (b.bestRank.total || b.bestRank.position) : Infinity
     if (aRatio !== bRatio) return aRatio - bRatio
@@ -466,25 +466,25 @@ function getMetricDisplayLabel(result: EvaluationResult) {
 function getVariantDescriptor(
   evaluation: BenchmarkEvaluation,
   result: EvaluationResult
-): Pick<BenchmarkVariant, "label" | "variantType" | "metricLabel" | "setupLabel" | "subtaskLabel"> {
+): Pick<BenchmarkVariant, "label" | "variantType" | "metricLabel" | "setupLabel" | "sliceLabel"> {
   const evaluationVariantRaw = getEvaluationVariantLabel(evaluation)
   const evaluationVariant = evaluationVariantRaw ? formatSetupDisplayLabel(evaluationVariantRaw) : null
   const metricLabel = getMetricDisplayLabel(result)
   const metricKey = normalizeDisplayKey(metricLabel)
   const metricIsAmbiguous = AMBIGUOUS_GROUP_LABELS.has(metricKey)
-  const subtaskLabel = evaluation.slice_name ? normalizeDisplayLabel(evaluation.slice_name) : null
+  const sliceLabel = evaluation.slice_name ? normalizeDisplayLabel(evaluation.slice_name) : null
   const setupLabel = evaluationVariant ? formatSetupDisplayLabel(evaluationVariant) : null
-  const baseLabel = subtaskLabel
-    ? (metricIsAmbiguous ? subtaskLabel : `${subtaskLabel} · ${metricLabel}`)
+  const baseLabel = sliceLabel
+    ? (metricIsAmbiguous ? sliceLabel : `${sliceLabel} · ${metricLabel}`)
     : metricLabel
 
-  if (setupLabel && subtaskLabel) {
+  if (setupLabel && sliceLabel) {
     return {
       label: `${setupLabel} · ${baseLabel}`,
-      variantType: "setup+subtask",
+      variantType: "setup+slice",
       metricLabel,
       setupLabel,
-      subtaskLabel,
+      sliceLabel,
     }
   }
 
@@ -494,17 +494,17 @@ function getVariantDescriptor(
       variantType: "setup",
       metricLabel,
       setupLabel,
-      subtaskLabel: null,
+      sliceLabel: null,
     }
   }
 
-  if (subtaskLabel || !metricIsAmbiguous) {
+  if (sliceLabel || !metricIsAmbiguous) {
     return {
       label: baseLabel,
-      variantType: subtaskLabel ? "subtask" : "default",
+      variantType: sliceLabel ? "slice" : "default",
       metricLabel,
       setupLabel: null,
-      subtaskLabel: subtaskLabel ?? null,
+      sliceLabel: sliceLabel ?? null,
     }
   }
 
@@ -513,7 +513,7 @@ function getVariantDescriptor(
     variantType: "default",
     metricLabel,
     setupLabel: null,
-    subtaskLabel: null,
+    sliceLabel: null,
   }
 }
 
@@ -603,7 +603,7 @@ function getTableConfigLabel(row: VariantRowData) {
     return row.variant.setupLabel
   }
 
-  if (row.variant.variantType === "subtask") {
+  if (row.variant.variantType === "slice") {
     return "Default setup"
   }
 
@@ -865,9 +865,9 @@ function getVariantTypeTone(variantType: BenchmarkVariant["variantType"]) {
   switch (variantType) {
     case "setup":
       return "bg-sky-100 text-sky-800 dark:bg-sky-950/50 dark:text-sky-300"
-    case "subtask":
+    case "slice":
       return "bg-violet-100 text-violet-800 dark:bg-violet-950/50 dark:text-violet-300"
-    case "setup+subtask":
+    case "setup+slice":
       return "bg-amber-100 text-amber-800 dark:bg-amber-950/50 dark:text-amber-300"
     default:
       return "bg-muted text-muted-foreground"
@@ -878,10 +878,10 @@ function getVariantTypeLabel(variantType: BenchmarkVariant["variantType"]) {
   switch (variantType) {
     case "setup":
       return "Setup change"
-    case "subtask":
-      return "Benchmark subtask"
-    case "setup+subtask":
-      return "Setup + subtask"
+    case "slice":
+      return "Benchmark slice"
+    case "setup+slice":
+      return "Setup + slice"
     default:
       return "Single run"
   }
@@ -911,8 +911,8 @@ function formatSetupDisplayLabel(setupLabel: string | null) {
 }
 
 function getVariantPrimaryLabel(variant: BenchmarkVariant, groupTitle: string) {
-  if (variant.subtaskLabel) {
-    return variant.subtaskLabel
+  if (variant.sliceLabel) {
+    return variant.sliceLabel
   }
 
   if (variant.metricLabel) {
@@ -929,41 +929,41 @@ function getVariantPrimaryLabel(variant: BenchmarkVariant, groupTitle: string) {
   return variant.label
 }
 
-function getGroupSubtaskLabels(group: BenchmarkGroup) {
+function getGroupSliceLabels(group: BenchmarkGroup) {
   return Array.from(
     new Set(
       group.variants
-        .map((variant) => variant.subtaskLabel?.trim())
+        .map((variant) => variant.sliceLabel?.trim())
         .filter((label): label is string => Boolean(label))
     )
   )
 }
 
-function getGroupSubtaskCount(group: BenchmarkGroup) {
-  return getGroupSubtaskLabels(group).length
+function getGroupSliceCount(group: BenchmarkGroup) {
+  return getGroupSliceLabels(group).length
 }
 
 function getBenchmarkGroupHeading(group: BenchmarkGroup) {
   return group.canonicalTitle
 }
 
-function getSuiteBadgeMeta(suite: SuiteGroup) {
-  if (suite.benchmarks.length > 1) {
+function getCompositeBadgeMeta(composite: CompositeGroup) {
+  if (composite.benchmarks.length > 1) {
     return {
-      count: suite.benchmarks.length,
-      label: `sub-benchmark${suite.benchmarks.length === 1 ? "" : "s"}`,
+      count: composite.benchmarks.length,
+      label: `sub-benchmark${composite.benchmarks.length === 1 ? "" : "s"}`,
       className:
         "border-sky-200/80 bg-sky-50/70 text-sky-700 dark:border-sky-900/60 dark:bg-sky-950/30 dark:text-sky-300",
     }
   }
 
-  const singleGroup = suite.benchmarks[0]
+  const singleGroup = composite.benchmarks[0]
   if (!singleGroup) {
     return null
   }
 
-  const suiteMatchesBenchmark = normalizeSuiteKey(suite.suiteName) === normalizeSuiteKey(singleGroup.title)
-  if (!suiteMatchesBenchmark) {
+  const compositeMatchesBenchmark = normalizeCompositeKey(composite.compositeName) === normalizeCompositeKey(singleGroup.title)
+  if (!compositeMatchesBenchmark) {
     return {
       count: 1,
       label: "sub-benchmark",
@@ -972,11 +972,11 @@ function getSuiteBadgeMeta(suite: SuiteGroup) {
     }
   }
 
-  const subtaskCount = getGroupSubtaskCount(singleGroup)
-  if (subtaskCount > 0) {
+  const sliceCount = getGroupSliceCount(singleGroup)
+  if (sliceCount > 0) {
     return {
-      count: subtaskCount,
-      label: `subtask${subtaskCount === 1 ? "" : "s"}`,
+      count: sliceCount,
+      label: `slice${sliceCount === 1 ? "" : "s"}`,
       className:
         "border-emerald-200/70 bg-emerald-50 text-emerald-700 dark:border-emerald-900/60 dark:bg-emerald-950/30 dark:text-emerald-300",
     }
@@ -1405,7 +1405,7 @@ function getVariantDedupKey(variant: BenchmarkVariant) {
     metricLabel: variant.metricLabel,
     variantType: variant.variantType,
     setupLabel: variant.setupLabel,
-    subtaskLabel: variant.subtaskLabel,
+    sliceLabel: variant.sliceLabel,
     displayScore: variant.displayScore,
     sourceOrganization: getOrganizationDisplayName(variant.evaluation.source_metadata.source_organization_name),
     sourceName: normalizeDisplayLabel(variant.evaluation.source_metadata.source_name ?? ""),
@@ -1459,7 +1459,7 @@ function buildBenchmarkGroups(
       variantType: descriptor.variantType,
       metricLabel: descriptor.metricLabel,
       setupLabel: descriptor.setupLabel,
-      subtaskLabel: descriptor.subtaskLabel,
+      sliceLabel: descriptor.sliceLabel,
       displayScore,
       normalizedScore,
       rankPosition,
@@ -1570,10 +1570,10 @@ function buildBenchmarkGroups(
 
       group.variants = Array.from(dedupedVariants.values())
       group.variants.sort((a, b) => {
-        const aIsSubtask = Boolean(a.evaluation.slice_key)
-        const bIsSubtask = Boolean(b.evaluation.slice_key)
-        if (aIsSubtask !== bIsSubtask) {
-          return aIsSubtask ? 1 : -1
+        const aIsSlice = Boolean(a.evaluation.slice_key)
+        const bIsSlice = Boolean(b.evaluation.slice_key)
+        if (aIsSlice !== bIsSlice) {
+          return aIsSlice ? 1 : -1
         }
 
         const aPrimaryLabel = getVariantPrimaryLabel(a, group.title)
@@ -2043,9 +2043,9 @@ export function BenchmarkDetail({
       }))
   }, [filteredBenchmarkGroups, comparisonIndex, summary.categories_covered])
 
-  const suiteGroups = useMemo(() => {
-    const groups = groupBySuite(filteredBenchmarkGroups, modelIds, peerRanks)
-    // Re-sort suites by max relevance of their benchmarks
+  const compositeGroups = useMemo(() => {
+    const groups = groupByComposite(filteredBenchmarkGroups, modelIds, peerRanks)
+    // Re-sort composites by max relevance of their benchmarks
     return groups.sort((a, b) => {
       const aMax = Math.max(...a.benchmarks.map(getRelevanceScore))
       const bMax = Math.max(...b.benchmarks.map(getRelevanceScore))
@@ -2053,48 +2053,48 @@ export function BenchmarkDetail({
     })
   }, [filteredBenchmarkGroups, modelIds, peerRanks, getRelevanceScore])
 
-  const categorySuiteSections = useMemo(
+  const categoryCompositeSections = useMemo(
     () =>
       groupedFilteredBenchmarkGroups
         .map(({ category, groups }) => ({
           category,
-          suites: groupBySuite(groups, modelIds, peerRanks).sort((a, b) => {
+          composites: groupByComposite(groups, modelIds, peerRanks).sort((a, b) => {
             const aMax = Math.max(...a.benchmarks.map(getRelevanceScore))
             const bMax = Math.max(...b.benchmarks.map(getRelevanceScore))
             return bMax - aMax
           }),
         }))
-        .filter((section) => section.suites.length > 0),
+        .filter((section) => section.composites.length > 0),
     [groupedFilteredBenchmarkGroups, modelIds, peerRanks, getRelevanceScore]
   )
 
   const categoryScoreRanges = useMemo(() => {
     const ranges = new Map<CategoryType, ScoreRange>()
 
-    for (const section of categorySuiteSections) {
+    for (const section of categoryCompositeSections) {
       ranges.set(
         section.category,
-        getScoreRange(section.suites.map((suite) => suite.avgNormalizedScore))
+        getScoreRange(section.composites.map((composite) => composite.avgNormalizedScore))
       )
     }
 
     return ranges
-  }, [categorySuiteSections])
+  }, [categoryCompositeSections])
 
-  const suiteBenchmarkScoreRanges = useMemo(() => {
+  const compositeBenchmarkScoreRanges = useMemo(() => {
     const ranges = new Map<string, ScoreRange>()
 
-    for (const section of categorySuiteSections) {
-      for (const suite of section.suites) {
+    for (const section of categoryCompositeSections) {
+      for (const composite of section.composites) {
         ranges.set(
-          suite.suiteKey,
-          getScoreRange(suite.benchmarks.map((group) => group.avgNormalizedScore))
+          composite.compositeKey,
+          getScoreRange(composite.benchmarks.map((group) => group.avgNormalizedScore))
         )
       }
     }
 
     return ranges
-  }, [categorySuiteSections])
+  }, [categoryCompositeSections])
 
   const benchmarkGroupLookup = useMemo(
     () => new Map(benchmarkGroups.map((group) => [group.key, group] as const)),
@@ -2104,11 +2104,11 @@ export function BenchmarkDetail({
     ? benchmarkGroupLookup.get(activeBenchmarkGroupKey) ?? null
     : null
 
-  const toggleSuite = (suiteKey: string) => {
+  const toggleSuite = (compositeKey: string) => {
     setExpandedSuites((prev) => {
       const next = new Set(prev)
-      if (next.has(suiteKey)) next.delete(suiteKey)
-      else next.add(suiteKey)
+      if (next.has(compositeKey)) next.delete(compositeKey)
+      else next.add(compositeKey)
       return next
     })
   }
@@ -2150,10 +2150,10 @@ export function BenchmarkDetail({
   )
   const repeatedBenchmarkCount = overviewBenchmarkGroups.filter((group) => group.variants.length > 1).length
   const setupDrivenBenchmarkCount = overviewBenchmarkGroups.filter((group) =>
-    group.variants.some((variant) => variant.variantType === "setup" || variant.variantType === "setup+subtask")
+    group.variants.some((variant) => variant.variantType === "setup" || variant.variantType === "setup+slice")
   ).length
-  const subtaskDrivenBenchmarkCount = overviewBenchmarkGroups.filter((group) =>
-    group.variants.some((variant) => variant.variantType === "subtask" || variant.variantType === "setup+subtask")
+  const sliceDrivenBenchmarkCount = overviewBenchmarkGroups.filter((group) =>
+    group.variants.some((variant) => variant.variantType === "slice" || variant.variantType === "setup+slice")
   ).length
 
   useEffect(() => {
@@ -2414,7 +2414,7 @@ export function BenchmarkDetail({
     summary.model_info.name,
   ])
 
-  // A plotbox can expose a top-level "view" selector (subtasks, child
+  // A plotbox can expose a top-level "view" selector (slices, child
   // benchmarks, components) and an optional metric tab rail beneath the chart.
   // Plotbox grouping is driven entirely by comparison-index's own
   // benchmark_family_key so it stays in sync with the backend.
@@ -2448,7 +2448,7 @@ export function BenchmarkDetail({
     familyName: string
     category: CategoryType
     kind: "single-eval" | "multi-eval"
-    childKindLabel: "metric" | "benchmark" | "component" | "subtask" | null
+    childKindLabel: "metric" | "benchmark" | "component" | "slice" | null
     views: PlotboxView[]
     primaryGroup: BenchmarkGroup
   }
@@ -2534,7 +2534,7 @@ export function BenchmarkDetail({
       const { familyName, category, resolved } = bucket
 
       if (resolved.length === 1) {
-        // One eval in scope — subtasks/splits become the view selector while
+        // One eval in scope — slices/splits become the view selector while
         // metrics move to a compact tab rail beneath the chart.
         const { group, evalEntry } = resolved[0]
         const evalDisplay =
@@ -2545,10 +2545,10 @@ export function BenchmarkDetail({
         >()
 
         for (const variant of group.variants) {
-          const viewKey = variant.subtaskLabel
-            ? `subtask:${normalizeDisplayKey(variant.subtaskLabel)}`
+          const viewKey = variant.sliceLabel
+            ? `slice:${normalizeDisplayKey(variant.sliceLabel)}`
             : "default"
-          const label = variant.subtaskLabel || "Overall"
+          const label = variant.sliceLabel || "Overall"
           const bucketForView = singleEvalViewBuckets.get(viewKey) ?? {
             viewKey,
             label,
@@ -2600,7 +2600,7 @@ export function BenchmarkDetail({
           familyName: evalDisplay,
           category,
           kind: "single-eval",
-          childKindLabel: views.length > 1 ? "subtask" : null,
+          childKindLabel: views.length > 1 ? "slice" : null,
           views,
           primaryGroup: group,
         })
@@ -2656,7 +2656,7 @@ export function BenchmarkDetail({
       if (views.length === 0) continue
 
       let hasComponent = false
-      let hasSubtask = false
+      let hasSlice = false
       let hasDistinctLeaves = false
       for (const r of children) {
         const leafKey = r.evalEntry.benchmark_leaf_key
@@ -2666,17 +2666,17 @@ export function BenchmarkDetail({
         if (r.group.variants[0]?.evaluation.benchmark_component_key ?? null) {
           hasComponent = true
         } else {
-          hasSubtask = true
+          hasSlice = true
         }
       }
       const childKindLabel: PlotboxUnit["childKindLabel"] =
-        hasComponent && hasSubtask
+        hasComponent && hasSlice
           ? "component"
           : hasComponent
             ? "metric"
             : hasDistinctLeaves
               ? "benchmark"
-              : "subtask"
+              : "slice"
 
       units.push({
         unitKey: `family:${famKey}`,
@@ -2909,8 +2909,8 @@ export function BenchmarkDetail({
     const childKindPlural =
       unit.childKindLabel === "metric"
         ? childKindCount === 1 ? "metric" : "metrics"
-        : unit.childKindLabel === "subtask"
-          ? childKindCount === 1 ? "subtask" : "subtasks"
+        : unit.childKindLabel === "slice"
+          ? childKindCount === 1 ? "slice" : "slices"
           : unit.childKindLabel === "benchmark"
             ? childKindCount === 1 ? "benchmark" : "benchmarks"
             : childKindCount === 1 ? "component" : "components"
@@ -3395,10 +3395,10 @@ export function BenchmarkDetail({
                 ? `${reportingStats.missingGenerationConfigs} entries are missing generation config, limiting cross-slice comparability.`
                 : "Generation configuration is present across the result set."}
             </p>
-            {(setupDrivenBenchmarkCount > 0 || subtaskDrivenBenchmarkCount > 0) && (
+            {(setupDrivenBenchmarkCount > 0 || sliceDrivenBenchmarkCount > 0) && (
               <p className="text-[13px] leading-[1.7] text-[color:var(--fg-muted)]">
                 Decomposition: <span className="text-[color:var(--fg)]">{setupDrivenBenchmarkCount}</span> setup-aware ·{" "}
-                <span className="text-[color:var(--fg)]">{subtaskDrivenBenchmarkCount}</span> subtask-aware.
+                <span className="text-[color:var(--fg)]">{sliceDrivenBenchmarkCount}</span> slice-aware.
                 {reportingStats.libraryList.length > 0 && (
                   <>
                     {" "}Eval libraries: <span className="text-[color:var(--fg)]">{reportingStats.libraryList.join(", ")}</span>.
@@ -3531,7 +3531,7 @@ export function BenchmarkDetail({
 
         <p className="text-[14px] leading-[1.7] text-[color:var(--fg-muted)] max-w-[64rem] mb-6">
           {isResearchView
-            ? "Benchmark-first view of this model's reported results, grouped by category. Setup spread and subtask-vs-setup differences surface up-front."
+            ? "Benchmark-first view of this model's reported results, grouped by category. Setup spread and slice-vs-setup differences surface up-front."
             : "The public evidence behind this model, grouped by category. The strongest and most variable signals are listed first."}
           {policyHighlights.length > 0 && !isResearchView && (
             <>
@@ -3606,9 +3606,9 @@ export function BenchmarkDetail({
             )}
             {repeatedBenchmarkCount > 0 && (
               <>
-                <dt>Subtask spread</dt>
+                <dt>Slice spread</dt>
                 <dd>
-                  {repeatedBenchmarkCount} benchmark{repeatedBenchmarkCount === 1 ? "" : "s"} include multiple subtasks or setups.
+                  {repeatedBenchmarkCount} benchmark{repeatedBenchmarkCount === 1 ? "" : "s"} include multiple slices or setups.
                 </dd>
               </>
             )}
@@ -3701,7 +3701,7 @@ export function BenchmarkDetail({
             <option value="rank">Sort · Best rank</option>
             <option value="score">Sort · Highest score</option>
             <option value="name">Sort · Name (A–Z)</option>
-            <option value="variants">Sort · Most subtasks</option>
+            <option value="variants">Sort · Most slices</option>
             <option value="spread">Sort · Largest spread</option>
           </select>
         </div>
@@ -3856,7 +3856,7 @@ export function BenchmarkDetail({
                             <span>{row.variant.result.generation_config.num_few_shot}-shot</span>
                           )}
                           {row.variant.setupLabel && <span>· {row.variant.setupLabel}</span>}
-                          {row.variant.subtaskLabel && <span>· {row.variant.subtaskLabel}</span>}
+                          {row.variant.sliceLabel && <span>· {row.variant.sliceLabel}</span>}
                         </div>
                       )}
                     </div>
@@ -4527,22 +4527,22 @@ function BenchmarkResultCard({
                     <Separator className="my-4" />
                     <div className="mb-2">
                       <div className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">Detailed Breakdown</div>
-                      <div className="text-xs text-muted-foreground mt-1">Scores and structured metadata for individual subtasks or metrics</div>
+                      <div className="text-xs text-muted-foreground mt-1">Scores and structured metadata for individual slices or metrics</div>
                     </div>
 
                     {numericBreakdown.length > 0 && (
                       <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-3">
                         {numericBreakdown.map(([key, value]) => {
                         let valDisplay = typeof value === 'number' ? value.toFixed(2) : value;
-                        let normalized_subtask = 0;
+                        let normalized_slice = 0;
                         
                         if (typeof value === 'number') {
                             if (unit === 'accuracy' || !unit || unit === 'pass@1') {
                                 valDisplay = formatRawScoreValue(value);
-                                normalized_subtask = value;
+                                normalized_slice = value;
                             } else {
                                 valDisplay = value.toFixed(2);
-                                normalized_subtask = (value - min_score) / (max_score - min_score);
+                                normalized_slice = (value - min_score) / (max_score - min_score);
                             }
                         }
                         
@@ -4556,7 +4556,7 @@ function BenchmarkResultCard({
                             {valDisplay}
                           </div>
                           {typeof value === 'number' && (
-                            <Progress value={normalized_subtask * 100} className="h-1 mt-2" />
+                            <Progress value={normalized_slice * 100} className="h-1 mt-2" />
                           )}
                         </div>
                       )})}
@@ -4800,7 +4800,7 @@ function AggregatedBenchmarkCard({
     Number.isFinite(latestTimestamp) ? formatCompactDate(String(latestTimestamp)) : formatCompactDate(group.variants[0]?.evaluation.retrieved_timestamp ?? "")
   const compactDomains = group.domains.slice(0, 2)
   const progressWidth = Math.max(4, Math.min(100, group.avgNormalizedScore * 100))
-  const subtaskCount = getGroupSubtaskCount(group)
+  const sliceCount = getGroupSliceCount(group)
 
   const toggleRow = (rowKey: string) => {
     setExpandedRows((current) => ({
@@ -4851,9 +4851,9 @@ function AggregatedBenchmarkCard({
                       card
                     </span>
                   )}
-                  {subtaskCount > 0 && (
+                  {sliceCount > 0 && (
                     <span className="shrink-0 rounded-full border border-emerald-200/70 bg-emerald-50 px-1.5 py-0.5 text-[9px] font-semibold uppercase tracking-[0.12em] text-emerald-700 dark:border-emerald-900/60 dark:bg-emerald-950/30 dark:text-emerald-300">
-                      {subtaskCount} subtask{subtaskCount === 1 ? "" : "s"}
+                      {sliceCount} slice{sliceCount === 1 ? "" : "s"}
                     </span>
                   )}
                   {compactDomains.map((domain) => (
@@ -4881,7 +4881,7 @@ function AggregatedBenchmarkCard({
                 )}
               </div>
 
-              {/* Subtask count */}
+              {/* Slice count */}
               <span className="shrink-0 text-[11px] text-muted-foreground w-16 text-right hidden sm:block">
                 {group.variants.length} {group.variants.length === 1 ? "row" : "rows"}
               </span>
@@ -5077,9 +5077,9 @@ function AggregatedBenchmarkCard({
                                   </div>
                                   <div className="text-xs text-muted-foreground">
                                     {variant.setupLabel && <span>Setup: {variant.setupLabel}</span>}
-                                    {variant.setupLabel && variant.subtaskLabel && <span> • </span>}
-                                    {variant.subtaskLabel && <span>Subtask: {variant.subtaskLabel}</span>}
-                                    {!variant.setupLabel && !variant.subtaskLabel && <span>{group.title}</span>}
+                                    {variant.setupLabel && variant.sliceLabel && <span> • </span>}
+                                    {variant.sliceLabel && <span>Slice: {variant.sliceLabel}</span>}
+                                    {!variant.setupLabel && !variant.sliceLabel && <span>{group.title}</span>}
                                   </div>
                                 </div>
                               </div>
@@ -5193,8 +5193,8 @@ function BenchmarkDeepDiveDialogPanel({
   const [resolvedRanks, setResolvedRanks] = useState<Record<string, { position: number; total: number | null }>>({})
   const [isResolvingRanks, setIsResolvingRanks] = useState(false)
   const compactDomains = group.domains.slice(0, 2)
-  const subtaskCount = getGroupSubtaskCount(group)
-  const hasSubtaskMatrix = subtaskCount > 0
+  const sliceCount = getGroupSliceCount(group)
+  const hasSliceMatrix = sliceCount > 0
   const sourceOrganizations = useMemo(
     () => new Set(group.variants.map((variant) => getOrganizationDisplayName(variant.evaluation.source_metadata.source_organization_name))),
     [group.variants]
@@ -5335,18 +5335,18 @@ function BenchmarkDeepDiveDialogPanel({
   // Kept only to drive the single-setup overview: when every reported row is
   // reported under the same setup, the detail table collapses into a compact
   // view that drops the redundant "Reporting setup" column.
-  const subtaskSetups = useMemo(() => {
-    if (!hasSubtaskMatrix) return null
+  const sliceSetups = useMemo(() => {
+    if (!hasSliceMatrix) return null
     const setupOrder: string[] = []
     for (const row of variantRows) {
       const setupDisplayLabel = formatSetupDisplayLabel(row.variant.setupLabel)
       if (!setupOrder.includes(setupDisplayLabel)) setupOrder.push(setupDisplayLabel)
     }
     return { setupOrder }
-  }, [hasSubtaskMatrix, variantRows])
+  }, [hasSliceMatrix, variantRows])
 
-  const useSingleSetupOverview = Boolean(subtaskSetups && subtaskSetups.setupOrder.length === 1)
-  const singleSetupDisplayLabel = useSingleSetupOverview ? subtaskSetups?.setupOrder[0] ?? null : null
+  const useSingleSetupOverview = Boolean(sliceSetups && sliceSetups.setupOrder.length === 1)
+  const singleSetupDisplayLabel = useSingleSetupOverview ? sliceSetups?.setupOrder[0] ?? null : null
 
   useEffect(() => {
     const pendingRows = variantRows.filter(
@@ -5411,7 +5411,7 @@ function BenchmarkDeepDiveDialogPanel({
             </DialogTitle>
             <DialogDescription className="mt-1.5 text-[13px] leading-[1.5] text-[color:var(--fg-muted)]">
               {isResearchView
-                ? "Inspect setup subtasks, score details, and source provenance in one focused view."
+                ? "Inspect setup slices, score details, and source provenance in one focused view."
                 : "Inspect reporting setup and evidence details before interpreting benchmark position."}
             </DialogDescription>
             {(compactDomains.length > 0 || group.benchmarkCard) && (
@@ -5462,9 +5462,9 @@ function BenchmarkDeepDiveDialogPanel({
             <div className="kicker">Sources</div>
             <div className="mt-1 text-[18px] font-semibold tabular-nums">
               {sourceOrganizations.size}
-              {hasSubtaskMatrix && (
+              {hasSliceMatrix && (
                 <span className="ml-2 font-mono text-[10px] tracking-[0.12em] uppercase text-[color:var(--fg-subtle)]">
-                  · {subtaskCount} subtask{subtaskCount === 1 ? "" : "s"}
+                  · {sliceCount} slice{sliceCount === 1 ? "" : "s"}
                 </span>
               )}
             </div>
@@ -5482,7 +5482,7 @@ function BenchmarkDeepDiveDialogPanel({
 
         {/* Sources — distinct reporting orgs and dataset links for this group.
             Pulled up to the top of the deep-dive so the per-row table can
-            stay focused on subtask / setup / score. */}
+            stay focused on slice / setup / score. */}
         {(() => {
           type SourceEntry = {
             key: string
@@ -5581,7 +5581,7 @@ function BenchmarkDeepDiveDialogPanel({
         {useSingleSetupOverview ? (
           <section>
             <div className="section-head">
-              <h2>{hasAmbiguousPrimaryLabels ? "Reported runs" : "Subtask overview"}</h2>
+              <h2>{hasAmbiguousPrimaryLabels ? "Reported runs" : "Slice overview"}</h2>
               <span className="font-mono text-[10px] uppercase tracking-[0.15em] text-[color:var(--fg-subtle)]">
                 {singleSetupDisplayLabel ? `${singleSetupDisplayLabel} · ` : ""}
                 {variantRows.length} row{variantRows.length === 1 ? "" : "s"}
@@ -5594,8 +5594,8 @@ function BenchmarkDeepDiveDialogPanel({
                   ? "These rows share the same benchmark label, so run names or differing config fields are surfaced to show what changed across reports."
                   : "These rows describe the same benchmark view, so the table surfaces the reported run name or setup differences that separate them."
                 : isResearchView
-                  ? "This benchmark reports one setup, so subtasks, scores, and provenance are merged into one comparison view."
-                  : "This benchmark only reports one setup, so the subtask evidence is consolidated into a single reader-friendly view."}
+                  ? "This benchmark reports one setup, so slices, scores, and provenance are merged into one comparison view."
+                  : "This benchmark only reports one setup, so the slice evidence is consolidated into a single reader-friendly view."}
             </p>
 
             <div className="min-h-0 overflow-auto">
@@ -5603,7 +5603,7 @@ function BenchmarkDeepDiveDialogPanel({
                 <thead>
                   <tr>
                     <th className="w-[60%]">
-                      {hasAmbiguousPrimaryLabels ? "Reported row" : "Subtask"}
+                      {hasAmbiguousPrimaryLabels ? "Reported row" : "Slice"}
                     </th>
                     <th className="w-[20%]">Setup detail</th>
                     <th className="num w-[10%]">Score</th>
@@ -5678,14 +5678,14 @@ function BenchmarkDeepDiveDialogPanel({
             </span>
           </div>
           <p className="mb-4 max-w-[60rem] text-[13px] leading-[1.65] text-[color:var(--fg-muted)]">
-            Primary row labels show the benchmark slice or subtask. Setup and source details sit alongside each row.
+            Primary row labels show the benchmark slice or slice. Setup and source details sit alongside each row.
           </p>
 
           <div className="min-h-0 overflow-auto">
             <table className="ec-htable table-fixed">
               <thead>
                 <tr>
-                  <th className="w-[46%]">Subtask</th>
+                  <th className="w-[46%]">Slice</th>
                   <th className="w-[36%]">Reporting setup</th>
                   <th className="num w-[9%]">Score</th>
                   <th className="num w-[9%]">Rank</th>
@@ -5895,7 +5895,7 @@ function VariantExpandedDetail({
             )}
             {sourceData?.dataset_version && <InlineMeta label="Dataset Version" value={sourceData.dataset_version} />}
             {sourceData?.hf_split && <InlineMeta label="Split" value={sourceData.hf_split} />}
-            {variant.subtaskLabel && <InlineMeta label="Subtask" value={normalizeDisplayLabel(variant.subtaskLabel)} />}
+            {variant.sliceLabel && <InlineMeta label="Slice" value={normalizeDisplayLabel(variant.sliceLabel)} />}
             {variant.setupLabel && <InlineMeta label="Setup" value={formatSetupDisplayLabel(variant.setupLabel)} />}
             {inferencePlatform && <InlineMeta label="Inference Platform" value={inferencePlatform} />}
             {variant.evaluation.source_metadata.source_name && (
@@ -5952,7 +5952,7 @@ function VariantExpandedDetail({
       {numericBreakdown.length > 0 && (
         <div className="space-y-3">
           <div className="text-xs font-semibold uppercase tracking-[0.2em] text-muted-foreground">
-            {isResearchView ? "Subtask Scores" : "Reported Metrics"}
+            {isResearchView ? "Slice Scores" : "Reported Metrics"}
           </div>
           <div className="grid gap-3 md:grid-cols-2 2xl:grid-cols-3">
             {numericBreakdown.map(([key, value]) => {

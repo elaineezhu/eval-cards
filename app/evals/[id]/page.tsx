@@ -135,7 +135,7 @@ export default function EvalDetailPage() {
 }
 
 // ---------------------------------------------------------------------------
-// Composite (suite) view — paper §3.2 "composite reporting unit"
+// Composite view — paper §3.2 "composite reporting unit"
 // Surfaces sub-benchmarks as a hairline grid and a per-model × per-metric
 // matrix table. Both modes (research / policy) share the same chrome; the
 // policy-note panel changes per benchmark, surfaced from the sub-summary card.
@@ -169,8 +169,8 @@ function CompositeEvalView({
   const audience = card?.purpose_and_intended_users?.audience
   const audienceText = Array.isArray(audience) ? audience.join("; ") : audience
   const lede = isPolicy
-    ? overview || goal || `Suite aggregating ${subBenchmarkCount} component benchmarks across ${summary.models_count.toLocaleString()} models.`
-    : goal || overview || `Suite aggregating ${subBenchmarkCount} component benchmarks across ${summary.models_count.toLocaleString()} models.`
+    ? overview || goal || `Composite aggregating ${subBenchmarkCount} component benchmarks across ${summary.models_count.toLocaleString()} models.`
+    : goal || overview || `Composite aggregating ${subBenchmarkCount} component benchmarks across ${summary.models_count.toLocaleString()} models.`
 
   return (
     <div className="space-y-10">
@@ -281,7 +281,7 @@ function CompositeEvalView({
           style={{ color: "var(--fg-muted)", maxWidth: 720 }}
         >
           {tab === "metrics"
-            ? "Each card is one component benchmark inside this suite. Click a card to inspect its leaderboard, sub-tasks and benchmark card."
+            ? "Each card is one component benchmark inside this composite. Click a card to inspect its leaderboard, slices and benchmark card."
             : "Per-model scores across every component metric. Each column is a separately reported measure — distinct measures stay separate instead of collapsing into one number."}
         </p>
 

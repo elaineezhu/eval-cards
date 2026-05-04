@@ -113,14 +113,14 @@ interface SliceTab {
  * - <= SLICE_PILL_THRESHOLD: render every slice as a pill (current familiar UX).
  * - > SLICE_PILL_THRESHOLD: render "All slices" + currently-selected pill +
  *   a "Browse N slices" button that opens a searchable dialog. Hundreds of
- *   subtasks (e.g. AIRBench's 374) fit cleanly.
+ *   slices (e.g. AIRBench's 374) fit cleanly.
  */
 function SliceSelector({
-  activeSubtaskTab,
+  activeSliceTab,
   onChange,
   tabs,
 }: {
-  activeSubtaskTab: string
+  activeSliceTab: string
   onChange: (key: string) => void
   tabs: SliceTab[]
 }) {
@@ -128,7 +128,7 @@ function SliceSelector({
   const [search, setSearch] = useState("")
 
   const useBrowser = tabs.length > SLICE_PILL_THRESHOLD
-  const activeTab = tabs.find((tab) => tab.key === activeSubtaskTab)
+  const activeTab = tabs.find((tab) => tab.key === activeSliceTab)
 
   const filteredTabs = useMemo(() => {
     const query = search.trim().toLowerCase()
@@ -143,7 +143,7 @@ function SliceSelector({
         <div className="flex flex-wrap gap-2">
           <button
             type="button"
-            className={`ec-pill${activeSubtaskTab === "all" ? " on" : ""}`}
+            className={`ec-pill${activeSliceTab === "all" ? " on" : ""}`}
             onClick={() => onChange("all")}
           >
             All slices
@@ -152,7 +152,7 @@ function SliceSelector({
             <button
               key={tab.key}
               type="button"
-              className={`ec-pill${activeSubtaskTab === tab.key ? " on" : ""}`}
+              className={`ec-pill${activeSliceTab === tab.key ? " on" : ""}`}
               onClick={() => onChange(tab.key)}
             >
               {tab.label}
@@ -172,7 +172,7 @@ function SliceSelector({
       <div className="flex flex-wrap items-center gap-2">
         <button
           type="button"
-          className={`ec-pill${activeSubtaskTab === "all" ? " on" : ""}`}
+          className={`ec-pill${activeSliceTab === "all" ? " on" : ""}`}
           onClick={() => onChange("all")}
         >
           All slices
@@ -230,11 +230,11 @@ function SliceSelector({
               }}
               className={cn(
                 "flex w-full items-center justify-between border-b px-4 py-2.5 text-left text-sm transition-colors hover:bg-muted/40",
-                activeSubtaskTab === "all" && "bg-muted/40 font-semibold"
+                activeSliceTab === "all" && "bg-muted/40 font-semibold"
               )}
             >
               <span>All slices (no filter)</span>
-              {activeSubtaskTab === "all" && <span className="text-xs text-muted-foreground">selected</span>}
+              {activeSliceTab === "all" && <span className="text-xs text-muted-foreground">selected</span>}
             </button>
             {filteredTabs.length === 0 ? (
               <div className="px-4 py-6 text-center text-sm text-muted-foreground">
@@ -251,11 +251,11 @@ function SliceSelector({
                   }}
                   className={cn(
                     "flex w-full items-center justify-between border-b px-4 py-2 text-left text-sm transition-colors hover:bg-muted/40 last:border-b-0",
-                    activeSubtaskTab === tab.key && "bg-muted/40 font-semibold"
+                    activeSliceTab === tab.key && "bg-muted/40 font-semibold"
                   )}
                 >
                   <span className="min-w-0 truncate pr-2">{tab.label}</span>
-                  {activeSubtaskTab === tab.key && (
+                  {activeSliceTab === tab.key && (
                     <span className="shrink-0 text-xs text-muted-foreground">selected</span>
                   )}
                 </button>
@@ -543,10 +543,10 @@ export function EvalDetail({ summary }: EvalDetailProps) {
     : "Not linked"
   const leaderboardDescription = isResearchView
     ? summary.is_aggregated
-      ? "Models ranked by average raw score across the suite's component benchmarks."
+      ? "Models ranked by average raw score across the composite's component benchmarks."
       : "Models ranked by raw score for this benchmark."
     : summary.is_aggregated
-      ? "Averaged model results across the suite's component benchmarks, with drill-down to each component score."
+      ? "Averaged model results across the composite's component benchmarks, with drill-down to each component score."
       : "Model results with benchmark context, source dataset detail, and optional instance-data links."
   const reportingCompleteness = summary.evalcards?.annotations?.reporting_completeness
   const documentationPopulatedCount = reportingCompleteness
@@ -656,7 +656,7 @@ export function EvalDetail({ summary }: EvalDetailProps) {
                 className="font-mono text-[10px] uppercase tracking-[0.12em]"
                 style={{ color: "var(--fg-subtle)" }}
               >
-                metric spec · completeness · comparability{summary.subtasks?.length ? " · subtasks" : ""}
+                metric spec · completeness · comparability{summary.subtasks?.length ? " · slices" : ""}
               </span>
             </div>
             {overviewOpen ? (
@@ -678,10 +678,10 @@ export function EvalDetail({ summary }: EvalDetailProps) {
                 {isResearchView ? "Metric specification" : "Reading context"}
               </div>
               <dl className="ec-datalist">
-                <dt>Suite</dt>
+                <dt>Composite</dt>
                 <dd>
                   {summary.is_aggregated
-                    ? summary.aggregate_sources?.map((source) => source.composite_benchmark_name).join(", ") || "Multiple suites"
+                    ? summary.aggregate_sources?.map((source) => source.composite_benchmark_name).join(", ") || "Multiple composites"
                     : summary.composite_benchmark_name}
                 </dd>
                 <dt>{isResearchView ? "Benchmark ID" : "What this covers"}</dt>
@@ -744,7 +744,7 @@ export function EvalDetail({ summary }: EvalDetailProps) {
               >
                 <div className="kicker mb-2">Benchmark structure</div>
                 <p className="text-[13px] mb-4" style={{ color: "var(--fg-muted)", maxWidth: 640 }}>
-                  Benchmark-level summary metrics and subtask slices grouped in one compact section.
+                  Benchmark-level summary metrics and slices grouped in one compact section.
                 </p>
 
                 {summary.root_metrics && summary.root_metrics.length > 0 && (
@@ -776,15 +776,15 @@ export function EvalDetail({ summary }: EvalDetailProps) {
                       className="font-mono uppercase mb-1"
                       style={{ fontSize: 10, letterSpacing: "0.14em", color: "var(--fg-subtle)" }}
                     >
-                      Subtask breakdown · {summary.subtasks.length}
+                      Slice breakdown · {summary.subtasks.length}
                     </div>
                     <ul
                       className="flex flex-col"
                       style={{ borderTop: "1px solid var(--border-soft)" }}
                     >
-                      {summary.subtasks.map((subtask) => (
+                      {summary.subtasks.map((slice) => (
                         <li
-                          key={subtask.subtask_key}
+                          key={slice.subtask_key}
                           className="grid gap-x-4 py-3"
                           style={{
                             gridTemplateColumns: "minmax(160px, 280px) 1fr",
@@ -793,20 +793,20 @@ export function EvalDetail({ summary }: EvalDetailProps) {
                         >
                           <div className="min-w-0">
                             <div className="font-semibold text-[13px] truncate">
-                              {subtask.display_name || subtask.subtask_name}
+                              {slice.display_name || slice.subtask_name}
                             </div>
-                            {subtask.canonical_display_name && subtask.canonical_display_name !== (subtask.display_name || subtask.subtask_name) && (
+                            {slice.canonical_display_name && slice.canonical_display_name !== (slice.display_name || slice.subtask_name) && (
                               <div
                                 className="mt-0.5 font-mono text-[10px] uppercase tracking-[0.08em] truncate"
                                 style={{ color: "var(--fg-subtle)" }}
-                                title={subtask.canonical_display_name}
+                                title={slice.canonical_display_name}
                               >
-                                {subtask.canonical_display_name}
+                                {slice.canonical_display_name}
                               </div>
                             )}
                           </div>
                           <div className="flex flex-wrap items-center gap-1.5">
-                            {subtask.metrics.map((metric) => (
+                            {slice.metrics.map((metric) => (
                               <span
                                 key={metric.metric_summary_id}
                                 className="ec-tag"
@@ -919,13 +919,13 @@ export function EvalDetail({ summary }: EvalDetailProps) {
               <tbody>
                 {pagedLeaderboardRows.map(({ key, rank, modelResult, normalizedScore }) => {
                   const isExpanded = expandedRows[key] ?? false
-                  const subtasks = modelResult.score_details.details
+                  const slices = modelResult.score_details.details
                     ? Object.entries(modelResult.score_details.details).filter(([, value]) => typeof value === "number")
                     : []
                   const hasExpandableDetails =
                     isResearchView ||
                     (modelResult.aggregate_components && modelResult.aggregate_components.length > 1) ||
-                    subtasks.length > 1
+                    slices.length > 1
 
                   const datasetName = Array.isArray(modelResult.source_data)
                     ? undefined
@@ -1256,28 +1256,28 @@ export function EvalDetail({ summary }: EvalDetailProps) {
                                 </div>
                               )}
 
-                              {subtasks.length > 1 && (
+                              {slices.length > 1 && (
                                 <div className="space-y-2">
                                   <div
                                     className="font-mono uppercase"
                                     style={{ fontSize: 10, letterSpacing: "0.14em", color: "var(--fg-subtle)" }}
                                   >
-                                    Subtask breakdown
+                                    Slice breakdown
                                   </div>
                                   <div className="overflow-x-auto" style={{ border: "1px solid var(--border-soft)" }}>
                                     <table className="ec-htable">
                                       <thead>
                                         <tr>
-                                          <th>Subtask</th>
+                                          <th>Slice</th>
                                           <th className="num">Raw</th>
                                         </tr>
                                       </thead>
                                       <tbody>
-                                        {subtasks.map(([subtaskName, value]) => {
+                                        {slices.map(([sliceName, value]) => {
                                           const numericValue = value as number
                                           return (
-                                            <tr key={subtaskName}>
-                                              <td className="font-medium text-[13px] capitalize">{subtaskName.replace(/_/g, " ")}</td>
+                                            <tr key={sliceName}>
+                                              <td className="font-medium text-[13px] capitalize">{sliceName.replace(/_/g, " ")}</td>
                                               <td className="num font-mono tabular-nums text-[13px]" style={{ color: "var(--fg-muted)" }}>
                                                 {formatRawScore(numericValue, summary.metric_config.unit)}
                                               </td>
@@ -1453,7 +1453,7 @@ function MultiMetricLeaderboard({
     return root?.column_key ?? metrics[0]?.column_key ?? "model"
   })
   const [sortDirection, setSortDirection] = useState<"asc" | "desc">("desc")
-  const [activeSubtaskTab, setActiveSubtaskTab] = useState<string>("all")
+  const [activeSliceTab, setActiveSliceTab] = useState<string>("all")
   const [minParamStep, setMinParamStep] = useState(0)
   const [maxParamStep, setMaxParamStep] = useState(PARAM_RANGE_MAX_INDEX)
   const [expandedRows, setExpandedRows] = useState<Record<string, boolean>>({})
@@ -1486,7 +1486,7 @@ function MultiMetricLeaderboard({
   const leaderboardRows = summary.leaderboard_rows ?? []
   const allMetricKeys = useMemo(() => leaderboardMetrics.map((metric) => metric.column_key), [leaderboardMetrics])
   // Cap default visible columns to avoid hangs on benchmarks with hundreds of metrics
-  // (e.g. helm_air_bench has 374 subtask×metric pairs). Users can opt in to more.
+  // (e.g. helm_air_bench has 374 slice×metric pairs). Users can opt in to more.
   const DEFAULT_VISIBLE_METRIC_CAP = 24
   const defaultVisibleMetricKeys = useMemo(
     () => allMetricKeys.slice(0, DEFAULT_VISIBLE_METRIC_CAP),
@@ -1498,7 +1498,7 @@ function MultiMetricLeaderboard({
     [leaderboardMetrics]
   )
   const visibleMetricKeySet = useMemo(() => new Set(visibleMetricKeys), [visibleMetricKeys])
-  const subtaskMetricCounts = useMemo(() => {
+  const sliceMetricCounts = useMemo(() => {
     const counts = new Map<string, number>()
     for (const metric of leaderboardMetrics) {
       if (metric.scope === "subtask" && metric.subtask_key) {
@@ -1508,16 +1508,16 @@ function MultiMetricLeaderboard({
     return counts
   }, [leaderboardMetrics])
 
-  const singleMetricSubtaskTabs = useMemo(() => {
+  const singleMetricSliceTabs = useMemo(() => {
     return leaderboardMetrics
-      .filter((metric) => metric.scope === "subtask" && metric.subtask_key && subtaskMetricCounts.get(metric.subtask_key) === 1)
+      .filter((metric) => metric.scope === "subtask" && metric.subtask_key && sliceMetricCounts.get(metric.subtask_key) === 1)
       .map((metric) => ({
         key: metric.subtask_key as string,
         label: metric.subtask_name ?? getCompactMetricLabel(metric.display_name),
       }))
-  }, [leaderboardMetrics, subtaskMetricCounts])
+  }, [leaderboardMetrics, sliceMetricCounts])
 
-  const hasSubtaskTabs = singleMetricSubtaskTabs.length > 1
+  const hasSliceTabs = singleMetricSliceTabs.length > 1
 
   const visibleMetrics = useMemo(
     () =>
@@ -1526,13 +1526,13 @@ function MultiMetricLeaderboard({
           return false
         }
 
-        if (!hasSubtaskTabs || activeSubtaskTab === "all") {
+        if (!hasSliceTabs || activeSliceTab === "all") {
           return true
         }
 
-        return metric.scope === "subtask" && metric.subtask_key === activeSubtaskTab
+        return metric.scope === "subtask" && metric.subtask_key === activeSliceTab
       }),
-    [activeSubtaskTab, hasSubtaskTabs, leaderboardMetrics, visibleMetricKeySet]
+    [activeSliceTab, hasSliceTabs, leaderboardMetrics, visibleMetricKeySet]
   )
   const visibleMetricColumnKeySet = useMemo(
     () => new Set(visibleMetrics.map((metric) => metric.column_key)),
@@ -1628,7 +1628,7 @@ function MultiMetricLeaderboard({
   }, [defaultVisibleMetricKeys, summary.evaluation_id])
 
   useEffect(() => {
-    setActiveSubtaskTab("all")
+    setActiveSliceTab("all")
   }, [summary.evaluation_id])
 
   useEffect(() => {
@@ -1648,21 +1648,21 @@ function MultiMetricLeaderboard({
   }, [leaderboardMetricMap, leaderboardMetrics, sortKey, visibleMetricColumnKeySet])
 
   useEffect(() => {
-    if (!hasSubtaskTabs) {
-      if (activeSubtaskTab !== "all") {
-        setActiveSubtaskTab("all")
+    if (!hasSliceTabs) {
+      if (activeSliceTab !== "all") {
+        setActiveSliceTab("all")
       }
       return
     }
 
-    if (activeSubtaskTab === "all") {
+    if (activeSliceTab === "all") {
       return
     }
 
-    if (!singleMetricSubtaskTabs.some((tab) => tab.key === activeSubtaskTab)) {
-      setActiveSubtaskTab("all")
+    if (!singleMetricSliceTabs.some((tab) => tab.key === activeSliceTab)) {
+      setActiveSliceTab("all")
     }
-  }, [activeSubtaskTab, hasSubtaskTabs, singleMetricSubtaskTabs])
+  }, [activeSliceTab, hasSliceTabs, singleMetricSliceTabs])
 
   const pagedRows = useMemo(
     () => sortedRows.slice(0, page * 50),
@@ -1761,7 +1761,7 @@ function MultiMetricLeaderboard({
             {leaderboardMetrics.map((metric) => {
               const isVisible = visibleMetricKeySet.has(metric.column_key)
               const isLastVisible = isVisible && visibleMetrics.length === 1
-              const visibleLabel = metric.scope === "subtask" && metric.subtask_key && subtaskMetricCounts.get(metric.subtask_key) === 1 && metric.subtask_name
+              const visibleLabel = metric.scope === "subtask" && metric.subtask_key && sliceMetricCounts.get(metric.subtask_key) === 1 && metric.subtask_name
                 ? metric.subtask_name
                 : getCompactMetricLabel(metric.display_name)
 
@@ -1793,7 +1793,7 @@ function MultiMetricLeaderboard({
               .filter((v): v is number => isNumericScore(v))
             if (values.length < 3) return null
             const label =
-              metric.scope === "subtask" && metric.subtask_key && subtaskMetricCounts.get(metric.subtask_key) === 1 && metric.subtask_name
+              metric.scope === "subtask" && metric.subtask_key && sliceMetricCounts.get(metric.subtask_key) === 1 && metric.subtask_name
                 ? metric.subtask_name
                 : getCompactMetricLabel(metric.display_name)
             return {
@@ -1816,12 +1816,12 @@ function MultiMetricLeaderboard({
       })()}
 
       <div className="ec-card" style={{ padding: 0, overflow: "hidden" }}>
-        {hasSubtaskTabs && (
+        {hasSliceTabs && (
           <div className="border-b bg-background px-5 py-3 sm:px-6">
             <SliceSelector
-              activeSubtaskTab={activeSubtaskTab}
-              onChange={setActiveSubtaskTab}
-              tabs={singleMetricSubtaskTabs}
+              activeSliceTab={activeSliceTab}
+              onChange={setActiveSliceTab}
+              tabs={singleMetricSliceTabs}
             />
           </div>
         )}
@@ -1868,13 +1868,13 @@ function MultiMetricLeaderboard({
                   {getSortIndicator("developer")}
                 </th>
                 {visibleMetrics.map((metric) => {
-                  const showSubtaskTopline =
-                    !hasSubtaskTabs &&
-                    !(metric.scope === "subtask" && metric.subtask_key && subtaskMetricCounts.get(metric.subtask_key) === 1) &&
+                  const showSliceTopline =
+                    !hasSliceTabs &&
+                    !(metric.scope === "subtask" && metric.subtask_key && sliceMetricCounts.get(metric.subtask_key) === 1) &&
                     metric.scope === "subtask" &&
                     metric.subtask_name
                   const mainLabel =
-                    metric.scope === "subtask" && metric.subtask_key && subtaskMetricCounts.get(metric.subtask_key) === 1 && metric.subtask_name
+                    metric.scope === "subtask" && metric.subtask_key && sliceMetricCounts.get(metric.subtask_key) === 1 && metric.subtask_name
                       ? metric.subtask_name
                       : getCompactMetricLabel(metric.display_name)
                   return (
@@ -1885,7 +1885,7 @@ function MultiMetricLeaderboard({
                       onClick={() => handleSort(metric.column_key)}
                       title={describeLeaderboardMetric(metric)}
                     >
-                      {showSubtaskTopline && (
+                      {showSliceTopline && (
                         <div
                           className="font-mono normal-case"
                           style={{
