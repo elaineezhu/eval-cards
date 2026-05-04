@@ -33,7 +33,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
 import { getModelFamilyRouteId } from "@/lib/model-family"
-import { cn } from "@/lib/utils"
+import { cn, formatDateISO, humanizeEvaluationId } from "@/lib/utils"
 import {
   AlertTriangle,
   BarChart3,
@@ -329,27 +329,48 @@ function formatMetadataValue(value: unknown): string {
   }
 }
 
-function formatDate(ts: string) {
-  if (!ts || !ts.trim()) {
-    return "Unknown"
-  }
+// Re-exported as `formatDate` so the existing call sites in this file
+// keep working — the component code reads "formatDate" everywhere. The
+// shared YYYY-MM-DD implementation lives in `lib/utils` so model-page
+// and other surfaces format identically.
+const formatDate = formatDateISO
 
-  const numeric = Number(ts)
-  const parsedDate = !Number.isNaN(numeric) && !ts.includes("-") ? new Date(numeric * 1000) : new Date(ts)
-
-  if (Number.isNaN(parsedDate.getTime())) {
-    return "Unknown"
-  }
-
-  try {
-    return parsedDate.toLocaleDateString("en-US", {
-      year: "numeric",
-      month: "short",
-      day: "numeric",
+/**
+ * Render a benchmark-card field path (e.g. `methodology.metrics`,
+ * `purpose_and_intended_users.goal`) as a human-readable label —
+ * `Methodology › Metrics`, `Purpose and intended users › Goal`.
+ *
+ * Replaces underscores with spaces and joins dotted segments with a
+ * `›` separator. Capitalises the first letter of each segment but
+ * keeps the rest lower-case so multi-word segments like
+ * `purpose_and_intended_users` don't render as a tower of capitals.
+ */
+function humanizeCardFieldPath(path: string): string {
+  return path
+    .split(".")
+    .map((seg) => {
+      const spaced = seg.replace(/_/g, " ").trim()
+      if (!spaced) return seg
+      return spaced.charAt(0).toUpperCase() + spaced.slice(1)
     })
-  } catch {
-    return ts
-  }
+    .join(" › ")
+}
+
+/**
+ * Card-quality notes from the AutoBenchmarkCard pipeline arrive as
+ * strings shaped like `[Possible Hallucination], no supporting
+ * evidence found in source material`. The leading bracketed label
+ * names the *kind* of issue; the rest is the specific note.
+ *
+ * Split them so the renderer can promote the kind to a small badge
+ * and treat the body as flowing prose. Falls back to `{tag: null,
+ * body: <whole string>}` when no leading bracket is present.
+ */
+function splitFlagNote(raw: string): { tag: string | null; body: string } {
+  if (!raw) return { tag: null, body: "" }
+  const match = /^\s*\[([^\]]+)\]\s*[,—\-:]?\s*(.*)$/.exec(raw)
+  if (!match) return { tag: null, body: raw.trim() }
+  return { tag: match[1].trim(), body: match[2].trim() }
 }
 
 function formatRawScore(score: number, unit?: string) {
@@ -686,7 +707,9 @@ export function EvalDetail({ summary }: EvalDetailProps) {
                 </dd>
                 <dt>{isResearchView ? "Benchmark ID" : "What this covers"}</dt>
                 <dd className="break-words">
-                  {isResearchView ? summary.evaluation_id : summary.metric_config.evaluation_description}
+                  {isResearchView
+                    ? humanizeEvaluationId(summary.evaluation_id)
+                    : summary.metric_config.evaluation_description}
                 </dd>
                 <dt>{isResearchView ? "Score scale" : "How to read scores"}</dt>
                 <dd>
@@ -1294,7 +1317,7 @@ export function EvalDetail({ summary }: EvalDetailProps) {
                                 <div className="space-y-3">
                                   <ResearcherReproducibilityCard
                                     modelResult={modelResult}
-                                    benchmarkKey={summary.benchmark_leaf_key ?? summary.composite_benchmark_key}
+                                    benchmarkKey={summary.benchmark_id ?? summary.benchmark_leaf_key ?? summary.composite_benchmark_key}
                                     evalName={summary.evaluation_name}
                                   />
                                   <div className="flex justify-end">
@@ -2016,7 +2039,7 @@ function MultiMetricLeaderboard({
                       <div className="space-y-3">
                         <ResearcherReproducibilityCard
                           modelResult={matchingResult}
-                          benchmarkKey={summary.benchmark_leaf_key ?? summary.composite_benchmark_key}
+                          benchmarkKey={summary.benchmark_id ?? summary.benchmark_leaf_key ?? summary.composite_benchmark_key}
                           evalName={summary.evaluation_name}
                         />
                         <div className="flex justify-end">
@@ -2265,7 +2288,29 @@ function BenchmarkCardPanel({
   const data = card.data
   const ethical = card.ethical_and_legal_considerations
   const risks = card.possible_risks ?? []
-  const flaggedFields = Object.entries(card.flagged_fields ?? {})
+  // The backend currently emits `flagged_fields` as a JSON string
+  // (DuckDB's `json_extract` typed as JSON, which crosses
+  // @duckdb/node-api as a string). When the value lands as a string
+  // here, `Object.entries(...)` would iterate it character by
+  // character and render one `<li>` per character — what the user
+  // saw on `/evals/vals-ai%2Fterminal-bench-2`. Parse first when
+  // needed, fall back to {} on malformed JSON.
+  const flaggedFieldsRaw = card.flagged_fields
+  const flaggedFieldsObj: Record<string, string> = (() => {
+    if (!flaggedFieldsRaw) return {}
+    if (typeof flaggedFieldsRaw === "string") {
+      try {
+        const parsed = JSON.parse(flaggedFieldsRaw)
+        return parsed && typeof parsed === "object" && !Array.isArray(parsed)
+          ? (parsed as Record<string, string>)
+          : {}
+      } catch {
+        return {}
+      }
+    }
+    return flaggedFieldsRaw as Record<string, string>
+  })()
+  const flaggedFields = Object.entries(flaggedFieldsObj)
   const missingFields = card.missing_fields ?? []
 
   const domains = toStringArray(details.domains)
@@ -2639,12 +2684,49 @@ function BenchmarkCardPanel({
               Card quality notes
             </div>
             {flaggedFields.length > 0 && (
-              <ul className="space-y-1 text-[12px]" style={{ color: "var(--fg)" }}>
-                {flaggedFields.map(([field, note]) => (
-                  <li key={field}>
-                    <span className="font-semibold">{field}:</span> {note}
-                  </li>
-                ))}
+              <ul
+                className="space-y-2"
+                style={{ color: "var(--fg)" }}
+              >
+                {flaggedFields.map(([field, note]) => {
+                  const { tag, body } = splitFlagNote(note)
+                  return (
+                    <li key={field} className="flex flex-col gap-0.5">
+                      <div className="flex flex-wrap items-center gap-2">
+                        <span
+                          className="font-mono uppercase"
+                          style={{
+                            fontSize: 10,
+                            letterSpacing: "0.12em",
+                            color: "var(--fg-muted)",
+                          }}
+                        >
+                          {humanizeCardFieldPath(field)}
+                        </span>
+                        {tag && (
+                          <span
+                            className="font-mono uppercase"
+                            style={{
+                              fontSize: 9,
+                              letterSpacing: "0.12em",
+                              padding: "1px 6px",
+                              border: "1px solid var(--accent)",
+                              color: "var(--accent)",
+                              background: "var(--bg)",
+                            }}
+                          >
+                            {tag}
+                          </span>
+                        )}
+                      </div>
+                      {body && (
+                        <span className="text-[12px]" style={{ color: "var(--fg)" }}>
+                          {body}
+                        </span>
+                      )}
+                    </li>
+                  )
+                })}
               </ul>
             )}
             {missingFields.length > 0 && (

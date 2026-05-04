@@ -257,6 +257,9 @@ export interface HierarchySlice {
   key: string
   display_name: string
   metrics: HierarchyMetric[]
+  /** New: marks the bare-stem "Overall" slice (e.g. `gaia` inside
+   *  the `gaia` benchmark). Frontend can label such a row "Overall". */
+  is_bare_stem?: boolean
 }
 
 export interface HierarchyBenchmark extends SignalSummaries {
@@ -267,16 +270,22 @@ export interface HierarchyBenchmark extends SignalSummaries {
   slices: HierarchySlice[]
   metrics: HierarchyMetric[]
   summary_eval_ids?: string[]
+  /** New post-cutover: family slug (defaults to benchmark key for singletons). */
+  family_id?: string
+  /** New post-cutover: TRUE when this row is a slice of a root benchmark. */
+  is_slice?: boolean
 }
 
 export interface HierarchyComposite extends SignalSummaries {
   key: string
   display_name: string
-  has_card: boolean
+  has_card?: boolean
   category: string
   tags: HierarchyTags
   benchmarks: HierarchyBenchmark[]
   summary_eval_ids?: string[]
+  /** New top-level shape: total triples in the composite. */
+  evals_count?: number
 }
 
 export interface HierarchyLeaf extends SignalSummaries {
@@ -310,16 +319,40 @@ export interface HierarchyFamily extends SignalSummaries {
 export interface EvalHierarchyStats {
   family_count: number
   composite_count: number
-  standalone_benchmark_count: number
-  single_benchmark_count: number
+  /** Legacy benchmark-stem grouping count. Removed in the composite/
+   *  family/slice taxonomy refactor — kept optional so the adapter
+   *  can synthesise it for the existing homepage stats strip. */
+  standalone_benchmark_count?: number
+  /** Same as above. */
+  single_benchmark_count?: number
+  /** New post-cutover field: total distinct (composite, benchmark) rows
+   *  in the benchmarks dim. */
+  benchmark_count?: number
   slice_count: number
   metric_count: number
   metric_rows_scanned: number
 }
 
+/** Lightweight family-lookup index entry from the new top-level
+ *  `families[]` array (composite/family/slice taxonomy). One per
+ *  family_id with the list of member benchmark keys — no nested
+ *  composites, no slice payload. The legacy `HierarchyFamily` shape
+ *  (with nested `composites[]` / `standalone_benchmarks[]`) is
+ *  synthesised by the adapter for backward compat. */
+export interface HierarchyFamilyIndex {
+  key: string
+  display_name: string
+  member_benchmark_keys: string[]
+}
+
 export interface EvalHierarchy {
   stats?: EvalHierarchyStats
   families: HierarchyFamily[]
+  /** New post-cutover top-level array — one per leaderboard slug. */
+  composites?: HierarchyComposite[]
+  /** New post-cutover flat lookup. The adapter promotes this onto
+   *  per-family records as it builds the legacy shape. */
+  family_index?: HierarchyFamilyIndex[]
 }
 
 // ---------------------------------------------------------------------------

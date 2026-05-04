@@ -280,7 +280,11 @@ export default function EvalsPage() {
             <div className="ec-page-meta-item">
               <span className="ec-page-meta-item-l">Single benchmarks</span>
               <span className="ec-page-meta-item-v">
-                {(stats.single_benchmark_count + stats.standalone_benchmark_count).toLocaleString()}
+                {(
+                  stats.benchmark_count ??
+                  (stats.single_benchmark_count ?? 0) +
+                    (stats.standalone_benchmark_count ?? 0)
+                ).toLocaleString()}
               </span>
             </div>
             <div className="ec-page-meta-item">

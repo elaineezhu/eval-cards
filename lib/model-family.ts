@@ -193,5 +193,10 @@ export function getModelFamilyRouteId(model: ModelInfo | string) {
   const familyId =
     typeof model === "string" ? model.trim() : getCanonicalModelIdentity(model).familyId
 
-  return familyId.replace(/\//g, "__")
+  // Use RFC 3986 percent-encoding (matches `models_view.route_id` /
+  // `model_route_id` produced by Stage J). The legacy `/` → `__`
+  // transform was a holdover from when model ids were embedded into
+  // HF-dataset paths and `/` was disallowed; the v2 route lookup
+  // matches `route_id` directly, so a `__`-formatted slug returns 404.
+  return encodeURIComponent(familyId)
 }

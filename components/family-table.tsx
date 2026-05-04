@@ -7,6 +7,7 @@ import { ArrowUpRight, ChevronDown, ChevronRight } from "lucide-react"
 import type { HierarchyBenchmark, HierarchyFamily, HierarchyLeaf } from "@/lib/backend-artifacts"
 import type { BenchmarkCard, CategoryType } from "@/lib/benchmark-schema"
 import type { BenchmarkEvalListItem } from "@/lib/eval-processing"
+import { humanizeEvaluationId } from "@/lib/utils"
 
 /**
  * Per-category chip colour. Uses oklch tokens so the chip reads against
@@ -518,7 +519,7 @@ export function FamilyTable({
                                     className="font-mono truncate"
                                     style={{ fontSize: 10, color: "var(--fg-subtle)", letterSpacing: "0.04em" }}
                                   >
-                                    {leaf.id}
+                                    {humanizeEvaluationId(leaf.id)}
                                   </div>
                                 </div>
                                 <ArrowUpRight

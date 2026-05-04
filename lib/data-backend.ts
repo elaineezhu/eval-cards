@@ -133,7 +133,14 @@ export async function getBackendManifestStatusData(): Promise<BackendManifestSta
 
 export async function getEvalHierarchyData() {
   if (useViewLayerBackend()) {
-    return (await sidecars()).fetchHierarchy()
+    // The v2 backend ships hierarchy.json in the new composite/family/
+    // slice taxonomy shape (top-level `composites[]`, flat `families[]`
+    // lookup index). Existing UI components expect the legacy nested
+    // `families[].composites[]` / `families[].standalone_benchmarks[]`
+    // shape, so route the v2 sidecar through the same adapter the HF
+    // path uses.
+    const raw = await (await sidecars()).fetchHierarchy()
+    return (await hfData()).adaptEvalHierarchy(raw)
   }
 
   return (await hfData()).fetchEvalHierarchy()

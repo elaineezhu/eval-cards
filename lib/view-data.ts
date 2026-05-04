@@ -42,10 +42,31 @@ const MODEL_CARD_COLUMNS = `
   architecture, params, inference_engine, inference_platform
 `
 
+// The composite/family/slice taxonomy refactor (eval_card_backend
+// notes/09-) replaced the legacy `composite_benchmark_key` /
+// `composite_benchmark_name` / `benchmark_family_key` /
+// `benchmark_leaf_key` columns with `composite_slug` /
+// `composite_display_name` / `family_id` / `family_display_name` /
+// `is_slice`. We expose both names so existing consumers keep
+// reading without rewrites. Mapping:
+//   composite_benchmark_key/name → composite_slug/display_name
+//     (the leaderboard, e.g. "wasp"/"WASP" — what the eval-detail
+//     "Composite" label shows)
+//   benchmark_family_key/name    → family_id/family_display_name
+//     (curated multi-benchmark family, e.g. "judgebench"/"JudgeBench
+//     family" — drives the family-table grouping in the legacy
+//     hierarchy adapter)
 const EVAL_LIST_COLUMNS = `
   evaluation_id, evaluation_name, canonical_display_name,
-  composite_benchmark_key, composite_benchmark_name,
-  benchmark_family_key, benchmark_leaf_key, category,
+  benchmark_id,
+  composite_slug, composite_display_name,
+  family_id, family_display_name, is_slice,
+  composite_slug AS composite_benchmark_key,
+  composite_display_name AS composite_benchmark_name,
+  family_id AS benchmark_family_key,
+  family_display_name AS benchmark_family_name,
+  CASE WHEN is_slice THEN benchmark_id ELSE NULL END AS benchmark_leaf_key,
+  category,
   metric_config, models_count, evaluator_names, source_types,
   latest_source_name, third_party_ratio,
   missing_generation_config_count, best_model, worst_model,
@@ -62,10 +83,17 @@ const CELL_JOIN_COLUMNS = `
   r.*,
   e.evaluation_name AS eval_evaluation_name,
   e.canonical_display_name AS eval_canonical_display_name,
-  e.composite_benchmark_key AS eval_composite_benchmark_key,
-  e.composite_benchmark_name AS eval_composite_benchmark_name,
-  e.benchmark_family_key AS eval_benchmark_family_key,
-  e.benchmark_leaf_key AS eval_benchmark_leaf_key,
+  e.benchmark_id AS eval_benchmark_id,
+  e.composite_slug AS eval_composite_slug,
+  e.composite_display_name AS eval_composite_display_name,
+  e.family_id AS eval_family_id,
+  e.family_display_name AS eval_family_display_name,
+  e.is_slice AS eval_is_slice,
+  e.composite_slug AS eval_composite_benchmark_key,
+  e.composite_display_name AS eval_composite_benchmark_name,
+  e.family_id AS eval_benchmark_family_key,
+  e.family_display_name AS eval_benchmark_family_name,
+  CASE WHEN e.is_slice THEN e.benchmark_id ELSE NULL END AS eval_benchmark_leaf_key,
   e.category AS eval_category,
   e.metric_config AS eval_metric_config,
   e.source_data AS eval_source_data,
@@ -473,12 +501,23 @@ export async function getModelSummaryById(routeId: string): Promise<ModelEvaluat
   // `model_route_id`/`model_family_id`) so unresolved models — whose
   // `model_id` is NULL — are still findable. `model_id` is kept in the
   // OR chain as a back-compat fallback for old links.
+  //
+  // Three slug shapes flow into this route handler:
+  //   - URL-encoded form (canonical, e.g. `google%2Fgemini-3-pro`) —
+  //     Next.js already decodes path params before they reach here, so
+  //     `routeId` lands as `google/gemini-3-pro`.
+  //   - Plain canonical id with `/` (same shape after Next.js decode).
+  //   - Legacy `__`-separated form (e.g. `google__gemini-3-pro`) — old
+  //     `getModelFamilyRouteId` emitted this; bookmarks may still use
+  //     it. Convert `__` → `/` for lookup.
+  const dunder = routeId.includes("__") ? routeId.replace(/__/g, "/") : routeId
   const rows = await readRows<Row>(
     `SELECT *
      FROM models_view
      WHERE model_key = ? OR route_id = ? OR model_route_id = ? OR model_family_id = ? OR model_id = ?
+        OR model_key = ? OR model_id = ?
      LIMIT 1`,
-    [routeId, routeId, routeId, routeId, routeId]
+    [routeId, routeId, routeId, routeId, routeId, dunder, dunder]
   )
   const modelRow = rows[0]
   if (!modelRow) return null
@@ -488,8 +527,15 @@ export async function getModelSummaryById(routeId: string): Promise<ModelEvaluat
 }
 
 export async function getEvalSummaryById(evalId: string): Promise<BenchmarkEvalSummary | null> {
+  // Use the same aliased projection as EVAL_LIST_COLUMNS so the legacy
+  // `composite_benchmark_*` / `benchmark_family_*` consumer fields are
+  // populated. A bare `SELECT *` returns the raw v2 column names which
+  // leaves the legacy fields NULL on the deserialised summary.
   const evalRows = await readRows<Row>(
-    "SELECT * FROM evals_view WHERE evaluation_id = ? LIMIT 1",
+    `SELECT ${EVAL_LIST_COLUMNS}
+     FROM evals_view
+     WHERE evaluation_id = ?
+     LIMIT 1`,
     [evalId]
   )
   const evalRow = evalRows[0]
@@ -550,7 +596,10 @@ export async function getDeveloperSummaryById(routeId: string) {
 
 export async function getBenchmarkMetadataMap(): Promise<Record<string, BenchmarkCard>> {
   const rows = await readRows<Row>(
-    `SELECT evaluation_id, evaluation_name, composite_benchmark_key, benchmark_card
+    `SELECT evaluation_id, evaluation_name,
+            family_id AS composite_benchmark_key,
+            benchmark_id,
+            benchmark_card
      FROM evals_view
      WHERE benchmark_card IS NOT NULL`
   )
@@ -564,6 +613,7 @@ export async function getBenchmarkMetadataMap(): Promise<Record<string, Benchmar
       row.evaluation_id,
       row.evaluation_name,
       row.composite_benchmark_key,
+      row.benchmark_id,
       card.benchmark_details?.name,
     ].filter((key): key is string => typeof key === "string" && key.length > 0)
 

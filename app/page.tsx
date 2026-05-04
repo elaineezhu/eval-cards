@@ -53,9 +53,14 @@ export default async function HomePage() {
   const stats = hierarchy.stats
   const familyCount = stats?.family_count ?? hierarchy.families.length
   const compositeCount = stats?.composite_count ?? 0
+  // Single benchmarks: prefer the new `benchmark_count` (total distinct
+  // benchmarks across all composites in the v2 dim), fall back to the
+  // legacy single + standalone split when the adapter synthesised them
+  // from an older snapshot shape.
   const singleBenchmarkCount = stats?.single_benchmark_count ?? 0
   const standaloneBenchmarkCount = stats?.standalone_benchmark_count ?? 0
-  const benchmarkLeafCount = singleBenchmarkCount + standaloneBenchmarkCount
+  const benchmarkLeafCount =
+    stats?.benchmark_count ?? singleBenchmarkCount + standaloneBenchmarkCount
   const sliceCount = stats?.slice_count ?? 0
   const metricCount = stats?.metric_count ?? 0
   const tripleCount = stats?.metric_rows_scanned ?? 0
@@ -64,7 +69,10 @@ export default async function HomePage() {
   // Reporting initiatives — distinct evaluation submissions in the corpus
   // (each `eval` here is a benchmark-publication artifact, e.g. HELM Lite,
   // BFCL, Open LLM Leaderboard v2). This is closer to "reporting evaluators"
-  // than a model-developer count.
+  // than a model-developer count. With the v2 backend each row in
+  // `evals_view` is one (composite, benchmark) pair, so a leaderboard
+  // reporting N benchmarks contributes N to this count — same behaviour
+  // as the legacy backend.
   const evaluatorCount = evals.length
   const generatedAt = formatGeneratedAt(manifest?.generated_at)
 

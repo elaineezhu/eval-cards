@@ -10,6 +10,7 @@ import { ParamRangePicker } from "@/components/param-range-picker"
 import { useAudienceMode } from "@/components/audience-mode-provider"
 import type { BenchmarkEvalSummary } from "@/lib/eval-processing"
 import { fetchEvalSummary } from "@/lib/dashboard-data-client"
+import { humanizeEvaluationId } from "@/lib/utils"
 import { PARAM_RANGE_MAX_INDEX, parseParamsBillionsFromModelName, paramStepToNumeric } from "@/lib/param-range"
 
 export default function EvalDetailPage() {
@@ -355,7 +356,7 @@ function SubBenchmarkGrid({
             <h3 className="fam-card-name group-hover:text-[color:var(--accent)] transition-colors">
               {card?.benchmark_details?.name ?? source.composite_benchmark_name}
             </h3>
-            <div className="fam-card-org">{source.evaluation_id}</div>
+            <div className="fam-card-org">{humanizeEvaluationId(source.evaluation_id)}</div>
             {summaryLine && (
               <p className="fam-card-summary line-clamp-3">{summaryLine}</p>
             )}

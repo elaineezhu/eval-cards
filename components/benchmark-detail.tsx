@@ -4,6 +4,7 @@
 import Link from "next/link"
 import { usePathname, useSearchParams } from "next/navigation"
 import { useAudienceMode } from "@/components/audience-mode-provider"
+import { formatDateISO } from "@/lib/utils"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
@@ -267,6 +268,13 @@ function getOrganizationDisplayName(value: string | null | undefined) {
 
 function getSourceTypeDisplayName(value: string | null | undefined) {
   return normalizeDisplayLabel(value?.replace(/_/g, " ")) || "Unknown"
+}
+
+function formatEvalLibrary(library: { name: string; version?: string }) {
+  const version = library.version?.trim()
+  return version && version.toLowerCase() !== "unknown"
+    ? `${library.name} ${version}`
+    : library.name
 }
 
 function normalizeCompositeKey(key: string): string {
@@ -697,22 +705,10 @@ function getVariantConfigDisambiguation(
     .map(([key, value]) => `${formatConfigLabel(key)}=${getConfigDisplayValue(value)}`)
 }
 
-function formatCompactDate(timestamp: string) {
-  try {
-    const ts = parseFloat(timestamp)
-    const date = Number.isFinite(ts)
-      ? new Date(ts > 10000000000 ? ts : ts * 1000)
-      : new Date(timestamp)
-
-    return date.toLocaleDateString("en-US", {
-      year: "numeric",
-      month: "short",
-      day: "numeric",
-    })
-  } catch {
-    return timestamp
-  }
-}
+// Compact date formatter — alias of the shared YYYY-MM-DD formatter so
+// every "Updated" / "Released" / per-row date in this component reads
+// consistently. Kept as a separate name for the existing call sites.
+const formatCompactDate = formatDateISO
 
 function formatParamsBillions(value: unknown) {
   const numericValue =
@@ -1753,7 +1749,7 @@ export function BenchmarkDetail({
       organizations.add(getOrganizationDisplayName(evaluation.source_metadata.source_organization_name))
       sourceTypes.add(evaluation.source_metadata.source_type)
       if (evaluation.eval_library?.name) {
-        libraries.add(`${evaluation.eval_library.name}${evaluation.eval_library.version ? ` ${evaluation.eval_library.version}` : ""}`)
+        libraries.add(formatEvalLibrary(evaluation.eval_library))
       }
       if (evaluation.source_metadata.evaluator_relationship === "third_party") {
         thirdPartyEvaluations += 1
@@ -2162,19 +2158,12 @@ export function BenchmarkDetail({
     )
   }, [availableCategories])
 
-  const formatDate = (isoString: string) => {
-    try {
-      return new Date(isoString).toLocaleDateString('en-US', {
-        year: 'numeric',
-        month: 'long',
-        day: 'numeric',
-        hour: '2-digit',
-        minute: '2-digit'
-      })
-    } catch {
-      return isoString
-    }
-  }
+  // Shared YYYY-MM-DD formatter (lib/utils#formatDateISO). Used for the
+  // "Updated" <dd> at line ~3514, the "Released" line, and any other
+  // date-cell render in this component. Other surfaces (eval-detail
+  // table, model-table summary) use the same helper so the corpus
+  // renders one consistent date style.
+  const formatDate = formatDateISO
 
   const jumpToDeepDive = (groupKey: string) => {
     if (benchmarkGroupLookup.has(groupKey)) {
@@ -4343,20 +4332,7 @@ function BenchmarkResultCard({
     return inlineSamples[randomIndex];
   }, [inlineSamples]);
 
-  const formatDate = (timestamp: string) => {
-    try {
-      // Handle unix timestamp (seconds or milliseconds)
-      const ts = parseFloat(timestamp)
-      const date = new Date(ts > 10000000000 ? ts : ts * 1000)
-      return date.toLocaleDateString('en-US', {
-        year: 'numeric',
-        month: 'short',
-        day: 'numeric'
-      })
-    } catch {
-      return timestamp
-    }
-  }
+  const formatDate = formatDateISO
 
   const { score } = result.score_details
   const { min_score = 0, max_score = 1, unit, lower_is_better } = result.metric_config
@@ -5868,7 +5844,7 @@ function VariantExpandedDetail({
           {numSamples != null && <Badge variant="outline">{Number(numSamples).toLocaleString()} samples</Badge>}
           {evalLibrary && (
             <Badge variant="outline">
-              {evalLibrary.name}{evalLibrary.version ? ` ${evalLibrary.version}` : ""}
+              {formatEvalLibrary(evalLibrary)}
             </Badge>
           )}
         </div>
