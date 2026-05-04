@@ -22,6 +22,7 @@ async function writeSyntheticStageJSnapshot(snapshotDir: string) {
     `
       SELECT
         TIMESTAMP '2026-05-03 00:00:00' AS snapshot_id,
+        'openai/gpt-5' AS model_key,
         'openai/gpt-5' AS model_id,
         'openai/gpt-5' AS id,
         'openai%2Fgpt-5' AS route_id,
@@ -205,6 +206,7 @@ async function writeSyntheticStageJSnapshot(snapshotDir: string) {
         'mmlu%3Aaccuracy' AS metric_summary_id,
         'mmlu' AS benchmark_id,
         'accuracy' AS metric_id,
+        'openai/gpt-5' AS model_key,
         'openai/gpt-5' AS model_id,
         'openai%2Fgpt-5' AS model_route_id,
         struct_pack(

@@ -1005,6 +1005,10 @@ function adaptEvalHierarchy(raw: EvalHierarchy): EvalHierarchy {
 }
 
 export async function fetchComparisonIndex(): Promise<ComparisonIndex> {
+  if (useViewLayerBackend()) {
+    return (await fetchSnapshotSidecars()).fetchComparisonIndex()
+  }
+
   return fetchHFJson<ComparisonIndex>("comparison-index.json")
 }
 

@@ -2,6 +2,7 @@ import "server-only"
 
 import type {
   BackendManifest,
+  ComparisonIndex,
   CorpusAggregates,
   EvalHierarchy,
 } from "@/lib/backend-artifacts"
@@ -10,6 +11,7 @@ let cache: {
   manifest?: Promise<BackendManifest>
   headline?: Promise<CorpusAggregates>
   hierarchy?: Promise<EvalHierarchy>
+  comparisonIndex?: Promise<ComparisonIndex>
 } = {}
 
 function getSnapshotUrl() {
@@ -52,6 +54,10 @@ export function fetchHeadline(): Promise<CorpusAggregates> {
 
 export function fetchHierarchy(): Promise<EvalHierarchy> {
   return (cache.hierarchy ??= fetchJson<EvalHierarchy>("hierarchy.json"))
+}
+
+export function fetchComparisonIndex(): Promise<ComparisonIndex> {
+  return (cache.comparisonIndex ??= fetchJson<ComparisonIndex>("comparison-index.json"))
 }
 
 export function resetSidecarCacheForTests() {

@@ -28,7 +28,7 @@ import type {
 type Row = Record<string, any>
 
 const MODEL_CARD_COLUMNS = `
-  id, route_id, model_name, model_id, canonical_model_name, developer,
+  id, model_key, route_id, model_name, model_id, canonical_model_name, developer,
   evaluations_count, benchmarks_count, variant_count,
   categories, category_stats, latest_timestamp,
   evaluator_count, evaluator_names, source_type_count, source_types,
@@ -250,8 +250,8 @@ function metricConfigFromRow(row: Row): MetricConfig {
 
 function modelInfoFromModelRow(row: Row): ModelInfo {
   return {
-    name: asString(row.model_name ?? row.model_family_name ?? row.model_id, "Unknown model"),
-    id: asString(row.model_id ?? row.id ?? row.route_id, "unknown-model"),
+    name: asString(row.model_name ?? row.model_family_name ?? row.model_id ?? row.model_key, "Unknown model"),
+    id: asString(row.model_key ?? row.model_id ?? row.id ?? row.route_id, "unknown-model"),
     developer: optionalString(row.developer),
     inference_platform: optionalString(row.inference_platform),
     inference_engine: optionalString(row.inference_engine),
@@ -390,23 +390,26 @@ function modelSummaryFromRows(modelRow: Row, cellRows: Row[]): ModelEvaluationSu
 
   return {
     ...core,
-    model_family_id: asString(modelRow.model_family_id ?? modelRow.model_id, modelRow.model_id),
+    model_family_id: asString(modelRow.model_family_id ?? modelRow.model_key ?? modelRow.model_id, modelRow.model_key ?? modelRow.model_id),
     model_route_id: asString(modelRow.model_route_id ?? modelRow.route_id, modelRow.route_id),
     model_family_name: asString(modelRow.model_family_name ?? modelRow.model_name, modelRow.model_name),
-    raw_model_ids: rawModelIds.length > 0 ? rawModelIds : [asString(modelRow.model_id, "")].filter(Boolean),
+    raw_model_ids: rawModelIds.length > 0 ? rawModelIds : [asString(modelRow.model_key ?? modelRow.model_id, "")].filter(Boolean),
     variants,
   }
 }
 
-async function getModelEvaluationRows(modelId: string): Promise<Row[]> {
+async function getModelEvaluationRows(modelKey: string): Promise<Row[]> {
+  // model_key is the producer's addressable identifier — non-null for both
+  // resolved and unresolved models (the latter fall back to the raw source
+  // name). Querying by model_id alone would silently miss unresolved models.
   return readRows<Row>(
     `SELECT ${CELL_JOIN_COLUMNS}
      FROM eval_results_view r
      LEFT JOIN evals_view e ON r.evaluation_id = e.evaluation_id
-     WHERE r.model_id = ?
+     WHERE r.model_key = ?
        AND r.score IS NOT NULL
      ORDER BY r.category, r.percentile DESC NULLS LAST`,
-    [modelId]
+    [modelKey]
   )
 }
 
@@ -466,17 +469,21 @@ export async function getDashboardData() {
 }
 
 export async function getModelSummaryById(routeId: string): Promise<ModelEvaluationSummary | null> {
+  // Lookups use the addressable identifier (`model_key`/`route_id`/
+  // `model_route_id`/`model_family_id`) so unresolved models — whose
+  // `model_id` is NULL — are still findable. `model_id` is kept in the
+  // OR chain as a back-compat fallback for old links.
   const rows = await readRows<Row>(
     `SELECT *
      FROM models_view
-     WHERE route_id = ? OR model_route_id = ? OR model_family_id = ? OR model_id = ?
+     WHERE model_key = ? OR route_id = ? OR model_route_id = ? OR model_family_id = ? OR model_id = ?
      LIMIT 1`,
-    [routeId, routeId, routeId, routeId]
+    [routeId, routeId, routeId, routeId, routeId]
   )
   const modelRow = rows[0]
   if (!modelRow) return null
 
-  const cellRows = await getModelEvaluationRows(asString(modelRow.model_id, routeId))
+  const cellRows = await getModelEvaluationRows(asString(modelRow.model_key ?? modelRow.model_id, routeId))
   return modelSummaryFromRows(modelRow, cellRows)
 }
 
