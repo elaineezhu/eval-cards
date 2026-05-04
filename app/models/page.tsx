@@ -184,7 +184,7 @@ export default function ModelsPage() {
 
   const loading = loadingModels || (groupByDeveloper && !developersReady)
   const totalResults = useMemo(
-    () => sortedEvaluations.reduce((sum, row) => sum + row.evaluations_count, 0),
+    () => sortedEvaluations.reduce((sum, row) => sum + row.evidence_count, 0),
     [sortedEvaluations],
   )
 
