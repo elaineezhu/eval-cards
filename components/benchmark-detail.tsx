@@ -1815,6 +1815,7 @@ export function BenchmarkDetail({
   // Sort dropdown was removed — ordering is driven by the source/category
   // grouping itself, not a user-selected sort.
   const [selectedCategories, setSelectedCategories] = useState<CategoryType[]>([])
+  const [selectedFamilies, setSelectedFamilies] = useState<string[]>([])
   const [expandedSuites, setExpandedSuites] = useState<Set<string>>(new Set())
   const [activeBenchmarkGroupKey, setActiveBenchmarkGroupKey] = useState<string | null>(null)
   const [benchmarkViewMode, setBenchmarkViewMode] = useState<"grid" | "list">("grid")
@@ -2206,6 +2207,24 @@ export function BenchmarkDetail({
     return cats as unknown as CategoryType[]
   }, [benchmarkGroups])
 
+  // Family names present in this model's benchmark groups — used for
+  // the Source-view filter chips. Sorted alphabetically by display name.
+  const availableFamilies = useMemo(() => {
+    const seen = new Map<string, string>()
+    for (const group of benchmarkGroups) {
+      const evalId = group.variants.find((v) => v.evaluation.eval_summary_id)?.evaluation.eval_summary_id
+      const hierarchyLocation = evalId ? hierarchyIndex?.get(evalId) ?? null : null
+      const sourcePrefix = evalId?.includes("%2F") ? evalId.split("%2F")[0] : null
+      const inferred = !hierarchyLocation && sourcePrefix ? sourcePrefixFamily.get(sourcePrefix) ?? null : null
+      const famKey = hierarchyLocation?.familyKey ?? inferred?.key ?? (sourcePrefix ?? group.key)
+      const famName = hierarchyLocation?.familyDisplayName || inferred?.displayName || group.title
+      if (!seen.has(famKey)) seen.set(famKey, famName)
+    }
+    return Array.from(seen.entries())
+      .map(([key, name]) => ({ key, name }))
+      .sort((a, b) => a.name.localeCompare(b.name))
+  }, [benchmarkGroups, hierarchyIndex, sourcePrefixFamily])
+
   // First-party vs third-party split per category (for the donut + bars).
   const evaluatorMix = useMemo(() => {
     // Bucket counts per category, then re-bucket by display label so
@@ -2279,6 +2298,15 @@ export function BenchmarkDetail({
         return false
       }
 
+      if (selectedFamilies.length > 0) {
+        const evalId = group.variants.find((v) => v.evaluation.eval_summary_id)?.evaluation.eval_summary_id
+        const hierarchyLocation = evalId ? hierarchyIndex?.get(evalId) ?? null : null
+        const sourcePrefix = evalId?.includes("%2F") ? evalId.split("%2F")[0] : null
+        const inferred = !hierarchyLocation && sourcePrefix ? sourcePrefixFamily.get(sourcePrefix) ?? null : null
+        const famKey = hierarchyLocation?.familyKey ?? inferred?.key ?? (sourcePrefix ?? group.key)
+        if (!selectedFamilies.includes(famKey)) return false
+      }
+
       if (!query) {
         return true
       }
@@ -2297,7 +2325,7 @@ export function BenchmarkDetail({
     filtered.sort((a, b) => getRelevanceScore(b) - getRelevanceScore(a))
 
     return filtered
-  }, [benchmarkGroups, benchmarkSearch, selectedCategories, modelId, peerRanks, getRelevanceScore])
+  }, [benchmarkGroups, benchmarkSearch, selectedCategories, selectedFamilies, hierarchyIndex, sourcePrefixFamily, modelId, peerRanks, getRelevanceScore])
 
   const groupedFilteredBenchmarkGroups = useMemo(() => {
     const order = new Map(availableCategories.map((category, index) => [category, index]))
@@ -2546,6 +2574,11 @@ export function BenchmarkDetail({
       current.filter((category) => availableCategories.includes(category))
     )
   }, [availableCategories])
+
+  useEffect(() => {
+    const keys = new Set(availableFamilies.map((f) => f.key))
+    setSelectedFamilies((current) => current.filter((k) => keys.has(k)))
+  }, [availableFamilies])
 
   // Shared YYYY-MM-DD formatter (lib/utils#formatDateISO). Used for the
   // "Updated" <dd> at line ~3514, the "Released" line, and any other
@@ -4659,7 +4692,39 @@ export function BenchmarkDetail({
           )}
         </div>
 
-        {availableCategories.length > 0 && (
+        {groupingMode === "source" && availableFamilies.length > 0 && (
+          <div className="mb-5 flex flex-wrap items-center gap-2">
+            <span className="kicker mr-2">Family</span>
+            <button
+              type="button"
+              onClick={() => setSelectedFamilies([])}
+              className={`ec-pill ${selectedFamilies.length === 0 ? "on" : ""}`}
+            >
+              All
+            </button>
+            {availableFamilies.map(({ key, name }) => {
+              const isSelected = selectedFamilies.includes(key)
+              return (
+                <button
+                  key={key}
+                  type="button"
+                  onClick={() =>
+                    setSelectedFamilies((current) =>
+                      current.includes(key)
+                        ? current.filter((k) => k !== key)
+                        : [...current, key]
+                    )
+                  }
+                  className={`ec-pill ${isSelected ? "on" : ""}`}
+                >
+                  {name}
+                </button>
+              )
+            })}
+          </div>
+        )}
+
+        {groupingMode !== "source" && availableCategories.length > 0 && (
           <div className="mb-5 flex flex-wrap items-center gap-2">
             <span className="kicker mr-2">Category</span>
             <button

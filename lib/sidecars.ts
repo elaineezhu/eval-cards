@@ -188,12 +188,27 @@ async function fetchCleanedHierarchy(): Promise<EvalHierarchy> {
       return null
     }),
   ])
-  const cleaned = cleanHierarchy(raw, comparisonIndex)
+  let cleaned: EvalHierarchy
+  try {
+    cleaned = cleanHierarchy(raw, comparisonIndex)
+  } catch (err) {
+    console.error(
+      `[sidecars] cleanHierarchy threw — falling back to raw hierarchy. ${err instanceof Error ? err.stack ?? err.message : String(err)}`,
+    )
+    return raw
+  }
   void writeToDisk(cleanCachePath, JSON.stringify(cleaned))
   return cleaned
 }
 
 export function fetchHierarchy(): Promise<EvalHierarchy> {
+  // Clear a rejected promise so the next request retries rather than
+  // serving a permanently-poisoned cache slot.
+  if (cache.hierarchy) {
+    void cache.hierarchy.catch(() => {
+      cache.hierarchy = undefined
+    })
+  }
   return (cache.hierarchy ??= fetchCleanedHierarchy())
 }
 
