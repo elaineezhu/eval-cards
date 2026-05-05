@@ -1149,9 +1149,17 @@ export function EvalDetail({
                       ? "THIRD-PARTY"
                       : "—"
                   const isThirdParty = evaluatorRel === "third_party"
-                  const sourceTypeLabel = (
-                    !Array.isArray(modelResult.source_data) && modelResult.source_data.source_type
-                  ) || modelResult.source_metadata.source_type || ""
+                  // Prefer the human-readable source name (e.g. "kaggle",
+                  // "Anthropic Eval Run") over `source_data.source_type`,
+                  // which can be a file format like "Parquet" that's
+                  // useless to a reader. Fall back to source_type only
+                  // when nothing else is set.
+                  const sourceTypeLabel =
+                    modelResult.source_metadata.source_name?.trim() ||
+                    modelResult.source_metadata.source_organization_name?.trim() ||
+                    (!Array.isArray(modelResult.source_data) && modelResult.source_data.source_type) ||
+                    modelResult.source_metadata.source_type ||
+                    ""
                   const familyLabel = modelResult.model_info.architecture
                     ?? modelResult.model_info.parameter_count
                     ?? null
@@ -1261,14 +1269,17 @@ export function EvalDetail({
                                 {setupLabel}
                               </div>
                             )}
-                            {!setupLabel && datasetName && !isResearchView && (
-                              <div
-                                className="mt-1 font-mono truncate"
-                                style={{ fontSize: 10, color: "var(--fg-subtle)" }}
-                              >
-                                {datasetName}
-                              </div>
-                            )}
+                            {!setupLabel &&
+                              datasetName &&
+                              !isResearchView &&
+                              datasetName !== lb.evaluation_name && (
+                                <div
+                                  className="mt-1 font-mono truncate"
+                                  style={{ fontSize: 10, color: "var(--fg-subtle)" }}
+                                >
+                                  {datasetName}
+                                </div>
+                              )}
                           </div>
                         </td>
 
