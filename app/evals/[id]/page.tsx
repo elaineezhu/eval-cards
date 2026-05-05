@@ -9,9 +9,14 @@ import { EvalDetail } from "@/components/eval-detail"
 import { ParamRangePicker } from "@/components/param-range-picker"
 import { useAudienceMode } from "@/components/audience-mode-provider"
 import type { BenchmarkEvalSummary } from "@/lib/eval-processing"
-import { fetchEvalSummary } from "@/lib/dashboard-data-client"
+import { fetchEvalHierarchy, fetchEvalSummary } from "@/lib/dashboard-data-client"
 import { humanizeEvaluationId } from "@/lib/utils"
 import { PARAM_RANGE_MAX_INDEX, parseParamsBillionsFromModelName, paramStepToNumeric } from "@/lib/param-range"
+import type { EvalHierarchy } from "@/lib/backend-artifacts"
+import {
+  buildHierarchyEvalIndex,
+  type HierarchyEvalLocation,
+} from "@/lib/hierarchy-lookup"
 
 export default function EvalDetailPage() {
   const params = useParams()
@@ -20,6 +25,7 @@ export default function EvalDetailPage() {
   const searchParams = useSearchParams()
   const [summary, setSummary] = useState<BenchmarkEvalSummary | null>(null)
   const [subSummaries, setSubSummaries] = useState<BenchmarkEvalSummary[]>([])
+  const [hierarchy, setHierarchy] = useState<EvalHierarchy | null>(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const [matrixSearch, setMatrixSearch] = useState("")
@@ -49,8 +55,15 @@ export default function EvalDetailPage() {
     const load = async () => {
       try {
         const evalId = decodeURIComponent(params.id as string)
-        const found = await fetchEvalSummary(evalId)
+        const [found, evalHierarchy] = await Promise.all([
+          fetchEvalSummary(evalId),
+          fetchEvalHierarchy().catch((err) => {
+            console.warn("Failed to load eval-hierarchy:", err)
+            return null as EvalHierarchy | null
+          }),
+        ])
         setSummary(found)
+        setHierarchy(evalHierarchy)
         document.title = `${found.evaluation_name} | Benchmark`
 
         if (found.is_aggregated && found.aggregate_sources?.length) {
@@ -74,6 +87,28 @@ export default function EvalDetailPage() {
     }
     load()
   }, [params.id])
+
+  const hierarchyIndex = useMemo(() => {
+    if (!hierarchy) return null
+    const familyIdHints = new Map<string, string>()
+    if (summary?.evaluation_id && summary.family_id) {
+      familyIdHints.set(summary.evaluation_id, summary.family_id)
+    }
+    for (const sub of subSummaries) {
+      if (sub.evaluation_id && sub.family_id) {
+        familyIdHints.set(sub.evaluation_id, sub.family_id)
+      }
+    }
+    return buildHierarchyEvalIndex(
+      hierarchy,
+      (evalSummaryId) => familyIdHints.get(evalSummaryId) ?? null,
+    )
+  }, [hierarchy, summary, subSummaries])
+
+  const hierarchyLocation = useMemo<HierarchyEvalLocation | null>(() => {
+    if (!hierarchyIndex || !summary?.evaluation_id) return null
+    return hierarchyIndex.get(summary.evaluation_id) ?? null
+  }, [hierarchyIndex, summary])
 
   if (loading) {
     return (
@@ -126,9 +161,11 @@ export default function EvalDetailPage() {
             matrixSearch={matrixSearch}
             onMatrixSearchChange={setMatrixSearch}
             currentDetailHref={currentDetailHref}
+            hierarchyIndex={hierarchyIndex}
+            hierarchyLocation={hierarchyLocation}
           />
         ) : (
-          <EvalDetail summary={summary} />
+          <EvalDetail summary={summary} hierarchyLocation={hierarchyLocation} />
         )}
       </main>
     </div>
@@ -150,12 +187,16 @@ function CompositeEvalView({
   matrixSearch,
   onMatrixSearchChange,
   currentDetailHref,
+  hierarchyIndex,
+  hierarchyLocation,
 }: {
   summary: BenchmarkEvalSummary
   subSummaries: BenchmarkEvalSummary[]
   matrixSearch: string
   onMatrixSearchChange: (v: string) => void
   currentDetailHref: string
+  hierarchyIndex: Map<string, HierarchyEvalLocation> | null
+  hierarchyLocation: HierarchyEvalLocation | null
 }) {
   const { mode } = useAudienceMode()
   const isPolicy = mode === "policy"
@@ -169,6 +210,12 @@ function CompositeEvalView({
   const limitations = card?.purpose_and_intended_users?.limitations?.trim()
   const audience = card?.purpose_and_intended_users?.audience
   const audienceText = Array.isArray(audience) ? audience.join("; ") : audience
+  const familyHeader =
+    hierarchyLocation?.familyDisplayName && hierarchyLocation.familyDisplayName !== summary.evaluation_name
+      ? hierarchyLocation.familyDisplayName
+      : summary.composite_benchmark_name && summary.composite_benchmark_name !== summary.evaluation_name
+        ? summary.composite_benchmark_name
+        : null
   const lede = isPolicy
     ? overview || goal || `Composite aggregating ${subBenchmarkCount} component benchmarks across ${summary.models_count.toLocaleString()} models.`
     : goal || overview || `Composite aggregating ${subBenchmarkCount} component benchmarks across ${summary.models_count.toLocaleString()} models.`
@@ -182,9 +229,9 @@ function CompositeEvalView({
           className="mb-5 flex flex-wrap items-center gap-3 font-mono text-[11px] uppercase tracking-[0.12em]"
           style={{ color: "var(--fg-muted)" }}
         >
-          {summary.composite_benchmark_name && summary.composite_benchmark_name !== summary.evaluation_name && (
+          {familyHeader && (
             <>
-              <span>{summary.composite_benchmark_name}</span>
+              <span>{familyHeader}</span>
               <span style={{ color: "var(--fg-subtle)" }}>·</span>
             </>
           )}
@@ -291,6 +338,7 @@ function CompositeEvalView({
             sources={sources}
             subSummaries={subSummaries}
             currentDetailHref={currentDetailHref}
+            hierarchyIndex={hierarchyIndex}
           />
         ) : (
           <MatrixLeaderboard
@@ -313,15 +361,46 @@ function SubBenchmarkGrid({
   sources,
   subSummaries,
   currentDetailHref,
+  hierarchyIndex,
 }: {
   sources: NonNullable<BenchmarkEvalSummary["aggregate_sources"]>
   subSummaries: BenchmarkEvalSummary[]
   currentDetailHref: string
+  hierarchyIndex: Map<string, HierarchyEvalLocation> | null
 }) {
   const subMap = useMemo(
     () => new Map(subSummaries.map((s) => [s.evaluation_id, s])),
     [subSummaries]
   )
+
+  // Group sources by hierarchy family. When the hierarchy doesn't resolve a
+  // family for a source (or no hierarchy was loaded), bucket those entries
+  // under a single "Other" section instead of spamming per-eval headers.
+  type FamilyBucket = {
+    key: string
+    displayName: string | null
+    sources: NonNullable<BenchmarkEvalSummary["aggregate_sources"]>
+  }
+  const buckets = useMemo<FamilyBucket[]>(() => {
+    if (!hierarchyIndex) {
+      return [{ key: "__all__", displayName: null, sources }]
+    }
+    const ordered: FamilyBucket[] = []
+    const byKey = new Map<string, FamilyBucket>()
+    for (const source of sources) {
+      const location = hierarchyIndex.get(source.evaluation_id) ?? null
+      const key = location?.familyKey ?? "__unmapped__"
+      const displayName = location?.familyDisplayName ?? null
+      let bucket = byKey.get(key)
+      if (!bucket) {
+        bucket = { key, displayName, sources: [] }
+        byKey.set(key, bucket)
+        ordered.push(bucket)
+      }
+      bucket.sources.push(source)
+    }
+    return ordered
+  }, [sources, hierarchyIndex])
 
   if (sources.length === 0) {
     return (
@@ -331,67 +410,89 @@ function SubBenchmarkGrid({
     )
   }
 
-  return (
-    <div className="fam-grid">
-      {sources.map((source) => {
-        const sub = subMap.get(source.evaluation_id)
-        const card = sub?.benchmark_card
-        const overview = card?.benchmark_details?.overview ?? sub?.metric_config?.evaluation_description
-        const goal = card?.purpose_and_intended_users?.goal
-        const summaryLine = goal || overview
+  const renderCard = (source: NonNullable<BenchmarkEvalSummary["aggregate_sources"]>[number]) => {
+    const sub = subMap.get(source.evaluation_id)
+    const card = sub?.benchmark_card
+    const overview = card?.benchmark_details?.overview ?? sub?.metric_config?.evaluation_description
+    const goal = card?.purpose_and_intended_users?.goal
+    const summaryLine = goal || overview
 
-        return (
-          <Link
-            key={source.evaluation_id}
-            href={`/evals/${source.evaluation_id}?from=${encodeURIComponent(currentDetailHref)}`}
-            className="fam-card group block"
-            style={{ textDecoration: "none", color: "inherit" }}
+    return (
+      <Link
+        key={source.evaluation_id}
+        href={`/evals/${source.evaluation_id}?from=${encodeURIComponent(currentDetailHref)}`}
+        className="fam-card group block"
+        style={{ textDecoration: "none", color: "inherit" }}
+      >
+        <div className="flex items-start justify-between gap-2 mb-1">
+          <div className="fam-card-kind">Component benchmark</div>
+          <div className="fam-card-counts">
+            {source.models_count} model{source.models_count === 1 ? "" : "s"}
+          </div>
+        </div>
+        <h3 className="fam-card-name group-hover:text-[color:var(--accent)] transition-colors">
+          {card?.benchmark_details?.name ?? source.composite_benchmark_name}
+        </h3>
+        <div className="fam-card-org">{humanizeEvaluationId(source.evaluation_id)}</div>
+        {summaryLine && (
+          <p className="fam-card-summary line-clamp-3">{summaryLine}</p>
+        )}
+        {sub?.best_model && (
+          <div
+            className="mt-3 pt-3 text-[12px]"
+            style={{
+              borderTop: "1px dashed var(--border-soft)",
+              color: "var(--fg-muted)",
+            }}
           >
-            <div className="flex items-start justify-between gap-2 mb-1">
-              <div className="fam-card-kind">Component benchmark</div>
-              <div className="fam-card-counts">
-                {source.models_count} model{source.models_count === 1 ? "" : "s"}
-              </div>
-            </div>
-            <h3 className="fam-card-name group-hover:text-[color:var(--accent)] transition-colors">
-              {card?.benchmark_details?.name ?? source.composite_benchmark_name}
-            </h3>
-            <div className="fam-card-org">{humanizeEvaluationId(source.evaluation_id)}</div>
-            {summaryLine && (
-              <p className="fam-card-summary line-clamp-3">{summaryLine}</p>
-            )}
-            {sub?.best_model && (
-              <div
-                className="mt-3 pt-3 text-[12px]"
-                style={{
-                  borderTop: "1px dashed var(--border-soft)",
-                  color: "var(--fg-muted)",
-                }}
-              >
-                <span
-                  className="font-mono uppercase tracking-[0.12em] mr-2"
-                  style={{ fontSize: 9.5, color: "var(--fg-subtle)" }}
-                >
-                  Top
-                </span>
-                <span style={{ color: "var(--fg)", fontWeight: 600 }}>
-                  {sub.best_model.name}
-                </span>
-                <span className="ml-1 font-mono tabular-nums" style={{ color: "var(--fg-muted)" }}>
-                  {(sub.best_model.score * 100).toFixed(1)}%
-                </span>
-              </div>
-            )}
-            <div
-              className="mt-3 inline-flex items-center gap-1 font-mono text-[10px] uppercase tracking-[0.12em]"
-              style={{ color: "var(--accent)" }}
+            <span
+              className="font-mono uppercase tracking-[0.12em] mr-2"
+              style={{ fontSize: 9.5, color: "var(--fg-subtle)" }}
             >
-              Open
-              <ArrowUpRight className="h-3 w-3" />
-            </div>
-          </Link>
-        )
-      })}
+              Top
+            </span>
+            <span style={{ color: "var(--fg)", fontWeight: 600 }}>
+              {sub.best_model.name}
+            </span>
+            <span className="ml-1 font-mono tabular-nums" style={{ color: "var(--fg-muted)" }}>
+              {(sub.best_model.score * 100).toFixed(1)}%
+            </span>
+          </div>
+        )}
+        <div
+          className="mt-3 inline-flex items-center gap-1 font-mono text-[10px] uppercase tracking-[0.12em]"
+          style={{ color: "var(--accent)" }}
+        >
+          Open
+          <ArrowUpRight className="h-3 w-3" />
+        </div>
+      </Link>
+    )
+  }
+
+  // Render flat when only a single bucket — the per-family headers add no
+  // signal in that case (which is the typical "all components belong to one
+  // family" composite).
+  if (buckets.length <= 1) {
+    return <div className="fam-grid">{sources.map(renderCard)}</div>
+  }
+
+  return (
+    <div className="space-y-8">
+      {buckets.map((bucket) => (
+        <section key={bucket.key}>
+          <div
+            className="kicker mb-3"
+            style={{ display: "flex", alignItems: "baseline", gap: 8 }}
+          >
+            <span>{bucket.displayName ?? "Other"}</span>
+            <span style={{ color: "var(--fg-subtle)", fontWeight: 400 }}>
+              · {bucket.sources.length} component{bucket.sources.length === 1 ? "" : "s"}
+            </span>
+          </div>
+          <div className="fam-grid">{bucket.sources.map(renderCard)}</div>
+        </section>
+      ))}
     </div>
   )
 }

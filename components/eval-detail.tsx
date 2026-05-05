@@ -52,6 +52,7 @@ import {
 } from "lucide-react"
 import type { BenchmarkCard } from "@/lib/benchmark-schema"
 import type { BenchmarkEvalSummary, ModelResultForBenchmark } from "@/lib/eval-processing"
+import type { HierarchyEvalLocation } from "@/lib/hierarchy-lookup"
 import { PolicyOverview } from "@/components/policy-overview"
 import { ResearcherReproducibilityCard } from "@/components/researcher-reproducibility-card"
 import { KnownIssuesPanel } from "@/components/known-issues-panel"
@@ -61,6 +62,7 @@ import { FlagScoreButton } from "@/components/flag-score-button"
 
 interface EvalDetailProps {
   summary: BenchmarkEvalSummary
+  hierarchyLocation?: HierarchyEvalLocation | null
 }
 
 interface LeaderboardRow {
@@ -478,7 +480,7 @@ function getSetupLabel(modelResult: ModelResultForBenchmark): string {
   return parts.join(" ")
 }
 
-export function EvalDetail({ summary }: EvalDetailProps) {
+export function EvalDetail({ summary, hierarchyLocation }: EvalDetailProps) {
   const { mode } = useAudienceMode()
   const isResearchView = mode === "research"
   const hasMultiMetricLeaderboard =
@@ -581,9 +583,21 @@ export function EvalDetail({ summary }: EvalDetailProps) {
       [key]: !current[key],
     }))
 
-  const headerOrg = summary.composite_benchmark_name && summary.composite_benchmark_name !== summary.evaluation_name
-    ? summary.composite_benchmark_name
-    : null
+  // Prefer the curated family name from hierarchy.json — the producer's
+  // composite_benchmark_name often equals the eval's own slug (e.g.
+  // "cyse2_interpreter_abuse"), so the header repeats itself. When the
+  // hierarchy resolves a different parent family ("CySE2"), use that instead.
+  const hierarchyHeaderOrg = (() => {
+    const familyName = hierarchyLocation?.familyDisplayName?.trim()
+    if (!familyName || familyName === summary.evaluation_name) {
+      return null
+    }
+    return familyName
+  })()
+  const headerOrg = hierarchyHeaderOrg
+    ?? (summary.composite_benchmark_name && summary.composite_benchmark_name !== summary.evaluation_name
+      ? summary.composite_benchmark_name
+      : null)
 
   const heroLede = isResearchView
     ? summary.metric_config.evaluation_description

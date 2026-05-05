@@ -49,6 +49,10 @@ import type {
   EvalHierarchy,
   SubmissionAxis,
 } from "@/lib/backend-artifacts"
+import {
+  buildHierarchyEvalIndex,
+  type HierarchyEvalLocation,
+} from "@/lib/hierarchy-lookup"
 import { type CSSProperties, Fragment, useState, useEffect, useMemo } from "react"
 
 interface BenchmarkDetailProps {
@@ -268,7 +272,38 @@ function doesLabelMatchSuiteKey(label: string | null | undefined, compositeKey: 
   return normalizeCompositeKey(normalizeDisplayKey(label)) === normalizeCompositeKey(compositeKey)
 }
 
-function getCompositeKey(group: BenchmarkGroup): string {
+function getHierarchyLocation(
+  group: BenchmarkGroup,
+  hierarchyIndex: Map<string, HierarchyEvalLocation> | null,
+): HierarchyEvalLocation | undefined {
+  if (!hierarchyIndex) {
+    return undefined
+  }
+  for (const variant of group.variants) {
+    const evalSummaryId = variant.evaluation.eval_summary_id
+    if (evalSummaryId) {
+      const location = hierarchyIndex.get(evalSummaryId)
+      if (location) {
+        return location
+      }
+    }
+  }
+  return undefined
+}
+
+function getCompositeKey(
+  group: BenchmarkGroup,
+  hierarchyIndex: Map<string, HierarchyEvalLocation> | null,
+): string {
+  // Prefer the curated grouping from hierarchy.json. The eval row's own
+  // family_id is null for ~7% of evals (e.g. CySE2 composites) and points
+  // at the leaf for singleton families, so the hierarchy is the only
+  // source that captures family→composite groupings authoritatively.
+  const location = getHierarchyLocation(group, hierarchyIndex)
+  if (location) {
+    return normalizeCompositeKey(location.familyKey)
+  }
+
   const evaluation = group.variants[0]?.evaluation
   const backendSuiteKey = evaluation?.family_id
 
@@ -283,7 +318,16 @@ function getCompositeDisplayName(key: string): string {
   return normalizeDisplayLabel(key)
 }
 
-function getCompositeName(group: BenchmarkGroup, compositeKey: string): string {
+function getCompositeName(
+  group: BenchmarkGroup,
+  compositeKey: string,
+  hierarchyIndex: Map<string, HierarchyEvalLocation> | null,
+): string {
+  const location = getHierarchyLocation(group, hierarchyIndex)
+  if (location?.familyDisplayName) {
+    return location.familyDisplayName
+  }
+
   const evaluation = group.variants[0]?.evaluation
   const benchmarkCardName = group.benchmarkCard?.benchmark_details?.name
   const backendParentName = evaluation?.benchmark_parent_name
@@ -307,11 +351,12 @@ function getCompositeName(group: BenchmarkGroup, compositeKey: string): string {
 function groupByComposite(
   groups: BenchmarkGroup[],
   modelIds: string[],
-  peerRanks: PeerRanksMap
+  peerRanks: PeerRanksMap,
+  hierarchyIndex: Map<string, HierarchyEvalLocation> | null
 ): CompositeGroup[] {
   const composites = new Map<string, BenchmarkGroup[]>()
   for (const group of groups) {
-    const key = getCompositeKey(group)
+    const key = getCompositeKey(group, hierarchyIndex)
     const existing = composites.get(key) ?? []
     existing.push(group)
     composites.set(key, existing)
@@ -335,7 +380,7 @@ function groupByComposite(
 
     return {
       compositeKey,
-      compositeName: benchmarks[0] ? getCompositeName(benchmarks[0], compositeKey) : getCompositeDisplayName(compositeKey),
+      compositeName: benchmarks[0] ? getCompositeName(benchmarks[0], compositeKey, hierarchyIndex) : getCompositeDisplayName(compositeKey),
       benchmarks,
       avgRawScore,
       avgNormalizedScore: avgScore,
@@ -1663,6 +1708,28 @@ export function BenchmarkDetail({
     loadPeerRanks().then(setPeerRanks)
   }, [])
 
+  // Build an eval_summary_id → family/composite lookup from hierarchy.json.
+  // ~31 eval_summary_ids appear in multiple families (e.g. mmlu-pro under
+  // both `mmlu` and `artificial-analysis`); use the eval row's own family_id
+  // as the disambiguating preference when present.
+  const hierarchyIndex = useMemo(() => {
+    if (!evalHierarchy) {
+      return null
+    }
+    const familyIdByEvalSummaryId = new Map<string, string>()
+    for (const evals of Object.values(summary.evaluations_by_category)) {
+      for (const evaluation of evals) {
+        if (evaluation.eval_summary_id && evaluation.family_id) {
+          familyIdByEvalSummaryId.set(evaluation.eval_summary_id, evaluation.family_id)
+        }
+      }
+    }
+    return buildHierarchyEvalIndex(
+      evalHierarchy,
+      (evalSummaryId) => familyIdByEvalSummaryId.get(evalSummaryId) ?? null,
+    )
+  }, [evalHierarchy, summary.evaluations_by_category])
+
   // Composite relevance score for benchmark ordering
   // relevance = population × 0.4 + rank_extremity × 0.3 + has_metadata × 0.2 + recency × 0.1
   const getRelevanceScore = useMemo(() => {
@@ -1985,8 +2052,13 @@ export function BenchmarkDetail({
         ?.evaluation.eval_summary_id
       const evalEntry =
         evalId && comparisonIndex ? comparisonIndex.evals[evalId] : null
-      const famKey = evalEntry?.family_id ?? group.key
+      const hierarchyLocation = evalId
+        ? hierarchyIndex?.get(evalId) ?? null
+        : null
+      const famKey =
+        hierarchyLocation?.familyKey ?? evalEntry?.family_id ?? group.key
       const famName =
+        hierarchyLocation?.familyDisplayName ||
         evalEntry?.family_display_name ||
         evalEntry?.display_name ||
         group.title
@@ -2014,31 +2086,31 @@ export function BenchmarkDetail({
           kind: f.groups.length > 1 ? "multi-eval" as const : "single-eval" as const,
         })),
       }))
-  }, [filteredBenchmarkGroups, comparisonIndex, summary.categories_covered])
+  }, [filteredBenchmarkGroups, comparisonIndex, hierarchyIndex, summary.categories_covered])
 
   const compositeGroups = useMemo(() => {
-    const groups = groupByComposite(filteredBenchmarkGroups, modelIds, peerRanks)
+    const groups = groupByComposite(filteredBenchmarkGroups, modelIds, peerRanks, hierarchyIndex)
     // Re-sort composites by max relevance of their benchmarks
     return groups.sort((a, b) => {
       const aMax = Math.max(...a.benchmarks.map(getRelevanceScore))
       const bMax = Math.max(...b.benchmarks.map(getRelevanceScore))
       return bMax - aMax
     })
-  }, [filteredBenchmarkGroups, modelIds, peerRanks, getRelevanceScore])
+  }, [filteredBenchmarkGroups, modelIds, peerRanks, getRelevanceScore, hierarchyIndex])
 
   const categoryCompositeSections = useMemo(
     () =>
       groupedFilteredBenchmarkGroups
         .map(({ category, groups }) => ({
           category,
-          composites: groupByComposite(groups, modelIds, peerRanks).sort((a, b) => {
+          composites: groupByComposite(groups, modelIds, peerRanks, hierarchyIndex).sort((a, b) => {
             const aMax = Math.max(...a.benchmarks.map(getRelevanceScore))
             const bMax = Math.max(...b.benchmarks.map(getRelevanceScore))
             return bMax - aMax
           }),
         }))
         .filter((section) => section.composites.length > 0),
-    [groupedFilteredBenchmarkGroups, modelIds, peerRanks, getRelevanceScore]
+    [groupedFilteredBenchmarkGroups, modelIds, peerRanks, getRelevanceScore, hierarchyIndex]
   )
 
   const categoryScoreRanges = useMemo(() => {
@@ -2456,9 +2528,17 @@ export function BenchmarkDetail({
       const evalEntry = comparisonIndex.evals[evalId]
       if (!evalEntry) continue
 
-      const famKey = evalEntry.family_id ?? evalId
+      // Prefer hierarchy.json grouping. The comparison-index family_id is
+      // null for ~7% of evals (e.g. CySE2 composites) and points at the
+      // leaf for singleton families, so the hierarchy is the only source
+      // that captures family→composite groupings authoritatively.
+      const hierarchyLocation = hierarchyIndex?.get(evalId) ?? null
+      const famKey = hierarchyLocation?.familyKey ?? evalEntry.family_id ?? evalId
       const famName =
-        evalEntry.family_display_name || evalEntry.display_name || famKey
+        hierarchyLocation?.familyDisplayName ||
+        evalEntry.family_display_name ||
+        evalEntry.display_name ||
+        famKey
       const bucket = familyBuckets.get(famKey) ?? {
         familyName: famName,
         category: group.category,
@@ -2673,7 +2753,7 @@ export function BenchmarkDetail({
     }
 
     return units
-  }, [comparisonIndex, filteredBenchmarkGroups])
+  }, [comparisonIndex, filteredBenchmarkGroups, hierarchyIndex])
 
   const [activeViewByUnit, setActiveViewByUnit] = useState<Record<string, string>>({})
   const [activeMetricByUnit, setActiveMetricByUnit] = useState<Record<string, string>>({})
