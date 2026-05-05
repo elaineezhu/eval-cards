@@ -4,7 +4,7 @@
 import Link from "next/link"
 import { usePathname, useSearchParams } from "next/navigation"
 import { useAudienceMode } from "@/components/audience-mode-provider"
-import { formatDateISO } from "@/lib/utils"
+import { formatDateISO, humanizeEvaluationId } from "@/lib/utils"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
@@ -32,7 +32,7 @@ import {
 } from "@/components/ui/dropdown-menu"
 import {
   ExternalLink, TrendingUp, Info, Database, Settings, FileCode, Building, Calendar, User, Server,
-  ChevronDown, ChevronUp, BarChart3, Award, AlertTriangle,
+  ChevronDown, ChevronUp, BarChart3, Award, AlertTriangle, ArrowUpRight,
   Cpu, Tag, Globe, Network, Activity, MessageSquare, Clock, Hash, Layers, Search, FlaskConical, Scale, BookOpenText, Plus, X, List, LayoutGrid
 } from "lucide-react"
 import type { BenchmarkCard, BenchmarkEvaluation, CategoryType, EvaluationResult } from "@/lib/benchmark-schema"
@@ -4203,11 +4203,13 @@ export function BenchmarkDetail({
           }
         }}
       >
-        <DialogContent className="max-h-[88dvh] max-w-[94vw] grid-rows-[auto_minmax(0,1fr)] overflow-hidden p-0 sm:max-w-5xl">
+        <DialogContent className="!rounded-none max-h-[88dvh] max-w-[94vw] grid-rows-[auto_minmax(0,1fr)] overflow-hidden p-0 sm:max-w-5xl border-[color:var(--fg)] [&_[data-slot=dialog-close]]:!rounded-none [&_[data-slot=dialog-close]]:top-3 [&_[data-slot=dialog-close]]:right-3 [&_[data-slot=dialog-close]]:border [&_[data-slot=dialog-close]]:border-[color:var(--border-soft)] [&_[data-slot=dialog-close]]:p-1 [&_[data-slot=dialog-close]]:opacity-100 [&_[data-slot=badge]]:!rounded-none [&_[data-slot=badge]]:border-[color:var(--border-strong)] [&_[data-slot=badge]]:bg-transparent [&_[data-slot=badge]]:font-mono [&_[data-slot=badge]]:text-[10px] [&_[data-slot=badge]]:uppercase [&_[data-slot=badge]]:tracking-[0.12em] [&_[data-slot=badge]]:text-[color:var(--fg-muted)] [&_[data-slot=badge]]:font-medium">
           {activeBenchmarkGroup && (
             <BenchmarkDeepDiveDialogPanel
               group={activeBenchmarkGroup}
               comparisonIndex={comparisonIndex}
+              evalHierarchy={evalHierarchy}
+              hierarchyIndex={hierarchyIndex}
             />
           )}
         </DialogContent>
@@ -5256,9 +5258,13 @@ function AggregatedBenchmarkCard({
 function BenchmarkDeepDiveDialogPanel({
   group,
   comparisonIndex,
+  evalHierarchy,
+  hierarchyIndex,
 }: {
   group: BenchmarkGroup
   comparisonIndex?: ComparisonIndex | null
+  evalHierarchy?: EvalHierarchy | null
+  hierarchyIndex?: Map<string, HierarchyEvalLocation> | null
 }) {
   const { mode } = useAudienceMode()
   const isResearchView = mode === "research"
@@ -5285,6 +5291,80 @@ function BenchmarkDeepDiveDialogPanel({
       }),
     [group.variants]
   )
+
+  // Cross-family appearances: hierarchy.json's `benchmark_index[]` cross-links
+  // a canonical benchmark across multiple families (e.g. AIME appears in
+  // artificial-analysis, llm-stats, and vals-ai). When any of this group's
+  // variant eval_summary_ids show up in a benchmark_index entry, surface the
+  // other appearances as a "this benchmark also reports as" panel so the
+  // reader sees the duplication without leaving the dialog.
+  const crossFamilyAppearances = useMemo(() => {
+    const benchmarkIndex = evalHierarchy?.benchmark_index
+    if (!benchmarkIndex || benchmarkIndex.length === 0) return [] as Array<{
+      canonicalDisplayName: string
+      appearances: Array<{
+        familyKey: string
+        familyDisplayName: string
+        evalSummaryId: string
+        isCurrent: boolean
+      }>
+    }>
+
+    const groupEvalIds = new Set(
+      group.variants
+        .map((v) => v.evaluation.eval_summary_id)
+        .filter((id): id is string => Boolean(id)),
+    )
+    if (groupEvalIds.size === 0) return []
+
+    const familyDisplayByKey = new Map<string, string>()
+    for (const fam of evalHierarchy?.families ?? []) {
+      familyDisplayByKey.set(fam.key, fam.display_name)
+    }
+
+    const seen = new Set<string>()
+    const out: Array<{
+      canonicalDisplayName: string
+      appearances: Array<{
+        familyKey: string
+        familyDisplayName: string
+        evalSummaryId: string
+        isCurrent: boolean
+      }>
+    }> = []
+    for (const entry of benchmarkIndex) {
+      // Flatten appearances and check overlap with this group's eval ids.
+      const flat: Array<{
+        familyKey: string
+        evalSummaryId: string
+      }> = []
+      for (const app of entry.appearances ?? []) {
+        for (const id of app.eval_summary_ids ?? []) {
+          flat.push({ familyKey: app.family_key, evalSummaryId: id })
+        }
+      }
+      const matches = flat.some((f) => groupEvalIds.has(f.evalSummaryId))
+      if (!matches) continue
+      // De-dupe in case multiple group variants land in the same entry.
+      if (seen.has(entry.key)) continue
+      seen.add(entry.key)
+      // Skip degenerate entries that only contain a single appearance —
+      // there's nothing to disclose.
+      if (flat.length <= 1) continue
+      out.push({
+        canonicalDisplayName: entry.display_name,
+        appearances: flat.map((f) => ({
+          familyKey: f.familyKey,
+          familyDisplayName: familyDisplayByKey.get(f.familyKey) ?? f.familyKey,
+          evalSummaryId: f.evalSummaryId,
+          isCurrent: groupEvalIds.has(f.evalSummaryId),
+        })),
+      })
+    }
+    return out
+  }, [evalHierarchy, group.variants])
+
+  void hierarchyIndex
 
   const variantRows = useMemo<DeepDiveVariantRow[]>(
     () =>
@@ -5649,6 +5729,53 @@ function BenchmarkDeepDiveDialogPanel({
             </div>
           )
         })()}
+
+        {crossFamilyAppearances.length > 0 && (
+          <section>
+            <div className="section-head">
+              <h2>Also reports this benchmark</h2>
+              <span className="font-mono text-[10px] uppercase tracking-[0.15em] text-[color:var(--fg-subtle)]">
+                {crossFamilyAppearances.reduce((sum, e) => sum + e.appearances.length, 0)} entries
+              </span>
+            </div>
+            <p className="mb-3 max-w-[60rem] text-[13px] leading-[1.65] text-[color:var(--fg-muted)]">
+              The same canonical benchmark appears under multiple families. Each
+              entry below is a separate eval row; scores from these siblings can
+              be compared but are recorded independently.
+            </p>
+            <div className="border-t border-l border-[color:var(--border-soft)]">
+              {crossFamilyAppearances.flatMap((entry) =>
+                entry.appearances.map((app) => (
+                  <Link
+                    key={`${entry.canonicalDisplayName}::${app.evalSummaryId}`}
+                    href={`/evals/${encodeURIComponent(app.evalSummaryId)}`}
+                    className="flex items-center justify-between gap-4 border-r border-b border-[color:var(--border-soft)] px-3 py-2 transition-colors hover:bg-[color:var(--bg-warm)]"
+                    style={{
+                      background: app.isCurrent ? "var(--bg-warm)" : "var(--bg)",
+                    }}
+                  >
+                    <div className="min-w-0">
+                      <div className="text-[13px] font-medium text-[color:var(--fg)]">
+                        {app.familyDisplayName}
+                        {app.isCurrent && (
+                          <span className="ml-2 font-mono text-[10px] uppercase tracking-[0.12em] text-[color:var(--accent)]">
+                            · current
+                          </span>
+                        )}
+                      </div>
+                      <div className="mt-0.5 truncate font-mono text-[10.5px] text-[color:var(--fg-subtle)]">
+                        {humanizeEvaluationId(app.evalSummaryId)}
+                      </div>
+                    </div>
+                    <span className="font-mono text-[10px] uppercase tracking-[0.12em] text-[color:var(--accent)] shrink-0">
+                      Open <ArrowUpRight className="inline h-3 w-3 align-text-top" aria-hidden />
+                    </span>
+                  </Link>
+                )),
+              )}
+            </div>
+          </section>
+        )}
 
         {useSingleSetupOverview ? (
           <section>
