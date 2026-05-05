@@ -4724,7 +4724,7 @@ export function BenchmarkDetail({
           </div>
         )}
 
-        {groupingMode !== "source" && availableCategories.length > 0 && (
+        {groupingMode === "category" && availableCategories.length > 0 && (
           <div className="mb-5 flex flex-wrap items-center gap-2">
             <span className="kicker mr-2">Category</span>
             <button

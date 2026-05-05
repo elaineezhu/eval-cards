@@ -149,7 +149,7 @@ export function fetchHeadline(): Promise<CorpusAggregates> {
 // blobs don't get served against new code. The disk path embeds this
 // suffix; old files are simply ignored (and re-created on the next
 // stale read).
-const CLEAN_HIERARCHY_VERSION = "v10"
+const CLEAN_HIERARCHY_VERSION = "v11"
 
 /**
  * Returns the cleaned hierarchy used by the rest of the app — sanitised
@@ -202,6 +202,14 @@ export function fetchHierarchy(): Promise<EvalHierarchy> {
     })
   }
   return (cache.hierarchy ??= fetchCleanedHierarchy())
+}
+
+/** Per-model cleaned benchmark count from the hierarchy payload.
+ *  Returns an empty map when the hierarchy was loaded without a
+ *  comparison-index (e.g. old cached v10 blobs). */
+export async function fetchModelCoverage(): Promise<Record<string, number>> {
+  const h = await fetchHierarchy()
+  return h._modelCoverageMap ?? {}
 }
 
 export function fetchComparisonIndex(): Promise<ComparisonIndex> {

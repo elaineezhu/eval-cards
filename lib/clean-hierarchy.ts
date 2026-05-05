@@ -201,8 +201,69 @@ export function cleanHierarchy(
     )
   }
   recomputeStats(h)
+  if (comparisonIndex) {
+    h._modelCoverageMap = buildModelCoverageMap(h, comparisonIndex)
+  }
   h[CLEANED_MARKER] = true
   return h
+}
+
+/**
+ * Build a { model_route_id → distinct_benchmark_count } map from the
+ * cleaned hierarchy and the comparison-index scores.
+ *
+ * Steps:
+ *   1. Walk every surviving benchmark's summary_eval_ids to build
+ *      eval_summary_id → benchmark_key.
+ *   2. Walk comparison-index scores to collect, per model, the set of
+ *      eval_summary_ids it has a finite score for.
+ *   3. For each model, count the distinct benchmark_keys reachable
+ *      from its covered eval ids.
+ */
+function buildModelCoverageMap(
+  h: CleanableHierarchy,
+  comparisonIndex: ComparisonIndexLike,
+): Record<string, number> {
+  // Step 1: eval_summary_id → benchmark_key
+  const evalToBenchmark = new Map<string, string>()
+  const visitBench = (b: HierarchyBenchmark) => {
+    for (const id of b.summary_eval_ids ?? []) {
+      if (!evalToBenchmark.has(id)) evalToBenchmark.set(id, b.key)
+    }
+  }
+  for (const fam of h.families ?? []) {
+    for (const b of fam.benchmarks ?? []) visitBench(b)
+    for (const b of fam.standalone_benchmarks ?? []) visitBench(b)
+    for (const c of fam.composites ?? []) {
+      for (const b of c.benchmarks ?? []) visitBench(b)
+    }
+  }
+
+  // Step 2: model_route_id → Set<eval_summary_id with a finite score>
+  const modelEvals = new Map<string, Set<string>>()
+  for (const [evalId, entry] of Object.entries(comparisonIndex.evals ?? {})) {
+    for (const metric of entry.metrics ?? []) {
+      for (const row of metric.scores ?? []) {
+        const modelId = row.model_route_id || row.model_family_id
+        if (!modelId || row.score == null || !Number.isFinite(row.score as number)) continue
+        const set = modelEvals.get(modelId) ?? new Set<string>()
+        set.add(evalId)
+        modelEvals.set(modelId, set)
+      }
+    }
+  }
+
+  // Step 3: count distinct benchmark keys per model
+  const coverage: Record<string, number> = {}
+  for (const [modelId, evalIds] of modelEvals) {
+    const benchKeys = new Set<string>()
+    for (const id of evalIds) {
+      const bKey = evalToBenchmark.get(id)
+      if (bKey) benchKeys.add(bKey)
+    }
+    if (benchKeys.size > 0) coverage[modelId] = benchKeys.size
+  }
+  return coverage
 }
 
 /**

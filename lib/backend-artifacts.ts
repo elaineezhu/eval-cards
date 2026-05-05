@@ -384,6 +384,11 @@ export interface EvalHierarchy {
   stats?: EvalHierarchyStats
   families: HierarchyFamily[]
   benchmark_index?: BenchmarkIndexEntry[]
+  /** Per-model cleaned benchmark count, keyed by model_route_id.
+   *  Injected by cleanHierarchy() and persisted in the disk cache so
+   *  data-backend can override the warehouse's pre-baked benchmarks_count
+   *  (which is computed before the cleaner folds split families). */
+  _modelCoverageMap?: Record<string, number>
 }
 
 // ---------------------------------------------------------------------------

@@ -26,9 +26,26 @@ async function hfData() {
   return import("@/lib/hf-data")
 }
 
+async function applyModelCoverage<T extends { route_id: string; benchmarks_count: number }>(
+  cards: T[],
+): Promise<T[]> {
+  try {
+    const coverage = await (await sidecars()).fetchModelCoverage()
+    if (Object.keys(coverage).length === 0) return cards
+    return cards.map((c) =>
+      coverage[c.route_id] != null
+        ? { ...c, benchmarks_count: coverage[c.route_id] }
+        : c,
+    )
+  } catch {
+    return cards
+  }
+}
+
 export async function getModelCards() {
   if (useViewLayerBackend()) {
-    return (await viewBackend()).getModelCards()
+    const cards = await (await viewBackend()).getModelCards()
+    return applyModelCoverage(cards)
   }
 
   return (await legacyBackend()).getModelCardsFromDuckDB()
@@ -36,7 +53,8 @@ export async function getModelCards() {
 
 export async function getModelCardsLite() {
   if (useViewLayerBackend()) {
-    return (await viewBackend()).getModelCardsLite()
+    const cards = await (await viewBackend()).getModelCardsLite()
+    return applyModelCoverage(cards)
   }
 
   return (await legacyBackend()).getModelCardsLiteFromDuckDB()
