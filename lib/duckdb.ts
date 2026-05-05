@@ -8,6 +8,7 @@ import { tmpdir } from "node:os"
 import { join } from "node:path"
 import { Readable } from "node:stream"
 import { pipeline } from "node:stream/promises"
+import { fileURLToPath } from "node:url"
 
 let connectionPromise: Promise<DuckDBConnection> | null = null
 
@@ -84,6 +85,11 @@ async function isCachedAndFresh(path: string): Promise<boolean> {
  * the rest of the page render.
  */
 async function ensureLocalParquet(url: string): Promise<string> {
+  // file:// SNAPSHOT_URL already points at local disk; skip mirroring.
+  // Node's fetch() doesn't support file://, so without this the call
+  // would always take the catch path with an opaque "fetch failed".
+  if (url.startsWith("file://")) return fileURLToPath(url)
+
   const cachePath = diskCachePath(url)
   if (await isCachedAndFresh(cachePath)) return cachePath
   try {
