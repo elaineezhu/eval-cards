@@ -107,7 +107,7 @@ export default function ModelsPage() {
         case "name":
           return a.model_name.localeCompare(b.model_name)
         case "released":
-          return safeTimestamp(b.release_date ?? b.latest_timestamp) - safeTimestamp(a.release_date ?? a.latest_timestamp)
+          return safeTimestamp(b.release_date) - safeTimestamp(a.release_date)
         case "params":
           return (b.params_billions ?? 0) - (a.params_billions ?? 0)
         case "results":

@@ -127,7 +127,7 @@ export function ModelTable({
                   {row.developer}
                 </td>
                 <td className="font-mono text-[12px] text-[color:var(--fg-muted)] num">
-                  {formatDateShort(row.release_date ?? row.latest_timestamp)}
+                  {formatDateShort(row.release_date)}
                 </td>
                 <td className="font-mono text-[12px] text-[color:var(--fg-muted)]">
                   {formatParams(row)}
