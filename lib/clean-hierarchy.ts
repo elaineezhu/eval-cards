@@ -895,6 +895,7 @@ function flattenSplitFamilies(h: CleanableHierarchy) {
       fam.composites = [synthetic]
       fam.benchmarks = []
       fam.standalone_benchmarks = []
+      fam.display_name = rule.syntheticDisplayName
       continue
     }
 
@@ -1099,6 +1100,7 @@ function flattenSplitFamilies(h: CleanableHierarchy) {
       fam.standalone_benchmarks = [standalone]
       fam.benchmarks = []
       fam.composites = []
+      fam.display_name = rule.syntheticDisplayName
       continue
     }
 
@@ -1159,6 +1161,7 @@ function flattenSplitFamilies(h: CleanableHierarchy) {
     fam.standalone_benchmarks = [standalone]
     fam.benchmarks = []
     fam.composites = []
+    fam.display_name = (rule as { syntheticDisplayName: string }).syntheticDisplayName
   }
 }
 

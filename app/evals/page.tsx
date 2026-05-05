@@ -2,9 +2,9 @@
 
 import { Suspense, useCallback, useDeferredValue, useEffect, useMemo, useState } from "react"
 import { useRouter, useSearchParams } from "next/navigation"
-import { ChevronDown, ChevronUp, Search, Tag } from "lucide-react"
+import { Search } from "lucide-react"
 
-import { FamilyTable, getFamilyNavId } from "@/components/family-table"
+import { FamilyTable, getFamilyNavId, type FamilySortCol } from "@/components/family-table"
 import { InfiniteScrollSentinel } from "@/components/infinite-scroll"
 import { Navigation } from "@/components/navigation"
 import type { EvalHierarchy, HierarchyFamily } from "@/lib/backend-artifacts"
@@ -15,33 +15,22 @@ import { formatTagLabel } from "@/lib/benchmark-tags"
 
 const PAGE_SIZE = 60
 
-type FamilySort = "results" | "benchmarks" | "name" | "category"
-
-function familyEvalsCount(fam: HierarchyFamily): number {
-  if (fam.evals_count != null) return fam.evals_count
-
-  // v3 fallback: sum metric counts across the family's benchmarks (one
-  // of the three layout fields is present per family per spec §5.1).
-  const allBenchmarks = [
-    ...(fam.standalone_benchmarks ?? []),
-    ...(fam.benchmarks ?? []),
-    ...((fam.composites ?? []).flatMap((c) => c.benchmarks ?? [])),
-  ]
-  return allBenchmarks.reduce(
-    (sum, b) => sum + (b.metrics?.length ?? 0),
-    0,
-  )
-}
-
-function familyBenchmarkCount(fam: HierarchyFamily): number {
+function getFamilyBenchmarkCount(fam: HierarchyFamily): number {
   return (
     (fam.standalone_benchmarks?.length ?? 0) +
     (fam.benchmarks?.length ?? 0) +
-    ((fam.composites ?? []).reduce(
-      (sum, c) => sum + (c.benchmarks?.length ?? 0),
-      0,
-    ))
+    (fam.composites ?? []).reduce((sum, c) => sum + (c.benchmarks?.length ?? 0), 0)
   )
+}
+
+function getFamilyEvalsCount(fam: HierarchyFamily): number {
+  if (fam.evals_count != null) return fam.evals_count
+  const all = [
+    ...(fam.standalone_benchmarks ?? []),
+    ...(fam.benchmarks ?? []),
+    ...(fam.composites ?? []).flatMap((c) => c.benchmarks ?? []),
+  ]
+  return all.reduce((sum, b) => sum + (b.metrics?.length ?? 0), 0)
 }
 
 function EvalsPageInner() {
@@ -55,12 +44,22 @@ function EvalsPageInner() {
   const [benchmarkCards, setBenchmarkCards] = useState<Record<string, BenchmarkCard>>({})
   const [loading, setLoading] = useState(true)
   const [searchQuery, setSearchQuery] = useState("")
-  const [sortBy, setSortBy] = useState<FamilySort>("results")
   const [visibleCount, setVisibleCount] = useState(PAGE_SIZE)
-  const [domainPanelOpen, setDomainPanelOpen] = useState(false)
-  const [domainFilter, setDomainFilter] = useState<Set<string>>(new Set())
   const [selectedCategories, setSelectedCategories] = useState<string[]>([])
+  const [sortCol, setSortCol] = useState<FamilySortCol>("name")
+  const [sortDir, setSortDir] = useState<"asc" | "desc">("asc")
   const deferredSearchQuery = useDeferredValue(searchQuery)
+
+  const handleSort = useCallback((col: FamilySortCol) => {
+    setSortCol((prev) => {
+      if (prev === col) {
+        setSortDir((d) => (d === "asc" ? "desc" : "asc"))
+        return col
+      }
+      setSortDir("asc")
+      return col
+    })
+  }, [])
 
   useEffect(() => {
     Promise.all([fetchEvalHierarchy(), fetchEvalList(), fetchBenchmarkMetadata()])
@@ -94,91 +93,6 @@ function EvalsPageInner() {
   }, [familyParam, hierarchy, benchmarkCards, router])
 
   const families = hierarchy?.families ?? []
-
-  // Build a domain → family-count map. The lite eval list doesn't carry
-  // benchmark cards, so we read domains from `benchmark-metadata.json`
-  // (keyed by benchmark / leaf / family key). For each family we union
-  // the domains across the family key itself and every leaf key, then
-  // count one bump per family per distinct domain.
-  const familyDomains = useMemo(() => {
-    const out = new Map<string, Set<string>>()
-    const lookupDomains = (key: string | null | undefined): string[] => {
-      if (!key) return []
-      const card = benchmarkCards[key]
-      const domains = card?.benchmark_details?.domains
-      return Array.isArray(domains) ? domains : []
-    }
-    for (const fam of families) {
-      const seen = new Set<string>()
-      // Family-level fallback first (cards keyed by family slug).
-      for (const d of lookupDomains(fam.key)) seen.add(d.trim().toLowerCase())
-
-      // v2 primary path: walk every nested benchmark across composites,
-      // standalone benchmarks, and any family-level benchmarks array.
-      const nestedBenchmarks = [
-        ...(fam.standalone_benchmarks ?? []),
-        ...(fam.benchmarks ?? []),
-        ...(fam.composites ?? []).flatMap((c) => c.benchmarks ?? []),
-      ]
-      for (const benchmark of nestedBenchmarks) {
-        for (const d of benchmark.tags?.domains ?? []) seen.add(d.trim().toLowerCase())
-        for (const d of lookupDomains(benchmark.key)) seen.add(d.trim().toLowerCase())
-        for (const id of benchmark.summary_eval_ids ?? []) {
-          for (const d of lookupDomains(id)) seen.add(d.trim().toLowerCase())
-        }
-      }
-
-      // Family-level eval_summary_ids cover the v3 shape.
-      for (const id of fam.eval_summary_ids ?? []) {
-        for (const d of lookupDomains(id)) seen.add(d.trim().toLowerCase())
-      }
-      seen.delete("")
-      out.set(fam.key, seen)
-    }
-    return out
-  }, [families, benchmarkCards])
-
-  // Domain → display label (from the first non-empty card occurrence) +
-  // count of families touching that domain. Sorted descending by count.
-  const domainCounts = useMemo(() => {
-    const counts = new Map<string, number>()
-    const labels = new Map<string, string>()
-    const recordLabel = (raw: string) => {
-      const key = raw.trim().toLowerCase()
-      if (!key || labels.has(key)) return
-      labels.set(key, raw.trim())
-    }
-    for (const card of Object.values(benchmarkCards)) {
-      for (const d of card?.benchmark_details?.domains ?? []) recordLabel(d)
-    }
-    for (const fam of families) {
-      const nestedBenchmarks = [
-        ...(fam.standalone_benchmarks ?? []),
-        ...(fam.benchmarks ?? []),
-        ...(fam.composites ?? []).flatMap((c) => c.benchmarks ?? []),
-      ]
-      for (const benchmark of nestedBenchmarks) {
-        for (const d of benchmark.tags?.domains ?? []) recordLabel(d)
-      }
-    }
-    for (const set of familyDomains.values()) {
-      for (const key of set) counts.set(key, (counts.get(key) ?? 0) + 1)
-    }
-    return Array.from(counts.entries())
-      .map(([key, count]) => ({ domain: labels.get(key) ?? key, count, key }))
-      .sort((a, b) => b.count - a.count || a.domain.localeCompare(b.domain))
-  }, [familyDomains, families, benchmarkCards])
-
-  const toggleDomain = useCallback((domain: string) => {
-    setDomainFilter((current) => {
-      const next = new Set(current)
-      if (next.has(domain)) next.delete(domain)
-      else next.add(domain)
-      return next
-    })
-  }, [])
-
-  const clearDomainFilter = useCallback(() => setDomainFilter(new Set()), [])
 
   // Tags per family — union of derivedTags across the family and every
   // nested benchmark/composite. derivedTags is attached at hydration
@@ -246,33 +160,32 @@ function EvalsPageInner() {
       })
     }
 
-    if (domainFilter.size > 0) {
-      list = list.filter((fam) => {
-        const set = familyDomains.get(fam.key)
-        if (!set) return false
-        for (const key of set) if (domainFilter.has(key)) return true
-        return false
-      })
-    }
-
     return list.slice().sort((a, b) => {
-      switch (sortBy) {
+      let cmp = 0
+      switch (sortCol) {
         case "name":
-          return a.display_name.localeCompare(b.display_name)
-        case "category":
-          return (a.category ?? "").localeCompare(b.category ?? "")
+          cmp = a.display_name.localeCompare(b.display_name)
+          break
+        case "categories": {
+          const aTag = (a.derivedTags ?? [])[0] ?? ""
+          const bTag = (b.derivedTags ?? [])[0] ?? ""
+          cmp = aTag.localeCompare(bTag)
+          break
+        }
         case "benchmarks":
-          return familyBenchmarkCount(b) - familyBenchmarkCount(a)
+          cmp = getFamilyBenchmarkCount(a) - getFamilyBenchmarkCount(b)
+          break
         case "results":
-        default:
-          return familyEvalsCount(b) - familyEvalsCount(a)
+          cmp = getFamilyEvalsCount(a) - getFamilyEvalsCount(b)
+          break
       }
+      return sortDir === "asc" ? cmp : -cmp
     })
-  }, [families, deferredSearchQuery, sortBy, domainFilter, selectedCategories, familyDomains, familyTags])
+  }, [families, deferredSearchQuery, selectedCategories, familyTags, sortCol, sortDir])
 
   useEffect(() => {
     setVisibleCount(PAGE_SIZE)
-  }, [deferredSearchQuery, sortBy, domainFilter, selectedCategories])
+  }, [deferredSearchQuery, selectedCategories, sortCol, sortDir])
 
   const visibleFamilies = useMemo(
     () => filteredFamilies.slice(0, visibleCount),
@@ -347,129 +260,7 @@ function EvalsPageInner() {
             />
           </div>
 
-          <div className="grow" />
-
-          {domainCounts.length > 0 && (
-            <button
-              type="button"
-              onClick={() => setDomainPanelOpen((v) => !v)}
-              className="inline-flex items-center gap-2"
-              style={{
-                fontFamily: "var(--font-mono)",
-                fontSize: 10,
-                letterSpacing: "0.14em",
-                textTransform: "uppercase",
-                padding: "6px 12px",
-                border: "1px solid var(--border-strong)",
-                background:
-                  domainPanelOpen || domainFilter.size > 0 ? "var(--fg)" : "var(--bg)",
-                color:
-                  domainPanelOpen || domainFilter.size > 0 ? "var(--bg)" : "var(--fg)",
-                cursor: "pointer",
-              }}
-              aria-expanded={domainPanelOpen}
-            >
-              <Tag className="h-3 w-3" aria-hidden />
-              Filter by domain
-              {domainFilter.size > 0 && (
-                <span className="font-mono tabular-nums" style={{ marginLeft: 2 }}>
-                  · {domainFilter.size}
-                </span>
-              )}
-              {domainPanelOpen ? (
-                <ChevronUp className="h-3 w-3" aria-hidden />
-              ) : (
-                <ChevronDown className="h-3 w-3" aria-hidden />
-              )}
-            </button>
-          )}
-
-          <select
-            className="ec-select"
-            value={sortBy}
-            onChange={(event) => setSortBy(event.target.value as FamilySort)}
-          >
-            <option value="results">Sort · Reported results</option>
-            <option value="benchmarks">Sort · Benchmarks</option>
-            <option value="name">Sort · Name</option>
-            <option value="category">Sort · Category</option>
-          </select>
         </div>
-
-        {/* DOMAIN FILTER PANEL — collapsed by default, opens when the user
-            wants to slice the family list by topical domain. Picks unfurl
-            every aggregator family in the table below so matching
-            benchmarks are immediately visible. */}
-        {domainPanelOpen && domainCounts.length > 0 && (
-          <div
-            className="mb-6"
-            style={{
-              border: "1px solid var(--border-soft)",
-              background: "var(--bg-warm)",
-              padding: "12px 16px",
-            }}
-          >
-            <div className="mb-3 flex items-center justify-between gap-3">
-              <div
-                className="font-mono uppercase"
-                style={{ fontSize: 10, letterSpacing: "0.14em", color: "var(--fg-subtle)" }}
-              >
-                {domainFilter.size === 0
-                  ? `Pick one or more domains · ${domainCounts.length} available`
-                  : `${domainFilter.size} selected · ${domainCounts.length - domainFilter.size} more`}
-              </div>
-              {domainFilter.size > 0 && (
-                <button
-                  type="button"
-                  onClick={clearDomainFilter}
-                  className="font-mono uppercase"
-                  style={{
-                    fontSize: 10,
-                    letterSpacing: "0.12em",
-                    color: "var(--fg-subtle)",
-                    background: "transparent",
-                    border: 0,
-                    cursor: "pointer",
-                  }}
-                >
-                  Clear
-                </button>
-              )}
-            </div>
-            <div className="flex flex-wrap gap-1.5">
-              {domainCounts.map(({ domain, count }) => {
-                const key = domain.trim().toLowerCase()
-                const selected = domainFilter.has(key)
-                return (
-                  <button
-                    key={key}
-                    type="button"
-                    onClick={() => toggleDomain(key)}
-                    className="ec-tag outline inline-flex items-center gap-1.5"
-                    style={{
-                      cursor: "pointer",
-                      background: selected ? "var(--fg)" : "var(--bg)",
-                      color: selected ? "var(--bg)" : "var(--fg)",
-                      borderColor: selected ? "var(--fg)" : "var(--border-strong)",
-                      textTransform: "none",
-                      letterSpacing: "normal",
-                      fontFamily: "var(--font-sans)",
-                    }}
-                    aria-pressed={selected}
-                  >
-                    <span className="text-[12px] font-medium capitalize">{domain}</span>
-                    <span
-                      className="font-mono text-[10px] tabular-nums"
-                      style={{ color: selected ? "var(--bg)" : "var(--fg-muted)" }}
-                    >
-                      {count}
-                    </span>
-                  </button>
-                )
-              })}
-            </div>
-          </div>
-        )}
 
         {/* CATEGORY PILLS — multi-select filter by curated benchmark
             tag (data/benchmarks/categories.json), with the legacy
@@ -522,7 +313,7 @@ function EvalsPageInner() {
               className="btn-ec outline"
               onClick={() => {
                 setSearchQuery("")
-                setSortBy("results")
+                setSelectedCategories([])
               }}
             >
               Reset filters
@@ -534,8 +325,10 @@ function EvalsPageInner() {
             totalModels={totalModels}
             evalItems={evalItems}
             benchmarkCards={benchmarkCards}
-            domainFilter={domainFilter}
             categoryFilter={new Set(selectedCategories)}
+            sortCol={sortCol}
+            sortDir={sortDir}
+            onSort={handleSort}
           />
         )}
 

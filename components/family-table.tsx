@@ -2,55 +2,34 @@
 
 import { Fragment, useMemo, useState } from "react"
 import { useRouter } from "next/navigation"
-import { ArrowUpRight, ChevronDown, ChevronRight } from "lucide-react"
+import { ArrowUpRight, ChevronDown, ChevronRight, ChevronUp, ChevronsUpDown } from "lucide-react"
 
-import type { HierarchyBenchmark, HierarchyFamily } from "@/lib/backend-artifacts"
+import type { HierarchyBenchmark, HierarchyComposite, HierarchyFamily } from "@/lib/backend-artifacts"
 import { formatTagLabel } from "@/lib/benchmark-tags"
 import type { BenchmarkCard } from "@/lib/benchmark-schema"
 import type { BenchmarkEvalListItem } from "@/lib/eval-processing"
 import { humanizeEvaluationId } from "@/lib/utils"
 
-/**
- * Per-category chip colour. Uses oklch tokens so the chip reads against
- * both light and dark backgrounds; the saturation is held low to stay in
- * the editorial palette (no candy-bright accents).
- */
-// Categories use the neutral chip styling — colour-coded chips read as
-// noise against the editorial palette.
-
-const LEAVES_INLINE_MIN = 2
 const LEAVES_INLINE_MAX = 50
+
+export type FamilySortCol = "name" | "categories" | "benchmarks" | "results"
 
 interface FamilyTableProps {
   families: HierarchyFamily[]
   totalModels: number
   evalItems?: Map<string, BenchmarkEvalListItem>
-  /** Optional benchmark-metadata index (keyed by benchmark / leaf / family
-   *  key). Used to look up per-leaf domains when the hierarchy doesn't
-   *  carry `leaf.tags.domains`, so the domain filter works on data that
-   *  only ships domains via the metadata file. */
   benchmarkCards?: Record<string, BenchmarkCard>
-  /** Lower-cased domain slugs to filter the listing. When non-empty, every
-   *  expandable family is auto-expanded and its leaves are restricted to
-   *  those that touch one of the selected domains. Single-benchmark
-   *  families are kept only when their domains intersect the filter.
-   *  Pass `null`/`undefined` to disable filtering. */
   domainFilter?: Set<string> | null
-  /** Curated category-tag slugs (data/benchmarks/categories.json
-   *  vocabulary) to filter on. Same expand-and-filter behaviour as
-   *  `domainFilter`: matching families auto-expand, leaves are
-   *  restricted to those whose `derivedTags` intersect the selection. */
   categoryFilter?: Set<string> | null
+  sortCol?: FamilySortCol
+  sortDir?: "asc" | "desc"
+  onSort?: (col: FamilySortCol) => void
 }
 
 function slugify(value: string | null | undefined): string {
   return (value ?? "").toLowerCase().replace(/[^a-z0-9]+/g, "")
 }
 
-/** Render a family key as a human-readable title — used as a fallback when
- *  the backend `display_name` is misleading (e.g. names a single leaf instead
- *  of the family). Common acronyms stay uppercase; everything else is title
- *  case. */
 const FAMILY_KEY_ACRONYMS = new Set([
   "llm", "llms", "aa", "hf", "api", "cli", "sql", "gpt", "qa", "ai", "ml",
   "nlp", "rl", "vqa", "vlm", "mt", "cv",
@@ -73,157 +52,116 @@ interface LeafEntry {
   evalsCount: number
   domains: string[]
   tags: string[]
+  description?: string | null
+  hasSlices: boolean
 }
 
-/**
- * Build the per-row list of expandable benchmarks under a family.
- *
- * Primary path: the v2 production shape, where the hierarchy nests
- * benchmarks under `families[].composites[].benchmarks[]` (plus
- * `standalone_benchmarks[]` and the family-level `benchmarks[]`). Each
- * benchmark carries its own `summary_eval_ids` for navigation.
- *
- * Fallback path: the legacy `families[].leaves[]` shape used by older
- * snapshots. Kept for compatibility while older caches are still in
- * circulation.
- */
+/** A section inside the family accordion.
+ *  "composite" — benchmarks that belong to a named composite group.
+ *  "flat"      — standalone / direct benchmarks with no composite wrapper. */
+interface AccordionSection {
+  type: "composite" | "flat"
+  key: string
+  name: string
+  description?: string | null
+  leaves: LeafEntry[]
+}
+
+function buildLeafEntry(
+  benchmark: HierarchyBenchmark,
+  famKey: string,
+  benchmarkCards?: Record<string, BenchmarkCard>,
+): LeafEntry | null {
+  const summaryIds = benchmark.summary_eval_ids ?? []
+  const ids = summaryIds.length > 0
+    ? summaryIds
+    : benchmark.key ? [`${famKey}_${benchmark.key}`, benchmark.key] : []
+  if (ids.length === 0) return null
+
+  const collected = new Set<string>()
+  for (const d of benchmark.tags?.domains ?? []) collected.add(d.toLowerCase())
+  const cardByKey = benchmarkCards?.[benchmark.key]
+  for (const d of cardByKey?.benchmark_details?.domains ?? []) collected.add(d.toLowerCase())
+  for (const id of ids) {
+    for (const d of benchmarkCards?.[id]?.benchmark_details?.domains ?? []) collected.add(d.toLowerCase())
+  }
+
+  const description =
+    cardByKey?.benchmark_details?.overview ??
+    benchmarkCards?.[ids[0]]?.benchmark_details?.overview ??
+    null
+
+  return {
+    id: ids[0],
+    leafKey: benchmark.key,
+    leafName: benchmark.display_name || benchmark.key,
+    evalsCount: ids.length,
+    domains: Array.from(collected),
+    tags: benchmark.derivedTags ?? [],
+    description: description
+      ? description.length > 120 ? description.slice(0, 117) + "…" : description
+      : null,
+    hasSlices: (benchmark.slices?.length ?? 0) > 0,
+  }
+}
+
+function collectFamilySections(
+  fam: HierarchyFamily,
+  benchmarkCards?: Record<string, BenchmarkCard>,
+): AccordionSection[] {
+  const sections: AccordionSection[] = []
+
+  // 1. Composite groups first
+  for (const composite of fam.composites ?? []) {
+    const leaves: LeafEntry[] = []
+    for (const bench of composite.benchmarks ?? []) {
+      const entry = buildLeafEntry(bench, fam.key, benchmarkCards)
+      if (entry) leaves.push(entry)
+    }
+    if (leaves.length === 0) continue
+    const compDesc = benchmarkCards?.[composite.key]?.benchmark_details?.overview ?? null
+    sections.push({
+      type: "composite",
+      key: composite.key,
+      name: composite.display_name || composite.key,
+      description: compDesc
+        ? compDesc.length > 120 ? compDesc.slice(0, 117) + "…" : compDesc
+        : null,
+      leaves,
+    })
+  }
+
+  // 2. Standalone + direct benchmarks — flat section (no header)
+  const flatLeaves: LeafEntry[] = []
+  for (const bench of [...(fam.standalone_benchmarks ?? []), ...(fam.benchmarks ?? [])]) {
+    const entry = buildLeafEntry(bench, fam.key, benchmarkCards)
+    if (entry) flatLeaves.push(entry)
+  }
+  if (flatLeaves.length > 0) {
+    sections.push({ type: "flat", key: `${fam.key}--flat`, name: "", leaves: flatLeaves })
+  }
+
+  return sections
+}
+
+// Keep a flat list for filtering/counting
 function collectLeafEntries(
   fam: HierarchyFamily,
   benchmarkCards?: Record<string, BenchmarkCard>,
 ): LeafEntry[] {
-  const out: LeafEntry[] = []
-
-  // ── Primary: nested benchmarks (v2) ────────────────────────────────
-  const nested: HierarchyBenchmark[] = [
+  const all: HierarchyBenchmark[] = [
     ...(fam.standalone_benchmarks ?? []),
     ...(fam.benchmarks ?? []),
-    ...(fam.composites ?? []).flatMap((c) => c.benchmarks ?? []),
+    ...(fam.composites ?? []).flatMap((c: HierarchyComposite) => c.benchmarks ?? []),
   ]
-  for (const benchmark of nested) {
-    const summaryIds = benchmark.summary_eval_ids ?? []
-    const ids =
-      summaryIds.length > 0
-        ? summaryIds
-        : benchmark.key
-        ? [`${fam.key}_${benchmark.key}`, benchmark.key]
-        : []
-    if (ids.length === 0) continue
-    const collected = new Set<string>()
-    for (const d of benchmark.tags?.domains ?? []) collected.add(d.toLowerCase())
-    const cardByKey = benchmarkCards?.[benchmark.key]
-    for (const d of cardByKey?.benchmark_details?.domains ?? []) collected.add(d.toLowerCase())
-    for (const id of ids) {
-      const cardById = benchmarkCards?.[id]
-      for (const d of cardById?.benchmark_details?.domains ?? []) collected.add(d.toLowerCase())
-    }
-    out.push({
-      id: ids[0],
-      leafKey: benchmark.key,
-      leafName: benchmark.display_name || benchmark.key,
-      evalsCount: ids.length,
-      domains: Array.from(collected),
-      tags: benchmark.derivedTags ?? [],
-    })
+  const out: LeafEntry[] = []
+  for (const b of all) {
+    const entry = buildLeafEntry(b, fam.key, benchmarkCards)
+    if (entry) out.push(entry)
   }
-
   return out
 }
 
-/**
- * Resolve the family-level navigation target without exposing the
- * internal `LeafEntry` shape. Returns the eval_summary_id to open when
- * the user clicks the family card / row, or `null` for aggregator
- * families that should expand inline instead of navigating.
- */
-export function getFamilyNavId(
-  fam: HierarchyFamily,
-  benchmarkCards?: Record<string, BenchmarkCard>,
-): string | null {
-  return pickFamilyNavId(fam, collectLeafEntries(fam, benchmarkCards))
-}
-
-/**
- * Pick the eval_summary_id to navigate to when the user clicks the family
- * row. Returns null when the family has no genuine family-level summary —
- * in that case the row click should expand the leaf list instead of
- * opening one arbitrary child.
- *
- * Some backend families flatten their leaf eval_summary_ids into the
- * family's own `eval_summary_ids` array (e.g. family `llm_stats` whose
- * direct ids are `llm_stats_aa_index`, `llm_stats_humaneval`, ... — each
- * a leaf summary). Those are NOT family-level composites; treating them
- * as such is what made clicking "LLM-Stats" land on AA Index.
- *
- * We filter direct ids down to those that are NOT also leaf ids. Whatever
- * remains is a real family-level summary. Then we apply slug-based
- * priority among those.
- */
-function pickFamilyNavId(fam: HierarchyFamily, leafEntries: LeafEntry[]): string | null {
-  const directIds = fam.eval_summary_ids ?? []
-  const leafIdSet = new Set(leafEntries.map((l) => l.id))
-
-  // Real family-level summaries: direct ids that aren't actually leaf ids
-  // pulled up to the family. These resolve to is_aggregated/composite
-  // summaries on the detail page.
-  const compositeDirectIds = directIds.filter((id) => !leafIdSet.has(id))
-
-  if (compositeDirectIds.length === 0) {
-    // No genuine family-level composite. If there's exactly one leaf, the
-    // family is just that leaf in disguise — open it. Otherwise return
-    // null and let the caller expand the list.
-    if (leafEntries.length === 1) return leafEntries[0].id
-    return null
-  }
-
-  if (compositeDirectIds.length === 1) return compositeDirectIds[0]
-
-  const famNameSlug = slugify(fam.display_name)
-  const famKeySlug = slugify(fam.key)
-
-  // 1. Direct composite whose slug equals the family display_name slug
-  if (famNameSlug) {
-    for (const id of compositeDirectIds) {
-      if (slugify(id) === famNameSlug) return id
-    }
-  }
-
-  // 2. Direct composite whose slug equals the family key slug
-  for (const id of compositeDirectIds) {
-    if (slugify(id) === famKeySlug) return id
-  }
-
-  // 3. First direct composite
-  return compositeDirectIds[0]
-}
-
-/** Returns a one-line description for the family — but only when the
- *  description applies to the whole family. Specifically: we only use the
- *  benchmark_card overview attached to the family's *own* navigation
- *  target (a family-level/composite eval). We don't borrow descriptions
- *  from individual leaves, because a leaf's description describes that
- *  one benchmark, not the family as a whole. */
-function pickFamilyDescription(
-  navId: string | null,
-  leafEntries: LeafEntry[],
-  evalItems: Map<string, BenchmarkEvalListItem> | undefined,
-): string | null {
-  if (!evalItems || !navId) return null
-  // If navId resolved to a leaf (single-benchmark family), the leaf's
-  // description IS the family's description — that case is fine.
-  // If navId resolved to a composite, ditto. The only case we exclude is
-  // navId === null (no family-level summary), which the early return
-  // covers.
-  void leafEntries
-  const overview = evalItems.get(navId)?.benchmark_card?.benchmark_details?.overview
-  if (!overview) return null
-  return overview.length > 140 ? overview.slice(0, 137) + "…" : overview
-}
-
-/** Detects whether the family's `display_name` is misleading: backend data
- *  sometimes labels a family after one of its leaves (e.g. family
- *  `llm_stats` with display_name "HumanEval"). When that's the case the
- *  row should be titled with the humanized key instead, so the user can
- *  see they're looking at a *family* rather than a single benchmark. */
 function isFamilyDisplayNameMisleading(fam: HierarchyFamily, leafEntries: LeafEntry[]): boolean {
   const nameSlug = slugify(fam.display_name)
   if (!nameSlug) return false
@@ -234,18 +172,24 @@ function isFamilyDisplayNameMisleading(fam: HierarchyFamily, leafEntries: LeafEn
   )
 }
 
+export function getFamilyNavId(
+  fam: HierarchyFamily,
+  benchmarkCards?: Record<string, BenchmarkCard>,
+): string | null {
+  const leaves = collectLeafEntries(fam, benchmarkCards)
+  if (leaves.length === 1) return leaves[0].id
+  return null
+}
+
 interface RowData {
   key: string
-  navId: string | null
   name: string
   keySlug: string
   tags: string[]
   benchmarks: number
   evalsCount: number
   leaves: LeafEntry[]
-  /** True when the family has many leaves with no clean family-level summary —
-   *  we open it expanded so the user picks a leaf directly. */
-  isAggregator: boolean
+  sections: AccordionSection[]
   description: string | null
 }
 
@@ -256,6 +200,9 @@ export function FamilyTable({
   benchmarkCards,
   domainFilter,
   categoryFilter,
+  sortCol,
+  sortDir,
+  onSort,
 }: FamilyTableProps) {
   const router = useRouter()
   const [expanded, setExpanded] = useState<Record<string, boolean>>({})
@@ -280,33 +227,19 @@ export function FamilyTable({
 
   function familyMatchesFilter(
     fam: HierarchyFamily,
-    navId: string | null,
     leafEntries: LeafEntry[],
   ): boolean {
     if (!filterActive) return true
     if (leafEntries.some(leafMatchesFilter)) return true
     if (categoryFilterActive && categoryFilter) {
-      // Family-level tag union (from derivedTags) — covers single-benchmark
-      // families and aggregator families whose own bucket holds the tag
-      // even if no leaf row carries it.
       for (const tag of fam.derivedTags ?? []) {
-        if (categoryFilter.has(tag)) {
-          // Only counts if the domain side also matches (or is inactive).
-          if (!domainFilterActive) return true
-        }
+        if (categoryFilter.has(tag) && !domainFilterActive) return true
       }
     }
     if (!domainFilterActive || !domainFilter) return false
-    const candidates: BenchmarkCard | undefined = (() => {
-      if (navId) {
-        const fromList = evalItems?.get(navId)?.benchmark_card
-        if (fromList) return fromList
-      }
-      return undefined
-    })()
-    const sources: Array<string[]> = []
-    if (candidates) sources.push(candidates.benchmark_details?.domains ?? [])
-    sources.push(benchmarkCards?.[fam.key]?.benchmark_details?.domains ?? [])
+    const sources: Array<string[]> = [
+      benchmarkCards?.[fam.key]?.benchmark_details?.domains ?? [],
+    ]
     for (const id of fam.eval_summary_ids ?? []) {
       sources.push(benchmarkCards?.[id]?.benchmark_details?.domains ?? [])
     }
@@ -321,58 +254,48 @@ export function FamilyTable({
   const rows = useMemo<RowData[]>(() => {
     const out: RowData[] = []
     for (const fam of families) {
-      const composites = fam.composites ?? []
-      const standalone = fam.standalone_benchmarks ?? []
-      const benchmarks = fam.benchmarks ?? []
-
       const allBenchmarks = [
-        ...standalone,
-        ...benchmarks,
-        ...composites.flatMap((c) => c.benchmarks ?? []),
+        ...(fam.standalone_benchmarks ?? []),
+        ...(fam.benchmarks ?? []),
+        ...(fam.composites ?? []).flatMap((c) => c.benchmarks ?? []),
       ]
-      const metricCount = allBenchmarks.reduce(
-        (sum, b) => sum + (b.metrics?.length ?? 0),
-        0,
-      )
+      const metricCount = allBenchmarks.reduce((sum, b) => sum + (b.metrics?.length ?? 0), 0)
       const benchmarkCount = allBenchmarks.length
 
       const leafEntries = collectLeafEntries(fam, benchmarkCards)
-      const navId = pickFamilyNavId(fam, leafEntries)
+      if (!familyMatchesFilter(fam, leafEntries)) continue
 
-      // An "aggregator" family has heterogeneous leaves; we expand it
-      // inline so the user can pick a benchmark directly. When the family
-      // has no real composite summary (navId === null) it's necessarily
-      // an aggregator — clicking the row toggles expand instead of
-      // navigating.
-      const isAggregator = leafEntries.length >= LEAVES_INLINE_MIN || navId == null
-
-      const displayName = isFamilyDisplayNameMisleading(fam, leafEntries)
-        ? humanizeFamilyKey(fam.key)
-        : fam.display_name
-
-      // Description sourcing: prefer the eval item the row navigates to;
-      // when there's no navId or its eval item carries no overview, walk
-      // the leaves until we find one whose benchmark_card has one. That
-      // way an aggregator family ("HELM", "BFCL") whose family-level row
-      // doesn't directly link to a single eval still surfaces a one-line
-      // description from any of its component benchmarks.
-      const description = pickFamilyDescription(navId, leafEntries, evalItems)
-
-      if (!familyMatchesFilter(fam, navId, leafEntries)) continue
       const visibleLeafEntries = filterActive
         ? leafEntries.filter(leafMatchesFilter)
         : leafEntries
 
+      const sections = collectFamilySections(fam, benchmarkCards).map((section) => ({
+        ...section,
+        leaves: filterActive ? section.leaves.filter(leafMatchesFilter) : section.leaves,
+      })).filter((s) => s.leaves.length > 0)
+
+      const displayName =
+        isFamilyDisplayNameMisleading(fam, leafEntries) || fam.display_name === fam.key
+          ? humanizeFamilyKey(fam.key)
+          : fam.display_name
+
+      // Description: try family-level eval item (via a single benchmark family)
+      // or fall back to the benchmark cards on the family's own leaves.
+      let description: string | null = null
+      if (evalItems && visibleLeafEntries.length === 1) {
+        const overview = evalItems.get(visibleLeafEntries[0].id)?.benchmark_card?.benchmark_details?.overview
+        if (overview) description = overview.length > 140 ? overview.slice(0, 137) + "…" : overview
+      }
+
       out.push({
         key: fam.key,
-        navId,
         name: displayName,
         keySlug: fam.key,
         tags: fam.derivedTags ?? [],
         benchmarks: benchmarkCount,
         evalsCount: fam.evals_count ?? metricCount,
         leaves: visibleLeafEntries,
-        isAggregator,
+        sections,
         description,
       })
     }
@@ -380,69 +303,104 @@ export function FamilyTable({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [families, evalItems, benchmarkCards, domainFilter, categoryFilter])
 
+  function SortIcon({ col }: { col: FamilySortCol }) {
+    if (!onSort) return null
+    if (sortCol !== col) return <ChevronsUpDown className="h-3 w-3 opacity-30" aria-hidden />
+    return sortDir === "asc"
+      ? <ChevronUp className="h-3 w-3" aria-hidden />
+      : <ChevronDown className="h-3 w-3" aria-hidden />
+  }
+
+  function SortTh({
+    col,
+    children,
+    className,
+    style,
+  }: {
+    col: FamilySortCol
+    children: React.ReactNode
+    className?: string
+    style?: React.CSSProperties
+  }) {
+    const active = sortCol === col
+    return (
+      <th
+        className={className}
+        style={{
+          ...style,
+          cursor: onSort ? "pointer" : undefined,
+          userSelect: onSort ? "none" : undefined,
+          color: active ? "var(--fg)" : undefined,
+        }}
+        onClick={onSort ? () => onSort(col) : undefined}
+      >
+        <span className="inline-flex items-center gap-1">
+          {children}
+          <SortIcon col={col} />
+        </span>
+      </th>
+    )
+  }
+
   return (
     <div className="overflow-x-auto">
       <table className="ec-htable">
         <thead>
           <tr>
-            <th style={{ width: "55%" }}>Family</th>
-            <th>Categories</th>
-            <th className="num">Benchmarks</th>
-            <th className="num">Reported results</th>
+            <SortTh col="name" style={{ width: "55%" }}>Family</SortTh>
+            <SortTh col="categories">Categories</SortTh>
+            <SortTh col="benchmarks" className="num">Benchmarks</SortTh>
+            <SortTh col="results" className="num">Reported results</SortTh>
             <th style={{ width: 90 }} />
           </tr>
         </thead>
         <tbody>
           {rows.map((row) => {
-            // When a domain filter is active we auto-expand every aggregator
-            // so the matching leaves are immediately visible, but still let
-            // the user collapse a row manually via the chevron.
             const isExpanded = filterActive
               ? expanded[row.key] ?? true
               : expanded[row.key] ?? false
-            const expandable = row.isAggregator
+            const allLeaves = row.sections.flatMap((s) => s.leaves)
             const visibleLeaves = isExpanded
-              ? row.leaves.slice(0, LEAVES_INLINE_MAX)
+              ? allLeaves.slice(0, LEAVES_INLINE_MAX)
               : []
             const hiddenLeafCount = isExpanded
-              ? Math.max(row.leaves.length - LEAVES_INLINE_MAX, 0)
+              ? Math.max(allLeaves.length - LEAVES_INLINE_MAX, 0)
               : 0
+
+            // Build visible sections respecting the per-section leaf cap
+            let remaining = LEAVES_INLINE_MAX
+            const visibleSections: AccordionSection[] = isExpanded
+              ? row.sections.map((section) => {
+                  const capped = section.leaves.slice(0, remaining)
+                  remaining -= capped.length
+                  return { ...section, leaves: capped }
+                }).filter((s) => s.leaves.length > 0)
+              : []
 
             return (
               <Fragment key={row.key}>
                 <tr
-                  onClick={(event) => {
-                    // Allow chevron click without double-handling
-                    const target = event.target as HTMLElement
-                    if (target.closest("[data-row-toggle]")) return
-                    if (row.navId) {
-                      router.push(`/evals/${encodeURIComponent(row.navId)}`)
-                    } else if (expandable) {
-                      setExpanded((current) => ({ ...current, [row.key]: !isExpanded }))
-                    }
-                  }}
-                  style={{ cursor: row.navId || expandable ? "pointer" : "default" }}
+                  onClick={() =>
+                    setExpanded((current) => ({ ...current, [row.key]: !isExpanded }))
+                  }
+                  style={{ cursor: "pointer" }}
                 >
                   <td>
                     <div className="flex items-start gap-2.5 min-w-0">
-                      {expandable ? (
-                        <button
-                          type="button"
-                          data-row-toggle
-                          onClick={(event) => {
-                            event.stopPropagation()
-                            setExpanded((current) => ({ ...current, [row.key]: !isExpanded }))
-                          }}
-                          aria-expanded={isExpanded}
-                          aria-label={isExpanded ? "Collapse family" : "Expand family"}
-                          className="-ml-1 mt-0.5 inline-flex h-4 w-4 items-center justify-center transition-colors hover:text-[color:var(--accent)]"
-                          style={{ color: "var(--fg-muted)" }}
-                        >
-                          {isExpanded ? <ChevronDown className="h-3 w-3" /> : <ChevronRight className="h-3 w-3" />}
-                        </button>
-                      ) : (
-                        <span className="-ml-1 mt-0.5 inline-block h-4 w-4" aria-hidden />
-                      )}
+                      <button
+                        type="button"
+                        data-row-toggle
+                        onClick={(e) => {
+                          e.stopPropagation()
+                          setExpanded((current) => ({ ...current, [row.key]: !isExpanded }))
+                        }}
+                        aria-expanded={isExpanded}
+                        aria-label={isExpanded ? "Collapse family" : "Expand family"}
+                        className="-ml-1 mt-0.5 inline-flex h-4 w-4 items-center justify-center transition-colors hover:text-[color:var(--accent)]"
+                        style={{ color: "var(--fg-muted)" }}
+                      >
+                        {isExpanded ? <ChevronDown className="h-3 w-3" /> : <ChevronRight className="h-3 w-3" />}
+                      </button>
                       <div className="min-w-0">
                         <div className="font-semibold text-[14px] text-[color:var(--fg)] truncate">
                           {row.name}
@@ -457,27 +415,20 @@ export function FamilyTable({
                         )}
                         <div className="font-mono text-[10px] tracking-[0.06em] text-[color:var(--fg-subtle)] mt-0.5 truncate">
                           {row.keySlug}
-                          {expandable && (
-                            <span className="ml-2 normal-case tracking-[0.04em]">
-                              · {row.leaves.length} {row.leaves.length === 1 ? "benchmark" : "benchmarks"}
-                            </span>
-                          )}
+                          <span className="ml-2 normal-case tracking-[0.04em]">
+                            · {row.leaves.length} {row.leaves.length === 1 ? "benchmark" : "benchmarks"}
+                          </span>
                         </div>
                       </div>
                     </div>
                   </td>
                   <td>
                     {row.tags.length === 0 ? (
-                      <span
-                        className="inline-flex items-center font-mono text-[10px] uppercase tracking-[0.12em] text-[color:var(--fg-subtle)]"
-                      >
-                        —
-                      </span>
+                      <span className="inline-flex items-center font-mono text-[10px] uppercase tracking-[0.12em] text-[color:var(--fg-subtle)]">—</span>
                     ) : (
                       <div className="flex flex-wrap gap-1">
                         {row.tags.map((tag) => {
-                          const highlighted =
-                            categoryFilter && categoryFilter.has(tag)
+                          const highlighted = categoryFilter && categoryFilter.has(tag)
                           return (
                             <span
                               key={tag}
@@ -495,9 +446,7 @@ export function FamilyTable({
                       </div>
                     )}
                   </td>
-                  <td className="num font-mono text-[13px]">
-                    {row.benchmarks.toLocaleString()}
-                  </td>
+                  <td className="num font-mono text-[13px]">{row.benchmarks.toLocaleString()}</td>
                   <td className="num font-mono text-[13px]">
                     {row.evalsCount.toLocaleString()}
                     {totalModels > 0 && (
@@ -506,13 +455,12 @@ export function FamilyTable({
                   </td>
                   <td>
                     <span className="font-mono text-[10px] tracking-[0.12em] uppercase text-[color:var(--accent)] inline-flex items-center gap-1">
-                      {expandable ? (isExpanded ? "Hide" : "Browse") : "Open"}
-                      <ArrowUpRight className="h-3 w-3" aria-hidden />
+                      {isExpanded ? "Hide" : "Browse"}
                     </span>
                   </td>
                 </tr>
 
-                {isExpanded && visibleLeaves.length > 0 && (
+                {isExpanded && visibleSections.length > 0 && (
                   <tr style={{ background: "var(--bg-warm)" }}>
                     <td colSpan={5} style={{ padding: 0 }}>
                       <div style={{ padding: "10px 24px 14px 64px" }}>
@@ -522,57 +470,105 @@ export function FamilyTable({
                         >
                           Benchmarks in this family · {row.leaves.length}
                         </div>
-                        <ul
-                          className="grid"
-                          style={{
-                            gridTemplateColumns: "repeat(auto-fill, minmax(280px, 1fr))",
-                            gap: "0",
-                            borderTop: "1px solid var(--border-soft)",
-                            borderLeft: "1px solid var(--border-soft)",
-                          }}
-                        >
-                          {visibleLeaves.map((leaf) => (
-                            <li
-                              key={leaf.id}
+
+                        {visibleSections.map((section) => (
+                          <div key={section.key} className="mb-3 last:mb-0">
+                            {/* Composite header — not clickable to a page */}
+                            {section.type === "composite" && (
+                              <div
+                                className="mb-1.5 flex items-baseline gap-2"
+                                style={{ paddingBottom: 4, borderBottom: "1px solid var(--border-soft)" }}
+                              >
+                                <span
+                                  className="font-semibold text-[12px]"
+                                  style={{ color: "var(--fg-muted)" }}
+                                >
+                                  {section.name}
+                                </span>
+                                {section.description && (
+                                  <span
+                                    className="text-[11px] truncate"
+                                    style={{ color: "var(--fg-subtle)" }}
+                                  >
+                                    {section.description}
+                                  </span>
+                                )}
+                              </div>
+                            )}
+
+                            <ul
+                              className="grid"
                               style={{
-                                borderBottom: "1px solid var(--border-soft)",
-                                borderRight: "1px solid var(--border-soft)",
+                                gridTemplateColumns: "repeat(auto-fill, minmax(260px, 1fr))",
+                                gap: "0",
+                                borderTop: "1px solid var(--border-soft)",
+                                borderLeft: "1px solid var(--border-soft)",
                               }}
                             >
-                              <button
-                                type="button"
-                                onClick={(event) => {
-                                  event.stopPropagation()
-                                  router.push(`/evals/${encodeURIComponent(leaf.id)}`)
-                                }}
-                                className="w-full flex items-center justify-between gap-2 px-3 py-2 text-left transition-colors hover:bg-[color:var(--bg-surface)]"
-                              >
-                                <div className="min-w-0">
-                                  <div className="text-[13px] font-medium truncate text-[color:var(--fg)]">
-                                    {leaf.leafName}
-                                  </div>
-                                  <div
-                                    className="font-mono truncate"
-                                    style={{ fontSize: 10, color: "var(--fg-subtle)", letterSpacing: "0.04em" }}
+                              {section.leaves.map((leaf) => (
+                                <li
+                                  key={leaf.id}
+                                  style={{
+                                    borderBottom: "1px solid var(--border-soft)",
+                                    borderRight: "1px solid var(--border-soft)",
+                                  }}
+                                >
+                                  <button
+                                    type="button"
+                                    onClick={(e) => {
+                                      e.stopPropagation()
+                                      router.push(`/evals/${encodeURIComponent(leaf.id)}`)
+                                    }}
+                                    className="w-full flex items-start justify-between gap-2 px-3 py-2 text-left transition-colors hover:bg-[color:var(--bg-surface)]"
                                   >
-                                    {humanizeEvaluationId(leaf.id)}
-                                  </div>
-                                </div>
-                                <ArrowUpRight
-                                  className="h-3 w-3 shrink-0"
-                                  style={{ color: "var(--accent)" }}
-                                  aria-hidden
-                                />
-                              </button>
-                            </li>
-                          ))}
-                        </ul>
+                                    <div className="min-w-0 flex-1">
+                                      <div className="flex items-center gap-1.5 flex-wrap">
+                                        <span className="text-[13px] font-medium truncate text-[color:var(--fg)]">
+                                          {leaf.leafName}
+                                        </span>
+                                        {leaf.hasSlices && (
+                                          <span
+                                            className="font-mono text-[9px] uppercase tracking-[0.1em] border px-1 py-px shrink-0"
+                                            style={{ color: "var(--fg-subtle)", borderColor: "var(--border-soft)" }}
+                                          >
+                                            splits
+                                          </span>
+                                        )}
+                                      </div>
+                                      {leaf.description ? (
+                                        <div
+                                          className="font-mono truncate mt-0.5"
+                                          style={{ fontSize: 10, color: "var(--fg-subtle)", letterSpacing: "0.03em" }}
+                                        >
+                                          {leaf.description}
+                                        </div>
+                                      ) : (
+                                        <div
+                                          className="font-mono truncate mt-0.5"
+                                          style={{ fontSize: 10, color: "var(--fg-subtle)", letterSpacing: "0.04em" }}
+                                        >
+                                          {humanizeEvaluationId(leaf.id)}
+                                        </div>
+                                      )}
+                                    </div>
+                                    <ArrowUpRight
+                                      className="h-3 w-3 shrink-0 mt-0.5"
+                                      style={{ color: "var(--accent)" }}
+                                      aria-hidden
+                                    />
+                                  </button>
+                                </li>
+                              ))}
+                            </ul>
+                          </div>
+                        ))}
+
                         {hiddenLeafCount > 0 && (
                           <div
                             className="mt-2 font-mono uppercase"
                             style={{ fontSize: 10, letterSpacing: "0.14em", color: "var(--fg-subtle)" }}
                           >
-                            {hiddenLeafCount} more · open the family page to browse all
+                            {hiddenLeafCount} more benchmarks not shown
                           </div>
                         )}
                       </div>
