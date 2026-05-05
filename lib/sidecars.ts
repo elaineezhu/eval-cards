@@ -1,6 +1,7 @@
 import "server-only"
 
 import { createHash } from "node:crypto"
+import { accessSync, constants as fsConstants } from "node:fs"
 import { mkdir, readFile, stat, writeFile } from "node:fs/promises"
 import { tmpdir } from "node:os"
 import { join } from "node:path"
@@ -39,11 +40,26 @@ function sidecarUrl(name: string) {
 // built-in fetch cache rejects items over 2 MB so the 47 MB
 // comparison-index / 6 MB peer-ranks / 2.5 MB hierarchy were re-fetched
 // from HuggingFace on every cold start. With the disk cache, a warm
-// container reads from `/tmp/eval-card-sidecars/*` (sub-second) instead
-// of re-downloading. Override the directory via `SIDECAR_CACHE_DIR` and
-// the TTL via `SIDECAR_CACHE_TTL_SECONDS`.
-const DISK_CACHE_DIR =
-  process.env.SIDECAR_CACHE_DIR?.trim() || join(tmpdir(), "eval-card-sidecars")
+// container reads from disk (sub-second) instead of re-downloading.
+//
+// Resolution order:
+//   1. `SIDECAR_CACHE_DIR` env var (explicit override)
+//   2. `/data/sidecars` when `/data` is writable — the HF Space mounts a
+//      persistent storage bucket there, so the cache survives container
+//      rebuilds (not just restarts within one container).
+//   3. `<tmpdir>/eval-card-sidecars` as the local-dev / no-bucket fallback.
+function resolveDiskCacheDir(): string {
+  const explicit = process.env.SIDECAR_CACHE_DIR?.trim()
+  if (explicit) return explicit
+  try {
+    accessSync("/data", fsConstants.W_OK)
+    return "/data/sidecars"
+  } catch {
+    return join(tmpdir(), "eval-card-sidecars")
+  }
+}
+
+const DISK_CACHE_DIR = resolveDiskCacheDir()
 const DISK_CACHE_TTL_MS =
   Number.parseInt(process.env.SIDECAR_CACHE_TTL_SECONDS ?? "3600", 10) * 1000
 
