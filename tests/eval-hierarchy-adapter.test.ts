@@ -1,11 +1,19 @@
-import { describe, expect, it } from "vitest"
+import { describe, expect, it, vi } from "vitest"
 
 import type { EvalHierarchy } from "../lib/backend-artifacts"
 import { adaptEvalHierarchy } from "../lib/hf-data"
 
-describe("adaptEvalHierarchy", () => {
-  it("keeps GPQA-Diamond as a benchmark sibling in the curated GPQA family", () => {
-    const raw = {
+// adaptEvalHierarchy is a passthrough validator post-Step-4 — the
+// producer's write_hierarchy() emits the v3 family-rooted tree
+// directly (notes/hierarchy-alignment.md §5.1), so the adapter no
+// longer synthesises legacy shapes. These tests confirm the
+// passthrough preserves data and that the schema_version warning
+// fires for unknown versions.
+
+describe("adaptEvalHierarchy (passthrough)", () => {
+  it("returns the v3 hierarchy unchanged", () => {
+    const raw: EvalHierarchy = {
+      schema_version: "v3.hierarchy.1",
       stats: {
         family_count: 1,
         composite_count: 1,
@@ -18,22 +26,19 @@ describe("adaptEvalHierarchy", () => {
         {
           key: "gpqa",
           display_name: "GPQA family",
-          member_benchmark_keys: ["gpqa", "gpqa-diamond"],
-        },
-      ],
-      composites: [
-        {
-          key: "wasp",
-          display_name: "WASP",
-          category: "Reasoning",
+          category: "knowledge",
           tags: { domains: ["reasoning"], languages: [], tasks: ["qa"] },
+          evals_count: 4,
+          eval_summary_ids: ["wasp%2Fgpqa", "wasp%2Fgpqa-diamond"],
           benchmarks: [
             {
               key: "gpqa",
               display_name: "GPQA",
-              has_card: false,
               family_id: "gpqa",
               is_slice: false,
+              is_overall: true,
+              is_primary: true,
+              has_card: false,
               tags: { domains: ["reasoning"], languages: [], tasks: ["qa"] },
               metrics: [{ key: "accuracy", display_name: "Accuracy" }],
               slices: [],
@@ -42,9 +47,11 @@ describe("adaptEvalHierarchy", () => {
             {
               key: "gpqa-diamond",
               display_name: "GPQA Diamond",
-              has_card: false,
               family_id: "gpqa",
               is_slice: false,
+              is_overall: false,
+              is_primary: false,
+              has_card: false,
               tags: { domains: ["reasoning"], languages: [], tasks: ["qa"] },
               metrics: [{ key: "accuracy", display_name: "Accuracy" }],
               slices: [],
@@ -53,22 +60,44 @@ describe("adaptEvalHierarchy", () => {
           ],
         },
       ],
-    } as unknown as EvalHierarchy
+    }
 
     const adapted = adaptEvalHierarchy(raw)
-    const gpqa = adapted.families.find((family) => family.key === "gpqa")
 
-    expect(gpqa).toBeDefined()
-    expect(gpqa?.standalone_benchmarks).toEqual([])
-    expect(gpqa?.composites).toHaveLength(1)
-    expect(gpqa?.composites?.[0].benchmarks.map((benchmark) => benchmark.key)).toEqual([
+    expect(adapted).toBe(raw) // passthrough: same reference
+    expect(adapted.families).toHaveLength(1)
+    expect(adapted.families[0].benchmarks).toHaveLength(2)
+    expect(adapted.families[0].benchmarks?.map((b) => b.key)).toEqual([
       "gpqa",
       "gpqa-diamond",
     ])
-    expect(
-      gpqa?.composites?.[0].benchmarks.flatMap((benchmark) =>
-        benchmark.slices.map((slice) => slice.key),
-      ),
-    ).not.toContain("gpqa-diamond")
+  })
+
+  it("returns a safe empty shape on null/undefined input", () => {
+    expect(adaptEvalHierarchy(null as unknown as EvalHierarchy)).toEqual({
+      families: [],
+    })
+  })
+
+  it("warns on unknown schema_version but still passes through", () => {
+    const warn = vi.spyOn(console, "warn").mockImplementation(() => {})
+    const raw: EvalHierarchy = {
+      schema_version: "v2.hierarchy.999",
+      families: [],
+    }
+    const adapted = adaptEvalHierarchy(raw)
+    expect(adapted).toBe(raw)
+    expect(warn).toHaveBeenCalledOnce()
+    warn.mockRestore()
+  })
+
+  it("does not warn when schema_version matches v3.hierarchy.*", () => {
+    const warn = vi.spyOn(console, "warn").mockImplementation(() => {})
+    adaptEvalHierarchy({
+      schema_version: "v3.hierarchy.1",
+      families: [],
+    })
+    expect(warn).not.toHaveBeenCalled()
+    warn.mockRestore()
   })
 })

@@ -373,7 +373,8 @@ function splitFlagNote(raw: string): { tag: string | null; body: string } {
   return { tag: match[1].trim(), body: match[2].trim() }
 }
 
-function formatRawScore(score: number, unit?: string) {
+function formatRawScore(score: number | null | undefined, unit?: string) {
+  if (score == null || !Number.isFinite(score)) return "—"
   const suffix = unit ? ` ${unit}` : ""
   return `${score.toFixed(2)}${suffix}`
 }
@@ -644,8 +645,8 @@ export function EvalDetail({ summary }: EvalDetailProps) {
             summary.evaluation_name,
             summary.composite_benchmark_name,
             summary.composite_benchmark_key,
-            summary.benchmark_family_key,
-            summary.benchmark_leaf_key,
+            summary.family_id,
+            summary.benchmark_id,
             summary.benchmark_card.benchmark_details?.name,
           )}
         />
@@ -1317,7 +1318,7 @@ export function EvalDetail({ summary }: EvalDetailProps) {
                                 <div className="space-y-3">
                                   <ResearcherReproducibilityCard
                                     modelResult={modelResult}
-                                    benchmarkKey={summary.benchmark_id ?? summary.benchmark_leaf_key ?? summary.composite_benchmark_key}
+                                    benchmarkKey={summary.benchmark_id ?? summary.composite_benchmark_key}
                                     evalName={summary.evaluation_name}
                                   />
                                   <div className="flex justify-end">
@@ -2039,7 +2040,7 @@ function MultiMetricLeaderboard({
                       <div className="space-y-3">
                         <ResearcherReproducibilityCard
                           modelResult={matchingResult}
-                          benchmarkKey={summary.benchmark_id ?? summary.benchmark_leaf_key ?? summary.composite_benchmark_key}
+                          benchmarkKey={summary.benchmark_id ?? summary.composite_benchmark_key}
                           evalName={summary.evaluation_name}
                         />
                         <div className="flex justify-end">

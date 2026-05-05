@@ -176,22 +176,20 @@ export interface BenchmarkEvalSummary extends SignalSummaries {
   /** Canonical benchmark id (the registry-resolved benchmark). Drives
    *  benchmark-card lookups regardless of slice/composite axis. */
   benchmark_id?: string
-  /** Benchmark family grouping key — curated multi-benchmark family
-   *  slug (e.g. "mmlu"), defaults to benchmark id for singletons. */
-  benchmark_family_key?: string
   /** Family display name. */
   benchmark_family_name?: string
-  /** Leaf benchmark key — populated when this row is a slice of a
-   *  parent benchmark; null for non-slice rows. */
-  benchmark_leaf_key?: string
   /** Composite (leaderboard) slug — e.g. "wasp", "helm-classic". */
   composite_slug?: string
   /** Composite display name — e.g. "WASP", "HELM Classic". */
   composite_display_name?: string
-  /** Family slug, post-cutover canonical name (alias of benchmark_family_key). */
+  /** Curated multi-benchmark family slug (e.g. "mmlu"), defaults to
+   *  benchmark id for singletons. */
   family_id?: string
   /** Family display, post-cutover canonical name. */
   family_display_name?: string
+  /** Parent benchmark id — populated when this row is a slice of a
+   *  root benchmark; null for non-slice rows. */
+  parent_benchmark_id?: string
   /** True when this row is a within-benchmark slice cut. */
   is_slice?: boolean
   /** Source dataset metadata from the pipeline */

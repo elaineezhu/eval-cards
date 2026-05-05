@@ -44,28 +44,23 @@ const MODEL_CARD_COLUMNS = `
 
 // The composite/family/slice taxonomy refactor (eval_card_backend
 // notes/09-) replaced the legacy `composite_benchmark_key` /
-// `composite_benchmark_name` / `benchmark_family_key` /
-// `benchmark_leaf_key` columns with `composite_slug` /
-// `composite_display_name` / `family_id` / `family_display_name` /
-// `is_slice`. We expose both names so existing consumers keep
-// reading without rewrites. Mapping:
+// `composite_benchmark_name` columns with `composite_slug` /
+// `composite_display_name`. The `family_id` / `family_display_name` /
+// `is_slice` columns are the canonical identity surface; we still
+// alias the composite_* legacy names for backward compat with
+// consumers that haven't migrated yet. Mapping:
 //   composite_benchmark_key/name → composite_slug/display_name
 //     (the leaderboard, e.g. "wasp"/"WASP" — what the eval-detail
 //     "Composite" label shows)
-//   benchmark_family_key/name    → family_id/family_display_name
-//     (curated multi-benchmark family, e.g. "judgebench"/"JudgeBench
-//     family" — drives the family-table grouping in the legacy
-//     hierarchy adapter)
 const EVAL_LIST_COLUMNS = `
   evaluation_id, evaluation_name, canonical_display_name,
   benchmark_id,
   composite_slug, composite_display_name,
   family_id, family_display_name, is_slice,
+  parent_benchmark_id,
   composite_slug AS composite_benchmark_key,
   composite_display_name AS composite_benchmark_name,
-  family_id AS benchmark_family_key,
   family_display_name AS benchmark_family_name,
-  CASE WHEN is_slice THEN benchmark_id ELSE NULL END AS benchmark_leaf_key,
   category,
   metric_config, models_count, evaluator_names, source_types,
   latest_source_name, third_party_ratio,
@@ -89,11 +84,10 @@ const CELL_JOIN_COLUMNS = `
   e.family_id AS eval_family_id,
   e.family_display_name AS eval_family_display_name,
   e.is_slice AS eval_is_slice,
+  e.parent_benchmark_id AS eval_parent_benchmark_id,
   e.composite_slug AS eval_composite_benchmark_key,
   e.composite_display_name AS eval_composite_benchmark_name,
-  e.family_id AS eval_benchmark_family_key,
   e.family_display_name AS eval_benchmark_family_name,
-  CASE WHEN e.is_slice THEN e.benchmark_id ELSE NULL END AS eval_benchmark_leaf_key,
   e.category AS eval_category,
   e.metric_config AS eval_metric_config,
   e.source_data AS eval_source_data,
@@ -350,12 +344,12 @@ function reshapeCellToBenchmarkEvaluation(row: Row): BenchmarkEvaluation {
     display_name: optionalString(row.eval_evaluation_name),
     canonical_display_name: optionalString(row.eval_canonical_display_name),
     category: normalizeCategory(row.eval_category ?? row.category),
-    benchmark_family_key: optionalString(row.eval_benchmark_family_key),
-    benchmark_family_name: optionalString(row.eval_composite_benchmark_name),
-    benchmark_parent_key: optionalString(row.eval_composite_benchmark_key),
+    family_id: optionalString(row.eval_family_id),
+    benchmark_family_name: optionalString(row.eval_family_display_name),
+    parent_benchmark_id: optionalString(row.eval_parent_benchmark_id),
     benchmark_parent_name: optionalString(row.eval_composite_benchmark_name),
-    benchmark_leaf_key: optionalString(row.eval_benchmark_leaf_key),
     benchmark_leaf_name: optionalString(row.eval_evaluation_name),
+    is_slice: Boolean(row.eval_is_slice),
     is_summary_score: Boolean(row.eval_is_summary_score ?? row.is_summary_score),
     source_data: sourceDataFromRow(row),
     source_metadata: sourceMetadataFromRow(row),

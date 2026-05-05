@@ -932,386 +932,35 @@ export async function fetchEvalHierarchy(): Promise<EvalHierarchy> {
  *      back under per-family records, with the composite slug as the
  *      family key when no curated multi-benchmark family applies.
  */
-export function adaptEvalHierarchy(raw: EvalHierarchy): EvalHierarchy {
-  const newShape = Array.isArray(raw.composites) && raw.composites.length > 0
-  if (newShape) {
-    return adaptCompositeShape(raw)
-  }
-
-  const families = (raw.families ?? []).map((family) => {
-    const hasLegacyTree =
-      (family.composites && family.composites.length > 0) ||
-      (family.standalone_benchmarks && family.standalone_benchmarks.length > 0) ||
-      (family.benchmarks && family.benchmarks.length > 0)
-
-    if (hasLegacyTree) {
-      return family
-    }
-
-    const leaves = family.leaves ?? []
-    if (leaves.length === 0) {
-      return family
-    }
-
-    const standalone = leaves.map((leaf) => ({
-      key: leaf.key,
-      display_name: leaf.display_name,
-      has_card: leaf.has_card ?? false,
-      tags: {
-        domains: leaf.tags?.domains ?? [],
-        languages: leaf.tags?.languages ?? [],
-        tasks: leaf.tags?.tasks ?? [],
-      },
-      slices: [],
-      metrics: [],
-      reproducibility_summary: leaf.reproducibility_summary,
-      provenance_summary: leaf.provenance_summary,
-      comparability_summary: leaf.comparability_summary,
-      summary_eval_ids: leaf.eval_summary_ids,
-    }))
-
-    return {
-      ...family,
-      tags: {
-        domains: family.tags?.domains ?? [],
-        languages: family.tags?.languages ?? [],
-        tasks: family.tags?.tasks ?? [],
-      },
-      standalone_benchmarks: standalone,
-    }
-  })
-
-  if (raw.stats) {
-    return { ...raw, families }
-  }
-
-  let composite_count = 0
-  let standalone_benchmark_count = 0
-  let single_benchmark_count = 0
-  let slice_count = 0
-  let metric_count = 0
-
-  for (const family of families) {
-    composite_count += family.composites?.length ?? 0
-    const standalone = family.standalone_benchmarks ?? []
-    standalone_benchmark_count += standalone.length
-    if ((family.composites?.length ?? 0) === 0 && standalone.length === 1) {
-      single_benchmark_count += 1
-    }
-    for (const composite of family.composites ?? []) {
-      for (const benchmark of composite.benchmarks ?? []) {
-        slice_count += benchmark.slices?.length ?? 0
-        metric_count += benchmark.metrics?.length ?? 0
-      }
-    }
-    for (const benchmark of standalone) {
-      slice_count += benchmark.slices?.length ?? 0
-      metric_count += benchmark.metrics?.length ?? 0
-    }
-  }
-
-  return {
-    ...raw,
-    families,
-    stats: {
-      family_count: families.length,
-      composite_count,
-      standalone_benchmark_count,
-      single_benchmark_count,
-      slice_count,
-      metric_count,
-      metric_rows_scanned: 0,
-    },
-  }
-}
-
 /**
- * Translate the new composite/family/slice taxonomy shape (top-level
- * `composites[]` + flat `families[]` lookup index) into the legacy
- * `families[].composites[]` / `families[].standalone_benchmarks[]`
- * tree.
+ * Validate-and-passthrough for the v3 hierarchy shape (per
+ * /Users/jchim/projects/evaleval/notes/hierarchy-alignment.md §5.1).
+ * The producer's `write_hierarchy()` emits family-rooted trees
+ * directly; the adapter no longer synthesises legacy shapes.
  *
- * Bucketing rule: every benchmark in `composites[].benchmarks[]` is
- * grouped by `family_id` (curated multi-benchmark family slug,
- * defaulting to benchmark.key for singletons). A family with ≥2
- * member benchmarks lands under a synthetic legacy `composites[]`
- * entry keyed on the family slug; a singleton family lands under
- * `standalone_benchmarks[]`. Slice rows on the new
- * benchmark.slices[] carry through unchanged.
+ * Behaviour:
+ *   - v3 detection via `schema_version === "v3.hierarchy.1"` —
+ *     pass through unchanged.
+ *   - Older snapshot lacking schema_version: log a warning and
+ *     pass through. Consumers may render empty for missing fields
+ *     but won't crash.
  *
- * Stats are taken straight from raw.stats (which has the new
- * shape's `benchmark_count`) plus synthesised
- * `standalone_benchmark_count` / `single_benchmark_count` for
- * back-compat consumers.
+ * Step 4 deleted the legacy `adaptCompositeShape()` synthesis
+ * (~400 lines of bucketing logic that built families[].composites[]
+ * from the old top-level composites[]). The producer now does that
+ * grouping at write time using `canonical_composites.family_id`.
  */
-function adaptCompositeShape(raw: EvalHierarchy): EvalHierarchy {
-  const familyIndex = new Map<string, { display_name: string; member_keys: string[] }>()
-  for (const fam of raw.families ?? []) {
-    if (!fam || typeof fam !== "object") continue
-    const f = fam as unknown as { key?: string; display_name?: string; member_benchmark_keys?: string[] }
-    if (!f.key) continue
-    familyIndex.set(f.key, {
-      display_name: f.display_name ?? f.key,
-      member_keys: f.member_benchmark_keys ?? [],
-    })
+export function adaptEvalHierarchy(raw: EvalHierarchy): EvalHierarchy {
+  if (!raw) {
+    return { families: [] }
   }
-
-  type LegacyBenchmark = HierarchyBenchmark & { _composite_slug?: string }
-
-  // Set of benchmark keys claimed by curated multi-benchmark families
-  // (families.yaml), so we don't redundantly bucket them under their
-  // composite below. Crucially this only counts MULTI-member families
-  // (≥2 benchmarks) — every benchmark also gets a synthetic singleton
-  // family from the backend's `_synthesise_singleton_families` pass,
-  // and treating those as curated would short-circuit the
-  // composite-implicit grouping (Pass B) and scatter every leaderboard
-  // benchmark into its own row.
-  const curatedMembers = new Set<string>()
-  for (const fam of familyIndex.values()) {
-    if (fam.member_keys.length < 2) continue
-    for (const k of fam.member_keys) curatedMembers.add(k)
+  if (raw.schema_version && !raw.schema_version.startsWith("v3.hierarchy.")) {
+    console.warn(
+      `adaptEvalHierarchy: unexpected schema_version=${JSON.stringify(raw.schema_version)}; ` +
+        `expected v3.hierarchy.*. Frontend may render incompletely.`,
+    )
   }
-
-  // Two grouping passes, in priority order:
-  //
-  // (1) Curated families from families.yaml — bucketed by `family_id`.
-  //     Drives the MMLU family, BFCL family, JudgeBench family rows.
-  //
-  // (2) Composite-implicit groupings — for benchmarks NOT in any
-  //     curated family, group by their composite_slug if the
-  //     composite has ≥2 such benchmarks. This restores the legacy
-  //     "HELM Classic / HELM Lite / HELM Safety" family rows that
-  //     would otherwise scatter across one singleton family per
-  //     leaf benchmark, hiding the leaderboard structure.
-  //
-  // (3) Anything still ungrouped lands as a singleton standalone.
-  type Bucket = {
-    key: string
-    display: string
-    benches: LegacyBenchmark[]
-    /** Curated family vs synthesised-from-composite vs singleton. Drives
-     *  whether the legacy `composites[]` slot or `standalone_benchmarks[]`
-     *  is populated. */
-    kind: "curated" | "composite" | "singleton"
-  }
-  const buckets = new Map<string, Bucket>()
-
-  const toLegacyBenchmark = (
-    bench: HierarchyComposite["benchmarks"][number],
-    composite: HierarchyComposite,
-  ): LegacyBenchmark => ({
-    key: bench.key,
-    display_name: bench.display_name,
-    has_card: bench.has_card ?? false,
-    tags: {
-      domains: bench.tags?.domains ?? [],
-      languages: bench.tags?.languages ?? [],
-      tasks: bench.tags?.tasks ?? [],
-    },
-    slices: bench.slices ?? [],
-    metrics: bench.metrics ?? [],
-    summary_eval_ids: bench.summary_eval_ids,
-    reproducibility_summary: bench.reproducibility_summary,
-    provenance_summary: bench.provenance_summary,
-    comparability_summary: bench.comparability_summary,
-    family_id: bench.family_id ?? bench.key,
-    is_slice: bench.is_slice ?? false,
-    _composite_slug: composite.key,
-  })
-
-  // Pass A: curated families.
-  for (const composite of raw.composites ?? []) {
-    for (const bench of composite.benchmarks ?? []) {
-      const familyId = bench.family_id ?? bench.key
-      if (!curatedMembers.has(bench.key)) continue
-      const entry = familyIndex.get(familyId)
-      if (!entry) continue
-      const bucketKey = `family:${familyId}`
-      if (!buckets.has(bucketKey)) {
-        buckets.set(bucketKey, {
-          key: familyId,
-          display: entry.display_name,
-          benches: [],
-          kind: "curated",
-        })
-      }
-      buckets.get(bucketKey)!.benches.push(toLegacyBenchmark(bench, composite))
-    }
-  }
-
-  // Pass B: composite-implicit groupings. Per composite, count
-  // distinct non-curated benchmark keys; if ≥2, group them under the
-  // composite slug; otherwise fall through to the singleton pass.
-  for (const composite of raw.composites ?? []) {
-    const eligibleBenches = (composite.benchmarks ?? [])
-      .filter((b) => !curatedMembers.has(b.key))
-    const distinctKeys = new Set(eligibleBenches.map((b) => b.key))
-    if (distinctKeys.size < 2) continue
-    const bucketKey = `composite:${composite.key}`
-    if (!buckets.has(bucketKey)) {
-      buckets.set(bucketKey, {
-        key: composite.key,
-        display: composite.display_name,
-        benches: [],
-        kind: "composite",
-      })
-    }
-    for (const bench of eligibleBenches) {
-      buckets.get(bucketKey)!.benches.push(toLegacyBenchmark(bench, composite))
-    }
-  }
-
-  // Pass C: singletons (benchmarks not in a curated family and whose
-  // composite carries only this benchmark). Bucketed by benchmark key.
-  for (const composite of raw.composites ?? []) {
-    const eligibleBenches = (composite.benchmarks ?? [])
-      .filter((b) => !curatedMembers.has(b.key))
-    const distinctKeys = new Set(eligibleBenches.map((b) => b.key))
-    if (distinctKeys.size >= 2) continue
-    for (const bench of eligibleBenches) {
-      const bucketKey = `bench:${bench.key}`
-      if (!buckets.has(bucketKey)) {
-        buckets.set(bucketKey, {
-          key: bench.key,
-          display: bench.display_name,
-          benches: [],
-          kind: "singleton",
-        })
-      }
-      buckets.get(bucketKey)!.benches.push(toLegacyBenchmark(bench, composite))
-    }
-  }
-
-  // Synthesise legacy family records.
-  const families: HierarchyFamily[] = []
-  let standalone_benchmark_count = 0
-  let single_benchmark_count = 0
-  let synthesised_composite_count = 0
-
-  // Sort by display name for stable rendering. Curated families first,
-  // then composite-implicit groupings, then singletons.
-  const sortedBuckets = Array.from(buckets.values()).sort((a, b) => {
-    const kindOrder = { curated: 0, composite: 1, singleton: 2 } as const
-    if (kindOrder[a.kind] !== kindOrder[b.kind]) {
-      return kindOrder[a.kind] - kindOrder[b.kind]
-    }
-    return a.key.localeCompare(b.key)
-  })
-
-  for (const bucket of sortedBuckets) {
-    const benches = bucket.benches
-    if (benches.length === 0) continue
-    const display = bucket.display ?? bucket.key
-    const distinctBenchmarkKeys = new Set(benches.map((b) => b.key))
-
-    const tagDomains = new Set<string>()
-    const tagLanguages = new Set<string>()
-    const tagTasks = new Set<string>()
-    for (const b of benches) {
-      b.tags.domains.forEach((d) => tagDomains.add(d))
-      b.tags.languages.forEach((l) => tagLanguages.add(l))
-      b.tags.tasks.forEach((t) => tagTasks.add(t))
-    }
-    const tags: HierarchyTags = {
-      domains: Array.from(tagDomains).sort(),
-      languages: Array.from(tagLanguages).sort(),
-      tasks: Array.from(tagTasks).sort(),
-    }
-
-    const family: HierarchyFamily = {
-      key: bucket.key,
-      display_name: display,
-      category: "General",
-      tags,
-      has_card: benches.some((b) => b.has_card),
-      eval_summary_ids: Array.from(
-        new Set(benches.flatMap((b) => b.summary_eval_ids ?? [])),
-      ),
-      composites: [],
-      standalone_benchmarks: [],
-    }
-
-    if (bucket.kind === "singleton") {
-      // Singleton family — flatten the (potentially N) per-composite
-      // copies of this benchmark into one standalone row by merging
-      // their slice/metric arrays.
-      const merged: HierarchyBenchmark = mergeSingletonBenchmarks(benches)
-      family.standalone_benchmarks!.push(merged)
-      standalone_benchmark_count += 1
-      single_benchmark_count += 1
-    } else {
-      // Multi-benchmark grouping (curated family or composite-implicit).
-      // Emit one legacy composite under the family. De-dup benchmarks
-      // that appear in multiple upstream composites.
-      const seen = new Set<string>()
-      const dedupedBenches: LegacyBenchmark[] = []
-      for (const b of benches) {
-        if (seen.has(b.key)) continue
-        seen.add(b.key)
-        dedupedBenches.push(b)
-      }
-      family.composites!.push({
-        key: bucket.key,
-        display_name: display,
-        has_card: family.has_card,
-        category: family.category,
-        tags,
-        benchmarks: dedupedBenches,
-      })
-      synthesised_composite_count += 1
-    }
-
-    void distinctBenchmarkKeys
-    families.push(family)
-  }
-
-  const stats = raw.stats
-    ? {
-        ...raw.stats,
-        standalone_benchmark_count:
-          raw.stats.standalone_benchmark_count ?? standalone_benchmark_count,
-        single_benchmark_count:
-          raw.stats.single_benchmark_count ?? single_benchmark_count,
-      }
-    : {
-        family_count: families.length,
-        composite_count: raw.composites?.length ?? synthesised_composite_count,
-        benchmark_count: 0,
-        standalone_benchmark_count,
-        single_benchmark_count,
-        slice_count: 0,
-        metric_count: 0,
-        metric_rows_scanned: 0,
-      }
-
-  return {
-    ...raw,
-    families,
-    stats,
-  }
-}
-
-function mergeSingletonBenchmarks(benches: HierarchyBenchmark[]): HierarchyBenchmark {
-  if (benches.length === 1) return benches[0]
-  const first = benches[0]
-  const sliceMap = new Map<string, HierarchySlice>()
-  const metricMap = new Map<string, HierarchyMetric>()
-  const summaryIds = new Set<string>()
-  for (const b of benches) {
-    for (const s of b.slices ?? []) {
-      if (!sliceMap.has(s.key)) sliceMap.set(s.key, s)
-    }
-    for (const m of b.metrics ?? []) {
-      if (!metricMap.has(m.key)) metricMap.set(m.key, m)
-    }
-    for (const id of b.summary_eval_ids ?? []) summaryIds.add(id)
-  }
-  return {
-    ...first,
-    slices: Array.from(sliceMap.values()),
-    metrics: Array.from(metricMap.values()),
-    summary_eval_ids: Array.from(summaryIds),
-  }
+  return raw
 }
 
 export async function fetchComparisonIndex(): Promise<ComparisonIndex> {
@@ -1805,11 +1454,10 @@ function flattenHierarchyNode(
             ? `${context.benchmark_parent_name ?? context.benchmark} / ${metric.slice_name}`
             : context.canonical_display_name ?? context.benchmark),
         category,
-        benchmark_family_key: context.benchmark_family_key,
+        family_id: context.benchmark_family_key,
         benchmark_family_name: context.benchmark_family_name,
-        benchmark_parent_key: context.benchmark_parent_key,
+        parent_benchmark_id: context.benchmark_parent_key,
         benchmark_parent_name: context.benchmark_parent_name,
-        benchmark_leaf_key: metric.benchmark_leaf_key ?? context.benchmark_leaf_key,
         benchmark_leaf_name: metric.benchmark_leaf_name ?? context.benchmark_leaf_name,
         slice_key: sliceKey,
         slice_name: sliceName,

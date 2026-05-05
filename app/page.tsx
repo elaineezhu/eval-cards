@@ -53,14 +53,11 @@ export default async function HomePage() {
   const stats = hierarchy.stats
   const familyCount = stats?.family_count ?? hierarchy.families.length
   const compositeCount = stats?.composite_count ?? 0
-  // Single benchmarks: prefer the new `benchmark_count` (total distinct
-  // benchmarks across all composites in the v2 dim), fall back to the
-  // legacy single + standalone split when the adapter synthesised them
-  // from an older snapshot shape.
-  const singleBenchmarkCount = stats?.single_benchmark_count ?? 0
-  const standaloneBenchmarkCount = stats?.standalone_benchmark_count ?? 0
-  const benchmarkLeafCount =
-    stats?.benchmark_count ?? singleBenchmarkCount + standaloneBenchmarkCount
+  // v3 hierarchy ships `benchmark_count` directly. The legacy
+  // `single_benchmark_count` / `standalone_benchmark_count` synthesis
+  // is gone with the adapter (Step 4b); v3's `benchmark_count` is the
+  // distinct (composite, benchmark) row count from the dim.
+  const benchmarkLeafCount = stats?.benchmark_count ?? 0
   const sliceCount = stats?.slice_count ?? 0
   const metricCount = stats?.metric_count ?? 0
   const tripleCount = stats?.metric_rows_scanned ?? 0
@@ -77,9 +74,19 @@ export default async function HomePage() {
   const generatedAt = formatGeneratedAt(manifest?.generated_at)
 
   // Featured family cards — pick the first six families with summaries.
+  // Curated multi-benchmark families (BFCL, MMLU, JudgeBench, …) put
+  // their benchmarks under composites[].benchmarks[] after the adapter;
+  // singletons land in standalone_benchmarks[] or benchmarks[]. Pull
+  // from all four shapes so the count reflects the union (matches
+  // family-table.tsx:313's logic).
   const featuredFamilies = hierarchy.families.slice(0, 6).map((family) => {
-    const benches: unknown[] =
-      family.benchmarks ?? family.standalone_benchmarks ?? family.leaves ?? []
+    // v3 family layouts: exactly one of standalone_benchmarks / benchmarks /
+    // composites is present per family. Walk all three to count benchmarks.
+    const benches: unknown[] = [
+      ...(family.standalone_benchmarks ?? []),
+      ...(family.benchmarks ?? []),
+      ...((family.composites ?? []).flatMap((c) => c.benchmarks ?? [])),
+    ]
     let slices = 0
     for (const b of benches) {
       const benchSlices = (b as { slices?: unknown[] }).slices

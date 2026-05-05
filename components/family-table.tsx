@@ -4,7 +4,7 @@ import { Fragment, useMemo, useState } from "react"
 import { useRouter } from "next/navigation"
 import { ArrowUpRight, ChevronDown, ChevronRight } from "lucide-react"
 
-import type { HierarchyBenchmark, HierarchyFamily, HierarchyLeaf } from "@/lib/backend-artifacts"
+import type { HierarchyBenchmark, HierarchyFamily } from "@/lib/backend-artifacts"
 import type { BenchmarkCard, CategoryType } from "@/lib/benchmark-schema"
 import type { BenchmarkEvalListItem } from "@/lib/eval-processing"
 import { humanizeEvaluationId } from "@/lib/utils"
@@ -118,36 +118,20 @@ function collectLeafEntries(
     })
   }
 
-  if (out.length > 0) return out
-
-  // ── Fallback: legacy `leaves` shape ────────────────────────────────
-  for (const leaf of fam.leaves ?? []) {
-    const explicit = leaf.eval_summary_ids ?? []
-    const ids =
-      explicit.length > 0
-        ? explicit
-        : leaf.key
-        ? [`${fam.key}_${leaf.key}`, leaf.key]
-        : []
-    if (ids.length === 0) continue
-    const collected = new Set<string>()
-    for (const d of leaf.tags?.domains ?? []) collected.add(d.toLowerCase())
-    const cardByLeaf = benchmarkCards?.[leaf.key]
-    for (const d of cardByLeaf?.benchmark_details?.domains ?? []) collected.add(d.toLowerCase())
-    for (const id of ids) {
-      const cardById = benchmarkCards?.[id]
-      for (const d of cardById?.benchmark_details?.domains ?? []) collected.add(d.toLowerCase())
-    }
-    out.push({
-      id: ids[0],
-      leafKey: leaf.key,
-      leafName: leaf.display_name || leaf.key,
-      evalsCount: leaf.evals_count ?? ids.length,
-      domains: Array.from(collected),
-    })
-  }
-
   return out
+}
+
+/**
+ * Resolve the family-level navigation target without exposing the
+ * internal `LeafEntry` shape. Returns the eval_summary_id to open when
+ * the user clicks the family card / row, or `null` for aggregator
+ * families that should expand inline instead of navigating.
+ */
+export function getFamilyNavId(
+  fam: HierarchyFamily,
+  benchmarkCards?: Record<string, BenchmarkCard>,
+): string | null {
+  return pickFamilyNavId(fam, collectLeafEntries(fam, benchmarkCards))
 }
 
 /**
@@ -308,21 +292,17 @@ export function FamilyTable({
       const composites = fam.composites ?? []
       const standalone = fam.standalone_benchmarks ?? []
       const benchmarks = fam.benchmarks ?? []
-      const leaves: HierarchyLeaf[] = fam.leaves ?? []
 
       const allBenchmarks = [
         ...standalone,
         ...benchmarks,
         ...composites.flatMap((c) => c.benchmarks ?? []),
       ]
-      const metricCount =
-        (fam.metrics?.length ?? 0) +
-        allBenchmarks.reduce(
-          (sum, b) => sum + ((b as { metrics?: unknown[] }).metrics?.length ?? 0),
-          0,
-        )
-      const benchmarkCount =
-        allBenchmarks.length > 0 ? allBenchmarks.length : leaves.length
+      const metricCount = allBenchmarks.reduce(
+        (sum, b) => sum + (b.metrics?.length ?? 0),
+        0,
+      )
+      const benchmarkCount = allBenchmarks.length
 
       const leafEntries = collectLeafEntries(fam, benchmarkCards)
       const navId = pickFamilyNavId(fam, leafEntries)

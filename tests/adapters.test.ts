@@ -55,7 +55,7 @@ describe("flattenModelEvaluations", () => {
       const evaluations = flattenModelEvaluations(input)
       // Snapshot a digest rather than the full output (which can be 10k+ lines
       // for large models). The digest captures: count, distinct categories,
-      // distinct evaluator_relationships, count of distinct benchmark_family_keys,
+      // distinct evaluator_relationships, count of distinct family_ids,
       // count of unique evaluation_ids, and a hash of the full output. Any change
       // to the full output changes the hash; the structured fields make the diff
       // readable when something changes.
@@ -92,7 +92,7 @@ function digestEvaluations(evaluations: BenchmarkEvaluation[]) {
   let missingSourceMetadata = 0
   for (const e of evaluations) {
     if (e.category) categories.add(e.category)
-    if (e.benchmark_family_key) families.add(e.benchmark_family_key)
+    if (e.family_id) families.add(e.family_id)
     if (e.source_metadata?.evaluator_relationship) evaluators.add(e.source_metadata.evaluator_relationship)
     if (e.evaluation_id) evaluationIds.add(e.evaluation_id)
     if (!e.source_metadata) missingSourceMetadata += 1
@@ -101,7 +101,7 @@ function digestEvaluations(evaluations: BenchmarkEvaluation[]) {
     count: evaluations.length,
     distinct_evaluation_ids: evaluationIds.size,
     distinct_categories: [...categories].sort(),
-    distinct_benchmark_family_keys: families.size,
+    distinct_family_ids: families.size,
     distinct_evaluator_relationships: [...evaluators].sort(),
     missing_source_metadata: missingSourceMetadata,
     full_output_hash: stableHash(evaluations),

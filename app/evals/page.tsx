@@ -1,9 +1,10 @@
 "use client"
 
 import { useCallback, useDeferredValue, useEffect, useMemo, useState } from "react"
+import { useRouter, useSearchParams } from "next/navigation"
 import { ChevronDown, ChevronUp, Search, Tag } from "lucide-react"
 
-import { FamilyTable } from "@/components/family-table"
+import { FamilyTable, getFamilyNavId } from "@/components/family-table"
 import { InfiniteScrollSentinel } from "@/components/infinite-scroll"
 import { Navigation } from "@/components/navigation"
 import type { EvalHierarchy, HierarchyFamily } from "@/lib/backend-artifacts"
@@ -18,42 +19,35 @@ type FamilySort = "results" | "benchmarks" | "name" | "category"
 function familyEvalsCount(fam: HierarchyFamily): number {
   if (fam.evals_count != null) return fam.evals_count
 
-  const composites = fam.composites ?? []
-  const standalone = fam.standalone_benchmarks ?? []
-  const benchmarks = fam.benchmarks ?? []
-  const leaves = fam.leaves ?? []
-
+  // v3 fallback: sum metric counts across the family's benchmarks (one
+  // of the three layout fields is present per family per spec §5.1).
   const allBenchmarks = [
-    ...standalone,
-    ...benchmarks,
-    ...composites.flatMap((c) => c.benchmarks ?? []),
+    ...(fam.standalone_benchmarks ?? []),
+    ...(fam.benchmarks ?? []),
+    ...((fam.composites ?? []).flatMap((c) => c.benchmarks ?? [])),
   ]
-
-  return (
-    (fam.metrics?.length ?? 0) +
-    allBenchmarks.reduce(
-      (sum, b) => sum + ((b as { metrics?: unknown[] }).metrics?.length ?? 0),
-      0,
-    ) +
-    leaves.reduce((sum, l) => sum + (l.evals_count ?? 0), 0)
+  return allBenchmarks.reduce(
+    (sum, b) => sum + (b.metrics?.length ?? 0),
+    0,
   )
 }
 
 function familyBenchmarkCount(fam: HierarchyFamily): number {
-  const composites = fam.composites ?? []
-  const standalone = fam.standalone_benchmarks ?? []
-  const benchmarks = fam.benchmarks ?? []
-  const leaves = fam.leaves ?? []
-
-  const all = [
-    ...standalone,
-    ...benchmarks,
-    ...composites.flatMap((c) => c.benchmarks ?? []),
-  ]
-  return all.length > 0 ? all.length : leaves.length
+  return (
+    (fam.standalone_benchmarks?.length ?? 0) +
+    (fam.benchmarks?.length ?? 0) +
+    ((fam.composites ?? []).reduce(
+      (sum, c) => sum + (c.benchmarks?.length ?? 0),
+      0,
+    ))
+  )
 }
 
 export default function EvalsPage() {
+  const router = useRouter()
+  const searchParams = useSearchParams()
+  const familyParam = searchParams.get("family")
+
   const [hierarchy, setHierarchy] = useState<EvalHierarchy | null>(null)
   const [totalModels, setTotalModels] = useState<number>(0)
   const [evalItems, setEvalItems] = useState<Map<string, BenchmarkEvalListItem>>(new Map())
@@ -80,6 +74,23 @@ export default function EvalsPage() {
       .catch(console.error)
       .finally(() => setLoading(false))
   }, [])
+
+  // Resolve the `?family=<key>` deep link from the home page family cards.
+  // For families with a clean family-level summary we redirect to the
+  // detail page; for aggregator families (no nav target) we seed the
+  // search box so the listing narrows to that family and the user can
+  // expand it. Runs once per `family` param value, after data loads.
+  useEffect(() => {
+    if (!familyParam || !hierarchy) return
+    const fam = hierarchy.families.find((f) => f.key === familyParam)
+    if (!fam) return
+    const navId = getFamilyNavId(fam, benchmarkCards)
+    if (navId) {
+      router.replace(`/evals/${encodeURIComponent(navId)}`)
+      return
+    }
+    setSearchQuery(fam.display_name || fam.key)
+  }, [familyParam, hierarchy, benchmarkCards, router])
 
   const families = hierarchy?.families ?? []
 
@@ -116,13 +127,7 @@ export default function EvalsPage() {
         }
       }
 
-      // Legacy fallback: per-leaf tags + cards keyed by leaf slug.
-      for (const leaf of fam.leaves ?? []) {
-        for (const d of leaf.tags?.domains ?? []) seen.add(d.trim().toLowerCase())
-        for (const d of lookupDomains(leaf.key)) seen.add(d.trim().toLowerCase())
-      }
-
-      // Family-level eval_summary_ids cover both shapes.
+      // Family-level eval_summary_ids cover the v3 shape.
       for (const id of fam.eval_summary_ids ?? []) {
         for (const d of lookupDomains(id)) seen.add(d.trim().toLowerCase())
       }
@@ -153,9 +158,6 @@ export default function EvalsPage() {
       ]
       for (const benchmark of nestedBenchmarks) {
         for (const d of benchmark.tags?.domains ?? []) recordLabel(d)
-      }
-      for (const leaf of fam.leaves ?? []) {
-        for (const d of leaf.tags?.domains ?? []) recordLabel(d)
       }
     }
     for (const set of familyDomains.values()) {
@@ -280,11 +282,7 @@ export default function EvalsPage() {
             <div className="ec-page-meta-item">
               <span className="ec-page-meta-item-l">Single benchmarks</span>
               <span className="ec-page-meta-item-v">
-                {(
-                  stats.benchmark_count ??
-                  (stats.single_benchmark_count ?? 0) +
-                    (stats.standalone_benchmark_count ?? 0)
-                ).toLocaleString()}
+                {(stats.benchmark_count ?? 0).toLocaleString()}
               </span>
             </div>
             <div className="ec-page-meta-item">

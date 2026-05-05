@@ -105,38 +105,15 @@ interface CompositeGroup {
 
 const INSTANCE_PREVIEW_LIMIT = 5
 
-const SUITE_DISPLAY_NAMES: Record<string, string> = {
-  hfopenllm_v2: "HF Open LLM v2",
-  helm_lite: "HELM Lite",
-  helm_capabilities: "HELM Capabilities",
-  helm_classic: "HELM Classic",
-  helm_instruct: "HELM Instruct",
-  helm_mmlu: "HELM MMLU",
-  reward_bench: "RewardBench",
-  reward_bench_2: "RewardBench 2",
-  bfcl: "BFCL",
-  global_mmlu_lite: "Global MMLU Lite",
-  swe_bench: "SWE-bench",
-  arc_agi: "ARC-AGI",
-  tau_bench_2: "TAU-Bench 2",
-  ace: "ACE",
-  apex_agents: "APEX Agents",
-  apex_v1: "APEX v1",
-  appworld: "AppWorld",
-  browsecompplus: "BrowseComp+",
-  livecodebenchpro: "LiveCodeBench Pro",
-  sciarena: "SciArena",
-  terminal_bench_2_0: "Terminal Bench 2.0",
-  la_leaderboard: "LA Leaderboard",
-  theory_of_mind: "Theory of Mind",
-  fibble_arena: "Fibble Arena",
-  fibble1_arena: "Fibble Arena v1",
-  fibble2_arena: "Fibble Arena v2",
-  fibble3_arena: "Fibble Arena v3",
-  fibble4_arena: "Fibble Arena v4",
-  fibble5_arena: "Fibble Arena v5",
-  wordle_arena: "Wordle Arena",
-}
+// SUITE_DISPLAY_NAMES (38-entry hardcoded slug→display map) was deleted
+// in Step 4c of the hierarchy-alignment work
+// (notes/hierarchy-alignment.md §6 / §7 Step 4). The producer now ships
+// curated display names for every family / composite / benchmark via
+// prettify_display + the registry's display_overrides.yaml. This
+// component reads the shipped name; the DISPLAY_TOKEN_OVERRIDES /
+// DISPLAY_NAME_OVERRIDES below remain as a per-token polish layer
+// (mostly for raw model identifier rendering, where the producer's
+// metadata doesn't carry a curated display).
 
 const DISPLAY_TOKEN_OVERRIDES: Record<string, string> = {
   ace: "ACE",
@@ -169,7 +146,6 @@ const DISPLAY_TOKEN_OVERRIDES: Record<string, string> = {
 }
 
 const DISPLAY_NAME_OVERRIDES: Record<string, string> = {
-  ...SUITE_DISPLAY_NAMES,
   apex: "APEX",
   apex_agents: "APEX Agents",
   apex_v1: "APEX v1",
@@ -294,17 +270,17 @@ function doesLabelMatchSuiteKey(label: string | null | undefined, compositeKey: 
 
 function getCompositeKey(group: BenchmarkGroup): string {
   const evaluation = group.variants[0]?.evaluation
-  const backendSuiteKey =
-    evaluation?.benchmark_parent_key ||
-    evaluation?.benchmark_family_key ||
-    evaluation?.benchmark
+  const backendSuiteKey = evaluation?.family_id
 
   return normalizeCompositeKey(backendSuiteKey ?? group.key)
 }
 
 function getCompositeDisplayName(key: string): string {
-  const normalizedKey = normalizeCompositeKey(key)
-  return SUITE_DISPLAY_NAMES[normalizedKey] ?? normalizeDisplayLabel(key)
+  // Display names come from the shipped hierarchy.json. This helper
+  // is used in fallback paths where only a raw key is in scope; it
+  // applies the same per-token polish (DISPLAY_TOKEN_OVERRIDES) the
+  // rest of the renderer uses.
+  return normalizeDisplayLabel(key)
 }
 
 function getCompositeName(group: BenchmarkGroup, compositeKey: string): string {
@@ -1426,11 +1402,12 @@ function buildBenchmarkGroups(
       (entry.evaluation.slice_name && (entry.evaluation.benchmark_parent_name || entry.evaluation.benchmark)
         ? `${entry.evaluation.benchmark_parent_name || entry.evaluation.benchmark} / ${entry.evaluation.slice_name}`
         : title)
+    // eval_summary_id is producer-shipped on every v3 entry; the
+    // remaining ?? tiers are for legacy snapshots without that field.
     const groupKey =
       entry.evaluation.eval_summary_id ??
-      entry.evaluation.benchmark_parent_key ??
-      entry.evaluation.benchmark_leaf_key ??
-      entry.evaluation.benchmark ??
+      entry.evaluation.parent_benchmark_id ??
+      entry.evaluation.family_id ??
       "benchmark"
     const card = benchmarkCards
       ? lookupBenchmarkCard(benchmarkCards, rawBenchmarkName)
@@ -1988,7 +1965,7 @@ export function BenchmarkDetail({
 
   // Family-bucketed groups for the list view, mirroring plotboxUnits logic.
   // When comparisonIndex is available we use the backend-authoritative
-  // benchmark_family_key; otherwise we fall back to the group's own key so each
+  // family_id; otherwise we fall back to the group's own key so each
   // BenchmarkGroup forms its own family.
   type ListFamily = {
     familyKey: string
@@ -2008,9 +1985,9 @@ export function BenchmarkDetail({
         ?.evaluation.eval_summary_id
       const evalEntry =
         evalId && comparisonIndex ? comparisonIndex.evals[evalId] : null
-      const famKey = evalEntry?.benchmark_family_key ?? group.key
+      const famKey = evalEntry?.family_id ?? group.key
       const famName =
-        evalEntry?.benchmark_family_name ||
+        evalEntry?.family_display_name ||
         evalEntry?.display_name ||
         group.title
 
@@ -2338,7 +2315,12 @@ export function BenchmarkDetail({
           .filter((p) => selectedIds.has(p.model_route_id))
           .map((p) => ({
             modelId: p.model_route_id,
-            modelName: getModelDisplayName(p.model_family_name),
+            // Fall back to model_family_id when the registry has no display
+            // name for this model. ~86% of score entries today land here;
+            // root cause (registry coverage) is Step 2 work. The id is
+            // already human-readable in this codebase ("anthropic/Sonnet 4.5"),
+            // so the fallback is more useful than "Unknown Model".
+            modelName: getModelDisplayName(p.model_family_name || p.model_family_id),
             score: p.score,
             isCurrent: false,
             isDefault: defaults.has(p.model_route_id),
@@ -2406,7 +2388,7 @@ export function BenchmarkDetail({
   // A plotbox can expose a top-level "view" selector (slices, child
   // benchmarks, components) and an optional metric tab rail beneath the chart.
   // Plotbox grouping is driven entirely by comparison-index's own
-  // benchmark_family_key so it stays in sync with the backend.
+  // family_id so it stays in sync with the backend.
   type PlotboxMetricTab = {
     tabKey: string
     label: string
@@ -2474,9 +2456,9 @@ export function BenchmarkDetail({
       const evalEntry = comparisonIndex.evals[evalId]
       if (!evalEntry) continue
 
-      const famKey = evalEntry.benchmark_family_key ?? evalId
+      const famKey = evalEntry.family_id ?? evalId
       const famName =
-        evalEntry.benchmark_family_name || evalEntry.display_name || famKey
+        evalEntry.family_display_name || evalEntry.display_name || famKey
       const bucket = familyBuckets.get(famKey) ?? {
         familyName: famName,
         category: group.category,
@@ -2509,8 +2491,7 @@ export function BenchmarkDetail({
       histKey: histKeyFor(evalEntry.eval_summary_id, metric.metric_summary_id),
       evalSummaryId: evalEntry.eval_summary_id,
       metricSummaryId: metric.metric_summary_id,
-      evalDisplayName:
-        evalEntry.display_name || evalEntry.benchmark_leaf_name || group.title,
+      evalDisplayName: evalEntry.display_name || group.title,
       evalEntry,
       metricEntry: metric,
       isRollup,
@@ -2526,8 +2507,7 @@ export function BenchmarkDetail({
         // One eval in scope — slices/splits become the view selector while
         // metrics move to a compact tab rail beneath the chart.
         const { group, evalEntry } = resolved[0]
-        const evalDisplay =
-          evalEntry.display_name || evalEntry.benchmark_leaf_name || group.title
+        const evalDisplay = evalEntry.display_name || group.title
         const singleEvalViewBuckets = new Map<
           string,
           { viewKey: string; label: string; variants: BenchmarkVariant[] }
@@ -2598,21 +2578,22 @@ export function BenchmarkDetail({
 
       // Multi-eval family — the view selector chooses among child evals and
       // each view exposes that eval's metrics in the bottom tab rail.
+      // Rollup row = this eval IS the family root, i.e. its benchmark id
+      // matches the family id. For multi-benchmark families like HELM,
+      // there is no such eval (HELM has no "helm" benchmark), so rollup
+      // stays null and the children render as siblings.
       const rollup =
         resolved.find(
           (r) =>
-            r.evalEntry.benchmark_leaf_key != null &&
-            r.evalEntry.benchmark_leaf_key === r.evalEntry.benchmark_family_key
+            r.evalEntry.benchmark_id != null &&
+            r.evalEntry.benchmark_id === r.evalEntry.family_id,
         ) ?? null
       const children = rollup ? resolved.filter((r) => r !== rollup) : resolved
       const ordered: ResolvedGroup[] = rollup ? [rollup, ...children] : children
 
       const views: PlotboxView[] = ordered
         .map((r) => {
-          const rawLabel =
-            r.evalEntry.benchmark_leaf_name ||
-            r.evalEntry.display_name ||
-            r.group.title
+          const rawLabel = r.evalEntry.display_name || r.group.title
           const label =
             r === rollup ? "Overall" : stripFamilyPrefix(rawLabel, familyName)
           const tabs = r.evalEntry.metrics
@@ -2648,8 +2629,20 @@ export function BenchmarkDetail({
       let hasSlice = false
       let hasDistinctLeaves = false
       for (const r of children) {
-        const leafKey = r.evalEntry.benchmark_leaf_key
-        if (leafKey && leafKey !== r.evalEntry.benchmark_family_key) {
+        // "Distinct leaf" = this child has an identity distinct from the
+        // family root. Two cases:
+        //   1. Non-slice child (e.g. HELM/MMLU under HELM family).
+        //   2. Slice whose parent benchmark is not the family itself
+        //      (e.g. HELM/MMLU/anatomy — slice of MMLU under HELM, where
+        //      parent="mmlu" ≠ family="helm"). In a singleton family the
+        //      slice's parent equals the family and this case collapses
+        //      back to "slice", as expected.
+        const evalEntry = r.evalEntry
+        const isDistinctLeaf =
+          evalEntry.is_slice === false ||
+          (evalEntry.parent_benchmark_id != null &&
+            evalEntry.parent_benchmark_id !== evalEntry.family_id)
+        if (isDistinctLeaf) {
           hasDistinctLeaves = true
         }
         if (r.group.variants[0]?.evaluation.benchmark_component_key ?? null) {

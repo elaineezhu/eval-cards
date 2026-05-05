@@ -59,7 +59,7 @@ export function PolicyOverview({ summary }: PolicyOverviewProps) {
   const cardNameNorm = normalizeId(cardName)
   const evalIdentifiers = [
     summary.evaluation_name,
-    summary.benchmark_leaf_key,
+    summary.benchmark_id,
     summary.composite_benchmark_key,
     summary.composite_benchmark_name,
     summary.canonical_display_name,
@@ -180,16 +180,16 @@ export function PolicyOverview({ summary }: PolicyOverviewProps) {
         summary.evaluation_name,
         summary.composite_benchmark_name,
         summary.composite_benchmark_key,
-        summary.benchmark_family_key,
-        summary.benchmark_leaf_key,
+        summary.family_id,
+        summary.benchmark_id,
         card?.benchmark_details?.name,
       ),
     [
       summary.evaluation_name,
       summary.composite_benchmark_name,
       summary.composite_benchmark_key,
-      summary.benchmark_family_key,
-      summary.benchmark_leaf_key,
+      summary.family_id,
+      summary.benchmark_id,
       card?.benchmark_details?.name,
     ],
   )

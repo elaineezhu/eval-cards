@@ -10,16 +10,22 @@ export interface BenchmarkEvaluation {
   eval_summary_id?: string
   evaluation_id: string
   retrieved_timestamp: string
+  /** Legacy benchmark-name-or-slug field. The view-data layer
+   *  (lib/view-data.ts) populates this from eval_evaluation_name with a
+   *  benchmark_id fallback, so it works as a stable name source for
+   *  badges and grouping when nothing better is on-hand. New callers
+   *  should prefer `display_name` / `canonical_display_name`; this
+   *  field is kept for the surfaces that aren't yet migrated. */
   benchmark?: string
   display_name?: string
   canonical_display_name?: string
   category?: CategoryType
-  benchmark_family_key?: string
+  family_id?: string
   benchmark_family_name?: string
-  benchmark_parent_key?: string
+  parent_benchmark_id?: string
   benchmark_parent_name?: string
-  benchmark_leaf_key?: string
   benchmark_leaf_name?: string
+  is_slice?: boolean
   benchmark_component_key?: string | null
   benchmark_component_name?: string | null
   is_summary_score?: boolean

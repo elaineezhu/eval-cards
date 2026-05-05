@@ -87,7 +87,7 @@ export function CorpusSignalsStrip({
         statValue={pctNum(multiSourceRate)}
         statUnit="%"
         headline="of reported score triples have reports from more than one party."
-        detail={`${formatPct(tpShare)} third-party, ${formatPct(fpShare)} first-party of ${totalReports.toLocaleString()} triples.`}
+        detail={`${formatPct(tpShare)} third-party, ${formatPct(fpShare)} first-party of ${totalReports.toLocaleString()} unique triples.`}
         asks="Who reported this score, and have others reproduced it?"
       />
       <SignalTile

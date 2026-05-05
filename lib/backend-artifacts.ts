@@ -241,6 +241,24 @@ export interface ComparabilityCorpusBlock {
   groups_with_cross_party_check: number
 }
 
+// ---------------------------------------------------------------------------
+// Hierarchy types (v3 — family-rooted tree).
+//
+// The producer emits this shape via eval_card_backend's
+// `write_hierarchy()` after the Step 3 reshape. See
+// /Users/jchim/projects/evaleval/notes/hierarchy-alignment.md §5.1
+// for the canonical spec.
+//
+// Top level: `families[]` is the rich entity. Composites nest under
+// families[].composites[]. `benchmark_index[]` cross-links a canonical
+// benchmark that appears in multiple families.
+//
+// Each family chooses ONE of three layouts:
+//   - standalone_benchmarks: single-benchmark family.
+//   - benchmarks (flat): multiple benchmarks, no composite layer.
+//   - composites: multi-composite family (HELM has 7).
+// ---------------------------------------------------------------------------
+
 export interface HierarchyTags {
   domains: string[]
   languages: string[]
@@ -250,109 +268,108 @@ export interface HierarchyTags {
 export interface HierarchyMetric {
   key: string
   display_name: string
+  /** Producer-supplied list of organisations whose results back this
+   *  metric. Empty when source attribution wasn't recoverable. */
   sources?: string[]
+  /** Per spec §5.1 — true when this is the benchmark's primary metric
+   *  (matches `primary_metric_key`). */
+  is_primary?: boolean
+  /** Distinct model count contributing to this metric — drives
+   *  primary-metric tie-break. */
+  models_count?: number
 }
 
 export interface HierarchySlice {
   key: string
   display_name: string
   metrics: HierarchyMetric[]
-  /** New: marks the bare-stem "Overall" slice (e.g. `gaia` inside
-   *  the `gaia` benchmark). Frontend can label such a row "Overall". */
+  /** Marks the bare-stem "Overall" slice (e.g. `gaia` inside the
+   *  `gaia` benchmark). Frontend labels such a row "Overall". */
   is_bare_stem?: boolean
 }
 
 export interface HierarchyBenchmark extends SignalSummaries {
   key: string
   display_name: string
+  family_id: string
+  is_slice: boolean
+  /** True when this row IS the family/composite root (canonical_id
+   *  matches the family or composite key). For a singleton family,
+   *  the sole benchmark is overall. For multi-bench families with
+   *  no head benchmark of the same name (HAL, BFCL with no `bfcl`
+   *  benchmark), all are False. */
+  is_overall: boolean
+  /** True for the benchmark within its family that's the headline
+   *  reading. Selected via FAMILY_PRIMARY_OVERRIDE → is_overall →
+   *  alphabetical (see _mark_family_primary_benchmark in producer). */
+  is_primary?: boolean
+  /** Metric key whose primary metric should be displayed as the
+   *  benchmark's headline number. Null when the benchmark has no
+   *  metrics. */
+  primary_metric_key?: string | null
   has_card: boolean
   tags: HierarchyTags
   slices: HierarchySlice[]
   metrics: HierarchyMetric[]
   summary_eval_ids?: string[]
-  /** New post-cutover: family slug (defaults to benchmark key for singletons). */
-  family_id?: string
-  /** New post-cutover: TRUE when this row is a slice of a root benchmark. */
-  is_slice?: boolean
 }
 
 export interface HierarchyComposite extends SignalSummaries {
   key: string
   display_name: string
-  has_card?: boolean
   category: string
   tags: HierarchyTags
   benchmarks: HierarchyBenchmark[]
+  evals_count?: number
   summary_eval_ids?: string[]
-  /** New top-level shape: total triples in the composite. */
-  evals_count?: number
-}
-
-export interface HierarchyLeaf extends SignalSummaries {
-  key: string
-  display_name: string
-  category: string
-  evals_count?: number
-  eval_summary_ids?: string[]
-  tags?: Partial<HierarchyTags>
-  has_card?: boolean
+  /** True for the headline composite within a multi-composite family. */
+  is_primary?: boolean
 }
 
 export interface HierarchyFamily extends SignalSummaries {
   key: string
   display_name: string
-  has_card?: boolean
   category: string
-  tags?: Partial<HierarchyTags>
-  evals_count?: number
-  eval_summary_ids?: string[]
-  // Legacy nested shape (composites + standalone benchmarks)
+  tags: HierarchyTags
+  evals_count: number
+  eval_summary_ids: string[]
+  /** Exactly ONE of the three layout fields below is present. */
   standalone_benchmarks?: HierarchyBenchmark[]
-  composites?: HierarchyComposite[]
   benchmarks?: HierarchyBenchmark[]
-  slices?: HierarchySlice[]
-  metrics?: HierarchyMetric[]
-  // Newer 2-level shape (family → leaf)
-  leaves?: HierarchyLeaf[]
+  composites?: HierarchyComposite[]
+}
+
+export interface BenchmarkIndexAppearance {
+  family_key: string
+  benchmark_key: string
+  eval_summary_ids: string[]
+  /** True when the family this appearance is under is the benchmark's
+   *  natural "home" family (family_key === benchmark_key). */
+  is_canonical_home: boolean
+}
+
+export interface BenchmarkIndexEntry {
+  key: string
+  display_name: string
+  appearances: BenchmarkIndexAppearance[]
 }
 
 export interface EvalHierarchyStats {
   family_count: number
   composite_count: number
-  /** Legacy benchmark-stem grouping count. Removed in the composite/
-   *  family/slice taxonomy refactor — kept optional so the adapter
-   *  can synthesise it for the existing homepage stats strip. */
-  standalone_benchmark_count?: number
-  /** Same as above. */
-  single_benchmark_count?: number
-  /** New post-cutover field: total distinct (composite, benchmark) rows
-   *  in the benchmarks dim. */
-  benchmark_count?: number
+  benchmark_count: number
   slice_count: number
   metric_count: number
   metric_rows_scanned: number
 }
 
-/** Lightweight family-lookup index entry from the new top-level
- *  `families[]` array (composite/family/slice taxonomy). One per
- *  family_id with the list of member benchmark keys — no nested
- *  composites, no slice payload. The legacy `HierarchyFamily` shape
- *  (with nested `composites[]` / `standalone_benchmarks[]`) is
- *  synthesised by the adapter for backward compat. */
-export interface HierarchyFamilyIndex {
-  key: string
-  display_name: string
-  member_benchmark_keys: string[]
-}
-
 export interface EvalHierarchy {
+  /** Schema marker: "v3.hierarchy.1". Older snapshots lack this. */
+  schema_version?: string
+  generated_at?: string
   stats?: EvalHierarchyStats
   families: HierarchyFamily[]
-  /** New post-cutover top-level array — one per leaderboard slug. */
-  composites?: HierarchyComposite[]
-  /** New post-cutover flat lookup. The adapter promotes this onto
-   *  per-family records as it builds the legacy shape. */
-  family_index?: HierarchyFamilyIndex[]
+  benchmark_index?: BenchmarkIndexEntry[]
 }
 
 // ---------------------------------------------------------------------------
@@ -407,14 +424,15 @@ export interface ComparisonMetricEntry {
 
 export interface ComparisonEvalEntry {
   eval_summary_id: string
-  benchmark_family_key: string | null
-  benchmark_family_name: string | null
-  benchmark_parent_key: string | null
-  benchmark_parent_name: string | null
-  benchmark_leaf_key: string | null
-  benchmark_leaf_name: string | null
+  benchmark_id: string | null
+  family_id: string | null
+  family_display_name: string | null
+  composite_slug: string | null
+  composite_display_name: string | null
+  parent_benchmark_id: string | null
   display_name: string | null
   category: string
+  is_slice: boolean
   is_summary_score: boolean
   summary_score_for: string | null
   summary_eval_ids: string[]
