@@ -4,10 +4,11 @@
   "private": true,
   "packageManager": "pnpm@10.25.0",
   "scripts": {
-    "build": "node scripts/cache-hf-data.mjs && next build",
+    "build": "node scripts/cache-hf-data.mjs && node scripts/build-eval-matrices.mjs && next build",
     "dev": "next dev",
     "lint": "next lint",
     "cache-hf-data": "node scripts/cache-hf-data.mjs",
+    "build-eval-matrices": "node scripts/build-eval-matrices.mjs",
     "start": "next start",
     "test": "vitest",
     "test:drift": "RUN_DRIFT=1 vitest --run tests/upstream-drift.test.ts",

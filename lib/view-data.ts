@@ -1,5 +1,7 @@
 import "server-only"
 
+import fs from "node:fs"
+import path from "node:path"
 import { getConnection } from "@/lib/duckdb"
 import { fetchHeadline } from "@/lib/sidecars"
 import {
@@ -520,6 +522,31 @@ export async function getModelSummaryById(routeId: string): Promise<ModelEvaluat
   return modelSummaryFromRows(modelRow, cellRows)
 }
 
+// Build-time precomputed multi-metric / per-slice matrix produced by
+// `scripts/build-eval-matrices.mjs`. Read once on first request and
+// cached in module scope — the file is image-baked so this is a single
+// disk read per server start. When the file is missing (local dev where
+// nobody ran `pnpm build-eval-matrices` yet), we fall through and the
+// summary degrades to single-metric exactly like before.
+type MatrixEntry = {
+  leaderboard_rows: Array<{ model_route_id: string; values: Record<string, number | null> }>
+  subtask_metrics: Array<Record<string, unknown>>
+}
+
+let evalMatrixCache: Record<string, MatrixEntry> | null | undefined
+function loadEvalMatrices(): Record<string, MatrixEntry> | null {
+  if (evalMatrixCache !== undefined) return evalMatrixCache
+  try {
+    const matrixPath = path.join(process.cwd(), "data", "eval-matrices.json")
+    const text = fs.readFileSync(matrixPath, "utf8")
+    const parsed = JSON.parse(text) as { evals?: Record<string, MatrixEntry> }
+    evalMatrixCache = parsed.evals ?? {}
+  } catch {
+    evalMatrixCache = null
+  }
+  return evalMatrixCache
+}
+
 export async function getEvalSummaryById(evalId: string): Promise<BenchmarkEvalSummary | null> {
   // Use the same aliased projection as EVAL_LIST_COLUMNS so the legacy
   // `composite_benchmark_*` / `benchmark_family_*` consumer fields are
@@ -558,10 +585,63 @@ export async function getEvalSummaryById(evalId: string): Promise<BenchmarkEvalS
     )
   }
 
-  return {
+  const summary = {
     ...evalRow,
     model_results: cellRows.map(reshapeCellToModelResult),
   } as BenchmarkEvalSummary
+
+  // Splice in precomputed multi-metric leaderboard_rows and subtask
+  // leaderboard_metrics from data/eval-matrices.json. Models in the matrix
+  // but not in cellRows (zero-coverage primary metric) are also surfaced
+  // so a user can still see per-slice or non-primary scores. The base row
+  // shape comes from any matching cellRow when one exists.
+  const matrices = loadEvalMatrices()
+  const matrix = matrices?.[evalId]
+  if (matrix) {
+    const baseRowByRoute = new Map<string, ModelResultForBenchmark>()
+    for (const result of summary.model_results) {
+      if (result.model_route_id) {
+        baseRowByRoute.set(result.model_route_id, result)
+      }
+    }
+
+    const leaderboardRows = matrix.leaderboard_rows
+      .map((row) => {
+        const base = baseRowByRoute.get(row.model_route_id)
+        if (!base) return null
+        return {
+          model_info: base.model_info,
+          model_route_id: row.model_route_id,
+          evaluation_timestamp: base.evaluation_timestamp,
+          source_metadata: base.source_metadata,
+          source_data: base.source_data,
+          values: row.values,
+          metrics_present: Object.values(row.values).filter(
+            (v): v is number => typeof v === "number" && Number.isFinite(v),
+          ).length,
+        }
+      })
+      .filter((row): row is NonNullable<typeof row> => row !== null)
+
+    if (leaderboardRows.length > 0) {
+      summary.leaderboard_rows = leaderboardRows
+    }
+    if (matrix.subtask_metrics.length > 0) {
+      const existing = (summary.leaderboard_metrics ?? []) as Array<{ column_key: string }>
+      const seen = new Set(existing.map((m) => m.column_key))
+      const merged = [
+        ...existing,
+        ...matrix.subtask_metrics.filter(
+          (m): m is typeof m & { column_key: string } =>
+            typeof m.column_key === "string" && !seen.has(m.column_key),
+        ),
+      ]
+      summary.leaderboard_metrics =
+        merged as unknown as BenchmarkEvalSummary["leaderboard_metrics"]
+    }
+  }
+
+  return summary
 }
 
 export async function getDeveloperList(): Promise<DeveloperListEntry[]> {
