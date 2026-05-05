@@ -1,10 +1,19 @@
 "use client"
 
 import Link from "next/link"
-import { ArrowUpRight } from "lucide-react"
+import { ArrowUpRight, ChevronDown, ChevronUp, ChevronsUpDown } from "lucide-react"
 
 import type { BenchmarkEvaluationCardData } from "@/components/benchmark-evaluation-card"
 import { cn } from "@/lib/utils"
+
+export type ModelTableSortCol =
+  | "name"
+  | "developer"
+  | "released"
+  | "params"
+  | "benchmarks"
+  | "results"
+  | "coverage"
 
 interface ModelTableProps {
   rows: BenchmarkEvaluationCardData[]
@@ -12,6 +21,9 @@ interface ModelTableProps {
   selectedIds: string[]
   onToggleSelect: (id: string) => void
   maxCompare: number
+  sortCol: ModelTableSortCol
+  sortDir: "asc" | "desc"
+  onSort: (col: ModelTableSortCol) => void
 }
 
 function formatDateShort(value: string | undefined) {
@@ -49,19 +61,60 @@ export function ModelTable({
   selectedIds,
   onToggleSelect,
   maxCompare,
+  sortCol,
+  sortDir,
+  onSort,
 }: ModelTableProps) {
+  function SortIcon({ col }: { col: ModelTableSortCol }) {
+    if (sortCol !== col) return <ChevronsUpDown className="h-3 w-3 opacity-30" aria-hidden />
+    return sortDir === "asc"
+      ? <ChevronUp className="h-3 w-3" aria-hidden />
+      : <ChevronDown className="h-3 w-3" aria-hidden />
+  }
+
+  function SortTh({
+    col,
+    children,
+    className,
+    style,
+  }: {
+    col: ModelTableSortCol
+    children: React.ReactNode
+    className?: string
+    style?: React.CSSProperties
+  }) {
+    const active = sortCol === col
+    return (
+      <th
+        className={className}
+        style={{
+          ...style,
+          cursor: "pointer",
+          userSelect: "none",
+          color: active ? "var(--fg)" : undefined,
+        }}
+        onClick={() => onSort(col)}
+      >
+        <span className={cn("inline-flex items-center gap-1", className?.includes("num") && "justify-end")}>
+          {children}
+          <SortIcon col={col} />
+        </span>
+      </th>
+    )
+  }
+
   return (
     <div className="overflow-x-auto">
       <table className="ec-htable">
         <thead>
           <tr>
-            <th style={{ width: "30%" }}>Model</th>
-            <th>Developer</th>
-            <th>Released</th>
-            <th>Params</th>
-            <th className="num">Benchmarks</th>
-            <th className="num">Results</th>
-            <th style={{ width: "20%" }}>Coverage</th>
+            <SortTh col="name" style={{ width: "30%" }}>Model</SortTh>
+            <SortTh col="developer">Developer</SortTh>
+            <SortTh col="released">Released</SortTh>
+            <SortTh col="params">Params</SortTh>
+            <SortTh col="benchmarks" className="num">Benchmarks</SortTh>
+            <SortTh col="results" className="num">Results</SortTh>
+            <SortTh col="coverage" style={{ width: "20%" }}>Coverage</SortTh>
             <th style={{ width: 90 }} />
           </tr>
         </thead>

@@ -1,27 +1,74 @@
 "use client"
 
 import Link from "next/link"
-import { ArrowUpRight } from "lucide-react"
+import { ArrowUpRight, ChevronDown, ChevronUp, ChevronsUpDown } from "lucide-react"
 
 import type { DeveloperListItem } from "@/lib/dashboard-data-client"
+import { cn } from "@/lib/utils"
+
+export type DeveloperTableSortCol =
+  | "name"
+  | "models"
+  | "benchmarks"
+  | "results"
 
 interface DeveloperTableProps {
   rows: DeveloperListItem[]
+  sortCol: DeveloperTableSortCol
+  sortDir: "asc" | "desc"
+  onSort: (col: DeveloperTableSortCol) => void
 }
 
-export function DeveloperTable({ rows }: DeveloperTableProps) {
+export function DeveloperTable({ rows, sortCol, sortDir, onSort }: DeveloperTableProps) {
   const maxModels = rows.reduce((m, r) => Math.max(m, r.model_count), 1)
+
+  function SortIcon({ col }: { col: DeveloperTableSortCol }) {
+    if (sortCol !== col) return <ChevronsUpDown className="h-3 w-3 opacity-30" aria-hidden />
+    return sortDir === "asc"
+      ? <ChevronUp className="h-3 w-3" aria-hidden />
+      : <ChevronDown className="h-3 w-3" aria-hidden />
+  }
+
+  function SortTh({
+    col,
+    children,
+    className,
+    style,
+  }: {
+    col: DeveloperTableSortCol
+    children: React.ReactNode
+    className?: string
+    style?: React.CSSProperties
+  }) {
+    const active = sortCol === col
+    return (
+      <th
+        className={className}
+        style={{
+          ...style,
+          cursor: "pointer",
+          userSelect: "none",
+          color: active ? "var(--fg)" : undefined,
+        }}
+        onClick={() => onSort(col)}
+      >
+        <span className={cn("inline-flex items-center gap-1", className?.includes("num") && "justify-end")}>
+          {children}
+          <SortIcon col={col} />
+        </span>
+      </th>
+    )
+  }
 
   return (
     <div className="overflow-x-auto">
       <table className="ec-htable">
         <thead>
           <tr>
-            <th style={{ width: "32%" }}>Developer</th>
-            <th className="num">Models</th>
-            <th className="num">Benchmarks</th>
-            <th className="num">Reported results</th>
-            <th style={{ width: "32%" }}>Top evaluations</th>
+            <SortTh col="name" style={{ width: "32%" }}>Developer</SortTh>
+            <SortTh col="models" className="num">Models</SortTh>
+            <SortTh col="benchmarks" className="num">Benchmarks</SortTh>
+            <SortTh col="results" className="num">Reported results</SortTh>
             <th style={{ width: 90 }} />
           </tr>
         </thead>
@@ -54,24 +101,6 @@ export function DeveloperTable({ rows }: DeveloperTableProps) {
                 </td>
                 <td className="num font-mono text-[13px]">
                   {dev.evaluation_count.toLocaleString()}
-                </td>
-                <td>
-                  <div className="flex flex-wrap gap-1.5">
-                    {dev.popular_evals.slice(0, 3).map((ev) => (
-                      <span
-                        key={ev.benchmark}
-                        className="inline-flex items-center gap-1 border border-[color:var(--border-soft)] bg-[color:var(--bg)] px-2 py-0.5 font-mono text-[10px] tracking-[0.04em] text-[color:var(--fg-muted)]"
-                        title={`${ev.benchmark} · ${ev.model_count} models`}
-                      >
-                        <span className="truncate max-w-[120px]">
-                          {ev.benchmark}
-                        </span>
-                        <span className="text-[color:var(--fg-subtle)]">
-                          {ev.model_count}
-                        </span>
-                      </span>
-                    ))}
-                  </div>
                 </td>
                 <td>
                   <Link

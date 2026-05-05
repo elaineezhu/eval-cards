@@ -4,10 +4,10 @@ import { useCallback, useDeferredValue, useEffect, useMemo, useState } from "rea
 import { ArrowRightLeft, Search, X } from "lucide-react"
 
 import { type BenchmarkEvaluationCardData } from "@/components/benchmark-evaluation-card"
-import { DeveloperTable } from "@/components/developer-table"
+import { DeveloperTable, type DeveloperTableSortCol } from "@/components/developer-table"
 import { InfiniteScrollSentinel } from "@/components/infinite-scroll"
 import { ModelCompareDialog } from "@/components/model-compare-dialog"
-import { ModelTable } from "@/components/model-table"
+import { ModelTable, type ModelTableSortCol } from "@/components/model-table"
 import { Navigation } from "@/components/navigation"
 import { ParamRangePicker } from "@/components/param-range-picker"
 import { fetchCorpusAggregates, fetchDevelopers, fetchModelCards, fetchBenchmarkMetadata, type DeveloperListItem } from "@/lib/dashboard-data-client"
@@ -17,8 +17,27 @@ import { PARAM_RANGE_MAX_INDEX, paramStepToNumeric } from "@/lib/param-range"
 const PAGE_SIZE = 40
 const MAX_COMPARE_MODELS = 4
 
-type ModelSort = "benchmarks" | "results" | "name" | "released" | "params"
-type DevSort = "coverage" | "evaluated" | "models" | "name"
+type ModelSort = ModelTableSortCol
+type DevSort = DeveloperTableSortCol
+type SortDir = "asc" | "desc"
+
+// Default sort direction per column when the user first clicks it. Numeric /
+// recency columns descend (newest, biggest first); name columns ascend.
+const MODEL_DEFAULT_DIR: Record<ModelSort, SortDir> = {
+  name: "asc",
+  developer: "asc",
+  released: "desc",
+  params: "desc",
+  benchmarks: "desc",
+  results: "desc",
+  coverage: "desc",
+}
+const DEV_DEFAULT_DIR: Record<DevSort, SortDir> = {
+  name: "asc",
+  models: "desc",
+  benchmarks: "desc",
+  results: "desc",
+}
 
 function safeTimestamp(value: string | null | undefined) {
   if (!value) return 0
@@ -39,8 +58,32 @@ export default function ModelsPage() {
   const [loadingDevelopers, setLoadingDevelopers] = useState(false)
   const [developersReady, setDevelopersReady] = useState(false)
   const [groupByDeveloper, setGroupByDeveloper] = useState(false)
-  const [modelSortBy, setModelSortBy] = useState<ModelSort>("benchmarks")
-  const [developerSortBy, setDeveloperSortBy] = useState<DevSort>("coverage")
+  const [modelSortBy, setModelSortBy] = useState<ModelSort>("released")
+  const [modelSortDir, setModelSortDir] = useState<SortDir>("desc")
+  const [developerSortBy, setDeveloperSortBy] = useState<DevSort>("models")
+  const [developerSortDir, setDeveloperSortDir] = useState<SortDir>("desc")
+
+  const handleModelSort = useCallback((col: ModelSort) => {
+    setModelSortBy((current) => {
+      if (current === col) {
+        setModelSortDir((dir) => (dir === "asc" ? "desc" : "asc"))
+        return current
+      }
+      setModelSortDir(MODEL_DEFAULT_DIR[col])
+      return col
+    })
+  }, [])
+
+  const handleDeveloperSort = useCallback((col: DevSort) => {
+    setDeveloperSortBy((current) => {
+      if (current === col) {
+        setDeveloperSortDir((dir) => (dir === "asc" ? "desc" : "asc"))
+        return current
+      }
+      setDeveloperSortDir(DEV_DEFAULT_DIR[col])
+      return col
+    })
+  }, [])
   const [searchQuery, setSearchQuery] = useState("")
   const [selectedModelIds, setSelectedModelIds] = useState<string[]>([])
   const [compareOpen, setCompareOpen] = useState(false)
@@ -116,22 +159,35 @@ export default function ModelsPage() {
       })
     }
 
+    const dirMul = modelSortDir === "asc" ? 1 : -1
     return filtered.slice().sort((a, b) => {
+      let cmp = 0
       switch (modelSortBy) {
         case "name":
-          return a.model_name.localeCompare(b.model_name)
+          cmp = a.model_name.localeCompare(b.model_name)
+          break
+        case "developer":
+          cmp = a.developer.localeCompare(b.developer)
+          break
         case "released":
-          return safeTimestamp(b.release_date) - safeTimestamp(a.release_date)
+          cmp = safeTimestamp(a.release_date) - safeTimestamp(b.release_date)
+          break
         case "params":
-          return (b.params_billions ?? 0) - (a.params_billions ?? 0)
+          cmp = (a.params_billions ?? -1) - (b.params_billions ?? -1)
+          break
         case "results":
-          return b.evaluations_count - a.evaluations_count
+          cmp = a.evaluations_count - b.evaluations_count
+          break
+        case "coverage":
         case "benchmarks":
-        default:
-          return b.benchmarks_count - a.benchmarks_count
+          cmp = a.benchmarks_count - b.benchmarks_count
+          break
       }
+      // Stable tie-break by model name so equal rows don't shuffle.
+      if (cmp === 0) return a.model_name.localeCompare(b.model_name)
+      return cmp * dirMul
     })
-  }, [evaluations, deferredSearchQuery, modelSortBy, numericMinParams, numericMaxParams, showUnknownSize])
+  }, [evaluations, deferredSearchQuery, modelSortBy, modelSortDir, numericMinParams, numericMaxParams, showUnknownSize])
 
   // Developers — filter + sort
   const sortedDevelopers = useMemo(() => {
@@ -146,25 +202,32 @@ export default function ModelsPage() {
       )
     }
 
+    const dirMul = developerSortDir === "asc" ? 1 : -1
     return filtered.slice().sort((a, b) => {
+      let cmp = 0
       switch (developerSortBy) {
-        case "evaluated":
-          return b.evaluation_count - a.evaluation_count
-        case "models":
-          return b.model_count - a.model_count
         case "name":
-          return a.developer.localeCompare(b.developer)
-        case "coverage":
-        default:
-          return b.benchmark_count - a.benchmark_count
+          cmp = a.developer.localeCompare(b.developer)
+          break
+        case "models":
+          cmp = a.model_count - b.model_count
+          break
+        case "benchmarks":
+          cmp = a.benchmark_count - b.benchmark_count
+          break
+        case "results":
+          cmp = a.evaluation_count - b.evaluation_count
+          break
       }
+      if (cmp === 0) return a.developer.localeCompare(b.developer)
+      return cmp * dirMul
     })
-  }, [developers, deferredSearchQuery, developerSortBy])
+  }, [developers, deferredSearchQuery, developerSortBy, developerSortDir])
 
   // Reset visible window when filter/sort changes
   useEffect(() => {
     setVisibleCount(PAGE_SIZE)
-  }, [groupByDeveloper, modelSortBy, developerSortBy, deferredSearchQuery, minParamStep, maxParamStep, showUnknownSize])
+  }, [groupByDeveloper, modelSortBy, modelSortDir, developerSortBy, developerSortDir, deferredSearchQuery, minParamStep, maxParamStep, showUnknownSize])
 
   const totalCount = groupByDeveloper ? sortedDevelopers.length : sortedEvaluations.length
   const visibleEvaluations = useMemo(
@@ -268,7 +331,7 @@ export default function ModelsPage() {
             </button>
           </div>
 
-          <div className="relative min-w-[180px] flex-1 sm:max-w-[260px]">
+          <div className="relative ml-auto min-w-[180px] flex-1 sm:max-w-[360px]">
             <Search className="pointer-events-none absolute left-3 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-[color:var(--fg-subtle)]" />
             <input
               className="ec-input pl-9"
@@ -280,32 +343,6 @@ export default function ModelsPage() {
             />
           </div>
 
-          <select
-            className="ec-select ml-auto shrink-0"
-            value={groupByDeveloper ? developerSortBy : modelSortBy}
-            onChange={(event) => {
-              const value = event.target.value
-              if (groupByDeveloper) setDeveloperSortBy(value as DevSort)
-              else setModelSortBy(value as ModelSort)
-            }}
-          >
-            {groupByDeveloper ? (
-              <>
-                <option value="coverage">Sort · Coverage</option>
-                <option value="evaluated">Sort · Reported results</option>
-                <option value="models">Sort · Most models</option>
-                <option value="name">Sort · Name</option>
-              </>
-            ) : (
-              <>
-                <option value="benchmarks">Sort · Benchmarks</option>
-                <option value="results">Sort · Reported results</option>
-                <option value="released">Sort · Released</option>
-                <option value="params">Sort · Parameters</option>
-                <option value="name">Sort · Name</option>
-              </>
-            )}
-          </select>
         </div>
 
         {/* PARAM RANGE — its own row so the rail has room to breathe.
@@ -346,15 +383,22 @@ export default function ModelsPage() {
               className="btn-ec outline"
               onClick={() => {
                 setSearchQuery("")
-                setModelSortBy("benchmarks")
-                setDeveloperSortBy("coverage")
+                setModelSortBy("released")
+                setModelSortDir("desc")
+                setDeveloperSortBy("models")
+                setDeveloperSortDir("desc")
               }}
             >
               Reset filters
             </button>
           </div>
         ) : groupByDeveloper ? (
-          <DeveloperTable rows={visibleDevelopers} />
+          <DeveloperTable
+            rows={visibleDevelopers}
+            sortCol={developerSortBy}
+            sortDir={developerSortDir}
+            onSort={handleDeveloperSort}
+          />
         ) : (
           <ModelTable
             rows={visibleEvaluations}
@@ -362,6 +406,9 @@ export default function ModelsPage() {
             selectedIds={selectedModelIds}
             onToggleSelect={toggleModelSelection}
             maxCompare={MAX_COMPARE_MODELS}
+            sortCol={modelSortBy}
+            sortDir={modelSortDir}
+            onSort={handleModelSort}
           />
         )}
 

@@ -204,45 +204,44 @@ function EvalsPageInner() {
           metrics.
         </p>
 
-        {/* META ROW ------------------------------------------------- */}
-        {stats && (
-          <div className="ec-page-meta mb-8">
-            <div className="ec-page-meta-item">
-              <span className="ec-page-meta-item-l">Families</span>
-              <span className="ec-page-meta-item-v">
-                {stats.family_count.toLocaleString()}
-              </span>
-            </div>
-            <div className="ec-page-meta-item">
-              <span className="ec-page-meta-item-l">Composites</span>
-              <span className="ec-page-meta-item-v">
-                {stats.composite_count.toLocaleString()}
-              </span>
-            </div>
-            <div className="ec-page-meta-item">
-              <span className="ec-page-meta-item-l">Single benchmarks</span>
-              <span className="ec-page-meta-item-v">
-                {(stats.benchmark_count ?? 0).toLocaleString()}
-              </span>
-            </div>
-            <div className="ec-page-meta-item">
-              <span className="ec-page-meta-item-l">Slices</span>
-              <span className="ec-page-meta-item-v">
-                {stats.slice_count.toLocaleString()}
-              </span>
-            </div>
-            <div className="ec-page-meta-item">
-              <span className="ec-page-meta-item-l">Metrics</span>
-              <span className="ec-page-meta-item-v">
-                {stats.metric_count.toLocaleString()}
-              </span>
-            </div>
-          </div>
-        )}
+        {/* META + SEARCH ROW --------------------------------------- */}
+        <div className="ec-page-meta mb-6 items-center border-b border-[color:var(--border-soft)] pb-5">
+          {stats && (
+            <>
+              <div className="ec-page-meta-item">
+                <span className="ec-page-meta-item-l">Families</span>
+                <span className="ec-page-meta-item-v">
+                  {stats.family_count.toLocaleString()}
+                </span>
+              </div>
+              <div className="ec-page-meta-item">
+                <span className="ec-page-meta-item-l">Composites</span>
+                <span className="ec-page-meta-item-v">
+                  {stats.composite_count.toLocaleString()}
+                </span>
+              </div>
+              <div className="ec-page-meta-item">
+                <span className="ec-page-meta-item-l">Single benchmarks</span>
+                <span className="ec-page-meta-item-v">
+                  {(stats.benchmark_count ?? 0).toLocaleString()}
+                </span>
+              </div>
+              <div className="ec-page-meta-item">
+                <span className="ec-page-meta-item-l">Slices</span>
+                <span className="ec-page-meta-item-v">
+                  {stats.slice_count.toLocaleString()}
+                </span>
+              </div>
+              <div className="ec-page-meta-item">
+                <span className="ec-page-meta-item-l">Metrics</span>
+                <span className="ec-page-meta-item-v">
+                  {stats.metric_count.toLocaleString()}
+                </span>
+              </div>
+            </>
+          )}
 
-        {/* FILTER BAR ----------------------------------------------- */}
-        <div className="mb-6 flex flex-wrap items-center gap-3 border-b border-[color:var(--border-soft)] pb-5">
-          <div className="relative w-full sm:max-w-sm">
+          <div className="relative ml-auto min-w-[180px] flex-1 sm:max-w-[360px]">
             <Search className="pointer-events-none absolute left-3 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-[color:var(--fg-subtle)]" />
             <input
               className="ec-input pl-9"
@@ -251,7 +250,6 @@ function EvalsPageInner() {
               placeholder="Search family, category…"
             />
           </div>
-
         </div>
 
         {/* CATEGORY PILLS — multi-select filter by curated benchmark

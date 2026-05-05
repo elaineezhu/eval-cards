@@ -6,14 +6,34 @@ import { ArrowLeft, Search } from "lucide-react"
 
 import { type BenchmarkEvaluationCardData } from "@/components/benchmark-evaluation-card"
 import { InfiniteScrollSentinel } from "@/components/infinite-scroll"
-import { ModelTable } from "@/components/model-table"
+import { ModelTable, type ModelTableSortCol } from "@/components/model-table"
 import { Navigation } from "@/components/navigation"
 import type { BenchmarkCard } from "@/lib/benchmark-schema"
 import { fetchDeveloperSummary, fetchBenchmarkMetadata } from "@/lib/dashboard-data-client"
 
 const PAGE_SIZE = 40
 
-type ModelSort = "date" | "name" | "benchmarks" | "results"
+type SortDir = "asc" | "desc"
+
+const MODEL_DEFAULT_DIR: Record<ModelTableSortCol, SortDir> = {
+  name: "asc",
+  developer: "asc",
+  released: "desc",
+  params: "desc",
+  benchmarks: "desc",
+  results: "desc",
+  coverage: "desc",
+}
+
+function safeTimestamp(value: string | null | undefined) {
+  if (!value) return 0
+  const numeric = Number(value)
+  if (!Number.isNaN(numeric) && !value.includes("-")) {
+    return numeric > 1_000_000_000_000 ? numeric : numeric * 1000
+  }
+  const parsed = new Date(value).getTime()
+  return Number.isNaN(parsed) ? 0 : parsed
+}
 
 export default function DeveloperDetailPage() {
   const params = useParams()
@@ -24,7 +44,19 @@ export default function DeveloperDetailPage() {
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const [searchQuery, setSearchQuery] = useState("")
-  const [sortBy, setSortBy] = useState<ModelSort>("date")
+  const [sortBy, setSortBy] = useState<ModelTableSortCol>("released")
+  const [sortDir, setSortDir] = useState<SortDir>("desc")
+
+  const handleSort = useCallback((col: ModelTableSortCol) => {
+    setSortBy((current) => {
+      if (current === col) {
+        setSortDir((dir) => (dir === "asc" ? "desc" : "asc"))
+        return current
+      }
+      setSortDir(MODEL_DEFAULT_DIR[col])
+      return col
+    })
+  }, [])
   const [visibleCount, setVisibleCount] = useState(PAGE_SIZE)
   const [selectedModelIds, setSelectedModelIds] = useState<string[]>([])
 
@@ -72,31 +104,40 @@ export default function DeveloperDetailPage() {
         })
       : [...models]
 
-    switch (sortBy) {
-      case "date":
-        filtered.sort(
-          (a, b) =>
-            new Date(b.latest_timestamp).getTime() -
-            new Date(a.latest_timestamp).getTime()
-        )
-        break
-      case "name":
-        filtered.sort((a, b) => a.model_name.localeCompare(b.model_name))
-        break
-      case "benchmarks":
-        filtered.sort((a, b) => b.benchmarks_count - a.benchmarks_count)
-        break
-      case "results":
-        filtered.sort((a, b) => b.evaluations_count - a.evaluations_count)
-        break
-    }
+    const dirMul = sortDir === "asc" ? 1 : -1
+    filtered.sort((a, b) => {
+      let cmp = 0
+      switch (sortBy) {
+        case "name":
+          cmp = a.model_name.localeCompare(b.model_name)
+          break
+        case "developer":
+          cmp = a.developer.localeCompare(b.developer)
+          break
+        case "released":
+          cmp = safeTimestamp(a.release_date) - safeTimestamp(b.release_date)
+          break
+        case "params":
+          cmp = (a.params_billions ?? -1) - (b.params_billions ?? -1)
+          break
+        case "results":
+          cmp = a.evaluations_count - b.evaluations_count
+          break
+        case "coverage":
+        case "benchmarks":
+          cmp = a.benchmarks_count - b.benchmarks_count
+          break
+      }
+      if (cmp === 0) return a.model_name.localeCompare(b.model_name)
+      return cmp * dirMul
+    })
 
     return filtered
-  }, [models, searchQuery, sortBy])
+  }, [models, searchQuery, sortBy, sortDir])
 
   useEffect(() => {
     setVisibleCount(PAGE_SIZE)
-  }, [searchQuery, sortBy])
+  }, [searchQuery, sortBy, sortDir])
 
   const visibleModels = useMemo(
     () => filteredModels.slice(0, visibleCount),
@@ -202,16 +243,6 @@ export default function DeveloperDetailPage() {
             />
           </div>
 
-          <select
-            className="ec-select ml-auto shrink-0"
-            value={sortBy}
-            onChange={(event) => setSortBy(event.target.value as ModelSort)}
-          >
-            <option value="date">Sort · Latest first</option>
-            <option value="benchmarks">Sort · Benchmarks</option>
-            <option value="results">Sort · Reported results</option>
-            <option value="name">Sort · Name (A–Z)</option>
-          </select>
         </div>
 
         {/* TABLE ---------------------------------------------------- */}
@@ -226,6 +257,9 @@ export default function DeveloperDetailPage() {
             selectedIds={selectedModelIds}
             onToggleSelect={toggleModelSelection}
             maxCompare={4}
+            sortCol={sortBy}
+            sortDir={sortDir}
+            onSort={handleSort}
           />
         )}
 
