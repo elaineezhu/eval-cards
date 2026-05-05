@@ -5,6 +5,8 @@ import type {
   ComparisonIndex,
   CorpusAggregates,
   EvalHierarchy,
+  PeerRanksMap,
+  PeerRanksSidecar,
 } from "@/lib/backend-artifacts"
 
 let cache: {
@@ -12,6 +14,7 @@ let cache: {
   headline?: Promise<CorpusAggregates>
   hierarchy?: Promise<EvalHierarchy>
   comparisonIndex?: Promise<ComparisonIndex>
+  peerRanks?: Promise<PeerRanksMap>
 } = {}
 
 function getSnapshotUrl() {
@@ -63,6 +66,30 @@ export function fetchComparisonIndex(): Promise<ComparisonIndex> {
       return index
     },
   ))
+}
+
+/**
+ * Per-(eval, model) primary-metric peer ranks from
+ * `warehouse/<snapshot>/peer-ranks.json`. Resolves to the bare
+ * `eval_summary_id → model_route_id → {position, total}` map the
+ * model-detail benchmark grid expects, so callers don't have to reach
+ * into `.ranks` themselves.
+ *
+ * Returns an empty map if the snapshot doesn't carry the file yet —
+ * the producer started emitting it as a Stage J sidecar in May 2026,
+ * so older pinned snapshots may 404. Logs a warning in that case rather
+ * than throwing so the rest of the page still renders.
+ */
+export function fetchPeerRanks(): Promise<PeerRanksMap> {
+  return (cache.peerRanks ??= fetchJson<PeerRanksSidecar>("peer-ranks.json")
+    .then((payload) => payload?.ranks ?? {})
+    .catch((err) => {
+      console.warn(
+        `[sidecars] peer-ranks.json not available on snapshot; ` +
+          `falling back to empty map. ${err instanceof Error ? err.message : String(err)}`,
+      )
+      return {} as PeerRanksMap
+    }))
 }
 
 /**

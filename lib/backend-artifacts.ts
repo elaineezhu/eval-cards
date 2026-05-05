@@ -467,3 +467,23 @@ export interface ComparisonIndex {
   evals: Record<string, ComparisonEvalEntry>
   by_model: Record<string, Record<string, Record<string, ComparisonByModelEntry>>>
 }
+
+// ---------------------------------------------------------------------------
+// peer-ranks.json — primary-metric peer rank per (eval, model)
+// ---------------------------------------------------------------------------
+
+/** Bare map shape consumed by the model-detail benchmark grid. */
+export type PeerRanksMap = Record<
+  string,
+  Record<string, { position: number; total: number }>
+>
+
+/** Wrapped sidecar payload emitted by the v2 producer. Older (unversioned)
+ *  publishings of peer-ranks.json at the dataset root were a bare map; the
+ *  v2 snapshot wraps it with the same `{generated_at, config_version, ...}`
+ *  envelope as the other sidecars. */
+export interface PeerRanksSidecar {
+  generated_at: string
+  config_version: number
+  ranks: PeerRanksMap
+}

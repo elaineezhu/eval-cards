@@ -47,8 +47,10 @@ import type {
   ComparisonMetricEntry,
   ComparisonScoreEntry,
   EvalHierarchy,
+  PeerRanksMap,
   SubmissionAxis,
 } from "@/lib/backend-artifacts"
+import { fetchPeerRanks } from "@/lib/dashboard-data-client"
 import {
   buildHierarchyEvalIndex,
   type HierarchyEvalLocation,
@@ -1371,18 +1373,17 @@ function getGroupPeerRank(
   return best ?? (group.bestRankPosition != null ? { position: group.bestRankPosition, total: group.bestRankTotal ?? 0 } : null)
 }
 
-type PeerRanksMap = Record<string, Record<string, { position: number; total: number }>>
-
+// peer-ranks.json now ships as a sidecar inside the pinned `SNAPSHOT_URL`
+// snapshot (Stage J emits it alongside hierarchy.json / comparison-index.json
+// — see eval_cards_backend_pipeline commit ffbfe71). Routing through the
+// same `/api/peer-ranks` endpoint as the other sidecars keeps peer ranks
+// pinned to the snapshot the rest of the page is reading from, instead of
+// drifting to the unversioned `main`-branch copy at the dataset root.
 let peerRanksPromise: Promise<PeerRanksMap> | null = null
-
-const DATASET_PEER_RANKS_URL =
-  "https://huggingface.co/datasets/evaleval/card_backend/resolve/main/peer-ranks.json"
 
 function loadPeerRanks(): Promise<PeerRanksMap> {
   if (!peerRanksPromise) {
-    peerRanksPromise = fetch(DATASET_PEER_RANKS_URL)
-      .then((r) => (r.ok ? r.json() : {}))
-      .catch(() => ({}))
+    peerRanksPromise = fetchPeerRanks().catch(() => ({} as PeerRanksMap))
   }
   return peerRanksPromise
 }

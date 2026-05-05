@@ -16,6 +16,7 @@ import type {
   HierarchyMetric,
   HierarchySlice,
   HierarchyTags,
+  PeerRanksMap,
   RowAnnotations,
   SignalSummaries,
 } from "@/lib/backend-artifacts"
@@ -969,6 +970,19 @@ export async function fetchComparisonIndex(): Promise<ComparisonIndex> {
   }
 
   return fetchHFJson<ComparisonIndex>("comparison-index.json")
+}
+
+/**
+ * Per-(eval, model) primary-metric peer ranks. v2 reads the wrapped
+ * sidecar from the pinned snapshot; legacy reads the bare-map file
+ * historically published unversioned at the dataset root.
+ */
+export async function fetchPeerRanks(): Promise<PeerRanksMap> {
+  if (useViewLayerBackend()) {
+    return (await fetchSnapshotSidecars()).fetchPeerRanks()
+  }
+
+  return (await fetchHFJsonSafe<PeerRanksMap>("peer-ranks.json")) ?? {}
 }
 
 export async function fetchCorpusAggregates(): Promise<CorpusAggregates | null> {

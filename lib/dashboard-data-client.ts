@@ -1,4 +1,10 @@
-import type { BackendManifestStatus, ComparisonIndex, CorpusAggregates, EvalHierarchy } from "@/lib/backend-artifacts"
+import type {
+  BackendManifestStatus,
+  ComparisonIndex,
+  CorpusAggregates,
+  EvalHierarchy,
+  PeerRanksMap,
+} from "@/lib/backend-artifacts"
 import { decorateHierarchyDerivedTags } from "@/lib/benchmark-tags"
 import type { BenchmarkEvaluationCardData } from "@/components/benchmark-evaluation-card"
 import type { HFEvalDetail } from "@/lib/hf-data"
@@ -103,4 +109,8 @@ export function fetchComparisonIndex() {
 
 export function fetchCorpusAggregates() {
   return fetchJson<CorpusAggregates>("/api/corpus-aggregates")
+}
+
+export function fetchPeerRanks() {
+  return fetchJson<PeerRanksMap>("/api/peer-ranks")
 }
