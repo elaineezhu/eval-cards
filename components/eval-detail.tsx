@@ -1704,26 +1704,23 @@ function MultiMetricLeaderboard({
     [leaderboardMetrics]
   )
   const visibleMetricKeySet = useMemo(() => new Set(visibleMetricKeys), [visibleMetricKeys])
-  const sliceMetricCounts = useMemo(() => {
-    const counts = new Map<string, number>()
+  // Every distinct subtask key surfaces as a slice option; metric chips
+  // stay scoped to the eval's root metrics. Without this, evals like
+  // Fibble Arena (3 metrics × 6 lies = 18 subtask entries) render every
+  // (metric, slice) pair as its own chip/column — three "Mean Response
+  // Time" chips next to three "Score" chips, etc. — which is what
+  // produced the user-visible duplication.
+  const sliceTabs = useMemo(() => {
+    const seen = new Map<string, string>()
     for (const metric of leaderboardMetrics) {
-      if (metric.scope === "subtask" && metric.subtask_key) {
-        counts.set(metric.subtask_key, (counts.get(metric.subtask_key) ?? 0) + 1)
+      if (metric.scope === "subtask" && metric.subtask_key && !seen.has(metric.subtask_key)) {
+        seen.set(metric.subtask_key, metric.subtask_name ?? getCompactMetricLabel(metric.display_name))
       }
     }
-    return counts
+    return Array.from(seen, ([key, label]) => ({ key, label }))
   }, [leaderboardMetrics])
 
-  const singleMetricSliceTabs = useMemo(() => {
-    return leaderboardMetrics
-      .filter((metric) => metric.scope === "subtask" && metric.subtask_key && sliceMetricCounts.get(metric.subtask_key) === 1)
-      .map((metric) => ({
-        key: metric.subtask_key as string,
-        label: metric.subtask_name ?? getCompactMetricLabel(metric.display_name),
-      }))
-  }, [leaderboardMetrics, sliceMetricCounts])
-
-  const hasSliceTabs = singleMetricSliceTabs.length > 1
+  const hasSliceTabs = sliceTabs.length > 1
 
   const visibleMetrics = useMemo(
     () =>
@@ -1733,7 +1730,9 @@ function MultiMetricLeaderboard({
         }
 
         if (!hasSliceTabs || activeSliceTab === "all") {
-          return true
+          // "All" / no-slice-filter case: only show root metrics so the
+          // chips stay one-per-metric instead of one-per-(metric, slice).
+          return metric.scope !== "subtask"
         }
 
         return metric.scope === "subtask" && metric.subtask_key === activeSliceTab
@@ -1865,10 +1864,10 @@ function MultiMetricLeaderboard({
       return
     }
 
-    if (!singleMetricSliceTabs.some((tab) => tab.key === activeSliceTab)) {
+    if (!sliceTabs.some((tab) => tab.key === activeSliceTab)) {
       setActiveSliceTab("all")
     }
-  }, [activeSliceTab, hasSliceTabs, singleMetricSliceTabs])
+  }, [activeSliceTab, hasSliceTabs, sliceTabs])
 
   const pagedRows = useMemo(
     () => sortedRows.slice(0, page * 50),
@@ -1967,9 +1966,7 @@ function MultiMetricLeaderboard({
             {leaderboardMetrics.map((metric) => {
               const isVisible = visibleMetricKeySet.has(metric.column_key)
               const isLastVisible = isVisible && visibleMetrics.length === 1
-              const visibleLabel = metric.scope === "subtask" && metric.subtask_key && sliceMetricCounts.get(metric.subtask_key) === 1 && metric.subtask_name
-                ? metric.subtask_name
-                : getCompactMetricLabel(metric.display_name)
+              const visibleLabel = getCompactMetricLabel(metric.display_name)
 
               return (
                 <DropdownMenuCheckboxItem
@@ -1998,10 +1995,7 @@ function MultiMetricLeaderboard({
               .map((r) => r.values[metric.column_key])
               .filter((v): v is number => isNumericScore(v))
             if (values.length < 3) return null
-            const label =
-              metric.scope === "subtask" && metric.subtask_key && sliceMetricCounts.get(metric.subtask_key) === 1 && metric.subtask_name
-                ? metric.subtask_name
-                : getCompactMetricLabel(metric.display_name)
+            const label = getCompactMetricLabel(metric.display_name)
             return {
               key: metric.column_key,
               label,
@@ -2028,15 +2022,15 @@ function MultiMetricLeaderboard({
               className="font-mono uppercase tracking-[0.14em] shrink-0"
               style={{ fontSize: 10, color: "var(--fg-subtle)" }}
             >
-              Split
+              Slice
             </span>
             <select
               className="ec-select"
               value={activeSliceTab}
               onChange={(e) => setActiveSliceTab(e.target.value)}
             >
-              <option value="all">All splits</option>
-              {singleMetricSliceTabs.map((tab) => (
+              <option value="all">Overall</option>
+              {sliceTabs.map((tab) => (
                 <option key={tab.key} value={tab.key}>{tab.label}</option>
               ))}
             </select>
@@ -2085,15 +2079,11 @@ function MultiMetricLeaderboard({
                   {getSortIndicator("developer")}
                 </th>
                 {visibleMetrics.map((metric) => {
-                  const showSliceTopline =
-                    !hasSliceTabs &&
-                    !(metric.scope === "subtask" && metric.subtask_key && sliceMetricCounts.get(metric.subtask_key) === 1) &&
-                    metric.scope === "subtask" &&
-                    metric.subtask_name
-                  const mainLabel =
-                    metric.scope === "subtask" && metric.subtask_key && sliceMetricCounts.get(metric.subtask_key) === 1 && metric.subtask_name
-                      ? metric.subtask_name
-                      : getCompactMetricLabel(metric.display_name)
+                  // When a slice is active in the dropdown, the slice
+                  // name is already shown above the table — no need to
+                  // repeat it as a per-column topline.
+                  const showSliceTopline = false
+                  const mainLabel = getCompactMetricLabel(metric.display_name)
                   return (
                     <th
                       key={metric.column_key}
