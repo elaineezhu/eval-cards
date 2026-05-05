@@ -5,7 +5,8 @@ import { useRouter } from "next/navigation"
 import { ArrowUpRight, ChevronDown, ChevronRight } from "lucide-react"
 
 import type { HierarchyBenchmark, HierarchyFamily } from "@/lib/backend-artifacts"
-import type { BenchmarkCard, CategoryType } from "@/lib/benchmark-schema"
+import { formatTagLabel } from "@/lib/benchmark-tags"
+import type { BenchmarkCard } from "@/lib/benchmark-schema"
 import type { BenchmarkEvalListItem } from "@/lib/eval-processing"
 import { humanizeEvaluationId } from "@/lib/utils"
 
@@ -35,6 +36,11 @@ interface FamilyTableProps {
    *  families are kept only when their domains intersect the filter.
    *  Pass `null`/`undefined` to disable filtering. */
   domainFilter?: Set<string> | null
+  /** Curated category-tag slugs (data/benchmarks/categories.json
+   *  vocabulary) to filter on. Same expand-and-filter behaviour as
+   *  `domainFilter`: matching families auto-expand, leaves are
+   *  restricted to those whose `derivedTags` intersect the selection. */
+  categoryFilter?: Set<string> | null
 }
 
 function slugify(value: string | null | undefined): string {
@@ -66,6 +72,7 @@ interface LeafEntry {
   leafName: string
   evalsCount: number
   domains: string[]
+  tags: string[]
 }
 
 /**
@@ -115,6 +122,7 @@ function collectLeafEntries(
       leafName: benchmark.display_name || benchmark.key,
       evalsCount: ids.length,
       domains: Array.from(collected),
+      tags: benchmark.derivedTags ?? [],
     })
   }
 
@@ -231,7 +239,7 @@ interface RowData {
   navId: string | null
   name: string
   keySlug: string
-  category: CategoryType
+  tags: string[]
   benchmarks: number
   evalsCount: number
   leaves: LeafEntry[]
@@ -247,15 +255,27 @@ export function FamilyTable({
   evalItems,
   benchmarkCards,
   domainFilter,
+  categoryFilter,
 }: FamilyTableProps) {
   const router = useRouter()
   const [expanded, setExpanded] = useState<Record<string, boolean>>({})
 
-  const filterActive = Boolean(domainFilter && domainFilter.size > 0)
+  const domainFilterActive = Boolean(domainFilter && domainFilter.size > 0)
+  const categoryFilterActive = Boolean(categoryFilter && categoryFilter.size > 0)
+  const filterActive = domainFilterActive || categoryFilterActive
+
+  function leafMatchesDomain(leaf: LeafEntry): boolean {
+    if (!domainFilterActive || !domainFilter) return true
+    return leaf.domains.some((d) => domainFilter.has(d))
+  }
+
+  function leafMatchesCategory(leaf: LeafEntry): boolean {
+    if (!categoryFilterActive || !categoryFilter) return true
+    return leaf.tags.some((t) => categoryFilter.has(t))
+  }
 
   function leafMatchesFilter(leaf: LeafEntry): boolean {
-    if (!filterActive || !domainFilter) return true
-    return leaf.domains.some((d) => domainFilter.has(d))
+    return leafMatchesDomain(leaf) && leafMatchesCategory(leaf)
   }
 
   function familyMatchesFilter(
@@ -263,8 +283,20 @@ export function FamilyTable({
     navId: string | null,
     leafEntries: LeafEntry[],
   ): boolean {
-    if (!filterActive || !domainFilter) return true
+    if (!filterActive) return true
     if (leafEntries.some(leafMatchesFilter)) return true
+    if (categoryFilterActive && categoryFilter) {
+      // Family-level tag union (from derivedTags) — covers single-benchmark
+      // families and aggregator families whose own bucket holds the tag
+      // even if no leaf row carries it.
+      for (const tag of fam.derivedTags ?? []) {
+        if (categoryFilter.has(tag)) {
+          // Only counts if the domain side also matches (or is inactive).
+          if (!domainFilterActive) return true
+        }
+      }
+    }
+    if (!domainFilterActive || !domainFilter) return false
     const candidates: BenchmarkCard | undefined = (() => {
       if (navId) {
         const fromList = evalItems?.get(navId)?.benchmark_card
@@ -336,7 +368,7 @@ export function FamilyTable({
         navId,
         name: displayName,
         keySlug: fam.key,
-        category: (fam.category ?? "General") as CategoryType,
+        tags: fam.derivedTags ?? [],
         benchmarks: benchmarkCount,
         evalsCount: fam.evals_count ?? metricCount,
         leaves: visibleLeafEntries,
@@ -346,15 +378,15 @@ export function FamilyTable({
     }
     return out
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [families, evalItems, benchmarkCards, domainFilter])
+  }, [families, evalItems, benchmarkCards, domainFilter, categoryFilter])
 
   return (
     <div className="overflow-x-auto">
       <table className="ec-htable">
         <thead>
           <tr>
-            <th style={{ width: "60%" }}>Family</th>
-            <th>Category</th>
+            <th style={{ width: "55%" }}>Family</th>
+            <th>Categories</th>
             <th className="num">Benchmarks</th>
             <th className="num">Reported results</th>
             <th style={{ width: 90 }} />
@@ -435,9 +467,33 @@ export function FamilyTable({
                     </div>
                   </td>
                   <td>
-                    <span className="inline-flex items-center font-mono text-[10px] uppercase tracking-[0.12em] text-[color:var(--fg-muted)] border border-[color:var(--border-soft)] bg-[color:var(--bg)] px-2 py-0.5">
-                      {row.category}
-                    </span>
+                    {row.tags.length === 0 ? (
+                      <span
+                        className="inline-flex items-center font-mono text-[10px] uppercase tracking-[0.12em] text-[color:var(--fg-subtle)]"
+                      >
+                        —
+                      </span>
+                    ) : (
+                      <div className="flex flex-wrap gap-1">
+                        {row.tags.map((tag) => {
+                          const highlighted =
+                            categoryFilter && categoryFilter.has(tag)
+                          return (
+                            <span
+                              key={tag}
+                              className="inline-flex items-center font-mono text-[10px] uppercase tracking-[0.12em] border px-1.5 py-0.5"
+                              style={{
+                                color: highlighted ? "var(--bg)" : "var(--fg-muted)",
+                                borderColor: highlighted ? "var(--fg)" : "var(--border-soft)",
+                                background: highlighted ? "var(--fg)" : "var(--bg)",
+                              }}
+                            >
+                              {formatTagLabel(tag)}
+                            </span>
+                          )
+                        })}
+                      </div>
+                    )}
                   </td>
                   <td className="num font-mono text-[13px]">
                     {row.benchmarks.toLocaleString()}

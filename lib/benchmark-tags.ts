@@ -146,8 +146,71 @@ export function hasCuratedTags(...candidates: Array<string | null | undefined>):
  * benchmarks, 709 slices): 95.8% / 98.6% / 99.7% respectively.
  */
 export function decorateHierarchyDerivedTags(h: EvalHierarchy): EvalHierarchy {
-  for (const fam of h.families ?? []) decorateFamily(fam)
+  for (const fam of h.families ?? []) {
+    sanitizeFamilyDisplayNames(fam)
+    decorateFamily(fam)
+  }
   return h
+}
+
+// Workaround for an upstream warehouse bug where some families inherit a
+// sibling family's `display_name` (e.g. `math-mc` and `gsm-mc` both ship
+// with "wasp (Writer's Assessor of System Performance)"). When the
+// display_name shares no token with the entry's `key`, fall back to a
+// readable rendering of the key.
+function shareToken(displayName: string, key: string): boolean {
+  const norm = (s: string) => s.toLowerCase().replace(/[^a-z0-9]+/g, "")
+  const k = norm(key)
+  if (!k) return true
+  return norm(displayName).includes(k)
+}
+
+// Acronyms that should stay uppercase when humanizing a slug. Mirrors
+// the set used in family-table.tsx; kept here so the sanitiser can
+// produce the same output across surfaces.
+const ACRONYMS = new Set([
+  "ai", "aa", "api", "arc", "bbh", "bfcl", "cli", "cv", "gpqa", "gpt",
+  "gsm", "hf", "hle", "llm", "llms", "mc", "ml", "mt", "nlp", "qa",
+  "rl", "sql", "swe", "vlm", "vqa",
+])
+
+function humanizeKey(key: string): string {
+  const parts = key.split(/[_\-\s]+/).filter(Boolean)
+  if (parts.length === 0) return key
+  return parts
+    .map((word) => {
+      const lower = word.toLowerCase()
+      if (ACRONYMS.has(lower)) return word.toUpperCase()
+      // Treat short all-letter parts (≤4 chars) as acronym-like.
+      if (word.length <= 4 && /^[a-zA-Z]+$/.test(word)) return word.toUpperCase()
+      return word.charAt(0).toUpperCase() + word.slice(1).toLowerCase()
+    })
+    .join("-")
+}
+
+function sanitizeName(displayName: string | null | undefined, key: string): string {
+  if (!displayName || !displayName.trim()) return humanizeKey(key)
+  if (!shareToken(displayName, key)) return humanizeKey(key)
+  return displayName
+}
+
+function sanitizeFamilyDisplayNames(fam: HierarchyFamily): void {
+  fam.display_name = sanitizeName(fam.display_name, fam.key)
+  for (const c of fam.composites ?? []) {
+    c.display_name = sanitizeName(c.display_name, c.key)
+    for (const b of c.benchmarks ?? []) {
+      b.display_name = sanitizeName(b.display_name, b.key)
+      for (const s of b.slices ?? []) s.display_name = sanitizeName(s.display_name, s.key)
+    }
+  }
+  for (const b of fam.standalone_benchmarks ?? []) {
+    b.display_name = sanitizeName(b.display_name, b.key)
+    for (const s of b.slices ?? []) s.display_name = sanitizeName(s.display_name, s.key)
+  }
+  for (const b of fam.benchmarks ?? []) {
+    b.display_name = sanitizeName(b.display_name, b.key)
+    for (const s of b.slices ?? []) s.display_name = sanitizeName(s.display_name, s.key)
+  }
 }
 
 function decorateFamily(fam: HierarchyFamily): void {
@@ -155,20 +218,47 @@ function decorateFamily(fam: HierarchyFamily): void {
   for (const b of fam.standalone_benchmarks ?? []) decorateBenchmark(b, fam.derivedTags)
   for (const b of fam.benchmarks ?? []) decorateBenchmark(b, fam.derivedTags)
   for (const c of fam.composites ?? []) decorateComposite(c, fam.derivedTags)
+  // Bottom-up union: parents accumulate their descendants' tags so a
+  // family-level filter ("mathematics") matches families whose own name
+  // doesn't, but whose children do.
+  fam.derivedTags = unionTags(
+    fam.derivedTags,
+    ...(fam.standalone_benchmarks ?? []).map((b) => b.derivedTags ?? []),
+    ...(fam.benchmarks ?? []).map((b) => b.derivedTags ?? []),
+    ...(fam.composites ?? []).map((c) => c.derivedTags ?? []),
+  )
 }
 
 function decorateComposite(comp: HierarchyComposite, parentTags: string[]): void {
   comp.derivedTags = getBenchmarkTags(parentTags, comp.display_name, comp.key)
   for (const b of comp.benchmarks ?? []) decorateBenchmark(b, comp.derivedTags)
+  comp.derivedTags = unionTags(
+    comp.derivedTags,
+    ...(comp.benchmarks ?? []).map((b) => b.derivedTags ?? []),
+  )
 }
 
 function decorateBenchmark(b: HierarchyBenchmark, parentTags: string[]): void {
   b.derivedTags = getBenchmarkTags(parentTags, b.display_name, b.key)
   for (const s of b.slices ?? []) decorateSlice(s, b.derivedTags)
+  b.derivedTags = unionTags(b.derivedTags, ...(b.slices ?? []).map((s) => s.derivedTags ?? []))
 }
 
 function decorateSlice(s: HierarchySlice, parentTags: string[]): void {
   s.derivedTags = getBenchmarkTags(parentTags, s.display_name, s.key)
+}
+
+function unionTags(...lists: Array<string[] | null | undefined>): string[] {
+  const seen = new Set<string>()
+  const out: string[] = []
+  for (const list of lists) {
+    for (const tag of list ?? []) {
+      if (!tag || seen.has(tag)) continue
+      seen.add(tag)
+      out.push(tag)
+    }
+  }
+  return out
 }
 
 /**

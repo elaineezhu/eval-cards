@@ -535,6 +535,7 @@ function EvalsPageInner() {
             evalItems={evalItems}
             benchmarkCards={benchmarkCards}
             domainFilter={domainFilter}
+            categoryFilter={new Set(selectedCategories)}
           />
         )}
 

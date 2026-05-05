@@ -9,11 +9,17 @@ export interface HierarchyEvalLocation {
   familyDisplayName: string
   compositeKey?: string
   compositeDisplayName?: string
+  /** Curated category tags (data/benchmarks/categories.json vocabulary)
+   *  for the leaf benchmark this eval belongs to, falling back to its
+   *  composite/family. Decorated by `decorateHierarchyDerivedTags` at
+   *  hydration time. */
+  tags?: string[]
 }
 
 interface FamilyAppearance {
   family: HierarchyFamily
   composite?: HierarchyComposite
+  benchmarkTags?: string[]
 }
 
 function findComposite(
@@ -28,6 +34,24 @@ function findComposite(
   return composites.find((composite) => composite.key === sourcePrefix)
 }
 
+function findBenchmarkTags(
+  family: HierarchyFamily,
+  composite: HierarchyComposite | undefined,
+  evalSummaryId: string,
+): string[] | undefined {
+  const benchmarks = [
+    ...(composite?.benchmarks ?? []),
+    ...(family.standalone_benchmarks ?? []),
+    ...(family.benchmarks ?? []),
+  ]
+  for (const benchmark of benchmarks) {
+    if (benchmark.summary_eval_ids?.includes(evalSummaryId)) {
+      return benchmark.derivedTags
+    }
+  }
+  return undefined
+}
+
 function buildAppearancesIndex(
   hierarchy: EvalHierarchy | null | undefined,
 ): Map<string, FamilyAppearance[]> {
@@ -39,8 +63,9 @@ function buildAppearancesIndex(
   for (const family of hierarchy.families) {
     for (const evalSummaryId of family.eval_summary_ids ?? []) {
       const composite = findComposite(family, evalSummaryId)
+      const benchmarkTags = findBenchmarkTags(family, composite, evalSummaryId)
       const list = index.get(evalSummaryId) ?? []
-      list.push({ family, composite })
+      list.push({ family, composite, benchmarkTags })
       index.set(evalSummaryId, list)
     }
   }
@@ -80,11 +105,20 @@ export function buildHierarchyEvalIndex(
       }
     }
 
+    // Tag preference order for the leaf: benchmark > composite > family.
+    // We want the most specific tags available so the model-view bucketing
+    // groups by leaf semantics, not by the family-level union.
+    const tags =
+      chosen.benchmarkTags && chosen.benchmarkTags.length > 0
+        ? chosen.benchmarkTags
+        : chosen.composite?.derivedTags ?? chosen.family.derivedTags ?? []
+
     index.set(evalSummaryId, {
       familyKey: chosen.family.key,
       familyDisplayName: chosen.family.display_name,
       compositeKey: chosen.composite?.key,
       compositeDisplayName: chosen.composite?.display_name,
+      tags,
     })
   }
 

@@ -37,6 +37,7 @@ import {
 } from "lucide-react"
 import type { BenchmarkCard, BenchmarkEvaluation, CategoryType, EvaluationResult } from "@/lib/benchmark-schema"
 import { getCategoryColor as getCategoryTone, inferCategoryFromBenchmark } from "@/lib/benchmark-schema"
+import { formatTagLabel } from "@/lib/benchmark-tags"
 import type { BenchmarkEvalSummary } from "@/lib/eval-processing"
 import type { ModelSummaryCore } from "@/lib/benchmark-schema"
 import { lookupBenchmarkCard } from "@/lib/benchmark-metadata-utils"
@@ -1819,16 +1820,25 @@ export function BenchmarkDetail({
 
   const allCategoryResults = useMemo(
     () =>
-      Object.entries(summary.evaluations_by_category).flatMap(([category, evals]) =>
-        evals.flatMap((evaluation) =>
-          evaluation.evaluation_results.map((result) => ({
+      Object.entries(summary.evaluations_by_category).flatMap(([fallbackCategory, evals]) =>
+        evals.flatMap((evaluation) => {
+          // Re-bucket by curated tag from data/benchmarks/categories.json.
+          // The hierarchy lookup gives us the leaf benchmark's derivedTags;
+          // the first tag becomes the displayed category. Fall back to the
+          // legacy 5-bucket category only when no tag is found, so existing
+          // ordering / filter wiring still works.
+          const evalSummaryId = evaluation.eval_summary_id
+          const tags = evalSummaryId ? hierarchyIndex?.get(evalSummaryId)?.tags : undefined
+          const primaryTag = tags && tags.length > 0 ? tags[0] : null
+          const category = (primaryTag ?? fallbackCategory) as CategoryType
+          return evaluation.evaluation_results.map((result) => ({
             evaluation,
             result,
-            category: category as CategoryType,
+            category,
           }))
-        )
+        })
       ),
-    [summary.evaluations_by_category]
+    [summary.evaluations_by_category, hierarchyIndex]
   )
 
   const policyHighlights = useMemo(() => {
@@ -1927,9 +1937,26 @@ export function BenchmarkDetail({
     [allCategoryResults, benchmarkCards, currentDetailHref]
   )
 
+  // Categories actually present in this model's benchmark groups, derived
+  // from the curated tag bucketing in `allCategoryResults`. We no longer
+  // trust `summary.categories_covered` (legacy 5-bucket) for ordering /
+  // filtering; build the list locally so the new tag vocabulary surfaces.
+  const availableCategories = useMemo(() => {
+    const order: string[] = []
+    const seen = new Set<string>()
+    for (const group of benchmarkGroups) {
+      const cat = group.category as unknown as string
+      if (!seen.has(cat)) {
+        seen.add(cat)
+        order.push(cat)
+      }
+    }
+    return order as unknown as CategoryType[]
+  }, [benchmarkGroups])
+
   // First-party vs third-party split per category (for the donut + bars).
   const evaluatorMix = useMemo(() => {
-    const order = new Map(summary.categories_covered.map((cat, i) => [cat, i]))
+    const order = new Map(availableCategories.map((cat, i) => [cat, i]))
     const byCat = new Map<CategoryType, { first: number; third: number; collab: number; other: number }>()
     let firstTotal = 0
     let thirdTotal = 0
@@ -1963,12 +1990,7 @@ export function BenchmarkDetail({
       otherTotal,
       grand,
     }
-  }, [benchmarkGroups, summary.categories_covered])
-
-  const availableCategories = useMemo(() => {
-    const presentCategories = new Set(benchmarkGroups.map((group) => group.category))
-    return summary.categories_covered.filter((category) => presentCategories.has(category))
-  }, [benchmarkGroups, summary.categories_covered])
+  }, [benchmarkGroups, availableCategories])
 
   const filteredBenchmarkGroups = useMemo(() => {
     const query = benchmarkSearch.trim().toLowerCase()
@@ -2017,7 +2039,7 @@ export function BenchmarkDetail({
   }, [benchmarkGroups, benchmarkSearch, benchmarkSort, selectedCategories, modelId, peerRanks])
 
   const groupedFilteredBenchmarkGroups = useMemo(() => {
-    const order = new Map(summary.categories_covered.map((category, index) => [category, index]))
+    const order = new Map(availableCategories.map((category, index) => [category, index]))
     const groups = new Map<CategoryType, BenchmarkGroup[]>()
 
     for (const benchmarkGroup of filteredBenchmarkGroups) {
@@ -2029,7 +2051,7 @@ export function BenchmarkDetail({
     return Array.from(groups.entries())
       .sort((a, b) => (order.get(a[0]) ?? 999) - (order.get(b[0]) ?? 999))
       .map(([category, groups]) => ({ category, groups }))
-  }, [filteredBenchmarkGroups, summary.categories_covered])
+  }, [filteredBenchmarkGroups, availableCategories])
 
   // Family-bucketed groups for the list view, mirroring plotboxUnits logic.
   // When comparisonIndex is available we use the backend-authoritative
@@ -2044,7 +2066,7 @@ export function BenchmarkDetail({
   }
   const listFamiliesByCategory = useMemo(() => {
     const order = new Map(
-      summary.categories_covered.map((category, index) => [category, index])
+      availableCategories.map((category, index) => [category, index])
     )
     const byCategory = new Map<CategoryType, Map<string, ListFamily>>()
 
@@ -2087,7 +2109,7 @@ export function BenchmarkDetail({
           kind: f.groups.length > 1 ? "multi-eval" as const : "single-eval" as const,
         })),
       }))
-  }, [filteredBenchmarkGroups, comparisonIndex, hierarchyIndex, summary.categories_covered])
+  }, [filteredBenchmarkGroups, comparisonIndex, hierarchyIndex, availableCategories])
 
   const compositeGroups = useMemo(() => {
     const groups = groupByComposite(filteredBenchmarkGroups, modelIds, peerRanks, hierarchyIndex)
@@ -2998,7 +3020,7 @@ export function BenchmarkDetail({
           <div className="min-w-0 flex-1">
             <div className="flex flex-wrap items-center gap-2">
               <span className="font-mono text-[9px] uppercase tracking-[0.18em] text-[color:var(--fg-subtle)] font-semibold">
-                {unit.category}
+                {formatTagLabel(unit.category as unknown as string)}
               </span>
               {showChildKindBadge && (
                 <span className="font-mono text-[9px] uppercase tracking-[0.15em] text-[color:var(--fg-subtle)]">
@@ -3794,7 +3816,7 @@ export function BenchmarkDetail({
                   }
                   className={`ec-pill ${isSelected ? "on" : ""}`}
                 >
-                  {category}
+                  {formatTagLabel(category as unknown as string)}
                 </button>
               )
             })}
@@ -3808,7 +3830,7 @@ export function BenchmarkDetail({
         ) : benchmarkViewMode === "grid" ? (
           (() => {
             const categoryOrder = new Map(
-              summary.categories_covered.map((cat, i) => [cat, i])
+              availableCategories.map((cat, i) => [cat, i])
             )
             const byCategory = new Map<CategoryType, PlotboxUnit[]>()
             for (const unit of plotboxUnits) {
@@ -3841,7 +3863,7 @@ export function BenchmarkDetail({
                       <div className="flex items-baseline justify-between gap-3 border-b border-[color:var(--border-soft)] pb-2">
                         <div className="flex items-baseline gap-3">
                           <span className="font-mono text-[10px] uppercase tracking-[0.2em] text-[color:var(--accent)] font-semibold">
-                            {category}
+                            {formatTagLabel(category)}
                           </span>
                           <span className="font-mono text-[10px] uppercase tracking-[0.15em] text-[color:var(--fg-subtle)]">
                             {totalBenchmarks} benchmark{totalBenchmarks === 1 ? "" : "s"}
@@ -4042,7 +4064,7 @@ export function BenchmarkDetail({
                 <section key={`list-cat-${category}`}>
                   <div className="mb-3 flex items-baseline justify-between gap-3 border-b border-[color:var(--fg)] pb-2">
                     <span className="font-mono text-[10px] uppercase tracking-[0.2em] text-[color:var(--accent)] font-semibold">
-                      {category}
+                      {formatTagLabel(category as unknown as string)}
                     </span>
                     <span className="font-mono text-[10px] uppercase tracking-[0.15em] text-[color:var(--fg-subtle)]">
                       {families.length} {families.length === 1 ? "family" : "families"} · {totalBenchmarks} benchmark{totalBenchmarks === 1 ? "" : "s"} · {totalRows} row{totalRows === 1 ? "" : "s"}
@@ -4883,7 +4905,7 @@ function AggregatedBenchmarkCard({
             <div className="flex items-center gap-3">
               {/* Category dot */}
               <span className={`shrink-0 inline-flex items-center rounded-full border px-2 py-0.5 text-[10px] font-semibold ${getCategoryTone(group.category)}`}>
-                {group.category}
+                {formatTagLabel(group.category as unknown as string)}
               </span>
 
               {/* Name + domains */}
@@ -5453,7 +5475,7 @@ function BenchmarkDeepDiveDialogPanel({
         <div className="flex items-start justify-between gap-4 pr-6">
           <div className="min-w-0 flex-1">
             <div className="kicker mb-2">
-              <span className="text-[color:var(--accent)] font-semibold mr-2">{group.category}</span>
+              <span className="text-[color:var(--accent)] font-semibold mr-2">{formatTagLabel(group.category as unknown as string)}</span>
               <span className="text-[color:var(--fg-subtle)]">· Benchmark deep dive</span>
             </div>
             <DialogTitle className="text-[28px] leading-[1.05] tracking-[-0.02em] font-bold text-[color:var(--fg)]">
@@ -6357,7 +6379,7 @@ function EvaluatorMix({ mix }: { mix: EvaluatorMixData }) {
                 style={{ borderBottom: i < rows.length - 1 ? "1px solid var(--border-soft)" : "none" }}
               >
                 <div>
-                  <div className="text-[13px] font-medium capitalize">{row.category}</div>
+                  <div className="text-[13px] font-medium capitalize">{formatTagLabel(row.category as unknown as string)}</div>
                   <div className="font-mono text-[10px] uppercase tracking-[0.1em] text-[color:var(--fg-subtle)] mt-0.5">
                     {row.total} row{row.total === 1 ? "" : "s"}
                   </div>
