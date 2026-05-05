@@ -134,7 +134,9 @@ export function PolicyOverview({ summary }: PolicyOverviewProps) {
     overview ||
     goal ||
     parentFallback ||
-    (useComponentDescription ? summary.metric_config.evaluation_description : summary.evaluation_name)
+    (useComponentDescription ? summary.metric_config.evaluation_description : summary.evaluation_name) ||
+    summary.evaluation_name ||
+    ""
 
   const [expanded, setExpanded] = useState(false)
   const [slicesOpen, setSlicesOpen] = useState(false)
