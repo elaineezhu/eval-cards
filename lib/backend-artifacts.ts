@@ -179,6 +179,7 @@ export interface CorpusAggregates {
   provenance: Stratified<ProvenanceCorpusBlock>
   comparability: Stratified<ComparabilityCorpusBlock>
   reporting_org_count?: number
+  total_benchmarks?: number
   developers?: DeveloperListEntry[]
   families?: Array<{
     family_key: string

@@ -10,7 +10,7 @@ import { ModelCompareDialog } from "@/components/model-compare-dialog"
 import { ModelTable } from "@/components/model-table"
 import { Navigation } from "@/components/navigation"
 import { ParamRangePicker } from "@/components/param-range-picker"
-import { fetchDevelopers, fetchModelCards, fetchBenchmarkMetadata, type DeveloperListItem } from "@/lib/dashboard-data-client"
+import { fetchCorpusAggregates, fetchDevelopers, fetchModelCards, fetchBenchmarkMetadata, type DeveloperListItem } from "@/lib/dashboard-data-client"
 import type { BenchmarkCard } from "@/lib/benchmark-schema"
 import { PARAM_RANGE_MAX_INDEX, paramStepToNumeric } from "@/lib/param-range"
 
@@ -34,6 +34,7 @@ export default function ModelsPage() {
   const [evaluations, setEvaluations] = useState<BenchmarkEvaluationCardData[]>([])
   const [developers, setDevelopers] = useState<DeveloperListItem[]>([])
   const [benchmarkCards, setBenchmarkCards] = useState<Record<string, BenchmarkCard>>({})
+  const [totalBenchmarksFromHeadline, setTotalBenchmarksFromHeadline] = useState<number | null>(null)
   const [loadingModels, setLoadingModels] = useState(true)
   const [loadingDevelopers, setLoadingDevelopers] = useState(false)
   const [developersReady, setDevelopersReady] = useState(false)
@@ -61,7 +62,22 @@ export default function ModelsPage() {
         console.error("Failed to load evaluations:", error)
       })
       .finally(() => setLoadingModels(false))
+
+    fetchCorpusAggregates()
+      .then((aggregates) => {
+        if (typeof aggregates?.total_benchmarks === "number") {
+          setTotalBenchmarksFromHeadline(aggregates.total_benchmarks)
+        }
+      })
+      .catch((error) => {
+        console.error("Failed to load corpus aggregates:", error)
+      })
   }, [])
+
+  const totalBenchmarks = useMemo(
+    () => totalBenchmarksFromHeadline ?? Object.keys(benchmarkCards).length,
+    [totalBenchmarksFromHeadline, benchmarkCards],
+  )
 
   useEffect(() => {
     if (!groupByDeveloper || developersReady || loadingDevelopers) return
@@ -76,8 +92,6 @@ export default function ModelsPage() {
         setDevelopersReady(true)
       })
   }, [developersReady, groupByDeveloper, loadingDevelopers])
-
-  const totalBenchmarks = useMemo(() => Object.keys(benchmarkCards).length, [benchmarkCards])
 
   // Models — filter + sort
   const sortedEvaluations = useMemo(() => {
