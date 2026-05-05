@@ -208,19 +208,30 @@ export function ScoreDistribution({
               Score distribution
             </div>
             {showPicker ? (
-              <select
-                className="ec-select"
-                value={active.key}
-                onChange={(event) => setActiveKey(event.target.value)}
-                style={{ minWidth: 200, maxWidth: "100%" }}
-              >
-                {seriesList.map((s) => (
-                  <option key={s.key} value={s.key}>
-                    {s.label}
-                    {s.caption ? ` · ${s.caption}` : ""}
-                  </option>
-                ))}
-              </select>
+              <div className="flex flex-wrap items-center gap-1.5">
+                {seriesList.map((s) => {
+                  const on = s.key === active.key
+                  return (
+                    <button
+                      key={s.key}
+                      type="button"
+                      className={`ec-pill${on ? " on" : ""}`}
+                      onClick={() => setActiveKey(s.key)}
+                      title={s.caption ? `${s.label} · ${s.caption}` : s.label}
+                    >
+                      {s.label}
+                      {s.caption ? (
+                        <span
+                          className="ml-1.5"
+                          style={{ color: on ? undefined : "var(--fg-subtle)" }}
+                        >
+                          · {s.caption}
+                        </span>
+                      ) : null}
+                    </button>
+                  )
+                })}
+              </div>
             ) : (
               <span
                 className="font-mono uppercase truncate"
