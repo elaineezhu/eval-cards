@@ -18,6 +18,23 @@ import {
   type HierarchyEvalLocation,
 } from "@/lib/hierarchy-lookup"
 
+function findBenchmarkSplitIds(hierarchy: EvalHierarchy | null, evalId: string): string[] {
+  if (!hierarchy) return []
+  for (const fam of hierarchy.families) {
+    const benches = [
+      ...(fam.standalone_benchmarks ?? []),
+      ...(fam.benchmarks ?? []),
+      ...(fam.composites ?? []).flatMap((c) => c.benchmarks ?? []),
+    ]
+    for (const bench of benches) {
+      if (bench.summary_eval_ids?.includes(evalId)) {
+        return bench.summary_eval_ids
+      }
+    }
+  }
+  return []
+}
+
 export default function EvalDetailPage() {
   const params = useParams()
   const pathname = usePathname()
@@ -29,6 +46,9 @@ export default function EvalDetailPage() {
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const [matrixSearch, setMatrixSearch] = useState("")
+  const [splitIds, setSplitIds] = useState<string[]>([])
+  const [splitSummaries, setSplitSummaries] = useState<Map<string, BenchmarkEvalSummary>>(new Map())
+  const [activeSplitId, setActiveSplitId] = useState<string | null>(null)
   const returnTo = searchParams.get("from")
   const currentDetailHref = useMemo(() => {
     const params = new URLSearchParams(searchParams.toString())
@@ -77,6 +97,25 @@ export default function EvalDetailPage() {
             })
           )
           setSubSummaries(subs.filter((s): s is BenchmarkEvalSummary => s !== null))
+        } else {
+          // Detect benchmark splits: non-composite evals whose hierarchy
+          // benchmark has multiple summary_eval_ids (e.g. fibble-arena variants).
+          const siblings = findBenchmarkSplitIds(evalHierarchy, evalId)
+          if (siblings.length > 1) {
+            setSplitIds(siblings)
+            setActiveSplitId(evalId)
+            const map = new Map<string, BenchmarkEvalSummary>()
+            map.set(evalId, found)
+            const otherIds = siblings.filter((id) => id !== evalId)
+            const others = await Promise.all(
+              otherIds.map((id) => fetchEvalSummary(id).catch(() => null))
+            )
+            for (let i = 0; i < otherIds.length; i++) {
+              const s = others[i]
+              if (s) map.set(otherIds[i], s)
+            }
+            setSplitSummaries(map)
+          }
         }
       } catch (err) {
         console.error(err)
@@ -109,6 +148,26 @@ export default function EvalDetailPage() {
     if (!hierarchyIndex || !summary?.evaluation_id) return null
     return hierarchyIndex.get(summary.evaluation_id) ?? null
   }, [hierarchyIndex, summary])
+
+  // When splits are active, the leaderboard inside EvalDetail swaps to the
+  // selected split's summary while the hero/cards continue to read from the
+  // page-level summary.
+  const activeSplitSummary = activeSplitId
+    ? (splitSummaries.get(activeSplitId) ?? summary)
+    : summary
+
+  const splitOptions = useMemo(
+    () =>
+      splitIds
+        .map((id) => {
+          const sub = splitSummaries.get(id)
+          return {
+            id,
+            label: sub?.evaluation_name ?? humanizeEvaluationId(id),
+          }
+        }),
+    [splitIds, splitSummaries]
+  )
 
   if (loading) {
     return (
@@ -165,7 +224,21 @@ export default function EvalDetailPage() {
             hierarchyLocation={hierarchyLocation}
           />
         ) : (
-          <EvalDetail summary={summary} hierarchyLocation={hierarchyLocation} />
+          <EvalDetail
+            summary={summary}
+            hierarchyLocation={hierarchyLocation}
+            activeSummary={activeSplitSummary ?? summary}
+            splitConfig={
+              splitOptions.length > 1
+                ? {
+                    options: splitOptions,
+                    activeId: activeSplitId ?? splitOptions[0].id,
+                    onChange: setActiveSplitId,
+                    label: "Split",
+                  }
+                : undefined
+            }
+          />
         )}
       </main>
     </div>

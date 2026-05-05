@@ -60,9 +60,28 @@ import { getKnownIssues, type KnownIssue } from "@/lib/known-issues"
 import { ApplesToApplesBanner } from "@/components/apples-to-apples-banner"
 import { FlagScoreButton } from "@/components/flag-score-button"
 
+interface SplitOption {
+  id: string
+  label: string
+}
+
+interface SplitConfig {
+  options: SplitOption[]
+  activeId: string
+  onChange: (id: string) => void
+  /** Picker label, e.g. "Split" or "Slice". */
+  label?: string
+}
+
 interface EvalDetailProps {
   summary: BenchmarkEvalSummary
   hierarchyLocation?: HierarchyEvalLocation | null
+  /**
+   * Drives the leaderboard section when a split is selected. Defaults to
+   * `summary` when omitted, preserving the single-summary behaviour.
+   */
+  activeSummary?: BenchmarkEvalSummary
+  splitConfig?: SplitConfig
 }
 
 interface LeaderboardRow {
@@ -100,6 +119,47 @@ function getRowLevelAnnotations(
   }
 
   return null
+}
+
+/**
+ * Compact dropdown shown above the leaderboard when an eval has multiple
+ * splits (separate eval IDs that share a benchmark) or slices (subtasks within
+ * one eval). Lives below the apples-to-apples banner so the hero/cards stay
+ * stable while the leaderboard data swaps.
+ */
+function SplitPicker({
+  config,
+  className,
+}: {
+  config: {
+    options: { id: string; label: string }[]
+    activeId: string
+    onChange: (id: string) => void
+    label?: string
+  }
+  className?: string
+}) {
+  return (
+    <div className={cn("flex items-center gap-3", className)}>
+      <span
+        className="font-mono uppercase tracking-[0.14em] shrink-0"
+        style={{ fontSize: 10, color: "var(--fg-subtle)" }}
+      >
+        {config.label ?? "Split"}
+      </span>
+      <select
+        className="ec-select"
+        value={config.activeId}
+        onChange={(event) => config.onChange(event.target.value)}
+      >
+        {config.options.map((option) => (
+          <option key={option.id} value={option.id}>
+            {option.label}
+          </option>
+        ))}
+      </select>
+    </div>
+  )
 }
 
 const SLICE_PILL_THRESHOLD = 5
@@ -480,12 +540,21 @@ function getSetupLabel(modelResult: ModelResultForBenchmark): string {
   return parts.join(" ")
 }
 
-export function EvalDetail({ summary, hierarchyLocation }: EvalDetailProps) {
+export function EvalDetail({
+  summary,
+  hierarchyLocation,
+  activeSummary,
+  splitConfig,
+}: EvalDetailProps) {
   const { mode } = useAudienceMode()
   const isResearchView = mode === "research"
+  // The leaderboard section reads from `lb` (the active split when one is
+  // selected, else the page-level summary). Hero / cards / signals continue to
+  // read from `summary` so the rich info above the leaderboard stays stable.
+  const lb = activeSummary ?? summary
   const hasMultiMetricLeaderboard =
-    (summary.leaderboard_metrics?.length ?? 0) > 1 &&
-    (summary.leaderboard_rows?.length ?? 0) > 0
+    (lb.leaderboard_metrics?.length ?? 0) > 1 &&
+    (lb.leaderboard_rows?.length ?? 0) > 0
   const [overviewOpen, setOverviewOpen] = useState(true)
   // Collapse the dense technical overview by default in policy mode; expand
   // for researchers. Reset whenever the user switches modes.
@@ -497,8 +566,8 @@ export function EvalDetail({ summary, hierarchyLocation }: EvalDetailProps) {
   const [minParamStep, setMinParamStep] = useState(0)
   const [maxParamStep, setMaxParamStep] = useState(PARAM_RANGE_MAX_INDEX)
 
-  const maxScore = summary.metric_config.max_score ?? 1
-  const minScore = summary.metric_config.min_score ?? 0
+  const maxScore = lb.metric_config.max_score ?? 1
+  const minScore = lb.metric_config.min_score ?? 0
   const range = maxScore - minScore
 
   const normalizeScore = (raw: number) => (range > 0 ? (raw - minScore) / range : raw)
@@ -508,10 +577,10 @@ export function EvalDetail({ summary, hierarchyLocation }: EvalDetailProps) {
 
   const sortedResults = useMemo(
     () =>
-      [...summary.model_results].sort((a, b) =>
-        summary.metric_config.lower_is_better ? a.score - b.score : b.score - a.score
+      [...lb.model_results].sort((a, b) =>
+        lb.metric_config.lower_is_better ? a.score - b.score : b.score - a.score
       ),
-    [summary.model_results, summary.metric_config.lower_is_better]
+    [lb.model_results, lb.metric_config.lower_is_better]
   )
 
   const [showUnknownSize, setShowUnknownSize] = useState(true)
@@ -558,18 +627,18 @@ export function EvalDetail({ summary, hierarchyLocation }: EvalDetailProps) {
     [leaderboardRows, leaderboardPage]
   )
 
-  const avgScoreLabel = formatRawScore(summary.avg_score, summary.metric_config.unit)
-  const scoreDirectionLabel = summary.metric_config.lower_is_better ? "Lower scores rank higher" : "Higher scores rank higher"
+  const avgScoreLabel = formatRawScore(lb.avg_score, lb.metric_config.unit)
+  const scoreDirectionLabel = lb.metric_config.lower_is_better ? "Lower scores rank higher" : "Higher scores rank higher"
   const leaderboardTitle = isResearchView ? "Leaderboard" : "Reporting Comparison"
   const sourceDatasetLabel = summary.source_data?.hf_repo ?? summary.source_data?.dataset_name ?? "Summary source"
   const instanceDataLabel = summary.instance_data?.available
     ? `${summary.instance_data.url_count.toLocaleString()} linked URL${summary.instance_data.url_count === 1 ? "" : "s"}`
     : "Not linked"
   const leaderboardDescription = isResearchView
-    ? summary.is_aggregated
+    ? lb.is_aggregated
       ? "Models ranked by average raw score across the composite's component benchmarks."
       : "Models ranked by raw score for this benchmark."
-    : summary.is_aggregated
+    : lb.is_aggregated
       ? "Averaged model results across the composite's component benchmarks, with drill-down to each component score."
       : "Model results with benchmark context, source dataset detail, and optional instance-data links."
   const reportingCompleteness = summary.evalcards?.annotations?.reporting_completeness
@@ -867,11 +936,20 @@ export function EvalDetail({ summary, hierarchyLocation }: EvalDetailProps) {
       </Collapsible>
 
       {hasMultiMetricLeaderboard ? (
-        <MultiMetricLeaderboard summary={summary} isResearchView={isResearchView} />
+        <section>
+          <ApplesToApplesBanner
+            summary={lb.comparability_summary}
+            detailsAnchorId="comparability-panel"
+          />
+          {splitConfig && (
+            <SplitPicker config={splitConfig} className="mb-4" />
+          )}
+          <MultiMetricLeaderboard summary={lb} isResearchView={isResearchView} />
+        </section>
       ) : (
         <section>
           <ApplesToApplesBanner
-            summary={summary.comparability_summary}
+            summary={lb.comparability_summary}
             detailsAnchorId="comparability-panel"
           />
           <div className="section-head">
@@ -880,14 +958,14 @@ export function EvalDetail({ summary, hierarchyLocation }: EvalDetailProps) {
               className="font-mono text-[10px] uppercase tracking-[0.12em]"
               style={{ color: "var(--fg-muted)" }}
             >
-              {leaderboardRows.length === summary.models_count
-                ? `${summary.models_count} models`
-                : `${leaderboardRows.length} of ${summary.models_count}`}
+              {leaderboardRows.length === lb.models_count
+                ? `${lb.models_count} models`
+                : `${leaderboardRows.length} of ${lb.models_count}`}
               {" · "}
-              {summary.metric_config.lower_is_better ? "lower is better ↓" : "higher is better ↑"}
+              {lb.metric_config.lower_is_better ? "lower is better ↓" : "higher is better ↑"}
               {isResearchView && (
                 <>
-                  {" · "}scale {summary.metric_config.min_score ?? 0}–{summary.metric_config.max_score ?? 1}
+                  {" · "}scale {lb.metric_config.min_score ?? 0}–{lb.metric_config.max_score ?? 1}
                 </>
               )}
             </span>
@@ -899,14 +977,18 @@ export function EvalDetail({ summary, hierarchyLocation }: EvalDetailProps) {
             {leaderboardDescription}
           </p>
 
+          {splitConfig && (
+            <SplitPicker config={splitConfig} className="mb-4" />
+          )}
+
           {/* Score distribution — paper-themed mean/median/quartile summary */}
           {leaderboardRows.length >= 3 && (
             <div className="mb-4">
               <ScoreDistribution
                 values={leaderboardRows.map((r) => r.modelResult.score)}
-                label={summary.metric_config.unit ?? "Score"}
-                unit={summary.metric_config.unit}
-                lowerIsBetter={summary.metric_config.lower_is_better}
+                label={lb.metric_config.unit ?? "Score"}
+                unit={lb.metric_config.unit}
+                lowerIsBetter={lb.metric_config.lower_is_better}
               />
             </div>
           )}
@@ -942,12 +1024,12 @@ export function EvalDetail({ summary, hierarchyLocation }: EvalDetailProps) {
                     {isResearchView ? "Developer" : "Provider"}
                   </th>
                   <th className="hidden md:table-cell" style={{ minWidth: 220 }}>
-                    {summary.composite_benchmark_name && summary.composite_benchmark_name !== summary.evaluation_name
-                      ? `${summary.composite_benchmark_name} · ${summary.evaluation_name}`
-                      : summary.evaluation_name}
+                    {lb.composite_benchmark_name && lb.composite_benchmark_name !== lb.evaluation_name
+                      ? `${lb.composite_benchmark_name} · ${lb.evaluation_name}`
+                      : lb.evaluation_name}
                   </th>
                   <th className="num" style={{ width: 130 }}>
-                    {summary.metric_config.unit ?? "Score"}
+                    {lb.metric_config.unit ?? "Score"}
                   </th>
                   <th className="hidden lg:table-cell" style={{ width: 110 }}>Evaluator</th>
                   <th className="num hidden lg:table-cell" style={{ width: 100 }}>Source</th>
@@ -1234,7 +1316,7 @@ export function EvalDetail({ summary, hierarchyLocation }: EvalDetailProps) {
                                 >
                                   <MetaRow
                                     label={modelResult.aggregate_components ? "Average Raw Score" : "Raw Score"}
-                                    value={formatRawScore(modelResult.score, summary.metric_config.unit)}
+                                    value={formatRawScore(modelResult.score, lb.metric_config.unit)}
                                   />
                                   <MetaRow label="Score Type" value={modelResult.result.metric_config.score_type} />
                                   <MetaRow label="Range" value={`${minScore} - ${maxScore}`} />
@@ -1317,7 +1399,7 @@ export function EvalDetail({ summary, hierarchyLocation }: EvalDetailProps) {
                                             <tr key={sliceName}>
                                               <td className="font-medium text-[13px] capitalize">{sliceName.replace(/_/g, " ")}</td>
                                               <td className="num font-mono tabular-nums text-[13px]" style={{ color: "var(--fg-muted)" }}>
-                                                {formatRawScore(numericValue, summary.metric_config.unit)}
+                                                {formatRawScore(numericValue, lb.metric_config.unit)}
                                               </td>
                                             </tr>
                                           )
@@ -1332,16 +1414,16 @@ export function EvalDetail({ summary, hierarchyLocation }: EvalDetailProps) {
                                 <div className="space-y-3">
                                   <ResearcherReproducibilityCard
                                     modelResult={modelResult}
-                                    benchmarkKey={summary.benchmark_id ?? summary.composite_benchmark_key}
-                                    evalName={summary.evaluation_name}
+                                    benchmarkKey={lb.benchmark_id ?? lb.composite_benchmark_key}
+                                    evalName={lb.evaluation_name}
                                   />
                                   <div className="flex justify-end">
                                     <FlagScoreButton
                                       modelName={modelResult.model_info.name}
                                       modelId={modelResult.model_info.id}
-                                      benchmarkName={summary.evaluation_name}
-                                      benchmarkId={summary.evaluation_id}
-                                      score={formatRawScore(modelResult.score, summary.metric_config.unit)}
+                                      benchmarkName={lb.evaluation_name}
+                                      benchmarkId={lb.evaluation_id}
+                                      score={formatRawScore(modelResult.score, lb.metric_config.unit)}
                                       sourceUrl={modelResult.source_metadata.source_url}
                                       sourceRecordUrl={modelResult.source_record_url}
                                     />
@@ -1855,12 +1937,23 @@ function MultiMetricLeaderboard({
 
       <div className="ec-card" style={{ padding: 0, overflow: "hidden" }}>
         {hasSliceTabs && (
-          <div className="border-b bg-background px-5 py-3 sm:px-6">
-            <SliceSelector
-              activeSliceTab={activeSliceTab}
-              onChange={setActiveSliceTab}
-              tabs={singleMetricSliceTabs}
-            />
+          <div className="border-b bg-background px-5 py-3 sm:px-6 flex items-center gap-3">
+            <span
+              className="font-mono uppercase tracking-[0.14em] shrink-0"
+              style={{ fontSize: 10, color: "var(--fg-subtle)" }}
+            >
+              Split
+            </span>
+            <select
+              className="ec-select"
+              value={activeSliceTab}
+              onChange={(e) => setActiveSliceTab(e.target.value)}
+            >
+              <option value="all">All splits</option>
+              {singleMetricSliceTabs.map((tab) => (
+                <option key={tab.key} value={tab.key}>{tab.label}</option>
+              ))}
+            </select>
           </div>
         )}
 
