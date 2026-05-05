@@ -125,7 +125,29 @@ const SPLIT_FAMILIES: Record<string, SplitFamilyRule> = {
     syntheticKey: "bfcl",
     syntheticDisplayName: "BFCL",
   },
+  // HF Open LLM v2: 6 curated benchmarks (BBH, GPQA, IFEval, MATH-Lvl 5,
+  // MMLU-Pro, MuSR) that together define the leaderboard. Wrap them in a
+  // synthetic composite so the family card surfaces it as one composite
+  // benchmark with 6 children. The members are also protected from the
+  // `isPoorerDuplicate` filter (see PROTECTED_LEADERBOARD_FAMILIES) since
+  // richer copies elsewhere (mmlu-pro-leaderboard, ifeval) would otherwise
+  // strip them out of this family.
+  "hf-open-llm-v2": {
+    mode: "composite",
+    syntheticKey: "hf-open-llm-v2",
+    syntheticDisplayName: "HF Open LLM v2",
+  },
 }
+
+/**
+ * Families whose member benchmarks are integral to a curated leaderboard
+ * and must survive `consolidateDedicatedHomeBenchmarks` even when richer
+ * copies of the same benchmark exist elsewhere. Without this guard the
+ * dedup filter strips e.g. MMLU-Pro and IFEval from the HF Open LLM v2
+ * family because mmlu-pro-leaderboard / ifeval families publish them
+ * with more slices.
+ */
+const PROTECTED_LEADERBOARD_FAMILIES = new Set<string>(["hf-open-llm-v2"])
 
 /**
  * One-shot post-processor that turns the warehouse's raw hierarchy into a
@@ -186,6 +208,7 @@ export function cleanHierarchy(
   if (h[CLEANED_MARKER]) return h
   consolidateAirBench(h)
   consolidateDedicatedHomeBenchmarks(h)
+  dedupValsAiAliasedBenches(h)
   flattenSplitFamilies(h)
   if (comparisonIndex) {
     dedupAggregatorBenchesByScore(h, comparisonIndex)
@@ -533,6 +556,10 @@ function consolidateDedicatedHomeBenchmarks(h: CleanableHierarchy) {
   }
 
   for (const fam of h.families ?? []) {
+    // Skip dedup for curated-leaderboard families whose constituent
+    // benchmarks define the leaderboard's identity (HF Open LLM v2 etc.).
+    // Without this, richer copies elsewhere strip the leaderboard down.
+    if (PROTECTED_LEADERBOARD_FAMILIES.has(fam.key)) continue
     if (fam.benchmarks) {
       fam.benchmarks = fam.benchmarks.filter((b) => !isPoorerDuplicate(b))
     }
@@ -616,6 +643,7 @@ function consolidateDedicatedHomeBenchmarks(h: CleanableHierarchy) {
   // (a) strict-subset
   for (const a of allFamilies) {
     if (dropped.has(a)) continue
+    if (PROTECTED_LEADERBOARD_FAMILIES.has(a.key)) continue
     const aBenches = benchesByFam.get(a) ?? []
     if (aBenches.length === 0) continue
     for (const b of allFamilies) {
@@ -639,6 +667,7 @@ function consolidateDedicatedHomeBenchmarks(h: CleanableHierarchy) {
   // (b) self-wrapper tie
   for (const a of allFamilies) {
     if (dropped.has(a)) continue
+    if (PROTECTED_LEADERBOARD_FAMILIES.has(a.key)) continue
     const aBenches = benchesByFam.get(a) ?? []
     if (aBenches.length !== 1) continue
     const sole = aBenches[0].bench
@@ -691,10 +720,18 @@ function consolidateDedicatedHomeBenchmarks(h: CleanableHierarchy) {
     const sole = aBenches[0].bench
     const stripped = a.key.replace(/-leaderboard$/, "")
     if (sole.key !== stripped) continue
+    // Only merge the wrapper when a candidate carries the bench at
+    // equal-or-better richness. Without this, a thin one-slice copy of
+    // the bench in another family (e.g. hf-open-llm-v2's 1-slice
+    // mmlu-pro) would absorb a much richer wrapper (mmlu-pro-leaderboard
+    // with 15 slices) and silently drop the slice data.
+    const soleRichness = richness(sole)
     const candidates = allFamilies.filter((b) => {
       if (a === b || dropped.has(b)) return false
       const peers = benchesByFam.get(b) ?? []
-      return peers.some((h) => h.bench.key === sole.key)
+      return peers.some(
+        (h) => h.bench.key === sole.key && richness(h.bench) >= soleRichness,
+      )
     })
     candidates.sort((x, y) => {
       const xAgg = isAggregator(x) ? 1 : 0
@@ -778,6 +815,72 @@ function consolidateDedicatedHomeBenchmarks(h: CleanableHierarchy) {
  * benchmark-id heuristic — `air-bench-2024` prefix — is narrow enough
  * to be safe and broad enough to catch alternate sources.
  */
+/**
+ * Drop "vals ai X" duplicates inside the vals-ai family.
+ *
+ * The upstream feed publishes some benchmarks twice under the same family
+ * — once with a canonical key (`mgsm`, `gpqa-overall`) and once with a
+ * `"vals ai <suffix>"` alias (`vals ai mgsm`, `vals ai gpqa`). The aliases
+ * are pure surface duplicates: same family, same models_count, same metric
+ * config, scores within rounding of each other. Keeping both makes the
+ * family card render the same benchmark twice. We drop the alias when a
+ * non-aliased sibling already carries the suffix.
+ *
+ * Aliases without a non-aliased sibling (`vals ai finance agent`) are
+ * preserved, and `vals_ai.swebench.<bucket>` time-buckets are untouched
+ * because they use `vals_ai.` (dot/underscore) instead of the `"vals ai "`
+ * (space) alias prefix.
+ */
+function dedupValsAiAliasedBenches(h: CleanableHierarchy) {
+  const ALIAS_PREFIX = "vals ai "
+  // Normalise to a set of word tokens so suffix "gpqa" matches sibling
+  // "gpqa-overall" but suffix "finance agent" doesn't match unrelated
+  // siblings.
+  const tokens = (key: string): Set<string> =>
+    new Set(
+      key
+        .toLowerCase()
+        .split(/[^a-z0-9]+/)
+        .filter(Boolean),
+    )
+
+  for (const fam of h.families ?? []) {
+    if (fam.key !== "vals-ai") continue
+
+    const benches = [
+      ...(fam.benchmarks ?? []),
+      ...(fam.standalone_benchmarks ?? []),
+    ]
+    const siblingTokens = benches
+      .filter((b) => !b.key.startsWith(ALIAS_PREFIX))
+      .map((b) => ({ key: b.key, tokens: tokens(b.key) }))
+
+    const isAliasedDuplicate = (b: HierarchyBenchmark): boolean => {
+      if (!b.key.startsWith(ALIAS_PREFIX)) return false
+      const suffixTokens = tokens(b.key.slice(ALIAS_PREFIX.length))
+      if (suffixTokens.size === 0) return false
+      return siblingTokens.some(({ tokens: tks }) => {
+        for (const t of suffixTokens) if (!tks.has(t)) return false
+        return true
+      })
+    }
+
+    if (fam.benchmarks) {
+      fam.benchmarks = fam.benchmarks.filter((b) => !isAliasedDuplicate(b))
+    }
+    if (fam.standalone_benchmarks) {
+      fam.standalone_benchmarks = fam.standalone_benchmarks.filter(
+        (b) => !isAliasedDuplicate(b),
+      )
+    }
+    for (const c of fam.composites ?? []) {
+      if (c.benchmarks) {
+        c.benchmarks = c.benchmarks.filter((b) => !isAliasedDuplicate(b))
+      }
+    }
+  }
+}
+
 function consolidateAirBench(h: CleanableHierarchy) {
   const isAirBenchEvalId = (id: string) =>
     /(?:^|%2F)air-bench-2024(?:[-%]|$)/i.test(id)
