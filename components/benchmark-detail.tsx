@@ -22,6 +22,7 @@ import {
   getRelationshipShortLabel,
 } from "@/components/signals/provenance-badge"
 import { SignalsRowBadges } from "@/components/signals/signals-row-badges"
+import { SignalTooltip } from "@/components/signals/signal-tooltip"
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -1670,6 +1671,13 @@ export function BenchmarkDetail({
   const [expandedSuites, setExpandedSuites] = useState<Set<string>>(new Set())
   const [activeBenchmarkGroupKey, setActiveBenchmarkGroupKey] = useState<string | null>(null)
   const [benchmarkViewMode, setBenchmarkViewMode] = useState<"grid" | "list">("grid")
+  // List-view-only toggle: when on, rows whose eval_summary_id is part of a
+  // multi-appearance entry in hierarchy.json's `benchmark_index[]` collapse
+  // into a single merged row showing mean and per-source range; the original
+  // per-source breakdown is preserved in a hover tooltip. Off keeps the
+  // current per-eval row layout (default — avoids changing rank/group keys
+  // anywhere else in the app).
+  const [groupDuplicatesInList, setGroupDuplicatesInList] = useState(false)
   const [expandedFamilies, setExpandedFamilies] = useState<Set<string>>(new Set())
   const toggleFamily = (key: string) =>
     setExpandedFamilies((prev) => {
@@ -1731,6 +1739,60 @@ export function BenchmarkDetail({
       (evalSummaryId) => familyIdByEvalSummaryId.get(evalSummaryId) ?? null,
     )
   }, [evalHierarchy, summary.evaluations_by_category])
+
+  // Lookup eval_summary_id -> canonical benchmark info from hierarchy.json's
+  // `benchmark_index[]`. Only entries that span multiple appearances are
+  // included (single-appearance entries have nothing to consolidate with).
+  // Used by the "group duplicates" toggle in the list view.
+  const benchmarkIndexLookup = useMemo(() => {
+    const out = new Map<
+      string,
+      { canonicalKey: string; canonicalDisplayName: string; siblingEvalIds: string[] }
+    >()
+    const entries = evalHierarchy?.benchmark_index ?? []
+    for (const entry of entries) {
+      const ids: string[] = []
+      for (const app of entry.appearances ?? []) {
+        for (const id of app.eval_summary_ids ?? []) ids.push(id)
+      }
+      if (ids.length <= 1) continue
+      for (const id of ids) {
+        // First entry wins on collision — fine in practice, the index
+        // doesn't double-claim the same id.
+        if (!out.has(id)) {
+          out.set(id, {
+            canonicalKey: entry.key,
+            canonicalDisplayName: entry.display_name,
+            siblingEvalIds: ids,
+          })
+        }
+      }
+    }
+    return out
+  }, [evalHierarchy])
+
+  // List-view-only consolidation state. When `groupDuplicatesInList` is on,
+  // `mergedRowState` precomputes (across families in display order) which
+  // rows render as the consolidated representative ("merged"), which collapse
+  // into a previously-rendered representative ("skip"), and which stay as
+  // single per-eval rows. Aggregates carry mean/min/max + per-source
+  // breakdown (one entry per contributing variant) for the hover tooltip.
+  type MergedRowAggregate = {
+    canonicalKey: string
+    canonicalDisplayName: string
+    mean: number
+    min: number
+    max: number
+    sources: Array<{
+      familyKey: string
+      familyName: string
+      score: number
+      displayScore: string
+      group: BenchmarkGroup
+      variant: BenchmarkVariant
+    }>
+  }
+  type RowDisposition = "single" | "merged" | "skip"
 
   // Composite relevance score for benchmark ordering
   // relevance = population × 0.4 + rank_extremity × 0.3 + has_metadata × 0.2 + recency × 0.1
@@ -2110,6 +2172,94 @@ export function BenchmarkDetail({
         })),
       }))
   }, [filteredBenchmarkGroups, comparisonIndex, hierarchyIndex, availableCategories])
+
+  // Precompute "merged" / "skip" / "single" disposition per row when the
+  // list-view duplicate-grouping toggle is on. Walks the categories →
+  // families → groups → variants in display order; the first variant we
+  // encounter for each canonical benchmark renders the merged
+  // representative (showing mean + range + per-source breakdown), and
+  // every later variant of the same canonical benchmark is suppressed.
+  // The aggregate contains contributions from every sibling regardless of
+  // family, so the merged row is a true cross-family consolidation.
+  const mergedRowState = useMemo<{
+    aggregates: Map<string, MergedRowAggregate>
+    rowDisposition: Map<string, RowDisposition>
+  } | null>(() => {
+    if (!groupDuplicatesInList) return null
+    const aggregates = new Map<string, MergedRowAggregate>()
+    const seenKeys = new Set<string>()
+    const rowDisposition = new Map<string, RowDisposition>()
+
+    // First pass: collect aggregates over every contributing variant. We
+    // walk the same display order the list view will use so per-source
+    // ordering in the tooltip matches what the user sees in the table.
+    for (const { families } of listFamiliesByCategory) {
+      for (const family of families) {
+        for (const group of family.groups) {
+          for (const variant of group.variants) {
+            const evalId = variant.evaluation.eval_summary_id
+            if (!evalId) continue
+            const indexEntry = benchmarkIndexLookup.get(evalId)
+            if (!indexEntry) continue
+            const score = variant.normalizedScore
+            if (!Number.isFinite(score)) continue
+            const agg = aggregates.get(indexEntry.canonicalKey) ?? {
+              canonicalKey: indexEntry.canonicalKey,
+              canonicalDisplayName: indexEntry.canonicalDisplayName,
+              mean: 0,
+              min: Number.POSITIVE_INFINITY,
+              max: Number.NEGATIVE_INFINITY,
+              sources: [],
+            }
+            agg.sources.push({
+              familyKey: family.familyKey,
+              familyName: family.familyName,
+              score,
+              displayScore: variant.displayScore,
+              group,
+              variant,
+            })
+            aggregates.set(indexEntry.canonicalKey, agg)
+          }
+        }
+      }
+    }
+
+    // Finalise mean/min/max once we have all contributions.
+    for (const agg of aggregates.values()) {
+      const scores = agg.sources.map((s) => s.score)
+      agg.mean = scores.reduce((sum, v) => sum + v, 0) / scores.length
+      agg.min = Math.min(...scores)
+      agg.max = Math.max(...scores)
+    }
+
+    // Second pass: tag each row "merged" / "skip" / "single". First
+    // occurrence of each canonical benchmark in display order owns the
+    // merged row; later siblings collapse. Variants without a benchmark
+    // index entry render single as before.
+    for (const { families } of listFamiliesByCategory) {
+      for (const family of families) {
+        for (const group of family.groups) {
+          for (const variant of group.variants) {
+            const rowKey = `${family.familyKey}::${group.key}::${variant.evaluation.evaluation_id}::${variant.label}`
+            const evalId = variant.evaluation.eval_summary_id
+            const indexEntry = evalId ? benchmarkIndexLookup.get(evalId) : undefined
+            if (!indexEntry || !aggregates.has(indexEntry.canonicalKey)) {
+              rowDisposition.set(rowKey, "single")
+              continue
+            }
+            if (seenKeys.has(indexEntry.canonicalKey)) {
+              rowDisposition.set(rowKey, "skip")
+            } else {
+              seenKeys.add(indexEntry.canonicalKey)
+              rowDisposition.set(rowKey, "merged")
+            }
+          }
+        }
+      }
+    }
+    return { aggregates, rowDisposition }
+  }, [groupDuplicatesInList, listFamiliesByCategory, benchmarkIndexLookup])
 
   const compositeGroups = useMemo(() => {
     const groups = groupByComposite(filteredBenchmarkGroups, modelIds, peerRanks, hierarchyIndex)
@@ -3896,8 +4046,23 @@ export function BenchmarkDetail({
               )
               const allExpanded =
                 allFamilyKeys.length > 0 && allFamilyKeys.every((k) => expandedFamilies.has(k))
+              const hasAnyDuplicates = benchmarkIndexLookup.size > 0
               return (
-                <div className="-mt-2 mb-2 flex justify-end">
+                <div className="-mt-2 mb-2 flex items-center justify-end gap-4">
+                  {hasAnyDuplicates && (
+                    <label
+                      className="flex cursor-pointer select-none items-center gap-2 font-mono text-[10px] uppercase tracking-[0.12em] text-[color:var(--fg-muted)] hover:text-[color:var(--accent)] transition-colors"
+                      title="Collapse rows whose canonical benchmark appears under multiple families into a single row showing mean and per-source range."
+                    >
+                      <input
+                        type="checkbox"
+                        checked={groupDuplicatesInList}
+                        onChange={(event) => setGroupDuplicatesInList(event.target.checked)}
+                        className="accent-[color:var(--accent)]"
+                      />
+                      Group duplicate benchmarks
+                    </label>
+                  )}
                   <button
                     type="button"
                     onClick={() =>
@@ -3915,17 +4080,30 @@ export function BenchmarkDetail({
               const totalRows = families.reduce((sum, f) => sum + f.totalRows, 0)
               const totalBenchmarks = families.reduce((sum, f) => sum + f.groups.length, 0)
 
-              const renderRow = (
-                row: { group: BenchmarkGroup; variant: BenchmarkVariant },
-                isLast: boolean
-              ) => {
+              type ListRow = {
+                group: BenchmarkGroup
+                variant: BenchmarkVariant
+                /** Present when this row is the consolidated representative
+                 *  for a multi-source canonical benchmark — see the
+                 *  `groupDuplicatesInList` toggle. */
+                aggregate?: MergedRowAggregate
+              }
+
+              const renderRow = (row: ListRow, isLast: boolean) => {
                 const unit = row.variant.result.metric_config.unit
                 const lower = row.variant.result.metric_config.lower_is_better
                 const variantLabel = getVariantPrimaryLabel(row.variant, row.group.title)
                 const rel = row.variant.evaluation.source_metadata.evaluator_relationship
-                return (
+                const agg = row.aggregate
+                const meanDisplay = agg
+                  ? `${(agg.mean * 100).toFixed(1)}%`
+                  : row.variant.displayScore
+                const rangeDisplay = agg
+                  ? `${(agg.min * 100).toFixed(1)}–${(agg.max * 100).toFixed(1)}%`
+                  : null
+
+                const button = (
                   <button
-                    key={`${row.group.key}::${row.variant.evaluation.evaluation_id}::${row.variant.label}`}
                     type="button"
                     onClick={() => jumpToDeepDive(row.group.key)}
                     className="grid w-full items-center gap-4 px-1 py-2.5 text-left transition-colors hover:bg-[color:var(--bg-warm)] sm:grid-cols-[1fr_90px_110px_100px]"
@@ -3933,9 +4111,18 @@ export function BenchmarkDetail({
                   >
                     <div className="min-w-0">
                       <div className="text-[13px] truncate text-[color:var(--fg)]">
-                        {variantLabel && variantLabel !== row.group.title ? variantLabel : row.group.canonicalTitle}
+                        {agg
+                          ? agg.canonicalDisplayName
+                          : variantLabel && variantLabel !== row.group.title
+                            ? variantLabel
+                            : row.group.canonicalTitle}
                       </div>
-                      {isResearchView && (
+                      {agg ? (
+                        <div className="mt-0.5 flex flex-wrap gap-x-2 gap-y-0.5 font-mono text-[10.5px] text-[color:var(--fg-subtle)]">
+                          <span>{agg.sources.length} sources</span>
+                          <span>· range {rangeDisplay}</span>
+                        </div>
+                      ) : isResearchView && (
                         <div className="mt-0.5 flex flex-wrap gap-x-2 gap-y-0.5 font-mono text-[10.5px] text-[color:var(--fg-subtle)]">
                           {row.variant.result.generation_config?.num_few_shot != null && (
                             <span>{row.variant.result.generation_config.num_few_shot}-shot</span>
@@ -3956,34 +4143,83 @@ export function BenchmarkDetail({
                       </span>
                     </div>
                     <div className="text-right font-mono text-[14px] tabular-nums text-[color:var(--fg)]">
-                      {row.variant.displayScore}
+                      {meanDisplay}
+                      {agg && (
+                        <div className="mt-0.5 font-mono text-[9.5px] tabular-nums text-[color:var(--fg-subtle)]">
+                          {rangeDisplay}
+                        </div>
+                      )}
                     </div>
                     <div className="flex justify-end">
                       <span
                         className="font-mono text-[9.5px] uppercase tracking-[0.12em]"
                         style={{
-                          color:
-                            rel === "first_party"
+                          color: agg
+                            ? "var(--accent)"
+                            : rel === "first_party"
                               ? "var(--fg-muted)"
                               : rel === "third_party"
                                 ? "var(--accent)"
                                 : "var(--fg-subtle)",
                         }}
                       >
-                        {rel === "first_party"
-                          ? "first-party"
-                          : rel === "third_party"
-                            ? "third-party"
-                            : rel === "collaborative"
-                              ? "collaborative"
-                              : "—"}
+                        {agg
+                          ? `${agg.sources.length} reports`
+                          : rel === "first_party"
+                            ? "first-party"
+                            : rel === "third_party"
+                              ? "third-party"
+                              : rel === "collaborative"
+                                ? "collaborative"
+                                : "—"}
                       </span>
                     </div>
                   </button>
                 )
+                if (!agg) return (
+                  <div key={`${row.group.key}::${row.variant.evaluation.evaluation_id}::${row.variant.label}`}>
+                    {button}
+                  </div>
+                )
+                return (
+                  <div key={`${row.group.key}::${row.variant.evaluation.evaluation_id}::${row.variant.label}`}>
+                    <SignalTooltip
+                      content={
+                        <div className="flex min-w-[260px] flex-col gap-1">
+                          <div className="font-mono text-[10px] uppercase tracking-[0.12em] text-[color:var(--fg-subtle)]">
+                            Per-source breakdown
+                          </div>
+                          {agg.sources.map((src, i) => (
+                            <div
+                              key={`${src.familyKey}::${i}`}
+                              className="flex items-baseline justify-between gap-3"
+                            >
+                              <span className="text-[12px] text-[color:var(--fg)] truncate">
+                                {src.familyName}
+                              </span>
+                              <span className="font-mono text-[12px] tabular-nums text-[color:var(--fg-muted)]">
+                                {src.displayScore}
+                              </span>
+                            </div>
+                          ))}
+                          <div className="mt-1 border-t border-[color:var(--border-soft)] pt-1 flex items-baseline justify-between gap-3">
+                            <span className="font-mono text-[10px] uppercase tracking-[0.1em] text-[color:var(--fg-subtle)]">
+                              Mean (range)
+                            </span>
+                            <span className="font-mono text-[12px] tabular-nums text-[color:var(--fg)]">
+                              {meanDisplay} ({rangeDisplay})
+                            </span>
+                          </div>
+                        </div>
+                      }
+                    >
+                      {button}
+                    </SignalTooltip>
+                  </div>
+                )
               }
 
-              const partyRowsFor = (rowsAll: { group: BenchmarkGroup; variant: BenchmarkVariant }[]) => ({
+              const partyRowsFor = (rowsAll: ListRow[]) => ({
                 firstParty: rowsAll.filter(
                   (r) => r.variant.evaluation.source_metadata.evaluator_relationship === "first_party"
                 ),
@@ -3996,9 +4232,7 @@ export function BenchmarkDetail({
                 }),
               })
 
-              const renderPartyBreakdown = (
-                rowsAll: { group: BenchmarkGroup; variant: BenchmarkVariant }[]
-              ) => {
+              const renderPartyBreakdown = (rowsAll: ListRow[]) => {
                 const { firstParty, thirdParty, otherRows } = partyRowsFor(rowsAll)
                 return (
                   <>
@@ -4074,9 +4308,36 @@ export function BenchmarkDetail({
                   <div>
                     {families.map((family) => {
                       const isOpen = expandedFamilies.has(family.familyKey)
-                      const allRows = family.groups.flatMap((g) =>
-                        g.variants.map((v) => ({ group: g, variant: v }))
-                      )
+                      // Build the per-family row list, then apply duplicate
+                      // grouping when the toggle is on. "skip" rows drop out
+                      // entirely (they're absorbed into a representative row
+                      // shown earlier in display order, possibly under a
+                      // different family). "merged" rows carry a
+                      // MergedRowAggregate so renderRow knows to display the
+                      // mean + range + tooltip breakdown.
+                      const allRows: ListRow[] = []
+                      for (const g of family.groups) {
+                        for (const v of g.variants) {
+                          if (mergedRowState) {
+                            const rowKey = `${family.familyKey}::${g.key}::${v.evaluation.evaluation_id}::${v.label}`
+                            const disposition = mergedRowState.rowDisposition.get(rowKey)
+                            if (disposition === "skip") continue
+                            if (disposition === "merged") {
+                              const evalId = v.evaluation.eval_summary_id
+                              const indexEntry = evalId ? benchmarkIndexLookup.get(evalId) : undefined
+                              const aggregate = indexEntry
+                                ? mergedRowState.aggregates.get(indexEntry.canonicalKey)
+                                : undefined
+                              allRows.push({ group: g, variant: v, aggregate })
+                              continue
+                            }
+                          }
+                          allRows.push({ group: g, variant: v })
+                        }
+                      }
+                      // Skip empty families when grouping is on (every row
+                      // got absorbed into an earlier family's merged row).
+                      if (allRows.length === 0) return null
                       const { firstParty, thirdParty } = partyRowsFor(allRows)
                       // Family-level summary score = avg of avgs across child groups
                       const avgScores = family.groups
