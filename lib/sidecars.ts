@@ -1,7 +1,7 @@
 import "server-only"
 
 import { createHash } from "node:crypto"
-import { accessSync, constants as fsConstants } from "node:fs"
+import { accessSync, constants as fsConstants, rmSync } from "node:fs"
 import { mkdir, readFile, stat, writeFile } from "node:fs/promises"
 import { tmpdir } from "node:os"
 import { join } from "node:path"
@@ -62,6 +62,18 @@ function resolveDiskCacheDir(): string {
 const DISK_CACHE_DIR = resolveDiskCacheDir()
 const DISK_CACHE_TTL_MS =
   Number.parseInt(process.env.SIDECAR_CACHE_TTL_SECONDS ?? "3600", 10) * 1000
+
+// One-shot cache purge. Set SIDECAR_CACHE_PURGE=1 in Space env, factory
+// rebuild once to wipe `/data/sidecars`, then unset and rebuild again.
+// Use when `latest/`-pinned URLs caused stale snapshots to stick.
+if (process.env.SIDECAR_CACHE_PURGE === "1") {
+  try {
+    rmSync(DISK_CACHE_DIR, { recursive: true, force: true })
+    console.warn(`[sidecars] SIDECAR_CACHE_PURGE=1 — wiped ${DISK_CACHE_DIR}`)
+  } catch (err) {
+    console.warn(`[sidecars] purge failed: ${err instanceof Error ? err.message : String(err)}`)
+  }
+}
 
 function diskCachePath(url: string): string {
   // The path encodes the URL hash so swapping SNAPSHOT_URL doesn't
