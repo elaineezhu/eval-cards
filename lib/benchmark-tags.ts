@@ -1,0 +1,190 @@
+/**
+ * Benchmark tag lookup, primary source for filtering pills on the evals
+ * index. Resolves a benchmark or family display name to a list of
+ * categorical tags drawn from data/benchmarks/categories.json (a curated
+ * mapping of ~550 benchmark names → 1+ tags). Names that aren't in the
+ * file fall back to inferCategoryFromBenchmark() so every benchmark gets
+ * at least one tag.
+ *
+ * The ref file uses a richer vocabulary (mathematics,
+ * software_engineering, multimodal, hallucination, robustness, finance,
+ * law, …) than the legacy 5-bucket CategoryType. The fallback is
+ * projected into ref vocabulary (FALLBACK_TO_REF below) so the filter
+ * UI sees a single set of pills.
+ */
+import categoriesJson from "@/data/benchmarks/categories.json"
+import type {
+  EvalHierarchy,
+  HierarchyBenchmark,
+  HierarchyComposite,
+  HierarchyFamily,
+  HierarchySlice,
+} from "@/lib/backend-artifacts"
+import { inferCategoryFromBenchmark, type CategoryType } from "@/lib/benchmark-schema"
+
+const REF: Record<string, string[]> = categoriesJson as Record<string, string[]>
+
+// inferCategoryFromBenchmark returns the legacy 5-bucket CapitalCase
+// vocabulary (Safety / Agentic / Reasoning / Knowledge / General). The
+// ref file uses lowercase snake_case (safety / agentic / mathematics /
+// software_engineering / …). Without this map the filter pill bar
+// renders duplicate pills like "Safety" + "safety" with disjoint match
+// sets. We project the regex fallback into the ref vocabulary so there
+// is exactly one vocabulary in the UI.
+const FALLBACK_TO_REF: Record<CategoryType, string> = {
+  Safety: "safety",
+  Agentic: "agentic",
+  // Reasoning is the most generic catch-all in the regex; the ref file
+  // splits it into mathematics / software_engineering / *_reasoning.
+  // applied_reasoning is the closest umbrella term.
+  Reasoning: "applied_reasoning",
+  Knowledge: "knowledge",
+  General: "general",
+}
+
+// Two normalised lookup tables built once at module load. The first
+// keeps spaces (so "MMLU Pro" still differs from "MMLUPro" if both
+// were ever in the file); the second strips everything non-alphanumeric
+// for a tolerant fallback ("ARC-C" ↔ "arc c" ↔ "arcc").
+const NORMALISED_LOOSE: Map<string, string[]> = new Map()
+const NORMALISED_TIGHT: Map<string, string[]> = new Map()
+
+function normaliseLoose(name: string): string {
+  return name.trim().toLowerCase().replace(/\s+/g, " ")
+}
+
+function normaliseTight(name: string): string {
+  return name.toLowerCase().replace(/[^a-z0-9]/g, "")
+}
+
+// Strip trailing "(...)" segments — applied to QUERY names only, not
+// to ref keys. Without this, hierarchy children like
+//   "Humanity's Last Exam (accuracy)"
+//   "SWE-bench Verified Mini (MariusHobbhahn)"
+// miss their parent ref entries that lack the parenthesised suffix.
+// Iterates because some names have multiple suffixes ("Foo (a) (b)").
+function stripParenSuffix(name: string): string {
+  let prev = name
+  let cur = name.replace(/\s*\([^)]*\)\s*$/, "").trim()
+  while (cur && cur !== prev) {
+    prev = cur
+    cur = cur.replace(/\s*\([^)]*\)\s*$/, "").trim()
+  }
+  return cur
+}
+
+for (const [name, tags] of Object.entries(REF)) {
+  NORMALISED_LOOSE.set(normaliseLoose(name), tags)
+  const tight = normaliseTight(name)
+  if (tight && !NORMALISED_TIGHT.has(tight)) NORMALISED_TIGHT.set(tight, tags)
+}
+
+/**
+ * Resolve one or more candidate names to a tag list. Match priority,
+ * tried for each candidate in order:
+ *   1. loose match (case-insensitive, whitespace-collapsed)
+ *   2. tight match (alphanumeric-only)
+ *   3. strip trailing "(suffix)" segments and retry loose match
+ * If nothing matches, inherits `parentTags` (when non-empty) so a
+ * child benchmark of a curated family does not get a noisy regex
+ * fallback. Final fallback is `inferCategoryFromBenchmark` projected
+ * into the ref vocabulary.
+ */
+export function getBenchmarkTags(
+  parentTags: string[] | null | undefined,
+  ...candidates: Array<string | null | undefined>
+): string[] {
+  const names = candidates.filter((n): n is string => typeof n === "string" && n.trim().length > 0)
+  for (const name of names) {
+    const loose = NORMALISED_LOOSE.get(normaliseLoose(name))
+    if (loose) return loose
+    const tight = NORMALISED_TIGHT.get(normaliseTight(name))
+    if (tight) return tight
+    const stripped = stripParenSuffix(name)
+    if (stripped && stripped !== name) {
+      const loose2 = NORMALISED_LOOSE.get(normaliseLoose(stripped))
+      if (loose2) return loose2
+      const tight2 = NORMALISED_TIGHT.get(normaliseTight(stripped))
+      if (tight2) return tight2
+    }
+  }
+  // No own match. Prefer inheriting from a curated parent over the
+  // regex fallback — trusts the curator's chosen tags rather than
+  // injecting whatever the regex's substring matcher happens to
+  // catch on the child name.
+  if (parentTags && parentTags.length > 0) return parentTags
+  // Final fallback: regex-based inference projected into ref vocab.
+  const fallback = inferCategoryFromBenchmark(names[0] ?? "")
+  return [FALLBACK_TO_REF[fallback]]
+}
+
+/**
+ * True iff at least one of the candidate names is present in the ref
+ * file. Useful for surfacing "this benchmark was curated" affordances
+ * separately from the auto-inferred fallback.
+ */
+export function hasCuratedTags(...candidates: Array<string | null | undefined>): boolean {
+  for (const name of candidates) {
+    if (typeof name !== "string" || !name.trim()) continue
+    if (NORMALISED_LOOSE.has(normaliseLoose(name))) return true
+    if (NORMALISED_TIGHT.has(normaliseTight(name))) return true
+  }
+  return false
+}
+
+/**
+ * Walk an EvalHierarchy and attach `derivedTags: string[]` to every
+ * family / composite / benchmark / slice. Inheritance flows top-down:
+ * a child with no own ref hit inherits its nearest ancestor's tags
+ * rather than falling to the regex fallback.
+ *
+ * Mutates in place — fetchEvalHierarchy passes the just-loaded object
+ * straight in, so no allocations beyond the new tag arrays. Idempotent:
+ * calling twice produces the same result.
+ *
+ * Coverage measured against a real snapshot (72 families, 697 leaf
+ * benchmarks, 709 slices): 95.8% / 98.6% / 99.7% respectively.
+ */
+export function decorateHierarchyDerivedTags(h: EvalHierarchy): EvalHierarchy {
+  for (const fam of h.families ?? []) decorateFamily(fam)
+  return h
+}
+
+function decorateFamily(fam: HierarchyFamily): void {
+  fam.derivedTags = getBenchmarkTags(null, fam.display_name, fam.key)
+  for (const b of fam.standalone_benchmarks ?? []) decorateBenchmark(b, fam.derivedTags)
+  for (const b of fam.benchmarks ?? []) decorateBenchmark(b, fam.derivedTags)
+  for (const c of fam.composites ?? []) decorateComposite(c, fam.derivedTags)
+}
+
+function decorateComposite(comp: HierarchyComposite, parentTags: string[]): void {
+  comp.derivedTags = getBenchmarkTags(parentTags, comp.display_name, comp.key)
+  for (const b of comp.benchmarks ?? []) decorateBenchmark(b, comp.derivedTags)
+}
+
+function decorateBenchmark(b: HierarchyBenchmark, parentTags: string[]): void {
+  b.derivedTags = getBenchmarkTags(parentTags, b.display_name, b.key)
+  for (const s of b.slices ?? []) decorateSlice(s, b.derivedTags)
+}
+
+function decorateSlice(s: HierarchySlice, parentTags: string[]): void {
+  s.derivedTags = getBenchmarkTags(parentTags, s.display_name, s.key)
+}
+
+/**
+ * Render a tag for display: snake_case → Sentence case.
+ * "software_engineering" → "Software engineering";
+ * "humanities_and_social_sciences" → "Humanities and social sciences".
+ */
+export function formatTagLabel(tag: string): string {
+  if (!tag) return tag
+  return tag
+    .split("_")
+    .filter(Boolean)
+    .map((segment, index) =>
+      index === 0
+        ? segment[0].toUpperCase() + segment.slice(1)
+        : segment.toLowerCase(),
+    )
+    .join(" ")
+}

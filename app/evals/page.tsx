@@ -11,6 +11,7 @@ import type { EvalHierarchy, HierarchyFamily } from "@/lib/backend-artifacts"
 import { fetchBenchmarkMetadata, fetchEvalHierarchy, fetchEvalList } from "@/lib/dashboard-data-client"
 import type { BenchmarkEvalListItem } from "@/lib/eval-processing"
 import type { BenchmarkCard } from "@/lib/benchmark-schema"
+import { formatTagLabel } from "@/lib/benchmark-tags"
 
 const PAGE_SIZE = 60
 
@@ -179,36 +180,70 @@ function EvalsPageInner() {
 
   const clearDomainFilter = useCallback(() => setDomainFilter(new Set()), [])
 
-  // Categories present on the family list — drives the pill selector
-  // below the toolbar. Sort them by descending family count so the most
-  // common ones surface first.
-  const availableCategories = useMemo(() => {
-    const counts = new Map<string, number>()
+  // Tags per family — union of derivedTags across the family and every
+  // nested benchmark/composite. derivedTags is attached at hydration
+  // time by decorateHierarchyDerivedTags (lib/benchmark-tags.ts) so all
+  // the lookup, inheritance, and fallback logic lives in one place.
+  // Drives both the pill selector below and the filter predicate.
+  const familyTags = useMemo(() => {
+    const out = new Map<string, Set<string>>()
     for (const fam of families) {
-      const cat = fam.category ?? "General"
-      counts.set(cat, (counts.get(cat) ?? 0) + 1)
+      const tags = new Set<string>(fam.derivedTags ?? [])
+      for (const b of fam.standalone_benchmarks ?? []) for (const t of b.derivedTags ?? []) tags.add(t)
+      for (const b of fam.benchmarks ?? []) for (const t of b.derivedTags ?? []) tags.add(t)
+      for (const c of fam.composites ?? []) {
+        for (const t of c.derivedTags ?? []) tags.add(t)
+        for (const b of c.benchmarks ?? []) for (const t of b.derivedTags ?? []) tags.add(t)
+      }
+      out.set(fam.key, tags)
+    }
+    return out
+  }, [families])
+
+  // Tag → family-count map, sorted by descending count so the most
+  // common tags surface first in the pill bar.
+  const availableTags = useMemo(() => {
+    const counts = new Map<string, number>()
+    for (const tags of familyTags.values()) {
+      for (const tag of tags) counts.set(tag, (counts.get(tag) ?? 0) + 1)
     }
     return Array.from(counts.entries())
       .sort((a, b) => b[1] - a[1] || a[0].localeCompare(b[0]))
-      .map(([category]) => category)
-  }, [families])
+      .map(([tag]) => tag)
+  }, [familyTags])
 
   const filteredFamilies = useMemo(() => {
     const query = deferredSearchQuery.trim().toLowerCase()
     let list = families
 
     if (query) {
-      list = list.filter(
-        (fam) =>
-          fam.display_name.toLowerCase().includes(query) ||
-          fam.key.toLowerCase().includes(query) ||
-          fam.category?.toLowerCase().includes(query),
-      )
+      list = list.filter((fam) => {
+        if (fam.display_name.toLowerCase().includes(query)) return true
+        if (fam.key.toLowerCase().includes(query)) return true
+        if (fam.category?.toLowerCase().includes(query)) return true
+        // Also match the curated tag set so the search box and the
+        // category pill bar agree on what is filterable. Without this,
+        // typing "finance" returned zero families even though the
+        // Finance pill catches several.
+        const tags = familyTags.get(fam.key)
+        if (tags) {
+          for (const tag of tags) {
+            if (tag.toLowerCase().includes(query)) return true
+            if (formatTagLabel(tag).toLowerCase().includes(query)) return true
+          }
+        }
+        return false
+      })
     }
 
     if (selectedCategories.length > 0) {
       const set = new Set(selectedCategories)
-      list = list.filter((fam) => set.has(fam.category ?? "General"))
+      list = list.filter((fam) => {
+        const tags = familyTags.get(fam.key)
+        if (!tags) return false
+        for (const tag of tags) if (set.has(tag)) return true
+        return false
+      })
     }
 
     if (domainFilter.size > 0) {
@@ -233,7 +268,7 @@ function EvalsPageInner() {
           return familyEvalsCount(b) - familyEvalsCount(a)
       }
     })
-  }, [families, deferredSearchQuery, sortBy, domainFilter, selectedCategories, familyDomains])
+  }, [families, deferredSearchQuery, sortBy, domainFilter, selectedCategories, familyDomains, familyTags])
 
   useEffect(() => {
     setVisibleCount(PAGE_SIZE)
@@ -436,9 +471,11 @@ function EvalsPageInner() {
           </div>
         )}
 
-        {/* CATEGORY PILLS — quick toggle filter by category. Mirrors the
-            same pattern used on benchmark-detail's matrix browser. */}
-        {availableCategories.length > 0 && (
+        {/* CATEGORY PILLS — multi-select filter by curated benchmark
+            tag (data/benchmarks/categories.json), with the legacy
+            inferCategoryFromBenchmark buckets mixed in for benchmarks
+            not present in the curated file. */}
+        {availableTags.length > 0 && (
           <div className="mb-5 flex flex-wrap items-center gap-2">
             <span className="kicker mr-2">Category</span>
             <button
@@ -448,22 +485,22 @@ function EvalsPageInner() {
             >
               All
             </button>
-            {availableCategories.map((category) => {
-              const isSelected = selectedCategories.includes(category)
+            {availableTags.map((tag) => {
+              const isSelected = selectedCategories.includes(tag)
               return (
                 <button
-                  key={category}
+                  key={tag}
                   type="button"
                   onClick={() =>
                     setSelectedCategories((current) =>
-                      current.includes(category)
-                        ? current.filter((item) => item !== category)
-                        : [...current, category],
+                      current.includes(tag)
+                        ? current.filter((item) => item !== tag)
+                        : [...current, tag],
                     )
                   }
                   className={`ec-pill ${isSelected ? "on" : ""}`}
                 >
-                  {category}
+                  {formatTagLabel(tag)}
                 </button>
               )
             })}

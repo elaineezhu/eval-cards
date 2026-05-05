@@ -178,6 +178,7 @@ export interface CorpusAggregates {
   completeness: Stratified<CompletenessCorpusBlock>
   provenance: Stratified<ProvenanceCorpusBlock>
   comparability: Stratified<ComparabilityCorpusBlock>
+  reporting_org_count?: number
   developers?: DeveloperListEntry[]
   families?: Array<{
     family_key: string
@@ -286,6 +287,8 @@ export interface HierarchySlice {
   /** Marks the bare-stem "Overall" slice (e.g. `gaia` inside the
    *  `gaia` benchmark). Frontend labels such a row "Overall". */
   is_bare_stem?: boolean
+  /** Categorical tags derived client-side; see HierarchyFamily.derivedTags. */
+  derivedTags?: string[]
 }
 
 export interface HierarchyBenchmark extends SignalSummaries {
@@ -312,6 +315,8 @@ export interface HierarchyBenchmark extends SignalSummaries {
   slices: HierarchySlice[]
   metrics: HierarchyMetric[]
   summary_eval_ids?: string[]
+  /** Categorical tags derived client-side; see HierarchyFamily.derivedTags. */
+  derivedTags?: string[]
 }
 
 export interface HierarchyComposite extends SignalSummaries {
@@ -324,6 +329,8 @@ export interface HierarchyComposite extends SignalSummaries {
   summary_eval_ids?: string[]
   /** True for the headline composite within a multi-composite family. */
   is_primary?: boolean
+  /** Categorical tags derived client-side; see HierarchyFamily.derivedTags. */
+  derivedTags?: string[]
 }
 
 export interface HierarchyFamily extends SignalSummaries {
@@ -337,6 +344,12 @@ export interface HierarchyFamily extends SignalSummaries {
   standalone_benchmarks?: HierarchyBenchmark[]
   benchmarks?: HierarchyBenchmark[]
   composites?: HierarchyComposite[]
+  /** Categorical tags derived at hydration time from
+   *  data/benchmarks/categories.json (ref lookup with parent
+   *  inheritance, regex fallback). Populated client-side after
+   *  fetchEvalHierarchy via decorateHierarchyDerivedTags in
+   *  lib/benchmark-tags.ts; not present in the snapshot artefact. */
+  derivedTags?: string[]
 }
 
 export interface BenchmarkIndexAppearance {

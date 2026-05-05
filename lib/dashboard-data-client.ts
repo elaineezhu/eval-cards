@@ -1,4 +1,5 @@
 import type { BackendManifestStatus, ComparisonIndex, CorpusAggregates, EvalHierarchy } from "@/lib/backend-artifacts"
+import { decorateHierarchyDerivedTags } from "@/lib/benchmark-tags"
 import type { BenchmarkEvaluationCardData } from "@/components/benchmark-evaluation-card"
 import type { HFEvalDetail } from "@/lib/hf-data"
 import type {
@@ -93,7 +94,7 @@ export function fetchBackendManifest() {
 }
 
 export function fetchEvalHierarchy() {
-  return fetchJson<EvalHierarchy>("/api/eval-hierarchy")
+  return fetchJson<EvalHierarchy>("/api/eval-hierarchy").then(decorateHierarchyDerivedTags)
 }
 
 export function fetchComparisonIndex() {

@@ -34,11 +34,14 @@ pipeline_revised.py
 
 # Local data dumps. The runtime reads from .cache/hf-data/duckdb parquets;
 # anything under /data/ is leftover from offline scripts and should not
-# ship in git. The survey schema (loaded statically by app/survey) is the
-# one exception.
+# ship in git. Survey schema and the curated benchmark categories are
+# loaded statically at build time, so they do ship.
 /data/*
 !/data/survey/
 /data/survey/*
 !/data/survey/eval-schema-fields.json
+!/data/benchmarks/
+/data/benchmarks/*
+!/data/benchmarks/categories.json
 mock_design/
 shoot.mjs

@@ -63,14 +63,15 @@ export default async function HomePage() {
   const tripleCount = stats?.metric_rows_scanned ?? 0
   const modelCount = manifest?.model_count ?? 0
   const developerCount = developers.length
-  // Reporting initiatives — distinct evaluation submissions in the corpus
-  // (each `eval` here is a benchmark-publication artifact, e.g. HELM Lite,
-  // BFCL, Open LLM Leaderboard v2). This is closer to "reporting evaluators"
-  // than a model-developer count. With the v2 backend each row in
-  // `evals_view` is one (composite, benchmark) pair, so a leaderboard
-  // reporting N benchmarks contributes N to this count — same behaviour
-  // as the legacy backend.
-  const evaluatorCount = evals.length
+  // Distinct eval-provider organizations across the corpus. Sourced from
+  // `headline.reporting_org_count` (precomputed in the producer's
+  // sidecars.py) so the page doesn't have to scan parquet at request
+  // time. The producer derives this from `eval_results_view.reporting_orgs`
+  // which carries the de-aliased identity per fact row — canonical
+  // display_name when the registry has the org (folds Ai2 ≡ Allen
+  // Institute for AI), raw upstream string otherwise. Falls back to
+  // evals.length only if a pre-sidecar snapshot is loaded.
+  const evaluatorCount = aggregates?.reporting_org_count ?? evals.length
   const generatedAt = formatGeneratedAt(manifest?.generated_at)
 
   // Featured family cards — pick the first six families with summaries.
