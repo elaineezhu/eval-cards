@@ -2531,36 +2531,37 @@ export function BenchmarkDetail({
       ? filteredBenchmarkGroups
       : benchmarkGroups
 
+  // Only groups with actual sidecar ordinal rank data (total > 0) qualify
+  // for the "ranks high / low in" summary. Fallback bestRankPosition values
+  // are raw scores (0–1), not ordinal positions, so they must be excluded.
   const rankedBenchmarkGroups = useMemo(
-    () => overviewBenchmarkGroups.filter((group) => getGroupPeerRank(group, modelIds, peerRanks) != null),
+    () =>
+      overviewBenchmarkGroups.filter((group) => {
+        const rank = getGroupPeerRank(group, modelIds, peerRanks)
+        return rank != null && rank.total > 0
+      }),
     [overviewBenchmarkGroups, modelId, peerRanks]
   )
-  const strongRankedBenchmarks = useMemo(
-    () =>
-      [...rankedBenchmarkGroups]
-        .sort((a, b) => {
-          const aRank = getGroupPeerRank(a, modelIds, peerRanks)
-          const bRank = getGroupPeerRank(b, modelIds, peerRanks)
-          const aRatio = aRank ? aRank.position / (aRank.total || aRank.position) : Number.POSITIVE_INFINITY
-          const bRatio = bRank ? bRank.position / (bRank.total || bRank.position) : Number.POSITIVE_INFINITY
-          return aRatio - bRatio
-        })
-        .slice(0, 3),
-    [rankedBenchmarkGroups, modelId, peerRanks]
-  )
-  const weakRankedBenchmarks = useMemo(
-    () =>
-      [...rankedBenchmarkGroups]
-        .sort((a, b) => {
-          const aRank = getGroupPeerRank(a, modelIds, peerRanks)
-          const bRank = getGroupPeerRank(b, modelIds, peerRanks)
-          const aRatio = aRank ? aRank.position / (aRank.total || aRank.position) : Number.NEGATIVE_INFINITY
-          const bRatio = bRank ? bRank.position / (bRank.total || bRank.position) : Number.NEGATIVE_INFINITY
-          return bRatio - aRatio
-        })
-        .slice(0, 3),
-    [rankedBenchmarkGroups, modelId, peerRanks]
-  )
+  const strongRankedBenchmarks = useMemo(() => {
+    const sorted = [...rankedBenchmarkGroups].sort((a, b) => {
+      const aRank = getGroupPeerRank(a, modelIds, peerRanks)!
+      const bRank = getGroupPeerRank(b, modelIds, peerRanks)!
+      return aRank.position / aRank.total - bRank.position / bRank.total
+    })
+    return sorted.slice(0, 3)
+  }, [rankedBenchmarkGroups, modelId, peerRanks])
+
+  const weakRankedBenchmarks = useMemo(() => {
+    const strongKeys = new Set(strongRankedBenchmarks.map((g) => g.key))
+    const sorted = [...rankedBenchmarkGroups]
+      .filter((g) => !strongKeys.has(g.key))
+      .sort((a, b) => {
+        const aRank = getGroupPeerRank(a, modelIds, peerRanks)!
+        const bRank = getGroupPeerRank(b, modelIds, peerRanks)!
+        return bRank.position / bRank.total - aRank.position / aRank.total
+      })
+    return sorted.slice(0, 3)
+  }, [rankedBenchmarkGroups, strongRankedBenchmarks, modelId, peerRanks])
   const repeatedBenchmarkCount = overviewBenchmarkGroups.filter((group) => group.variants.length > 1).length
   const setupDrivenBenchmarkCount = overviewBenchmarkGroups.filter((group) =>
     group.variants.some((variant) => variant.variantType === "setup" || variant.variantType === "setup+slice")
@@ -4502,7 +4503,7 @@ export function BenchmarkDetail({
           <dl className="ec-datalist max-w-[64rem] mb-8">
             {strongRankedBenchmarks.length > 0 && (
               <>
-                <dt>Strong scores</dt>
+                <dt>Ranks high in</dt>
                 <dd>
                   <div className="flex flex-wrap gap-1.5">
                     {strongRankedBenchmarks.map((group) => {
@@ -4518,9 +4519,9 @@ export function BenchmarkDetail({
                           <span className="truncate max-w-[14rem] normal-case tracking-normal text-[12px] font-medium text-[color:var(--fg)]">
                             {group.title}
                           </span>
-                          {rank && (
+                          {rank && rank.total > 0 && (
                             <span className="font-mono tabular-nums text-[color:var(--fg-muted)]">
-                              #{rank.position}{rank.total ? `/${rank.total}` : ""}
+                              #{rank.position}/{rank.total}
                             </span>
                           )}
                         </button>
@@ -4532,7 +4533,7 @@ export function BenchmarkDetail({
             )}
             {weakRankedBenchmarks.length > 0 && (
               <>
-                <dt>Weak scores</dt>
+                <dt>Ranks low in</dt>
                 <dd>
                   <div className="flex flex-wrap gap-1.5">
                     {weakRankedBenchmarks.map((group) => {
@@ -4548,9 +4549,9 @@ export function BenchmarkDetail({
                           <span className="truncate max-w-[14rem] normal-case tracking-normal text-[12px] font-medium text-[color:var(--fg)]">
                             {group.title}
                           </span>
-                          {rank && (
+                          {rank && rank.total > 0 && (
                             <span className="font-mono tabular-nums text-[color:var(--fg-muted)]">
-                              #{rank.position}{rank.total ? `/${rank.total}` : ""}
+                              #{rank.position}/{rank.total}
                             </span>
                           )}
                         </button>
