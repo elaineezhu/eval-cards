@@ -1,6 +1,6 @@
 "use client"
 
-import { useCallback, useDeferredValue, useEffect, useMemo, useState } from "react"
+import { Suspense, useCallback, useDeferredValue, useEffect, useMemo, useState } from "react"
 import { useRouter, useSearchParams } from "next/navigation"
 import { ChevronDown, ChevronUp, Search, Tag } from "lucide-react"
 
@@ -43,7 +43,7 @@ function familyBenchmarkCount(fam: HierarchyFamily): number {
   )
 }
 
-export default function EvalsPage() {
+function EvalsPageInner() {
   const router = useRouter()
   const searchParams = useSearchParams()
   const familyParam = searchParams.get("family")
@@ -509,5 +509,13 @@ export default function EvalsPage() {
         />
       </main>
     </div>
+  )
+}
+
+export default function EvalsPage() {
+  return (
+    <Suspense fallback={null}>
+      <EvalsPageInner />
+    </Suspense>
   )
 }
