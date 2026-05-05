@@ -552,9 +552,17 @@ export function EvalDetail({
   // selected, else the page-level summary). Hero / cards / signals continue to
   // read from `summary` so the rich info above the leaderboard stays stable.
   const lb = activeSummary ?? summary
+  // Multi-metric leaderboard is only meaningful when there is more than one
+  // *root* metric. Subtask-scope entries are slices of one root metric (e.g.
+  // Global MMLU has 19 language slices of `score`); promoting them to columns
+  // here makes the matrix mix metrics and splits in confusing ways. Those
+  // evals fall into the single-metric branch where a slice picker drives the
+  // score column instead.
+  const rootMetricCount = (lb.leaderboard_metrics ?? []).filter(
+    (m) => m.scope !== "subtask",
+  ).length
   const hasMultiMetricLeaderboard =
-    (lb.leaderboard_metrics?.length ?? 0) > 1 &&
-    (lb.leaderboard_rows?.length ?? 0) > 0
+    rootMetricCount > 1 && (lb.leaderboard_rows?.length ?? 0) > 0
   const [overviewOpen, setOverviewOpen] = useState(true)
   // Collapse the dense technical overview by default in policy mode; expand
   // for researchers. Reset whenever the user switches modes.
@@ -575,13 +583,76 @@ export function EvalDetail({
   const numericMinParams = useMemo(() => paramStepToNumeric(minParamStep, "min"), [minParamStep])
   const numericMaxParams = useMemo(() => paramStepToNumeric(maxParamStep, "max"), [maxParamStep])
 
-  const sortedResults = useMemo(
+  // Slice picker — visible when the eval has a single root metric but
+  // multiple subtask-scope entries (e.g. Global MMLU's 19 languages).
+  // Picking a slice swaps each model's score for that slice's score
+  // pulled from `lb.leaderboard_rows[i].values["{rootMetric}::{slice}"]`.
+  const subtaskSlices = useMemo(() => {
+    const seen = new Map<string, string>()
+    for (const metric of lb.leaderboard_metrics ?? []) {
+      if (metric.scope === "subtask" && metric.subtask_key && !seen.has(metric.subtask_key)) {
+        seen.set(metric.subtask_key, metric.subtask_name ?? metric.subtask_key)
+      }
+    }
+    return Array.from(seen, ([key, name]) => ({ key, label: name }))
+  }, [lb.leaderboard_metrics])
+
+  const hasSlicePicker = !hasMultiMetricLeaderboard && subtaskSlices.length > 1
+
+  const ALL_SLICE_KEY = "__all__"
+  const [activeSlice, setActiveSlice] = useState<string>(ALL_SLICE_KEY)
+
+  // Reset the picker when the underlying eval changes (e.g. user flips
+  // the page-level split dropdown to a sibling that doesn't carry the
+  // previously-selected slice).
+  useEffect(() => {
+    setActiveSlice(ALL_SLICE_KEY)
+  }, [lb.evaluation_id])
+
+  const primaryMetricColumn = useMemo(
     () =>
-      [...lb.model_results].sort((a, b) =>
-        lb.metric_config.lower_is_better ? a.score - b.score : b.score - a.score
-      ),
-    [lb.model_results, lb.metric_config.lower_is_better]
+      (lb.leaderboard_metrics ?? []).find((m) => m.scope !== "subtask")
+        ?.column_key,
+    [lb.leaderboard_metrics],
   )
+
+  const slicedScoreByRoute = useMemo(() => {
+    if (!hasSlicePicker || activeSlice === ALL_SLICE_KEY || !primaryMetricColumn) {
+      return null
+    }
+    const columnKey = `${primaryMetricColumn}::${activeSlice}`
+    const map = new Map<string, number>()
+    for (const row of lb.leaderboard_rows ?? []) {
+      if (!row.model_route_id) continue
+      const value = row.values[columnKey]
+      if (typeof value === "number" && Number.isFinite(value)) {
+        map.set(row.model_route_id, value)
+      }
+    }
+    return map
+  }, [
+    hasSlicePicker,
+    activeSlice,
+    primaryMetricColumn,
+    lb.leaderboard_rows,
+  ])
+
+  const sortedResults = useMemo(() => {
+    const sourceResults = slicedScoreByRoute
+      ? lb.model_results
+          .map((result) => {
+            const route = result.model_route_id
+            const overrideScore = route ? slicedScoreByRoute.get(route) : undefined
+            return overrideScore != null
+              ? { ...result, score: overrideScore }
+              : null
+          })
+          .filter((r): r is NonNullable<typeof r> => r !== null)
+      : lb.model_results
+    return [...sourceResults].sort((a, b) =>
+      lb.metric_config.lower_is_better ? a.score - b.score : b.score - a.score
+    )
+  }, [lb.model_results, lb.metric_config.lower_is_better, slicedScoreByRoute])
 
   const [showUnknownSize, setShowUnknownSize] = useState(true)
 
@@ -979,6 +1050,21 @@ export function EvalDetail({
 
           {splitConfig && (
             <SplitPicker config={splitConfig} className="mb-4" />
+          )}
+
+          {hasSlicePicker && (
+            <SplitPicker
+              className="mb-4"
+              config={{
+                label: "Slice",
+                activeId: activeSlice,
+                onChange: setActiveSlice,
+                options: [
+                  { id: ALL_SLICE_KEY, label: "Overall" },
+                  ...subtaskSlices.map((s) => ({ id: s.key, label: s.label })),
+                ],
+              }}
+            />
           )}
 
           {/* Score distribution — paper-themed mean/median/quartile summary */}
