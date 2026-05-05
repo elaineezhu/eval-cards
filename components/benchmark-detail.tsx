@@ -80,6 +80,11 @@ interface BenchmarkVariant {
   rankPosition: number | null
   rankTotal: number | null
   rankRatio: number | null
+  /** Companion sampling-error metric (e.g. `prompt_strict_stderr` next to
+   *  `prompt_strict_acc`). Filtered out of primary listings — the value is
+   *  surfaced only inside the deep-dive row's score cell. */
+  auxStderr?: number
+  auxStderrUnit?: string
 }
 
 interface BenchmarkGroup {
@@ -164,6 +169,71 @@ const DISPLAY_NAME_OVERRIDES: Record<string, string> = {
 }
 
 const AMBIGUOUS_GROUP_LABELS = new Set(["overall", "score", "accuracy"])
+
+// Treat these as "no real name" when deciding whether to fall back to
+// metric_summary_id derivation. Some sources (e.g. ifeval%2Fifeval,
+// hfopenllm-v2 raw metrics) ship metric_name="" or a placeholder like
+// "score" / "metric" while the meaningful name lives in the local
+// segment of the metric_summary_id (`ifeval%3Aprompt_strict_acc`).
+const GENERIC_METRIC_LABELS = new Set([
+  "",
+  "metric",
+  "score",
+  "accuracy",
+  "value",
+  "result",
+])
+
+// Sampling-error companion metrics travel alongside score metrics in some
+// snapshots (`ifeval%3Aprompt_strict_stderr` next to `…_acc`). Surfacing
+// them as their own rows / tabs makes IFEval-style benchmarks look like
+// they ship 10 indistinguishable splits, so the renderer hides them from
+// primary lists and folds the value into the score cell of the matching
+// row in the deep dive (see BenchmarkVariant.auxStderr).
+const STDERR_SUFFIX_PATTERN = /_(stderr|std_err|standard_error)$/i
+const SCORE_SUFFIX_PATTERN = /_(acc|accuracy|score|value|result)$/i
+
+function isStderrMetricId(id: string | null | undefined): boolean {
+  if (!id) return false
+  const local = id.split("%3A").pop() ?? id
+  return STDERR_SUFFIX_PATTERN.test(local)
+}
+
+/**
+ * Strip the trailing score / stderr suffix so a metric and its companion
+ * stderr collapse onto the same key. Both `ifeval%3Aprompt_strict_acc`
+ * and `ifeval%3Aprompt_strict_stderr` map to `ifeval%3Aprompt_strict`.
+ */
+function metricPairKey(id: string | null | undefined): string | null {
+  if (!id) return null
+  const trimmed = id.replace(STDERR_SUFFIX_PATTERN, "").replace(SCORE_SUFFIX_PATTERN, "")
+  return trimmed.length > 0 ? trimmed : id
+}
+
+/**
+ * Pick the most informative metric label available given the upstream
+ * `metric_name` (which may be empty or generic) and `metric_summary_id`
+ * (whose local part — e.g. `prompt_strict_acc` from
+ * `ifeval%3Aprompt_strict_acc` — is the only carrier of identity for
+ * sources that don't populate metric_name).
+ */
+function deriveMetricTabLabel(
+  metricName: string | null | undefined,
+  metricSummaryId: string | null | undefined,
+): string {
+  const trimmed = metricName?.trim() ?? ""
+  if (trimmed && !GENERIC_METRIC_LABELS.has(trimmed.toLowerCase())) {
+    return trimmed
+  }
+  const id = metricSummaryId ?? ""
+  if (id) {
+    const local = id.split("%3A").pop() ?? id
+    if (local && !GENERIC_METRIC_LABELS.has(local.toLowerCase())) {
+      return normalizeDisplayLabel(local)
+    }
+  }
+  return trimmed || "Score"
+}
 
 function normalizeDisplayKey(value: string) {
   return value.toLowerCase().replace(/[^a-z0-9]+/g, "_").replace(/^_+|_+$/g, "")
@@ -479,21 +549,43 @@ function getResultDisplayName(
 }
 
 function getMetricDisplayLabel(result: EvaluationResult) {
-  const rawLabel =
-    result.display_name ||
-    result.canonical_display_name ||
-    result.evaluation_name
-
-  if (!rawLabel) {
-    return "Metric"
+  const candidates = [
+    result.display_name,
+    result.canonical_display_name,
+    result.evaluation_name,
+  ]
+  let firstNonEmpty = ""
+  for (const candidate of candidates) {
+    const value = candidate?.trim()
+    if (!value) continue
+    const segments = value
+      .split("/")
+      .map((segment) => segment.trim())
+      .filter(Boolean)
+    const leaf = segments[segments.length - 1] ?? value
+    const normalised = normalizeDisplayLabel(leaf)
+    if (!firstNonEmpty) firstNonEmpty = normalised
+    if (
+      normalised &&
+      !GENERIC_METRIC_LABELS.has(normalised.toLowerCase())
+    ) {
+      return normalised
+    }
   }
 
-  const segments = rawLabel
-    .split("/")
-    .map((segment) => segment.trim())
-    .filter(Boolean)
-  const leaf = segments[segments.length - 1] ?? rawLabel
-  return normalizeDisplayLabel(leaf)
+  // Last-ditch: derive from metric_summary_id local part. Some upstream
+  // sources (e.g. ifeval%2Fifeval's 10 prompt/inst/strict/loose metrics)
+  // ship empty or generic display fields, so the only meaningful
+  // identity is the local segment of the summary id.
+  const summaryId = result.metric_summary_id ?? ""
+  if (summaryId) {
+    const local = summaryId.split("%3A").pop() ?? summaryId
+    if (local && !GENERIC_METRIC_LABELS.has(local.toLowerCase())) {
+      return normalizeDisplayLabel(local)
+    }
+  }
+
+  return firstNonEmpty || "Metric"
 }
 
 function getVariantDescriptor(
@@ -1442,17 +1534,66 @@ function buildBenchmarkGroups(
 ): BenchmarkGroup[] {
   const groups = new Map<string, BenchmarkGroup>()
 
+  // Pre-pass: bucket stderr companion values keyed by (groupKey, pairKey)
+  // so the second pass can attach each stderr's value to the matching
+  // score variant via `auxStderr`. Stderr entries themselves are dropped
+  // from the variant list to avoid showing them as standalone rows.
+  const stderrByPair = new Map<string, { score: number; unit?: string }>()
   for (const entry of entries) {
+    const summaryId = entry.result.metric_summary_id ?? ""
+    if (!isStderrMetricId(summaryId)) continue
+    const groupKey =
+      entry.evaluation.eval_summary_id ??
+      entry.evaluation.parent_benchmark_id ??
+      entry.evaluation.family_id ??
+      "benchmark"
+    const pairKey = metricPairKey(summaryId)
+    if (!pairKey) continue
+    const score = entry.result.score_details.score
+    if (!Number.isFinite(score)) continue
+    stderrByPair.set(`${groupKey}::${pairKey}`, {
+      score,
+      unit: entry.result.metric_config.unit,
+    })
+  }
+
+  for (const entry of entries) {
+    if (isStderrMetricId(entry.result.metric_summary_id)) continue
     const rawBenchmarkName = entry.evaluation.benchmark || entry.evaluation.benchmark_parent_name || getResultBenchmarkName(entry.evaluation, entry.result)
-    const title = entry.evaluation.display_name || entry.evaluation.slice_name || entry.evaluation.benchmark_leaf_name || entry.evaluation.benchmark_parent_name || entry.evaluation.benchmark || getResultBenchmarkName(entry.evaluation, entry.result)
-    const canonicalTitle =
-      entry.evaluation.canonical_display_name ||
-      (entry.evaluation.slice_name && (entry.evaluation.benchmark_parent_name || entry.evaluation.benchmark)
-        ? `${entry.evaluation.benchmark_parent_name || entry.evaluation.benchmark} / ${entry.evaluation.slice_name}`
-        : title)
+    // Slice evals (e.g. AIR-Bench's ~30 per-category cells, all
+    // `is_slice=true` with `parent_benchmark_id="air-bench-2024"`)
+    // collapse into ONE BenchmarkGroup keyed on the parent's
+    // eval_summary_id (`<source>%2Fair-bench-2024`). The slices then
+    // populate the plotbox view dropdown instead of fanning out into
+    // ~30 look-alike plotboxes. Title prefers the parent name so the
+    // grouped card reads "AIR-Bench 2024" rather than "Confidentiality".
+    const isFoldableSlice = Boolean(
+      entry.evaluation.is_slice && entry.evaluation.parent_benchmark_id,
+    )
+    const sliceParentEvalSummaryId = (() => {
+      if (!isFoldableSlice) return null
+      const evalId = entry.evaluation.eval_summary_id ?? ""
+      const sourcePrefix = evalId.includes("%2F") ? evalId.split("%2F")[0] : null
+      if (!sourcePrefix) return null
+      return `${sourcePrefix}%2F${entry.evaluation.parent_benchmark_id}`
+    })()
+    const title = isFoldableSlice
+      ? (entry.evaluation.benchmark_parent_name ||
+          entry.evaluation.parent_benchmark_id ||
+          entry.evaluation.display_name ||
+          entry.evaluation.benchmark ||
+          getResultBenchmarkName(entry.evaluation, entry.result))
+      : (entry.evaluation.display_name || entry.evaluation.slice_name || entry.evaluation.benchmark_leaf_name || entry.evaluation.benchmark_parent_name || entry.evaluation.benchmark || getResultBenchmarkName(entry.evaluation, entry.result))
+    const canonicalTitle = isFoldableSlice
+      ? title
+      : (entry.evaluation.canonical_display_name ||
+          (entry.evaluation.slice_name && (entry.evaluation.benchmark_parent_name || entry.evaluation.benchmark)
+            ? `${entry.evaluation.benchmark_parent_name || entry.evaluation.benchmark} / ${entry.evaluation.slice_name}`
+            : title))
     // eval_summary_id is producer-shipped on every v3 entry; the
     // remaining ?? tiers are for legacy snapshots without that field.
     const groupKey =
+      sliceParentEvalSummaryId ??
       entry.evaluation.eval_summary_id ??
       entry.evaluation.parent_benchmark_id ??
       entry.evaluation.family_id ??
@@ -1473,6 +1614,8 @@ function buildBenchmarkGroups(
           ? rankPosition
           : null
     const descriptor = getVariantDescriptor(entry.evaluation, entry.result)
+    const pairKey = metricPairKey(entry.result.metric_summary_id ?? "")
+    const auxStderrEntry = pairKey ? stderrByPair.get(`${groupKey}::${pairKey}`) : undefined
     const variant: BenchmarkVariant = {
       evaluation: entry.evaluation,
       result: entry.result,
@@ -1486,6 +1629,9 @@ function buildBenchmarkGroups(
       rankPosition,
       rankTotal,
       rankRatio,
+      ...(auxStderrEntry
+        ? { auxStderr: auxStderrEntry.score, auxStderrUnit: auxStderrEntry.unit }
+        : {}),
     }
 
     const existing = groups.get(groupKey)
@@ -1666,18 +1812,21 @@ export function BenchmarkDetail({
   const pathname = usePathname()
   const searchParams = useSearchParams()
   const [benchmarkSearch, setBenchmarkSearch] = useState("")
-  const [benchmarkSort, setBenchmarkSort] = useState<"relevance" | "rank" | "score" | "name" | "variants" | "spread">("relevance")
+  // Sort dropdown was removed — ordering is driven by the source/category
+  // grouping itself, not a user-selected sort.
   const [selectedCategories, setSelectedCategories] = useState<CategoryType[]>([])
   const [expandedSuites, setExpandedSuites] = useState<Set<string>>(new Set())
   const [activeBenchmarkGroupKey, setActiveBenchmarkGroupKey] = useState<string | null>(null)
   const [benchmarkViewMode, setBenchmarkViewMode] = useState<"grid" | "list">("grid")
-  // List-view-only toggle: when on, rows whose eval_summary_id is part of a
-  // multi-appearance entry in hierarchy.json's `benchmark_index[]` collapse
-  // into a single merged row showing mean and per-source range; the original
-  // per-source breakdown is preserved in a hover tooltip. Off keeps the
-  // current per-eval row layout (default — avoids changing rank/group keys
-  // anywhere else in the app).
-  const [groupDuplicatesInList, setGroupDuplicatesInList] = useState(false)
+  // Tri-state view selector. "source" = the warehouse's natural shape:
+  // family-rooted plotboxes / family-grouped accordions, no cross-family
+  // collapse. "category" = same composite/standalone units, but the top-
+  // level grouping switches to the curated category tag (data/benchmarks/
+  // categories.json) so similarly-tagged benchmarks cluster across
+  // families. "overlaps" = cross-family duplicates only, rendered as a
+  // table (no plotbox/list toggle) with mean and 95% CI for the model's
+  // score across each canonical's appearances.
+  const [groupingMode, setGroupingMode] = useState<"source" | "category" | "overlaps">("source")
   const [expandedFamilies, setExpandedFamilies] = useState<Set<string>>(new Set())
   const toggleFamily = (key: string) =>
     setExpandedFamilies((prev) => {
@@ -1740,25 +1889,53 @@ export function BenchmarkDetail({
     )
   }, [evalHierarchy, summary.evaluations_by_category])
 
+  // Source-prefix → hierarchy-family lookup. The producer ships
+  // benchmark-canonical `family_id`s on each comparison-index entry
+  // (e.g. `family_id="aime"` for every AIME variant across sources)
+  // alongside source-leaderboard families in hierarchy.json (e.g.
+  // `artificial-analysis`, `vals-ai`, `llm-stats`). Most evals are
+  // listed in `family.eval_summary_ids` and resolve via
+  // `hierarchyIndex` directly, but variant rows the producer
+  // emits under the same canonical (e.g. `aime-2025`, `aime-2024`)
+  // are NOT enumerated at family level — they fall back to
+  // `evalEntry.family_id` and synthesise a phantom "aime" parent
+  // section. This map provides a second fallback: pick the
+  // hierarchy family whose own listed eval ids share this id's
+  // source prefix.
+  const sourcePrefixFamily = useMemo(() => {
+    const out = new Map<string, { key: string; displayName: string }>()
+    for (const fam of evalHierarchy?.families ?? []) {
+      for (const id of fam.eval_summary_ids ?? []) {
+        const prefix = id.includes("%2F") ? id.split("%2F")[0] : null
+        if (!prefix) continue
+        if (!out.has(prefix)) {
+          out.set(prefix, { key: fam.key, displayName: fam.display_name })
+        }
+      }
+    }
+    return out
+  }, [evalHierarchy])
+
   // Lookup eval_summary_id -> canonical benchmark info from hierarchy.json's
-  // `benchmark_index[]`. Only entries that span multiple appearances are
-  // included (single-appearance entries have nothing to consolidate with).
-  // Used by the "group duplicates" toggle in the list view.
+  // `benchmark_index[]`. Used by the "group duplicates" toggle in the
+  // list view AND by the histogram cross-family whisker overlay.
+  //
+  // The hierarchy is pre-cleaned by `cleanHierarchy` (lib/clean-hierarchy.ts)
+  // server-side: family-rollup entries are dropped, (family_key,
+  // eval_summary_id) pairs deduped, degenerate entries filtered out. So
+  // we can iterate the entries directly here without per-entry filtering.
   const benchmarkIndexLookup = useMemo(() => {
     const out = new Map<
       string,
       { canonicalKey: string; canonicalDisplayName: string; siblingEvalIds: string[] }
     >()
-    const entries = evalHierarchy?.benchmark_index ?? []
-    for (const entry of entries) {
-      const ids: string[] = []
+    for (const entry of evalHierarchy?.benchmark_index ?? []) {
+      const idSet = new Set<string>()
       for (const app of entry.appearances ?? []) {
-        for (const id of app.eval_summary_ids ?? []) ids.push(id)
+        for (const id of app.eval_summary_ids ?? []) idSet.add(id)
       }
-      if (ids.length <= 1) continue
+      const ids = Array.from(idSet)
       for (const id of ids) {
-        // First entry wins on collision — fine in practice, the index
-        // doesn't double-claim the same id.
         if (!out.has(id)) {
           out.set(id, {
             canonicalKey: entry.key,
@@ -1771,7 +1948,7 @@ export function BenchmarkDetail({
     return out
   }, [evalHierarchy])
 
-  // List-view-only consolidation state. When `groupDuplicatesInList` is on,
+  // List-view-only consolidation state. Active when `groupingMode === "benchmark"`.
   // `mergedRowState` precomputes (across families in display order) which
   // rows render as the consolidated representative ("merged"), which collapse
   // into a previously-rendered representative ("skip"), and which stay as
@@ -1889,10 +2066,21 @@ export function BenchmarkDetail({
           // the first tag becomes the displayed category. Fall back to the
           // legacy 5-bucket category only when no tag is found, so existing
           // ordering / filter wiring still works.
+          //
+          // Normalise both branches into the lowercase-snake_case form used
+          // by categories.json so visually-identical categories (the
+          // legacy "General" fallback and the curated "general" tag, the
+          // legacy "Safety" and "safety", etc.) collapse to the same
+          // CategoryType — otherwise downstream surfaces show two
+          // adjacent rows / pills with the same label.
           const evalSummaryId = evaluation.eval_summary_id
           const tags = evalSummaryId ? hierarchyIndex?.get(evalSummaryId)?.tags : undefined
           const primaryTag = tags && tags.length > 0 ? tags[0] : null
-          const category = (primaryTag ?? fallbackCategory) as CategoryType
+          const normalisedFallback = fallbackCategory
+            .toLowerCase()
+            .trim()
+            .replace(/\s+/g, "_")
+          const category = (primaryTag ?? normalisedFallback) as CategoryType
           return evaluation.evaluation_results.map((result) => ({
             evaluation,
             result,
@@ -2003,22 +2191,28 @@ export function BenchmarkDetail({
   // from the curated tag bucketing in `allCategoryResults`. We no longer
   // trust `summary.categories_covered` (legacy 5-bucket) for ordering /
   // filtering; build the list locally so the new tag vocabulary surfaces.
+  // Sorted alphabetically by display label for stable filter-pill order.
   const availableCategories = useMemo(() => {
-    const order: string[] = []
     const seen = new Set<string>()
+    const cats: string[] = []
     for (const group of benchmarkGroups) {
       const cat = group.category as unknown as string
       if (!seen.has(cat)) {
         seen.add(cat)
-        order.push(cat)
+        cats.push(cat)
       }
     }
-    return order as unknown as CategoryType[]
+    cats.sort((a, b) => formatTagLabel(a).localeCompare(formatTagLabel(b)))
+    return cats as unknown as CategoryType[]
   }, [benchmarkGroups])
 
   // First-party vs third-party split per category (for the donut + bars).
   const evaluatorMix = useMemo(() => {
-    const order = new Map(availableCategories.map((cat, i) => [cat, i]))
+    // Bucket counts per category, then re-bucket by display label so
+    // visually-identical labels collapse: the curated tag vocab can
+    // produce two distinct CategoryType strings ("general" vs
+    // "general_other") that both render as "General". Without this the
+    // donut shows two "General" / "Safety" rows.
     const byCat = new Map<CategoryType, { first: number; third: number; collab: number; other: number }>()
     let firstTotal = 0
     let thirdTotal = 0
@@ -2035,14 +2229,38 @@ export function BenchmarkDetail({
       }
       byCat.set(group.category, slot)
     }
-    const rows = Array.from(byCat.entries())
-      .map(([category, counts]) => ({
+    type Row = {
+      category: CategoryType
+      label: string
+      first: number
+      third: number
+      collab: number
+      other: number
+      total: number
+    }
+    const byLabel = new Map<string, Row>()
+    for (const [category, counts] of byCat) {
+      const label = formatTagLabel(category as unknown as string)
+      const existing = byLabel.get(label) ?? {
         category,
-        ...counts,
-        total: counts.first + counts.third + counts.collab + counts.other,
-      }))
+        label,
+        first: 0,
+        third: 0,
+        collab: 0,
+        other: 0,
+        total: 0,
+      }
+      existing.first += counts.first
+      existing.third += counts.third
+      existing.collab += counts.collab
+      existing.other += counts.other
+      existing.total =
+        existing.first + existing.third + existing.collab + existing.other
+      byLabel.set(label, existing)
+    }
+    const rows = Array.from(byLabel.values())
       .filter((row) => row.total > 0)
-      .sort((a, b) => (order.get(a.category) ?? 999) - (order.get(b.category) ?? 999))
+      .sort((a, b) => a.label.localeCompare(b.label))
     const grand = firstTotal + thirdTotal + collabTotal + otherTotal
     return {
       rows,
@@ -2052,7 +2270,7 @@ export function BenchmarkDetail({
       otherTotal,
       grand,
     }
-  }, [benchmarkGroups, availableCategories])
+  }, [benchmarkGroups])
 
   const filteredBenchmarkGroups = useMemo(() => {
     const query = benchmarkSearch.trim().toLowerCase()
@@ -2073,32 +2291,13 @@ export function BenchmarkDetail({
       )
     })
 
-    const sortFn = (a: BenchmarkGroup, b: BenchmarkGroup) => {
-      switch (benchmarkSort) {
-        case "relevance":
-          return getRelevanceScore(b) - getRelevanceScore(a)
-        case "rank": {
-          const aRank = getGroupPeerRank(a, modelIds, peerRanks)
-          const bRank = getGroupPeerRank(b, modelIds, peerRanks)
-          // Unranked groups go to the bottom
-          if (aRank == null && bRank == null) return b.avgNormalizedScore - a.avgNormalizedScore
-          if (aRank == null) return 1
-          if (bRank == null) return -1
-          const aRatio = aRank.total > 0 ? aRank.position / aRank.total : aRank.position
-          const bRatio = bRank.total > 0 ? bRank.position / bRank.total : bRank.position
-          return aRatio - bRatio || b.avgNormalizedScore - a.avgNormalizedScore
-        }
-        case "name": return a.title.localeCompare(b.title)
-        case "variants": return b.variants.length - a.variants.length || b.avgNormalizedScore - a.avgNormalizedScore
-        case "spread": return getBenchmarkSpread(b) - getBenchmarkSpread(a) || b.avgNormalizedScore - a.avgNormalizedScore
-        default: return b.avgNormalizedScore - a.avgNormalizedScore
-      }
-    }
-
-    filtered.sort(sortFn)
+    // Default ordering: relevance score (most-reported / most-extreme rank /
+    // richest metadata / most recent first). The source / category grouping
+    // applied downstream may regroup but doesn't re-sort within a group.
+    filtered.sort((a, b) => getRelevanceScore(b) - getRelevanceScore(a))
 
     return filtered
-  }, [benchmarkGroups, benchmarkSearch, benchmarkSort, selectedCategories, modelId, peerRanks])
+  }, [benchmarkGroups, benchmarkSearch, selectedCategories, modelId, peerRanks, getRelevanceScore])
 
   const groupedFilteredBenchmarkGroups = useMemo(() => {
     const order = new Map(availableCategories.map((category, index) => [category, index]))
@@ -2140,10 +2339,20 @@ export function BenchmarkDetail({
       const hierarchyLocation = evalId
         ? hierarchyIndex?.get(evalId) ?? null
         : null
+      const sourcePrefix = evalId && evalId.includes("%2F")
+        ? evalId.split("%2F")[0]
+        : null
+      const inferredSourceFamily = !hierarchyLocation && sourcePrefix
+        ? sourcePrefixFamily.get(sourcePrefix) ?? null
+        : null
       const famKey =
-        hierarchyLocation?.familyKey ?? evalEntry?.family_id ?? group.key
+        hierarchyLocation?.familyKey ??
+        inferredSourceFamily?.key ??
+        evalEntry?.family_id ??
+        group.key
       const famName =
         hierarchyLocation?.familyDisplayName ||
+        inferredSourceFamily?.displayName ||
         evalEntry?.family_display_name ||
         evalEntry?.display_name ||
         group.title
@@ -2171,7 +2380,7 @@ export function BenchmarkDetail({
           kind: f.groups.length > 1 ? "multi-eval" as const : "single-eval" as const,
         })),
       }))
-  }, [filteredBenchmarkGroups, comparisonIndex, hierarchyIndex, availableCategories])
+  }, [filteredBenchmarkGroups, comparisonIndex, hierarchyIndex, sourcePrefixFamily, availableCategories])
 
   // Precompute "merged" / "skip" / "single" disposition per row when the
   // list-view duplicate-grouping toggle is on. Walks the categories →
@@ -2181,85 +2390,43 @@ export function BenchmarkDetail({
   // every later variant of the same canonical benchmark is suppressed.
   // The aggregate contains contributions from every sibling regardless of
   // family, so the merged row is a true cross-family consolidation.
-  const mergedRowState = useMemo<{
+  // Cross-family duplicate consolidation in the source/category list views
+  // is gone — overlaps now have their own dedicated table view. The list
+  // view always renders one row per (family, group, variant) so this
+  // returns null and the renderRow path treats every row as `single`.
+  // The variables below are referenced by `listFamiliesByCategory`'s
+  // useMemo deps but kept for type compatibility.
+  void benchmarkIndexLookup
+  type _Unused = { a: MergedRowAggregate; r: RowDisposition }
+  const mergedRowState = null as null | {
     aggregates: Map<string, MergedRowAggregate>
     rowDisposition: Map<string, RowDisposition>
-  } | null>(() => {
-    if (!groupDuplicatesInList) return null
-    const aggregates = new Map<string, MergedRowAggregate>()
-    const seenKeys = new Set<string>()
-    const rowDisposition = new Map<string, RowDisposition>()
+  }
 
-    // First pass: collect aggregates over every contributing variant. We
-    // walk the same display order the list view will use so per-source
-    // ordering in the tooltip matches what the user sees in the table.
-    for (const { families } of listFamiliesByCategory) {
-      for (const family of families) {
-        for (const group of family.groups) {
-          for (const variant of group.variants) {
-            const evalId = variant.evaluation.eval_summary_id
-            if (!evalId) continue
-            const indexEntry = benchmarkIndexLookup.get(evalId)
-            if (!indexEntry) continue
-            const score = variant.normalizedScore
-            if (!Number.isFinite(score)) continue
-            const agg = aggregates.get(indexEntry.canonicalKey) ?? {
-              canonicalKey: indexEntry.canonicalKey,
-              canonicalDisplayName: indexEntry.canonicalDisplayName,
-              mean: 0,
-              min: Number.POSITIVE_INFINITY,
-              max: Number.NEGATIVE_INFINITY,
-              sources: [],
-            }
-            agg.sources.push({
-              familyKey: family.familyKey,
-              familyName: family.familyName,
-              score,
-              displayScore: variant.displayScore,
-              group,
-              variant,
-            })
-            aggregates.set(indexEntry.canonicalKey, agg)
-          }
-        }
-      }
-    }
-
-    // Finalise mean/min/max once we have all contributions.
-    for (const agg of aggregates.values()) {
-      const scores = agg.sources.map((s) => s.score)
-      agg.mean = scores.reduce((sum, v) => sum + v, 0) / scores.length
-      agg.min = Math.min(...scores)
-      agg.max = Math.max(...scores)
-    }
-
-    // Second pass: tag each row "merged" / "skip" / "single". First
-    // occurrence of each canonical benchmark in display order owns the
-    // merged row; later siblings collapse. Variants without a benchmark
-    // index entry render single as before.
-    for (const { families } of listFamiliesByCategory) {
-      for (const family of families) {
-        for (const group of family.groups) {
-          for (const variant of group.variants) {
-            const rowKey = `${family.familyKey}::${group.key}::${variant.evaluation.evaluation_id}::${variant.label}`
-            const evalId = variant.evaluation.eval_summary_id
-            const indexEntry = evalId ? benchmarkIndexLookup.get(evalId) : undefined
-            if (!indexEntry || !aggregates.has(indexEntry.canonicalKey)) {
-              rowDisposition.set(rowKey, "single")
-              continue
-            }
-            if (seenKeys.has(indexEntry.canonicalKey)) {
-              rowDisposition.set(rowKey, "skip")
-            } else {
-              seenKeys.add(indexEntry.canonicalKey)
-              rowDisposition.set(rowKey, "merged")
-            }
-          }
-        }
-      }
-    }
-    return { aggregates, rowDisposition }
-  }, [groupDuplicatesInList, listFamiliesByCategory, benchmarkIndexLookup])
+  // OverlapsRow types and the useMemo that builds the data live further
+  // down — they need `currentModelRouteId` and `currentModelIdentityKeys`.
+  type OverlapAppearance = {
+    familyKey: string
+    familyName: string
+    evalSummaryId: string
+    metricSummaryId: string
+    metricName: string
+    score: number
+    displayScore: string
+    unit: string | null
+  }
+  type OverlapRow = {
+    canonicalKey: string
+    canonicalDisplayName: string
+    appearances: OverlapAppearance[]
+    mean: number
+    stddev: number
+    min: number
+    max: number
+    ci95: { low: number; high: number } | null
+    /** Tagged 0-1 (proportion) vs 0-100 (percent) — drives display. */
+    isPercentScale: boolean
+  }
 
   const compositeGroups = useMemo(() => {
     const groups = groupByComposite(filteredBenchmarkGroups, modelIds, peerRanks, hierarchyIndex)
@@ -2469,6 +2636,166 @@ export function BenchmarkDetail({
     return id.replace(/[/]/g, "__")
   }, [summary])
 
+  // Cross-suite overlaps: walk `benchmark_index[]` (already pre-filtered by
+  // `cleanHierarchy` to canonicals appearing in ≥2 distinct families) and
+  // resolve this model's score in each appearance via `comparisonIndex`.
+  // Aggregate per canonical with mean, SD, and 95% CI from Student's-t
+  // (df=N-1). N=2 widths are very wide on purpose: with two samples we
+  // genuinely don't know the spread, and surfacing that beats fake
+  // precision.
+  const overlapsRows = useMemo<OverlapRow[]>(() => {
+    if (!evalHierarchy?.benchmark_index || !comparisonIndex) return []
+    const familyDisplayByKey = new Map<string, string>()
+    for (const fam of evalHierarchy.families ?? []) {
+      familyDisplayByKey.set(fam.key, fam.display_name)
+    }
+    const byModel = comparisonIndex.by_model[currentModelRouteId] ?? {}
+    const lookupModelScore = (
+      evalId: string,
+      metric: ComparisonMetricEntry,
+    ): number | null => {
+      const cell = byModel[evalId]?.[metric.metric_summary_id]
+      if (cell != null && Number.isFinite(cell.score)) return cell.score
+      for (const row of metric.scores) {
+        if (
+          currentModelIdentityKeys.has(row.model_route_id) ||
+          currentModelIdentityKeys.has(row.model_family_id)
+        ) {
+          if (Number.isFinite(row.score)) return row.score
+        }
+      }
+      return null
+    }
+    const tCrit95: Record<number, number> = {
+      1: 12.706, 2: 4.303, 3: 3.182, 4: 2.776, 5: 2.571,
+      6: 2.447, 7: 2.365, 8: 2.306, 9: 2.262, 10: 2.228,
+      15: 2.131, 20: 2.086, 29: 2.045,
+    }
+    const tFor = (df: number): number => {
+      if (df <= 0) return 12.706
+      if (df >= 30) return 2.0
+      const known = [29, 20, 15, 10, 9, 8, 7, 6, 5, 4, 3, 2, 1]
+      for (const k of known) if (df >= k) return tCrit95[k]
+      return 12.706
+    }
+    const out: OverlapRow[] = []
+    for (const entry of evalHierarchy.benchmark_index) {
+      const bestPerFamily = new Map<string, OverlapAppearance>()
+      for (const appearance of entry.appearances ?? []) {
+        const familyKey = appearance.family_key
+        const familyName = familyDisplayByKey.get(familyKey) ?? familyKey
+        for (const evalId of appearance.eval_summary_ids ?? []) {
+          const evalEntry = comparisonIndex.evals[evalId]
+          if (!evalEntry) continue
+          const targetMetric =
+            evalEntry.metrics.find(
+              (m) =>
+                !isStderrMetricId(m.metric_summary_id) &&
+                /accuracy|score|exact|pass|win|mean/i.test(m.metric_name ?? ""),
+            ) ??
+            evalEntry.metrics.find((m) => !isStderrMetricId(m.metric_summary_id)) ??
+            evalEntry.metrics[0]
+          if (!targetMetric) continue
+          const score = lookupModelScore(evalId, targetMetric)
+          if (score == null || !Number.isFinite(score)) continue
+          const unit = targetMetric.unit ?? null
+          const isPercent = (unit ?? "").toLowerCase().match(/percent|%|pct/) != null
+          const display = isPercent || score > 1.5
+            ? `${score.toFixed(1)}%`
+            : `${(score * 100).toFixed(1)}%`
+          if (!bestPerFamily.has(familyKey)) {
+            bestPerFamily.set(familyKey, {
+              familyKey,
+              familyName,
+              evalSummaryId: evalId,
+              metricSummaryId: targetMetric.metric_summary_id,
+              metricName: targetMetric.metric_name ?? "",
+              score,
+              displayScore: display,
+              unit,
+            })
+          }
+        }
+      }
+      // Dedupe appearances whose score is byte-identical: same model
+      // scoring exactly the same value across two "different" families
+      // is the canonical false-flag for a benchmark surfaced twice
+      // under different family wrappers (BBH was listed under both
+      // big-bench and big-bench-hard with the same eval_summary_id and
+      // therefore the same scores). Comparing scores at full precision
+      // avoids collapsing genuinely-different reports that happen to
+      // round to the same display value.
+      //
+      // Tie-break: when two appearances have identical scores, prefer
+      // the non-llm-stats one. llm-stats is an aggregator and likely
+      // republished the canonical source's number — so when an
+      // independent family reports the same value, the llm-stats copy
+      // is the duplicate, not the source. Sorting llm-stats to the back
+      // before the seen-score scan makes the first-wins dedupe drop the
+      // llm-stats appearance.
+      const allRaw = Array.from(bestPerFamily.values())
+      const isAggregator = (familyKey: string) => familyKey === "llm-stats"
+      allRaw.sort((a, b) => {
+        const aAgg = isAggregator(a.familyKey) ? 1 : 0
+        const bAgg = isAggregator(b.familyKey) ? 1 : 0
+        return aAgg - bAgg
+      })
+      const seenScores = new Set<number>()
+      const collected: OverlapAppearance[] = []
+      for (const c of allRaw) {
+        if (seenScores.has(c.score)) continue
+        seenScores.add(c.score)
+        collected.push(c)
+      }
+      if (collected.length < 2) continue
+
+      const highCount = collected.filter((c) => Math.abs(c.score) > 1.5).length
+      const lowCount = collected.length - highCount
+      const useHigh = highCount >= lowCount
+      const scaled = collected.map((c) => {
+        const isHigh = Math.abs(c.score) > 1.5
+        const score = useHigh
+          ? isHigh ? c.score : c.score * 100
+          : isHigh ? c.score / 100 : c.score
+        return { ...c, score }
+      })
+      const scores = scaled.map((s) => s.score)
+      const mean = scores.reduce((a, b) => a + b, 0) / scores.length
+      const variance = scores.length > 1
+        ? scores.reduce((a, b) => a + (b - mean) ** 2, 0) / (scores.length - 1)
+        : 0
+      const stddev = Math.sqrt(variance)
+      const ci95 = scores.length >= 2
+        ? {
+            low: mean - tFor(scores.length - 1) * (stddev / Math.sqrt(scores.length)),
+            high: mean + tFor(scores.length - 1) * (stddev / Math.sqrt(scores.length)),
+          }
+        : null
+      out.push({
+        canonicalKey: entry.key,
+        canonicalDisplayName: entry.display_name,
+        appearances: scaled.sort((a, b) => b.score - a.score),
+        mean,
+        stddev,
+        min: Math.min(...scores),
+        max: Math.max(...scores),
+        ci95,
+        isPercentScale: useHigh,
+      })
+    }
+    out.sort(
+      (a, b) =>
+        b.appearances.length - a.appearances.length ||
+        a.canonicalDisplayName.localeCompare(b.canonicalDisplayName),
+    )
+    return out
+  }, [
+    evalHierarchy,
+    comparisonIndex,
+    currentModelRouteId,
+    currentModelIdentityKeys,
+  ])
+
   // Per-(eval, metric) leaderboards sourced from comparison-index.json.
   const benchmarkHistograms = useMemo<Map<string, BenchmarkHistogram>>(() => {
     const result = new Map<string, BenchmarkHistogram>()
@@ -2496,6 +2823,7 @@ export function BenchmarkDetail({
       if (!evalEntry) continue
 
       for (const metric of evalEntry.metrics) {
+        if (isStderrMetricId(metric.metric_summary_id)) continue
         const histKey = histKeyFor(evalId, metric.metric_summary_id)
         const lowerIsBetter = Boolean(metric.lower_is_better)
 
@@ -2660,8 +2988,19 @@ export function BenchmarkDetail({
 
   type PlotboxUnit = {
     unitKey: string
+    /** Plotbox-scope key. Composite key for composite-rooted plotboxes,
+     *  otherwise the benchmark / family key. Drives the dropdown and
+     *  the in-card title. */
     familyKey: string
+    /** Plotbox-scope display name (composite name for composites,
+     *  benchmark/family name for standalone benchmarks). */
     familyName: string
+    /** Outer family that owns this plotbox in the hierarchy. The grid
+     *  render groups composite plotboxes by `parentFamilyKey` so the
+     *  HELM family header sits above its `HELM Classic` / `HELM Safety`
+     *  plotboxes. Falls back to `familyKey` for standalone families. */
+    parentFamilyKey: string
+    parentFamilyDisplayName: string
     category: CategoryType
     kind: "single-eval" | "multi-eval"
     childKindLabel: "metric" | "benchmark" | "component" | "slice" | null
@@ -2689,10 +3028,25 @@ export function BenchmarkDetail({
       group: BenchmarkGroup
       evalEntry: ComparisonEvalEntry
     }
-    const familyBuckets = new Map<
-      string,
-      { familyName: string; category: CategoryType; resolved: ResolvedGroup[] }
-    >()
+    type Bucket = {
+      bucketKey: string
+      parentFamilyKey: string
+      parentFamilyDisplayName: string
+      compositeKey: string | null
+      compositeDisplayName: string | null
+      bucketDisplayName: string
+      category: CategoryType
+      resolved: ResolvedGroup[]
+    }
+    // Composite-level bucketing. For evals that hierarchy.json places under a
+    // composite (e.g. HELM Classic, HELM Safety), all evals in the same
+    // composite share a bucket. Evals with no composite (standalone
+    // benchmarks like AIME, MATH-500) each get their own bucket. The
+    // grid render then groups bucket plotboxes by `parentFamilyKey`, so a
+    // family like HELM shows one section header with N composite plotboxes
+    // beneath it; singleton families show one plotbox under their own
+    // header.
+    const buckets = new Map<string, Bucket>()
 
     for (const group of filteredBenchmarkGroups) {
       const evalId = group.variants.find((v) => v.evaluation.eval_summary_id)
@@ -2705,20 +3059,66 @@ export function BenchmarkDetail({
       // null for ~7% of evals (e.g. CySE2 composites) and points at the
       // leaf for singleton families, so the hierarchy is the only source
       // that captures family→composite groupings authoritatively.
+      // For evals not enumerated in any family's `eval_summary_ids`
+      // (e.g. `artificial-analysis-llms%2Faime-2025`, where only the
+      // base `…%2Faime` variant is listed at family level), prefer
+      // source-prefix inference over `evalEntry.family_id` so the
+      // variant lands under the correct organizational family
+      // (`artificial-analysis`) instead of synthesising a phantom
+      // `aime` parent section.
       const hierarchyLocation = hierarchyIndex?.get(evalId) ?? null
-      const famKey = hierarchyLocation?.familyKey ?? evalEntry.family_id ?? evalId
-      const famName =
+      const sourcePrefix = evalId.includes("%2F") ? evalId.split("%2F")[0] : null
+      const inferredSourceFamily = !hierarchyLocation && sourcePrefix
+        ? sourcePrefixFamily.get(sourcePrefix) ?? null
+        : null
+      const parentFamilyKey =
+        hierarchyLocation?.familyKey ??
+        inferredSourceFamily?.key ??
+        evalEntry.family_id ??
+        evalId
+      const parentFamilyDisplayName =
         hierarchyLocation?.familyDisplayName ||
+        inferredSourceFamily?.displayName ||
         evalEntry.family_display_name ||
         evalEntry.display_name ||
-        famKey
-      const bucket = familyBuckets.get(famKey) ?? {
-        familyName: famName,
+        parentFamilyKey
+      const compositeKey = hierarchyLocation?.compositeKey ?? null
+      const compositeDisplayName = hierarchyLocation?.compositeDisplayName ?? null
+      // Bucketing precedence:
+      //   composite > hierarchy benchmark > group key
+      // Standalone benchmarks with N split eval rows (Fibble Arena's
+      // 1-/2-/3-/4-/5-lies, AgentHarm's category siblings) all resolve
+      // to the same `benchmarkKey` post-cleanHierarchy, so bucketing on
+      // it groups every split into one plotbox. Without this they each
+      // get their own group key and render as N separate plotboxes,
+      // which contradicts the cleaned hierarchy's standalone-with-
+      // splits intent.
+      const benchmarkKey = hierarchyLocation?.benchmarkKey ?? null
+      const benchmarkDisplayName =
+        hierarchyLocation?.benchmarkDisplayName ?? null
+      const bucketKey = compositeKey
+        ? `${parentFamilyKey}::comp::${compositeKey}`
+        : benchmarkKey
+          ? `${parentFamilyKey}::bench::${benchmarkKey}`
+          : `${parentFamilyKey}::bench::${group.key}`
+      const bucketDisplayName =
+        compositeDisplayName ??
+        benchmarkDisplayName ??
+        evalEntry.display_name ??
+        group.title ??
+        parentFamilyDisplayName
+      const bucket = buckets.get(bucketKey) ?? {
+        bucketKey,
+        parentFamilyKey,
+        parentFamilyDisplayName,
+        compositeKey,
+        compositeDisplayName,
+        bucketDisplayName,
         category: group.category,
         resolved: [] as ResolvedGroup[],
       }
       bucket.resolved.push({ group, evalEntry })
-      familyBuckets.set(famKey, bucket)
+      buckets.set(bucketKey, bucket)
     }
 
     const variantFor = (
@@ -2740,7 +3140,7 @@ export function BenchmarkDetail({
       isRollup: boolean
     ): PlotboxMetricTab => ({
       tabKey: `${evalEntry.eval_summary_id}::${metric.metric_summary_id}`,
-      label: metric.metric_name || "Score",
+      label: deriveMetricTabLabel(metric.metric_name, metric.metric_summary_id),
       histKey: histKeyFor(evalEntry.eval_summary_id, metric.metric_summary_id),
       evalSummaryId: evalEntry.eval_summary_id,
       metricSummaryId: metric.metric_summary_id,
@@ -2753,8 +3153,15 @@ export function BenchmarkDetail({
     })
 
     const units: PlotboxUnit[] = []
-    for (const [famKey, bucket] of familyBuckets.entries()) {
-      const { familyName, category, resolved } = bucket
+    for (const bucket of buckets.values()) {
+      const {
+        bucketKey,
+        parentFamilyKey,
+        parentFamilyDisplayName,
+        bucketDisplayName,
+        category,
+        resolved,
+      } = bucket
 
       if (resolved.length === 1) {
         // One eval in scope — slices/splits become the view selector while
@@ -2783,6 +3190,7 @@ export function BenchmarkDetail({
         const views: PlotboxView[] = Array.from(singleEvalViewBuckets.values())
           .map((viewBucket) => {
             const tabs = evalEntry.metrics
+              .filter((metric) => !isStderrMetricId(metric.metric_summary_id))
               .map((metric) => {
                 const metricVariants = viewBucket.variants.filter(
                   (variant) =>
@@ -2817,9 +3225,11 @@ export function BenchmarkDetail({
           })
         if (views.length === 0) continue
         units.push({
-          unitKey: `eval:${evalEntry.eval_summary_id}`,
-          familyKey: famKey,
+          unitKey: `eval:${bucketKey}`,
+          familyKey: bucketKey,
           familyName: evalDisplay,
+          parentFamilyKey,
+          parentFamilyDisplayName,
           category,
           kind: "single-eval",
           childKindLabel: views.length > 1 ? "slice" : null,
@@ -2829,11 +3239,11 @@ export function BenchmarkDetail({
         continue
       }
 
-      // Multi-eval family — the view selector chooses among child evals and
-      // each view exposes that eval's metrics in the bottom tab rail.
+      // Multi-eval composite — the view selector chooses among child evals
+      // and each view exposes that eval's metrics in the bottom tab rail.
       // Rollup row = this eval IS the family root, i.e. its benchmark id
-      // matches the family id. For multi-benchmark families like HELM,
-      // there is no such eval (HELM has no "helm" benchmark), so rollup
+      // matches the family id. For multi-benchmark composites this is rare
+      // (HELM Classic has no "helm-classic" benchmark), so rollup typically
       // stays null and the children render as siblings.
       const rollup =
         resolved.find(
@@ -2848,8 +3258,9 @@ export function BenchmarkDetail({
         .map((r) => {
           const rawLabel = r.evalEntry.display_name || r.group.title
           const label =
-            r === rollup ? "Overall" : stripFamilyPrefix(rawLabel, familyName)
+            r === rollup ? "Overall" : stripFamilyPrefix(rawLabel, bucketDisplayName)
           const tabs = r.evalEntry.metrics
+            .filter((metric) => !isStderrMetricId(metric.metric_summary_id))
             .map((metric) => {
               const variant = variantFor(r.group, metric.metric_summary_id)
               if (!variant) return null
@@ -2914,9 +3325,11 @@ export function BenchmarkDetail({
               : "slice"
 
       units.push({
-        unitKey: `family:${famKey}`,
-        familyKey: famKey,
-        familyName,
+        unitKey: `composite:${bucketKey}`,
+        familyKey: bucketKey,
+        familyName: bucketDisplayName,
+        parentFamilyKey,
+        parentFamilyDisplayName,
         category,
         kind: "multi-eval",
         childKindLabel,
@@ -2926,7 +3339,52 @@ export function BenchmarkDetail({
     }
 
     return units
-  }, [comparisonIndex, filteredBenchmarkGroups, hierarchyIndex])
+  }, [comparisonIndex, filteredBenchmarkGroups, hierarchyIndex, sourcePrefixFamily])
+
+  // Benchmark-mode units: derived from `plotboxUnits` (already composite-
+  // rooted, so splits like Fibble Arena's 1-/2-/3-lies variants and
+  // AIR-Bench's per-category slices are bundled inside ONE plotbox via
+  // the cleaner's flatten + slice-folding) with a canonical-dedupe pass
+  // layered on top. When two composite units resolve to the same
+  // benchmark_index canonical (e.g. MMLU appearing under HELM and
+  // lighteval), the first occurrence wins and the rest re-enter as
+  // whisker overlays inside `renderPlotbox`. Splits never merge across
+  // suites — only benchmark-level identities do.
+  const benchmarkLeafUnits = useMemo<PlotboxUnit[]>(() => {
+    if (plotboxUnits.length === 0) return []
+    const evalIdsForUnit = (unit: PlotboxUnit): string[] => {
+      const out: string[] = []
+      for (const view of unit.views) {
+        for (const tab of view.tabs) {
+          if (tab.evalSummaryId) out.push(tab.evalSummaryId)
+        }
+      }
+      return out
+    }
+    const canonicalForUnit = (unit: PlotboxUnit): string | null => {
+      // Pick the canonical identity by polling each eval id under the
+      // unit and taking the first benchmark_index hit. Within a single
+      // composite the producer often groups several near-canonical
+      // variants (helm-classic carries both `mmlu` and `mmlu-pro`),
+      // so we don't insist they all agree — the first wins.
+      for (const evalId of evalIdsForUnit(unit)) {
+        const indexEntry = benchmarkIndexLookup.get(evalId)
+        if (indexEntry) return indexEntry.canonicalKey
+      }
+      return null
+    }
+    const seenCanonical = new Set<string>()
+    const out: PlotboxUnit[] = []
+    for (const unit of plotboxUnits) {
+      const canonical = canonicalForUnit(unit)
+      if (canonical) {
+        if (seenCanonical.has(canonical)) continue
+        seenCanonical.add(canonical)
+      }
+      out.push(unit)
+    }
+    return out
+  }, [plotboxUnits, benchmarkIndexLookup])
 
   const [activeViewByUnit, setActiveViewByUnit] = useState<Record<string, string>>({})
   const [activeMetricByUnit, setActiveMetricByUnit] = useState<Record<string, string>>({})
@@ -3068,7 +3526,7 @@ export function BenchmarkDetail({
     return { hist: { ...hist, bars }, rescaled: needsRescale, averaged }
   }
 
-  const renderPlotbox = (unit: PlotboxUnit) => {
+  const renderPlotbox = (unit: PlotboxUnit, enableWhisker: boolean = false) => {
     const activeView = getActiveView(unit)
     const activeTab = getActiveMetricTab(unit, activeView)
     if (!activeView || !activeTab) return null
@@ -3129,6 +3587,162 @@ export function BenchmarkDetail({
         if (!worstBarId && b.score === worstScore) worstBarId = b.modelId
       }
     }
+
+    // Cross-family score range: when this benchmark also reports under
+    // sibling families (per hierarchy.json's `benchmark_index[]`), look up
+    // this model's score on each sibling and treat the resulting set as a
+    // whisker overlay on the current bar. The match is by metric_name —
+    // sibling evals use different metric_summary_ids but the same metric
+    // (e.g. "accuracy" on AIME shows up in both artificial-analysis and
+    // llm-stats). Best-effort: any sibling without a name-matching metric
+    // simply doesn't contribute.
+    const crossFamilyContribs = (() => {
+      if (!enableWhisker) return [] as Array<{ familyName: string; score: number }>
+      if (!comparisonIndex) return [] as Array<{ familyName: string; score: number }>
+      const indexEntry = benchmarkIndexLookup.get(activeTab.evalSummaryId)
+      if (!indexEntry) return []
+      const targetMetricName = activeTab.metricEntry.metric_name?.toLowerCase().trim() ?? ""
+      // Producers label the same metric differently across families
+      // ("Score" / "Accuracy" / "Acc" all refer to AIME's pass rate). To
+      // make the whisker fire across these, match siblings in priority:
+      //   1. exact metric_name (case-insensitive)
+      //   2. metric_summary_id local-part (e.g. both end in `:score`)
+      //   3. fall back to the sibling's first metric — best-effort, the
+      //      benchmark_index already vouches for canonical equality.
+      const targetMetricLocal = activeTab.metricEntry.metric_summary_id
+        ?.split("%3A")
+        .pop()
+        ?.toLowerCase()
+        .trim()
+      // `by_model` is keyed by URL-encoded model_route_id (`anthropic%2F…`)
+      // but the page-level fallback for `currentModelRouteId` produces the
+      // underscore form when no explicit route id is in `summary.model_info`.
+      // Mirror the histogram-builder's two-pronged identity match so the
+      // whisker fires even when the by_model lookup misses: scan the
+      // sibling metric's `scores[]` and accept any row whose route or family
+      // id is in `currentModelIdentityKeys`.
+      const byModel = comparisonIndex.by_model[currentModelRouteId] ?? {}
+      const familyDisplayByKey = new Map<string, string>()
+      for (const fam of evalHierarchy?.families ?? []) {
+        familyDisplayByKey.set(fam.key, fam.display_name)
+      }
+
+      // Cross-family scores often arrive on different scales: vals-ai
+      // reports AIME accuracy as a 0–100 percent (22.292) while
+      // artificial-analysis reports the same benchmark as a 0–1 proportion
+      // (0.355). Reconcile to the active histogram's scale before
+      // computing the whisker so the band reflects real spread, not unit
+      // mismatch. Same heuristic the bar-rescaler uses: if the active
+      // histogram's bars are mostly >1, treat sibling raw scores ≤1 as
+      // proportions and bump them up to match.
+      const histScores = activeHist.bars
+        .map((b) => b.score)
+        .filter((s) => Number.isFinite(s))
+      const histMaxAbs = histScores.length ? Math.max(...histScores.map(Math.abs)) : 1
+      const histIsPercent = histMaxAbs > 1.5
+      const reconcileSibling = (score: number, siblingMetricUnit: string | null | undefined): number => {
+        const u = (siblingMetricUnit ?? "").toLowerCase().trim()
+        const siblingIsPercent =
+          u === "percent" || u === "percentage" || u === "%" || u === "pct" ||
+          (!["proportion", "rate"].includes(u) && Math.abs(score) > 1.5)
+        if (histIsPercent === siblingIsPercent) return score
+        return histIsPercent ? score * 100 : score / 100
+      }
+
+      const out: Array<{ familyName: string; score: number }> = []
+      for (const siblingId of indexEntry.siblingEvalIds) {
+        if (siblingId === activeTab.evalSummaryId) continue
+        const siblingEval = comparisonIndex.evals[siblingId]
+        if (!siblingEval || siblingEval.metrics.length === 0) continue
+        const matchByName = siblingEval.metrics.find(
+          (m) => m.metric_name?.toLowerCase().trim() === targetMetricName,
+        )
+        const matchByLocal = !matchByName && targetMetricLocal
+          ? siblingEval.metrics.find(
+              (m) => m.metric_summary_id?.split("%3A").pop()?.toLowerCase().trim() === targetMetricLocal,
+            )
+          : null
+        const siblingMetric = matchByName ?? matchByLocal ?? siblingEval.metrics[0]
+        let siblingScore: number | null = null
+        const byModelCell = byModel[siblingId]?.[siblingMetric.metric_summary_id]
+        if (byModelCell != null && Number.isFinite(byModelCell.score)) {
+          siblingScore = byModelCell.score
+        } else {
+          // Fallback: scan scores[] for a row matching any of the model's
+          // identity keys. Covers route-id encoding mismatches.
+          for (const row of siblingMetric.scores) {
+            if (
+              currentModelIdentityKeys.has(row.model_route_id) ||
+              currentModelIdentityKeys.has(row.model_family_id)
+            ) {
+              if (Number.isFinite(row.score)) {
+                siblingScore = row.score
+                break
+              }
+            }
+          }
+        }
+        if (siblingScore == null) continue
+        const reconciledScore = reconcileSibling(siblingScore, siblingMetric.unit)
+        // siblingId looks like "<family-key>%2F<benchmark-key>"; recover the
+        // family name from the hierarchy where possible, fall back to the slug.
+        const familyKey = siblingId.split("%2F")[0]
+        const familyName = familyDisplayByKey.get(familyKey) ?? familyKey
+        out.push({ familyName, score: reconciledScore })
+      }
+      return out
+    })()
+    const ownScore = activeTab.variant.result.score_details.score
+    const crossFamilyScores = [
+      ...crossFamilyContribs.map((c) => c.score),
+      ...(Number.isFinite(ownScore) ? [ownScore] : []),
+    ]
+    const hasCrossFamilyWhisker = crossFamilyContribs.length > 0
+    const crossFamilyMin = hasCrossFamilyWhisker ? Math.min(...crossFamilyScores) : null
+    const crossFamilyMax = hasCrossFamilyWhisker ? Math.max(...crossFamilyScores) : null
+
+    // Stderr-based whisker for the current model's bar. With cross-family
+    // overlays moved into the dedicated Overlaps view, stderr (when the
+    // producer ships a paired `_stderr` metric) is the more useful
+    // statistical cue here: it's the metric's own sampling-error,
+    // independent of how many other suites also report this benchmark.
+    // Reconciles to the histogram's display scale exactly like the
+    // primary bar does so the whisker doesn't shrink when the score is
+    // rescaled from 0-1 to 0-100.
+    const stderrRaw = activeTab.variant.auxStderr
+    const stderrUnit = activeTab.variant.auxStderrUnit
+    const stderrIsPercent = (() => {
+      const u = (stderrUnit ?? "").toLowerCase().trim()
+      if (u === "percent" || u === "percentage" || u === "%" || u === "pct") return true
+      if (u === "proportion" || u === "rate") return false
+      return null
+    })()
+    const stderrReconciled = (() => {
+      if (stderrRaw == null || !Number.isFinite(stderrRaw)) return null
+      // Match the active histogram's scale: if bars are mostly 0-100 and the
+      // stderr looks like a 0-1 proportion, scale up. Same heuristic as the
+      // sibling reconciler, applied to a single value.
+      const histScores = activeHist.bars
+        .map((b) => b.score)
+        .filter((s) => Number.isFinite(s))
+      const histMaxAbs = histScores.length ? Math.max(...histScores.map(Math.abs)) : 1
+      const histIsPercent = histMaxAbs > 1.5
+      let isPercent = stderrIsPercent
+      if (isPercent == null) {
+        // Fallback: assume stderr matches the bar's score scale.
+        isPercent = Math.abs(activeTab.variant.result.score_details.score) > 1.5
+      }
+      if (histIsPercent === isPercent) return stderrRaw
+      return histIsPercent ? stderrRaw * 100 : stderrRaw / 100
+    })()
+    const hasStderrWhisker =
+      stderrReconciled != null &&
+      Number.isFinite(stderrReconciled) &&
+      stderrReconciled > 0 &&
+      Number.isFinite(ownScore)
+    const stderrLow = hasStderrWhisker ? ownScore - stderrReconciled! : null
+    const stderrHigh = hasStderrWhisker ? ownScore + stderrReconciled! : null
+    void enableWhisker
 
     const rank = activeHist.currentModelRank
     const plotboxKey = unit.unitKey
@@ -3215,6 +3829,22 @@ export function BenchmarkDetail({
             </button>
             <div className="mt-1 flex items-center gap-1 font-mono text-[9px] uppercase tracking-[0.15em] text-[color:var(--fg-subtle)]">
               <span>{activeHist.lowerIsBetter ? "Lower is better" : "Higher is better"}</span>
+              {hasStderrWhisker && (
+                <span
+                  className="ml-1 inline-flex items-center gap-1 border border-[color:var(--accent)] px-1.5 py-px text-[color:var(--accent)]"
+                  title={`Whisker = ±1 stderr (σ ${formatRawScoreValue(stderrReconciled!, activeHist.unit ?? undefined)})`}
+                >
+                  · ↕ ±σ
+                </span>
+              )}
+              {!hasStderrWhisker && hasCrossFamilyWhisker && (
+                <span
+                  className="ml-1 inline-flex items-center gap-1 border border-[color:var(--accent)] px-1.5 py-px text-[color:var(--accent)]"
+                  title={`Whisker spans this model's score across ${crossFamilyContribs.length + 1} family appearance${crossFamilyContribs.length === 0 ? "" : "s"}.`}
+                >
+                  · ↕ {crossFamilyContribs.length + 1} reports
+                </span>
+              )}
               {(averaged || rescaled) && (
                 <DropdownMenu>
                   <DropdownMenuTrigger asChild>
@@ -3404,11 +4034,69 @@ export function BenchmarkDetail({
                       <span className="absolute left-1/2 top-0 h-px w-3 -translate-x-1/2 rounded-full bg-foreground/35" />
                     </div>
                   )}
+                  {bar.isCurrent && hasStderrWhisker && (() => {
+                    const minPct = Math.max(
+                      0,
+                      Math.min(100, ((stderrLow! - domainMin) / range) * 100),
+                    )
+                    const maxPct = Math.max(
+                      0,
+                      Math.min(100, ((stderrHigh! - domainMin) / range) * 100),
+                    )
+                    const spanPct = Math.max(maxPct - minPct, 0.8)
+                    const tooltip =
+                      `±1 stderr: ${formatRawScoreValue(stderrLow!, activeHist.unit ?? undefined)}` +
+                      ` – ${formatRawScoreValue(stderrHigh!, activeHist.unit ?? undefined)}` +
+                      ` (σ ${formatRawScoreValue(stderrReconciled!, activeHist.unit ?? undefined)})`
+                    return (
+                      <div
+                        className="absolute inset-x-0"
+                        style={{ bottom: `${minPct}%`, height: `${spanPct}%`, color: "var(--accent)" }}
+                        title={tooltip}
+                        aria-hidden="true"
+                      >
+                        <span className="absolute bottom-0 left-1/2 h-full w-px -translate-x-1/2 rounded-full bg-current" />
+                        <span className="absolute bottom-0 left-1/2 h-px w-4 -translate-x-1/2 rounded-full bg-current" />
+                        <span className="absolute left-1/2 top-0 h-px w-4 -translate-x-1/2 rounded-full bg-current" />
+                      </div>
+                    )
+                  })()}
+                  {bar.isCurrent && !hasStderrWhisker && hasCrossFamilyWhisker && (() => {
+                    const minPct = Math.max(
+                      0,
+                      Math.min(100, ((crossFamilyMin! - domainMin) / range) * 100),
+                    )
+                    const maxPct = Math.max(
+                      0,
+                      Math.min(100, ((crossFamilyMax! - domainMin) / range) * 100),
+                    )
+                    const spanPct = Math.max(maxPct - minPct, 0.8)
+                    const tooltip =
+                      `Cross-family range: ${formatRawScoreValue(crossFamilyMin!, activeHist.unit ?? undefined)}` +
+                      ` – ${formatRawScoreValue(crossFamilyMax!, activeHist.unit ?? undefined)}` +
+                      ` across ${crossFamilyContribs.length + 1} family appearance${crossFamilyContribs.length === 0 ? "" : "s"}: ` +
+                      crossFamilyContribs
+                        .map((c) => `${c.familyName} ${formatRawScoreValue(c.score, activeHist.unit ?? undefined)}`)
+                        .join(", ")
+                    return (
+                      <div
+                        className="absolute inset-x-0"
+                        style={{ bottom: `${minPct}%`, height: `${spanPct}%`, color: "var(--accent)" }}
+                        title={tooltip}
+                        aria-hidden="true"
+                      >
+                        <span className="absolute bottom-0 left-1/2 h-full w-px -translate-x-1/2 rounded-full bg-current" />
+                        <span className="absolute bottom-0 left-1/2 h-px w-4 -translate-x-1/2 rounded-full bg-current" />
+                        <span className="absolute left-1/2 top-0 h-px w-4 -translate-x-1/2 rounded-full bg-current" />
+                      </div>
+                    )
+                  })()}
                   <div
-                    className="pointer-events-none absolute left-1/2 -translate-x-1/2 text-[10px] font-semibold tabular-nums text-foreground/80"
+                    className="pointer-events-none absolute left-1/2 -translate-x-1/2 whitespace-nowrap text-[10px] font-semibold tabular-nums text-foreground/80"
                     style={{ bottom: `calc(${heightPct}% + 2px)` }}
+                    title={formatRawScoreValue(bar.score, activeHist.unit ?? undefined)}
                   >
-                    {formatRawScoreValue(bar.score, activeHist.unit ?? undefined)}
+                    {formatRawScoreValue(bar.score)}
                   </div>
                   {isExtra && (
                     <button
@@ -3890,6 +4578,64 @@ export function BenchmarkDetail({
             <span className="font-mono text-[10px] uppercase tracking-[0.15em] text-[color:var(--fg-subtle)]">
               {filteredBenchmarkGroups.length} shown
             </span>
+            <div
+              className="ec-mode-toggle"
+              title={
+                groupingMode === "source"
+                  ? "View by source: family-rooted plotboxes / accordions, no cross-family collapse."
+                  : groupingMode === "category"
+                    ? "View by category: same composite/standalone units, grouped by curated tag."
+                    : "View overlaps: cross-suite duplicate benchmarks only, with mean and 95% CI."
+              }
+            >
+              <button
+                type="button"
+                className={groupingMode === "source" ? "on" : ""}
+                onClick={() => setGroupingMode("source")}
+                aria-label="View by source"
+                title="By source"
+              >
+                Source
+              </button>
+              <button
+                type="button"
+                className={groupingMode === "category" ? "on" : ""}
+                onClick={() => setGroupingMode("category")}
+                aria-label="View by category"
+                title="By category"
+              >
+                Category
+              </button>
+              <button
+                type="button"
+                className={groupingMode === "overlaps" ? "on" : ""}
+                onClick={() => setGroupingMode("overlaps")}
+                aria-label="View overlaps"
+                title="Cross-suite overlaps"
+              >
+                Overlaps
+              </button>
+            </div>
+          </div>
+        </div>
+
+        {/* Filter bar */}
+        <div className="mb-5 flex flex-wrap items-center gap-3 border-b border-[color:var(--border-soft)] pb-5">
+          <div className="relative w-full sm:max-w-sm">
+            <Search className="pointer-events-none absolute left-3 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-[color:var(--fg-subtle)]" />
+            <input
+              className="ec-input pl-9"
+              value={benchmarkSearch}
+              onChange={(event) => setBenchmarkSearch(event.target.value)}
+              placeholder="Search benchmarks or setups…"
+            />
+          </div>
+
+          <div className="grow" />
+
+          {/* Grid/list toggle lives here so it can be hidden in Overlaps
+              mode without yanking layout in the section header above. */}
+          {groupingMode !== "overlaps" && (
             <div className="ec-mode-toggle">
               <button
                 type="button"
@@ -3910,35 +4656,7 @@ export function BenchmarkDetail({
                 <List className="h-3 w-3" />
               </button>
             </div>
-          </div>
-        </div>
-
-        {/* Filter bar */}
-        <div className="mb-5 flex flex-wrap items-center gap-3 border-b border-[color:var(--border-soft)] pb-5">
-          <div className="relative w-full sm:max-w-sm">
-            <Search className="pointer-events-none absolute left-3 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-[color:var(--fg-subtle)]" />
-            <input
-              className="ec-input pl-9"
-              value={benchmarkSearch}
-              onChange={(event) => setBenchmarkSearch(event.target.value)}
-              placeholder="Search benchmarks or setups…"
-            />
-          </div>
-
-          <div className="grow" />
-
-          <select
-            className="ec-select"
-            value={benchmarkSort}
-            onChange={(event) => setBenchmarkSort(event.target.value as typeof benchmarkSort)}
-          >
-            <option value="relevance">Sort · Most relevant</option>
-            <option value="rank">Sort · Best rank</option>
-            <option value="score">Sort · Highest score</option>
-            <option value="name">Sort · Name (A–Z)</option>
-            <option value="variants">Sort · Most slices</option>
-            <option value="spread">Sort · Largest spread</option>
-          </select>
+          )}
         </div>
 
         {availableCategories.length > 0 && (
@@ -3973,11 +4691,157 @@ export function BenchmarkDetail({
           </div>
         )}
 
-        {filteredBenchmarkGroups.length === 0 || (benchmarkViewMode === "grid" && plotboxUnits.length === 0) ? (
+        {groupingMode === "overlaps" ? (
+          overlapsRows.length === 0 ? (
+            <div className="border border-dashed border-[color:var(--border-soft)] bg-[color:var(--bg-warm)] py-12 px-6 text-center font-mono text-[11px] uppercase tracking-[0.2em] text-[color:var(--fg-subtle)]">
+              No cross-suite overlaps found for this model
+            </div>
+          ) : (
+            <div className="overflow-hidden border border-[color:var(--border-soft)]">
+              <div className="grid grid-cols-[minmax(0,2.2fr)_56px_minmax(0,1.6fr)_minmax(0,1.4fr)_minmax(0,1.6fr)] items-baseline gap-3 border-b border-[color:var(--border-strong)] bg-[color:var(--bg-warm)] px-3 py-2 font-mono text-[10px] uppercase tracking-[0.15em] text-[color:var(--fg-subtle)]">
+                <div>Benchmark</div>
+                <div className="text-center">N</div>
+                <div>Mean (95% CI)</div>
+                <div>Range</div>
+                <div>Sources</div>
+              </div>
+              {overlapsRows.map((row, idx) => {
+                const fmt = (v: number) =>
+                  row.isPercentScale ? `${v.toFixed(1)}%` : `${(v * 100).toFixed(1)}%`
+                const ciLabel = row.ci95
+                  ? row.appearances.length === 2
+                    ? `±${(((row.ci95.high - row.ci95.low) / 2) || 0).toFixed(1)} (n=2, wide)`
+                    : `[${fmt(row.ci95.low)}, ${fmt(row.ci95.high)}]`
+                  : "—"
+                return (
+                  <div
+                    key={`overlap-${row.canonicalKey}`}
+                    className="grid grid-cols-[minmax(0,2.2fr)_56px_minmax(0,1.6fr)_minmax(0,1.4fr)_minmax(0,1.6fr)] items-baseline gap-3 px-3 py-3"
+                    style={{
+                      borderBottom:
+                        idx === overlapsRows.length - 1
+                          ? "none"
+                          : "1px solid var(--border-soft)",
+                    }}
+                  >
+                    <div className="min-w-0">
+                      <div className="truncate text-[13px] font-semibold text-[color:var(--fg)]">
+                        {row.canonicalDisplayName}
+                      </div>
+                      <div className="mt-0.5 font-mono text-[10px] uppercase tracking-[0.12em] text-[color:var(--fg-subtle)]">
+                        {row.canonicalKey}
+                      </div>
+                    </div>
+                    <div className="text-center font-mono text-[12px] tabular-nums text-[color:var(--fg)]">
+                      {row.appearances.length}
+                    </div>
+                    <div className="font-mono text-[12px] tabular-nums text-[color:var(--fg)]">
+                      {fmt(row.mean)}
+                      <div className="mt-0.5 font-mono text-[10px] tabular-nums text-[color:var(--fg-subtle)]">
+                        {ciLabel}
+                      </div>
+                    </div>
+                    <div className="font-mono text-[11px] tabular-nums text-[color:var(--fg-muted)]">
+                      {fmt(row.min)} – {fmt(row.max)}
+                      <div className="mt-0.5 font-mono text-[10px] tabular-nums text-[color:var(--fg-subtle)]">
+                        Δ {fmt(row.max - row.min)}
+                      </div>
+                    </div>
+                    <div className="flex flex-wrap gap-1">
+                      {row.appearances.map((app) => (
+                        <span
+                          key={`${row.canonicalKey}::${app.familyKey}::${app.evalSummaryId}`}
+                          className="ec-tag"
+                          style={{ fontSize: 10 }}
+                          title={`${app.familyName} · ${app.metricName}`}
+                        >
+                          {app.familyName} · {fmt(app.score)}
+                        </span>
+                      ))}
+                    </div>
+                  </div>
+                )
+              })}
+            </div>
+          )
+        ) : filteredBenchmarkGroups.length === 0 ||
+        (benchmarkViewMode === "grid" && plotboxUnits.length === 0) ? (
           <div className="border border-dashed border-[color:var(--border-soft)] bg-[color:var(--bg-warm)] py-12 px-6 text-center font-mono text-[11px] uppercase tracking-[0.2em] text-[color:var(--fg-subtle)]">
             No benchmarks match the current search or category filters
           </div>
+        ) : benchmarkViewMode === "grid" && groupingMode === "source" ? (
+          /* Hierarchy mode — section per family, one plotbox per composite
+             (or per standalone benchmark) under it. Inside each plotbox the
+             view selector still drills into the composite's benchmarks /
+             slices. No cross-family whisker. */
+          (() => {
+            const byFamily = new Map<
+              string,
+              {
+                familyKey: string
+                familyDisplayName: string
+                category: CategoryType
+                units: PlotboxUnit[]
+              }
+            >()
+            for (const unit of plotboxUnits) {
+              const entry = byFamily.get(unit.parentFamilyKey) ?? {
+                familyKey: unit.parentFamilyKey,
+                familyDisplayName: unit.parentFamilyDisplayName,
+                category: unit.category,
+                units: [] as PlotboxUnit[],
+              }
+              entry.units.push(unit)
+              byFamily.set(unit.parentFamilyKey, entry)
+            }
+            const families = Array.from(byFamily.values())
+            return (
+              <div className="space-y-6">
+                {families.map((fam) => {
+                  const compositeCount = fam.units.length
+                  const totalBenchmarks = fam.units.reduce(
+                    (sum, u) =>
+                      sum +
+                      u.views.reduce((vs, view) => vs + view.tabs.length, 0),
+                    0,
+                  )
+                  return (
+                    <section
+                      key={`hierarchy-fam-${fam.familyKey}`}
+                      className="space-y-4"
+                    >
+                      <div className="flex items-baseline justify-between gap-3 border-b border-[color:var(--border-soft)] pb-2">
+                        <div className="flex items-baseline gap-3">
+                          <span className="font-mono text-[10px] uppercase tracking-[0.2em] text-[color:var(--accent)] font-semibold">
+                            {fam.familyDisplayName}
+                          </span>
+                          <span className="font-mono text-[10px] uppercase tracking-[0.15em] text-[color:var(--fg-subtle)]">
+                            {compositeCount}{" "}
+                            {compositeCount === 1 ? "plot" : "plots"}
+                            {totalBenchmarks !== compositeCount && (
+                              <>
+                                {" "}· {totalBenchmarks} benchmark
+                                {totalBenchmarks === 1 ? "" : "s"}
+                              </>
+                            )}
+                          </span>
+                        </div>
+                      </div>
+                      <div className="grid grid-cols-1 gap-0 border-t border-l border-[color:var(--border-soft)] sm:grid-cols-2 lg:grid-cols-3">
+                        {fam.units.map((unit) => renderPlotbox(unit, false))}
+                      </div>
+                    </section>
+                  )
+                })}
+              </div>
+            )
+          })()
         ) : benchmarkViewMode === "grid" ? (
+          /* Category mode — same composite/standalone units as Source mode,
+             but the top-level grouping switches to the curated category tag
+             so similarly-tagged benchmarks cluster across families. No
+             cross-family dedup, no whiskers — overlaps live in their own
+             dedicated view. */
           (() => {
             const categoryOrder = new Map(
               availableCategories.map((cat, i) => [cat, i])
@@ -3997,13 +4861,7 @@ export function BenchmarkDetail({
               <div className="space-y-6">
                 {orderedCategories.map((category) => {
                   const units = byCategory.get(category) ?? []
-                  const familyCount = units.filter(
-                    (u) => u.kind === "multi-eval"
-                  ).length
-                  const totalBenchmarks = units.reduce(
-                    (sum, u) => sum + u.views.reduce((viewSum, view) => viewSum + view.tabs.length, 0),
-                    0
-                  )
+                  const totalBenchmarks = units.length
 
                   return (
                     <section
@@ -4017,18 +4875,12 @@ export function BenchmarkDetail({
                           </span>
                           <span className="font-mono text-[10px] uppercase tracking-[0.15em] text-[color:var(--fg-subtle)]">
                             {totalBenchmarks} benchmark{totalBenchmarks === 1 ? "" : "s"}
-                            {familyCount > 0 && (
-                              <>
-                                {" "}· {familyCount}{" "}
-                                {familyCount === 1 ? "family" : "families"}
-                              </>
-                            )}
                           </span>
                         </div>
                       </div>
 
                       <div className="grid grid-cols-1 gap-0 border-t border-l border-[color:var(--border-soft)] sm:grid-cols-2 lg:grid-cols-3">
-                        {units.map((unit) => renderPlotbox(unit))}
+                        {units.map((unit) => renderPlotbox(unit, false))}
                       </div>
                     </section>
                   )
@@ -4046,23 +4898,8 @@ export function BenchmarkDetail({
               )
               const allExpanded =
                 allFamilyKeys.length > 0 && allFamilyKeys.every((k) => expandedFamilies.has(k))
-              const hasAnyDuplicates = benchmarkIndexLookup.size > 0
               return (
                 <div className="-mt-2 mb-2 flex items-center justify-end gap-4">
-                  {hasAnyDuplicates && (
-                    <label
-                      className="flex cursor-pointer select-none items-center gap-2 font-mono text-[10px] uppercase tracking-[0.12em] text-[color:var(--fg-muted)] hover:text-[color:var(--accent)] transition-colors"
-                      title="Collapse rows whose canonical benchmark appears under multiple families into a single row showing mean and per-source range."
-                    >
-                      <input
-                        type="checkbox"
-                        checked={groupDuplicatesInList}
-                        onChange={(event) => setGroupDuplicatesInList(event.target.checked)}
-                        className="accent-[color:var(--accent)]"
-                      />
-                      Group duplicate benchmarks
-                    </label>
-                  )}
                   <button
                     type="button"
                     onClick={() =>
@@ -5465,7 +6302,17 @@ function AggregatedBenchmarkCard({
                                 <div className="text-[11px] font-semibold uppercase tracking-[0.16em] text-muted-foreground">
                                   Score
                                 </div>
-                                <div className="mt-1 text-lg font-semibold tracking-tight">{variant.displayScore}</div>
+                                <div className="mt-1 text-lg font-semibold tracking-tight">
+                                  {variant.displayScore}
+                                  {variant.auxStderr != null && (
+                                    <span
+                                      className="ml-2 align-middle font-mono text-[11px] font-normal text-muted-foreground"
+                                      title="Standard error reported alongside this score"
+                                    >
+                                      ± {formatRawScoreValue(variant.auxStderr, variant.auxStderrUnit)}
+                                    </span>
+                                  )}
+                                </div>
                                 <SignalsRowBadges
                                   annotations={variant.result.evalcards?.annotations}
                                   className="justify-start"
@@ -5593,12 +6440,11 @@ function BenchmarkDeepDiveDialogPanel({
         isCurrent: boolean
       }>
     }> = []
+    // benchmark_index is pre-cleaned server-side (cleanHierarchy):
+    // family-rollup entries are dropped, (family, eval_id) pairs are
+    // deduped, degenerate entries are filtered. So we just walk it.
     for (const entry of benchmarkIndex) {
-      // Flatten appearances and check overlap with this group's eval ids.
-      const flat: Array<{
-        familyKey: string
-        evalSummaryId: string
-      }> = []
+      const flat: Array<{ familyKey: string; evalSummaryId: string }> = []
       for (const app of entry.appearances ?? []) {
         for (const id of app.eval_summary_ids ?? []) {
           flat.push({ familyKey: app.family_key, evalSummaryId: id })
@@ -5606,12 +6452,8 @@ function BenchmarkDeepDiveDialogPanel({
       }
       const matches = flat.some((f) => groupEvalIds.has(f.evalSummaryId))
       if (!matches) continue
-      // De-dupe in case multiple group variants land in the same entry.
       if (seen.has(entry.key)) continue
       seen.add(entry.key)
-      // Skip degenerate entries that only contain a single appearance —
-      // there's nothing to disclose.
-      if (flat.length <= 1) continue
       out.push({
         canonicalDisplayName: entry.display_name,
         appearances: flat.map((f) => ({
@@ -6639,6 +7481,7 @@ function HeroStat({
 type EvaluatorMixData = {
   rows: Array<{
     category: CategoryType
+    label: string
     first: number
     third: number
     collab: number
@@ -6762,12 +7605,12 @@ function EvaluatorMix({ mix }: { mix: EvaluatorMixData }) {
             const o = row.other / row.total
             return (
               <div
-                key={row.category}
+                key={row.label}
                 className="grid items-center gap-4 py-3 sm:grid-cols-[180px_1fr_140px]"
                 style={{ borderBottom: i < rows.length - 1 ? "1px solid var(--border-soft)" : "none" }}
               >
                 <div>
-                  <div className="text-[13px] font-medium capitalize">{formatTagLabel(row.category as unknown as string)}</div>
+                  <div className="text-[13px] font-medium capitalize">{row.label}</div>
                   <div className="font-mono text-[10px] uppercase tracking-[0.1em] text-[color:var(--fg-subtle)] mt-0.5">
                     {row.total} row{row.total === 1 ? "" : "s"}
                   </div>

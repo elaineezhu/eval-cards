@@ -146,6 +146,12 @@ export function hasCuratedTags(...candidates: Array<string | null | undefined>):
  * benchmarks, 709 slices): 95.8% / 98.6% / 99.7% respectively.
  */
 export function decorateHierarchyDerivedTags(h: EvalHierarchy): EvalHierarchy {
+  // Idempotent guard: cleanHierarchy (server-side) tags fully-processed
+  // hierarchies with `_evalCardCleaned`; subsequent client-side calls
+  // skip the work entirely. Without the guard this would still produce
+  // the same output (sanitiseName / unionTags are idempotent) but would
+  // pay an unnecessary walk through every node on each fetch.
+  if ((h as { _evalCardCleaned?: boolean })._evalCardCleaned) return h
   for (const fam of h.families ?? []) {
     sanitizeFamilyDisplayNames(fam)
     decorateFamily(fam)

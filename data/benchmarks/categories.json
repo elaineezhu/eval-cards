@@ -482,10 +482,10 @@
     "hallucination"
   ],
   "Fibble Arena": [
-    "applied_reasoning"
+    "logical_reasoning"
   ],
   "Fibble arena": [
-    "agentic"
+    "logical_reasoning"
   ],
   "FigQA": [
     "multimodal"
@@ -1830,7 +1830,7 @@
     "commonsense_reasoning"
   ],
   "Wordle Arena": [
-    "other"
+    "logical_reasoning"
   ],
   "WorldVQA": [
     "multimodal"

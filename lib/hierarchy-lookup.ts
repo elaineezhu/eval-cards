@@ -9,6 +9,13 @@ export interface HierarchyEvalLocation {
   familyDisplayName: string
   compositeKey?: string
   compositeDisplayName?: string
+  /** Resolved leaf benchmark — set when `eval_summary_id` lives inside a
+   *  hierarchy benchmark's `summary_eval_ids`. Lets the model-detail
+   *  plotbox builder bucket every eval row that resolves to the same
+   *  benchmark together (so a standalone like Fibble Arena with N
+   *  per-split eval rows renders as one plotbox, not N). */
+  benchmarkKey?: string
+  benchmarkDisplayName?: string
   /** Curated category tags (data/benchmarks/categories.json vocabulary)
    *  for the leaf benchmark this eval belongs to, falling back to its
    *  composite/family. Decorated by `decorateHierarchyDerivedTags` at
@@ -20,6 +27,8 @@ interface FamilyAppearance {
   family: HierarchyFamily
   composite?: HierarchyComposite
   benchmarkTags?: string[]
+  benchmarkKey?: string
+  benchmarkDisplayName?: string
 }
 
 function findComposite(
@@ -31,14 +40,28 @@ function findComposite(
     return undefined
   }
   const sourcePrefix = evalSummaryId.split("%2F")[0]
-  return composites.find((composite) => composite.key === sourcePrefix)
+  const byPrefix = composites.find((composite) => composite.key === sourcePrefix)
+  if (byPrefix) return byPrefix
+  // Fallback: scan benchmarks' `summary_eval_ids`. The clean-hierarchy
+  // post-processor synthesises composites for split families (Fibble
+  // Arena's per-N-lies splits, CapArena-Auto, AgentHarm) whose
+  // children carry mixed source prefixes (`fibble1-arena%2F…`,
+  // `fibble2-arena%2F…`, …) that wouldn't match the synthetic
+  // composite's key by prefix alone.
+  return composites.find((composite) =>
+    composite.benchmarks?.some((bench) =>
+      bench.summary_eval_ids?.includes(evalSummaryId),
+    ),
+  )
 }
 
-function findBenchmarkTags(
+function findBenchmark(
   family: HierarchyFamily,
   composite: HierarchyComposite | undefined,
   evalSummaryId: string,
-): string[] | undefined {
+):
+  | { key: string; displayName: string; tags?: string[] }
+  | undefined {
   const benchmarks = [
     ...(composite?.benchmarks ?? []),
     ...(family.standalone_benchmarks ?? []),
@@ -46,7 +69,11 @@ function findBenchmarkTags(
   ]
   for (const benchmark of benchmarks) {
     if (benchmark.summary_eval_ids?.includes(evalSummaryId)) {
-      return benchmark.derivedTags
+      return {
+        key: benchmark.key,
+        displayName: benchmark.display_name,
+        tags: benchmark.derivedTags,
+      }
     }
   }
   return undefined
@@ -63,9 +90,15 @@ function buildAppearancesIndex(
   for (const family of hierarchy.families) {
     for (const evalSummaryId of family.eval_summary_ids ?? []) {
       const composite = findComposite(family, evalSummaryId)
-      const benchmarkTags = findBenchmarkTags(family, composite, evalSummaryId)
+      const bench = findBenchmark(family, composite, evalSummaryId)
       const list = index.get(evalSummaryId) ?? []
-      list.push({ family, composite, benchmarkTags })
+      list.push({
+        family,
+        composite,
+        benchmarkTags: bench?.tags,
+        benchmarkKey: bench?.key,
+        benchmarkDisplayName: bench?.displayName,
+      })
       index.set(evalSummaryId, list)
     }
   }
@@ -118,6 +151,8 @@ export function buildHierarchyEvalIndex(
       familyDisplayName: chosen.family.display_name,
       compositeKey: chosen.composite?.key,
       compositeDisplayName: chosen.composite?.display_name,
+      benchmarkKey: chosen.benchmarkKey,
+      benchmarkDisplayName: chosen.benchmarkDisplayName,
       tags,
     })
   }

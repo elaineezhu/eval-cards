@@ -14,6 +14,7 @@ import type {
   PeerRanksMap,
   PeerRanksSidecar,
 } from "@/lib/backend-artifacts"
+import { cleanHierarchy } from "@/lib/clean-hierarchy"
 
 let cache: {
   manifest?: Promise<BackendManifest>
@@ -144,8 +145,56 @@ export function fetchHeadline(): Promise<CorpusAggregates> {
   return (cache.headline ??= fetchJson<CorpusAggregates>("headline.json"))
 }
 
+// Bump when the cleaner's output shape or rules change so old cached
+// blobs don't get served against new code. The disk path embeds this
+// suffix; old files are simply ignored (and re-created on the next
+// stale read).
+const CLEAN_HIERARCHY_VERSION = "v9"
+
+/**
+ * Returns the cleaned hierarchy used by the rest of the app — sanitised
+ * display names, populated `derivedTags`, filtered `benchmark_index[]`.
+ *
+ * Disk cache layout: distinct from the raw `hierarchy.json` cache so the
+ * cleaner runs at most once per snapshot. On a cold container we hit
+ * the clean cache first; only on a miss/stale do we fall back to the
+ * raw cache (or HF), run `cleanHierarchy`, and persist. The persistent
+ * /data bucket therefore retains the artefact across rebuilds.
+ */
+async function fetchCleanedHierarchy(): Promise<EvalHierarchy> {
+  const snapshotUrl = getSnapshotUrl()
+  const cleanCachePath = diskCachePath(`${snapshotUrl}/clean-hierarchy.${CLEAN_HIERARCHY_VERSION}.json`)
+  const cached = await readFromDisk(cleanCachePath)
+  if (cached !== null) {
+    try {
+      return JSON.parse(cached) as EvalHierarchy
+    } catch (err) {
+      console.warn(
+        `[sidecars] clean-hierarchy cache corrupt at ${cleanCachePath}; rebuilding. ${err instanceof Error ? err.message : String(err)}`,
+      )
+    }
+  }
+  // Fetch raw hierarchy and comparison-index in parallel. The cleaner
+  // uses comparison-index for score-equality-based aggregator dedup
+  // (llm-stats appearances whose numbers literally match a canonical
+  // family's are dropped at this stage so the frontend never has to
+  // think about it).
+  const [raw, comparisonIndex] = await Promise.all([
+    fetchJson<EvalHierarchy>("hierarchy.json"),
+    fetchComparisonIndex().catch((err) => {
+      console.warn(
+        `[sidecars] comparison-index unavailable; cleaner will skip aggregator dedup. ${err instanceof Error ? err.message : String(err)}`,
+      )
+      return null
+    }),
+  ])
+  const cleaned = cleanHierarchy(raw, comparisonIndex)
+  void writeToDisk(cleanCachePath, JSON.stringify(cleaned))
+  return cleaned
+}
+
 export function fetchHierarchy(): Promise<EvalHierarchy> {
-  return (cache.hierarchy ??= fetchJson<EvalHierarchy>("hierarchy.json"))
+  return (cache.hierarchy ??= fetchCleanedHierarchy())
 }
 
 export function fetchComparisonIndex(): Promise<ComparisonIndex> {

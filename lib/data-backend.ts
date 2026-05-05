@@ -1,6 +1,7 @@
 import "server-only"
 
 import type { BackendManifestStatus } from "@/lib/backend-artifacts"
+import { cleanHierarchy } from "@/lib/clean-hierarchy"
 import { normalizeEvalSummary } from "@/lib/eval-processing"
 
 const BACKEND_VERSION = process.env.DATA_BACKEND?.trim().toLowerCase() ?? "duckdb"
@@ -132,6 +133,12 @@ export async function getBackendManifestStatusData(): Promise<BackendManifestSta
 }
 
 export async function getEvalHierarchyData() {
+  // Both backend paths feed through `cleanHierarchy`, so the API route
+  // serves a frontend-ready artefact: sanitised display names, populated
+  // `derivedTags` everywhere, and a `benchmark_index[]` with
+  // family-rollup entries dropped. The cleaner is idempotent — the
+  // sidecar disk cache stores the cleaned output, so cold starts skip
+  // the work.
   if (useViewLayerBackend()) {
     // The v2 backend ships hierarchy.json in the new composite/family/
     // slice taxonomy shape (top-level `composites[]`, flat `families[]`
@@ -140,8 +147,8 @@ export async function getEvalHierarchyData() {
     // shape, so route the v2 sidecar through the same adapter the HF
     // path uses.
     const raw = await (await sidecars()).fetchHierarchy()
-    return (await hfData()).adaptEvalHierarchy(raw)
+    return cleanHierarchy((await hfData()).adaptEvalHierarchy(raw))
   }
 
-  return (await hfData()).fetchEvalHierarchy()
+  return cleanHierarchy(await (await hfData()).fetchEvalHierarchy())
 }
