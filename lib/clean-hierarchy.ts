@@ -209,8 +209,11 @@ export function cleanHierarchy(
 }
 
 /**
- * Build a { model_route_id → distinct_benchmark_count } map from the
- * cleaned hierarchy and the comparison-index scores.
+ * Build a { model_id → distinct_benchmark_count } map from the cleaned
+ * hierarchy and the comparison-index scores. Emitted under both the
+ * comparison-index's `model_route_id` (dunder form, e.g. `openai__gpt-5`)
+ * AND its slash-form equivalent (`openai/gpt-5`) so lookups from the
+ * model-card layer — which exposes the slash-form `route_id` — resolve.
  *
  * Steps:
  *   1. Walk every surviving benchmark's summary_eval_ids to build
@@ -218,7 +221,7 @@ export function cleanHierarchy(
  *   2. Walk comparison-index scores to collect, per model, the set of
  *      eval_summary_ids it has a finite score for.
  *   3. For each model, count the distinct benchmark_keys reachable
- *      from its covered eval ids.
+ *      from its covered eval ids; emit under both id surfaces.
  */
 function buildModelCoverageMap(
   h: CleanableHierarchy,
@@ -253,7 +256,10 @@ function buildModelCoverageMap(
     }
   }
 
-  // Step 3: count distinct benchmark keys per model
+  // Step 3: count distinct benchmark keys per model; emit under both
+  // the dunder form (matches comparison-index keys) and the slash form
+  // (matches the model card's `route_id`). Without the slash alias the
+  // data-backend lookup misses every row.
   const coverage: Record<string, number> = {}
   for (const [modelId, evalIds] of modelEvals) {
     const benchKeys = new Set<string>()
@@ -261,7 +267,11 @@ function buildModelCoverageMap(
       const bKey = evalToBenchmark.get(id)
       if (bKey) benchKeys.add(bKey)
     }
-    if (benchKeys.size > 0) coverage[modelId] = benchKeys.size
+    if (benchKeys.size === 0) continue
+    coverage[modelId] = benchKeys.size
+    if (modelId.includes("__")) {
+      coverage[modelId.replace(/__/g, "/")] = benchKeys.size
+    }
   }
   return coverage
 }
