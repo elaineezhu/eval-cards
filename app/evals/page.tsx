@@ -51,15 +51,13 @@ function EvalsPageInner() {
   const deferredSearchQuery = useDeferredValue(searchQuery)
 
   const handleSort = useCallback((col: FamilySortCol) => {
-    setSortCol((prev) => {
-      if (prev === col) {
-        setSortDir((d) => (d === "asc" ? "desc" : "asc"))
-        return col
-      }
+    if (sortCol === col) {
+      setSortDir((d) => (d === "asc" ? "desc" : "asc"))
+    } else {
+      setSortCol(col)
       setSortDir("asc")
-      return col
-    })
-  }, [])
+    }
+  }, [sortCol])
 
   useEffect(() => {
     Promise.all([fetchEvalHierarchy(), fetchEvalList(), fetchBenchmarkMetadata()])
@@ -166,12 +164,6 @@ function EvalsPageInner() {
         case "name":
           cmp = a.display_name.localeCompare(b.display_name)
           break
-        case "categories": {
-          const aTag = (a.derivedTags ?? [])[0] ?? ""
-          const bTag = (b.derivedTags ?? [])[0] ?? ""
-          cmp = aTag.localeCompare(bTag)
-          break
-        }
         case "benchmarks":
           cmp = getFamilyBenchmarkCount(a) - getFamilyBenchmarkCount(b)
           break

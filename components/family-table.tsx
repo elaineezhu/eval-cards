@@ -12,7 +12,7 @@ import { humanizeEvaluationId } from "@/lib/utils"
 
 const LEAVES_INLINE_MAX = 50
 
-export type FamilySortCol = "name" | "categories" | "benchmarks" | "results"
+export type FamilySortCol = "name" | "benchmarks" | "results"
 
 interface FamilyTableProps {
   families: HierarchyFamily[]
@@ -348,7 +348,7 @@ export function FamilyTable({
         <thead>
           <tr>
             <SortTh col="name" style={{ width: "55%" }}>Family</SortTh>
-            <SortTh col="categories">Categories</SortTh>
+            <th>Categories</th>
             <SortTh col="benchmarks" className="num">Benchmarks</SortTh>
             <SortTh col="results" className="num">Reported results</SortTh>
             <th style={{ width: 90 }} />
