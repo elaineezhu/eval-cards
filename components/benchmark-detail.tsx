@@ -4756,10 +4756,19 @@ export function BenchmarkDetail({
           </div>
         )}
 
-        {groupingMode === "overlaps" ? (
-          overlapsRows.length === 0 ? (
+        {groupingMode === "overlaps" ? (() => {
+          const query = benchmarkSearch.trim().toLowerCase()
+          const visibleOverlaps = query
+            ? overlapsRows.filter(
+                (r) =>
+                  r.canonicalDisplayName.toLowerCase().includes(query) ||
+                  r.canonicalKey.toLowerCase().includes(query) ||
+                  r.appearances.some((a) => a.familyName.toLowerCase().includes(query)),
+              )
+            : overlapsRows
+          return visibleOverlaps.length === 0 ? (
             <div className="border border-dashed border-[color:var(--border-soft)] bg-[color:var(--bg-warm)] py-12 px-6 text-center font-mono text-[11px] uppercase tracking-[0.2em] text-[color:var(--fg-subtle)]">
-              No cross-suite overlaps found for this model
+              {query ? "No overlaps match your search" : "No cross-suite overlaps found for this model"}
             </div>
           ) : (
             <div className="overflow-hidden border border-[color:var(--border-soft)]">
@@ -4770,7 +4779,7 @@ export function BenchmarkDetail({
                 <div>Range</div>
                 <div>Sources</div>
               </div>
-              {overlapsRows.map((row, idx) => {
+              {visibleOverlaps.map((row, idx) => {
                 const fmt = (v: number) =>
                   row.isPercentScale ? `${v.toFixed(1)}%` : `${(v * 100).toFixed(1)}%`
                 const ciLabel = row.ci95
@@ -4829,7 +4838,7 @@ export function BenchmarkDetail({
               })}
             </div>
           )
-        ) : filteredBenchmarkGroups.length === 0 ||
+        })() : filteredBenchmarkGroups.length === 0 ||
         (benchmarkViewMode === "grid" && plotboxUnits.length === 0) ? (
           <div className="border border-dashed border-[color:var(--border-soft)] bg-[color:var(--bg-warm)] py-12 px-6 text-center font-mono text-[11px] uppercase tracking-[0.2em] text-[color:var(--fg-subtle)]">
             No benchmarks match the current search or category filters
