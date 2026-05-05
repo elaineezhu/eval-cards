@@ -188,15 +188,7 @@ async function fetchCleanedHierarchy(): Promise<EvalHierarchy> {
       return null
     }),
   ])
-  let cleaned: EvalHierarchy
-  try {
-    cleaned = cleanHierarchy(raw, comparisonIndex)
-  } catch (err) {
-    console.error(
-      `[sidecars] cleanHierarchy threw — falling back to raw hierarchy. ${err instanceof Error ? err.stack ?? err.message : String(err)}`,
-    )
-    return raw
-  }
+  const cleaned = cleanHierarchy(raw, comparisonIndex)
   void writeToDisk(cleanCachePath, JSON.stringify(cleaned))
   return cleaned
 }
