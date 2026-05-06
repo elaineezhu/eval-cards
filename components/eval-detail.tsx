@@ -698,6 +698,17 @@ export function EvalDetail({
     [leaderboardRows, leaderboardPage]
   )
 
+  // Hide the "Updated" column when no row has a usable timestamp —
+  // every cell would say "Unknown" otherwise. formatDate returns the
+  // string "Unknown" for null / empty / unparseable inputs.
+  const hasAnyUpdatedTimestamp = useMemo(
+    () =>
+      leaderboardRows.some(
+        ({ modelResult }) => formatDate(modelResult.evaluation_timestamp) !== "Unknown",
+      ),
+    [leaderboardRows],
+  )
+
   const avgScoreLabel = formatRawScore(lb.avg_score, lb.metric_config.unit)
   const scoreDirectionLabel = lb.metric_config.lower_is_better ? "Lower scores rank higher" : "Higher scores rank higher"
   const leaderboardTitle = isResearchView ? "Leaderboard" : "Reporting Comparison"
@@ -1119,7 +1130,9 @@ export function EvalDetail({
                   </th>
                   <th className="hidden lg:table-cell" style={{ width: 110 }}>Evaluator</th>
                   <th className="num hidden lg:table-cell" style={{ width: 100 }}>Source</th>
-                  <th className="hidden xl:table-cell num" style={{ width: 110 }}>Updated</th>
+                  {hasAnyUpdatedTimestamp && (
+                    <th className="hidden xl:table-cell num" style={{ width: 110 }}>Updated</th>
+                  )}
                 </tr>
               </thead>
               <tbody>
@@ -1329,14 +1342,16 @@ export function EvalDetail({
                           )}
                         </td>
 
-                        <td className="num hidden xl:table-cell align-top font-mono tabular-nums" style={{ fontSize: 11, color: "var(--fg-muted)" }}>
-                          {formatDate(modelResult.evaluation_timestamp)}
-                        </td>
+                        {hasAnyUpdatedTimestamp && (
+                          <td className="num hidden xl:table-cell align-top font-mono tabular-nums" style={{ fontSize: 11, color: "var(--fg-muted)" }}>
+                            {formatDate(modelResult.evaluation_timestamp)}
+                          </td>
+                        )}
                       </tr>
 
                       {isExpanded && (
                         <tr>
-                          <td colSpan={8} style={{ background: "var(--bg-warm)", padding: 0 }}>
+                          <td colSpan={hasAnyUpdatedTimestamp ? 8 : 7} style={{ background: "var(--bg-warm)", padding: 0 }}>
                             <div className="space-y-5 px-4 py-5 sm:px-6">
                               <div className="grid gap-4 xl:grid-cols-3">
                                 <DetailPanel
@@ -1618,7 +1633,7 @@ export function EvalDetail({
                 })}
                 {leaderboardRows.length === 0 && (
                   <tr>
-                    <td colSpan={8} style={{ padding: "32px 16px", textAlign: "center", color: "var(--fg-muted)" }}>
+                    <td colSpan={hasAnyUpdatedTimestamp ? 8 : 7} style={{ padding: "32px 16px", textAlign: "center", color: "var(--fg-muted)" }}>
                       No leaderboard entries match the selected parameter range.
                     </td>
                   </tr>

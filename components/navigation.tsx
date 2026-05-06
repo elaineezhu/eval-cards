@@ -7,6 +7,18 @@ import { useTheme } from "next-themes"
 import Link from "next/link"
 import { usePathname } from "next/navigation"
 import { cn } from "@/lib/utils"
+import { fetchBackendManifest } from "@/lib/dashboard-data-client"
+
+function formatSnapshotDate(value: string | null | undefined): string | null {
+  if (!value) return null
+  const date = new Date(value)
+  if (Number.isNaN(date.getTime())) return null
+  return date.toLocaleDateString("en-US", {
+    month: "short",
+    day: "numeric",
+    year: "numeric",
+  })
+}
 
 export function Navigation() {
   const { theme, setTheme } = useTheme()
@@ -169,6 +181,25 @@ export function Navigation() {
 
 function ReaderModeBanner() {
   const { mode } = useAudienceMode()
+  const [snapshotLabel, setSnapshotLabel] = useState<string | null>(null)
+
+  useEffect(() => {
+    let cancelled = false
+    fetchBackendManifest()
+      .then((status) => {
+        if (cancelled) return
+        setSnapshotLabel(
+          formatSnapshotDate(status?.currentManifest?.generated_at),
+        )
+      })
+      .catch(() => {
+        // Manifest fetch is best-effort — just hide the banner label.
+      })
+    return () => {
+      cancelled = true
+    }
+  }, [])
+
   return (
     <div className={cn("mode-banner", `mode-${mode}`)}>
       <div className="mode-banner-inner">
@@ -182,7 +213,9 @@ function ReaderModeBanner() {
             : "Plain-language interpretation foregrounded — Policy Notes (what / caveat / intended for), accountability framings, compressed metric detail."}
         </span>
         <span className="mode-banner-spacer" />
-        <span className="mode-banner-meta">Snapshot · Apr 30 2026</span>
+        {snapshotLabel && (
+          <span className="mode-banner-meta">Snapshot · {snapshotLabel}</span>
+        )}
       </div>
     </div>
   )

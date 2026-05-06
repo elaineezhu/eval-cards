@@ -138,12 +138,22 @@ async function main() {
       AND r.model_route_id IS NOT NULL
   `)
 
-  // 2. Per-slice (benchmark, model, metric, slice_key, score) rows. The
-  //    upstream pipeline parks slice scores in fact_results rather than
-  //    threading them through eval_results_view, so we have to reach in
-  //    here. AVG collapses the rare duplicate (model, slice) pairs.
+  // 2. Per-slice (composite_slug, benchmark, model, metric, slice_key,
+  //    score) rows. The upstream pipeline parks slice scores in
+  //    fact_results rather than threading them through eval_results_view,
+  //    so we have to reach in here. We carry composite_slug because some
+  //    benchmarks (e.g. `gpqa`) appear under multiple composites and
+  //    fact_results emits a per-source pseudo-slice (slice_key =
+  //    "artificial analysis", "llm stats", "openeval gpqa", ...) for
+  //    each source family. Joining slices on (composite_slug,
+  //    benchmark_id) keeps each composite's slices in its own lane,
+  //    so HF Open LLM v2's GPQA doesn't inherit Artificial Analysis's
+  //    pseudo-slice, etc. Also drop the self-rollup (slice_key ==
+  //    benchmark_id) since that duplicates the eval's overall score.
+  //    AVG collapses the rare duplicate (model, slice) pairs.
   const sliceRows = await con.runAndReadAll(`
     SELECT
+      f.composite_slug,
       f.benchmark_id,
       f.parent_benchmark_id,
       f.metric_id,
@@ -155,18 +165,43 @@ async function main() {
     WHERE f.score IS NOT NULL
       AND f.slice_key IS NOT NULL
       AND f.metric_id IS NOT NULL
-    GROUP BY 1,2,3,4,5,6
+      AND f.composite_slug IS NOT NULL
+      -- Drop any slice that's a self-rollup of the eval — slice_key
+      -- equals the benchmark, the composite, or the parent benchmark
+      -- after normalising separators (so "global mmlu lite" filters
+      -- against benchmark_id "global-mmlu-lite", "fibble_arena"
+      -- against "fibble-arena", "artificial analysis" against
+      -- composite "artificial-analysis-llms", etc.).
+      AND regexp_replace(lower(f.slice_key), '[^a-z0-9]+', '', 'g')
+          != regexp_replace(lower(f.benchmark_id), '[^a-z0-9]+', '', 'g')
+      AND regexp_replace(lower(f.slice_key), '[^a-z0-9]+', '', 'g')
+          != regexp_replace(lower(f.composite_slug), '[^a-z0-9]+', '', 'g')
+      -- Also drop slices whose slug is a strict prefix of the
+      -- composite_slug (e.g. "artificial analysis" vs
+      -- composite "artificial-analysis-llms" — the slice is just
+      -- the source family naming itself, not a real subtask).
+      AND NOT regexp_replace(lower(f.composite_slug), '[^a-z0-9]+', '', 'g')
+          LIKE regexp_replace(lower(f.slice_key), '[^a-z0-9]+', '', 'g') || '%'
+      AND (
+        f.parent_benchmark_id IS NULL
+        OR regexp_replace(lower(f.slice_key), '[^a-z0-9]+', '', 'g')
+           != regexp_replace(lower(f.parent_benchmark_id), '[^a-z0-9]+', '', 'g')
+      )
+    GROUP BY 1,2,3,4,5,6,7
   `)
 
-  // 3. eval → benchmark mapping so we can join slice rows (keyed on
-  //    benchmark_id) back to evaluation_id. Also pull leaderboard_metrics
-  //    so we know each metric's metric_summary_id / unit / lower_is_better
-  //    when synthesising subtask-scope entries.
+  // 3. eval → (composite_slug, benchmark_id) mapping so we can join
+  //    slice rows back to the right evaluation_id. composite_slug is
+  //    what disambiguates HF Open LLM v2's GPQA from Artificial
+  //    Analysis's GPQA — both share benchmark_id `gpqa`. Also pull
+  //    leaderboard_metrics so we know each metric's metric_summary_id /
+  //    unit / lower_is_better when synthesising subtask-scope entries.
   const evalRows = await con.runAndReadAll(`
     SELECT
       evaluation_id,
       benchmark_id,
       parent_benchmark_id,
+      composite_slug,
       leaderboard_metrics
     FROM read_parquet(${fileRef("evals_view.parquet")})
   `)
@@ -189,17 +224,23 @@ async function main() {
     }
   }
 
-  // Group eval rows by evaluation_id, indexed by benchmark_id for the
-  // slice join. Some evals share a benchmark_id (slices of one benchmark
-  // each get their own evaluation_id), so the index is one→many.
-  const evalsByBenchmark = new Map()
+  // Group eval rows by evaluation_id, indexed by (composite_slug,
+  // benchmark_id) for the slice join. Two evals can share a benchmark_id
+  // across composites (gpqa under both hfopenllm-v2 and
+  // artificial-analysis-llms), so the composite_slug component is what
+  // keeps them separated.
+  const evalsByCompositeBench = new Map()
   const evalsById = new Map()
+  const compositeBenchKey = (composite, bench) =>
+    `${composite ?? ""}|${bench ?? ""}`
   for (const row of evalRows.getRowObjects().map(normalizeDuck)) {
     evalsById.set(row.evaluation_id, row)
     const bid = row.benchmark_id ?? null
-    if (bid) {
-      if (!evalsByBenchmark.has(bid)) evalsByBenchmark.set(bid, [])
-      evalsByBenchmark.get(bid).push(row.evaluation_id)
+    const composite = row.composite_slug ?? null
+    if (bid && composite) {
+      const key = compositeBenchKey(composite, bid)
+      if (!evalsByCompositeBench.has(key)) evalsByCompositeBench.set(key, [])
+      evalsByCompositeBench.get(key).push(row.evaluation_id)
     }
   }
 
@@ -233,8 +274,9 @@ async function main() {
   // emitted in subtask_metrics for the runtime to splice into the eval's
   // leaderboard_metrics array.
   for (const row of sliceRows.getRowObjects().map(normalizeDuck)) {
-    const bid = row.benchmark_id
-    const evalIds = evalsByBenchmark.get(bid)
+    const evalIds = evalsByCompositeBench.get(
+      compositeBenchKey(row.composite_slug, row.benchmark_id),
+    )
     if (!evalIds) continue
     const route = modelIdToRoute.get(row.model_id)
     if (!route) continue
