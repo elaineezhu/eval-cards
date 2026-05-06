@@ -642,26 +642,59 @@ interface CrossSuiteAggregate {
 
 function findCanonicalEntry(
   hierarchy: EvalHierarchy | null | undefined,
-  evalSummaryId: string,
+  summary: BenchmarkEvalSummary,
 ): BenchmarkIndexEntry | null {
   const index = hierarchy?.benchmark_index ?? []
   if (index.length === 0) return null
+
   // Prefer "benchmark canonical" entries (whose appearances all point at
   // the same benchmark_key) over umbrella entries — same heuristic used
   // by the model-detail overlap section.
-  const benchmarkCanonicals: BenchmarkIndexEntry[] = []
-  const umbrellas: BenchmarkIndexEntry[] = []
-  for (const entry of index) {
+  const classify = (entry: BenchmarkIndexEntry): "canonical" | "umbrella" => {
     const apps = entry.appearances ?? []
-    if (apps.length === 0) continue
-    const ids = new Set<string>()
-    for (const app of apps) for (const id of app.eval_summary_ids ?? []) ids.add(id)
-    if (!ids.has(evalSummaryId)) continue
-    const allMatchKey = apps.every((a) => !a.benchmark_key || a.benchmark_key === entry.key)
-    if (allMatchKey) benchmarkCanonicals.push(entry)
-    else umbrellas.push(entry)
+    return apps.every((a) => !a.benchmark_key || a.benchmark_key === entry.key)
+      ? "canonical"
+      : "umbrella"
   }
-  return benchmarkCanonicals[0] ?? umbrellas[0] ?? null
+
+  // Strategy 1 — exact match: the page's evaluation_id appears in some
+  // appearance.eval_summary_ids list (e.g. mmlu-pro-leaderboard%2Fmmlu-pro).
+  const evalSummaryId = summary.evaluation_id
+  if (evalSummaryId) {
+    let exactCanonical: BenchmarkIndexEntry | null = null
+    let exactUmbrella: BenchmarkIndexEntry | null = null
+    for (const entry of index) {
+      const apps = entry.appearances ?? []
+      if (apps.length === 0) continue
+      const hit = apps.some((a) => (a.eval_summary_ids ?? []).includes(evalSummaryId))
+      if (!hit) continue
+      const kind = classify(entry)
+      if (kind === "canonical") exactCanonical ??= entry
+      else exactUmbrella ??= entry
+    }
+    if (exactCanonical) return exactCanonical
+    if (exactUmbrella) return exactUmbrella
+  }
+
+  // Strategy 2 — tiered key fallback for canonical pages whose own
+  // evaluation_id isn't listed in benchmark_index (e.g.
+  // mmlu-pro%2Fmmlu-pro). Iterate keys from most specific to least:
+  // benchmark_id → composite_slug → family_id. Crucial that
+  // benchmark_id wins over family_id, otherwise an MMLU-Pro page can
+  // resolve to the broader MMLU umbrella entry whose appearances are
+  // for the unrelated original-MMLU benchmark, producing a
+  // comparability score for a different benchmark altogether.
+  const tieredKeys = [summary.benchmark_id, summary.composite_slug, summary.family_id]
+    .filter((s): s is string => typeof s === "string" && s.length > 0)
+  const seen = new Set<string>()
+  for (const key of tieredKeys) {
+    if (seen.has(key)) continue
+    seen.add(key)
+    const match = index.find((e) => e.key === key && (e.appearances ?? []).length > 0)
+    if (match) return match
+  }
+
+  return null
 }
 
 function pickRepresentativeMetric(metrics: ComparisonMetricEntry[]): ComparisonMetricEntry | null {
@@ -682,10 +715,8 @@ function buildCrossSuiteAggregate(
   comparisonIndex: ComparisonIndex | null | undefined,
 ): CrossSuiteAggregate | null {
   if (!hierarchy || !comparisonIndex) return null
-  const evalId = summary.evaluation_id
-  if (!evalId) return null
 
-  const entry = findCanonicalEntry(hierarchy, evalId)
+  const entry = findCanonicalEntry(hierarchy, summary)
   if (!entry) return null
 
   // Collect distinct sibling appearances (skip the current eval if it
@@ -705,7 +736,7 @@ function buildCrossSuiteAggregate(
         familyKey: app.family_key,
         familyName: familyDisplayByKey.get(app.family_key) ?? app.family_key,
         benchmarkKey: app.benchmark_key,
-        isCurrentEval: id === evalId,
+        isCurrentEval: id === summary.evaluation_id,
       })
     }
   }
