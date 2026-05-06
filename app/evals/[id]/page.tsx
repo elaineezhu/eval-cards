@@ -5,6 +5,7 @@ import { useParams, usePathname, useRouter, useSearchParams } from "next/navigat
 import Link from "next/link"
 import { ArrowLeft, ArrowUpRight, BarChart3, Grid3X3, Search } from "lucide-react"
 import { Navigation } from "@/components/navigation"
+import { ReaderModeBar } from "@/components/reader-mode-bar"
 import { EvalDetail } from "@/components/eval-detail"
 import { ParamRangePicker } from "@/components/param-range-picker"
 import { useAudienceMode } from "@/components/audience-mode-provider"
@@ -173,6 +174,7 @@ export default function EvalDetailPage() {
     return (
       <div className="min-h-screen bg-background">
         <Navigation />
+        <ReaderModeBar />
         <main className="ec-page">
           <div className="flex items-center justify-center h-96">
             <div className="kicker">Loading evaluation record…</div>
@@ -186,6 +188,7 @@ export default function EvalDetailPage() {
     return (
       <div className="min-h-screen bg-background">
         <Navigation />
+        <ReaderModeBar />
         <main className="ec-page">
           <div className="flex flex-col items-center justify-center h-96 space-y-4">
             <div className="kicker">{error ?? "Evaluation not found"}</div>
@@ -204,6 +207,7 @@ export default function EvalDetailPage() {
   return (
     <div className="min-h-screen bg-background">
       <Navigation />
+      <ReaderModeBar />
       <main className="ec-page">
         <button
           type="button"

@@ -338,16 +338,22 @@
     border-color: var(--border-strong);
   }
 
-  /* Reader-mode banner — non-sticky so it scrolls away with the hero */
+  /* Reader-mode banner — non-sticky so it scrolls away with the hero.
+     Banner colors are theme-independent: research = dark band, policy =
+     light band, in both light and dark modes. Per-banner --banner-fg /
+     --banner-bg drive the text/tag styling. */
   .mode-banner {
+    --banner-bg: #1a1916;
+    --banner-fg: #f0ede8;
     position: relative;
     z-index: 1;
-    border-bottom: 1px solid var(--border-soft);
-    background: var(--bg-warm);
+    background: var(--banner-bg);
+    border-bottom: 1px solid var(--banner-bg);
   }
   .mode-banner.mode-policy {
-    background: var(--fg);
-    border-bottom-color: var(--fg);
+    --banner-bg: #faf9f6;
+    --banner-fg: #1a1916;
+    border-bottom-color: #e6e3dd;
   }
   .mode-banner-inner {
     max-width: 96rem;
@@ -364,28 +370,46 @@
     letter-spacing: 0.18em;
     text-transform: uppercase;
     font-weight: 600;
-    color: var(--fg);
+    color: var(--banner-fg);
     padding: 3px 9px;
-    border: 1px solid var(--fg);
-    background: var(--bg);
+    border: 1px solid var(--banner-fg);
+    background: transparent;
   }
   .mode-banner.mode-policy .mode-banner-tag {
     background: var(--accent);
     border-color: var(--accent);
-    color: var(--bg);
+    color: #ffffff;
   }
-  .mode-banner-text { color: var(--fg-muted); line-height: 1.4; }
-  .mode-banner.mode-policy .mode-banner-text { color: rgba(240, 237, 232, 0.78); }
-  .mode-banner-dot { color: var(--fg-subtle); }
-  .mode-banner.mode-policy .mode-banner-dot { color: rgba(240, 237, 232, 0.4); }
+  .mode-banner-text {
+    color: color-mix(in srgb, var(--banner-fg) 78%, transparent);
+    line-height: 1.4;
+  }
+  .mode-banner-dot { color: color-mix(in srgb, var(--banner-fg) 40%, transparent); }
   .mode-banner-spacer { flex: 1; }
   .mode-banner-meta {
     font-size: 10px;
     letter-spacing: 0.15em;
     text-transform: uppercase;
-    color: var(--fg-subtle);
+    color: color-mix(in srgb, var(--banner-fg) 50%, transparent);
   }
-  .mode-banner.mode-policy .mode-banner-meta { color: rgba(240, 237, 232, 0.5); }
+  /* The reader-mode toggle now lives inside the banner. Re-skin it to
+     ride the banner's fixed colors instead of the page theme so it reads
+     equally on the dark research band and the light policy band. */
+  .mode-banner .ec-mode-toggle {
+    background: transparent;
+    border-color: color-mix(in srgb, var(--banner-fg) 30%, transparent);
+  }
+  .mode-banner .ec-mode-toggle button {
+    color: color-mix(in srgb, var(--banner-fg) 65%, transparent);
+  }
+  .mode-banner .ec-mode-toggle button.on {
+    background: var(--banner-fg);
+    color: var(--banner-bg);
+  }
+  .mode-banner .ec-mode-toggle button:not(.on):hover { color: var(--banner-fg); }
+  .mode-banner .ec-mode-toggle-label {
+    color: color-mix(in srgb, var(--banner-fg) 50%, transparent);
+  }
 
   /* Buttons (squared / mono caps — primary product CTA) */
   .btn-ec {

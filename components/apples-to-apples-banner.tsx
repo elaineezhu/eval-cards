@@ -57,12 +57,26 @@ export function ApplesToApplesBanner({ summary, detailsAnchorId }: ApplesToApple
       : `${concernPhrases.join("; ")}. See the Comparability panel below for which models and which fields differ.`
 
   return (
-    <div className="flex items-start gap-3 rounded-2xl border border-amber-300/70 bg-amber-50/70 px-4 py-3 text-sm text-amber-900 dark:border-amber-900/50 dark:bg-amber-950/25 dark:text-amber-100">
-      <AlertTriangle className="mt-0.5 h-4 w-4 shrink-0" />
+    <div
+      className="flex items-start gap-3 px-4 py-3"
+      style={{
+        border: "1px solid var(--border-soft)",
+        borderLeft: "2px solid var(--fg-muted)",
+        background: "var(--bg-warm)",
+        color: "var(--fg)",
+      }}
+    >
+      <AlertTriangle
+        className="mt-0.5 h-4 w-4 shrink-0"
+        style={{ color: "var(--fg-muted)" }}
+      />
       <div className="min-w-0 flex-1 space-y-1">
-        <div className="font-semibold leading-tight">{headline}</div>
-        <p className="text-[13px] leading-5">{body}</p>
-        <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-[11px] opacity-90">
+        <div className="font-semibold text-[14px] leading-tight">{headline}</div>
+        <p className="text-[13px] leading-5" style={{ color: "var(--fg-muted)" }}>{body}</p>
+        <div
+          className="flex flex-wrap items-center gap-x-4 gap-y-1 font-mono uppercase tracking-[0.1em]"
+          style={{ fontSize: 10, color: "var(--fg-subtle)" }}
+        >
           {variantCount > 0 && (
             <SignalTooltip
               content={`${variantCount} of ${variantsChecked} groups checked for setup divergence flagged a problem (e.g. different shots, prompts, or scoring).`}
@@ -86,7 +100,8 @@ export function ApplesToApplesBanner({ summary, detailsAnchorId }: ApplesToApple
           {detailsAnchorId && (
             <a
               href={`#${detailsAnchorId}`}
-              className="ml-auto font-medium underline-offset-4 hover:underline"
+              className="ml-auto font-medium hover:underline underline-offset-4"
+              style={{ color: "var(--fg-muted)" }}
             >
               See details ↓
             </a>

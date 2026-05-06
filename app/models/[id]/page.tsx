@@ -5,6 +5,7 @@ import { useParams, useRouter, useSearchParams } from "next/navigation"
 import { Button } from "@/components/ui/button"
 import { ArrowLeft } from "lucide-react"
 import { Navigation } from "@/components/navigation"
+import { ReaderModeBar } from "@/components/reader-mode-bar"
 import { BenchmarkDetail } from "@/components/benchmark-detail"
 import type { BenchmarkCard, ModelEvaluationSummary } from "@/lib/eval-processing"
 import {
@@ -248,6 +249,7 @@ export default function ModelDetailPage() {
     return (
       <div className="min-h-screen bg-background">
         <Navigation />
+        <ReaderModeBar />
         <main className="ec-page">
           <div className="flex items-center justify-center h-96">
             <div className="kicker">Loading model record…</div>
@@ -261,6 +263,7 @@ export default function ModelDetailPage() {
     return (
       <div className="min-h-screen bg-background">
         <Navigation />
+        <ReaderModeBar />
         <main className="ec-page">
           <div className="flex flex-col items-center justify-center h-96 space-y-4">
             <div className="kicker">{error || "Model not found"}</div>
@@ -280,6 +283,7 @@ export default function ModelDetailPage() {
   return (
     <div className="min-h-screen bg-background">
       <Navigation />
+      <ReaderModeBar />
       <main className="ec-page">
         <button
           type="button"
