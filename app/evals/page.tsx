@@ -129,6 +129,28 @@ function EvalsPageInner() {
     let list = families
 
     if (query) {
+      // The query has to also reach nested benchmark keys / display names /
+      // evaluation ids — otherwise typing "mmlu-pro" misses
+      // helm-capabilities/mmlu-pro and friends because they live as leaves
+      // under the MMLU family, whose family-level metadata doesn't contain
+      // the substring. Decoding %2F so percent-encoded ids also match
+      // human-typed slashes.
+      const matchesNestedBenchmark = (fam: HierarchyFamily): boolean => {
+        const benches = [
+          ...(fam.standalone_benchmarks ?? []),
+          ...(fam.benchmarks ?? []),
+          ...(fam.composites ?? []).flatMap((c) => c.benchmarks ?? []),
+        ]
+        for (const b of benches) {
+          if (b.key && b.key.toLowerCase().includes(query)) return true
+          if (b.display_name && b.display_name.toLowerCase().includes(query)) return true
+          for (const id of b.summary_eval_ids ?? []) {
+            const decoded = decodeURIComponent(id).toLowerCase()
+            if (decoded.includes(query) || id.toLowerCase().includes(query)) return true
+          }
+        }
+        return false
+      }
       list = list.filter((fam) => {
         if (fam.display_name.toLowerCase().includes(query)) return true
         if (fam.key.toLowerCase().includes(query)) return true
@@ -144,7 +166,7 @@ function EvalsPageInner() {
             if (formatTagLabel(tag).toLowerCase().includes(query)) return true
           }
         }
-        return false
+        return matchesNestedBenchmark(fam)
       })
     }
 
@@ -315,6 +337,7 @@ function EvalsPageInner() {
             evalItems={evalItems}
             benchmarkCards={benchmarkCards}
             categoryFilter={new Set(selectedCategories)}
+            searchQuery={deferredSearchQuery}
             sortCol={sortCol}
             sortDir={sortDir}
             onSort={handleSort}

@@ -20,6 +20,10 @@ interface FamilyTableProps {
   benchmarkCards?: Record<string, BenchmarkCard>
   domainFilter?: Set<string> | null
   categoryFilter?: Set<string> | null
+  /** Live search query from the page-level filter. The page already
+   *  decided which families pass; FamilyTable uses the same query to
+   *  narrow each row's visible leaves to the matches and auto-expand. */
+  searchQuery?: string
   sortCol?: FamilySortCol
   sortDir?: "asc" | "desc"
   onSort?: (col: FamilySortCol) => void
@@ -200,6 +204,7 @@ export function FamilyTable({
   benchmarkCards,
   domainFilter,
   categoryFilter,
+  searchQuery,
   sortCol,
   sortDir,
   onSort,
@@ -209,7 +214,9 @@ export function FamilyTable({
 
   const domainFilterActive = Boolean(domainFilter && domainFilter.size > 0)
   const categoryFilterActive = Boolean(categoryFilter && categoryFilter.size > 0)
-  const filterActive = domainFilterActive || categoryFilterActive
+  const normalizedQuery = (searchQuery ?? "").trim().toLowerCase()
+  const searchActive = normalizedQuery.length > 0
+  const filterActive = domainFilterActive || categoryFilterActive || searchActive
 
   function leafMatchesDomain(leaf: LeafEntry): boolean {
     if (!domainFilterActive || !domainFilter) return true
@@ -221,8 +228,31 @@ export function FamilyTable({
     return leaf.tags.some((t) => categoryFilter.has(t))
   }
 
-  function leafMatchesFilter(leaf: LeafEntry): boolean {
-    return leafMatchesDomain(leaf) && leafMatchesCategory(leaf)
+  function leafMatchesQuery(leaf: LeafEntry): boolean {
+    if (!searchActive) return true
+    if (leaf.id.toLowerCase().includes(normalizedQuery)) return true
+    if (decodeURIComponent(leaf.id).toLowerCase().includes(normalizedQuery)) return true
+    if (leaf.leafKey.toLowerCase().includes(normalizedQuery)) return true
+    if (leaf.leafName.toLowerCase().includes(normalizedQuery)) return true
+    return false
+  }
+
+  function leafMatchesFilter(leaf: LeafEntry, opts?: { skipQuery?: boolean }): boolean {
+    if (!leafMatchesDomain(leaf)) return false
+    if (!leafMatchesCategory(leaf)) return false
+    if (!opts?.skipQuery && !leafMatchesQuery(leaf)) return false
+    return true
+  }
+
+  function familyMatchedAtFamilyLevel(fam: HierarchyFamily): boolean {
+    if (!searchActive) return false
+    if (fam.display_name.toLowerCase().includes(normalizedQuery)) return true
+    if (fam.key.toLowerCase().includes(normalizedQuery)) return true
+    if (fam.category?.toLowerCase().includes(normalizedQuery)) return true
+    for (const tag of fam.derivedTags ?? []) {
+      if (tag.toLowerCase().includes(normalizedQuery)) return true
+    }
+    return false
   }
 
   function familyMatchesFilter(
@@ -230,7 +260,11 @@ export function FamilyTable({
     leafEntries: LeafEntry[],
   ): boolean {
     if (!filterActive) return true
-    if (leafEntries.some(leafMatchesFilter)) return true
+    if (leafEntries.some((leaf) => leafMatchesFilter(leaf))) return true
+    // Family-level search match keeps the row even if no leaf survives
+    // the leaf-query filter (the row will fall back to showing all
+    // leaves).
+    if (searchActive && familyMatchedAtFamilyLevel(fam)) return true
     if (categoryFilterActive && categoryFilter) {
       for (const tag of fam.derivedTags ?? []) {
         if (categoryFilter.has(tag) && !domainFilterActive) return true
@@ -265,13 +299,23 @@ export function FamilyTable({
       const leafEntries = collectLeafEntries(fam, benchmarkCards)
       if (!familyMatchesFilter(fam, leafEntries)) continue
 
+      // When a search query matches the family itself (e.g. typed
+      // "MMLU" → MMLU family hits at family level), don't filter leaves
+      // by the query — the user wants to see the whole family. We still
+      // apply domain/category filters since those are independent of
+      // the search box.
+      const querySatisfiedAtFamily =
+        searchActive && familyMatchedAtFamilyLevel(fam)
+      const leafFilter = (leaf: LeafEntry) =>
+        leafMatchesFilter(leaf, { skipQuery: querySatisfiedAtFamily })
+
       const visibleLeafEntries = filterActive
-        ? leafEntries.filter(leafMatchesFilter)
+        ? leafEntries.filter(leafFilter)
         : leafEntries
 
       const sections = collectFamilySections(fam, benchmarkCards).map((section) => ({
         ...section,
-        leaves: filterActive ? section.leaves.filter(leafMatchesFilter) : section.leaves,
+        leaves: filterActive ? section.leaves.filter(leafFilter) : section.leaves,
       })).filter((s) => s.leaves.length > 0)
 
       // Humanize when:
@@ -336,7 +380,7 @@ export function FamilyTable({
     }
     return out
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [families, evalItems, benchmarkCards, domainFilter, categoryFilter])
+  }, [families, evalItems, benchmarkCards, domainFilter, categoryFilter, searchQuery])
 
   function SortIcon({ col }: { col: FamilySortCol }) {
     if (!onSort) return null
