@@ -45,3 +45,4 @@ pipeline_revised.py
 !/data/benchmarks/categories.json
 mock_design/
 shoot.mjs
+whisker-render.mjs
