@@ -351,9 +351,21 @@ export function ResearcherReproducibilityCard({
         { label: "standard error", value: formatValue(scoreDetails.standard_error) },
         {
           label: "confidence interval",
-          value: scoreDetails.confidence_interval
-            ? `${scoreDetails.confidence_interval.lower}–${scoreDetails.confidence_interval.upper} (${scoreDetails.confidence_interval.confidence_level}%)`
-            : null,
+          // The producer sometimes ships the wrapping object with all
+          // three inner fields null (e.g. when only standard_error was
+          // reported). Stringifying those produces "null–null (null%)";
+          // collapse to "Not disclosed" instead.
+          value: (() => {
+            const ci = scoreDetails.confidence_interval
+            if (!ci) return null
+            const lower = formatValue(ci.lower)
+            const upper = formatValue(ci.upper)
+            if (lower === null || upper === null) return null
+            const level = formatValue(ci.confidence_level)
+            return level !== null
+              ? `${lower}–${upper} (${level}%)`
+              : `${lower}–${upper}`
+          })(),
         },
         { label: "eval library", value: formatValue(evalLibrary) },
         { label: "library version", value: formatValue(evalLibraryVersion) },

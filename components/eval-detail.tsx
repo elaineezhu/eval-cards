@@ -1527,12 +1527,18 @@ export function EvalDetail({
                                         label="Standard Error"
                                         value={modelResult.score_details.standard_error ?? "Unknown"}
                                       />
-                                      {modelResult.score_details.confidence_interval && (
-                                        <MetaRow
-                                          label="Confidence Interval"
-                                          value={`${modelResult.score_details.confidence_interval.lower} - ${modelResult.score_details.confidence_interval.upper} (${modelResult.score_details.confidence_interval.confidence_level}%)`}
-                                        />
-                                      )}
+                                      {modelResult.score_details.confidence_interval &&
+                                        modelResult.score_details.confidence_interval.lower != null &&
+                                        modelResult.score_details.confidence_interval.upper != null && (
+                                          <MetaRow
+                                            label="Confidence Interval"
+                                            value={
+                                              modelResult.score_details.confidence_interval.confidence_level != null
+                                                ? `${modelResult.score_details.confidence_interval.lower} - ${modelResult.score_details.confidence_interval.upper} (${modelResult.score_details.confidence_interval.confidence_level}%)`
+                                                : `${modelResult.score_details.confidence_interval.lower} - ${modelResult.score_details.confidence_interval.upper}`
+                                            }
+                                          />
+                                        )}
                                     </>
                                   )}
                                 </DetailPanel>
