@@ -327,7 +327,7 @@ function ProvenanceRow({
     <div className="rounded-xl border border-border/60 bg-background/60 p-3">
       <div className="mb-2 flex items-center gap-1.5 text-[10px] font-semibold uppercase tracking-[0.18em] text-muted-foreground">
         <Database className="h-3 w-3" />
-        Source dataset
+        Upstream dataset
       </div>
       <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-sm">
         {datasetName && (

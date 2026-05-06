@@ -94,7 +94,7 @@ export function PolicyOverview({ summary }: PolicyOverviewProps) {
     .map((s) => s.composite_benchmark_name)
     .filter((s): s is string => typeof s === "string" && s.length > 0)
 
-  const sliceLabels = useMemo(() => {
+  const splitLabels = useMemo(() => {
     const seen = new Set<string>()
     const labels: string[] = []
     const add = (raw: string | undefined | null) => {
@@ -106,8 +106,8 @@ export function PolicyOverview({ summary }: PolicyOverviewProps) {
       seen.add(key)
       labels.push(trimmed)
     }
-    for (const slice of summary.subtasks ?? []) {
-      add(slice.display_name || slice.subtask_name)
+    for (const split of summary.subtasks ?? []) {
+      add(split.display_name || split.subtask_name)
     }
     for (const metric of summary.leaderboard_metrics ?? []) {
       if (metric.scope === "subtask") {
@@ -119,14 +119,14 @@ export function PolicyOverview({ summary }: PolicyOverviewProps) {
   }, [summary.subtasks, summary.leaderboard_metrics, aggregateNames])
 
   const isMatrix = (summary.leaderboard_metrics?.length ?? 0) > 1
-  const isParentPage = isAggregated || (isMatrix && sliceLabels.length > 1)
+  const isParentPage = isAggregated || (isMatrix && splitLabels.length > 1)
   const useComponentDescription = !isParentPage
 
-  const parentFallback = isParentPage && sliceLabels.length > 1
-    ? `${summary.evaluation_name} reports results across ${sliceLabels.length} ${
-        isAggregated ? "component benchmarks" : "slices"
+  const parentFallback = isParentPage && splitLabels.length > 1
+    ? `${summary.evaluation_name} reports results across ${splitLabels.length} ${
+        isAggregated ? "component benchmarks" : "splits"
       }. Each is evaluated separately; the score shown is the ${
-        isAggregated ? "average" : "per-slice result"
+        isAggregated ? "average" : "per-split result"
       }.`
     : null
 
@@ -139,7 +139,7 @@ export function PolicyOverview({ summary }: PolicyOverviewProps) {
     ""
 
   const [expanded, setExpanded] = useState(false)
-  const [slicesOpen, setSlicesOpen] = useState(false)
+  const [splitsOpen, setSplitsOpen] = useState(false)
   const isLong = summaryText.length > SUMMARY_PREVIEW_CHARS
   const visibleText = expanded || !isLong
     ? summaryText
@@ -148,13 +148,17 @@ export function PolicyOverview({ summary }: PolicyOverviewProps) {
   const domains = useMemo(() => {
     const fromTags = summary.tags?.domains ?? []
     const fromCard = cardMatchesEval ? card?.benchmark_details?.domains ?? [] : []
-    return Array.from(new Set([...fromTags, ...fromCard].map((d) => d.trim()).filter(Boolean))).slice(0, 6)
+    return Array.from(new Set([...fromTags, ...fromCard].map((d) => d.trim()).filter(Boolean)))
+      .filter((d) => d.toLowerCase() !== "not specified")
+      .slice(0, 6)
   }, [summary.tags?.domains, card?.benchmark_details?.domains, cardMatchesEval])
 
   const languages = useMemo(() => {
     const fromTags = summary.tags?.languages ?? []
     const fromCard = cardMatchesEval ? card?.benchmark_details?.languages ?? [] : []
-    return Array.from(new Set([...fromTags, ...fromCard].map((d) => d.trim()).filter(Boolean))).slice(0, 4)
+    return Array.from(new Set([...fromTags, ...fromCard].map((d) => d.trim()).filter(Boolean)))
+      .filter((d) => d.toLowerCase() !== "not specified")
+      .slice(0, 4)
   }, [summary.tags?.languages, card?.benchmark_details?.languages, cardMatchesEval])
 
   const license = card?.ethical_and_legal_considerations?.data_licensing
@@ -201,12 +205,22 @@ export function PolicyOverview({ summary }: PolicyOverviewProps) {
     : "Higher scores are better"
 
   // Policy-note triple (paper §4.2.2): What it measures · Main caveat · Intended for.
+  // Filter the literal "Not specified" sentinel so the row collapses
+  // entirely instead of rendering a placeholder.
   const measuresText = visibleText
-  const caveatText = card?.purpose_and_intended_users?.limitations?.trim() || null
+  const rawCaveat = card?.purpose_and_intended_users?.limitations?.trim() || ""
+  const caveatText =
+    rawCaveat && rawCaveat.toLowerCase() !== "not specified" ? rawCaveat : null
   const audienceArr = card?.purpose_and_intended_users?.audience
-  const audienceText = Array.isArray(audienceArr)
+  const audienceJoined = Array.isArray(audienceArr)
     ? audienceArr.filter(Boolean).join("; ")
-    : (typeof audienceArr === "string" ? audienceArr : "")
+    : typeof audienceArr === "string"
+      ? audienceArr
+      : ""
+  const audienceText =
+    audienceJoined && audienceJoined.toLowerCase() !== "not specified"
+      ? audienceJoined
+      : ""
 
   return (
     <section className="ec-card warm" style={{ padding: "20px 24px" }}>
@@ -304,41 +318,52 @@ export function PolicyOverview({ summary }: PolicyOverviewProps) {
         </dd>
       </dl>
 
-      {isParentPage && sliceLabels.length > 1 && (
-        <div
-          className="mt-4"
-          style={{ border: "1px solid var(--border-soft)", background: "var(--bg)" }}
-        >
+      {isParentPage && splitLabels.length > 1 && (
+        <div className="mt-4">
           <button
             type="button"
-            onClick={() => setSlicesOpen((v) => !v)}
-            aria-expanded={slicesOpen}
-            className="flex w-full items-center justify-between gap-3 px-3.5 py-2.5 text-left transition-colors hover:bg-[color:var(--bg-warm)]"
+            onClick={() => setSplitsOpen((v) => !v)}
+            aria-expanded={splitsOpen}
+            className="inline-flex items-center gap-1.5 cursor-pointer hover:text-[color:var(--fg)] transition-colors"
+            style={{
+              background: "transparent",
+              border: 0,
+              padding: 0,
+              color: "var(--fg-subtle)",
+            }}
           >
+            <Layers className="h-3.5 w-3.5" />
             <span
-              className="flex items-center gap-1.5 font-mono uppercase"
-              style={{ fontSize: 10, letterSpacing: "0.14em", color: "var(--fg-muted)" }}
+              className="font-mono uppercase"
+              style={{ fontSize: 10, letterSpacing: "0.14em" }}
             >
-              <Layers className="h-3.5 w-3.5" />
-              {isAggregated ? `Component benchmarks (${sliceLabels.length})` : `Slices (${sliceLabels.length})`}
+              {isAggregated
+                ? `Component benchmarks · ${splitLabels.length}`
+                : `Splits · ${splitLabels.length}`}
             </span>
-            {slicesOpen ? (
-              <ChevronUp className="h-4 w-4" style={{ color: "var(--fg-muted)" }} />
+            {splitsOpen ? (
+              <ChevronUp className="h-3.5 w-3.5" />
             ) : (
-              <ChevronDown className="h-4 w-4" style={{ color: "var(--fg-muted)" }} />
+              <ChevronDown className="h-3.5 w-3.5" />
             )}
           </button>
-          {slicesOpen && (
-            <ul
-              className="grid list-disc gap-x-6 gap-y-1 px-3.5 pb-3.5 pl-9 text-[13px] sm:grid-cols-2 lg:grid-cols-3"
-              style={{ color: "var(--fg)" }}
-            >
-              {sliceLabels.map((name) => (
-                <li key={name} className="capitalize">
+          {splitsOpen && (
+            <div className="mt-2 flex flex-wrap gap-1.5">
+              {splitLabels.map((name) => (
+                <span
+                  key={name}
+                  className="ec-tag outline"
+                  style={{
+                    textTransform: "none",
+                    fontFamily: "var(--font-mono)",
+                    fontSize: 11,
+                    letterSpacing: "0.02em",
+                  }}
+                >
                   {name}
-                </li>
+                </span>
               ))}
-            </ul>
+            </div>
           )}
         </div>
       )}

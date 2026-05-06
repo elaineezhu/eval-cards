@@ -756,7 +756,7 @@ export function EvalDetail({
       : "Models ranked by raw score for this benchmark."
     : lb.is_aggregated
       ? "Averaged model results across the composite's component benchmarks, with drill-down to each component score."
-      : "Model results with benchmark context, source dataset detail, and optional instance-data links."
+      : "Model results with benchmark context, upstream dataset detail, and optional instance-data links."
   const reportingCompleteness = summary.evalcards?.annotations?.reporting_completeness
   const documentationPopulatedCount = reportingCompleteness
     ? getCompletenessPopulatedCount(reportingCompleteness)
@@ -784,6 +784,19 @@ export function EvalDetail({
       ? summary.composite_benchmark_name
       : null)
 
+  // Surface the evaluator (org that ran the eval) as a hero kicker. Two
+  // benchmarks can share the same upstream dataset (e.g. TIGER-Lab/MMLU-Pro
+  // re-evaluated by both TIGER-Lab and Arcadia Impact) and otherwise look
+  // identical in chrome — naming the evaluator up-front is the cheapest
+  // way to make the pages visually distinct.
+  const evaluatorList = summary.evaluator_names ?? []
+  const reporterLabel = (() => {
+    if (evaluatorList.length === 0) return null
+    const head = evaluatorList.slice(0, 2)
+    const extra = evaluatorList.length - head.length
+    return extra > 0 ? `${head.join(", ")} +${extra} more` : head.join(", ")
+  })()
+
   const heroLede = isResearchView
     ? summary.metric_config.evaluation_description
     : (summary.benchmark_card?.benchmark_details?.overview?.trim()
@@ -794,6 +807,20 @@ export function EvalDetail({
     <div className="space-y-12">
       {/* HERO — paper §3.1 ------------------------------------------------ */}
       <header className="motion-academic-enter">
+        {reporterLabel && (
+          <div
+            className="font-mono uppercase"
+            style={{
+              fontSize: 11,
+              letterSpacing: "0.16em",
+              color: "var(--fg-subtle)",
+              margin: "0 0 10px",
+            }}
+          >
+            <span style={{ color: "var(--fg-muted)" }}>Reported by </span>
+            <span style={{ color: "var(--fg)" }}>{reporterLabel}</span>
+          </div>
+        )}
         <h1
           className="font-bold tracking-[-0.025em]"
           style={{ fontSize: "clamp(40px, 5vw, 60px)", lineHeight: 1.04, margin: "0 0 12px" }}
@@ -934,7 +961,7 @@ export function EvalDetail({
                     </dd>
                   </>
                 )}
-                <dt>Source dataset</dt>
+                <dt>Upstream dataset</dt>
                 <dd>{sourceDatasetLabel}</dd>
                 <dt>Instance data</dt>
                 <dd>{instanceDataLabel}</dd>
@@ -2628,58 +2655,71 @@ function BenchmarkCardPanel({
       <div className="space-y-6 p-5 sm:p-6">
         {knownIssues.length > 0 && <KnownIssuesPanel issues={knownIssues} variant="full" />}
 
-        <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
-          {/* Goal */}
-          <div
-            style={{
-              padding: 16,
-              border: "1px solid var(--border-soft)",
-              background: "var(--bg)",
-            }}
-          >
-            <div
-              className="mb-2 flex items-center gap-2 font-mono uppercase"
-              style={{ fontSize: 10, letterSpacing: "0.14em", color: "var(--fg-subtle)" }}
-            >
-              <Scale className="h-3 w-3" /> Goal
-            </div>
-            <p className="text-[13px] leading-[1.55]" style={{ color: "var(--fg)" }}>{purpose.goal}</p>
-          </div>
+        {(() => {
+          const meaningful = (v: string | undefined | null) =>
+            Boolean(v && v.trim() && v.trim() !== "Not specified")
+          const showGoal = meaningful(purpose.goal)
+          const showInterp = meaningful(methodology.interpretation)
+          const showLimitations = meaningful(purpose.limitations)
+          if (!showGoal && !showInterp && !showLimitations) return null
+          return (
+            <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
+              {showGoal && (
+                <div
+                  style={{
+                    padding: 16,
+                    border: "1px solid var(--border-soft)",
+                    background: "var(--bg)",
+                  }}
+                >
+                  <div
+                    className="mb-2 flex items-center gap-2 font-mono uppercase"
+                    style={{ fontSize: 10, letterSpacing: "0.14em", color: "var(--fg-subtle)" }}
+                  >
+                    <Scale className="h-3 w-3" /> Goal
+                  </div>
+                  <p className="text-[13px] leading-[1.55]" style={{ color: "var(--fg)" }}>{purpose.goal}</p>
+                </div>
+              )}
 
-          {/* Metric interpretation */}
-          <div
-            style={{
-              padding: 16,
-              border: "1px solid var(--border-soft)",
-              background: "var(--bg)",
-            }}
-          >
-            <div
-              className="mb-2 flex items-center gap-2 font-mono uppercase"
-              style={{ fontSize: 10, letterSpacing: "0.14em", color: "var(--fg-subtle)" }}
-            >
-              <BarChart3 className="h-3 w-3" /> Score interpretation
-            </div>
-            <p className="text-[13px] leading-[1.55]" style={{ color: "var(--fg)" }}>{methodology.interpretation}</p>
-          </div>
+              {showInterp && (
+                <div
+                  style={{
+                    padding: 16,
+                    border: "1px solid var(--border-soft)",
+                    background: "var(--bg)",
+                  }}
+                >
+                  <div
+                    className="mb-2 flex items-center gap-2 font-mono uppercase"
+                    style={{ fontSize: 10, letterSpacing: "0.14em", color: "var(--fg-subtle)" }}
+                  >
+                    <BarChart3 className="h-3 w-3" /> Score interpretation
+                  </div>
+                  <p className="text-[13px] leading-[1.55]" style={{ color: "var(--fg)" }}>{methodology.interpretation}</p>
+                </div>
+              )}
 
-          {/* Limitations */}
-          <div
-            style={{
-              padding: 16,
-              border: "1px solid var(--accent)",
-              background: "var(--bg-warm)",
-            }}
-          >
-            <div
-              className="mb-2 flex items-center gap-2 font-mono uppercase"
-              style={{ fontSize: 10, letterSpacing: "0.14em", color: "var(--accent)" }}
-            >
-              <AlertTriangle className="h-3 w-3" /> Limitations
+              {showLimitations && (
+                <div
+                  style={{
+                    padding: 16,
+                    border: "1px solid var(--accent)",
+                    background: "var(--bg-warm)",
+                  }}
+                >
+                  <div
+                    className="mb-2 flex items-center gap-2 font-mono uppercase"
+                    style={{ fontSize: 10, letterSpacing: "0.14em", color: "var(--accent)" }}
+                  >
+                    <AlertTriangle className="h-3 w-3" /> Limitations
+                  </div>
+                  <p className="text-[13px] leading-[1.55]" style={{ color: "var(--accent)" }}>{purpose.limitations}</p>
+                </div>
+              )}
             </div>
-            <p className="text-[13px] leading-[1.55]" style={{ color: "var(--accent)" }}>{purpose.limitations}</p>
-          </div>
-        </div>
+          )
+        })()}
 
         {(methodology.methods?.length > 0 ||
           (methodology.calculation && methodology.calculation !== "Not specified") ||
@@ -2879,43 +2919,56 @@ function BenchmarkCardPanel({
           </Collapsible>
         )}
 
-        {/* Compliance / ethical notes (policy view emphasis) */}
-        {!isResearchView && (
-          <div
-            style={{
-              padding: 16,
-              border: "1px solid var(--border-soft)",
-              background: "var(--bg)",
-            }}
-          >
-            <div
-              className="mb-3 font-mono uppercase"
-              style={{ fontSize: 10, letterSpacing: "0.14em", color: "var(--fg-subtle)" }}
-            >
-              Ethical &amp; legal
-            </div>
-            <dl className="grid gap-x-6 gap-y-2 text-[13px] sm:grid-cols-2">
-              {shortLicense && (
-                <div className="flex gap-2">
-                  <dt className="w-28 shrink-0" style={{ color: "var(--fg-muted)" }}>License</dt>
-                  <dd className="font-medium">{license}</dd>
+        {/* Compliance / ethical notes (policy view emphasis). Hide the
+            entire panel when none of the three fields are populated —
+            otherwise the user sees an empty bordered box with just the
+            section header. */}
+        {!isResearchView &&
+          (() => {
+            const showCompliance =
+              ethical.compliance_with_regulations &&
+              ethical.compliance_with_regulations !== "Not specified"
+            const showPrivacy =
+              ethical.privacy_and_anonymity &&
+              ethical.privacy_and_anonymity !== "Not specified"
+            if (!shortLicense && !showCompliance && !showPrivacy) return null
+            return (
+              <div
+                style={{
+                  padding: 16,
+                  border: "1px solid var(--border-soft)",
+                  background: "var(--bg)",
+                }}
+              >
+                <div
+                  className="mb-3 font-mono uppercase"
+                  style={{ fontSize: 10, letterSpacing: "0.14em", color: "var(--fg-subtle)" }}
+                >
+                  Ethical &amp; legal
                 </div>
-              )}
-              {ethical.compliance_with_regulations && ethical.compliance_with_regulations !== "Not specified" && (
-                <div className="flex gap-2">
-                  <dt className="w-28 shrink-0" style={{ color: "var(--fg-muted)" }}>Compliance</dt>
-                  <dd className="font-medium">{ethical.compliance_with_regulations}</dd>
-                </div>
-              )}
-              {ethical.privacy_and_anonymity && ethical.privacy_and_anonymity !== "Not specified" && (
-                <div className="col-span-full flex gap-2">
-                  <dt className="w-28 shrink-0" style={{ color: "var(--fg-muted)" }}>Privacy</dt>
-                  <dd className="font-medium">{ethical.privacy_and_anonymity}</dd>
-                </div>
-              )}
-            </dl>
-          </div>
-        )}
+                <dl className="grid gap-x-6 gap-y-2 text-[13px] sm:grid-cols-2">
+                  {shortLicense && (
+                    <div className="flex gap-2">
+                      <dt className="w-28 shrink-0" style={{ color: "var(--fg-muted)" }}>License</dt>
+                      <dd className="font-medium">{license}</dd>
+                    </div>
+                  )}
+                  {showCompliance && (
+                    <div className="flex gap-2">
+                      <dt className="w-28 shrink-0" style={{ color: "var(--fg-muted)" }}>Compliance</dt>
+                      <dd className="font-medium">{ethical.compliance_with_regulations}</dd>
+                    </div>
+                  )}
+                  {showPrivacy && (
+                    <div className="col-span-full flex gap-2">
+                      <dt className="w-28 shrink-0" style={{ color: "var(--fg-muted)" }}>Privacy</dt>
+                      <dd className="font-medium">{ethical.privacy_and_anonymity}</dd>
+                    </div>
+                  )}
+                </dl>
+              </div>
+            )
+          })()}
 
         {/* Flagged / missing fields warning */}
         {(flaggedFields.length > 0 || missingFields.length > 0) && isResearchView && (
