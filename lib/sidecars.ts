@@ -149,7 +149,7 @@ export function fetchHeadline(): Promise<CorpusAggregates> {
 // blobs don't get served against new code. The disk path embeds this
 // suffix; old files are simply ignored (and re-created on the next
 // stale read).
-const CLEAN_HIERARCHY_VERSION = "v12"
+const CLEAN_HIERARCHY_VERSION = "v13"
 
 /**
  * Returns the cleaned hierarchy used by the rest of the app — sanitised
