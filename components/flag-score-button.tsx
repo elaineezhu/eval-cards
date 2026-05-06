@@ -1,6 +1,6 @@
 "use client"
 
-import { useMemo, useState } from "react"
+import { useMemo, useState, type ReactNode } from "react"
 import {
   Copy,
   ExternalLink,
@@ -120,16 +120,15 @@ export function FlagScoreButton({
 
   return (
     <>
-      <Button
+      <button
         type="button"
-        size="sm"
-        variant="outline"
-        className="h-7 gap-1.5 text-xs"
+        className="btn-ec outline inline-flex items-center gap-1.5"
+        style={{ fontSize: 11, padding: "4px 10px" }}
         onClick={() => setOpen(true)}
       >
         <Flag className="h-3 w-3" />
         Flag this score
-      </Button>
+      </button>
 
       <Dialog open={open} onOpenChange={setOpen}>
         <DialogContent className="sm:max-w-lg">
@@ -142,82 +141,77 @@ export function FlagScoreButton({
           </DialogHeader>
 
           <div className="space-y-4">
-            <div className="rounded-xl border bg-muted/20 p-3 text-xs">
-              <div className="text-[10px] font-semibold uppercase tracking-[0.16em] text-muted-foreground">
+            <div
+              style={{
+                padding: "10px 12px",
+                border: "1px solid var(--border-soft)",
+                background: "var(--bg-warm)",
+                fontSize: 12,
+              }}
+            >
+              <div
+                className="font-mono uppercase"
+                style={{ fontSize: 10, letterSpacing: "0.14em", color: "var(--fg-subtle)" }}
+              >
                 Flagging
               </div>
-              <div className="mt-1">
-                <span className="font-medium">{modelName}</span>{" "}
-                <span className="text-muted-foreground">on</span>{" "}
-                <span className="font-medium">{benchmarkName}</span>
+              <div className="mt-1" style={{ color: "var(--fg)" }}>
+                <span className="font-semibold">{modelName}</span>{" "}
+                <span style={{ color: "var(--fg-muted)" }}>on</span>{" "}
+                <span className="font-semibold">{benchmarkName}</span>
               </div>
-              <div className="text-muted-foreground tabular-nums">Score: {score}</div>
+              <div
+                className="font-mono tabular-nums"
+                style={{ color: "var(--fg-muted)", fontSize: 12 }}
+              >
+                Score: {score}
+              </div>
             </div>
 
             <div className="space-y-2">
               {correctionLinks?.recordViewUrl && (
-                <a
+                <FlagAction
                   href={correctionLinks.recordViewUrl}
-                  target="_blank"
-                  rel="noreferrer"
-                  className="flex items-center justify-between rounded-xl border border-border/70 bg-background px-3 py-2.5 text-sm transition-colors hover:border-primary/40 hover:bg-muted/20"
-                >
-                  <div className="flex items-center gap-2">
-                    <FileSearch className="h-4 w-4 text-muted-foreground" />
-                    <div>
-                      <div className="font-semibold">View the underlying record</div>
-                      <div className="text-xs text-muted-foreground">
-                        Opens the JSON file on{" "}
-                        <span className="font-mono">{correctionLinks.repoSlug}</span>
-                      </div>
-                    </div>
-                  </div>
-                  <ExternalLink className="h-3.5 w-3.5 text-muted-foreground" />
-                </a>
+                  icon={<FileSearch className="h-4 w-4" style={{ color: "var(--fg-muted)" }} />}
+                  title="View the underlying record"
+                  detail={
+                    <>
+                      Opens the JSON file on{" "}
+                      <span className="font-mono">{correctionLinks.repoSlug}</span>
+                    </>
+                  }
+                />
               )}
 
               {correctionLinks && (
-                <a
+                <FlagAction
                   href={correctionLinks.newDiscussionUrl}
-                  target="_blank"
-                  rel="noreferrer"
-                  className="flex items-center justify-between rounded-xl border border-border/70 bg-background px-3 py-2.5 text-sm transition-colors hover:border-primary/40 hover:bg-muted/20"
-                >
-                  <div className="flex items-center gap-2">
-                    <MessageSquare className="h-4 w-4 text-muted-foreground" />
-                    <div>
-                      <div className="font-semibold">Open a discussion</div>
-                      <div className="text-xs text-muted-foreground">
-                        Pre-filled title; paste the context snippet into the body.
-                      </div>
-                    </div>
-                  </div>
-                  <ExternalLink className="h-3.5 w-3.5 text-muted-foreground" />
-                </a>
+                  icon={<MessageSquare className="h-4 w-4" style={{ color: "var(--fg-muted)" }} />}
+                  title="Open a discussion"
+                  detail="Pre-filled title; paste the context snippet into the body."
+                />
               )}
 
               {correctionLinks && (
-                <a
+                <FlagAction
                   href={correctionLinks.discussionsUrl}
-                  target="_blank"
-                  rel="noreferrer"
-                  className="flex items-center justify-between rounded-xl border border-border/70 bg-background px-3 py-2.5 text-sm transition-colors hover:border-primary/40 hover:bg-muted/20"
-                >
-                  <div className="flex items-center gap-2">
-                    <GitPullRequestArrow className="h-4 w-4 text-muted-foreground" />
-                    <div>
-                      <div className="font-semibold">Browse existing discussions</div>
-                      <div className="text-xs text-muted-foreground">
-                        Check whether someone already filed a similar correction.
-                      </div>
-                    </div>
-                  </div>
-                  <ExternalLink className="h-3.5 w-3.5 text-muted-foreground" />
-                </a>
+                  icon={<GitPullRequestArrow className="h-4 w-4" style={{ color: "var(--fg-muted)" }} />}
+                  title="Browse existing discussions"
+                  detail="Check whether someone already filed a similar correction."
+                />
               )}
 
               {!correctionLinks && (
-                <div className="rounded-xl border border-dashed border-amber-300/60 bg-amber-50/40 px-3 py-2.5 text-xs text-amber-800 dark:border-amber-900/60 dark:bg-amber-950/20 dark:text-amber-200">
+                <div
+                  className="text-[12px]"
+                  style={{
+                    padding: "10px 12px",
+                    border: "1px dashed var(--accent)",
+                    background: "var(--bg-warm)",
+                    color: "var(--accent)",
+                    lineHeight: 1.6,
+                  }}
+                >
                   No upstream record URL is recorded for this row, so we can't link directly to
                   the dataset. Copy the context below and file an issue at{" "}
                   <a
@@ -225,6 +219,7 @@ export function FlagScoreButton({
                     href="https://huggingface.co/datasets/evaleval/EEE_datastore/discussions"
                     target="_blank"
                     rel="noreferrer"
+                    style={{ color: "var(--accent)" }}
                   >
                     evaleval/EEE_datastore/discussions
                   </a>
@@ -235,33 +230,90 @@ export function FlagScoreButton({
 
             <div className="space-y-1.5">
               <div className="flex items-center justify-between">
-                <label className="text-xs font-semibold text-muted-foreground">
+                <label
+                  className="font-mono uppercase"
+                  style={{ fontSize: 10, letterSpacing: "0.14em", color: "var(--fg-subtle)" }}
+                >
                   Context to paste into the issue
                 </label>
-                <Button
+                <button
                   type="button"
-                  size="sm"
-                  variant="ghost"
                   onClick={handleCopyContext}
-                  className="h-7 gap-1.5 text-xs"
+                  className="inline-flex items-center gap-1.5 font-mono uppercase underline-offset-4 hover:underline"
+                  style={{ fontSize: 10, letterSpacing: "0.12em", color: "var(--accent)" }}
                 >
                   <Copy className="h-3 w-3" />
                   {copied === "context" ? "Copied" : "Copy"}
-                </Button>
+                </button>
               </div>
-              <pre className="max-h-40 overflow-auto whitespace-pre-wrap break-all rounded-xl border bg-muted/10 p-3 text-[11px] leading-5 text-muted-foreground">
+              <pre
+                className="max-h-40 overflow-auto whitespace-pre-wrap break-all"
+                style={{
+                  padding: 12,
+                  fontFamily: "var(--font-mono)",
+                  fontSize: 11,
+                  lineHeight: 1.5,
+                  border: "1px solid var(--border-soft)",
+                  background: "var(--bg)",
+                  color: "var(--fg-muted)",
+                }}
+              >
                 {contextSnippet}
               </pre>
             </div>
 
             <div className="flex justify-end pt-1">
-              <Button type="button" variant="ghost" onClick={() => setOpen(false)}>
+              <button
+                type="button"
+                onClick={() => setOpen(false)}
+                className="font-mono uppercase underline-offset-4 hover:underline"
+                style={{ fontSize: 11, letterSpacing: "0.12em", color: "var(--fg-muted)" }}
+              >
                 Close
-              </Button>
+              </button>
             </div>
           </div>
         </DialogContent>
       </Dialog>
     </>
+  )
+}
+
+function FlagAction({
+  href,
+  icon,
+  title,
+  detail,
+}: {
+  href: string
+  icon: ReactNode
+  title: string
+  detail: ReactNode
+}) {
+  return (
+    <a
+      href={href}
+      target="_blank"
+      rel="noreferrer"
+      className="flex items-center justify-between transition-colors hover:bg-[color:var(--bg-warm)]"
+      style={{
+        padding: "10px 12px",
+        border: "1px solid var(--border-soft)",
+        background: "var(--bg)",
+        textDecoration: "none",
+        color: "var(--fg)",
+      }}
+    >
+      <div className="flex items-center gap-2 min-w-0">
+        <span className="shrink-0">{icon}</span>
+        <div className="min-w-0">
+          <div className="font-semibold text-[13px]" style={{ color: "var(--fg)" }}>{title}</div>
+          <div className="text-[11px]" style={{ color: "var(--fg-muted)", lineHeight: 1.5 }}>
+            {detail}
+          </div>
+        </div>
+      </div>
+      <ExternalLink className="h-3.5 w-3.5 shrink-0" style={{ color: "var(--fg-muted)" }} />
+    </a>
   )
 }

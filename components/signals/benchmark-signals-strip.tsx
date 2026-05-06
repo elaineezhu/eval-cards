@@ -1,5 +1,14 @@
 "use client"
 
+import { type ReactNode, useMemo, useState } from "react"
+
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog"
+import type {
+  BenchmarkIndexEntry,
+  ComparisonIndex,
+  ComparisonMetricEntry,
+  EvalHierarchy,
+} from "@/lib/backend-artifacts"
 import type { BenchmarkEvalSummary } from "@/lib/eval-processing"
 import type { ModelResultForBenchmark } from "@/lib/eval-processing"
 
@@ -23,7 +32,7 @@ const SIGNAL_ASKS: Record<SignalId, string> = {
   reproducibility: "Could someone re-run this benchmark with what's documented?",
   completeness: "How much of the benchmark card is filled in?",
   provenance: "Who reported these scores and how many parties have replicated?",
-  comparability: "Where multiple reports exist, do they agree?",
+  comparability: "Where multiple sources report the same benchmark, do their numbers agree?",
 }
 
 /**
@@ -48,46 +57,29 @@ const FIELD_LABELS: Record<string, string> = {
   eval_limits: "eval limits",
 }
 
-/** Setup fields compared to detect variant divergence (spec §6.1.2). */
-const COMPARABILITY_COMPARE_FIELDS = [
-  "temperature",
-  "top_p",
-  "top_k",
-  "max_tokens",
-  "prompt_template",
-  "reasoning",
-] as const
+interface BreakdownLine {
+  label: string
+  value: string
+}
 
-/**
- * Benchmark-level rollup of the four interpretive signals (paper §4.2.1,
- * spec v1.0 §§3-6). Mirrors `CorpusSignalsStrip` but operates over a
- * single `BenchmarkEvalSummary`.
- *
- * Each tile reports one headline statistic that reads "higher is better,
- * more documentation = better", so the four are visually comparable.
- */
-export function BenchmarkSignalsStrip({ summary }: { summary: BenchmarkEvalSummary }) {
-  const repro = deriveReproducibility(summary)
-  const comp = deriveCompleteness(summary)
-  const prov = deriveProvenance(summary)
-  const cmp = deriveComparability(summary)
+interface BreakdownRow {
+  label: string
+  status: "ok" | "warn" | "missing" | "info"
+  detail?: string
+  href?: string
+}
 
-  return (
-    <div
-      className="grid gap-x-6 gap-y-3"
-      style={{
-        gridTemplateColumns: "repeat(auto-fit, minmax(220px, 1fr))",
-        border: "1px solid var(--border-soft)",
-        background: "var(--bg)",
-        padding: "12px 16px",
-      }}
-    >
-      <SignalRow id="reproducibility" {...repro} />
-      <SignalRow id="completeness" {...comp} />
-      <SignalRow id="provenance" {...prov} />
-      <SignalRow id="comparability" {...cmp} />
-    </div>
-  )
+interface SignalBreakdown {
+  /** Plain-language description of how the score is computed. */
+  formula: string
+  /** Numeric inputs / aggregate counts used in the calculation. */
+  inputs: BreakdownLine[]
+  /** Per-item evidence rows (e.g. per-field, per-source, per-organisation). */
+  rows?: BreakdownRow[]
+  /** Optional richer body for signals that benefit from custom layout. */
+  custom?: ReactNode
+  /** Sentence shown when there's nothing meaningful to display. */
+  empty?: string
 }
 
 interface DerivedSignal {
@@ -95,6 +87,82 @@ interface DerivedSignal {
   statUnit: string
   headline: string
   detail: string
+  breakdown: SignalBreakdown
+}
+
+interface BenchmarkSignalsStripProps {
+  summary: BenchmarkEvalSummary
+  /** Used to find sibling appearances of the same canonical benchmark
+   *  across other suites (cross-suite comparability). */
+  evalHierarchy?: EvalHierarchy | null
+  /** Per-(eval, metric) leaderboards used to fetch sibling scores. */
+  comparisonIndex?: ComparisonIndex | null
+}
+
+/**
+ * Benchmark-level rollup of the four interpretive signals (paper §4.2.1,
+ * spec v1.0 §§3-6). Each tile reports one headline statistic that reads
+ * "higher is better, more documentation = better", and is clickable to
+ * open a Dialog explaining how the score was computed.
+ */
+export function BenchmarkSignalsStrip({
+  summary,
+  evalHierarchy,
+  comparisonIndex,
+}: BenchmarkSignalsStripProps) {
+  const [openSignal, setOpenSignal] = useState<SignalId | null>(null)
+
+  // Cross-suite aggregate is shared between Provenance and Comparability —
+  // both signals are weakened by the hierarchy design (each source lives
+  // on its own eval page) and so both want to look across the dataset
+  // rather than within a single page.
+  const crossSuite = useMemo(
+    () => buildCrossSuiteAggregate(summary, evalHierarchy, comparisonIndex),
+    [summary, evalHierarchy, comparisonIndex],
+  )
+
+  const repro = useMemo(() => deriveReproducibility(summary), [summary])
+  const comp = useMemo(() => deriveCompleteness(summary), [summary])
+  const prov = useMemo(() => deriveProvenance(summary, crossSuite), [summary, crossSuite])
+  const cmp = useMemo(() => deriveComparability(summary, crossSuite), [summary, crossSuite])
+
+  const signals: Record<SignalId, DerivedSignal> = {
+    reproducibility: repro,
+    completeness: comp,
+    provenance: prov,
+    comparability: cmp,
+  }
+
+  return (
+    <>
+      <div
+        className="grid gap-x-6 gap-y-3"
+        style={{
+          gridTemplateColumns: "repeat(auto-fit, minmax(220px, 1fr))",
+          border: "1px solid var(--border-soft)",
+          background: "var(--bg)",
+          padding: "12px 16px",
+        }}
+      >
+        <SignalRow id="reproducibility" {...repro} onOpen={() => setOpenSignal("reproducibility")} />
+        <SignalRow id="completeness" {...comp} onOpen={() => setOpenSignal("completeness")} />
+        <SignalRow id="provenance" {...prov} onOpen={() => setOpenSignal("provenance")} />
+        <SignalRow id="comparability" {...cmp} onOpen={() => setOpenSignal("comparability")} />
+      </div>
+
+      <Dialog open={openSignal !== null} onOpenChange={(open) => !open && setOpenSignal(null)}>
+        {/* `sm:max-w-2xl` widens at >=sm without overriding the
+            unprefixed `max-w-[calc(100%-2rem)]` the Dialog ships with,
+            so the dialog never exceeds viewport width. Long content
+            (cross-suite tables) scrolls vertically inside. */}
+        <DialogContent className="sm:max-w-2xl max-h-[85vh] overflow-y-auto">
+          {openSignal && (
+            <SignalExplanation id={openSignal} signal={signals[openSignal]} />
+          )}
+        </DialogContent>
+      </Dialog>
+    </>
+  )
 }
 
 // ──────────────────────────────────────────────────────────────────────────
@@ -135,6 +203,11 @@ function deriveReproducibility(summary: BenchmarkEvalSummary): DerivedSignal {
       statUnit: "",
       headline: "Reproducibility doesn't apply — no reported scores.",
       detail: "",
+      breakdown: {
+        formula: "Reproducibility = (results with all required setup fields) / (total results).",
+        inputs: [{ label: "Reported results", value: "0" }],
+        empty: "No model results have been reported for this benchmark yet.",
+      },
     }
   }
 
@@ -174,7 +247,49 @@ function deriveReproducibility(summary: BenchmarkEvalSummary): DerivedSignal {
     ? `Most often missing: ${topMissing}.`
     : `Required: ${required.map((f) => FIELD_LABELS[f] ?? f).join(", ")}.`
 
-  return { statValue: pctNum(score), statUnit: "%", headline, detail }
+  const rows: BreakdownRow[] = required.map((field) => {
+    const missing = fieldMissing.get(field) ?? 0
+    const present = total - missing
+    if (missing === 0) {
+      return {
+        label: FIELD_LABELS[field] ?? field,
+        status: "ok",
+        detail: `Reported on every result (${present}/${total}).`,
+      }
+    }
+    if (present === 0) {
+      return {
+        label: FIELD_LABELS[field] ?? field,
+        status: "missing",
+        detail: `Not reported on any result (0/${total}).`,
+      }
+    }
+    return {
+      label: FIELD_LABELS[field] ?? field,
+      status: "warn",
+      detail: `Reported on ${present} of ${total} results.`,
+    }
+  })
+
+  return {
+    statValue: pctNum(score),
+    statUnit: "%",
+    headline,
+    detail,
+    breakdown: {
+      formula:
+        "Reproducibility = (results that record every required setup field) / (total reported results).",
+      inputs: [
+        { label: "Reported results", value: total.toString() },
+        { label: "Fully documented", value: triplesWithoutGap.toString() },
+        {
+          label: "Required fields",
+          value: required.map((f) => FIELD_LABELS[f] ?? f).join(", "),
+        },
+      ],
+      rows,
+    },
+  }
 }
 
 // ──────────────────────────────────────────────────────────────────────────
@@ -284,7 +399,45 @@ function deriveCompleteness(summary: BenchmarkEvalSummary): DerivedSignal {
         topMissing ? ` · gaps: ${topMissing}` : ""
       }`
 
-  return { statValue: pctNum(completeness), statUnit: "%", headline, detail }
+  const rows: BreakdownRow[] = fieldScores.map((f) => {
+    if (f.coverage === "reserved") {
+      return {
+        label: f.label,
+        status: "info",
+        detail: "Reserved field (not yet shipped by the producer).",
+      }
+    }
+    if (f.score === 1) {
+      return { label: f.label, status: "ok", detail: "Fully populated." }
+    }
+    if (f.score === 0) {
+      return { label: f.label, status: "missing", detail: "Empty." }
+    }
+    return {
+      label: f.label,
+      status: "warn",
+      detail: `Partially populated (${formatPct(f.score)} of sub-fields).`,
+    }
+  })
+
+  return {
+    statValue: pctNum(completeness),
+    statUnit: "%",
+    headline,
+    detail,
+    breakdown: {
+      formula:
+        "Completeness = (populated fields + partial fields × fraction populated) / (total fields evaluated).",
+      inputs: [
+        { label: "Fields evaluated", value: total.toString() },
+        { label: "Fully populated", value: populatedCount.toString() },
+        { label: "Partially populated", value: partialCount.toString() },
+        { label: "Empty", value: missingCount.toString() },
+      ],
+      rows,
+      empty: !card ? "No benchmark card has been authored for this benchmark." : undefined,
+    },
+  }
 }
 
 function readCardPath(card: unknown, path: string): unknown {
@@ -326,7 +479,21 @@ function modelKeyForResult(result: ModelResultForBenchmark): string {
   return result.model_info?.id ?? result.model_info?.name ?? ""
 }
 
-function deriveProvenance(summary: BenchmarkEvalSummary): DerivedSignal {
+function deriveProvenance(
+  summary: BenchmarkEvalSummary,
+  cross: CrossSuiteAggregate | null,
+): DerivedSignal {
+  // Cross-suite provenance: when the canonical benchmark appears in
+  // multiple suites, the meaningful provenance question becomes "how
+  // many independent sources have reported any given model on this
+  // benchmark?". Within-page provenance is always single-source on
+  // this site (hierarchy keeps each source isolated), so it doesn't
+  // tell the reader anything they can't see by glancing at the
+  // EVALUATOR column.
+  if (cross && cross.appearances.length >= 2) {
+    return deriveCrossSuiteProvenance(cross)
+  }
+
   const triples = summary.model_results ?? []
   if (triples.length === 0) {
     return {
@@ -334,6 +501,11 @@ function deriveProvenance(summary: BenchmarkEvalSummary): DerivedSignal {
       statUnit: "",
       headline: "No reported scores yet.",
       detail: "",
+      breakdown: {
+        formula: "Provenance = (results with a recorded reporting party) / (total results).",
+        inputs: [{ label: "Reported results", value: "0" }],
+        empty: "No model results have been reported.",
+      },
     }
   }
 
@@ -382,11 +554,48 @@ function deriveProvenance(summary: BenchmarkEvalSummary): DerivedSignal {
   const detailBits = [dist.join(" · ")]
   if (multiRate != null) detailBits.push(`${formatPct(multiRate)} multi-source`)
 
-  return { statValue: pctNum(score), statUnit: "%", headline, detail: detailBits.join(" · ") }
+  const rows: BreakdownRow[] = []
+  for (const org of Array.from(distinctOrgs).sort()) {
+    rows.push({
+      label: org,
+      status: "info",
+      detail: `Reported one or more results.`,
+    })
+  }
+  if (counts.unspecified > 0) {
+    rows.push({
+      label: "Unattributed",
+      status: "warn",
+      detail: `${counts.unspecified} of ${total} results carry no source organization.`,
+    })
+  }
+
+  return {
+    statValue: pctNum(score),
+    statUnit: "%",
+    headline,
+    detail: detailBits.join(" · "),
+    breakdown: {
+      formula: "Provenance = (results with a recorded reporting organization) / (total results).",
+      inputs: [
+        { label: "Total results", value: total.toString() },
+        { label: "First-party", value: counts.first_party.toString() },
+        { label: "Third-party", value: counts.third_party.toString() },
+        { label: "Collaborative", value: counts.collaborative.toString() },
+        { label: "Unattributed", value: counts.unspecified.toString() },
+        { label: "Distinct organizations", value: distinctOrgs.size.toString() },
+        {
+          label: "Multi-source groups",
+          value: `${multiSourceGroups} of ${eligibleGroups}`,
+        },
+      ],
+      rows,
+    },
+  }
 }
 
 // ──────────────────────────────────────────────────────────────────────────
-// Comparability (spec §6)
+// Comparability (spec §6) — cross-suite first, within-page fallback
 // ──────────────────────────────────────────────────────────────────────────
 
 function computeThreshold(metricConfig: BenchmarkEvalSummary["metric_config"]): number {
@@ -402,121 +611,489 @@ function computeThreshold(metricConfig: BenchmarkEvalSummary["metric_config"]): 
   return 0.05
 }
 
-function median(values: number[]): number {
-  if (values.length === 0) return Number.NaN
-  const sorted = [...values].sort((a, b) => a - b)
-  const mid = Math.floor(sorted.length / 2)
-  return sorted.length % 2 === 1 ? sorted[mid] : (sorted[mid - 1] + sorted[mid]) / 2
+interface CrossSuiteAppearance {
+  evalSummaryId: string
+  familyKey: string
+  familyName: string
+  benchmarkKey: string
+  isCurrentEval: boolean
 }
 
-function deriveComparability(summary: BenchmarkEvalSummary): DerivedSignal {
-  const triples = summary.model_results ?? []
-  if (triples.length === 0) {
-    return { statValue: "—", statUnit: "", headline: "No reported scores yet.", detail: "" }
+interface CrossSuiteModelRow {
+  modelRouteId: string
+  modelDisplay: string
+  scoresByEval: Map<string, number>
+  spread: number | null
+}
+
+interface CrossSuiteAggregate {
+  canonicalKey: string
+  canonicalDisplayName: string
+  appearances: CrossSuiteAppearance[]
+  modelRows: CrossSuiteModelRow[]
+  /** Rows where the model was reported in ≥2 sibling evals — eligible
+   *  for an apples-to-apples comparison. */
+  comparedCount: number
+  agreementCount: number
+  divergentCount: number
+  threshold: number
+  thresholdLabel: string
+}
+
+function findCanonicalEntry(
+  hierarchy: EvalHierarchy | null | undefined,
+  evalSummaryId: string,
+): BenchmarkIndexEntry | null {
+  const index = hierarchy?.benchmark_index ?? []
+  if (index.length === 0) return null
+  // Prefer "benchmark canonical" entries (whose appearances all point at
+  // the same benchmark_key) over umbrella entries — same heuristic used
+  // by the model-detail overlap section.
+  const benchmarkCanonicals: BenchmarkIndexEntry[] = []
+  const umbrellas: BenchmarkIndexEntry[] = []
+  for (const entry of index) {
+    const apps = entry.appearances ?? []
+    if (apps.length === 0) continue
+    const ids = new Set<string>()
+    for (const app of apps) for (const id of app.eval_summary_ids ?? []) ids.add(id)
+    if (!ids.has(evalSummaryId)) continue
+    const allMatchKey = apps.every((a) => !a.benchmark_key || a.benchmark_key === entry.key)
+    if (allMatchKey) benchmarkCanonicals.push(entry)
+    else umbrellas.push(entry)
+  }
+  return benchmarkCanonicals[0] ?? umbrellas[0] ?? null
+}
+
+function pickRepresentativeMetric(metrics: ComparisonMetricEntry[]): ComparisonMetricEntry | null {
+  if (metrics.length === 0) return null
+  const isStderr = (id: string) => /(^|_)stderr(_|$)|standard.error/i.test(id)
+  const main =
+    metrics.find(
+      (m) =>
+        !isStderr(m.metric_summary_id) &&
+        /accuracy|score|exact|pass|win|mean/i.test(m.metric_name ?? ""),
+    ) ?? metrics.find((m) => !isStderr(m.metric_summary_id)) ?? metrics[0]
+  return main ?? null
+}
+
+function buildCrossSuiteAggregate(
+  summary: BenchmarkEvalSummary,
+  hierarchy: EvalHierarchy | null | undefined,
+  comparisonIndex: ComparisonIndex | null | undefined,
+): CrossSuiteAggregate | null {
+  if (!hierarchy || !comparisonIndex) return null
+  const evalId = summary.evaluation_id
+  if (!evalId) return null
+
+  const entry = findCanonicalEntry(hierarchy, evalId)
+  if (!entry) return null
+
+  // Collect distinct sibling appearances (skip the current eval if it
+  // appears alone — we need ≥2 siblings to be cross-suite-comparable).
+  const familyDisplayByKey = new Map<string, string>()
+  for (const fam of hierarchy.families ?? []) {
+    familyDisplayByKey.set(fam.key, fam.display_name)
+  }
+  const appearances: CrossSuiteAppearance[] = []
+  const seenEvalIds = new Set<string>()
+  for (const app of entry.appearances ?? []) {
+    for (const id of app.eval_summary_ids ?? []) {
+      if (seenEvalIds.has(id)) continue
+      seenEvalIds.add(id)
+      appearances.push({
+        evalSummaryId: id,
+        familyKey: app.family_key,
+        familyName: familyDisplayByKey.get(app.family_key) ?? app.family_key,
+        benchmarkKey: app.benchmark_key,
+        isCurrentEval: id === evalId,
+      })
+    }
+  }
+  if (appearances.length < 2) return null
+
+  // For each appearance, pick a representative metric and pull its
+  // per-model leaderboard. Different suites may use slightly different
+  // metric names; we pick the most "headline" metric per suite.
+  const metricByEval = new Map<string, ComparisonMetricEntry>()
+  for (const app of appearances) {
+    const evalEntry = comparisonIndex.evals[app.evalSummaryId]
+    if (!evalEntry) continue
+    const metric = pickRepresentativeMetric(evalEntry.metrics)
+    if (metric) metricByEval.set(app.evalSummaryId, metric)
+  }
+  if (metricByEval.size < 2) return null
+
+  // Decide a normalization scale for cross-suite comparison: if the
+  // representative metrics span a 0-1 scale and a 0-100 scale, rescale
+  // the smaller into 0-100 so divergence is computed on a common axis.
+  // Mirrors the model-detail overlap heuristic.
+  const sampleScores: number[] = []
+  for (const [evalId, metric] of metricByEval) {
+    void evalId
+    for (const row of metric.scores ?? []) {
+      if (typeof row.score === "number" && Number.isFinite(row.score)) sampleScores.push(row.score)
+    }
+  }
+  const looksPercent = sampleScores.some((s) => Math.abs(s) > 1.5)
+  const rescale = (raw: number): number => {
+    const isHigh = Math.abs(raw) > 1.5
+    if (looksPercent) return isHigh ? raw : raw * 100
+    return isHigh ? raw / 100 : raw
   }
 
-  const threshold = computeThreshold(summary.metric_config)
-
-  // Group triples by (model_id, metric_path).
-  const groups = new Map<
+  // Collect per-model scores keyed by model_route_id. A model's row is
+  // "compared" when it has scores in ≥2 sibling evals.
+  const rowsByModel = new Map<
     string,
-    Array<{ score: number; args: Record<string, unknown>; org: string | null }>
+    { modelDisplay: string; scoresByEval: Map<string, number> }
   >()
-  for (const t of triples) {
-    const score = t.score_details?.score
-    if (typeof score !== "number" || !Number.isFinite(score)) continue
-    const key = `${modelKeyForResult(t)}::${metricKeyForResult(t)}`
-    const args = getGenerationArgs(t) ?? {}
-    const entry = { score, args, org: readSourceOrg(t) }
-    const list = groups.get(key)
-    if (list) list.push(entry)
-    else groups.set(key, [entry])
-  }
-
-  let variantEligible = 0
-  let variantDivergent = 0
-  let crossPartyEligible = 0
-  let crossPartyDivergent = 0
-
-  for (const list of groups.values()) {
-    if (list.length < 2) continue
-
-    // Variant divergence — same group, different setups (spec §6.1).
-    const setupValueSets = new Map<string, Set<string>>()
-    for (const entry of list) {
-      for (const f of COMPARABILITY_COMPARE_FIELDS) {
-        const valKey = JSON.stringify(entry.args[f] ?? null)
-        let set = setupValueSets.get(f)
-        if (!set) {
-          set = new Set()
-          setupValueSets.set(f, set)
-        }
-        set.add(valKey)
+  for (const [evalSummaryId, metric] of metricByEval) {
+    for (const row of metric.scores ?? []) {
+      if (typeof row.score !== "number" || !Number.isFinite(row.score)) continue
+      const display = row.model_family_name ?? row.model_route_id
+      const slot = rowsByModel.get(row.model_route_id) ?? {
+        modelDisplay: display,
+        scoresByEval: new Map<string, number>(),
       }
-    }
-    const setupsDiffer = Array.from(setupValueSets.values()).some((s) => s.size > 1)
-    if (setupsDiffer) {
-      variantEligible++
-      const scores = list.map((e) => e.score)
-      const divergence = Math.max(...scores) - Math.min(...scores)
-      if (divergence > threshold) variantDivergent++
-    }
-
-    // Cross-party divergence — same group, different orgs (spec §6.2).
-    const byOrg = new Map<string, number[]>()
-    for (const entry of list) {
-      if (!entry.org) continue
-      const arr = byOrg.get(entry.org)
-      if (arr) arr.push(entry.score)
-      else byOrg.set(entry.org, [entry.score])
-    }
-    if (byOrg.size >= 2) {
-      crossPartyEligible++
-      const orgScores = Array.from(byOrg.values()).map((s) => median(s))
-      const divergence = Math.max(...orgScores) - Math.min(...orgScores)
-      if (divergence > threshold) crossPartyDivergent++
+      // Take the first score per (model, eval) — the comparison-index
+      // already de-dupes within a metric.
+      if (!slot.scoresByEval.has(evalSummaryId)) {
+        slot.scoresByEval.set(evalSummaryId, rescale(row.score))
+      }
+      rowsByModel.set(row.model_route_id, slot)
     }
   }
 
-  const totalEligible = variantEligible + crossPartyEligible
-  if (totalEligible === 0) {
+  const baseThreshold = computeThreshold(summary.metric_config)
+  // When we rescaled into a 0-100 axis, scale the threshold accordingly
+  // so the comparison stays meaningful.
+  const threshold = looksPercent && baseThreshold < 1 ? baseThreshold * 100 : baseThreshold
+  const thresholdLabel = looksPercent ? `${formatNumber(threshold)} pts` : `±${formatNumber(threshold)}`
+
+  let comparedCount = 0
+  let divergentCount = 0
+  const modelRows: CrossSuiteModelRow[] = []
+  for (const [routeId, slot] of rowsByModel) {
+    const scores = Array.from(slot.scoresByEval.values())
+    if (scores.length < 2) {
+      modelRows.push({
+        modelRouteId: routeId,
+        modelDisplay: slot.modelDisplay,
+        scoresByEval: slot.scoresByEval,
+        spread: null,
+      })
+      continue
+    }
+    const spread = Math.max(...scores) - Math.min(...scores)
+    comparedCount += 1
+    if (spread > threshold) divergentCount += 1
+    modelRows.push({
+      modelRouteId: routeId,
+      modelDisplay: slot.modelDisplay,
+      scoresByEval: slot.scoresByEval,
+      spread,
+    })
+  }
+  // Sort models with the largest spread to the top (but compared rows
+  // before un-compared so the first model in the list is informative).
+  modelRows.sort((a, b) => {
+    const aHas = a.spread != null ? 1 : 0
+    const bHas = b.spread != null ? 1 : 0
+    if (aHas !== bHas) return bHas - aHas
+    return (b.spread ?? 0) - (a.spread ?? 0)
+  })
+
+  const agreementCount = comparedCount - divergentCount
+
+  return {
+    canonicalKey: entry.key,
+    canonicalDisplayName: entry.display_name,
+    appearances,
+    modelRows,
+    comparedCount,
+    agreementCount,
+    divergentCount,
+    threshold,
+    thresholdLabel,
+  }
+}
+
+function deriveCrossSuiteProvenance(cross: CrossSuiteAggregate): DerivedSignal {
+  const sourceCount = cross.appearances.length
+  // A model is "multi-source-attested" when it appears with a real score
+  // in at least two sibling appearances of the same canonical benchmark.
+  let multiSourceModels = 0
+  let totalModels = 0
+  for (const row of cross.modelRows) {
+    if (row.scoresByEval.size === 0) continue
+    totalModels += 1
+    if (row.scoresByEval.size >= 2) multiSourceModels += 1
+  }
+
+  if (totalModels === 0) {
     return {
       statValue: "—",
       statUnit: "",
-      headline: "Not enough overlapping reports to compare.",
-      detail: `${groups.size} (model, metric) groups · 0 multi-report`,
+      headline: `${sourceCount} sources report this benchmark, but no model overlaps between them.`,
+      detail: "",
+      breakdown: {
+        formula:
+          "Provenance = (models reported by ≥2 independent sources) / (models reported by any source).",
+        inputs: [
+          { label: "Sources reporting this benchmark", value: sourceCount.toString() },
+          { label: "Models with any report", value: "0" },
+        ],
+        custom: <CrossSuiteBreakdown aggregate={cross} />,
+      },
     }
   }
 
-  const totalDivergent = variantDivergent + crossPartyDivergent
-  const agreementRate = (totalEligible - totalDivergent) / totalEligible
-
-  const detailBits: string[] = []
-  if (variantEligible > 0) {
-    detailBits.push(
-      `variant ${variantEligible - variantDivergent}/${variantEligible} agree`,
-    )
-  }
-  if (crossPartyEligible > 0) {
-    detailBits.push(
-      `cross-party ${crossPartyEligible - crossPartyDivergent}/${crossPartyEligible} agree`,
-    )
-  }
-  detailBits.push(`threshold ±${formatNumber(threshold)}`)
-
+  const score = multiSourceModels / totalModels
   const headline =
-    totalDivergent === 0
-      ? "Reports that are directly comparable agree within threshold."
-      : totalDivergent === totalEligible
-      ? "Every comparable report disagrees beyond threshold."
-      : `${totalEligible - totalDivergent} of ${totalEligible} comparable reports agree.`
+    multiSourceModels === 0
+      ? `${sourceCount} independent sources report this benchmark, but no model has been reported by more than one.`
+      : multiSourceModels === totalModels
+      ? `Every reported model has been reported by ≥2 independent sources (${sourceCount} sources total).`
+      : `${multiSourceModels} of ${totalModels} reported models have been reported by ≥2 independent sources.`
+  const detail = `${sourceCount} source${sourceCount === 1 ? "" : "s"} · ${multiSourceModels}/${totalModels} multi-source models`
 
   return {
-    statValue: pctNum(agreementRate),
+    statValue: pctNum(score),
     statUnit: "%",
     headline,
-    detail: detailBits.join(" · "),
+    detail,
+    breakdown: {
+      formula:
+        "Provenance = (models reported by ≥2 independent sources) / (models reported by any source).",
+      inputs: [
+        { label: "Sources reporting this benchmark", value: sourceCount.toString() },
+        { label: "Models reported in any source", value: totalModels.toString() },
+        { label: "Reported by ≥2 sources", value: multiSourceModels.toString() },
+        { label: "Reported by 1 source only", value: (totalModels - multiSourceModels).toString() },
+      ],
+      custom: <CrossSuiteBreakdown aggregate={cross} />,
+    },
   }
+}
+
+function deriveComparability(
+  summary: BenchmarkEvalSummary,
+  cross: CrossSuiteAggregate | null,
+): DerivedSignal {
+  // Cross-suite is the meaningful comparison: the hierarchy keeps each
+  // source on its own eval page, so within-page never has multiple
+  // sources to compare against each other.
+  if (cross && cross.appearances.length >= 2 && cross.comparedCount > 0) {
+    const agreementRate = cross.agreementCount / cross.comparedCount
+    const headline =
+      cross.divergentCount === 0
+        ? `Sources agree across all ${cross.comparedCount} models reported in multiple suites.`
+        : cross.agreementCount === 0
+        ? `Every model reported in multiple suites diverges by more than the ${cross.thresholdLabel} threshold.`
+        : `${cross.agreementCount} of ${cross.comparedCount} models agree across suites within ${cross.thresholdLabel}.`
+    const detail = `${cross.appearances.length} sources · ${cross.comparedCount} model${cross.comparedCount === 1 ? "" : "s"} compared · threshold ${cross.thresholdLabel}`
+
+    const appearanceRows: BreakdownRow[] = cross.appearances.map((a) => ({
+      label: a.familyName,
+      status: a.isCurrentEval ? "info" : "info",
+      detail: a.isCurrentEval ? "Current eval" : "Sibling source",
+      href: a.isCurrentEval ? undefined : `/evals/${a.evalSummaryId.replace(/%2F/g, "/")}`,
+    }))
+
+    return {
+      statValue: pctNum(agreementRate),
+      statUnit: "%",
+      headline,
+      detail,
+      breakdown: {
+        formula:
+          "Comparability = (models whose scores agree within threshold across sources) / (models reported in ≥2 sources).",
+        inputs: [
+          { label: "Sources reporting this benchmark", value: cross.appearances.length.toString() },
+          { label: "Models compared", value: cross.comparedCount.toString() },
+          { label: "Agree within threshold", value: cross.agreementCount.toString() },
+          { label: "Diverge", value: cross.divergentCount.toString() },
+          { label: "Threshold", value: cross.thresholdLabel },
+        ],
+        custom: <CrossSuiteBreakdown aggregate={cross} />,
+        rows: appearanceRows,
+      },
+    }
+  }
+
+  if (cross && cross.appearances.length >= 2) {
+    // Sources exist but no shared models — surface this honestly.
+    return {
+      statValue: "—",
+      statUnit: "",
+      headline: "Sources don't share any models.",
+      detail: `${cross.appearances.length} sources report ${cross.canonicalDisplayName}, but no model overlaps between them.`,
+      breakdown: {
+        formula:
+          "Comparability requires the same model to be reported in ≥2 sources. None overlap on this benchmark.",
+        inputs: [
+          { label: "Sources reporting this benchmark", value: cross.appearances.length.toString() },
+          { label: "Shared models", value: "0" },
+        ],
+        custom: <CrossSuiteBreakdown aggregate={cross} />,
+      },
+    }
+  }
+
+  // Within-page fallback (rarely exercised given the hierarchy design).
+  return deriveWithinPageComparability(summary)
+}
+
+function deriveWithinPageComparability(summary: BenchmarkEvalSummary): DerivedSignal {
+  const triples = summary.model_results ?? []
+  if (triples.length === 0) {
+    return {
+      statValue: "—",
+      statUnit: "",
+      headline: "No reported scores yet.",
+      detail: "",
+      breakdown: {
+        formula:
+          "Comparability looks for the same benchmark reported by multiple sources or with multiple setups, then checks whether the numbers agree.",
+        inputs: [],
+        empty: "No results have been reported.",
+      },
+    }
+  }
+
+  return {
+    statValue: "—",
+    statUnit: "",
+    headline: "Only one source reports this benchmark.",
+    detail: "Cross-suite comparability needs at least two sources reporting the same canonical benchmark.",
+    breakdown: {
+      formula:
+        "Comparability looks for the same benchmark reported by multiple sources or with multiple setups, then checks whether the numbers agree across sources.",
+      inputs: [
+        { label: "Sources reporting this benchmark", value: "1" },
+      ],
+      empty:
+        "This benchmark is only reported on this page. Once another suite reports the same benchmark, comparability will compare scores across them.",
+    },
+  }
+}
+
+function CrossSuiteBreakdown({ aggregate }: { aggregate: CrossSuiteAggregate }) {
+  const ordered = aggregate.modelRows.filter((r) => r.spread != null).slice(0, 8)
+  const remaining = aggregate.modelRows.filter((r) => r.spread != null).length - ordered.length
+
+  return (
+    <div className="mt-4 space-y-4">
+      <div>
+        <div
+          className="mb-2 font-mono uppercase"
+          style={{ fontSize: 10, letterSpacing: "0.14em", color: "var(--fg-subtle)" }}
+        >
+          This evaluation appears across {aggregate.appearances.length} sources
+        </div>
+        <ul className="flex flex-wrap gap-1.5">
+          {aggregate.appearances.map((a) => (
+            <li key={a.evalSummaryId}>
+              {a.isCurrentEval ? (
+                <span
+                  className="ec-tag accent"
+                  style={{ textTransform: "none", fontFamily: "var(--font-mono)", fontSize: 11 }}
+                >
+                  {a.familyName} (current)
+                </span>
+              ) : (
+                <a
+                  href={`/evals/${a.evalSummaryId.replace(/%2F/g, "/")}`}
+                  className="ec-tag outline"
+                  style={{
+                    textTransform: "none",
+                    fontFamily: "var(--font-mono)",
+                    fontSize: 11,
+                    textDecoration: "none",
+                  }}
+                >
+                  {a.familyName}
+                </a>
+              )}
+            </li>
+          ))}
+        </ul>
+      </div>
+
+      {ordered.length > 0 && (
+        <div>
+          <div
+            className="mb-2 font-mono uppercase"
+            style={{ fontSize: 10, letterSpacing: "0.14em", color: "var(--fg-subtle)" }}
+          >
+            Per-model spread across sources
+          </div>
+          <div className="overflow-x-auto">
+            <table className="w-full text-[12px]">
+              <thead>
+                <tr style={{ color: "var(--fg-subtle)" }}>
+                  <th className="text-left font-mono uppercase pb-1.5" style={{ fontSize: 10, letterSpacing: "0.12em" }}>
+                    Model
+                  </th>
+                  {aggregate.appearances.map((a) => (
+                    <th
+                      key={a.evalSummaryId}
+                      className="text-right font-mono uppercase pb-1.5 pl-3"
+                      style={{ fontSize: 10, letterSpacing: "0.12em" }}
+                      title={a.familyName}
+                    >
+                      {a.familyName}
+                    </th>
+                  ))}
+                  <th className="text-right font-mono uppercase pb-1.5 pl-3" style={{ fontSize: 10, letterSpacing: "0.12em" }}>
+                    Spread
+                  </th>
+                </tr>
+              </thead>
+              <tbody>
+                {ordered.map((row) => {
+                  const isDivergent = (row.spread ?? 0) > aggregate.threshold
+                  return (
+                    <tr key={row.modelRouteId} style={{ borderTop: "1px solid var(--border-soft)" }}>
+                      <td className="py-1.5 pr-3 font-medium" style={{ color: "var(--fg)" }}>
+                        {row.modelDisplay}
+                      </td>
+                      {aggregate.appearances.map((a) => {
+                        const score = row.scoresByEval.get(a.evalSummaryId)
+                        return (
+                          <td
+                            key={a.evalSummaryId}
+                            className="py-1.5 pl-3 text-right font-mono tabular-nums"
+                            style={{ color: score != null ? "var(--fg)" : "var(--fg-subtle)" }}
+                          >
+                            {score != null ? formatNumber(score) : "—"}
+                          </td>
+                        )
+                      })}
+                      <td
+                        className="py-1.5 pl-3 text-right font-mono tabular-nums"
+                        style={{ color: isDivergent ? "var(--accent)" : "var(--fg-muted)" }}
+                      >
+                        {row.spread != null ? formatNumber(row.spread) : "—"}
+                      </td>
+                    </tr>
+                  )
+                })}
+              </tbody>
+            </table>
+          </div>
+          {remaining > 0 && (
+            <div
+              className="mt-2 font-mono"
+              style={{ fontSize: 11, color: "var(--fg-subtle)" }}
+            >
+              +{remaining} more model{remaining === 1 ? "" : "s"} not shown
+            </div>
+          )}
+        </div>
+      )}
+    </div>
+  )
 }
 
 // ──────────────────────────────────────────────────────────────────────────
@@ -552,25 +1129,36 @@ function formatNumber(value: number): string {
   return value.toFixed(3).replace(/0+$/g, "").replace(/\.$/, "")
 }
 
-/**
- * Compact one-row layout per signal — meant to drop in alongside the Card
- * Quality Notes box, not dominate the page like the corpus dashboard's
- * full tile grid. Glyph + name + percent live on one line; one short
- * sentence summarising the score lives below. The "Asks" prompt is moved
- * to the title attribute so it stays discoverable on hover but doesn't
- * eat vertical space.
- */
+// ──────────────────────────────────────────────────────────────────────────
+// Tile + Dialog rendering
+// ──────────────────────────────────────────────────────────────────────────
+
 function SignalRow({
   id,
   statValue,
   statUnit,
   headline,
   detail,
+  onOpen,
 }: {
   id: SignalId
+  onOpen: () => void
 } & DerivedSignal) {
   return (
-    <div className="min-w-0" title={SIGNAL_ASKS[id]}>
+    <button
+      type="button"
+      onClick={onOpen}
+      className="text-left transition-colors hover:bg-[color:var(--bg-warm)]"
+      title={SIGNAL_ASKS[id]}
+      style={{
+        background: "transparent",
+        border: 0,
+        padding: "4px 6px",
+        margin: "-4px -6px",
+        cursor: "pointer",
+        minWidth: 0,
+      }}
+    >
       <div className="flex items-center gap-2">
         <span
           className={`sig-glyph sig-${id}`}
@@ -621,6 +1209,144 @@ function SignalRow({
           </span>
         )}
       </div>
-    </div>
+      <div
+        className="mt-1 font-mono uppercase"
+        style={{ fontSize: 9, letterSpacing: "0.14em", color: "var(--accent)" }}
+      >
+        How is this calculated? →
+      </div>
+    </button>
   )
+}
+
+function SignalExplanation({ id, signal }: { id: SignalId; signal: DerivedSignal }) {
+  const breakdown = signal.breakdown
+  return (
+    <>
+      <DialogHeader>
+        <DialogTitle className="flex items-center gap-2">
+          <span
+            className={`sig-glyph sig-${id}`}
+            style={{ width: 22, height: 22, fontSize: "0.7rem" }}
+          >
+            <span>{SIGNAL_GLYPHS[id]}</span>
+          </span>
+          {SIGNAL_NAMES[id]} · {signal.statValue}
+          {signal.statUnit && <span className="text-muted-foreground text-sm">{signal.statUnit}</span>}
+        </DialogTitle>
+        <DialogDescription>{SIGNAL_ASKS[id]}</DialogDescription>
+      </DialogHeader>
+
+      <div className="space-y-4">
+        <div>
+          <div
+            className="mb-1 font-mono uppercase"
+            style={{ fontSize: 10, letterSpacing: "0.14em", color: "var(--fg-subtle)" }}
+          >
+            How it's calculated
+          </div>
+          <p
+            className="text-[13px] leading-[1.6] break-words"
+            style={{ color: "var(--fg)" }}
+          >
+            {breakdown.formula}
+          </p>
+        </div>
+
+        {breakdown.inputs.length > 0 && (
+          <div>
+            <div
+              className="mb-2 font-mono uppercase"
+              style={{ fontSize: 10, letterSpacing: "0.14em", color: "var(--fg-subtle)" }}
+            >
+              Inputs
+            </div>
+            <dl className="ec-datalist" style={{ maxWidth: "none" }}>
+              {breakdown.inputs.map((line) => (
+                <div key={line.label} className="contents">
+                  <dt>{line.label}</dt>
+                  <dd className="font-mono tabular-nums">{line.value}</dd>
+                </div>
+              ))}
+            </dl>
+          </div>
+        )}
+
+        {breakdown.custom}
+
+        {breakdown.rows && breakdown.rows.length > 0 && !breakdown.custom && (
+          <div>
+            <div
+              className="mb-2 font-mono uppercase"
+              style={{ fontSize: 10, letterSpacing: "0.14em", color: "var(--fg-subtle)" }}
+            >
+              Per-item breakdown
+            </div>
+            <ul className="flex flex-col" style={{ borderTop: "1px solid var(--border-soft)" }}>
+              {breakdown.rows.map((row) => (
+                <li
+                  key={row.label}
+                  className="grid gap-x-3 py-1.5"
+                  style={{
+                    gridTemplateColumns: "10px minmax(0, 1fr) auto",
+                    borderBottom: "1px solid var(--border-soft)",
+                    alignItems: "baseline",
+                  }}
+                >
+                  <span
+                    aria-hidden
+                    style={{ color: statusColor(row.status), fontSize: 10, lineHeight: 1 }}
+                  >
+                    {statusGlyph(row.status)}
+                  </span>
+                  <span style={{ color: "var(--fg)", fontSize: 12.5 }}>{row.label}</span>
+                  <span
+                    className="text-right"
+                    style={{ fontSize: 11, color: "var(--fg-muted)" }}
+                  >
+                    {row.detail}
+                  </span>
+                </li>
+              ))}
+            </ul>
+          </div>
+        )}
+
+        {breakdown.empty && (!breakdown.rows || breakdown.rows.length === 0) && !breakdown.custom && (
+          <p
+            className="text-[13px] italic"
+            style={{ color: "var(--fg-muted)" }}
+          >
+            {breakdown.empty}
+          </p>
+        )}
+      </div>
+    </>
+  )
+}
+
+function statusGlyph(status: BreakdownRow["status"]): string {
+  switch (status) {
+    case "ok":
+      return "●"
+    case "warn":
+      return "◐"
+    case "missing":
+      return "○"
+    default:
+      return "·"
+  }
+}
+
+function statusColor(status: BreakdownRow["status"]): string {
+  switch (status) {
+    case "ok":
+      return "var(--accent)"
+    case "warn":
+      return "var(--fg-muted)"
+    case "missing":
+      return "var(--fg-subtle)"
+    default:
+      return "var(--fg-subtle)"
+  }
 }

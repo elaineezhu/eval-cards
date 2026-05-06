@@ -10,10 +10,10 @@ import { EvalDetail } from "@/components/eval-detail"
 import { ParamRangePicker } from "@/components/param-range-picker"
 import { useAudienceMode } from "@/components/audience-mode-provider"
 import type { BenchmarkEvalSummary } from "@/lib/eval-processing"
-import { fetchEvalHierarchy, fetchEvalSummary } from "@/lib/dashboard-data-client"
+import { fetchComparisonIndex, fetchEvalHierarchy, fetchEvalSummary } from "@/lib/dashboard-data-client"
 import { humanizeEvaluationId, routeIdFromSegments, routeIdToPath } from "@/lib/utils"
 import { PARAM_RANGE_MAX_INDEX, parseParamsBillionsFromModelName, paramStepToNumeric } from "@/lib/param-range"
-import type { EvalHierarchy } from "@/lib/backend-artifacts"
+import type { ComparisonIndex, EvalHierarchy } from "@/lib/backend-artifacts"
 import {
   buildHierarchyEvalIndex,
   type HierarchyEvalLocation,
@@ -44,6 +44,7 @@ export default function EvalDetailPage() {
   const [summary, setSummary] = useState<BenchmarkEvalSummary | null>(null)
   const [subSummaries, setSubSummaries] = useState<BenchmarkEvalSummary[]>([])
   const [hierarchy, setHierarchy] = useState<EvalHierarchy | null>(null)
+  const [comparisonIndex, setComparisonIndex] = useState<ComparisonIndex | null>(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const [matrixSearch, setMatrixSearch] = useState("")
@@ -133,6 +134,23 @@ export default function EvalDetailPage() {
     }
     load()
   }, [params.id])
+
+  // Cross-suite comparability needs the full comparison-index, but it's
+  // not on the critical path for first paint — load lazily so the page
+  // renders fast even on slow networks.
+  useEffect(() => {
+    let cancelled = false
+    fetchComparisonIndex()
+      .then((idx) => {
+        if (!cancelled) setComparisonIndex(idx)
+      })
+      .catch((err) => {
+        console.warn("Failed to load comparison-index:", err)
+      })
+    return () => {
+      cancelled = true
+    }
+  }, [])
 
   const hierarchyIndex = useMemo(() => {
     if (!hierarchy) return null
@@ -237,6 +255,8 @@ export default function EvalDetailPage() {
           <EvalDetail
             summary={summary}
             hierarchyLocation={hierarchyLocation}
+            evalHierarchy={hierarchy}
+            comparisonIndex={comparisonIndex}
             activeSummary={activeSplitSummary ?? summary}
             splitConfig={
               splitOptions.length > 1

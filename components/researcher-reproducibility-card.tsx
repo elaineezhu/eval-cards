@@ -373,13 +373,36 @@ export function ResearcherReproducibilityCard({
     },
   ]
 
-  const totalFields = groups.reduce((n, g) => n + g.fields.length, 0)
-  const disclosedFields = groups.reduce(
+  // Mirror the signal-strip's required-fields allowlist (see
+  // BenchmarkSignalsStrip · BASE_REQUIRED_FIELDS / AGENTIC_REQUIRED_FIELDS).
+  // The signal scores reproducibility on temperature + max_tokens only
+  // (plus eval_plan + eval_limits when agentic), so the per-row dropdown
+  // showing all 15 fields was confusing — readers saw "0/15 disclosed"
+  // here but a different ratio in the strip above. Restrict this surface
+  // to the same labels so the two views agree.
+  //
+  // TODO(repro-allowlist): expand both views together once the corpus
+  // populates more fields reliably. Tracked in:
+  //   docs/issues/repro-fields-allowlist-harmonization.md
+  const requiredFieldLabels = new Set<string>(["temperature", "max tokens"])
+  if (hasAgentSetup) {
+    requiredFieldLabels.add("eval plan")
+    requiredFieldLabels.add("eval limits")
+  }
+  const filteredGroups: FieldGroup[] = groups
+    .map((g) => ({
+      ...g,
+      fields: g.fields.filter((f) => requiredFieldLabels.has(f.label)),
+    }))
+    .filter((g) => g.fields.length > 0)
+
+  const totalFields = filteredGroups.reduce((n, g) => n + g.fields.length, 0)
+  const disclosedFields = filteredGroups.reduce(
     (n, g) => n + g.fields.filter((f) => f.value !== null).length,
     0
   )
   const disclosureRatio = totalFields > 0 ? disclosedFields / totalFields : 0
-  const disclosedGroups = groups
+  const disclosedGroups = filteredGroups
     .map((g) => ({ ...g, fields: g.fields.filter((f) => f.value !== null) }))
     .filter((g) => g.fields.length > 0)
 
@@ -409,7 +432,9 @@ export function ResearcherReproducibilityCard({
             </div>
             <div className="text-[12px]" style={{ color: "var(--fg-muted)" }}>
               {isCompact
-                ? `Limited disclosure — only ${disclosedFields} of ${totalFields} reproducibility fields are reported.`
+                ? disclosedFields === 0
+                  ? "How this score was produced wasn't disclosed by the source."
+                  : "Most reproducibility fields aren't documented by the source."
                 : "Everything someone would need to re-run this evaluation. Missing fields are flagged."}
             </div>
           </div>
@@ -431,40 +456,26 @@ export function ResearcherReproducibilityCard({
       </header>
 
       {isCompact ? (
-        <>
-          {disclosedGroups.length > 0 ? (
-            <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-              {disclosedGroups.map((g) => (
-                <div key={g.title}>
-                  <div
-                    className="mb-2 font-mono uppercase"
-                    style={{ fontSize: 10, letterSpacing: "0.14em", color: "var(--fg-subtle)" }}
-                  >
-                    {g.title}
-                  </div>
-                  {g.fields.map((f) => (
-                    <ParamRow key={f.label} label={f.label} termKey={f.termKey} value={f.value} hint={f.hint} />
-                  ))}
+        disclosedGroups.length > 0 ? (
+          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+            {disclosedGroups.map((g) => (
+              <div key={g.title}>
+                <div
+                  className="mb-2 font-mono uppercase"
+                  style={{ fontSize: 10, letterSpacing: "0.14em", color: "var(--fg-subtle)" }}
+                >
+                  {g.title}
                 </div>
-              ))}
-            </div>
-          ) : (
-            <div
-              style={{
-                padding: "8px 12px",
-                fontSize: 12,
-                border: "1px dashed var(--accent)",
-                background: "var(--bg-warm)",
-                color: "var(--accent)",
-              }}
-            >
-              No reproducibility metadata was disclosed by the source.
-            </div>
-          )}
-        </>
+                {g.fields.map((f) => (
+                  <ParamRow key={f.label} label={f.label} termKey={f.termKey} value={f.value} hint={f.hint} />
+                ))}
+              </div>
+            ))}
+          </div>
+        ) : null
       ) : (
         <div className="grid gap-4 lg:grid-cols-3">
-          {groups.map((g) => (
+          {filteredGroups.map((g) => (
             <div key={g.title}>
               <div className="mb-2 text-[10px] font-semibold uppercase tracking-[0.18em] text-muted-foreground">
                 {g.title}
@@ -486,46 +497,14 @@ export function ResearcherReproducibilityCard({
         >
           {showAll
             ? "Hide undisclosed fields"
-            : `Show all ${totalFields} checked fields (${totalFields - disclosedFields} not disclosed)`}
+            : `Show all ${totalFields} checked fields`}
         </button>
       )}
 
-      {promptTemplate && (
-        <details className="mt-4" style={{ border: "1px solid var(--border-soft)", background: "var(--bg-warm)" }}>
-          <summary
-            className="cursor-pointer px-3 py-2 font-mono uppercase"
-            style={{ fontSize: 10, letterSpacing: "0.14em", color: "var(--fg-subtle)" }}
-          >
-            Prompt template
-          </summary>
-          <pre
-            className="max-h-[18rem] overflow-auto whitespace-pre-wrap break-words px-3 py-3 text-[12px] leading-5 font-mono"
-            style={{ borderTop: "1px solid var(--border-soft)", background: "var(--bg)" }}
-          >
-            {promptTemplate}
-          </pre>
-        </details>
-      )}
-      {!promptTemplate && !isCompact && (
-        <div
-          className="mt-4 flex items-center gap-1.5"
-          style={{
-            padding: "8px 12px",
-            fontSize: 12,
-            border: "1px dashed var(--accent)",
-            background: "var(--bg-warm)",
-            color: "var(--accent)",
-          }}
-        >
-          <AlertTriangle className="h-3.5 w-3.5" />
-          <span>
-            Prompt template not disclosed by the source.
-            <SignalTooltip content="Without the prompt, scores can't be reliably reproduced because phrasing changes results.">
-              <span className="ml-1 underline decoration-dotted underline-offset-4 cursor-help">Why this matters</span>
-            </SignalTooltip>
-          </span>
-        </div>
-      )}
+      {/* Prompt-template block hidden until the corpus reliably reports
+          it; see TODO(repro-allowlist) above. The signal score doesn't
+          consider prompt_template either, so showing it here would
+          re-introduce the disagreement we just fixed. */}
 
       {modelResult.source_metadata.source_url && (
         <div className="mt-3">

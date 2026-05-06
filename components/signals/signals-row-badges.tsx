@@ -3,21 +3,24 @@
 import type { RowAnnotations } from "@/lib/backend-artifacts"
 import { cn } from "@/lib/utils"
 import { CrossPartyDivergenceBadge } from "./cross-party-divergence-badge"
-import { ProvenanceBadge } from "./provenance-badge"
 import { ReproducibilityBadge } from "./reproducibility-badge"
 import { VariantDivergenceBadge } from "./variant-divergence-badge"
 
 /**
- * Renders the four signal badges for a single row.
+ * Renders the row-level signal badges (reproducibility + divergence).
  *
- * - `variant`="full" (default): shows all four signals. Use for single-metric
- *   leaderboards, expanded row panels, and one-off contexts.
- * - `variant`="cell": only shows divergence signals (variant + cross-party).
- *   Use inside multi-metric matrix cells, where reproducibility and provenance
- *   are constant across columns and would just be visual noise.
- * - `variant`="row": only shows reproducibility + provenance — the constant
- *   per-(model, benchmark) signals. Pair with `variant="cell"` columns so each
- *   row carries its constant signals once at the row header.
+ * Provenance is intentionally NOT rendered here — every leaderboard that
+ * carries this row strip already has a dedicated EVALUATOR column in the
+ * row chrome (first/third-party pill), and rendering the same fact twice
+ * (in two different visual styles) was confusing readers.
+ *
+ * - `variant`="full" (default): reproducibility + variant + cross-party.
+ *   Use for single-metric leaderboards and expanded row panels.
+ * - `variant`="cell": only the divergence signals (variant + cross-party).
+ *   Use inside multi-metric matrix cells where reproducibility is constant
+ *   across columns and would just be visual noise.
+ * - `variant`="row": only reproducibility — the constant per-(model,
+ *   benchmark) signal. Pair with `variant="cell"` columns.
  */
 export function SignalsRowBadges({
   annotations,
@@ -38,16 +41,11 @@ export function SignalsRowBadges({
   const showCellLevel = variant === "full" || variant === "cell"
 
   const hasReproducibility = showRowLevel && annotations.reproducibility_gap?.has_reproducibility_gap
-  const hasProvenance =
-    showRowLevel &&
-    Boolean(
-      annotations.provenance && annotations.provenance.source_type !== "unspecified"
-    )
   const hasVariant = showCellLevel && annotations.variant_divergence?.has_variant_divergence
   const hasCrossParty =
     showCellLevel && annotations.cross_party_divergence?.has_cross_party_divergence
 
-  if (!hasReproducibility && !hasProvenance && !hasVariant && !hasCrossParty) {
+  if (!hasReproducibility && !hasVariant && !hasCrossParty) {
     return null
   }
 
@@ -60,7 +58,6 @@ export function SignalsRowBadges({
       )}
     >
       {showRowLevel && <ReproducibilityBadge gap={annotations.reproducibility_gap} />}
-      {showRowLevel && <ProvenanceBadge provenance={annotations.provenance} />}
       {showCellLevel && <VariantDivergenceBadge divergence={annotations.variant_divergence} />}
       {showCellLevel && <CrossPartyDivergenceBadge divergence={annotations.cross_party_divergence} />}
     </div>

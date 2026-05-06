@@ -52,6 +52,7 @@ import {
 } from "lucide-react"
 import type { BenchmarkCard, SourceData } from "@/lib/benchmark-schema"
 import type { BenchmarkEvalSummary, ModelResultForBenchmark } from "@/lib/eval-processing"
+import type { ComparisonIndex, EvalHierarchy } from "@/lib/backend-artifacts"
 import type { HierarchyEvalLocation } from "@/lib/hierarchy-lookup"
 import { PolicyOverview } from "@/components/policy-overview"
 import { ResearcherReproducibilityCard } from "@/components/researcher-reproducibility-card"
@@ -77,6 +78,12 @@ interface SplitConfig {
 interface EvalDetailProps {
   summary: BenchmarkEvalSummary
   hierarchyLocation?: HierarchyEvalLocation | null
+  /** Full eval hierarchy — used by the signals strip to find sibling
+   *  appearances of the same canonical benchmark across other suites. */
+  evalHierarchy?: EvalHierarchy | null
+  /** Per-(eval, metric) leaderboard data — used to fetch sibling scores
+   *  for cross-suite comparability. */
+  comparisonIndex?: ComparisonIndex | null
   /**
    * Drives the leaderboard section when a split is selected. Defaults to
    * `summary` when omitted, preserving the single-summary behaviour.
@@ -446,6 +453,55 @@ function isNumericScore(value: number | null | undefined): value is number {
   return typeof value === "number" && Number.isFinite(value)
 }
 
+/**
+ * Sortable column-header button used by the single-metric leaderboard.
+ * Lives inside a `<th>` so the th's hairline border / cell layout still
+ * apply; the button only owns the label, the arrow indicator, and the
+ * click target.
+ *
+ * `<button>` resets `text-transform`, so we re-assert `uppercase`
+ * explicitly to match the surrounding plain-th uppercase styling.
+ */
+function SortableTh({
+  label,
+  active,
+  indicator,
+  onClick,
+  title,
+}: {
+  label: string
+  active: boolean
+  indicator: "↑" | "↓" | null
+  onClick: () => void
+  title?: string
+}) {
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      title={title ?? `Sort by ${label.toLowerCase()}`}
+      className="inline-flex items-center gap-1 hover:text-[color:var(--accent)] transition-colors"
+      style={{
+        background: "transparent",
+        border: 0,
+        padding: 0,
+        cursor: "pointer",
+        font: "inherit",
+        color: active ? "var(--accent)" : "inherit",
+        letterSpacing: "inherit",
+        textTransform: "uppercase",
+      }}
+    >
+      {label}
+      {indicator && (
+        <span aria-hidden style={{ fontSize: 9 }}>
+          {indicator}
+        </span>
+      )}
+    </button>
+  )
+}
+
 function metricLabelReadsAsPercentage(metricLabel: string, unit?: string) {
   const normalized = `${metricLabel} ${unit ?? ""}`.toLowerCase()
   return unit === "%" || /percent|percentage|accuracy|exact match|win rate|pass@|precision|recall|f1/.test(normalized)
@@ -571,6 +627,8 @@ function getSetupLabel(modelResult: ModelResultForBenchmark): string {
 export function EvalDetail({
   summary,
   hierarchyLocation,
+  evalHierarchy,
+  comparisonIndex,
   activeSummary,
   splitConfig,
 }: EvalDetailProps) {
@@ -747,11 +805,130 @@ export function EvalDetail({
     })
   }, [filteredResults])
 
+  // Optional user-driven sort. `default` keeps the score-ordered rows
+  // the ranker already produced. The rank label is always by score
+  // regardless of row order — it's the model's standing on this metric,
+  // not its position in the visible table.
+  type RowSortKey =
+    | "default"
+    | "model"
+    | "developer"
+    | "score"
+    | "evaluator"
+    | "source"
+    | "released"
+    | "updated"
+  const [userRowSort, setUserRowSort] = useState<{ key: RowSortKey; dir: "asc" | "desc" }>(
+    { key: "default", dir: "desc" },
+  )
+
+  const orderedLeaderboardRows = useMemo(() => {
+    if (userRowSort.key === "default") return leaderboardRows
+    // `leaderboardRows` is already "best first" — descending for
+    // higher-is-better metrics, ascending for lower-is-better. Sorting
+    // by score just toggles that order verbatim.
+    if (userRowSort.key === "score") {
+      return userRowSort.dir === "desc" ? leaderboardRows : [...leaderboardRows].reverse()
+    }
+    const parseTs = (d?: string | null): number | null => {
+      if (!d) return null
+      const t = new Date(d).getTime()
+      return Number.isFinite(t) ? t : null
+    }
+    const evaluatorOrder: Record<string, number> = {
+      first_party: 0,
+      collaborative: 1,
+      third_party: 2,
+    }
+    const sourceLabel = (r: ModelResultForBenchmark): string =>
+      (r.source_metadata.source_name?.trim() ||
+        r.source_metadata.source_organization_name?.trim() ||
+        (typeof r.source_metadata.source_type === "string" ? r.source_metadata.source_type : "") ||
+        "").toLowerCase()
+
+    const dirSign = userRowSort.dir === "asc" ? 1 : -1
+
+    return [...leaderboardRows].sort((a, b) => {
+      const ma = a.modelResult
+      const mb = b.modelResult
+      let cmp = 0
+      switch (userRowSort.key) {
+        case "model":
+          cmp = (ma.model_info.name ?? "").localeCompare(mb.model_info.name ?? "")
+          break
+        case "developer":
+          cmp = (ma.model_info.developer ?? "").localeCompare(mb.model_info.developer ?? "")
+          break
+        case "evaluator": {
+          const av = evaluatorOrder[ma.source_metadata.evaluator_relationship] ?? 99
+          const bv = evaluatorOrder[mb.source_metadata.evaluator_relationship] ?? 99
+          cmp = av - bv
+          break
+        }
+        case "source":
+          cmp = sourceLabel(ma).localeCompare(sourceLabel(mb))
+          break
+        case "released":
+        case "updated": {
+          const ta = userRowSort.key === "released"
+            ? parseTs(ma.model_info.release_date)
+            : parseTs(ma.evaluation_timestamp)
+          const tb = userRowSort.key === "released"
+            ? parseTs(mb.model_info.release_date)
+            : parseTs(mb.evaluation_timestamp)
+          // Always push unknown timestamps to the bottom — flipping
+          // direction shouldn't make missing data masquerade as old or
+          // new; it's neither.
+          if (ta == null && tb == null) cmp = 0
+          else if (ta == null) return 1
+          else if (tb == null) return -1
+          else cmp = ta - tb
+          break
+        }
+      }
+      // Stable name fallback so equal keys don't shuffle on re-render.
+      if (cmp === 0) cmp = (ma.model_info.name ?? "").localeCompare(mb.model_info.name ?? "")
+      return cmp * dirSign
+    })
+  }, [leaderboardRows, userRowSort])
+
   const LEADERBOARD_PAGE_SIZE = 50
   const pagedLeaderboardRows = useMemo(
-    () => leaderboardRows.slice(0, leaderboardPage * LEADERBOARD_PAGE_SIZE),
-    [leaderboardRows, leaderboardPage]
+    () => orderedLeaderboardRows.slice(0, leaderboardPage * LEADERBOARD_PAGE_SIZE),
+    [orderedLeaderboardRows, leaderboardPage]
   )
+
+  // First click on a column picks a sensible initial direction (alpha
+  // for text, "best/most-recent first" for numeric/date). Second click
+  // flips. Third click returns to the page's natural order.
+  const naturalDir = (key: Exclude<RowSortKey, "default">): "asc" | "desc" =>
+    key === "model" || key === "developer" || key === "evaluator" || key === "source"
+      ? "asc"
+      : "desc"
+
+  const cycleRowSort = (key: Exclude<RowSortKey, "default">) =>
+    setUserRowSort((prev) => {
+      // For "score" the default order already IS desc, so the visible
+      // first-click flip is to asc.
+      if (key === "score") {
+        if (prev.key !== "score") return { key: "score", dir: "asc" }
+        return { key: "default", dir: "desc" }
+      }
+      const initial = naturalDir(key)
+      if (prev.key !== key) return { key, dir: initial }
+      if (prev.dir === initial) return { key, dir: initial === "asc" ? "desc" : "asc" }
+      return { key: "default", dir: "desc" }
+    })
+
+  const rowSortIndicator = (key: Exclude<RowSortKey, "default">): "↑" | "↓" | null => {
+    if (key === "score") {
+      if (userRowSort.key === "default") return "↓"
+      if (userRowSort.key === "score") return userRowSort.dir === "asc" ? "↑" : "↓"
+      return null
+    }
+    if (userRowSort.key !== key) return null
+    return userRowSort.dir === "asc" ? "↑" : "↓"
+  }
 
   // Hide the "Updated" column when no row has a usable timestamp —
   // every cell would say "Unknown" otherwise. formatDate returns the
@@ -950,7 +1127,11 @@ export function EvalDetail({
         <CollapsibleContent className="mt-3">
           <div className="space-y-4">
             {/* Four interpretive signals (paper §4.2.1), benchmark-level. */}
-            <BenchmarkSignalsStrip summary={summary} />
+            <BenchmarkSignalsStrip
+              summary={summary}
+              evalHierarchy={evalHierarchy}
+              comparisonIndex={comparisonIndex}
+            />
 
             {/* Metric spec / nested datalist (paper-aligned hairline def-list) */}
             <div className="ec-card warm" style={{ padding: "18px 22px" }}>
@@ -1233,17 +1414,67 @@ export function EvalDetail({
               <thead>
                 <tr>
                   <th style={{ width: 64 }} className="num">Rank</th>
-                  <th style={{ minWidth: 260 }}>Model</th>
+                  <th style={{ minWidth: 260 }}>
+                    <SortableTh
+                      label="Model"
+                      active={userRowSort.key === "model"}
+                      indicator={rowSortIndicator("model")}
+                      onClick={() => cycleRowSort("model")}
+                    />
+                  </th>
                   <th className="hidden lg:table-cell" style={{ minWidth: 160 }}>
-                    {isResearchView ? "Developer" : "Provider"}
+                    <SortableTh
+                      label={isResearchView ? "Developer" : "Provider"}
+                      active={userRowSort.key === "developer"}
+                      indicator={rowSortIndicator("developer")}
+                      onClick={() => cycleRowSort("developer")}
+                    />
                   </th>
                   <th className="num" style={{ minWidth: 200 }}>
-                    {lb.metric_config.unit ?? "Score"}
+                    <SortableTh
+                      label={lb.metric_config.unit ?? "Score"}
+                      active={userRowSort.key === "score"}
+                      indicator={rowSortIndicator("score")}
+                      onClick={() => cycleRowSort("score")}
+                      title="Sort by score"
+                    />
                   </th>
-                  <th className="hidden lg:table-cell" style={{ width: 110 }}>Evaluator</th>
-                  <th className="num hidden lg:table-cell" style={{ width: 100 }}>Source</th>
+                  <th className="hidden lg:table-cell" style={{ width: 110 }}>
+                    <SortableTh
+                      label="Evaluator"
+                      active={userRowSort.key === "evaluator"}
+                      indicator={rowSortIndicator("evaluator")}
+                      onClick={() => cycleRowSort("evaluator")}
+                      title="Sort by evaluator relationship (1st-party first)"
+                    />
+                  </th>
+                  <th className="num hidden lg:table-cell" style={{ width: 100 }}>
+                    <SortableTh
+                      label="Source"
+                      active={userRowSort.key === "source"}
+                      indicator={rowSortIndicator("source")}
+                      onClick={() => cycleRowSort("source")}
+                    />
+                  </th>
+                  <th className="hidden lg:table-cell num" style={{ width: 110 }}>
+                    <SortableTh
+                      label="Released"
+                      active={userRowSort.key === "released"}
+                      indicator={rowSortIndicator("released")}
+                      onClick={() => cycleRowSort("released")}
+                      title="Sort by model release date"
+                    />
+                  </th>
                   {hasAnyUpdatedTimestamp && (
-                    <th className="hidden xl:table-cell num" style={{ width: 110 }}>Updated</th>
+                    <th className="hidden xl:table-cell num" style={{ width: 110 }}>
+                      <SortableTh
+                        label="Updated"
+                        active={userRowSort.key === "updated"}
+                        indicator={rowSortIndicator("updated")}
+                        onClick={() => cycleRowSort("updated")}
+                        title="Sort by report timestamp"
+                      />
+                    </th>
                   )}
                 </tr>
               </thead>
@@ -1288,6 +1519,12 @@ export function EvalDetail({
                   const familyLabel = modelResult.model_info.architecture
                     ?? modelResult.model_info.parameter_count
                     ?? null
+                  // Release date is benchmark-agnostic model metadata, but
+                  // showing it under the model name lets a researcher orient
+                  // a row in time without expanding it / clicking through.
+                  const releaseDateLabel = modelResult.model_info.release_date
+                    ? formatDate(modelResult.model_info.release_date).split(",")[0]
+                    : null
                   const isTopRank = rank === 1
                   const rankColor = rank === 1 ? "var(--accent)" : "var(--fg-muted)"
 
@@ -1463,6 +1700,15 @@ export function EvalDetail({
                           )}
                         </td>
 
+                        <td
+                          className="num hidden lg:table-cell align-top font-mono tabular-nums"
+                          style={{ fontSize: 11, color: "var(--fg-muted)" }}
+                        >
+                          {modelResult.model_info.release_date
+                            ? formatDate(modelResult.model_info.release_date).split(",")[0]
+                            : <span style={{ color: "var(--fg-subtle)" }}>—</span>}
+                        </td>
+
                         {hasAnyUpdatedTimestamp && (
                           <td className="num hidden xl:table-cell align-top font-mono tabular-nums" style={{ fontSize: 11, color: "var(--fg-muted)" }}>
                             {formatDate(modelResult.evaluation_timestamp)}
@@ -1472,113 +1718,18 @@ export function EvalDetail({
 
                       {isExpanded && (
                         <tr>
-                          <td colSpan={hasAnyUpdatedTimestamp ? 7 : 6} style={{ background: "var(--bg-warm)", padding: 0 }}>
+                          <td colSpan={hasAnyUpdatedTimestamp ? 8 : 7} style={{ background: "var(--bg-warm)", padding: 0 }}>
                             <div className="space-y-5 px-4 py-5 sm:px-6">
-                              <div className="grid gap-4 xl:grid-cols-3">
-                                <DetailPanel
-                                  title={isResearchView ? "Model Profile" : "System Overview"}
-                                  subtitle={
-                                    isResearchView
-                                      ? "Model metadata for the ranked entry."
-                                      : "Basic system information for this reported result."
-                                  }
-                                >
-                                  {isResearchView && <MetaRow label="Model ID" value={modelResult.model_info.id} />}
-                                  <MetaRow label="Developer" value={modelResult.model_info.developer ?? "Unknown"} />
-                                  <MetaRow label="Release Date" value={modelResult.model_info.release_date ?? "Unknown"} />
-                                  <MetaRow label="Architecture" value={modelResult.model_info.architecture ?? "Unknown"} />
-                                  <MetaRow label="Parameter Count" value={modelResult.model_info.parameter_count ?? "Unknown"} />
-                                  <MetaRow label="Inference Engine" value={modelResult.model_info.inference_engine ?? "Unknown"} />
-                                </DetailPanel>
-
-                                <DetailPanel
-                                  title={isResearchView ? "Evaluation Provenance" : "Source & Accountability"}
-                                  subtitle={
-                                    isResearchView
-                                      ? "Who ran the evaluation and what dataset was used."
-                                      : "Reporting organization, relationship, and dataset context."
-                                  }
-                                >
-                                  <MetaRow
-                                    label="Organization"
-                                    value={modelResult.source_metadata.source_organization_name}
-                                  />
-                                  <MetaRow
-                                    label="Relationship"
-                                    value={modelResult.source_metadata.evaluator_relationship.replace(/_/g, " ")}
-                                  />
-                                  <MetaRow label="Source Type" value={modelResult.source_metadata.source_type} />
-                                  <MetaRow label="Dataset" value={datasetName ?? "Not specified"} />
-                                  <MetaRow
-                                    label="Samples"
-                                    value={samples != null ? samples.toLocaleString() : "Unknown"}
-                                  />
-                                  <MetaRow
-                                    label="Published"
-                                    value={
-                                      modelResult.source_metadata.publication_date
-                                        ? formatDate(modelResult.source_metadata.publication_date)
-                                        : formatDate(modelResult.evaluation_timestamp)
-                                    }
-                                  />
-                                  {modelResult.source_metadata.source_url && (
-                                    <MetaRow
-                                      label="Source URL"
-                                      value={
-                                        <a
-                                          className="inline-flex items-center gap-1 text-primary underline-offset-4 hover:underline"
-                                          href={modelResult.source_metadata.source_url}
-                                          target="_blank"
-                                          rel="noreferrer"
-                                        >
-                                          View source
-                                          <ExternalLink className="h-3.5 w-3.5" />
-                                        </a>
-                                      }
-                                    />
-                                  )}
-                                </DetailPanel>
-
-                                <DetailPanel
-                                  title={isResearchView ? "Score Breakdown" : "Metric Summary"}
-                                  subtitle={
-                                    isResearchView
-                                      ? "Raw score and scale."
-                                      : "Raw performance plus uncertainty and sample details."
-                                  }
-                                >
-                                  <MetaRow
-                                    label={modelResult.aggregate_components ? "Average Raw Score" : "Raw Score"}
-                                    value={formatRawScore(modelResult.score, lb.metric_config.unit)}
-                                  />
-                                  <MetaRow label="Score Type" value={modelResult.result.metric_config.score_type} />
-                                  <MetaRow label="Range" value={`${minScore} - ${maxScore}`} />
-                                  {!isResearchView && (
-                                    <>
-                                      <MetaRow
-                                        label="Sample Size"
-                                        value={modelResult.score_details.sample_size ?? "Unknown"}
-                                      />
-                                      <MetaRow
-                                        label="Standard Error"
-                                        value={modelResult.score_details.standard_error ?? "Unknown"}
-                                      />
-                                      {modelResult.score_details.confidence_interval &&
-                                        modelResult.score_details.confidence_interval.lower != null &&
-                                        modelResult.score_details.confidence_interval.upper != null && (
-                                          <MetaRow
-                                            label="Confidence Interval"
-                                            value={
-                                              modelResult.score_details.confidence_interval.confidence_level != null
-                                                ? `${modelResult.score_details.confidence_interval.lower} - ${modelResult.score_details.confidence_interval.upper} (${modelResult.score_details.confidence_interval.confidence_level}%)`
-                                                : `${modelResult.score_details.confidence_interval.lower} - ${modelResult.score_details.confidence_interval.upper}`
-                                            }
-                                          />
-                                        )}
-                                    </>
-                                  )}
-                                </DetailPanel>
-                              </div>
+                              {/* The Model Profile / Provenance / Score Breakdown
+                                  panels were removed — model metadata lives on
+                                  the model page (the model name in the row is
+                                  a link), provenance is already in the
+                                  EVALUATOR + SOURCE columns, and metric scale /
+                                  score type are constants surfaced in the
+                                  Metric Specification block above the
+                                  leaderboard. The expanded row now focuses
+                                  exclusively on the per-result reproducibility
+                                  setup. */}
 
                               {modelResult.aggregate_components && modelResult.aggregate_components.length > 1 && (
                                 <div className="space-y-2">
@@ -1760,7 +1911,7 @@ export function EvalDetail({
                 })}
                 {leaderboardRows.length === 0 && (
                   <tr>
-                    <td colSpan={hasAnyUpdatedTimestamp ? 7 : 6} style={{ padding: "32px 16px", textAlign: "center", color: "var(--fg-muted)" }}>
+                    <td colSpan={hasAnyUpdatedTimestamp ? 8 : 7} style={{ padding: "32px 16px", textAlign: "center", color: "var(--fg-muted)" }}>
                       No leaderboard entries match the selected parameter range.
                     </td>
                   </tr>
@@ -1956,6 +2107,19 @@ function MultiMetricLeaderboard({
         return sortDirection === "asc" ? comparison : -comparison
       }
 
+      if (sortKey === "released") {
+        const lt = left.model_info.release_date
+        const rt = right.model_info.release_date
+        const lMissing = !lt
+        const rMissing = !rt
+        if (lMissing && rMissing) return compareNames(left, right)
+        // Push unknown release dates to the bottom regardless of direction.
+        if (lMissing) return 1
+        if (rMissing) return -1
+        const comparison = compareTimestamps(lt, rt) || compareNames(left, right)
+        return sortDirection === "asc" ? comparison : -comparison
+      }
+
       const metric = leaderboardMetricMap.get(sortKey)
       if (metric) {
         const leftValue = left.values[sortKey]
@@ -2111,12 +2275,37 @@ function MultiMetricLeaderboard({
               Columns
             </button>
           </DropdownMenuTrigger>
-          <DropdownMenuContent align="end" className="w-80">
-            <DropdownMenuLabel>Visible measure columns</DropdownMenuLabel>
-            <DropdownMenuItem onSelect={() => setVisibleMetricKeys(allMetricKeys)}>
+          <DropdownMenuContent
+            align="end"
+            className="w-80 rounded-none p-0"
+            style={{
+              border: "1px solid var(--border-soft)",
+              background: "var(--bg)",
+              boxShadow: "0 4px 16px rgba(0,0,0,0.08)",
+            }}
+          >
+            <DropdownMenuLabel
+              className="font-mono uppercase"
+              style={{
+                fontSize: 10,
+                letterSpacing: "0.14em",
+                color: "var(--fg-subtle)",
+                padding: "10px 12px 6px",
+              }}
+            >
+              Visible measure columns
+            </DropdownMenuLabel>
+            <DropdownMenuItem
+              onSelect={() => setVisibleMetricKeys(allMetricKeys)}
+              className="rounded-none focus:bg-[color:var(--bg-warm)]"
+              style={{ padding: "8px 12px", color: "var(--accent)" }}
+            >
               Show all
             </DropdownMenuItem>
-            <DropdownMenuSeparator />
+            <DropdownMenuSeparator
+              className="my-0"
+              style={{ background: "var(--border-soft)" }}
+            />
             {leaderboardMetrics.map((metric) => {
               const isVisible = visibleMetricKeySet.has(metric.column_key)
               const isLastVisible = isVisible && visibleMetrics.length === 1
@@ -2128,11 +2317,22 @@ function MultiMetricLeaderboard({
                   checked={isVisible}
                   disabled={isLastVisible}
                   onCheckedChange={(checked) => setMetricVisibility(metric.column_key, checked === true)}
-                  className="items-start"
+                  className="items-start rounded-none focus:bg-[color:var(--bg-warm)]"
+                  style={{ padding: "8px 12px 8px 32px" }}
                 >
                   <div className="flex min-w-0 flex-col gap-0.5">
-                    <span className="font-medium leading-tight text-foreground">{visibleLabel}</span>
-                    <span className="text-xs leading-tight text-muted-foreground">{describeLeaderboardMetric(metric)}</span>
+                    <span
+                      className="font-semibold leading-tight"
+                      style={{ color: "var(--fg)", fontSize: 13 }}
+                    >
+                      {visibleLabel}
+                    </span>
+                    <span
+                      className="leading-tight"
+                      style={{ color: "var(--fg-muted)", fontSize: 11 }}
+                    >
+                      {describeLeaderboardMetric(metric)}
+                    </span>
                   </div>
                 </DropdownMenuCheckboxItem>
               )
@@ -2256,6 +2456,14 @@ function MultiMetricLeaderboard({
                   )
                 })}
                 <th
+                  className="num hidden lg:table-cell"
+                  style={{ width: 110, cursor: "pointer" }}
+                  onClick={() => handleSort("released")}
+                  title="Sort by model release date"
+                >
+                  Released{getSortIndicator("released")}
+                </th>
+                <th
                   className="num hidden xl:table-cell"
                   style={{ width: 110, cursor: "pointer" }}
                   onClick={() => handleSort("updated")}
@@ -2355,6 +2563,14 @@ function MultiMetricLeaderboard({
                     )
                   })}
 
+                  <td
+                    className="num hidden lg:table-cell align-top font-mono tabular-nums"
+                    style={{ fontSize: 11, color: "var(--fg-muted)" }}
+                  >
+                    {row.model_info.release_date
+                      ? formatDate(row.model_info.release_date).split(",")[0]
+                      : <span style={{ color: "var(--fg-subtle)" }}>—</span>}
+                  </td>
                   <td className="num hidden xl:table-cell align-top font-mono tabular-nums" style={{ fontSize: 11, color: "var(--fg-muted)" }}>
                     {formatDate(row.evaluation_timestamp)}
                   </td>
@@ -2362,7 +2578,7 @@ function MultiMetricLeaderboard({
                 {isResearchView && isExpanded && matchingResult && (
                   <tr>
                     <td
-                      colSpan={visibleMetrics.length + 5}
+                      colSpan={visibleMetrics.length + 6}
                       style={{ background: "var(--bg-warm)", padding: "20px 24px" }}
                     >
                       <div className="space-y-3">
@@ -2598,19 +2814,21 @@ function MetaRow({
   }
   return (
     <div
-      className="text-sm"
       style={{
         display: "grid",
         gridTemplateColumns: "8rem minmax(0, 1fr)",
         columnGap: "0.75rem",
         width: "100%",
         minWidth: 0,
+        fontSize: 13,
+        lineHeight: 1.5,
       }}
     >
-      <div className="text-muted-foreground">{label}</div>
+      <div style={{ color: "var(--fg-muted)" }}>{label}</div>
       <div
         className="font-medium"
         style={{
+          color: "var(--fg)",
           minWidth: 0,
           maxWidth: "100%",
           overflowWrap: "anywhere",
