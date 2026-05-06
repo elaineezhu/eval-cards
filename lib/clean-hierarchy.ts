@@ -829,6 +829,65 @@ function consolidateDedicatedHomeBenchmarks(h: CleanableHierarchy) {
     }
   }
 
+  // (d) Drop single-bench families that are pure aliases of bench
+  // rows already published under another family.
+  //
+  // The upstream registry occasionally lists the same physical eval
+  // row under two family names — the canonical example is the `mmlu`
+  // family, whose sole bench `mmlu-pro` carries eval_id
+  // `artificial-analysis-llms%2Fmmlu-pro`. That id is ALREADY covered
+  // by the `artificial-analysis` family's mmlu-pro bench, so the
+  // `mmlu` family is just a duplicate breadcrumb that doesn't add any
+  // new data path.
+  //
+  // A family qualifies for drop only when (1) it has exactly one
+  // bench, and (2) every one of that bench's eval_summary_ids is
+  // already carried by some other surviving family. That keeps
+  // independent sources alive — `mmlu-pro` (eval_id
+  // `mmlu-pro%2Fmmlu-pro`) and `mmlu-pro-leaderboard` (eval_id
+  // `mmlu-pro-leaderboard%2Fmmlu-pro`) each have a unique source row,
+  // so neither is a pure alias and both stay.
+  const idsCoveredByFamily = new Map<HierarchyFamily, Set<string>>()
+  for (const fam of allFamilies) {
+    if (dropped.has(fam)) continue
+    const ids = new Set<string>()
+    for (const handle of benchesByFam.get(fam) ?? []) {
+      for (const id of handle.bench.summary_eval_ids ?? []) ids.add(id)
+    }
+    idsCoveredByFamily.set(fam, ids)
+  }
+  // Pre-compute the set of surviving family keys so we can also gate
+  // on "the bench key has its own canonical family". Without this gate
+  // we'd incorrectly drop curated leaderboards (`tau-bench` whose sole
+  // bench `tau-bench-airline` is only covered by the `hal` source
+  // family) just because some other family already publishes the row.
+  const familyKeysAlive = new Set<string>()
+  for (const fam of allFamilies) {
+    if (!dropped.has(fam)) familyKeysAlive.add(fam.key)
+  }
+  for (const fam of allFamilies) {
+    if (dropped.has(fam)) continue
+    const benches = benchesByFam.get(fam) ?? []
+    if (benches.length !== 1) continue
+    const soleBench = benches[0].bench
+    // Bench key must already belong to another family — that family is
+    // the canonical home; this single-bench family is just a stray
+    // breadcrumb. (Skipping when the bench key equals the family key
+    // itself, since that's the family BEING the canonical home.)
+    if (soleBench.key === fam.key) continue
+    if (!familyKeysAlive.has(soleBench.key)) continue
+    const soleIds = soleBench.summary_eval_ids ?? []
+    if (soleIds.length === 0) continue
+    const allCoveredElsewhere = soleIds.every((id) => {
+      for (const [otherFam, otherIds] of idsCoveredByFamily) {
+        if (otherFam === fam || dropped.has(otherFam)) continue
+        if (otherIds.has(id)) return true
+      }
+      return false
+    })
+    if (allCoveredElsewhere) dropped.add(fam)
+  }
+
   h.families = allFamilies.filter((fam) => !dropped.has(fam))
 }
 
