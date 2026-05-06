@@ -463,17 +463,44 @@ function describeLeaderboardMetric(metric: LeaderboardMetric) {
   return metric.canonical_display_name || metric.display_name
 }
 
-function getCompactMetricLabel(value: string | undefined) {
-  if (!value) {
-    return "Metric"
-  }
-
+function compactizePath(value: string): string {
   const parts = value
     .split("/")
     .map((part) => part.trim())
     .filter(Boolean)
-
   return parts[parts.length - 1] ?? value
+}
+
+function getCompactMetricLabel(value: string | undefined): string {
+  if (value && value.trim()) return compactizePath(value)
+  return "Metric"
+}
+
+/**
+ * Build a chip-friendly label for a leaderboard metric. Prefers
+ * display_name, then metric_name, then a humanised tail of metric_id /
+ * column_key. The upstream pipeline frequently leaves display_name
+ * blank (e.g. inspect_evals/avg_full_score), in which case the
+ * column_key tail ('avg_full_score') is what we want to surface.
+ */
+function getMetricChipLabel(metric: {
+  display_name?: string | null
+  metric_name?: string | null
+  metric_id?: string | null
+  column_key?: string | null
+}): string {
+  const candidates = [
+    metric.display_name,
+    metric.metric_name,
+    metric.metric_id,
+    metric.column_key,
+  ]
+  for (const c of candidates) {
+    if (c && String(c).trim()) {
+      return compactizePath(String(c)).replace(/_/g, " ")
+    }
+  }
+  return "Metric"
 }
 
 /**
@@ -1078,14 +1105,23 @@ export function EvalDetail({
             />
           )}
 
-          {/* Score distribution — paper-themed mean/median/quartile summary */}
+          {/* Score distribution — paper-themed mean/median/quartile summary,
+              with an optional Frontier toggle when models carry release dates. */}
           {leaderboardRows.length >= 3 && (
             <div className="mb-4">
               <ScoreDistribution
-                values={leaderboardRows.map((r) => r.modelResult.score)}
-                label={lb.metric_config.unit ?? "Score"}
-                unit={lb.metric_config.unit}
-                lowerIsBetter={lb.metric_config.lower_is_better}
+                series={[{
+                  key: "primary",
+                  label: lb.metric_config.unit ?? "Score",
+                  values: leaderboardRows.map((r) => r.modelResult.score),
+                  unit: lb.metric_config.unit,
+                  lowerIsBetter: lb.metric_config.lower_is_better,
+                  points: leaderboardRows.map((r) => ({
+                    score: r.modelResult.score,
+                    releaseDate: r.modelResult.model_info.release_date,
+                    modelName: r.modelResult.model_info.name,
+                  })),
+                }]}
               />
             </div>
           )}
@@ -2017,18 +2053,26 @@ function MultiMetricLeaderboard({
       {(() => {
         const distSeries = visibleMetrics
           .map((metric) => {
-            const values = filteredRows
-              .map((r) => r.values[metric.column_key])
-              .filter((v): v is number => isNumericScore(v))
-            if (values.length < 3) return null
-            const label = getCompactMetricLabel(metric.display_name)
+            const points: Array<{ score: number; releaseDate: string | null; modelName: string }> = []
+            for (const r of filteredRows) {
+              const score = r.values[metric.column_key]
+              if (!isNumericScore(score)) continue
+              points.push({
+                score,
+                releaseDate: r.model_info?.release_date ?? null,
+                modelName: r.model_info?.name ?? "",
+              })
+            }
+            if (points.length < 3) return null
+            const label = getMetricChipLabel(metric)
             return {
               key: metric.column_key,
               label,
               caption: metric.unit ?? undefined,
-              values,
+              values: points.map((p) => p.score),
               unit: metric.unit ?? undefined,
               lowerIsBetter: metric.lower_is_better,
+              points,
             }
           })
           .filter((entry): entry is NonNullable<typeof entry> => entry !== null)

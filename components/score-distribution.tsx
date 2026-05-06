@@ -12,6 +12,17 @@ interface ScoreSeries {
   values: number[]
   unit?: string
   lowerIsBetter?: boolean
+  /**
+   * Per-model rows for the optional frontier-plot view. When provided
+   * (and at least one row carries a parseable releaseDate), the panel
+   * exposes a chip toggle that swaps the density curve for a
+   * release-date frontier (cumulative best score over time).
+   */
+  points?: Array<{
+    score: number
+    releaseDate?: string | null
+    modelName?: string | null
+  }>
 }
 
 interface ScoreDistributionProps {
@@ -36,6 +47,27 @@ interface SummaryStats {
   median: number
   q1: number
   q3: number
+}
+
+function parseReleaseDate(value: string | null | undefined): number | null {
+  if (!value) return null
+  const raw = String(value).trim()
+  if (!raw) return null
+  // Numeric epoch — treat seconds-since-epoch values as such, ms otherwise.
+  const numeric = Number(raw)
+  if (!Number.isNaN(numeric) && !raw.includes("-")) {
+    const ms = numeric > 1_000_000_000_000 ? numeric : numeric * 1000
+    return Number.isFinite(ms) ? ms : null
+  }
+  const parsed = new Date(raw).getTime()
+  return Number.isFinite(parsed) ? parsed : null
+}
+
+const MONTH_LABELS = ["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"]
+function formatMonthYear(ms: number): string {
+  const d = new Date(ms)
+  if (Number.isNaN(d.getTime())) return ""
+  return `${MONTH_LABELS[d.getUTCMonth()]} ${d.getUTCFullYear()}`
 }
 
 function computeStats(values: number[]): SummaryStats | null {
@@ -115,6 +147,45 @@ export function ScoreDistribution({
     seriesList.find((s) => s.key === activeKey) ?? seriesList[0]
 
   const stats = useMemo(() => (active ? computeStats(active.values) : null), [active])
+
+  // Frontier-plot data: parse release dates, sort by time, then walk the
+  // sequence emitting an event whenever a model improves on the best
+  // score seen so far. Honours lowerIsBetter so e.g. "Mean Response
+  // Time · ms" shows the frontier descending instead of climbing.
+  const frontier = useMemo(() => {
+    if (!active?.points || active.points.length === 0) return null
+    const lowerIsBetter = active.lowerIsBetter ?? false
+    const parsed = active.points
+      .map((p) => {
+        const t = parseReleaseDate(p.releaseDate)
+        if (t == null) return null
+        if (!Number.isFinite(p.score)) return null
+        return { time: t, score: p.score, name: p.modelName ?? "" }
+      })
+      .filter((p): p is { time: number; score: number; name: string } => p !== null)
+      .sort((a, b) => a.time - b.time)
+
+    if (parsed.length < 2) return null
+
+    let best = lowerIsBetter ? Number.POSITIVE_INFINITY : Number.NEGATIVE_INFINITY
+    const events: typeof parsed = []
+    for (const p of parsed) {
+      const better = lowerIsBetter ? p.score < best : p.score > best
+      if (better) {
+        best = p.score
+        events.push(p)
+      }
+    }
+    if (events.length < 2) return null
+    return { events, samples: parsed }
+  }, [active])
+
+  const canShowFrontier = frontier != null
+  const [view, setView] = useState<"distribution" | "frontier">("distribution")
+  // If the active series doesn't support frontier (e.g. user switched to
+  // a metric whose models don't carry release_date), fall back to the
+  // distribution view rather than rendering an empty panel.
+  const effectiveView = canShowFrontier ? view : "distribution"
 
   const density = useMemo(() => {
     if (!active || !stats) return null
@@ -199,15 +270,58 @@ export function ScoreDistribution({
       }}
     >
       {!compact && (
-        <div className="flex items-center justify-between gap-3 mb-3 flex-wrap">
-          <div className="flex items-center gap-3 min-w-0">
+        <div className="mb-3 space-y-2">
+          {/* Row 1 — View toggle (left) + direction hint (right). The
+              kicker label makes it clear that these chips switch the
+              chart type, distinguishing them from the metric chips
+              below. */}
+          <div className="flex items-center justify-between gap-3 flex-wrap">
+            <div className="flex items-center gap-2 min-w-0">
+              <span
+                className="font-mono uppercase shrink-0"
+                style={{ fontSize: 10, letterSpacing: "0.14em", color: "var(--fg-subtle)" }}
+              >
+                {canShowFrontier ? "View" : "Score distribution"}
+              </span>
+              {canShowFrontier && (
+                <div className="flex items-center gap-1">
+                  <button
+                    type="button"
+                    className={`ec-pill${effectiveView === "distribution" ? " on" : ""}`}
+                    onClick={() => setView("distribution")}
+                  >
+                    Distribution
+                  </button>
+                  <button
+                    type="button"
+                    className={`ec-pill${effectiveView === "frontier" ? " on" : ""}`}
+                    onClick={() => setView("frontier")}
+                    title="Frontier score over model release dates (cumulative best)."
+                  >
+                    Frontier
+                  </button>
+                </div>
+              )}
+            </div>
             <div
               className="font-mono uppercase shrink-0"
-              style={{ fontSize: 10, letterSpacing: "0.14em", color: "var(--fg-subtle)" }}
+              style={{ fontSize: 9.5, letterSpacing: "0.12em", color: "var(--fg-subtle)" }}
             >
-              Score distribution
+              {directionHint}
             </div>
-            {showPicker ? (
+          </div>
+
+          {/* Row 2 — Metric chips. Only shown when there's more than
+              one series; otherwise the active label gets a quiet inline
+              caption next to the view kicker. */}
+          {showPicker ? (
+            <div className="flex items-baseline gap-2 flex-wrap">
+              <span
+                className="font-mono uppercase shrink-0"
+                style={{ fontSize: 10, letterSpacing: "0.14em", color: "var(--fg-subtle)" }}
+              >
+                Metric
+              </span>
               <div className="flex flex-wrap items-center gap-1.5">
                 {seriesList.map((s) => {
                   const on = s.key === active.key
@@ -232,22 +346,17 @@ export function ScoreDistribution({
                   )
                 })}
               </div>
-            ) : (
-              <span
-                className="font-mono uppercase truncate"
-                style={{ fontSize: 11, letterSpacing: "0.08em", color: "var(--fg)" }}
-                title={active.label}
-              >
-                · {active.label}
-              </span>
-            )}
-          </div>
-          <div
-            className="font-mono uppercase shrink-0"
-            style={{ fontSize: 9.5, letterSpacing: "0.12em", color: "var(--fg-subtle)" }}
-          >
-            {directionHint}
-          </div>
+            </div>
+          ) : (
+            <div
+              className="font-mono uppercase truncate"
+              style={{ fontSize: 11, letterSpacing: "0.08em", color: "var(--fg-muted)" }}
+              title={active.label}
+            >
+              {active.label}
+              {active.unit ? <span style={{ color: "var(--fg-subtle)" }}>{" · " + active.unit}</span> : null}
+            </div>
+          )}
         </div>
       )}
 
@@ -261,6 +370,15 @@ export function ScoreDistribution({
         </div>
       )}
 
+      {effectiveView === "frontier" && frontier ? (
+        <FrontierPlot
+          events={frontier.events}
+          samples={frontier.samples}
+          unit={active.unit}
+          lowerIsBetter={active.lowerIsBetter ?? false}
+          label={active.label}
+        />
+      ) : (
       <svg
         viewBox={`0 0 ${width} ${plotHeight + 8}`}
         preserveAspectRatio="none"
@@ -349,8 +467,11 @@ export function ScoreDistribution({
           vectorEffect="non-scaling-stroke"
         />
       </svg>
+      )}
 
-      {/* Caption row */}
+      {/* Caption row — hidden in frontier view since it tracks
+          distribution stats; the frontier panel renders its own caption. */}
+      {effectiveView !== "frontier" && (
       <div
         className="mt-2 flex flex-wrap items-baseline font-mono"
         style={{
@@ -389,8 +510,9 @@ export function ScoreDistribution({
           </span>
         ))}
       </div>
+      )}
 
-      {!compact && (
+      {!compact && effectiveView !== "frontier" && (
         <div
           className="mt-1 flex items-center gap-3 font-mono"
           style={{ fontSize: 9, letterSpacing: "0.06em", color: "var(--fg-subtle)" }}
@@ -433,6 +555,372 @@ export function ScoreDistribution({
           </span>
         </div>
       )}
+    </div>
+  )
+}
+
+interface FrontierPlotProps {
+  /** Strictly-improving subset of the input — each entry pushes the
+   *  cumulative best score further. Already sorted ascending by time. */
+  events: Array<{ time: number; score: number; name: string }>
+  /** Every dated sample (improving or not), used as background dots. */
+  samples: Array<{ time: number; score: number; name: string }>
+  unit?: string
+  lowerIsBetter: boolean
+  label: string
+}
+
+function FrontierPlot({ events, samples, unit, lowerIsBetter, label }: FrontierPlotProps) {
+  const PLOT_HEIGHT = 180
+  const PAD_T = 8
+  const PAD_B = 22 // room for year labels under the axis
+  const PAD_L_PCT = 1
+  const PAD_R_PCT = 1
+
+  const tMin = Math.min(...samples.map((s) => s.time))
+  const tMaxData = Math.max(...samples.map((s) => s.time))
+  // Always extend the rightmost edge to "now" so the user sees how
+  // long the current frontier holder has been on top.
+  const tMax = Math.max(tMaxData, Date.now())
+  const tRange = tMax - tMin || 1
+  const sValues = samples.map((s) => s.score)
+  const sMin = Math.min(...sValues)
+  const sMax = Math.max(...sValues)
+  const sRange = sMax - sMin || Math.abs(sMax) || 1
+  // Pad y so dots don't kiss the borders.
+  const yLo = sMin - sRange * 0.05
+  const yHi = sMax + sRange * 0.05
+  const yRange = yHi - yLo || 1
+
+  // Percent helpers — used for both HTML overlay positioning and the
+  // SVG path (which uses a 0-100 viewBox so the line scales with the
+  // container without distorting other glyphs).
+  const xPct = (t: number) =>
+    PAD_L_PCT + ((t - tMin) / tRange) * (100 - PAD_L_PCT - PAD_R_PCT)
+  const yPct = (s: number) =>
+    100 - ((s - yLo) / yRange) * 100 // 0 at top, 100 at bottom
+
+  // Pixel helpers for the step-line SVG. Keep its viewBox at 100x100
+  // so it overlays the container 1:1, while strokeWidth uses
+  // vectorEffect=non-scaling-stroke so the line stays crisp.
+  let d = ""
+  for (let i = 0; i < events.length; i++) {
+    const e = events[i]
+    const x = xPct(e.time)
+    const y = yPct(e.score)
+    if (i === 0) {
+      d += `M${x.toFixed(3)},${y.toFixed(3)} `
+    } else {
+      const prev = events[i - 1]
+      const yPrev = yPct(prev.score)
+      d += `L${x.toFixed(3)},${yPrev.toFixed(3)} L${x.toFixed(3)},${y.toFixed(3)} `
+    }
+  }
+  if (events.length > 0) {
+    const last = events[events.length - 1]
+    d += `L${xPct(tMax).toFixed(3)},${yPct(last.score).toFixed(3)}`
+  }
+
+  // Year tick marks along the x-axis. Keep at most 6 to avoid label
+  // collisions on narrow viewports.
+  const startYear = new Date(tMin).getUTCFullYear()
+  const endYear = new Date(tMax).getUTCFullYear()
+  const yearSpan = endYear - startYear
+  const tickStep = yearSpan <= 6 ? 1 : Math.ceil(yearSpan / 6)
+  const yearTicks: number[] = []
+  for (let y = startYear; y <= endYear; y += tickStep) yearTicks.push(y)
+
+  // Pre-bucket samples that *aren't* on the frontier so we don't
+  // double-render them (the frontier dots are emphasised separately).
+  const eventTimes = new Set(events.map((e) => `${e.time}|${e.score}`))
+  const bgSamples = samples.filter((s) => !eventTimes.has(`${s.time}|${s.score}`))
+
+  // Local hover state so we can render a richer label than the native
+  // `title=` tooltip — keeps the dot and the popup nameplate in sync
+  // even when the cursor sits right between two dots.
+  const [hover, setHover] = useState<{
+    x: number
+    y: number
+    name: string
+    when: string
+    score: string
+    onFrontier: boolean
+  } | null>(null)
+
+  return (
+    <div>
+      <div
+        style={{
+          position: "relative",
+          width: "100%",
+          height: PLOT_HEIGHT,
+          paddingTop: PAD_T,
+          paddingBottom: PAD_B,
+          boxSizing: "border-box",
+        }}
+        onMouseLeave={() => setHover(null)}
+      >
+        {/* Inner plot canvas (the area minus axis padding). */}
+        <div
+          style={{
+            position: "absolute",
+            top: PAD_T,
+            bottom: PAD_B,
+            left: 0,
+            right: 0,
+          }}
+        >
+          {/* Step line. The SVG uses a 0-100 viewBox so its path lines
+              up with HTML overlays positioned via the same xPct/yPct
+              helpers; non-scaling-stroke keeps the stroke crisp. */}
+          <svg
+            viewBox="0 0 100 100"
+            preserveAspectRatio="none"
+            style={{
+              position: "absolute",
+              inset: 0,
+              width: "100%",
+              height: "100%",
+              pointerEvents: "none",
+            }}
+            aria-hidden
+          >
+            <path
+              d={d}
+              fill="none"
+              stroke="var(--accent)"
+              strokeWidth={1.5}
+              vectorEffect="non-scaling-stroke"
+              strokeLinejoin="round"
+              strokeLinecap="round"
+            />
+          </svg>
+
+          {/* Background sample dots — every dated model that's NOT on
+              the frontier. Rendered as HTML so they're crisp circles
+              and individually clickable / focusable. */}
+          {bgSamples.map((s, i) => (
+            <button
+              key={`s-${i}`}
+              type="button"
+              aria-label={`${s.name || "Model"} · ${formatMonthYear(s.time)} · ${formatValue(s.score, unit)}`}
+              onMouseEnter={(event) => {
+                const rect = event.currentTarget.parentElement!.getBoundingClientRect()
+                const dot = event.currentTarget.getBoundingClientRect()
+                setHover({
+                  x: dot.left + dot.width / 2 - rect.left,
+                  y: dot.top + dot.height / 2 - rect.top,
+                  name: s.name || "Model",
+                  when: formatMonthYear(s.time),
+                  score: formatValue(s.score, unit),
+                  onFrontier: false,
+                })
+              }}
+              onFocus={(event) => {
+                const rect = event.currentTarget.parentElement!.getBoundingClientRect()
+                const dot = event.currentTarget.getBoundingClientRect()
+                setHover({
+                  x: dot.left + dot.width / 2 - rect.left,
+                  y: dot.top + dot.height / 2 - rect.top,
+                  name: s.name || "Model",
+                  when: formatMonthYear(s.time),
+                  score: formatValue(s.score, unit),
+                  onFrontier: false,
+                })
+              }}
+              style={{
+                position: "absolute",
+                left: `${xPct(s.time)}%`,
+                top: `${yPct(s.score)}%`,
+                transform: "translate(-50%, -50%)",
+                width: 7,
+                height: 7,
+                borderRadius: "50%",
+                background: "var(--fg-subtle)",
+                opacity: 0.4,
+                border: "none",
+                padding: 0,
+                cursor: "pointer",
+              }}
+            />
+          ))}
+
+          {/* Frontier-crossing dots, foregrounded. */}
+          {events.map((e, i) => (
+            <button
+              key={`e-${i}`}
+              type="button"
+              aria-label={`Frontier: ${e.name || "Model"} · ${formatMonthYear(e.time)} · ${formatValue(e.score, unit)}`}
+              onMouseEnter={(event) => {
+                const rect = event.currentTarget.parentElement!.getBoundingClientRect()
+                const dot = event.currentTarget.getBoundingClientRect()
+                setHover({
+                  x: dot.left + dot.width / 2 - rect.left,
+                  y: dot.top + dot.height / 2 - rect.top,
+                  name: e.name || "Model",
+                  when: formatMonthYear(e.time),
+                  score: formatValue(e.score, unit),
+                  onFrontier: true,
+                })
+              }}
+              onFocus={(event) => {
+                const rect = event.currentTarget.parentElement!.getBoundingClientRect()
+                const dot = event.currentTarget.getBoundingClientRect()
+                setHover({
+                  x: dot.left + dot.width / 2 - rect.left,
+                  y: dot.top + dot.height / 2 - rect.top,
+                  name: e.name || "Model",
+                  when: formatMonthYear(e.time),
+                  score: formatValue(e.score, unit),
+                  onFrontier: true,
+                })
+              }}
+              style={{
+                position: "absolute",
+                left: `${xPct(e.time)}%`,
+                top: `${yPct(e.score)}%`,
+                transform: "translate(-50%, -50%)",
+                width: 11,
+                height: 11,
+                borderRadius: "50%",
+                background: "var(--accent)",
+                border: "1.5px solid var(--bg)",
+                padding: 0,
+                cursor: "pointer",
+                boxShadow: "0 0 0 0.5px var(--accent)",
+              }}
+            />
+          ))}
+
+          {/* Hover nameplate */}
+          {hover && (
+            <div
+              role="status"
+              style={{
+                position: "absolute",
+                left: hover.x,
+                top: hover.y - 14,
+                transform: "translate(-50%, -100%)",
+                pointerEvents: "none",
+                background: "var(--fg)",
+                color: "var(--bg)",
+                padding: "5px 9px",
+                fontSize: 11,
+                lineHeight: 1.3,
+                whiteSpace: "nowrap",
+                fontFamily: "var(--font-sans, inherit)",
+                boxShadow: "var(--shadow-card, 0 2px 6px rgba(0,0,0,0.18))",
+                zIndex: 2,
+              }}
+            >
+              <div style={{ fontWeight: 600 }}>{hover.name}</div>
+              <div
+                className="font-mono"
+                style={{
+                  fontSize: 10,
+                  letterSpacing: "0.04em",
+                  opacity: 0.8,
+                  marginTop: 1,
+                }}
+              >
+                {hover.when} · {hover.score}
+                {hover.onFrontier ? " · frontier" : ""}
+              </div>
+            </div>
+          )}
+
+          {/* Baseline */}
+          <div
+            aria-hidden
+            style={{
+              position: "absolute",
+              left: 0,
+              right: 0,
+              bottom: 0,
+              height: 1,
+              background: "var(--border-strong)",
+            }}
+          />
+        </div>
+
+        {/* Year ticks under the baseline */}
+        {yearTicks.map((y) => {
+          const t = Date.UTC(y, 0, 1)
+          if (t < tMin || t > tMax) return null
+          return (
+            <div
+              key={y}
+              aria-hidden
+              style={{
+                position: "absolute",
+                left: `${xPct(t)}%`,
+                bottom: 4,
+                transform: "translateX(-50%)",
+                fontFamily: "var(--font-mono)",
+                fontSize: 10,
+                color: "var(--fg-subtle)",
+                letterSpacing: "0.06em",
+              }}
+            >
+              {y}
+            </div>
+          )
+        })}
+      </div>
+
+      <div
+        className="mt-1 flex flex-wrap items-baseline font-mono"
+        style={{
+          fontSize: 10.5,
+          letterSpacing: "0.04em",
+          color: "var(--fg-muted)",
+          gap: "4px 14px",
+        }}
+      >
+        <span className="inline-flex items-baseline gap-1">
+          <span
+            className="uppercase"
+            style={{ fontSize: 9.5, letterSpacing: "0.12em", color: "var(--fg-subtle)" }}
+          >
+            frontier
+          </span>
+          <span className="tabular-nums" style={{ color: "var(--fg)", fontWeight: 600 }}>
+            {events.length} step{events.length === 1 ? "" : "s"}
+          </span>
+        </span>
+        <span className="inline-flex items-baseline gap-1">
+          <span style={{ color: "var(--fg-subtle)" }}>·</span>
+          <span
+            className="uppercase"
+            style={{ fontSize: 9.5, letterSpacing: "0.12em", color: "var(--fg-subtle)" }}
+          >
+            best
+          </span>
+          <span className="tabular-nums" style={{ color: "var(--fg)" }}>
+            {formatValue(events[events.length - 1]?.score, unit)}
+          </span>
+          <span style={{ color: "var(--fg-subtle)" }}>by</span>
+          <span style={{ color: "var(--fg)" }}>{events[events.length - 1]?.name || "—"}</span>
+        </span>
+        <span className="inline-flex items-baseline gap-1">
+          <span style={{ color: "var(--fg-subtle)" }}>·</span>
+          <span
+            className="uppercase"
+            style={{ fontSize: 9.5, letterSpacing: "0.12em", color: "var(--fg-subtle)" }}
+          >
+            since
+          </span>
+          <span className="tabular-nums" style={{ color: "var(--fg)" }}>
+            {formatMonthYear(events[0].time)}
+          </span>
+        </span>
+        <span className="inline-flex items-baseline gap-1" style={{ color: "var(--fg-subtle)" }}>
+          <span>·</span>
+          <span style={{ fontSize: 9 }}>
+            {lowerIsBetter ? "frontier descends — lower is better" : "frontier ascends — higher is better"}
+          </span>
+        </span>
+      </div>
     </div>
   )
 }

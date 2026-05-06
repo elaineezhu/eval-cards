@@ -533,12 +533,13 @@ function consolidateDedicatedHomeBenchmarks(h: CleanableHierarchy) {
     return sliceCount + metricCount
   }
 
-  // Score every appearance of every benchmark by key.
-  const maxRichnessByKey = new Map<string, number>()
+  // Collect every appearance of every benchmark, indexed by key, so the
+  // duplicate check can compare each instance against its peers.
+  const instancesByKey = new Map<string, HierarchyBenchmark[]>()
   const visit = (b: HierarchyBenchmark) => {
-    const r = richness(b)
-    const cur = maxRichnessByKey.get(b.key) ?? -1
-    if (r > cur) maxRichnessByKey.set(b.key, r)
+    const list = instancesByKey.get(b.key)
+    if (list) list.push(b)
+    else instancesByKey.set(b.key, [b])
   }
   for (const fam of h.families ?? []) {
     for (const b of fam.benchmarks ?? []) visit(b)
@@ -548,11 +549,28 @@ function consolidateDedicatedHomeBenchmarks(h: CleanableHierarchy) {
     }
   }
 
-  // Drop strictly-poorer copies; tie-breaker is to leave them alone so
-  // tied wrappers (big-bench / big-bench-hard) both keep their copy.
+  const sharesAnyEvalId = (a: HierarchyBenchmark, b: HierarchyBenchmark) => {
+    const aIds = new Set(a.summary_eval_ids ?? [])
+    if (aIds.size === 0) return false
+    for (const id of b.summary_eval_ids ?? []) if (aIds.has(id)) return true
+    return false
+  }
+
+  // Drop strictly-poorer copies, BUT only when the poor copy shares an
+  // eval_summary_id with a richer instance. Without that gate, a curated
+  // family (e.g. `gaia` reporting GAIA at richness 2 with eval_id
+  // `gaia%2Fgaia`) gets nuked just because some unrelated source family
+  // (`hal` reporting GAIA at richness 8 with eval_id `hal%2Fgaia`)
+  // happens to use the same bench key — they're different physical
+  // rows and both deserve to surface. With the gate, livebench's
+  // structurally-poorer rows still lose to live-bench since they share
+  // eval_ids (`live-bench%2Flivebench-coding` lives in both).
   const isPoorerDuplicate = (b: HierarchyBenchmark): boolean => {
-    const max = maxRichnessByKey.get(b.key) ?? 0
-    return richness(b) < max
+    const peers = instancesByKey.get(b.key) ?? []
+    const r = richness(b)
+    return peers.some(
+      (peer) => peer !== b && richness(peer) > r && sharesAnyEvalId(peer, b),
+    )
   }
 
   for (const fam of h.families ?? []) {
@@ -640,7 +658,26 @@ function consolidateDedicatedHomeBenchmarks(h: CleanableHierarchy) {
     return false
   }
 
-  // (a) strict-subset
+  // (a) strict-subset.
+  //
+  // Only fires when A's family key is textually related to B's — they
+  // slugify the same, or one's slug contains the other. Without that
+  // gate the rule was eating curated benchmark families like
+  // `tau2-bench` whenever its rows happened to all be republished by a
+  // single source family (`exgentic-open-agent`). Those aren't redundant
+  // wrappers — they're separate curated leaderboards that the upstream
+  // pipeline intentionally surfaces. The intended target is wrappers
+  // like `livebench` (slug `livebench`) being a strict subset of
+  // `live-bench` (slug `livebench`), where the slugs match exactly.
+  const slugForKey = (key: string) =>
+    key.toLowerCase().replace(/[^a-z0-9]+/g, "")
+  const familyKeysRelated = (aKey: string, bKey: string) => {
+    const aSlug = slugForKey(aKey)
+    const bSlug = slugForKey(bKey)
+    if (!aSlug || !bSlug) return false
+    return aSlug === bSlug || aSlug.includes(bSlug) || bSlug.includes(aSlug)
+  }
+
   for (const a of allFamilies) {
     if (dropped.has(a)) continue
     if (PROTECTED_LEADERBOARD_FAMILIES.has(a.key)) continue
@@ -648,6 +685,7 @@ function consolidateDedicatedHomeBenchmarks(h: CleanableHierarchy) {
     if (aBenches.length === 0) continue
     for (const b of allFamilies) {
       if (a === b || dropped.has(b)) continue
+      if (!familyKeysRelated(a.key, b.key)) continue
       const bBenches = benchesByFam.get(b) ?? []
       if (bBenches.length <= aBenches.length) continue
       const bByKey = new Map(bBenches.map((h) => [h.bench.key, h.bench]))
