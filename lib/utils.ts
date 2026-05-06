@@ -6,6 +6,71 @@ export function cn(...inputs: ClassValue[]) {
 }
 
 /**
+ * Convert a backend route id (literal `%2F` slug form, e.g.
+ * `openai%2Fgpt-4o`, `helm-capabilities%2Fmmlu-pro`) into the
+ * human-readable path form (`openai/gpt-4o`) used in URLs.
+ *
+ * Pages mount via catch-all routes (`[...id]`) so multi-segment paths
+ * resolve cleanly. The inverse — `params.id[]` → backend id form — is
+ * `routeIdFromSegments`.
+ */
+export function routeIdToPath(id: string | null | undefined): string {
+  if (!id) return ""
+  return id.replace(/%2F/g, "/")
+}
+
+/**
+ * Reconstruct the backend `%2F`-encoded id from a Next.js catch-all
+ * params value. Accepts either the raw `string[]` from `useParams()`
+ * or a pre-joined string for safety. Empty arrays produce "".
+ */
+export function routeIdFromSegments(value: string | string[] | undefined): string {
+  if (value == null) return ""
+  const joined = Array.isArray(value) ? value.join("/") : value
+  return joined.replace(/\//g, "%2F")
+}
+
+/**
+ * Title-case a benchmark / family / eval label that arrives in slug or
+ * snake-case form. Example inputs and outputs:
+ *   `gdm_intercode_ctf` → `GDM Intercode CTF`
+ *   `vals ai gpqa`      → `Vals AI GPQA`
+ *   `mmlu-pro`          → `MMLU-Pro`
+ *
+ * Common AI-eval acronyms are upper-cased; everything else is title-cased.
+ * No-op when the input already looks like prose (any character has its
+ * canonical case position — i.e. there's at least one upper-case letter
+ * mid-word) so we don't mangle "MMLU-Pro" or "RewardBench Chat".
+ */
+const BENCHMARK_NAME_ACRONYMS = new Set([
+  "ai", "ml", "llm", "llms", "nlp", "rl", "qa", "vqa", "vlm", "mt", "cv",
+  "api", "cli", "sql", "io", "ui", "ux",
+  "gpt", "ctf", "cve", "gdm", "mmlu", "gpqa", "bbh", "hle", "gsm8k", "aime",
+  "ifeval", "ifbench", "humaneval", "mbpp", "gaia", "scicode", "agentharm",
+  "csqa", "boolq", "openbookqa", "narrativeqa", "naturalquestions", "imdb",
+  "piqa", "triviaqa", "truthfulqa", "musr", "math", "mgsm", "mmmu", "medqa",
+  "legalbench", "bbq",
+])
+
+export function humanizeBenchmarkName(value: string | null | undefined): string {
+  if (!value) return ""
+  let s = value.trim()
+  try { s = decodeURIComponent(s) } catch {}
+  // Already prose? Any non-leading uppercase letter implies it's
+  // already been display-formatted — leave it alone.
+  if (/[a-z][A-Z]/.test(s)) return s
+  return s
+    .split(/[_\-\s]+/)
+    .filter(Boolean)
+    .map((word) => {
+      const lower = word.toLowerCase()
+      if (BENCHMARK_NAME_ACRONYMS.has(lower)) return word.toUpperCase()
+      return word.charAt(0).toUpperCase() + word.slice(1).toLowerCase()
+    })
+    .join(" ")
+}
+
+/**
  * Render an `evaluation_id` for human eyes.
  *
  * Backend evaluation_ids are RFC 3986 percent-encoded so they're safe

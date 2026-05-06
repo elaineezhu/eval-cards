@@ -7,6 +7,7 @@ import {
   ExternalLink,
 } from "lucide-react"
 import type { BenchmarkEvaluationCardData } from "@/components/benchmark-evaluation-card"
+import { routeIdToPath } from "@/lib/utils"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import {
@@ -279,7 +280,7 @@ export function ModelCompareDialog({
                                 {formatParamsBillions(model.params_billions, model.model_name)}
                               </span>
                               <Link
-                                href={`/models/${model.route_id}`}
+                                href={`/models/${routeIdToPath(model.route_id)}`}
                                 className="font-mono text-[10px] uppercase tracking-[0.12em] text-[color:var(--fg-muted)] hover:text-[color:var(--accent)]"
                               >
                                 View →

@@ -4,7 +4,7 @@
 import Link from "next/link"
 import { usePathname, useSearchParams } from "next/navigation"
 import { useAudienceMode } from "@/components/audience-mode-provider"
-import { formatDateISO, humanizeEvaluationId } from "@/lib/utils"
+import { formatDateISO, humanizeBenchmarkName, humanizeEvaluationId, routeIdToPath } from "@/lib/utils"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
@@ -44,6 +44,7 @@ import type { ModelSummaryCore } from "@/lib/benchmark-schema"
 import { lookupBenchmarkCard } from "@/lib/benchmark-metadata-utils"
 import type { BenchmarkEvaluationCardData } from "@/components/benchmark-evaluation-card"
 import type {
+  BenchmarkIndexEntry,
   ComparisonEvalEntry,
   ComparisonIndex,
   ComparisonMetricEntry,
@@ -707,7 +708,11 @@ function unquoteJsonString(value: string): string {
 }
 
 function getConfigDisplayValue(value: string) {
-  const unquoted = unquoteJsonString(value)
+  let unquoted = unquoteJsonString(value)
+  // Config values like setup paths arrive percent-encoded
+  // ("mbpp%2Fmbpp-plus"); decode before truncating so users see
+  // human-readable text.
+  try { unquoted = decodeURIComponent(unquoted) } catch {}
   return unquoted.length > 40 ? `${unquoted.slice(0, 37)}…` : unquoted
 }
 
@@ -1005,12 +1010,18 @@ function formatSetupDisplayLabel(setupLabel: string | null) {
     return "Default setup"
   }
 
-  const normalized = setupLabel.trim()
-  if (!normalized || normalized.toLowerCase() === "default" || normalized.endsWith("__default")) {
+  // Setup labels arrive as percent-encoded slug strings (e.g.
+  // "mbpp%2Fmbpp-plus") because they're synthesized from the
+  // evaluation_id route. Decode before display so users don't see
+  // %2F on screen.
+  let raw = setupLabel.trim()
+  try { raw = decodeURIComponent(raw) } catch {}
+
+  if (!raw || raw.toLowerCase() === "default" || raw.endsWith("__default")) {
     return "Default setup"
   }
 
-  const cleaned = normalized
+  const cleaned = raw
     .replace(/^setup[:=]\s*/i, "")
     .replace(/[_-]+/g, " ")
     .replace(/\s+/g, " ")
@@ -1417,7 +1428,7 @@ function getEvalDetailHref(
   returnTo?: string
 ) {
   const baseHref = evaluation.eval_summary_id
-    ? `/evals/${evaluation.eval_summary_id}`
+    ? `/evals/${routeIdToPath(evaluation.eval_summary_id)}`
     : `/evals/${slugifyEvalSummaryId(`${evaluation.benchmark || getResultBenchmarkName(evaluation, result)}__${result.evaluation_name}`)}`
 
   if (!returnTo) {
@@ -1930,7 +1941,31 @@ export function BenchmarkDetail({
       string,
       { canonicalKey: string; canonicalDisplayName: string; siblingEvalIds: string[] }
     >()
-    for (const entry of evalHierarchy?.benchmark_index ?? []) {
+    // benchmark_index has two flavors of entries:
+    //   - benchmark canonicals (e.g. "MMLU-Pro") whose appearances all
+    //     point at the same benchmark_key — these are the dedup targets.
+    //   - umbrellas (suites like "artificial analysis", aggregators like
+    //     "llm stats") whose appearances span many benchmark_keys.
+    // First-wins on raw iteration order let the umbrellas claim
+    // eval_summary_ids that should map to the benchmark canonical (e.g.
+    // `artificial-analysis-llms/mmlu-pro` → "artificial analysis"
+    // instead of "mmlu-pro"), which left 3 distinct MMLU-Pro tiles in
+    // category view. Process benchmark canonicals first so they win
+    // regardless of JSON ordering.
+    const isBenchmarkCanonical = (
+      entry: BenchmarkIndexEntry,
+    ): boolean => {
+      const apps = entry.appearances ?? []
+      if (apps.length === 0) return false
+      for (const app of apps) {
+        if (app.benchmark_key && app.benchmark_key !== entry.key) return false
+      }
+      return true
+    }
+    const ordered = [...(evalHierarchy?.benchmark_index ?? [])].sort(
+      (a, b) => Number(isBenchmarkCanonical(b)) - Number(isBenchmarkCanonical(a)),
+    )
+    for (const entry of ordered) {
       const idSet = new Set<string>()
       for (const app of entry.appearances ?? []) {
         for (const id of app.eval_summary_ids ?? []) idSet.add(id)
@@ -2751,33 +2786,38 @@ export function BenchmarkDetail({
           }
         }
       }
-      // Dedupe appearances whose score is byte-identical: same model
-      // scoring exactly the same value across two "different" families
-      // is the canonical false-flag for a benchmark surfaced twice
-      // under different family wrappers (BBH was listed under both
-      // big-bench and big-bench-hard with the same eval_summary_id and
-      // therefore the same scores). Comparing scores at full precision
-      // avoids collapsing genuinely-different reports that happen to
-      // round to the same display value.
-      //
-      // Tie-break: when two appearances have identical scores, prefer
-      // the non-llm-stats one. llm-stats is an aggregator and likely
-      // republished the canonical source's number — so when an
-      // independent family reports the same value, the llm-stats copy
-      // is the duplicate, not the source. Sorting llm-stats to the back
-      // before the seen-score scan makes the first-wins dedupe drop the
-      // llm-stats appearance.
+      // Two-stage dedup:
+      //   1. Drop duplicate eval_summary_ids — benchmark_index can list
+      //      the same eval under multiple family_keys (e.g.
+      //      `artificial-analysis-llms/mmlu-pro` is listed under both
+      //      `artificial-analysis` and `mmlu`), but that's the same
+      //      observation, not two independent reports.
+      //   2. Aggregator-only score dedup — llm-stats republishes
+      //      canonical sources' numbers, so when its score byte-equals
+      //      an independent evaluator's we drop the llm-stats copy. Two
+      //      independent evaluators that happen to arrive at the same
+      //      number are KEPT — confirming signal, not duplicate data.
       const allRaw = Array.from(bestPerFamily.values())
       const isAggregator = (familyKey: string) => familyKey === "llm-stats"
-      allRaw.sort((a, b) => {
+      const seenEvalIds = new Set<string>()
+      const distinctByEvalId: OverlapAppearance[] = []
+      for (const c of allRaw) {
+        if (seenEvalIds.has(c.evalSummaryId)) continue
+        seenEvalIds.add(c.evalSummaryId)
+        distinctByEvalId.push(c)
+      }
+      // Process non-aggregators first so their scores populate the
+      // seen-set before any llm-stats appearance gets a chance to claim
+      // the score.
+      distinctByEvalId.sort((a, b) => {
         const aAgg = isAggregator(a.familyKey) ? 1 : 0
         const bAgg = isAggregator(b.familyKey) ? 1 : 0
         return aAgg - bAgg
       })
       const seenScores = new Set<number>()
       const collected: OverlapAppearance[] = []
-      for (const c of allRaw) {
-        if (seenScores.has(c.score)) continue
+      for (const c of distinctByEvalId) {
+        if (isAggregator(c.familyKey) && seenScores.has(c.score)) continue
         seenScores.add(c.score)
         collected.push(c)
       }
@@ -2817,12 +2857,38 @@ export function BenchmarkDetail({
         isPercentScale: useHigh,
       })
     }
-    out.sort(
+    // Row-level dedup: when two benchmark_index entries resolve to the
+    // exact same set of (familyKey, score) appearances, they're aliases
+    // of the same canonical (e.g. AIME vs aime-2025 both resolving to
+    // {Vals.ai 12.9%, Artificial Analysis 11.7%}). Collapse to one row.
+    // Tie-break on the shorter / cleaner canonical key — the longer
+    // alias is usually the year-suffixed or otherwise-disambiguated
+    // variant.
+    const dedupSig = (row: OverlapRow) =>
+      row.appearances
+        .map((a) => `${a.familyKey}::${a.score.toFixed(8)}`)
+        .sort()
+        .join("|")
+    const bestBySig = new Map<string, OverlapRow>()
+    for (const row of out) {
+      const sig = dedupSig(row)
+      const prev = bestBySig.get(sig)
+      if (
+        !prev ||
+        row.canonicalKey.length < prev.canonicalKey.length ||
+        (row.canonicalKey.length === prev.canonicalKey.length &&
+          row.canonicalDisplayName.localeCompare(prev.canonicalDisplayName) < 0)
+      ) {
+        bestBySig.set(sig, row)
+      }
+    }
+    const deduped = Array.from(bestBySig.values())
+    deduped.sort(
       (a, b) =>
         b.appearances.length - a.appearances.length ||
         a.canonicalDisplayName.localeCompare(b.canonicalDisplayName),
     )
-    return out
+    return deduped
   }, [
     evalHierarchy,
     comparisonIndex,
@@ -3202,33 +3268,88 @@ export function BenchmarkDetail({
         // metrics move to a compact tab rail beneath the chart.
         const { group, evalEntry } = resolved[0]
         const evalDisplay = evalEntry.display_name || group.title
-        const singleEvalViewBuckets = new Map<
-          string,
-          { viewKey: string; label: string; variants: BenchmarkVariant[] }
-        >()
 
-        for (const variant of group.variants) {
-          const viewKey = variant.sliceLabel
-            ? `slice:${normalizeDisplayKey(variant.sliceLabel)}`
-            : "default"
-          const label = variant.sliceLabel || "Overall"
-          const bucketForView = singleEvalViewBuckets.get(viewKey) ?? {
-            viewKey,
-            label,
-            variants: [],
-          }
-          bucketForView.variants.push(variant)
-          singleEvalViewBuckets.set(viewKey, bucketForView)
+        // `buildBenchmarkGroups` folds is_slice siblings under a
+        // synthesized parent groupKey so all of e.g. CapArena's 5 split
+        // evals live in ONE group. The producer doesn't always carry a
+        // `slice_name`, so each variant's sliceLabel can be null even
+        // though they're conceptually distinct splits — the eval page
+        // surfaces them via hierarchy `summary_eval_ids` instead. Mirror
+        // that here: when the folded group's variants span multiple
+        // eval_summary_ids, treat each eval as its own split view (the
+        // dropdown matches the eval-page split selector).
+        const distinctEvalIds = new Set<string>()
+        for (const v of group.variants) {
+          if (v.evaluation.eval_summary_id) distinctEvalIds.add(v.evaluation.eval_summary_id)
         }
+        const isMultiEvalSliceFold =
+          distinctEvalIds.size > 1 &&
+          group.variants.every((v) => v.sliceLabel == null)
 
-        const views: PlotboxView[] = Array.from(singleEvalViewBuckets.values())
-          .map((viewBucket) => {
+        const views: PlotboxView[] = []
+
+        if (isMultiEvalSliceFold) {
+          const variantsByEvalId = new Map<string, BenchmarkVariant[]>()
+          for (const v of group.variants) {
+            const evId = v.evaluation.eval_summary_id ?? evalEntry.eval_summary_id
+            const list = variantsByEvalId.get(evId) ?? []
+            list.push(v)
+            variantsByEvalId.set(evId, list)
+          }
+          for (const [evId, vars] of variantsByEvalId) {
+            const childEvalEntry = comparisonIndex.evals[evId] ?? evalEntry
+            const childDisplay = humanizeBenchmarkName(
+              childEvalEntry.display_name ||
+                vars[0]?.evaluation.display_name ||
+                evId,
+            )
+            const tabs = childEvalEntry.metrics
+              .filter((metric) => !isStderrMetricId(metric.metric_summary_id))
+              .map((metric) => {
+                const variant =
+                  vars.find((v) => v.result.metric_summary_id === metric.metric_summary_id) ??
+                  vars[0]
+                if (!variant) return null
+                return metricTabFor(group, childEvalEntry, metric, variant, false)
+              })
+              .filter((tab): tab is PlotboxMetricTab => tab != null)
+            if (tabs.length === 0) continue
+            views.push({
+              viewKey: evId,
+              label: childDisplay,
+              evalDisplayName: childDisplay,
+              evalEntry: childEvalEntry,
+              isRollup: false,
+              group,
+              tabs,
+            })
+          }
+          views.sort((a, b) => a.label.localeCompare(b.label))
+        } else {
+          const singleEvalViewBuckets = new Map<
+            string,
+            { viewKey: string; label: string; variants: BenchmarkVariant[] }
+          >()
+          for (const variant of group.variants) {
+            const viewKey = variant.sliceLabel
+              ? `slice:${normalizeDisplayKey(variant.sliceLabel)}`
+              : "default"
+            const label = variant.sliceLabel || "Overall"
+            const bucketForView = singleEvalViewBuckets.get(viewKey) ?? {
+              viewKey,
+              label,
+              variants: [],
+            }
+            bucketForView.variants.push(variant)
+            singleEvalViewBuckets.set(viewKey, bucketForView)
+          }
+          for (const viewBucket of singleEvalViewBuckets.values()) {
             const tabs = evalEntry.metrics
               .filter((metric) => !isStderrMetricId(metric.metric_summary_id))
               .map((metric) => {
                 const metricVariants = viewBucket.variants.filter(
                   (variant) =>
-                    variant.result.metric_summary_id === metric.metric_summary_id
+                    variant.result.metric_summary_id === metric.metric_summary_id,
                 )
                 const variant =
                   metricVariants.find((candidate) => !candidate.setupLabel) ??
@@ -3238,10 +3359,8 @@ export function BenchmarkDetail({
                 return metricTabFor(group, evalEntry, metric, variant, false)
               })
               .filter((tab): tab is PlotboxMetricTab => tab != null)
-
-            if (tabs.length === 0) return null
-
-            return {
+            if (tabs.length === 0) continue
+            views.push({
               viewKey: viewBucket.viewKey,
               label: viewBucket.label,
               evalDisplayName: evalDisplay,
@@ -3249,19 +3368,47 @@ export function BenchmarkDetail({
               isRollup: viewBucket.viewKey === "default",
               group,
               tabs,
-            }
-          })
-          .filter((view): view is PlotboxView => view != null)
-          .sort((a, b) => {
+            })
+          }
+          views.sort((a, b) => {
             if (a.viewKey === "default") return -1
             if (b.viewKey === "default") return 1
             return a.label.localeCompare(b.label)
           })
+        }
+
         if (views.length === 0) continue
+        // For multi-eval slice folds (CapArena, Tau-Bench, AIME, …) the
+        // bucket aggregates N sibling slice evals. Each of those has
+        // its own benchmark.display_name in the hierarchy (e.g.
+        // "CapArena-Auto Score (avg)", "Tau2-Bench Airline") — so
+        // bucketDisplayName picks one of those slice names at random.
+        // The variants' shared `parent_benchmark_id` ("tau-bench",
+        // "caparena", …) is the actual benchmark identity; resolve it
+        // to a hierarchy family display_name when one matches, else
+        // humanize the slug. We don't fall back to parentFamilyDisplayName
+        // here because the hierarchy sometimes nests these under the
+        // *evaluator* family (llm-stats puts tau-bench slices under
+        // "LLM Stats"), which would mislabel the tile.
+        const sharedParentBenchId = (() => {
+          const ids = new Set<string>()
+          for (const v of group.variants) {
+            const pid = v.evaluation.parent_benchmark_id
+            if (pid) ids.add(pid)
+          }
+          return ids.size === 1 ? Array.from(ids)[0] : null
+        })()
+        const parentBenchTitle = sharedParentBenchId
+          ? evalHierarchy?.families?.find((f) => f.key === sharedParentBenchId)?.display_name ??
+            humanizeBenchmarkName(sharedParentBenchId)
+          : null
+        const tileTitle = isMultiEvalSliceFold
+          ? parentBenchTitle || parentFamilyDisplayName || bucketDisplayName
+          : evalDisplay
         units.push({
           unitKey: `eval:${bucketKey}`,
           familyKey: bucketKey,
-          familyName: evalDisplay,
+          familyName: tileTitle,
           parentFamilyKey,
           parentFamilyDisplayName,
           category,
@@ -3375,16 +3522,18 @@ export function BenchmarkDetail({
     return units
   }, [comparisonIndex, filteredBenchmarkGroups, hierarchyIndex, sourcePrefixFamily])
 
-  // Benchmark-mode units: derived from `plotboxUnits` (already composite-
-  // rooted, so splits like Fibble Arena's 1-/2-/3-lies variants and
-  // AIR-Bench's per-category slices are bundled inside ONE plotbox via
-  // the cleaner's flatten + slice-folding) with a canonical-dedupe pass
-  // layered on top. When two composite units resolve to the same
-  // benchmark_index canonical (e.g. MMLU appearing under HELM and
-  // lighteval), the first occurrence wins and the rest re-enter as
-  // whisker overlays inside `renderPlotbox`. Splits never merge across
-  // suites — only benchmark-level identities do.
-  const benchmarkLeafUnits = useMemo<PlotboxUnit[]>(() => {
+  // Category-mode units: dedupe `plotboxUnits` by benchmark_index
+  // canonical so that a benchmark reported by N evaluators (e.g. MMLU-Pro
+  // under helm-capabilities, vals-ai, openeval, …) collapses into ONE
+  // plotbox. The remaining sources re-enter as cross-family whisker
+  // overlays inside `renderPlotbox` when `enableWhisker=true` (the
+  // category view passes that flag). Source view preserves the
+  // per-evaluator tiles — that's intentional, since source view is
+  // exactly where the per-source breakdown lives.
+  //
+  // Splits never merge across suites — only benchmark-level identities
+  // collapse here.
+  const categoryPlotboxUnits = useMemo<PlotboxUnit[]>(() => {
     if (plotboxUnits.length === 0) return []
     const evalIdsForUnit = (unit: PlotboxUnit): string[] => {
       const out: string[] = []
@@ -3396,11 +3545,10 @@ export function BenchmarkDetail({
       return out
     }
     const canonicalForUnit = (unit: PlotboxUnit): string | null => {
-      // Pick the canonical identity by polling each eval id under the
-      // unit and taking the first benchmark_index hit. Within a single
-      // composite the producer often groups several near-canonical
-      // variants (helm-classic carries both `mmlu` and `mmlu-pro`),
-      // so we don't insist they all agree — the first wins.
+      // Poll each eval id under the unit; first benchmark_index hit
+      // defines the unit's canonical identity. Composites often carry
+      // several near-canonical variants (helm-classic has both `mmlu`
+      // and `mmlu-pro`); first wins.
       for (const evalId of evalIdsForUnit(unit)) {
         const indexEntry = benchmarkIndexLookup.get(evalId)
         if (indexEntry) return indexEntry.canonicalKey
@@ -3422,6 +3570,7 @@ export function BenchmarkDetail({
 
   const [activeViewByUnit, setActiveViewByUnit] = useState<Record<string, string>>({})
   const [activeMetricByUnit, setActiveMetricByUnit] = useState<Record<string, string>>({})
+  const [expandedCategoriesByUnit, setExpandedCategoriesByUnit] = useState<Record<string, boolean>>({})
 
   const getActiveView = (unit: PlotboxUnit): PlotboxView => {
     const explicit = activeViewByUnit[unit.unitKey]
@@ -3603,12 +3752,23 @@ export function BenchmarkDetail({
     const rawMax = Math.max(...scores)
     const rawMin = Math.min(...scores)
     const hasSpread = rawMax !== rawMin
-    const domainMin = hasSpread ? rawMin - (rawMax - rawMin) * 0.15 : Math.min(0, rawMin)
-    const domainMax = hasSpread
-      ? rawMax + (rawMax - rawMin) * 0.15
+    // Snap the auto-zoom domain to a coarse grid so plots with similar
+    // ranges across the category-view grid land on the same boundaries
+    // and look aligned. Step depends on the scale: 0.05 on proportion,
+    // 5 on percent. Pad outward (floor below, ceil above) so the bars
+    // never spill over the chart frame.
+    const isPercentScale = Math.max(Math.abs(rawMin), Math.abs(rawMax)) > 1.5
+    const snapStep = isPercentScale ? 5 : 0.05
+    const padBelow = hasSpread ? (rawMax - rawMin) * 0.15 : 0
+    const padAbove = hasSpread ? (rawMax - rawMin) * 0.15 : 0
+    const rawDomainMin = hasSpread ? rawMin - padBelow : Math.min(0, rawMin)
+    const rawDomainMax = hasSpread
+      ? rawMax + padAbove
       : rawMax === 0
         ? 1
         : rawMax * 1.2
+    const domainMin = Math.floor(rawDomainMin / snapStep) * snapStep
+    const domainMax = Math.ceil(rawDomainMax / snapStep) * snapStep
     const range = domainMax - domainMin || 1
 
     const bestScore = activeHist.lowerIsBetter ? rawMin : rawMax
@@ -3683,7 +3843,7 @@ export function BenchmarkDetail({
         return histIsPercent ? score * 100 : score / 100
       }
 
-      const out: Array<{ familyName: string; score: number }> = []
+      const collected: Array<{ familyKey: string; familyName: string; score: number }> = []
       for (const siblingId of indexEntry.siblingEvalIds) {
         if (siblingId === activeTab.evalSummaryId) continue
         const siblingEval = comparisonIndex.evals[siblingId]
@@ -3718,13 +3878,34 @@ export function BenchmarkDetail({
         }
         if (siblingScore == null) continue
         const reconciledScore = reconcileSibling(siblingScore, siblingMetric.unit)
-        // siblingId looks like "<family-key>%2F<benchmark-key>"; recover the
-        // family name from the hierarchy where possible, fall back to the slug.
         const familyKey = siblingId.split("%2F")[0]
         const familyName = familyDisplayByKey.get(familyKey) ?? familyKey
-        out.push({ familyName, score: reconciledScore })
+        collected.push({ familyKey, familyName, score: reconciledScore })
       }
-      return out
+      // Aggregator-only dedup: llm-stats republishes canonical sources'
+      // numbers, so when its score byte-equals an independent
+      // evaluator's (or matches the active bar) we drop the llm-stats
+      // copy. Two independent evaluators that happen to land on the
+      // same number both count toward the whisker — that's confirming
+      // signal worth surfacing.
+      const isAggregator = (familyKey: string) => familyKey === "llm-stats"
+      collected.sort((a, b) => {
+        const aAgg = isAggregator(a.familyKey) ? 1 : 0
+        const bAgg = isAggregator(b.familyKey) ? 1 : 0
+        return aAgg - bAgg
+      })
+      const ownScoreNum = activeTab.variant.result.score_details.score
+      const seenScores = new Set<string>(
+        Number.isFinite(ownScoreNum) ? [ownScoreNum.toFixed(8)] : [],
+      )
+      const deduped: Array<{ familyName: string; score: number }> = []
+      for (const c of collected) {
+        const key = c.score.toFixed(8)
+        if (isAggregator(c.familyKey) && seenScores.has(key)) continue
+        seenScores.add(key)
+        deduped.push({ familyName: c.familyName, score: c.score })
+      }
+      return deduped
     })()
     const ownScore = activeTab.variant.result.score_details.score
     const crossFamilyScores = [
@@ -3817,9 +3998,82 @@ export function BenchmarkDetail({
         <div className="flex items-start justify-between gap-2">
           <div className="min-w-0 flex-1">
             <div className="flex flex-wrap items-center gap-2">
-              <span className="font-mono text-[9px] uppercase tracking-[0.18em] text-[color:var(--fg-subtle)] font-semibold">
-                {formatTagLabel(unit.category as unknown as string)}
-              </span>
+              {(() => {
+                // Surface every curated category tag the benchmark
+                // carries (same list `categoriesForUnit` uses to bucket
+                // the unit into multiple sections in category-mode), not
+                // just the primary. Falls back to the unit's own
+                // category when no tags exist. Truncates to the top 2
+                // with a "+N" pill that expands inline — Helm Lite has
+                // 7+ tags and was wrapping past the unit width.
+                const seen = new Set<string>()
+                const tagList: string[] = []
+                for (const view of unit.views) {
+                  for (const tab of view.tabs) {
+                    const evalId = tab.evalSummaryId
+                    if (!evalId) continue
+                    const tags = hierarchyIndex?.get(evalId)?.tags
+                    if (!tags) continue
+                    for (const t of tags) {
+                      const k = t.toLowerCase().trim().replace(/\s+/g, "_")
+                      if (!seen.has(k)) {
+                        seen.add(k)
+                        tagList.push(k)
+                      }
+                    }
+                  }
+                }
+                const categories = tagList.length > 0
+                  ? tagList
+                  : [unit.category as unknown as string]
+                const VISIBLE = 2
+                const expanded = expandedCategoriesByUnit[unit.unitKey] ?? false
+                const showAll = expanded || categories.length <= VISIBLE
+                const visible = showAll ? categories : categories.slice(0, VISIBLE)
+                const hiddenCount = categories.length - visible.length
+                return (
+                  <span className="font-mono text-[9px] uppercase tracking-[0.18em] text-[color:var(--fg-subtle)] font-semibold">
+                    {visible.map((c, i) => (
+                      <span key={c}>
+                        {i > 0 && <span className="mx-1 text-[color:var(--fg-subtle)] opacity-60">·</span>}
+                        {formatTagLabel(c)}
+                      </span>
+                    ))}
+                    {hiddenCount > 0 && (
+                      <button
+                        type="button"
+                        onClick={(e) => {
+                          e.stopPropagation()
+                          setExpandedCategoriesByUnit((prev) => ({
+                            ...prev,
+                            [unit.unitKey]: true,
+                          }))
+                        }}
+                        className="ml-1 inline-flex items-center px-1.5 py-px font-mono text-[9px] uppercase tracking-[0.15em] text-[color:var(--accent)] border border-[color:var(--accent)] hover:bg-[color:var(--accent)] hover:text-[color:var(--bg)] transition-colors"
+                        title={`Show all ${categories.length} categories`}
+                      >
+                        +{hiddenCount}
+                      </button>
+                    )}
+                    {expanded && categories.length > VISIBLE && (
+                      <button
+                        type="button"
+                        onClick={(e) => {
+                          e.stopPropagation()
+                          setExpandedCategoriesByUnit((prev) => ({
+                            ...prev,
+                            [unit.unitKey]: false,
+                          }))
+                        }}
+                        className="ml-1 inline-flex items-center px-1.5 py-px font-mono text-[9px] uppercase tracking-[0.15em] text-[color:var(--fg-subtle)] hover:text-[color:var(--fg)] transition-colors"
+                        title="Show fewer categories"
+                      >
+                        ↑
+                      </button>
+                    )}
+                  </span>
+                )
+              })()}
               {showChildKindBadge && (
                 <span className="font-mono text-[9px] uppercase tracking-[0.15em] text-[color:var(--fg-subtle)]">
                   · {childKindCount} {childKindPlural}
@@ -3857,9 +4111,9 @@ export function BenchmarkDetail({
               type="button"
               onClick={() => jumpToDeepDive(activeView.group.key)}
               className="mt-2 block w-full truncate text-left text-[15px] font-semibold tracking-[-0.01em] text-[color:var(--fg)] hover:text-[color:var(--accent)] transition-colors"
-              title={unit.familyName}
+              title={humanizeBenchmarkName(unit.familyName)}
             >
-              {unit.familyName}
+              {humanizeBenchmarkName(unit.familyName)}
             </button>
             <div className="mt-1 flex items-center gap-1 font-mono text-[9px] uppercase tracking-[0.15em] text-[color:var(--fg-subtle)]">
               <span>{activeHist.lowerIsBetter ? "Lower is better" : "Higher is better"}</span>
@@ -3874,9 +4128,9 @@ export function BenchmarkDetail({
               {!hasStderrWhisker && hasCrossFamilyWhisker && (
                 <span
                   className="ml-1 inline-flex items-center gap-1 border border-[color:var(--accent)] px-1.5 py-px text-[color:var(--accent)]"
-                  title={`Whisker spans this model's score across ${crossFamilyContribs.length + 1} family appearance${crossFamilyContribs.length === 0 ? "" : "s"}.`}
+                  title={`Whisker spans this model's score across ${crossFamilyContribs.length + 1} source${crossFamilyContribs.length === 0 ? "" : "s"} after exact-score dedup.`}
                 >
-                  · ↕ {crossFamilyContribs.length + 1} reports
+                  · ↕ {crossFamilyContribs.length + 1} sources
                 </span>
               )}
               {(averaged || rescaled) && (
@@ -3985,6 +4239,50 @@ export function BenchmarkDetail({
                 ))}
               </select>
             </div>
+          </div>
+        )}
+
+        {/* Metric tabs live above the chart (next to the view selector)
+            rather than below it. Keeping all variable-height controls on
+            the same side of the chart means the only thing between the
+            chart and the card bottom is the deep-dive link, which is
+            constant — so bar baselines align across the grid. */}
+        {hasMetricTabs && (
+          <div className="mt-3 flex flex-wrap gap-1">
+            {activeView.tabs.map((tab) => (
+              <button
+                key={tab.tabKey}
+                type="button"
+                onClick={() => setPlotboxActiveMetric(tab.tabKey)}
+                className={`ec-pill ${tab.tabKey === activeTab.tabKey ? "on" : ""}`}
+                style={{ fontSize: 9, padding: "4px 9px", letterSpacing: "0.08em" }}
+              >
+                {normalizeDisplayLabel(tab.label.replace(/^artificial_analysis\.?/i, ""))}
+              </button>
+            ))}
+          </div>
+        )}
+
+        {hasSpread && domainMin > 0.0001 && (
+          <div className="mt-2 flex items-center justify-center gap-1.5 text-[9px] text-muted-foreground/80">
+            <svg
+              aria-hidden
+              width="14"
+              height="8"
+              viewBox="0 0 14 8"
+              className="shrink-0"
+            >
+              <path
+                d="M0 4 L3 4 L5 1 L7 7 L9 1 L11 7 L14 4"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="1"
+              />
+            </svg>
+            <span className="font-mono tabular-nums">
+              axis zoomed: {formatRawScoreValue(domainMin, activeHist.unit ?? undefined)} –{" "}
+              {formatRawScoreValue(domainMax, activeHist.unit ?? undefined)}
+            </span>
           </div>
         )}
 
@@ -4216,44 +4514,10 @@ export function BenchmarkDetail({
           })}
         </div>
 
-        {hasSpread && domainMin > 0.0001 && (
-          <div className="mt-1 flex items-center justify-center gap-1.5 text-[9px] text-muted-foreground/80">
-            <svg
-              aria-hidden
-              width="14"
-              height="8"
-              viewBox="0 0 14 8"
-              className="shrink-0"
-            >
-              <path
-                d="M0 4 L3 4 L5 1 L7 7 L9 1 L11 7 L14 4"
-                fill="none"
-                stroke="currentColor"
-                strokeWidth="1"
-              />
-            </svg>
-            <span className="font-mono tabular-nums">
-              axis zoomed: {formatRawScoreValue(domainMin, activeHist.unit ?? undefined)} –{" "}
-              {formatRawScoreValue(domainMax, activeHist.unit ?? undefined)}
-            </span>
-          </div>
-        )}
-
-        {hasMetricTabs && (
-          <div className="mt-3 flex flex-wrap gap-1">
-            {activeView.tabs.map((tab) => (
-              <button
-                key={tab.tabKey}
-                type="button"
-                onClick={() => setPlotboxActiveMetric(tab.tabKey)}
-                className={`ec-pill ${tab.tabKey === activeTab.tabKey ? "on" : ""}`}
-                style={{ fontSize: 9, padding: "4px 9px", letterSpacing: "0.08em" }}
-              >
-                {normalizeDisplayLabel(tab.label.replace(/^artificial_analysis\.?/i, ""))}
-              </button>
-            ))}
-          </div>
-        )}
+        {/* Axis-zoomed caption + metric tabs moved above the chart —
+            see the matching blocks next to the view selector. Anything
+            that would push the bar baseline up belongs above the chart
+            so the deep-dive link is the only thing below it. */}
 
         <div className="mt-3 border-t border-[color:var(--border-soft)] pt-3">
           <button
@@ -4912,20 +5176,52 @@ export function BenchmarkDetail({
             )
           })()
         ) : benchmarkViewMode === "grid" ? (
-          /* Category mode — same composite/standalone units as Source mode,
-             but the top-level grouping switches to the curated category tag
-             so similarly-tagged benchmarks cluster across families. No
-             cross-family dedup, no whiskers — overlaps live in their own
-             dedicated view. */
+          /* Category mode — composite/standalone units bucketed by curated
+             category tag, with a cross-family canonical-dedupe pass on top.
+             A benchmark reported by N evaluators (e.g. 8x MMLU-Pro across
+             helm/vals-ai/openeval/…) collapses to ONE tile here; the
+             remaining sources fold into the cross-family whisker overlay
+             so the spread is still visible. Per-source detail lives in
+             Source view and the deep dive. */
           (() => {
             const categoryOrder = new Map(
               availableCategories.map((cat, i) => [cat, i])
             )
+            // A benchmark with multiple curated tags should surface in
+            // each of those category sections, not just its primary.
+            // Pull the full tag list off the curated hierarchy index;
+            // fall back to the unit's primary category when no tags are
+            // available (legacy 5-bucket fallback).
+            const normaliseCategory = (raw: string): CategoryType =>
+              raw.toLowerCase().trim().replace(/\s+/g, "_") as CategoryType
+            const categoriesForUnit = (unit: PlotboxUnit): CategoryType[] => {
+              const seen = new Set<CategoryType>()
+              const out: CategoryType[] = []
+              for (const view of unit.views) {
+                for (const tab of view.tabs) {
+                  const evalId = tab.evalSummaryId
+                  if (!evalId) continue
+                  const tags = hierarchyIndex?.get(evalId)?.tags
+                  if (!tags) continue
+                  for (const t of tags) {
+                    const cat = normaliseCategory(t)
+                    if (!seen.has(cat)) {
+                      seen.add(cat)
+                      out.push(cat)
+                    }
+                  }
+                }
+              }
+              if (out.length === 0) return [unit.category]
+              return out
+            }
             const byCategory = new Map<CategoryType, PlotboxUnit[]>()
-            for (const unit of plotboxUnits) {
-              const list = byCategory.get(unit.category) ?? []
-              list.push(unit)
-              byCategory.set(unit.category, list)
+            for (const unit of categoryPlotboxUnits) {
+              for (const cat of categoriesForUnit(unit)) {
+                const list = byCategory.get(cat) ?? []
+                list.push(unit)
+                byCategory.set(cat, list)
+              }
             }
             const orderedCategories = Array.from(byCategory.keys()).sort(
               (a, b) =>
@@ -4955,7 +5251,7 @@ export function BenchmarkDetail({
                       </div>
 
                       <div className="grid grid-cols-1 gap-0 border-t border-l border-[color:var(--border-soft)] sm:grid-cols-2 lg:grid-cols-3">
-                        {units.map((unit) => renderPlotbox(unit, false))}
+                        {units.map((unit) => renderPlotbox(unit, true))}
                       </div>
                     </section>
                   )
@@ -6926,7 +7222,7 @@ function BenchmarkDeepDiveDialogPanel({
                 entry.appearances.map((app) => (
                   <Link
                     key={`${entry.canonicalDisplayName}::${app.evalSummaryId}`}
-                    href={`/evals/${encodeURIComponent(app.evalSummaryId)}`}
+                    href={`/evals/${routeIdToPath(app.evalSummaryId)}`}
                     className="flex items-center justify-between gap-4 border-r border-b border-[color:var(--border-soft)] px-3 py-2 transition-colors hover:bg-[color:var(--bg-warm)]"
                     style={{
                       background: app.isCurrent ? "var(--bg-warm)" : "var(--bg)",
@@ -7016,6 +7312,10 @@ function BenchmarkDeepDiveDialogPanel({
                               {variant.variantType !== "default" && <span>· {getVariantTypeLabel(variant.variantType)}</span>}
                             </div>
                           )}
+                          <SignalsRowBadges
+                            annotations={variant.result.evalcards?.annotations}
+                            className="justify-start mt-1"
+                          />
                         </td>
                         <td className="align-top text-[12px] text-[color:var(--fg-muted)]">
                           <div>{singleSetupDisplayLabel}</div>
@@ -7030,12 +7330,17 @@ function BenchmarkDeepDiveDialogPanel({
                         </td>
                         <td className="num align-top font-semibold tabular-nums">
                           <div>{variant.displayScore}</div>
-                          <SignalsRowBadges annotations={variant.result.evalcards?.annotations} className="justify-end mt-0.5" />
                         </td>
                         <td className="num align-top tabular-nums text-[color:var(--fg-muted)]">
-                          {(variant.rankPosition != null || resolvedRank)
-                            ? `#${resolvedRank?.position ?? variant.rankPosition}${(resolvedRank?.total ?? variant.rankTotal) ? `/${resolvedRank?.total ?? variant.rankTotal}` : ""}`
-                            : "N/A"}
+                          {variant.rankPosition != null || resolvedRank ? (
+                            `#${resolvedRank?.position ?? variant.rankPosition}${
+                              (resolvedRank?.total ?? variant.rankTotal)
+                                ? `/${resolvedRank?.total ?? variant.rankTotal}`
+                                : ""
+                            }`
+                          ) : (
+                            <span className="text-[color:var(--fg-subtle)]">—</span>
+                          )}
                         </td>
                       </tr>
                     )
@@ -7055,14 +7360,14 @@ function BenchmarkDeepDiveDialogPanel({
             </span>
           </div>
           <p className="mb-4 max-w-[60rem] text-[13px] leading-[1.65] text-[color:var(--fg-muted)]">
-            Primary row labels show the benchmark slice or slice. Setup and source details sit alongside each row.
+            Primary row labels show the benchmark split or setup variant. Setup and source details sit alongside each row.
           </p>
 
           <div className="min-h-0 overflow-auto">
             <table className="ec-htable table-fixed">
               <thead>
                 <tr>
-                  <th className="w-[46%]">Slice</th>
+                  <th className="w-[46%]">Split</th>
                   <th className="w-[36%]">Reporting setup</th>
                   <th className="num w-[9%]">Score</th>
                   <th className="num w-[9%]">Rank</th>
@@ -7072,9 +7377,15 @@ function BenchmarkDeepDiveDialogPanel({
                 {variantRows.map((row) => {
                   const { rowKey, variant, configEntries } = row
                   const resolvedRank = resolvedRanks[rowKey]
-                  const primaryLabel = getVariantPrimaryLabel(variant, group.title)
+                  const rawPrimaryLabel = getVariantPrimaryLabel(variant, group.title)
+                  const primaryLabel = humanizeBenchmarkName(rawPrimaryLabel)
                   const setupDisplayLabel = formatSetupDisplayLabel(variant.setupLabel)
-                  const rawVariantLabel = variant.label !== primaryLabel ? variant.label : null
+                  const rawVariantLabel = (() => {
+                    if (variant.label === rawPrimaryLabel) return null
+                    let v = variant.label
+                    try { v = decodeURIComponent(v) } catch {}
+                    return v
+                  })()
 
                   return (
                     <tr key={rowKey} className="align-top">
@@ -7084,6 +7395,10 @@ function BenchmarkDeepDiveDialogPanel({
                           <span>{getVariantTypeLabel(variant.variantType)}</span>
                           {rawVariantLabel && <span className="line-clamp-1 normal-case tracking-normal text-[color:var(--fg-muted)] text-[12px]">· {rawVariantLabel}</span>}
                         </div>
+                        <SignalsRowBadges
+                          annotations={variant.result.evalcards?.annotations}
+                          className="justify-start mt-1"
+                        />
                       </td>
                       <td className="align-top text-[12px] text-[color:var(--fg-muted)]">
                         <div className="text-[14px] text-[color:var(--fg)] font-medium">{setupDisplayLabel}</div>
@@ -7095,12 +7410,17 @@ function BenchmarkDeepDiveDialogPanel({
                       </td>
                       <td className="num align-top font-semibold tabular-nums">
                         <div>{variant.displayScore}</div>
-                        <SignalsRowBadges annotations={variant.result.evalcards?.annotations} className="justify-end mt-0.5" />
                       </td>
                       <td className="num align-top tabular-nums text-[color:var(--fg-muted)]">
-                        {(variant.rankPosition != null || resolvedRank)
-                          ? `#${resolvedRank?.position ?? variant.rankPosition}${(resolvedRank?.total ?? variant.rankTotal) ? `/${resolvedRank?.total ?? variant.rankTotal}` : ""}`
-                          : "N/A"}
+                        {variant.rankPosition != null || resolvedRank ? (
+                          `#${resolvedRank?.position ?? variant.rankPosition}${
+                            (resolvedRank?.total ?? variant.rankTotal)
+                              ? `/${resolvedRank?.total ?? variant.rankTotal}`
+                              : ""
+                          }`
+                        ) : (
+                          <span className="text-[color:var(--fg-subtle)]">—</span>
+                        )}
                       </td>
                     </tr>
                   )

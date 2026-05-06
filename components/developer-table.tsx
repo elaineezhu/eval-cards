@@ -4,7 +4,7 @@ import Link from "next/link"
 import { ArrowUpRight, ChevronDown, ChevronUp, ChevronsUpDown } from "lucide-react"
 
 import type { DeveloperListItem } from "@/lib/dashboard-data-client"
-import { cn } from "@/lib/utils"
+import { cn, routeIdToPath } from "@/lib/utils"
 
 export type DeveloperTableSortCol =
   | "name"
@@ -79,7 +79,7 @@ export function DeveloperTable({ rows, sortCol, sortDir, onSort }: DeveloperTabl
               <tr key={dev.route_id}>
                 <td>
                   <Link
-                    href={`/developers/${dev.route_id}`}
+                    href={`/developers/${routeIdToPath(dev.route_id)}`}
                     className="block min-w-0 group"
                   >
                     <div className="font-semibold text-[14px] text-[color:var(--fg)] group-hover:text-[color:var(--accent)] transition-colors">
@@ -104,7 +104,7 @@ export function DeveloperTable({ rows, sortCol, sortDir, onSort }: DeveloperTabl
                 </td>
                 <td>
                   <Link
-                    href={`/developers/${dev.route_id}`}
+                    href={`/developers/${routeIdToPath(dev.route_id)}`}
                     className="font-mono text-[10px] tracking-[0.12em] uppercase text-[color:var(--accent)] hover:text-[color:var(--accent-hover)] inline-flex items-center gap-1"
                   >
                     Open

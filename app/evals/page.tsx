@@ -84,7 +84,7 @@ function EvalsPageInner() {
     if (!fam) return
     const navId = getFamilyNavId(fam, benchmarkCards)
     if (navId) {
-      router.replace(`/evals/${encodeURIComponent(navId)}`)
+      router.replace(`/evals/${navId.replace(/%2F/g, "/")}`)
       return
     }
     setSearchQuery(fam.display_name || fam.key)

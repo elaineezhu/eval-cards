@@ -16,6 +16,7 @@ import {
   Scale,
   Users,
 } from "lucide-react"
+import { routeIdToPath } from "@/lib/utils"
 import type { BenchmarkEvalListItem } from "@/lib/eval-processing"
 import { getCategoryColor } from "@/lib/benchmark-schema"
 
@@ -96,7 +97,7 @@ export function EvalCard({ summary, delayMs = 0 }: EvalCardProps) {
     <Card
       className="motion-academic-enter motion-academic-surface motion-academic-hover cursor-pointer overflow-hidden border-border/70 bg-card hover:shadow-lg"
       style={{ "--enter-delay": `${delayMs}ms` } as CSSProperties}
-      onClick={() => router.push(`/evals/${summary.evaluation_id}`)}
+      onClick={() => router.push(`/evals/${routeIdToPath(summary.evaluation_id)}`)}
     >
       <CardHeader className="space-y-3 border-b border-border/60 pb-4">
         <div className="flex items-center justify-between gap-2">

@@ -11,7 +11,7 @@ import { ParamRangePicker } from "@/components/param-range-picker"
 import { useAudienceMode } from "@/components/audience-mode-provider"
 import type { BenchmarkEvalSummary } from "@/lib/eval-processing"
 import { fetchEvalHierarchy, fetchEvalSummary } from "@/lib/dashboard-data-client"
-import { humanizeEvaluationId } from "@/lib/utils"
+import { humanizeEvaluationId, routeIdFromSegments, routeIdToPath } from "@/lib/utils"
 import { PARAM_RANGE_MAX_INDEX, parseParamsBillionsFromModelName, paramStepToNumeric } from "@/lib/param-range"
 import type { EvalHierarchy } from "@/lib/backend-artifacts"
 import {
@@ -75,7 +75,13 @@ export default function EvalDetailPage() {
   useEffect(() => {
     const load = async () => {
       try {
-        const evalId = decodeURIComponent(params.id as string)
+        // The data is keyed by percent-encoded evaluation_ids (literal
+        // `%2F` slug form, e.g. `llm-stats%2Fdrop`). The route is
+        // catch-all so `params.id` arrives as a path segment array
+        // (`["llm-stats", "drop"]`) — join + re-encode for backend
+        // lookup. Every evaluation_id in the snapshot uses `%2F`, so
+        // this is unambiguous.
+        const evalId = routeIdFromSegments(params.id as string | string[])
         const [found, evalHierarchy] = await Promise.all([
           fetchEvalSummary(evalId),
           fetchEvalHierarchy().catch((err) => {
@@ -497,7 +503,7 @@ function SubBenchmarkGrid({
     return (
       <Link
         key={source.evaluation_id}
-        href={`/evals/${source.evaluation_id}?from=${encodeURIComponent(currentDetailHref)}`}
+        href={`/evals/${routeIdToPath(source.evaluation_id)}?from=${encodeURIComponent(currentDetailHref)}`}
         className="fam-card group block"
         style={{ textDecoration: "none", color: "inherit" }}
       >

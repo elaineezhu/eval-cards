@@ -8,6 +8,7 @@ import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader } from "@/components/ui/card"
 import type { DeveloperListItem } from "@/lib/dashboard-data-client"
+import { routeIdToPath } from "@/lib/utils"
 
 interface DeveloperCardProps {
   developer: DeveloperListItem
@@ -21,7 +22,7 @@ export function DeveloperCard({ developer, delayMs = 0 }: DeveloperCardProps) {
     <Card
       className="motion-academic-enter motion-academic-surface motion-academic-hover group cursor-pointer overflow-hidden border-border/70 bg-card hover:shadow-lg"
       style={{ "--enter-delay": `${delayMs}ms` } as CSSProperties}
-      onClick={() => router.push(`/developers/${developer.route_id}`)}
+      onClick={() => router.push(`/developers/${routeIdToPath(developer.route_id)}`)}
     >
       <CardHeader className="space-y-3 border-b border-border/60 pb-4">
         <div className="text-[10px] font-semibold uppercase tracking-[0.24em] text-muted-foreground">
@@ -89,7 +90,7 @@ export function DeveloperCard({ developer, delayMs = 0 }: DeveloperCardProps) {
             className="gap-1"
             onClick={(event) => {
               event.stopPropagation()
-              router.push(`/developers/${developer.route_id}`)
+              router.push(`/developers/${routeIdToPath(developer.route_id)}`)
             }}
           >
             Open card

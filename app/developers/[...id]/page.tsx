@@ -10,6 +10,7 @@ import { ModelTable, type ModelTableSortCol } from "@/components/model-table"
 import { Navigation } from "@/components/navigation"
 import type { BenchmarkCard } from "@/lib/benchmark-schema"
 import { fetchDeveloperSummary, fetchBenchmarkMetadata } from "@/lib/dashboard-data-client"
+import { routeIdFromSegments } from "@/lib/utils"
 
 const PAGE_SIZE = 40
 
@@ -60,7 +61,7 @@ export default function DeveloperDetailPage() {
   const [visibleCount, setVisibleCount] = useState(PAGE_SIZE)
   const [selectedModelIds, setSelectedModelIds] = useState<string[]>([])
 
-  const routeId = params.id as string
+  const routeId = routeIdFromSegments(params.id as string | string[])
 
   const handleBack = useCallback(() => {
     router.push("/models?view=developers")

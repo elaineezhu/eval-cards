@@ -33,7 +33,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
 import { getModelFamilyRouteId } from "@/lib/model-family"
-import { cn, formatDateISO, humanizeEvaluationId } from "@/lib/utils"
+import { cn, formatDateISO, humanizeEvaluationId, routeIdToPath } from "@/lib/utils"
 import {
   AlertTriangle,
   BarChart3,
@@ -50,7 +50,7 @@ import {
   Tag,
   X,
 } from "lucide-react"
-import type { BenchmarkCard } from "@/lib/benchmark-schema"
+import type { BenchmarkCard, SourceData } from "@/lib/benchmark-schema"
 import type { BenchmarkEvalSummary, ModelResultForBenchmark } from "@/lib/eval-processing"
 import type { HierarchyEvalLocation } from "@/lib/hierarchy-lookup"
 import { PolicyOverview } from "@/components/policy-overview"
@@ -860,13 +860,24 @@ export function EvalDetail({
         </p>
       </header>
 
-      {/* BENCHMARK CARD (top-level collapsible, default open) ------------ */}
+      {/* BENCHMARK CARD (top-level collapsible, default open). Suppress
+          the entire section when there's nothing useful in the card and
+          all fallbacks would just duplicate info already shown above
+          (eval title, source dataset). Otherwise the user sees an empty
+          collapsible header in policy mode and a redundant single-row
+          tile in research mode. */}
       {summary.benchmark_card && (
         <BenchmarkCardCollapsible
           card={summary.benchmark_card}
           isResearchView={isResearchView}
           defaultOpen
           defaultRisksOpen={!isResearchView}
+          evaluationName={summary.evaluation_name}
+          sourceDataFallback={
+            summary.source_data && !Array.isArray(summary.source_data)
+              ? summary.source_data
+              : null
+          }
           knownIssues={getKnownIssues(
             summary.evaluation_name,
             summary.composite_benchmark_name,
@@ -1285,7 +1296,7 @@ export function EvalDetail({
                             )}
                             <div className="min-w-0">
                               <Link
-                                href={`/models/${getModelFamilyRouteId(modelResult.model_info)}`}
+                                href={`/models/${routeIdToPath(getModelFamilyRouteId(modelResult.model_info))}`}
                                 className="font-semibold text-[14px] hover:text-[color:var(--accent)] transition-colors"
                                 style={{ color: "var(--fg)" }}
                               >
@@ -2252,7 +2263,7 @@ function MultiMetricLeaderboard({
                       )}
                       <div className="min-w-0">
                         <Link
-                          href={`/models/${getModelFamilyRouteId(row.model_info)}`}
+                          href={`/models/${routeIdToPath(getModelFamilyRouteId(row.model_info))}`}
                           className="font-semibold text-[14px] hover:text-[color:var(--accent)] transition-colors"
                           style={{ color: "var(--fg)" }}
                         >
@@ -2375,14 +2386,80 @@ function BenchmarkCardCollapsible({
   isResearchView,
   defaultOpen = true,
   defaultRisksOpen = false,
+  evaluationName = "",
+  sourceDataFallback = null,
   knownIssues = [],
 }: {
   card: BenchmarkCard
   isResearchView: boolean
   defaultOpen?: boolean
   defaultRisksOpen?: boolean
+  evaluationName?: string
+  sourceDataFallback?: SourceData | null
   knownIssues?: KnownIssue[]
 }) {
+  // Decide whether the panel has any meaningful content. We hide the
+  // whole collapsible — header and body — when it doesn't. Fallback
+  // values that duplicate the eval title don't count.
+  const meaningful = (v: string | undefined | null) =>
+    Boolean(v && v.trim() && v.trim() !== "Not specified")
+  const looksLikeEvalTitle = (v: string | undefined | null) =>
+    Boolean(
+      v &&
+        evaluationName &&
+        v.trim().toLowerCase() === evaluationName.trim().toLowerCase(),
+    )
+  const usefulFallback = (v: string | undefined | null) =>
+    meaningful(v) && !looksLikeEvalTitle(v)
+
+  const purpose = card.purpose_and_intended_users
+  const methodology = card.methodology
+  const data = card.data
+  const ethical = card.ethical_and_legal_considerations
+  const sd = sourceDataFallback
+  const tasks = toStringArray(purpose.tasks)
+  const audience = toStringArray(purpose.audience)
+  const domains = toStringArray(card.benchmark_details?.domains)
+  const languages = toStringArray(card.benchmark_details?.languages)
+  const resources = (card.benchmark_details?.resources ?? []).filter(Boolean)
+  const flaggedFieldsRaw = card.flagged_fields as unknown
+  const hasFlaggedFields =
+    typeof flaggedFieldsRaw === "string"
+      ? flaggedFieldsRaw.length > 2
+      : flaggedFieldsRaw != null &&
+        typeof flaggedFieldsRaw === "object" &&
+        Object.keys(flaggedFieldsRaw).length > 0
+  const hasMissingFields = (card.missing_fields ?? []).length > 0
+
+  const hasContent =
+    knownIssues.length > 0 ||
+    meaningful(purpose.goal) ||
+    meaningful(methodology.interpretation) ||
+    meaningful(purpose.limitations) ||
+    (methodology.methods?.length ?? 0) > 0 ||
+    meaningful(methodology.calculation) ||
+    meaningful(methodology.validation) ||
+    (methodology.metrics?.length ?? 0) > 0 ||
+    tasks.length > 0 ||
+    audience.length > 0 ||
+    domains.length > 0 ||
+    languages.length > 0 ||
+    resources.length > 0 ||
+    (card.possible_risks?.length ?? 0) > 0 ||
+    meaningful(ethical?.data_licensing) ||
+    meaningful(ethical?.compliance_with_regulations) ||
+    meaningful(ethical?.privacy_and_anonymity) ||
+    meaningful(data?.size) ||
+    meaningful(data?.format) ||
+    usefulFallback(data?.source) ||
+    usefulFallback(sd?.hf_repo) ||
+    usefulFallback(sd?.dataset_name) ||
+    sd?.samples_number != null ||
+    meaningful(sd?.source_type) ||
+    (isResearchView && (Boolean(hasFlaggedFields) || hasMissingFields))
+
+  if (!hasContent) return null
+
   const [open, setOpen] = useState(defaultOpen)
   return (
     <Collapsible open={open} onOpenChange={setOpen}>
@@ -2414,6 +2491,7 @@ function BenchmarkCardCollapsible({
           card={card}
           isResearchView={isResearchView}
           defaultRisksOpen={defaultRisksOpen}
+          sourceDataFallback={sourceDataFallback}
           knownIssues={knownIssues}
         />
       </CollapsibleContent>
@@ -2550,11 +2628,13 @@ function BenchmarkCardPanel({
   card,
   isResearchView,
   defaultRisksOpen = false,
+  sourceDataFallback = null,
   knownIssues = [],
 }: {
   card: BenchmarkCard
   isResearchView: boolean
   defaultRisksOpen?: boolean
+  sourceDataFallback?: SourceData | null
   knownIssues?: KnownIssue[]
 }) {
   const [risksOpen, setRisksOpen] = useState(defaultRisksOpen)
@@ -2776,74 +2856,121 @@ function BenchmarkCardPanel({
           </div>
         )}
 
-        {/* Research-only: methodology + dataset details */}
-        {isResearchView && (
-          <div className="grid gap-3 sm:grid-cols-2">
-            <div
-              style={{
-                padding: 16,
-                border: "1px solid var(--border-soft)",
-                background: "var(--bg)",
-              }}
-            >
-              <div
-                className="mb-3 font-mono uppercase"
-                style={{ fontSize: 10, letterSpacing: "0.14em", color: "var(--fg-subtle)" }}
-              >
-                Dataset
-              </div>
-              <dl className="space-y-2 text-[13px]">
-                <div className="flex gap-2">
-                  <dt className="w-20 shrink-0" style={{ color: "var(--fg-muted)" }}>Size</dt>
-                  <dd className="font-medium">{data.size}</dd>
-                </div>
-                <div className="flex gap-2">
-                  <dt className="w-20 shrink-0" style={{ color: "var(--fg-muted)" }}>Format</dt>
-                  <dd className="font-medium capitalize">{data.format}</dd>
-                </div>
-                <div className="flex gap-2">
-                  <dt className="w-20 shrink-0" style={{ color: "var(--fg-muted)" }}>Source</dt>
-                  <dd className="font-medium">{data.source}</dd>
-                </div>
-              </dl>
-            </div>
+        {/* Research-only: methodology + dataset details. Each tile
+            falls back to whatever data is available — and hides
+            entirely when nothing is. The card payload often arrives
+            sparse for benchmarks that haven't been documented; the
+            previous version rendered "Size / Format / Source" labels
+            with empty values, which read as broken. */}
+        {isResearchView &&
+          (() => {
+            const meaningful = (v: string | undefined | null) =>
+              Boolean(v && v.trim() && v.trim() !== "Not specified")
+            // Dataset row fallbacks pull from summary.source_data when
+            // the card itself didn't fill those fields. The summary
+            // payload almost always carries hf_repo / dataset_name even
+            // for cards that are otherwise empty, so this turns a
+            // blank tile into something useful.
+            const sd = sourceDataFallback
+            const datasetSize = meaningful(data.size)
+              ? data.size
+              : sd?.samples_number != null
+                ? `${sd.samples_number.toLocaleString()} samples`
+                : null
+            const datasetFormat = meaningful(data.format)
+              ? data.format
+              : meaningful(sd?.source_type)
+                ? sd!.source_type!
+                : null
+            const datasetSource = meaningful(data.source)
+              ? data.source
+              : meaningful(sd?.hf_repo)
+                ? sd!.hf_repo!
+                : meaningful(sd?.dataset_name)
+                  ? sd!.dataset_name!
+                  : null
+            const showDataset = Boolean(datasetSize || datasetFormat || datasetSource)
+            const showMethodology =
+              methodology.metrics.length > 0 || tasks.length > 0 || audience.length > 0
+            if (!showDataset && !showMethodology) return null
+            return (
+              <div className="grid gap-3 sm:grid-cols-2">
+                {showDataset && (
+                  <div
+                    style={{
+                      padding: 16,
+                      border: "1px solid var(--border-soft)",
+                      background: "var(--bg)",
+                    }}
+                  >
+                    <div
+                      className="mb-3 font-mono uppercase"
+                      style={{ fontSize: 10, letterSpacing: "0.14em", color: "var(--fg-subtle)" }}
+                    >
+                      Dataset
+                    </div>
+                    <dl className="space-y-2 text-[13px]">
+                      {datasetSize && (
+                        <div className="flex gap-2">
+                          <dt className="w-20 shrink-0" style={{ color: "var(--fg-muted)" }}>Size</dt>
+                          <dd className="font-medium">{datasetSize}</dd>
+                        </div>
+                      )}
+                      {datasetFormat && (
+                        <div className="flex gap-2">
+                          <dt className="w-20 shrink-0" style={{ color: "var(--fg-muted)" }}>Format</dt>
+                          <dd className="font-medium capitalize">{datasetFormat}</dd>
+                        </div>
+                      )}
+                      {datasetSource && (
+                        <div className="flex gap-2">
+                          <dt className="w-20 shrink-0" style={{ color: "var(--fg-muted)" }}>Source</dt>
+                          <dd className="font-medium break-all">{datasetSource}</dd>
+                        </div>
+                      )}
+                    </dl>
+                  </div>
+                )}
 
-            <div
-              style={{
-                padding: 16,
-                border: "1px solid var(--border-soft)",
-                background: "var(--bg)",
-              }}
-            >
-              <div
-                className="mb-3 font-mono uppercase"
-                style={{ fontSize: 10, letterSpacing: "0.14em", color: "var(--fg-subtle)" }}
-              >
-                Methodology
+                {showMethodology && (
+                  <div
+                    style={{
+                      padding: 16,
+                      border: "1px solid var(--border-soft)",
+                      background: "var(--bg)",
+                    }}
+                  >
+                    <div
+                      className="mb-3 font-mono uppercase"
+                      style={{ fontSize: 10, letterSpacing: "0.14em", color: "var(--fg-subtle)" }}
+                    >
+                      Methodology
+                    </div>
+                    <dl className="space-y-2 text-[13px]">
+                      {methodology.metrics.length > 0 && (
+                        <div className="flex gap-2">
+                          <dt className="w-20 shrink-0" style={{ color: "var(--fg-muted)" }}>Metrics</dt>
+                          <dd className="font-medium">{methodology.metrics.join(", ")}</dd>
+                        </div>
+                      )}
+                      {tasks.length > 0 && (
+                        <div className="flex gap-2">
+                          <dt className="w-20 shrink-0" style={{ color: "var(--fg-muted)" }}>Tasks</dt>
+                          <dd className="font-medium">{tasks.join(", ")}</dd>
+                        </div>
+                      )}
+                      {audience.length > 0 && (
+                        <div className="flex gap-2">
+                          <dt className="w-20 shrink-0" style={{ color: "var(--fg-muted)" }}>Audience</dt>
+                          <dd className="font-medium">{audience.join("; ")}</dd>
+                        </div>
+                      )}
+                    </dl>
+                  </div>
+                )}
               </div>
-              <dl className="space-y-2 text-[13px]">
-                {methodology.metrics.length > 0 && (
-                  <div className="flex gap-2">
-                    <dt className="w-20 shrink-0" style={{ color: "var(--fg-muted)" }}>Metrics</dt>
-                    <dd className="font-medium">{methodology.metrics.join(", ")}</dd>
-                  </div>
-                )}
-                {tasks.length > 0 && (
-                  <div className="flex gap-2">
-                    <dt className="w-20 shrink-0" style={{ color: "var(--fg-muted)" }}>Tasks</dt>
-                    <dd className="font-medium">{tasks.join(", ")}</dd>
-                  </div>
-                )}
-                {audience.length > 0 && (
-                  <div className="flex gap-2">
-                    <dt className="w-20 shrink-0" style={{ color: "var(--fg-muted)" }}>Audience</dt>
-                    <dd className="font-medium">{audience.join("; ")}</dd>
-                  </div>
-                )}
-              </dl>
-            </div>
-          </div>
-        )}
+            )
+          })()}
 
         {/* Generic IBM-style AI risks. These are boilerplate (per audit
             feedback: "least useful feature for policy users"), so in policy

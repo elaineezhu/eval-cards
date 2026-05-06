@@ -17,6 +17,7 @@ import {
 } from "@/lib/dashboard-data-client"
 import type { BenchmarkEvaluationCardData } from "@/components/benchmark-evaluation-card"
 import type { ComparisonIndex, EvalHierarchy } from "@/lib/backend-artifacts"
+import { routeIdFromSegments } from "@/lib/utils"
 
 export default function ModelDetailPage() {
   const params = useParams()
@@ -30,7 +31,7 @@ export default function ModelDetailPage() {
   const [selectedVariantId, setSelectedVariantId] = useState<string | null>(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
-  const routeId = params.id as string
+  const routeId = routeIdFromSegments(params.id as string | string[])
 
   const getVariantFromQuery = useCallback(
     (modelSummary: ModelEvaluationSummary) => {

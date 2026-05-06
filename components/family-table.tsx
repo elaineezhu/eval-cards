@@ -8,7 +8,7 @@ import type { HierarchyBenchmark, HierarchyComposite, HierarchyFamily } from "@/
 import { formatTagLabel } from "@/lib/benchmark-tags"
 import type { BenchmarkCard } from "@/lib/benchmark-schema"
 import type { BenchmarkEvalListItem } from "@/lib/eval-processing"
-import { humanizeEvaluationId } from "@/lib/utils"
+import { humanizeEvaluationId, routeIdToPath } from "@/lib/utils"
 
 const LEAVES_INLINE_MAX = 50
 
@@ -590,7 +590,7 @@ export function FamilyTable({
                                     type="button"
                                     onClick={(e) => {
                                       e.stopPropagation()
-                                      router.push(`/evals/${encodeURIComponent(leaf.id)}`)
+                                      router.push(`/evals/${routeIdToPath(leaf.id)}`)
                                     }}
                                     className="w-full flex items-start justify-between gap-2 px-3 py-2 text-left transition-colors hover:bg-[color:var(--bg-surface)]"
                                   >

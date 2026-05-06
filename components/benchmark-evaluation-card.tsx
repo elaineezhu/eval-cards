@@ -19,6 +19,7 @@ import type { SignalSummaries } from "@/lib/backend-artifacts"
 import { getCategoryColor } from "@/lib/benchmark-schema"
 import type { BenchmarkCard } from "@/lib/benchmark-schema"
 import { lookupBenchmarkCard } from "@/lib/benchmark-metadata-utils"
+import { routeIdToPath } from "@/lib/utils"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
@@ -274,7 +275,7 @@ export function BenchmarkEvaluationCard({
     <Card
       className="motion-academic-enter motion-academic-surface motion-academic-hover group cursor-pointer overflow-hidden border-border/70 bg-card hover:shadow-xl"
       style={{ "--enter-delay": `${delayMs}ms` } as CSSProperties}
-      onClick={() => router.push(`/models/${data.route_id}`)}
+      onClick={() => router.push(`/models/${routeIdToPath(data.route_id)}`)}
     >
       <CardHeader className="space-y-4 border-b border-border/60 pb-4">
         <div className="flex flex-wrap items-center justify-between gap-2 text-[10px] font-semibold uppercase tracking-[0.24em] text-muted-foreground">
@@ -349,7 +350,7 @@ export function BenchmarkEvaluationCard({
                 </Button>
               </DropdownMenuTrigger>
               <DropdownMenuContent align="end">
-                <DropdownMenuItem onClick={() => router.push(`/models/${data.route_id}`)}>
+                <DropdownMenuItem onClick={() => router.push(`/models/${routeIdToPath(data.route_id)}`)}>
                   <Eye className="mr-2 h-4 w-4" />
                   View Details
                 </DropdownMenuItem>
@@ -505,7 +506,7 @@ export function BenchmarkEvaluationCard({
             className="gap-1"
             onClick={(event) => {
               event.stopPropagation()
-              router.push(`/models/${data.route_id}`)
+              router.push(`/models/${routeIdToPath(data.route_id)}`)
             }}
           >
             Open card
