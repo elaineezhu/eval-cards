@@ -33,6 +33,8 @@ function slugify(value: string | null | undefined): string {
 const FAMILY_KEY_ACRONYMS = new Set([
   "llm", "llms", "aa", "hf", "api", "cli", "sql", "gpt", "qa", "ai", "ml",
   "nlp", "rl", "vqa", "vlm", "mt", "cv",
+  // Security / safety / red-team families.
+  "ctf", "cve", "gdm",
 ])
 function humanizeFamilyKey(key: string): string {
   return key
@@ -53,7 +55,7 @@ interface LeafEntry {
   domains: string[]
   tags: string[]
   description?: string | null
-  hasSlices: boolean
+  sliceCount: number
 }
 
 /** A section inside the family accordion.
@@ -101,7 +103,7 @@ function buildLeafEntry(
     description: description
       ? description.length > 120 ? description.slice(0, 117) + "…" : description
       : null,
-    hasSlices: (benchmark.slices?.length ?? 0) > 0,
+    sliceCount: benchmark.slices?.length ?? 0,
   }
 }
 
@@ -274,8 +276,18 @@ export function FamilyTable({
         leaves: filterActive ? section.leaves.filter(leafMatchesFilter) : section.leaves,
       })).filter((s) => s.leaves.length > 0)
 
+      // Humanize when:
+      //   - the upstream display_name is misleading (matches a leaf, not the family);
+      //   - the display_name *is* the key (raw slug never humanized upstream); or
+      //   - the display_name slugifies to the key (separators / casing differ but
+      //     it's still the unhumanized form, e.g. "commonsense_qa" vs key
+      //     "commonsense-qa").
+      const slugMatchesKey =
+        slugify(fam.display_name) === slugify(fam.key) && fam.display_name !== ""
       const displayName =
-        isFamilyDisplayNameMisleading(fam, leafEntries) || fam.display_name === fam.key
+        isFamilyDisplayNameMisleading(fam, leafEntries) ||
+        fam.display_name === fam.key ||
+        slugMatchesKey
           ? humanizeFamilyKey(fam.key)
           : fam.display_name
 
@@ -526,12 +538,12 @@ export function FamilyTable({
                                         <span className="text-[13px] font-medium truncate text-[color:var(--fg)]">
                                           {leaf.leafName}
                                         </span>
-                                        {leaf.hasSlices && (
+                                        {leaf.sliceCount > 0 && (
                                           <span
                                             className="font-mono text-[9px] uppercase tracking-[0.1em] border px-1 py-px shrink-0"
                                             style={{ color: "var(--fg-subtle)", borderColor: "var(--border-soft)" }}
                                           >
-                                            splits
+                                            splits · {leaf.sliceCount}
                                           </span>
                                         )}
                                       </div>
