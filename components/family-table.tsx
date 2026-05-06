@@ -16,7 +16,6 @@ export type FamilySortCol = "name" | "benchmarks" | "results"
 
 interface FamilyTableProps {
   families: HierarchyFamily[]
-  totalModels: number
   evalItems?: Map<string, BenchmarkEvalListItem>
   benchmarkCards?: Record<string, BenchmarkCard>
   domainFilter?: Set<string> | null
@@ -197,7 +196,6 @@ interface RowData {
 
 export function FamilyTable({
   families,
-  totalModels,
   evalItems,
   benchmarkCards,
   domainFilter,
@@ -299,13 +297,38 @@ export function FamilyTable({
         if (overview) description = overview.length > 140 ? overview.slice(0, 137) + "…" : overview
       }
 
+      // "Reported results" approximates the unique models tested in the
+      // family. provenance_summary.total_results counts every (model,
+      // metric) report row, so families that publish many metrics inflate
+      // the number — agentharm's 4 declared metrics turned 18 unique
+      // models into 72 result rows. Normalise by the family's metric
+      // count (sum of bench-level metric entries; clamp to 1 to avoid
+      // div-by-zero on families whose metrics array is empty).
+      const totalResults =
+        fam.provenance_summary?.total_results ??
+        fam.reproducibility_summary?.results_total ??
+        fam.evals_count ??
+        metricCount
+      const allBenchesForMetricCount: HierarchyBenchmark[] = [
+        ...(fam.benchmarks ?? []),
+        ...(fam.standalone_benchmarks ?? []),
+        ...(fam.composites ?? []).flatMap((c) => c.benchmarks ?? []),
+      ]
+      const familyMetricCount = allBenchesForMetricCount.reduce(
+        (n, b) => n + Math.max((b.metrics ?? []).length, 1),
+        0,
+      )
+      const reportedResults =
+        familyMetricCount > 0
+          ? Math.round(totalResults / familyMetricCount)
+          : totalResults
       out.push({
         key: fam.key,
         name: displayName,
         keySlug: fam.key,
         tags: fam.derivedTags ?? [],
         benchmarks: benchmarkCount,
-        evalsCount: fam.evals_count ?? metricCount,
+        evalsCount: reportedResults,
         leaves: visibleLeafEntries,
         sections,
         description,
@@ -372,9 +395,6 @@ export function FamilyTable({
               ? expanded[row.key] ?? true
               : expanded[row.key] ?? false
             const allLeaves = row.sections.flatMap((s) => s.leaves)
-            const visibleLeaves = isExpanded
-              ? allLeaves.slice(0, LEAVES_INLINE_MAX)
-              : []
             const hiddenLeafCount = isExpanded
               ? Math.max(allLeaves.length - LEAVES_INLINE_MAX, 0)
               : 0
@@ -461,9 +481,6 @@ export function FamilyTable({
                   <td className="num font-mono text-[13px]">{row.benchmarks.toLocaleString()}</td>
                   <td className="num font-mono text-[13px]">
                     {row.evalsCount.toLocaleString()}
-                    {totalModels > 0 && (
-                      <span className="text-[color:var(--fg-subtle)]"> / {totalModels.toLocaleString()}</span>
-                    )}
                   </td>
                   <td>
                     <span className="font-mono text-[10px] tracking-[0.12em] uppercase text-[color:var(--accent)] inline-flex items-center gap-1">

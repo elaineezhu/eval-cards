@@ -284,22 +284,32 @@ export function ScoreDistribution({
                 {canShowFrontier ? "View" : "Score distribution"}
               </span>
               {canShowFrontier && (
-                <div className="flex items-center gap-1">
-                  <button
-                    type="button"
-                    className={`ec-pill${effectiveView === "distribution" ? " on" : ""}`}
-                    onClick={() => setView("distribution")}
-                  >
-                    Distribution
-                  </button>
-                  <button
-                    type="button"
-                    className={`ec-pill${effectiveView === "frontier" ? " on" : ""}`}
-                    onClick={() => setView("frontier")}
-                    title="Frontier score over model release dates (cumulative best)."
-                  >
-                    Frontier
-                  </button>
+                <div
+                  role="tablist"
+                  aria-label="Chart view"
+                  className="inline-flex items-center gap-1"
+                >
+                  {(["distribution", "frontier"] as const).map((view) => {
+                    const on = effectiveView === view
+                    const label = view === "distribution" ? "Distribution" : "Frontier"
+                    return (
+                      <button
+                        key={view}
+                        type="button"
+                        role="tab"
+                        aria-selected={on}
+                        onClick={() => setView(view)}
+                        title={
+                          view === "frontier"
+                            ? "Frontier score over model release dates (cumulative best)."
+                            : "Kernel-density distribution of model scores."
+                        }
+                        className={`ec-pill${on ? " on" : ""}`}
+                      >
+                        {label}
+                      </button>
+                    )
+                  })}
                 </div>
               )}
             </div>

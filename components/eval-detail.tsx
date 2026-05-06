@@ -624,7 +624,14 @@ export function EvalDetail({
     return Array.from(seen, ([key, name]) => ({ key, label: name }))
   }, [lb.leaderboard_metrics])
 
-  const hasSlicePicker = !hasMultiMetricLeaderboard && subtaskSlices.length > 1
+  // Suppress the slice picker when a split picker is already in play.
+  // For evals like Fibble Arena both pickers partition the same axis
+  // (each split is one of the per-lie variants; each slice is the
+  // matrix-backfilled subtask for the same per-lie variant), so showing
+  // both reads as a redundant control. The page-level split is more
+  // authoritative — it loads richer per-eval data — so it wins.
+  const hasSlicePicker =
+    !hasMultiMetricLeaderboard && subtaskSlices.length > 1 && !splitConfig
 
   const ALL_SLICE_KEY = "__all__"
   const [activeSlice, setActiveSlice] = useState<string>(ALL_SLICE_KEY)
@@ -870,7 +877,7 @@ export function EvalDetail({
                 className="font-mono text-[10px] uppercase tracking-[0.12em]"
                 style={{ color: "var(--fg-subtle)" }}
               >
-                metric spec · completeness · comparability{summary.subtasks?.length ? " · slices" : ""}
+                metric spec · completeness · comparability{summary.subtasks?.length ? " · splits" : ""}
               </span>
             </div>
             {overviewOpen ? (
@@ -992,7 +999,7 @@ export function EvalDetail({
                       className="font-mono uppercase mb-1"
                       style={{ fontSize: 10, letterSpacing: "0.14em", color: "var(--fg-subtle)" }}
                     >
-                      Slice breakdown · {summary.subtasks.length}
+                      Split breakdown · {summary.subtasks.length}
                     </div>
                     <ul
                       className="flex flex-col"
@@ -1050,10 +1057,11 @@ export function EvalDetail({
             summary={lb.comparability_summary}
             detailsAnchorId="comparability-panel"
           />
-          {splitConfig && (
-            <SplitPicker config={splitConfig} className="mb-4" />
-          )}
-          <MultiMetricLeaderboard summary={lb} isResearchView={isResearchView} />
+          <MultiMetricLeaderboard
+            summary={lb}
+            isResearchView={isResearchView}
+            splitConfig={splitConfig}
+          />
         </section>
       ) : (
         <section>
@@ -1090,11 +1098,16 @@ export function EvalDetail({
             <SplitPicker config={splitConfig} className="mb-4" />
           )}
 
+          {/* Subtask split picker for evals like Global MMLU Lite where
+              the splits live as subtasks of a single eval (not as
+              separate eval IDs the page-level SplitPicker can swap to).
+              Suppressed when a page-level split is already in play —
+              two pickers would partition the same axis (see fibble). */}
           {hasSlicePicker && (
             <SplitPicker
               className="mb-4"
               config={{
-                label: "Slice",
+                label: "Split",
                 activeId: activeSlice,
                 onChange: setActiveSlice,
                 options: [
@@ -1156,12 +1169,7 @@ export function EvalDetail({
                   <th className="hidden lg:table-cell" style={{ minWidth: 160 }}>
                     {isResearchView ? "Developer" : "Provider"}
                   </th>
-                  <th className="hidden md:table-cell" style={{ minWidth: 220 }}>
-                    {lb.composite_benchmark_name && lb.composite_benchmark_name !== lb.evaluation_name
-                      ? `${lb.composite_benchmark_name} · ${lb.evaluation_name}`
-                      : lb.evaluation_name}
-                  </th>
-                  <th className="num" style={{ width: 130 }}>
+                  <th className="num" style={{ minWidth: 200 }}>
                     {lb.metric_config.unit ?? "Score"}
                   </th>
                   <th className="hidden lg:table-cell" style={{ width: 110 }}>Evaluator</th>
@@ -1289,51 +1297,54 @@ export function EvalDetail({
                           </div>
                         </td>
 
-                        <td className="hidden md:table-cell align-top">
-                          {/* Performance bar with shot/setup caption */}
-                          <div className="min-w-[200px] py-0.5">
+                        <td className="num align-top">
+                          {/* Score with inline performance bar so the
+                              previously-dedicated bar column can be
+                              dropped — its only purpose was visualising
+                              this same number. Caption shows shot/CoT
+                              setup or a differing dataset name when
+                              available; otherwise it's omitted. */}
+                          <div className="flex items-baseline justify-end gap-2 tabular-nums" style={{ fontSize: 15, fontWeight: 600 }}>
+                            <span>{formatRawScore(modelResult.score, undefined)}</span>
+                          </div>
+                          <div
+                            className="mt-1 hidden md:block"
+                            style={{
+                              position: "relative",
+                              height: 4,
+                              background: "var(--bg-surface)",
+                              overflow: "hidden",
+                            }}
+                          >
                             <div
                               style={{
-                                position: "relative",
-                                height: 6,
-                                background: "var(--bg-surface)",
-                                overflow: "hidden",
+                                position: "absolute",
+                                inset: 0,
+                                width: `${Math.max(2, normalizedScore * 100)}%`,
+                                background: isTopRank ? "var(--accent)" : "var(--fg-muted)",
+                                opacity: isTopRank ? 1 : 0.55,
                               }}
+                            />
+                          </div>
+                          {setupLabel && (
+                            <div
+                              className="mt-1 font-mono uppercase truncate text-right"
+                              style={{ fontSize: 10, letterSpacing: "0.06em", color: "var(--fg-subtle)" }}
                             >
-                              <div
-                                style={{
-                                  position: "absolute",
-                                  inset: 0,
-                                  width: `${Math.max(2, normalizedScore * 100)}%`,
-                                  background: isTopRank ? "var(--accent)" : "var(--fg-muted)",
-                                  opacity: isTopRank ? 1 : 0.55,
-                                }}
-                              />
+                              {setupLabel}
                             </div>
-                            {setupLabel && (
+                          )}
+                          {!setupLabel &&
+                            datasetName &&
+                            !isResearchView &&
+                            datasetName !== lb.evaluation_name && (
                               <div
-                                className="mt-1 font-mono uppercase truncate"
-                                style={{ fontSize: 10, letterSpacing: "0.06em", color: "var(--fg-subtle)" }}
+                                className="mt-1 font-mono truncate text-right"
+                                style={{ fontSize: 10, color: "var(--fg-subtle)" }}
                               >
-                                {setupLabel}
+                                {datasetName}
                               </div>
                             )}
-                            {!setupLabel &&
-                              datasetName &&
-                              !isResearchView &&
-                              datasetName !== lb.evaluation_name && (
-                                <div
-                                  className="mt-1 font-mono truncate"
-                                  style={{ fontSize: 10, color: "var(--fg-subtle)" }}
-                                >
-                                  {datasetName}
-                                </div>
-                              )}
-                          </div>
-                        </td>
-
-                        <td className="num align-top tabular-nums" style={{ fontSize: 15, fontWeight: 600 }}>
-                          {formatRawScore(modelResult.score, undefined)}
                         </td>
 
                         <td className="hidden lg:table-cell align-top">
@@ -1387,7 +1398,7 @@ export function EvalDetail({
 
                       {isExpanded && (
                         <tr>
-                          <td colSpan={hasAnyUpdatedTimestamp ? 8 : 7} style={{ background: "var(--bg-warm)", padding: 0 }}>
+                          <td colSpan={hasAnyUpdatedTimestamp ? 7 : 6} style={{ background: "var(--bg-warm)", padding: 0 }}>
                             <div className="space-y-5 px-4 py-5 sm:px-6">
                               <div className="grid gap-4 xl:grid-cols-3">
                                 <DetailPanel
@@ -1530,13 +1541,13 @@ export function EvalDetail({
                                     className="font-mono uppercase"
                                     style={{ fontSize: 10, letterSpacing: "0.14em", color: "var(--fg-subtle)" }}
                                   >
-                                    Slice breakdown
+                                    Split breakdown
                                   </div>
                                   <div className="overflow-x-auto" style={{ border: "1px solid var(--border-soft)" }}>
                                     <table className="ec-htable">
                                       <thead>
                                         <tr>
-                                          <th>Slice</th>
+                                          <th>Split</th>
                                           <th className="num">Raw</th>
                                         </tr>
                                       </thead>
@@ -1669,7 +1680,7 @@ export function EvalDetail({
                 })}
                 {leaderboardRows.length === 0 && (
                   <tr>
-                    <td colSpan={hasAnyUpdatedTimestamp ? 8 : 7} style={{ padding: "32px 16px", textAlign: "center", color: "var(--fg-muted)" }}>
+                    <td colSpan={hasAnyUpdatedTimestamp ? 7 : 6} style={{ padding: "32px 16px", textAlign: "center", color: "var(--fg-muted)" }}>
                       No leaderboard entries match the selected parameter range.
                     </td>
                   </tr>
@@ -1706,9 +1717,11 @@ export function EvalDetail({
 function MultiMetricLeaderboard({
   summary,
   isResearchView,
+  splitConfig,
 }: {
   summary: BenchmarkEvalSummary
   isResearchView: boolean
+  splitConfig?: SplitConfig
 }) {
   const [page, setPage] = useState(1)
   // Default sort: the first root-scope metric (the benchmark's overall
@@ -1984,10 +1997,9 @@ function MultiMetricLeaderboard({
 
   return (
     <section>
-      <ApplesToApplesBanner
-        summary={summary.comparability_summary}
-        detailsAnchorId="comparability-panel"
-      />
+      {/* The parent EvalDetail already renders the apples-to-apples
+          banner before this leaderboard section — duplicating it here
+          made the box appear twice on multi-metric evals like fibble. */}
       <div className="section-head">
         <h2>{isResearchView ? "Leaderboard" : "Reporting Comparison"}</h2>
         <span
@@ -2049,6 +2061,10 @@ function MultiMetricLeaderboard({
         </DropdownMenu>
       </div>
 
+      {splitConfig && (
+        <SplitPicker config={splitConfig} className="mb-4" />
+      )}
+
       {/* Distribution panel — one curve, dropdown swaps between metrics */}
       {(() => {
         const distSeries = visibleMetrics
@@ -2086,27 +2102,6 @@ function MultiMetricLeaderboard({
       })()}
 
       <div className="ec-card" style={{ padding: 0, overflow: "hidden" }}>
-        {hasSliceTabs && (
-          <div className="border-b bg-background px-5 py-3 sm:px-6 flex items-center gap-3">
-            <span
-              className="font-mono uppercase tracking-[0.14em] shrink-0"
-              style={{ fontSize: 10, color: "var(--fg-subtle)" }}
-            >
-              Slice
-            </span>
-            <select
-              className="ec-select"
-              value={activeSliceTab}
-              onChange={(e) => setActiveSliceTab(e.target.value)}
-            >
-              <option value="all">Overall</option>
-              {sliceTabs.map((tab) => (
-                <option key={tab.key} value={tab.key}>{tab.label}</option>
-              ))}
-            </select>
-          </div>
-        )}
-
         {hasParameterData && (
           <div className="border-b bg-background px-5 py-4 sm:px-6">
             <ParamRangePicker

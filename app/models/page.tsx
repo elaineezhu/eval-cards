@@ -58,7 +58,7 @@ export default function ModelsPage() {
   const [loadingDevelopers, setLoadingDevelopers] = useState(false)
   const [developersReady, setDevelopersReady] = useState(false)
   const [groupByDeveloper, setGroupByDeveloper] = useState(false)
-  const [modelSortBy, setModelSortBy] = useState<ModelSort>("released")
+  const [modelSortBy, setModelSortBy] = useState<ModelSort>("coverage")
   const [modelSortDir, setModelSortDir] = useState<SortDir>("desc")
   const [developerSortBy, setDeveloperSortBy] = useState<DevSort>("models")
   const [developerSortDir, setDeveloperSortDir] = useState<SortDir>("desc")
@@ -383,7 +383,7 @@ export default function ModelsPage() {
               className="btn-ec outline"
               onClick={() => {
                 setSearchQuery("")
-                setModelSortBy("released")
+                setModelSortBy("coverage")
                 setModelSortDir("desc")
                 setDeveloperSortBy("models")
                 setDeveloperSortDir("desc")

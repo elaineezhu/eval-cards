@@ -214,6 +214,12 @@ export function cleanHierarchy(
     dedupAggregatorBenchesByScore(h, comparisonIndex)
   }
   decorateHierarchyDerivedTags(h)
+  // Run AFTER the sanitizer so it can't clobber our suffixed bench
+  // display_names (`MMLU-Pro · Arcadia Impact` etc.) — the merged-in
+  // bench keys deliberately use a non-shareToken-matching form to
+  // keep them distinct, which would otherwise trip the humanizeKey
+  // fallback in benchmark-tags.sanitizeName.
+  groupSameBenchAcrossSources(h)
   if (h.benchmark_index) {
     const survivingFamilyKeys = new Set<string>(
       (h.families ?? []).map((f) => f.key),
@@ -889,6 +895,101 @@ function consolidateDedicatedHomeBenchmarks(h: CleanableHierarchy) {
   }
 
   h.families = allFamilies.filter((fam) => !dropped.has(fam))
+}
+
+/**
+ * Group single-bench families that publish the same conceptual benchmark
+ * from different upstream sources into one merged family card.
+ *
+ * Triggered when ≥2 single-bench families share a bench key but their
+ * bench rows have non-overlapping eval_summary_ids — i.e. independent
+ * sources publishing the same benchmark. The richest family (most
+ * models) keeps its slot; other families contribute their bench under
+ * the survivor as siblings, with each bench's display_name suffixed
+ * with " · <Source>" so the user can tell which run a row came from.
+ *
+ * Runs AFTER decorateHierarchyDerivedTags so the sanitizer's
+ * shareToken / humanizeKey passes don't clobber the suffixed names
+ * (the merged-in bench keys like `mmlu-pro__arcadia` deliberately
+ * don't share tokens with "MMLU-Pro · Arcadia Impact").
+ */
+function groupSameBenchAcrossSources(h: CleanableHierarchy) {
+  const sourceLabel = (
+    bench: HierarchyBenchmark,
+    fallback: string,
+  ): string => {
+    const sources = (bench.metrics ?? []).flatMap((m) => m.sources ?? [])
+    for (const s of sources) {
+      const trimmed = String(s ?? "").trim()
+      if (trimmed) return trimmed
+    }
+    return fallback
+  }
+  const slugifyShort = (s: string) =>
+    s.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-+|-+$/g, "")
+
+  type Handle = { fam: HierarchyFamily; bench: HierarchyBenchmark }
+  const collectBenches = (fam: HierarchyFamily): HierarchyBenchmark[] => [
+    ...(fam.benchmarks ?? []),
+    ...(fam.standalone_benchmarks ?? []),
+    ...(fam.composites ?? []).flatMap((c) => c.benchmarks ?? []),
+  ]
+  const candidatesByKey = new Map<string, Handle[]>()
+  for (const fam of h.families ?? []) {
+    const benches = collectBenches(fam)
+    if (benches.length !== 1) continue
+    const sole = benches[0]
+    const list = candidatesByKey.get(sole.key) ?? []
+    list.push({ fam, bench: sole })
+    candidatesByKey.set(sole.key, list)
+  }
+
+  const dropped = new Set<HierarchyFamily>()
+  for (const [, group] of candidatesByKey) {
+    if (group.length < 2) continue
+    // eval_ids must be disjoint (otherwise an earlier rule should have
+    // caught them as aliases of the same row).
+    const seenIds = new Set<string>()
+    let disjoint = true
+    for (const entry of group) {
+      for (const id of entry.bench.summary_eval_ids ?? []) {
+        if (seenIds.has(id)) { disjoint = false; break }
+        seenIds.add(id)
+      }
+      if (!disjoint) break
+    }
+    if (!disjoint) continue
+
+    const sortedGroup = [...group].sort((x, y) => {
+      const xModels = x.bench.metrics?.[0]?.models_count ?? 0
+      const yModels = y.bench.metrics?.[0]?.models_count ?? 0
+      if (xModels !== yModels) return yModels - xModels
+      return x.fam.key.localeCompare(y.fam.key)
+    })
+    const survivor = sortedGroup[0]
+    const baseDisplay =
+      survivor.bench.display_name?.trim() ||
+      survivor.fam.display_name?.trim() ||
+      survivor.bench.key
+
+    for (const entry of sortedGroup) {
+      const src = sourceLabel(
+        entry.bench,
+        entry.fam.display_name || entry.fam.key,
+      )
+      entry.bench.display_name = `${baseDisplay} · ${src}`
+      if (entry !== survivor) {
+        entry.bench.key = `${survivor.bench.key}__${slugifyShort(src) || slugifyShort(entry.fam.key)}`
+        survivor.fam.benchmarks = survivor.fam.benchmarks ?? []
+        survivor.fam.benchmarks.push(entry.bench)
+        dropped.add(entry.fam)
+      }
+    }
+    survivor.fam.display_name = baseDisplay
+  }
+
+  if (dropped.size === 0) return
+  h.families = (h.families ?? []).filter((fam) => !dropped.has(fam))
 }
 
 /**

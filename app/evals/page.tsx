@@ -312,7 +312,6 @@ function EvalsPageInner() {
         ) : (
           <FamilyTable
             families={visibleFamilies}
-            totalModels={totalModels}
             evalItems={evalItems}
             benchmarkCards={benchmarkCards}
             categoryFilter={new Set(selectedCategories)}
