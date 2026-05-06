@@ -1,7 +1,14 @@
 import "server-only"
 
 import { createHash } from "node:crypto"
-import { accessSync, constants as fsConstants, rmSync } from "node:fs"
+import {
+  accessSync,
+  constants as fsConstants,
+  mkdirSync,
+  readFileSync,
+  rmSync,
+  writeFileSync,
+} from "node:fs"
 import { mkdir, readFile, stat, writeFile } from "node:fs/promises"
 import { tmpdir } from "node:os"
 import { join } from "node:path"
@@ -64,17 +71,49 @@ const DISK_CACHE_DIR = resolveDiskCacheDir()
 const DISK_CACHE_TTL_MS =
   Number.parseInt(process.env.SIDECAR_CACHE_TTL_SECONDS ?? "3600", 10) * 1000
 
-// One-shot cache purge. Set SIDECAR_CACHE_PURGE=1 in Space env, factory
-// rebuild once to wipe `/data/sidecars`, then unset and rebuild again.
-// Use when `latest/`-pinned URLs caused stale snapshots to stick.
-if (process.env.SIDECAR_CACHE_PURGE === "1") {
+// Identifies the deployed build. Next.js writes a fresh random
+// `.next/BUILD_ID` per `next build`, so reading it gives us a value
+// that changes on every HF Space rebuild but is stable across restarts
+// of the same container. `SIDECAR_BUILD_ID` overrides for tests / when
+// the build id needs to be forced from outside.
+function readBuildId(): string {
+  const explicit = process.env.SIDECAR_BUILD_ID?.trim()
+  if (explicit) return explicit
+  try {
+    const id = readFileSync(join(process.cwd(), ".next", "BUILD_ID"), "utf8").trim()
+    if (id) return id
+  } catch {}
+  return "dev"
+}
+
+const BUILD_ID = readBuildId()
+const BUILD_MARKER_PATH = join(DISK_CACHE_DIR, ".build-id")
+
+// Auto-purge the persistent /data/sidecars bucket whenever BUILD_ID
+// changes. The bucket survives container rebuilds, so without this a
+// rebuild would keep serving stale sidecars + stale cleaner output
+// until the TTL expired. Wiping on build change means: rebuild the
+// Space → first request after boot refetches everything fresh.
+//
+// SIDECAR_CACHE_PURGE=1 stays as a manual escape hatch (e.g. wipe
+// without rebuilding when SNAPSHOT_URL is bumped at runtime).
+function purgeAndStampBuild() {
+  const forced = process.env.SIDECAR_CACHE_PURGE === "1"
+  let prev = ""
+  try { prev = readFileSync(BUILD_MARKER_PATH, "utf8").trim() } catch {}
+  if (!forced && prev === BUILD_ID) return
   try {
     rmSync(DISK_CACHE_DIR, { recursive: true, force: true })
-    console.warn(`[sidecars] SIDECAR_CACHE_PURGE=1 — wiped ${DISK_CACHE_DIR}`)
+    mkdirSync(DISK_CACHE_DIR, { recursive: true })
+    writeFileSync(BUILD_MARKER_PATH, BUILD_ID, "utf8")
+    const reason = forced ? "SIDECAR_CACHE_PURGE=1" : `build ${prev || "<none>"} → ${BUILD_ID}`
+    console.warn(`[sidecars] purged ${DISK_CACHE_DIR} (${reason})`)
   } catch (err) {
     console.warn(`[sidecars] purge failed: ${err instanceof Error ? err.message : String(err)}`)
   }
 }
+
+purgeAndStampBuild()
 
 function diskCachePath(url: string): string {
   // The path encodes the URL hash so swapping SNAPSHOT_URL doesn't
@@ -145,12 +184,6 @@ export function fetchHeadline(): Promise<CorpusAggregates> {
   return (cache.headline ??= fetchJson<CorpusAggregates>("headline.json"))
 }
 
-// Bump when the cleaner's output shape or rules change so old cached
-// blobs don't get served against new code. The disk path embeds this
-// suffix; old files are simply ignored (and re-created on the next
-// stale read).
-const CLEAN_HIERARCHY_VERSION = "v13"
-
 /**
  * Returns the cleaned hierarchy used by the rest of the app — sanitised
  * display names, populated `derivedTags`, filtered `benchmark_index[]`.
@@ -158,12 +191,13 @@ const CLEAN_HIERARCHY_VERSION = "v13"
  * Disk cache layout: distinct from the raw `hierarchy.json` cache so the
  * cleaner runs at most once per snapshot. On a cold container we hit
  * the clean cache first; only on a miss/stale do we fall back to the
- * raw cache (or HF), run `cleanHierarchy`, and persist. The persistent
- * /data bucket therefore retains the artefact across rebuilds.
+ * raw cache (or HF), run `cleanHierarchy`, and persist. Cleaner-shape
+ * changes invalidate this automatically: a rebuilt Space gets a new
+ * BUILD_ID which wipes the bucket on first boot.
  */
 async function fetchCleanedHierarchy(): Promise<EvalHierarchy> {
   const snapshotUrl = getSnapshotUrl()
-  const cleanCachePath = diskCachePath(`${snapshotUrl}/clean-hierarchy.${CLEAN_HIERARCHY_VERSION}.json`)
+  const cleanCachePath = diskCachePath(`${snapshotUrl}/clean-hierarchy.json`)
   const cached = await readFromDisk(cleanCachePath)
   if (cached !== null) {
     try {
