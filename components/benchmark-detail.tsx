@@ -54,6 +54,8 @@ import type {
   SubmissionAxis,
 } from "@/lib/backend-artifacts"
 import { fetchPeerRanks } from "@/lib/dashboard-data-client"
+import { ModelPolicyOverview } from "@/components/model-policy-overview"
+import { buildModelPolicySummary } from "@/lib/policy-summaries"
 import {
   buildHierarchyEvalIndex,
   type HierarchyEvalLocation,
@@ -2216,6 +2218,40 @@ export function BenchmarkDetail({
     reproducibilityResultsTotal,
     summary.model_info.additional_details?.params_billions,
     summary.model_info.name,
+  ])
+
+  /**
+   * Structured plain-language summary used by <ModelPolicyOverview>.
+   * Pure rule-based templating — see lib/policy-summaries.ts. No LLM is
+   * invoked at runtime, so the same input always produces the same prose.
+   */
+  const modelPolicySummary = useMemo(() => {
+    const reportedCategories = Array.from(
+      new Set(allCategoryResults.map((entry) => entry.category as unknown as string)),
+    )
+    const benchmarkCount = new Set(
+      allCategoryResults.map(
+        (entry) =>
+          entry.evaluation.benchmark ||
+          entry.evaluation.benchmark_parent_name ||
+          entry.evaluation.eval_summary_id ||
+          getResultBenchmarkName(entry.evaluation, entry.result),
+      ),
+    ).size
+    return buildModelPolicySummary({
+      summary,
+      thirdPartyEvaluations: reportingStats.thirdPartyEvaluations,
+      organizationCount: reportingStats.organizationCount,
+      organizationNames: reportingStats.organizationNames,
+      benchmarkCount,
+      reportedCategories,
+    })
+  }, [
+    allCategoryResults,
+    reportingStats.thirdPartyEvaluations,
+    reportingStats.organizationCount,
+    reportingStats.organizationNames,
+    summary,
   ])
 
   const benchmarkGroups = useMemo(
@@ -4629,22 +4665,12 @@ export function BenchmarkDetail({
             )}
           </div>
         ) : (
-          <div className="space-y-3 max-w-[64rem]">
-            <p className="text-[16px] leading-[1.7] text-[color:var(--fg)]">
-              {policySummary.testedByCopy}
-            </p>
-            {policySummary.reproducibilityCopy && (
-              <div className="border border-[color:var(--border-soft)] bg-[color:var(--bg-warm)] px-4 py-3">
-                <span className="kicker kicker-accent mr-2">Reproducibility gap</span>
-                <span className="text-[13px] leading-[1.6] text-[color:var(--fg)]">
-                  {policySummary.reproducibilityCopy}
-                </span>
-              </div>
-            )}
-            <p className="text-[13px] leading-[1.7] text-[color:var(--fg-muted)]">
-              {policySummary.comparabilityCopy}
-              {policySummary.sizeCaveat ? ` ${policySummary.sizeCaveat}` : ""}
-            </p>
+          <div className="max-w-[64rem]">
+            <ModelPolicyOverview
+              modelName={getModelDisplayName(summary.model_info.name)}
+              policySummary={modelPolicySummary}
+              scaleNote={policySummary.sizeCaveat}
+            />
           </div>
         )}
       </section>

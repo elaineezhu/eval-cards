@@ -60,11 +60,19 @@ export function ComparabilityPanel({
 
       {showNoCrossPartyNote && (
         <div className="mt-4 rounded-xl border border-dashed border-border/70 bg-muted/10 px-3 py-2 text-sm text-muted-foreground">
-          No third-party reports are available for cross-party comparison.
+          {isResearchView
+            ? "No third-party reports are available for cross-party comparison."
+            : "No independent third-party reports are available to cross-check the developer's numbers on this benchmark."}
         </div>
       )}
 
-      {(() => {
+      {!isResearchView && (variantGroups.length > 0 || crossPartyGroups.length > 0) && (
+        <div className="mt-4 rounded-xl border border-border/70 bg-muted/5 px-4 py-3 text-sm leading-relaxed text-foreground/90">
+          {buildPolicyComparabilitySentence(variantGroups.length, crossPartyGroups.length)}
+        </div>
+      )}
+
+      {isResearchView && (() => {
         const onlyOne =
           (variantGroups.length > 0 ? 1 : 0) + (crossPartyGroups.length > 0 ? 1 : 0) === 1
         const sectionClass = onlyOne ? "" : "lg:grid lg:grid-cols-2 lg:gap-3"
@@ -114,6 +122,36 @@ export function ComparabilityPanel({
       })()}
     </section>
   )
+}
+
+/**
+ * Policy-mode caveat. Hides field names and divergence magnitudes (per the
+ * policy spec) and rolls the counts into a single narrative line.
+ */
+function buildPolicyComparabilitySentence(variantCount: number, crossPartyCount: number): string {
+  const variantPhrase =
+    variantCount === 0
+      ? null
+      : variantCount === 1
+        ? "one model has been reported under different evaluation setups"
+        : `${variantCount} models have been reported under different evaluation setups`
+  const crossPartyPhrase =
+    crossPartyCount === 0
+      ? null
+      : crossPartyCount === 1
+        ? "one model has different scores reported by different organizations"
+        : `${crossPartyCount} models have different scores reported by different organizations`
+
+  if (variantPhrase && crossPartyPhrase) {
+    return `${variantPhrase[0].toUpperCase()}${variantPhrase.slice(1)}, and ${crossPartyPhrase}. Some apparent score differences may reflect those choices rather than capability.`
+  }
+  if (variantPhrase) {
+    return `${variantPhrase[0].toUpperCase()}${variantPhrase.slice(1)}, which may explain some of the variation seen in reported numbers.`
+  }
+  if (crossPartyPhrase) {
+    return `${crossPartyPhrase[0].toUpperCase()}${crossPartyPhrase.slice(1)} — treat the headline number as a range rather than a single value.`
+  }
+  return ""
 }
 
 function GroupList({
