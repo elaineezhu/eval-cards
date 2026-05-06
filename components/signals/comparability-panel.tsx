@@ -1,65 +1,135 @@
 "use client"
 
-import type { ReactNode } from "react"
+import { useMemo, type ReactNode } from "react"
 import { ChevronDown, GitCompareArrows, Info, UsersRound } from "lucide-react"
 
 import { useAudienceMode } from "@/components/audience-mode-provider"
-import { Badge } from "@/components/ui/badge"
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible"
 import { SignalTooltip } from "@/components/signals/signal-tooltip"
 import type { BenchmarkComparability, ComparabilitySummary, DifferingSetupField } from "@/lib/backend-artifacts"
+import type { ModelResultForBenchmark } from "@/lib/eval-processing"
 import {
   formatFieldLabel,
   formatSignalNumber,
   formatSignalValue,
 } from "./signal-utils"
 
+interface FlaggedRow {
+  modelRouteId: string | null
+  modelName: string
+  variant: boolean
+  crossParty: boolean
+  fieldLabels: string[]
+}
+
+/**
+ * Derive the per-row flagged-model list from row-level annotations on
+ * each model_results entry. Used by the policy/research placeholder
+ * when the benchmark-level per-group annotations are sparse but the
+ * row data still tells us which specific models are affected.
+ */
+function deriveFlaggedRows(modelResults: readonly ModelResultForBenchmark[]): FlaggedRow[] {
+  const flagged: FlaggedRow[] = []
+  const seen = new Set<string>()
+  for (const r of modelResults) {
+    const ann = r.result?.evalcards?.annotations
+    if (!ann) continue
+    const variant = Boolean(ann.variant_divergence?.has_variant_divergence)
+    const crossParty = Boolean(ann.cross_party_divergence?.has_cross_party_divergence)
+    if (!variant && !crossParty) continue
+    const routeId = r.model_route_id ?? null
+    const name = r.model_info?.name ?? r.model_info?.id ?? routeId ?? "Unknown model"
+    const dedupKey = routeId ?? name
+    if (seen.has(dedupKey)) continue
+    seen.add(dedupKey)
+    const fields = ann.variant_divergence?.differing_setup_fields ?? []
+    flagged.push({
+      modelRouteId: routeId,
+      modelName: name,
+      variant,
+      crossParty,
+      fieldLabels: fields.map((f) => formatFieldLabel(f.field)),
+    })
+  }
+  return flagged
+}
+
 export function ComparabilityPanel({
   comparability,
   summary,
+  modelResults,
 }: {
   comparability?: BenchmarkComparability | null
   summary?: ComparabilitySummary
+  modelResults?: readonly ModelResultForBenchmark[]
 }) {
   const { mode } = useAudienceMode()
   const isResearchView = mode === "research"
   const variantGroups = comparability?.variant_divergence_groups ?? []
   const crossPartyGroups = comparability?.cross_party_divergence_groups ?? []
   const showNoCrossPartyNote = summary?.groups_with_cross_party_check === 0
+  // The roll-up summary can flag divergence even when per-group annotations
+  // are sparse on this benchmark. Pull the actual flagged models off the
+  // row-level annotations so we can name them instead of saying "flagged
+  // at the roll-up level" — that phrase means nothing to the reader.
+  const hasSummaryConcern =
+    (summary?.variant_divergent_count ?? 0) > 0 ||
+    (summary?.cross_party_divergent_count ?? 0) > 0
+  const noGroupDetail =
+    variantGroups.length === 0 && crossPartyGroups.length === 0
 
-  if (variantGroups.length === 0 && crossPartyGroups.length === 0 && !showNoCrossPartyNote) {
+  const flaggedRows = useMemo(
+    () => deriveFlaggedRows(modelResults ?? []),
+    [modelResults],
+  )
+
+  // Hide the panel entirely when we have nothing concrete to show: no
+  // per-group detail, no summary concern, and no cross-party gap to call
+  // out. We also hide when the only signal is a roll-up count that we
+  // can't connect to specific models — vague counts confuse readers.
+  if (noGroupDetail && !showNoCrossPartyNote && !hasSummaryConcern) {
+    return null
+  }
+  if (noGroupDetail && hasSummaryConcern && flaggedRows.length === 0 && !showNoCrossPartyNote) {
     return null
   }
 
   return (
     <section
       id="comparability-panel"
-      className="rounded-2xl border border-border/70 bg-background/70 p-4 sm:p-5 scroll-mt-24"
+      className="ec-card warm scroll-mt-24"
+      style={{ padding: "20px 24px" }}
     >
-      <div className="flex flex-col gap-2 sm:flex-row sm:items-start sm:justify-between">
-        <div className="space-y-1">
-          <div className="flex items-center gap-2">
-            <GitCompareArrows className="h-4 w-4 text-primary" />
-            <h3 className="font-semibold">
-              {isResearchView ? "Comparability" : "Can these scores be compared directly?"}
-            </h3>
-          </div>
-          <p className="max-w-2xl text-sm text-muted-foreground">
-            {isResearchView
-              ? "Groups where reported scores diverge across setups or reporting organizations."
-              : "Flags cases where score differences may come from setup choices or different reporting sources."}
-          </p>
-        </div>
+      <header className="mb-3 flex flex-wrap items-center gap-3">
+        <GitCompareArrows className="h-4 w-4" style={{ color: "var(--fg-muted)" }} />
+        <span className="kicker kicker-fg" style={{ fontSize: 12, letterSpacing: "0.16em" }}>
+          {isResearchView ? "Comparability" : "Can these scores be compared directly?"}
+        </span>
         {summary && (
-          <div className="flex flex-wrap gap-2 text-xs">
-            <Badge variant="outline">{summary.groups_with_variant_check} setup checks</Badge>
-            <Badge variant="outline">{summary.groups_with_cross_party_check} source checks</Badge>
-          </div>
+          <span
+            className="ml-auto font-mono text-[10px] uppercase tracking-[0.12em]"
+            style={{ color: "var(--fg-subtle)" }}
+          >
+            {summary.groups_with_variant_check} setup checks · {summary.groups_with_cross_party_check} source checks
+          </span>
         )}
-      </div>
+      </header>
+      <p className="mb-3 text-[13px]" style={{ color: "var(--fg-muted)", maxWidth: "48rem", lineHeight: 1.6 }}>
+        {isResearchView
+          ? "Groups where reported scores diverge across setups or reporting organizations."
+          : "Flags cases where score differences may come from setup choices or different reporting sources."}
+      </p>
 
       {showNoCrossPartyNote && (
-        <div className="mt-4 rounded-xl border border-dashed border-border/70 bg-muted/10 px-3 py-2 text-sm text-muted-foreground">
+        <div
+          className="mt-3 px-3 py-2 text-[13px]"
+          style={{
+            border: "1px dashed var(--border-soft)",
+            background: "var(--bg)",
+            color: "var(--fg-muted)",
+            lineHeight: 1.6,
+          }}
+        >
           {isResearchView
             ? "No third-party reports are available for cross-party comparison."
             : "No independent third-party reports are available to cross-check the developer's numbers on this benchmark."}
@@ -67,8 +137,72 @@ export function ComparabilityPanel({
       )}
 
       {!isResearchView && (variantGroups.length > 0 || crossPartyGroups.length > 0) && (
-        <div className="mt-4 rounded-xl border border-border/70 bg-muted/5 px-4 py-3 text-sm leading-relaxed text-foreground/90">
+        <div
+          className="mt-3 px-4 py-3 text-[13px]"
+          style={{
+            border: "1px solid var(--border-soft)",
+            background: "var(--bg)",
+            color: "var(--fg)",
+            lineHeight: 1.6,
+          }}
+        >
           {buildPolicyComparabilitySentence(variantGroups.length, crossPartyGroups.length)}
+        </div>
+      )}
+
+      {noGroupDetail && hasSummaryConcern && flaggedRows.length > 0 && (
+        <div
+          className="mt-3 px-3 py-3"
+          style={{
+            border: "1px solid var(--border-soft)",
+            background: "var(--bg)",
+            color: "var(--fg)",
+            lineHeight: 1.6,
+          }}
+        >
+          <div
+            className="mb-2 font-mono uppercase"
+            style={{ fontSize: 10, letterSpacing: "0.14em", color: "var(--fg-subtle)" }}
+          >
+            Flagged models · {flaggedRows.length}
+          </div>
+          <ul className="flex flex-col gap-1.5">
+            {flaggedRows.map((row) => {
+              const tags: string[] = []
+              if (row.variant) tags.push("setup divergence")
+              if (row.crossParty) tags.push("source divergence")
+              const fieldNote = row.fieldLabels.length > 0
+                ? ` (differs by ${row.fieldLabels.slice(0, 3).join(", ")}${row.fieldLabels.length > 3 ? ", …" : ""})`
+                : ""
+              const inner = (
+                <>
+                  <span className="font-semibold" style={{ color: "var(--fg)" }}>{row.modelName}</span>
+                  <span style={{ color: "var(--fg-muted)" }}>{" · "}{tags.join(" · ")}{fieldNote}</span>
+                </>
+              )
+              return (
+                <li key={row.modelRouteId ?? row.modelName} className="text-[13px]">
+                  {row.modelRouteId ? (
+                    <a
+                      href={`#row-${row.modelRouteId}`}
+                      className="inline-flex items-center gap-2 hover:underline underline-offset-4"
+                      style={{ color: "var(--fg)" }}
+                    >
+                      {inner}
+                      <span
+                        className="font-mono uppercase"
+                        style={{ fontSize: 10, letterSpacing: "0.12em", color: "var(--accent)" }}
+                      >
+                        Jump to row →
+                      </span>
+                    </a>
+                  ) : (
+                    <span className="inline-flex items-center gap-2">{inner}</span>
+                  )}
+                </li>
+              )
+            })}
+          </ul>
         </div>
       )}
 
@@ -174,14 +308,26 @@ function GroupList({
       <CollapsibleTrigger asChild>
         <button
           type="button"
-          className="flex w-full items-center justify-between rounded-xl border border-border/70 bg-muted/10 px-3 py-2 text-left transition-colors hover:bg-muted/20"
+          className="flex w-full items-center justify-between px-3 py-2 text-left transition-colors hover:bg-[color:var(--bg-warm)]"
+          style={{
+            border: "1px solid var(--border-soft)",
+            background: "var(--bg)",
+          }}
         >
-          <span className="flex items-center gap-2 text-sm font-semibold">
-            <Icon className="h-4 w-4 text-muted-foreground" />
+          <span
+            className="flex items-center gap-2 font-mono uppercase"
+            style={{ fontSize: 11, letterSpacing: "0.14em", color: "var(--fg)" }}
+          >
+            <Icon className="h-3.5 w-3.5" style={{ color: "var(--fg-muted)" }} />
             {title}
-            <Badge variant="secondary">{count}</Badge>
+            <span
+              className="ml-1 font-mono tabular-nums"
+              style={{ fontSize: 11, color: "var(--fg-muted)" }}
+            >
+              · {count}
+            </span>
           </span>
-          <ChevronDown className="h-4 w-4 text-muted-foreground" />
+          <ChevronDown className="h-4 w-4 shrink-0" style={{ color: "var(--fg-muted)" }} />
         </button>
       </CollapsibleTrigger>
       <CollapsibleContent className={`mt-2 ${itemsClassName}`}>
@@ -262,21 +408,31 @@ function DivergenceGroupItem({
   return (
     <a
       href={`#row-${modelRouteId}`}
-      className="block rounded-xl border border-border/60 bg-background px-3 py-2.5 text-sm transition-colors hover:bg-muted/20"
+      className="block px-3 py-2.5 text-[13px] transition-colors hover:bg-[color:var(--bg-warm)]"
+      style={{
+        border: "1px solid var(--border-soft)",
+        background: "var(--bg)",
+        color: "var(--fg)",
+      }}
     >
       <div className="flex items-start justify-between gap-3">
         <div className="min-w-0">
           <div className="flex items-center gap-1.5">
-            <span className="font-medium">{modelRouteId}</span>
+            <span className="font-semibold" style={{ color: "var(--fg)" }}>{modelRouteId}</span>
             <SignalTooltip content={summarySentence}>
-              <Info className="h-3.5 w-3.5 shrink-0 cursor-help text-muted-foreground" />
+              <Info className="h-3.5 w-3.5 shrink-0 cursor-help" style={{ color: "var(--fg-muted)" }} />
             </SignalTooltip>
           </div>
-          <div className="mt-1 text-xs text-muted-foreground">
+          <div className="mt-1 font-mono tabular-nums" style={{ fontSize: 11, color: "var(--fg-muted)" }}>
             Diverges by {formatSignalNumber(magnitude)} (threshold {formatSignalNumber(threshold)})
           </div>
         </div>
-        <span className="shrink-0 text-xs font-medium text-primary">Jump to row</span>
+        <span
+          className="shrink-0 font-mono uppercase"
+          style={{ fontSize: 10, letterSpacing: "0.12em", color: "var(--accent)" }}
+        >
+          Jump to row →
+        </span>
       </div>
 
       {fields.slice(0, 3).map((field) => {
@@ -284,7 +440,10 @@ function DivergenceGroupItem({
         const overflow = field.values.length - chips.length
         return (
           <div key={field.field} className="mt-2">
-            <div className="mb-1 text-[11px] font-semibold uppercase tracking-[0.14em] text-muted-foreground">
+            <div
+              className="mb-1 font-mono uppercase"
+              style={{ fontSize: 10, letterSpacing: "0.14em", color: "var(--fg-subtle)" }}
+            >
               Differs by {formatFieldLabel(field.field)}
             </div>
             <div className="flex flex-wrap gap-1.5">
@@ -293,7 +452,13 @@ function DivergenceGroupItem({
                 const tooltipBody = friendly ? formatSignalValue(chip.raw) : null
                 const pill = (
                   <span
-                    className="inline-flex max-w-[18rem] items-center rounded-full border border-border/60 bg-muted/20 px-2 py-0.5 text-[11px] text-foreground/90 truncate"
+                    className="ec-tag outline truncate"
+                    style={{
+                      maxWidth: "18rem",
+                      textTransform: "none",
+                      fontFamily: "var(--font-mono)",
+                      fontSize: 11,
+                    }}
                     title={!tooltipBody ? chip.label : undefined}
                   >
                     {chip.label}
@@ -315,7 +480,14 @@ function DivergenceGroupItem({
                 )
               })}
               {overflow > 0 && (
-                <span className="inline-flex items-center rounded-full border border-dashed border-border/60 px-2 py-0.5 text-[11px] text-muted-foreground">
+                <span
+                  className="inline-flex items-center px-2 py-0.5 font-mono"
+                  style={{
+                    fontSize: 11,
+                    border: "1px dashed var(--border-soft)",
+                    color: "var(--fg-muted)",
+                  }}
+                >
                   +{overflow} more
                 </span>
               )}
@@ -329,7 +501,13 @@ function DivergenceGroupItem({
           {Object.entries(scoresByOrganization).slice(0, 4).map(([org, score]) => (
             <span
               key={org}
-              className="rounded-full border border-border/60 bg-muted/20 px-2 py-0.5 text-[11px] text-muted-foreground"
+              className="px-2 py-0.5 font-mono tabular-nums"
+              style={{
+                fontSize: 11,
+                border: "1px solid var(--border-soft)",
+                background: "var(--bg-warm)",
+                color: "var(--fg-muted)",
+              }}
             >
               {org}: {formatSignalNumber(score)}
             </span>

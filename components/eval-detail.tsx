@@ -58,6 +58,7 @@ import { ResearcherReproducibilityCard } from "@/components/researcher-reproduci
 import { KnownIssuesPanel } from "@/components/known-issues-panel"
 import { getKnownIssues, type KnownIssue } from "@/lib/known-issues"
 import { ApplesToApplesBanner } from "@/components/apples-to-apples-banner"
+import { ComparabilityPanel } from "@/components/signals/comparability-panel"
 import { FlagScoreButton } from "@/components/flag-score-button"
 
 interface SplitOption {
@@ -579,6 +580,26 @@ export function EvalDetail({
   // selected, else the page-level summary). Hero / cards / signals continue to
   // read from `summary` so the rich info above the leaderboard stays stable.
   const lb = activeSummary ?? summary
+
+  /**
+   * Does the comparability data carry per-model attribution we can actually
+   * surface? When false the apples-to-apples banner switches to honest copy
+   * that doesn't promise a model list / panel that won't render. The
+   * producer pipeline ships rollup counts even on benchmarks where the
+   * per-row `has_*_divergence` flags and per-group breakdowns are empty
+   * (e.g. cocoabench), so this guard avoids a misleading banner.
+   */
+  const hasComparabilityActionableDetail = useMemo(() => {
+    const ann = summary.evalcards?.annotations?.benchmark_comparability
+    if ((ann?.variant_divergence_groups?.length ?? 0) > 0) return true
+    if ((ann?.cross_party_divergence_groups?.length ?? 0) > 0) return true
+    for (const r of summary.model_results ?? []) {
+      const a = r.result?.evalcards?.annotations
+      if (a?.variant_divergence?.has_variant_divergence) return true
+      if (a?.cross_party_divergence?.has_cross_party_divergence) return true
+    }
+    return false
+  }, [summary.evalcards?.annotations?.benchmark_comparability, summary.model_results])
   // Multi-metric leaderboard is only meaningful when there is more than one
   // *root* metric. Subtask-scope entries are slices of one root metric (e.g.
   // Global MMLU has 19 language slices of `score`); promoting them to columns
@@ -1089,11 +1110,20 @@ export function EvalDetail({
         </CollapsibleContent>
       </Collapsible>
 
+      {/* Comparability deep-dive — sits with the rest of the eval
+          metadata above the leaderboard. Auto-hidden by the panel
+          itself when there are no divergence groups to show. */}
+      <ComparabilityPanel
+        comparability={summary.evalcards?.annotations?.benchmark_comparability}
+        summary={summary.comparability_summary}
+        modelResults={summary.model_results}
+      />
+
       {hasMultiMetricLeaderboard ? (
         <section>
           <ApplesToApplesBanner
             summary={lb.comparability_summary}
-            detailsAnchorId="comparability-panel"
+            hasActionableDetail={hasComparabilityActionableDetail}
           />
           <MultiMetricLeaderboard
             summary={lb}
@@ -1105,9 +1135,9 @@ export function EvalDetail({
         <section>
           <ApplesToApplesBanner
             summary={lb.comparability_summary}
-            detailsAnchorId="comparability-panel"
+            hasActionableDetail={hasComparabilityActionableDetail}
           />
-          <div className="section-head">
+          <div className="section-head mt-8">
             <h2>{leaderboardTitle}</h2>
             <span
               className="font-mono text-[10px] uppercase tracking-[0.12em]"
@@ -1383,6 +1413,12 @@ export function EvalDetail({
                                 {datasetName}
                               </div>
                             )}
+                          {/* Per-row signal badges (reproducibility,
+                              provenance, variant/cross-party divergence)
+                              — make the apples-to-apples banner's
+                              "per-row signal badges below" reference
+                              concrete on the single-metric leaderboard. */}
+                          <SignalsRowBadges annotations={rowAnnotations} className="justify-end" />
                         </td>
 
                         <td className="hidden lg:table-cell align-top">
@@ -2044,7 +2080,7 @@ function MultiMetricLeaderboard({
       {/* The parent EvalDetail already renders the apples-to-apples
           banner before this leaderboard section — duplicating it here
           made the box appear twice on multi-metric evals like fibble. */}
-      <div className="section-head">
+      <div className="section-head mt-8">
         <h2>{isResearchView ? "Leaderboard" : "Reporting Comparison"}</h2>
         <span
           className="font-mono text-[10px] uppercase tracking-[0.12em]"

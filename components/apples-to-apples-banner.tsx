@@ -8,10 +8,13 @@ import type { ComparabilitySummary } from "@/lib/backend-artifacts"
 interface ApplesToApplesBannerProps {
   summary?: ComparabilitySummary | null
   /**
-   * Optional anchor id so the "see details" link can scroll to the full
-   * Comparability panel further down the page.
+   * Whether per-row or per-group annotations downstream actually let the
+   * reader trace the divergence to specific models. When false (e.g. the
+   * producer shipped only a rollup count for this benchmark, like
+   * cocoabench), the banner drops the "see badges / panel" promise and
+   * surfaces an honest "specific models aren't reported" caveat instead.
    */
-  detailsAnchorId?: string
+  hasActionableDetail?: boolean
 }
 
 /**
@@ -21,7 +24,7 @@ interface ApplesToApplesBannerProps {
  * (cross-party divergence). Designed to interrupt naive ranking comparisons
  * before the reader scrolls to the per-row signals.
  */
-export function ApplesToApplesBanner({ summary, detailsAnchorId }: ApplesToApplesBannerProps) {
+export function ApplesToApplesBanner({ summary, hasActionableDetail = false }: ApplesToApplesBannerProps) {
   const { mode } = useAudienceMode()
 
   if (!summary) return null
@@ -51,10 +54,17 @@ export function ApplesToApplesBanner({ summary, detailsAnchorId }: ApplesToApple
       ? "Heads up: not every score here is directly comparable."
       : "Apples-to-apples warning"
 
-  const body =
-    mode === "policy"
-      ? `${concernPhrases.join(" and ")}. Direct ranking comparisons may be misleading.`
-      : `${concernPhrases.join("; ")}. See the Comparability panel below for which models and which fields differ.`
+  // Only promise per-model breakdown when the data actually carries it.
+  // For benchmarks where the producer ships only the rollup count, switch
+  // to honest framing that doesn't point at badges or a panel that won't
+  // render.
+  const body = hasActionableDetail
+    ? mode === "policy"
+      ? `${concernPhrases.join(" and ")}. Direct ranking comparisons may be misleading — see the comparability panel above for the affected models.`
+      : `${concernPhrases.join("; ")}. The comparability panel above lists the affected models.`
+    : mode === "policy"
+      ? `${concernPhrases.join(" and ")}. Direct ranking comparisons may be misleading. This dataset doesn't report which specific models the divergence applies to.`
+      : `${concernPhrases.join("; ")}. The dataset doesn't attribute the divergence to specific models.`
 
   return (
     <div
@@ -96,15 +106,6 @@ export function ApplesToApplesBanner({ summary, detailsAnchorId }: ApplesToApple
                 Source divergence: {crossPartyCount}/{crossPartyChecked || crossPartyCount}
               </span>
             </SignalTooltip>
-          )}
-          {detailsAnchorId && (
-            <a
-              href={`#${detailsAnchorId}`}
-              className="ml-auto font-medium hover:underline underline-offset-4"
-              style={{ color: "var(--fg-muted)" }}
-            >
-              See details ↓
-            </a>
           )}
         </div>
       </div>
