@@ -234,11 +234,7 @@ export default async function HomePage() {
 
         {/* FOUR INTERPRETIVE SIGNALS -------------------------------------- */}
         <section className="signals-section">
-          <div className="kicker">Interpretive signals</div>
-          <h2 className="signals-h2">
-            Reproducibility · Completeness ·<br />
-            Provenance &amp; risk · Comparability
-          </h2>
+          <h2 className="signals-h2">Interpretive signals</h2>
           <p className="signals-lede">
             Four signals computed over each <em>(model, benchmark, metric-path)</em> record and
             aggregated to the corpus level. Per-record instances appear on every model and
