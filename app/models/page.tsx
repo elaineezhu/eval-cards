@@ -12,6 +12,7 @@ import { Navigation } from "@/components/navigation"
 import { ParamRangePicker } from "@/components/param-range-picker"
 import { fetchCorpusAggregates, fetchDevelopers, fetchModelCards, fetchBenchmarkMetadata, type DeveloperListItem } from "@/lib/dashboard-data-client"
 import type { BenchmarkCard } from "@/lib/benchmark-schema"
+import { isOfficialDeveloper } from "@/lib/known-developers"
 import { PARAM_RANGE_MAX_INDEX, paramStepToNumeric } from "@/lib/param-range"
 
 const PAGE_SIZE = 40
@@ -20,6 +21,7 @@ const MAX_COMPARE_MODELS = 4
 type ModelSort = ModelTableSortCol
 type DevSort = DeveloperTableSortCol
 type SortDir = "asc" | "desc"
+type DevScope = "official" | "community" | "all"
 
 // Default sort direction per column when the user first clicks it. Numeric /
 // recency columns descend (newest, biggest first); name columns ascend.
@@ -62,6 +64,7 @@ export default function ModelsPage() {
   const [modelSortDir, setModelSortDir] = useState<SortDir>("desc")
   const [developerSortBy, setDeveloperSortBy] = useState<DevSort>("models")
   const [developerSortDir, setDeveloperSortDir] = useState<SortDir>("desc")
+  const [developerScope, setDeveloperScope] = useState<DevScope>("official")
 
   const handleModelSort = useCallback((col: ModelSort) => {
     setModelSortBy((current) => {
@@ -194,6 +197,13 @@ export default function ModelsPage() {
     const query = deferredSearchQuery.trim().toLowerCase()
     let filtered = developers
 
+    if (developerScope !== "all") {
+      filtered = filtered.filter((dev) => {
+        const official = isOfficialDeveloper(dev.developer)
+        return developerScope === "official" ? official : !official
+      })
+    }
+
     if (query) {
       filtered = filtered.filter(
         (dev) =>
@@ -222,12 +232,12 @@ export default function ModelsPage() {
       if (cmp === 0) return a.developer.localeCompare(b.developer)
       return cmp * dirMul
     })
-  }, [developers, deferredSearchQuery, developerSortBy, developerSortDir])
+  }, [developers, deferredSearchQuery, developerSortBy, developerSortDir, developerScope])
 
   // Reset visible window when filter/sort changes
   useEffect(() => {
     setVisibleCount(PAGE_SIZE)
-  }, [groupByDeveloper, modelSortBy, modelSortDir, developerSortBy, developerSortDir, deferredSearchQuery, minParamStep, maxParamStep, showUnknownSize])
+  }, [groupByDeveloper, modelSortBy, modelSortDir, developerSortBy, developerSortDir, developerScope, deferredSearchQuery, minParamStep, maxParamStep, showUnknownSize])
 
   const totalCount = groupByDeveloper ? sortedDevelopers.length : sortedEvaluations.length
   const visibleEvaluations = useMemo(
@@ -331,6 +341,32 @@ export default function ModelsPage() {
             </button>
           </div>
 
+          {groupByDeveloper && (
+            <div className="ec-mode-toggle" role="group" aria-label="Developer scope">
+              <button
+                type="button"
+                className={developerScope === "official" ? "on" : ""}
+                onClick={() => setDeveloperScope("official")}
+              >
+                Official
+              </button>
+              <button
+                type="button"
+                className={developerScope === "community" ? "on" : ""}
+                onClick={() => setDeveloperScope("community")}
+              >
+                Community
+              </button>
+              <button
+                type="button"
+                className={developerScope === "all" ? "on" : ""}
+                onClick={() => setDeveloperScope("all")}
+              >
+                All
+              </button>
+            </div>
+          )}
+
           <div className="relative ml-auto min-w-[180px] flex-1 sm:max-w-[360px]">
             <Search className="pointer-events-none absolute left-3 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-[color:var(--fg-subtle)]" />
             <input
@@ -387,6 +423,7 @@ export default function ModelsPage() {
                 setModelSortDir("desc")
                 setDeveloperSortBy("models")
                 setDeveloperSortDir("desc")
+                setDeveloperScope("all")
               }}
             >
               Reset filters

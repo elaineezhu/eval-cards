@@ -20,8 +20,6 @@ interface DeveloperTableProps {
 }
 
 export function DeveloperTable({ rows, sortCol, sortDir, onSort }: DeveloperTableProps) {
-  const maxModels = rows.reduce((m, r) => Math.max(m, r.model_count), 1)
-
   function SortIcon({ col }: { col: DeveloperTableSortCol }) {
     if (sortCol !== col) return <ChevronsUpDown className="h-3 w-3 opacity-30" aria-hidden />
     return sortDir === "asc"
@@ -74,7 +72,6 @@ export function DeveloperTable({ rows, sortCol, sortDir, onSort }: DeveloperTabl
         </thead>
         <tbody>
           {rows.map((dev) => {
-            const pct = (dev.model_count / maxModels) * 100
             return (
               <tr key={dev.route_id}>
                 <td>
@@ -84,12 +81,6 @@ export function DeveloperTable({ rows, sortCol, sortDir, onSort }: DeveloperTabl
                   >
                     <div className="font-semibold text-[14px] text-[color:var(--fg)] group-hover:text-[color:var(--accent)] transition-colors">
                       {dev.developer}
-                    </div>
-                    <div className="mt-1 relative h-1 w-32 bg-[color:var(--bg-surface)]">
-                      <div
-                        className="absolute left-0 top-0 bottom-0 bg-[color:var(--accent)] opacity-60"
-                        style={{ width: `${pct}%` }}
-                      />
                     </div>
                   </Link>
                 </td>

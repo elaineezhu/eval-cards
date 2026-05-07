@@ -23,6 +23,7 @@ import {
   toBenchmarkEvalListItem,
 } from "@/lib/eval-processing"
 import { getCanonicalModelIdentity, getModelFamilyRouteId } from "@/lib/model-family"
+import { normalizeDeveloperName } from "@/lib/known-developers"
 import { getBenchmarkCard, normalizeBenchmarkKey } from "@/lib/benchmark-metadata"
 import {
   type HFEvalDetail,
@@ -212,37 +213,10 @@ export function getDeveloperSlugCandidates(developerOrRouteId: string): string[]
 }
 
 // ---------------------------------------------------------------------------
-// Developer name normalization
+// Developer name normalization (now lives in @/lib/known-developers)
 // ---------------------------------------------------------------------------
 
-const KNOWN_DEVELOPER_NAMES: Record<string, string> = {
-  openai: "OpenAI",
-  google: "Google",
-  anthropic: "Anthropic",
-  meta: "Meta",
-  microsoft: "Microsoft",
-  mistralai: "Mistral AI",
-  deepseek: "DeepSeek",
-  "deepseek-ai": "DeepSeek",
-  cohere: "Cohere",
-  nvidia: "NVIDIA",
-  alibaba: "Alibaba",
-  amazon: "Amazon",
-  apple: "Apple",
-  ibm: "IBM",
-  xai: "xAI",
-  "x-ai": "xAI",
-}
-
-export function normalizeDeveloperName(name: string): string {
-  const key = name.trim().toLowerCase()
-  if (KNOWN_DEVELOPER_NAMES[key]) return KNOWN_DEVELOPER_NAMES[key]
-  // Title-case if the name is all-lowercase and not a compound like "01-ai"
-  if (name === name.toLowerCase() && /^[a-z]/.test(name)) {
-    return name.charAt(0).toUpperCase() + name.slice(1)
-  }
-  return name
-}
+export { normalizeDeveloperName }
 
 function getModelCardAverageScore(entry: HFModelCardEntry) {
   if (typeof entry.score_summary?.average === "number") {
