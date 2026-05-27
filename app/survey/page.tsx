@@ -97,7 +97,7 @@ function buildSummaryText(state: SurveyState, fieldMap: Map<string, SurveyField>
     state.stakeholderTag
 
   const lines: string[] = [
-    "Eval Cards Survey",
+    "Evaluation Cards Survey",
     `Stakeholder tag: ${stakeholderLabel}`,
     `Date: ${getTodayString()}`,
     `Participant: ${state.participantName || "Anonymous"}`,

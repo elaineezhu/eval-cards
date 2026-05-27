@@ -77,11 +77,13 @@ export function ModelTable({
     children,
     className,
     style,
+    title,
   }: {
     col: ModelTableSortCol
     children: React.ReactNode
     className?: string
     style?: React.CSSProperties
+    title?: string
   }) {
     const active = sortCol === col
     return (
@@ -94,6 +96,7 @@ export function ModelTable({
           color: active ? "var(--fg)" : undefined,
         }}
         onClick={() => onSort(col)}
+        title={title}
       >
         <span className={cn("inline-flex items-center gap-1", className?.includes("num") && "justify-end")}>
           {children}
@@ -114,17 +117,12 @@ export function ModelTable({
             <SortTh col="params">Params</SortTh>
             <SortTh col="benchmarks" className="num">Benchmarks</SortTh>
             <SortTh col="results" className="num">Results</SortTh>
-            <SortTh col="coverage" style={{ width: "20%" }}>Coverage</SortTh>
             <th style={{ width: 90 }} />
           </tr>
         </thead>
         <tbody>
           {rows.map((row) => {
             const isSelected = selectedIds.includes(row.id)
-            const coverage =
-              totalBenchmarks > 0
-                ? clampPct((row.benchmarks_count / totalBenchmarks) * 100)
-                : 0
             const cantSelect = !isSelected && selectedIds.length >= maxCompare
 
             return (
@@ -142,7 +140,7 @@ export function ModelTable({
                       disabled={cantSelect}
                       title={
                         cantSelect
-                          ? `Compare tray full (max ${maxCompare}).`
+                          ? `Compare list full (max ${maxCompare}).`
                           : isSelected
                           ? "Remove from compare"
                           : "Add to compare"
@@ -194,19 +192,6 @@ export function ModelTable({
                 </td>
                 <td className="num font-mono text-[13px]">
                   {row.evaluations_count.toLocaleString()}
-                </td>
-                <td>
-                  <div className="flex items-center gap-2">
-                    <div className="relative h-1.5 flex-1 bg-[color:var(--bg-surface)]">
-                      <div
-                        className="absolute left-0 top-0 bottom-0 bg-[color:var(--accent)] motion-academic-progress"
-                        style={{ width: `${coverage}%` }}
-                      />
-                    </div>
-                    <span className="font-mono text-[11px] text-[color:var(--fg)] tabular-nums w-9 text-right">
-                      {Math.round(coverage)}%
-                    </span>
-                  </div>
                 </td>
                 <td>
                   <Link

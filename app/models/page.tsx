@@ -60,7 +60,7 @@ export default function ModelsPage() {
   const [loadingDevelopers, setLoadingDevelopers] = useState(false)
   const [developersReady, setDevelopersReady] = useState(false)
   const [groupByDeveloper, setGroupByDeveloper] = useState(false)
-  const [modelSortBy, setModelSortBy] = useState<ModelSort>("coverage")
+  const [modelSortBy, setModelSortBy] = useState<ModelSort>("released")
   const [modelSortDir, setModelSortDir] = useState<SortDir>("desc")
   const [developerSortBy, setDeveloperSortBy] = useState<DevSort>("models")
   const [developerSortDir, setDeveloperSortDir] = useState<SortDir>("desc")
@@ -154,10 +154,10 @@ export default function ModelsPage() {
     if (query) {
       filtered = filtered.filter((row) => {
         return (
-          row.model_name.toLowerCase().includes(query) ||
-          row.canonical_model_name.toLowerCase().includes(query) ||
-          row.developer.toLowerCase().includes(query) ||
-          (row.benchmark_names ?? []).some((b) => b.toLowerCase().includes(query))
+          (row.model_name ?? "").toLowerCase().includes(query) ||
+          (row.canonical_model_name ?? "").toLowerCase().includes(query) ||
+          (row.developer ?? "").toLowerCase().includes(query) ||
+          (row.benchmark_names ?? []).some((b) => (b ?? "").toLowerCase().includes(query))
         )
       })
     }
@@ -207,8 +207,8 @@ export default function ModelsPage() {
     if (query) {
       filtered = filtered.filter(
         (dev) =>
-          dev.developer.toLowerCase().includes(query) ||
-          dev.popular_evals.some((ev) => ev.benchmark.toLowerCase().includes(query)),
+          (dev.developer ?? "").toLowerCase().includes(query) ||
+          (dev.popular_evals ?? []).some((ev) => (ev?.benchmark ?? "").toLowerCase().includes(query)),
       )
     }
 
@@ -317,7 +317,7 @@ export default function ModelsPage() {
             {!groupByDeveloper && (
               <span>
                 · <span className="text-[color:var(--fg)] tabular-nums font-semibold mr-1">{selectedModels.length}/{MAX_COMPARE_MODELS}</span>
-                tray
+                selected to compare
               </span>
             )}
           </div>
@@ -419,7 +419,7 @@ export default function ModelsPage() {
               className="btn-ec outline"
               onClick={() => {
                 setSearchQuery("")
-                setModelSortBy("coverage")
+                setModelSortBy("released")
                 setModelSortDir("desc")
                 setDeveloperSortBy("models")
                 setDeveloperSortDir("desc")
@@ -462,7 +462,7 @@ export default function ModelsPage() {
             <div className="pointer-events-auto w-full max-w-5xl border border-[color:var(--fg)] bg-[color:var(--bg)] p-4 shadow-[var(--shadow-card)]">
               <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
                 <div className="space-y-2">
-                  <div className="kicker">Compare tray</div>
+                  <div className="kicker">Models selected to compare</div>
                   <div className="flex flex-wrap gap-2">
                     {selectedModels.map((model) => (
                       <span

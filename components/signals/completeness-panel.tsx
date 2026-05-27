@@ -43,7 +43,7 @@ export function CompletenessPanel({
           </div>
           <p className="max-w-2xl text-sm text-muted-foreground">
             {isResearchView
-              ? "Coverage of EvalCards-required documentation fields for this benchmark."
+              ? "Coverage of Evaluation Cards-required documentation fields for this benchmark."
               : "A quick read on how much supporting documentation is available before leaning on the scores."}
           </p>
         </div>

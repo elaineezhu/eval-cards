@@ -6,8 +6,8 @@ import { BackendRefreshListener } from "@/components/backend-refresh-listener"
 import { ThemeProvider } from "@/components/theme-provider"
 
 const SITE_URL = "https://evalcards.evalevalai.com"
-const SITE_NAME = "Eval Cards"
-const SITE_TITLE = "Eval Cards — a reporting layer for AI evaluations"
+const SITE_NAME = "Evaluation Cards"
+const SITE_TITLE = "Evaluation Cards — a reporting layer for AI evaluations"
 const SITE_DESCRIPTION =
   "A public registry of reported model–benchmark results, organised under a five-level rollout hierarchy and four interpretive signals: reproducibility, completeness, provenance, and comparability."
 
@@ -15,7 +15,7 @@ export const metadata: Metadata = {
   metadataBase: new URL(SITE_URL),
   title: {
     default: SITE_TITLE,
-    template: "%s · Eval Cards",
+    template: "%s · Evaluation Cards",
   },
   description: SITE_DESCRIPTION,
   applicationName: SITE_NAME,

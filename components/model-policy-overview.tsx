@@ -37,13 +37,13 @@ export function ModelPolicyOverview({ modelName, policySummary, scaleNote }: Mod
       <header className="mb-3 flex flex-wrap items-center gap-3">
         <BookOpen className="h-4 w-4" style={{ color: "var(--fg-muted)" }} />
         <span className="kicker kicker-fg" style={{ fontSize: 12, letterSpacing: "0.16em" }}>
-          Policy note
+          At a glance
         </span>
         <span
           className="font-mono text-[10px] uppercase tracking-[0.12em]"
           style={{ color: "var(--fg-subtle)" }}
         >
-          {modelName} · in plain language
+          {modelName}
         </span>
         {verificationLabel && (
           <span

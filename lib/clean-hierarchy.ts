@@ -208,6 +208,7 @@ export function cleanHierarchy(
   if (h[CLEANED_MARKER]) return h
   consolidateAirBench(h)
   consolidateDedicatedHomeBenchmarks(h)
+  collapseValsAiSetupVariants(h)
   dedupValsAiAliasedBenches(h)
   flattenSplitFamilies(h)
   if (comparisonIndex) {
@@ -1029,6 +1030,87 @@ function groupSameBenchAcrossSources(h: CleanableHierarchy) {
  * because they use `vals_ai.` (dot/underscore) instead of the `"vals ai "`
  * (space) alias prefix.
  */
+/**
+ * vals_ai records ship eval_names shaped "vals_ai.<benchmark>.<setup-variant>"
+ * — e.g. "vals_ai.swebench.>4 hours", "vals_ai.swebench.<15 min fix". The
+ * pre-patch producer treats those as separate benchmarks. They're really
+ * setup variants (time budgets) of a single benchmark; we collapse each
+ * leaked sibling into a new slice on the canonical bench.
+ *
+ * Once the producer (build_hierarchy_v2.py:EVAL_NAME_SHAPE) is re-run, this
+ * cleaner is a no-op — the leaked keys never appear.
+ */
+function collapseValsAiSetupVariants(h: CleanableHierarchy) {
+  const PATTERN = /^vals_ai\.([a-z0-9_-]+)\.(.+)$/i
+  // Tokenise for fuzzy "swebench" ↔ "swe-bench" matching.
+  const compact = (s: string) => s.toLowerCase().replace(/[^a-z0-9]/g, "")
+
+  for (const fam of h.families ?? []) {
+    if (fam.key !== "vals-ai") continue
+    const benches: HierarchyBenchmark[] = [
+      ...(fam.benchmarks ?? []),
+      ...(fam.standalone_benchmarks ?? []),
+    ]
+
+    // Group leaked benches by bench label (e.g. "swebench") so we know
+    // which canonical sibling to merge each set into.
+    const leakedByBench = new Map<string, HierarchyBenchmark[]>()
+    for (const b of benches) {
+      const m = b.key.match(PATTERN)
+      if (!m) continue
+      const label = compact(m[1])
+      const arr = leakedByBench.get(label) ?? []
+      arr.push(b)
+      leakedByBench.set(label, arr)
+    }
+    if (leakedByBench.size === 0) continue
+
+    const removeKeys = new Set<string>()
+    for (const [benchLabel, leaked] of leakedByBench) {
+      const canonical = benches.find((b) => {
+        if (PATTERN.test(b.key)) return false
+        return compact(b.key) === benchLabel
+      })
+      if (!canonical) continue
+
+      const existingSliceKeys = new Set((canonical.slices ?? []).map((s) => s.key))
+      const mergedEvalIds = new Set(canonical.summary_eval_ids ?? [])
+
+      for (const l of leaked) {
+        const m = l.key.match(PATTERN)
+        if (!m) continue
+        const variant = m[2].trim()
+        const sliceKey = `vals-ai-${variant
+          .toLowerCase()
+          .replace(/[^a-z0-9<>]+/g, "-")
+          .replace(/^-|-$/g, "") || "variant"}`
+        if (!existingSliceKeys.has(sliceKey)) {
+          canonical.slices = canonical.slices ?? []
+          canonical.slices.push({
+            key: sliceKey,
+            display_name: `Vals.ai · ${variant}`,
+            metrics: l.metrics ?? [],
+          })
+          existingSliceKeys.add(sliceKey)
+        }
+        for (const id of l.summary_eval_ids ?? []) mergedEvalIds.add(id)
+        removeKeys.add(l.key)
+      }
+      canonical.summary_eval_ids = Array.from(mergedEvalIds)
+    }
+
+    if (removeKeys.size > 0) {
+      if (fam.benchmarks) fam.benchmarks = fam.benchmarks.filter((b) => !removeKeys.has(b.key))
+      if (fam.standalone_benchmarks) {
+        fam.standalone_benchmarks = fam.standalone_benchmarks.filter((b) => !removeKeys.has(b.key))
+      }
+      for (const c of fam.composites ?? []) {
+        if (c.benchmarks) c.benchmarks = c.benchmarks.filter((b) => !removeKeys.has(b.key))
+      }
+    }
+  }
+}
+
 function dedupValsAiAliasedBenches(h: CleanableHierarchy) {
   const ALIAS_PREFIX = "vals ai "
   // Normalise to a set of word tokens so suffix "gpqa" matches sibling

@@ -1045,31 +1045,41 @@ export function EvalDetail({
             </>
           )}
         </div>
-        <p
-          style={{
-            fontSize: 17,
-            lineHeight: 1.65,
-            color: "var(--fg)",
-            maxWidth: 760,
-            margin: 0,
-          }}
-        >
-          {heroLede}
-        </p>
+        {/* Summary view renders the description inside the "At a glance"
+            card just below — avoid duplicating it in the hero. Researcher
+            view's heroLede is the metric-config description (different
+            text from the overview), so it stays. */}
+        {isResearchView && (
+          <p
+            style={{
+              fontSize: 17,
+              lineHeight: 1.65,
+              color: "var(--fg)",
+              maxWidth: 760,
+              margin: 0,
+            }}
+          >
+            {heroLede}
+          </p>
+        )}
       </header>
 
-      {/* BENCHMARK CARD (top-level collapsible, default open). Suppress
-          the entire section when there's nothing useful in the card and
-          all fallbacks would just duplicate info already shown above
-          (eval title, source dataset). Otherwise the user sees an empty
-          collapsible header in policy mode and a redundant single-row
-          tile in research mode. */}
+      {/* AT A GLANCE (Summary view only) — pinned above the benchmark
+          card so non-technical readers land on plain-language framing
+          first. */}
+      {!isResearchView && <PolicyOverview summary={summary} />}
+
+      {/* BENCHMARK CARD — top-level collapsible. In Researcher view it
+          defaults open (methodology is the headline). In Summary view
+          it defaults collapsed so non-technical readers aren't drowned
+          in the dataset/methodology/risks fields up front. Suppressed
+          entirely when there's nothing useful to show. */}
       {summary.benchmark_card && (
         <BenchmarkCardCollapsible
           card={summary.benchmark_card}
           isResearchView={isResearchView}
-          defaultOpen
-          defaultRisksOpen={!isResearchView}
+          defaultOpen={isResearchView}
+          defaultRisksOpen={false}
           evaluationName={summary.evaluation_name}
           sourceDataFallback={
             summary.source_data && !Array.isArray(summary.source_data)
@@ -1086,9 +1096,6 @@ export function EvalDetail({
           )}
         />
       )}
-
-      {/* POLICY NOTE (policy mode only) ---------------------------------- */}
-      {!isResearchView && <PolicyOverview summary={summary} />}
 
       {/* TECHNICAL OVERVIEW — secondary, collapsed by default in policy mode.
           Holds metric spec, completeness/comparability signals, and benchmark
@@ -1233,58 +1240,117 @@ export function EvalDetail({
                   </div>
                 )}
 
-                {summary.subtasks && summary.subtasks.length > 0 && (
-                  <div className="space-y-2">
-                    <div
-                      className="font-mono uppercase mb-1"
-                      style={{ fontSize: 10, letterSpacing: "0.14em", color: "var(--fg-subtle)" }}
-                    >
-                      Split breakdown · {summary.subtasks.length}
-                    </div>
-                    <ul
-                      className="flex flex-col"
-                      style={{ borderTop: "1px solid var(--border-soft)" }}
-                    >
-                      {summary.subtasks.map((slice) => (
-                        <li
-                          key={slice.subtask_key}
-                          className="grid gap-x-4 py-3"
+                {summary.subtasks && summary.subtasks.length > 0 && (() => {
+                  // When every slice reports the same single metric (e.g. all
+                  // Global MMLU language splits share "score · proportion"),
+                  // hoist the metric label to the section header and render
+                  // each slice as a compact "name  value" row in a multi-
+                  // column grid. Otherwise fall back to per-row metric badges.
+                  const firstMetric = summary.subtasks[0]?.metrics?.[0]
+                  const uniformSingleMetric =
+                    !!firstMetric &&
+                    summary.subtasks.every(
+                      (s) =>
+                        s.metrics.length === 1 &&
+                        getCompactMetricLabel(s.metrics[0].display_name) ===
+                          getCompactMetricLabel(firstMetric.display_name) &&
+                        (s.metrics[0].unit ?? null) === (firstMetric.unit ?? null),
+                    )
+                  const headerSuffix = uniformSingleMetric
+                    ? ` · ${getCompactMetricLabel(firstMetric!.display_name)}${
+                        firstMetric!.unit ? ` (${firstMetric!.unit.toLowerCase()})` : ""
+                      }`
+                    : ""
+                  return (
+                    <div className="space-y-2">
+                      <div
+                        className="font-mono uppercase mb-1"
+                        style={{ fontSize: 10, letterSpacing: "0.14em", color: "var(--fg-subtle)" }}
+                      >
+                        Split breakdown · {summary.subtasks.length}
+                        {headerSuffix}
+                      </div>
+                      {uniformSingleMetric ? (
+                        <div
+                          className="grid"
                           style={{
-                            gridTemplateColumns: "minmax(160px, 280px) 1fr",
-                            borderBottom: "1px solid var(--border-soft)",
+                            gridTemplateColumns: "repeat(auto-fill, minmax(220px, 1fr))",
+                            columnGap: 24,
                           }}
                         >
-                          <div className="min-w-0">
-                            <div className="font-semibold text-[13px] truncate">
-                              {slice.display_name || slice.subtask_name}
-                            </div>
-                            {slice.canonical_display_name && slice.canonical_display_name !== (slice.display_name || slice.subtask_name) && (
+                          {summary.subtasks.map((slice) => {
+                            const metric = slice.metrics[0]
+                            return (
                               <div
-                                className="mt-0.5 font-mono text-[10px] uppercase tracking-[0.08em] truncate"
-                                style={{ color: "var(--fg-subtle)" }}
-                                title={slice.canonical_display_name}
+                                key={slice.subtask_key}
+                                className="flex items-baseline justify-between gap-3 py-1.5 min-w-0"
+                                style={{ borderBottom: "1px solid var(--border-soft)" }}
                               >
-                                {slice.canonical_display_name}
+                                <span
+                                  className="text-[12.5px] truncate"
+                                  title={slice.canonical_display_name || slice.display_name || slice.subtask_name}
+                                >
+                                  {slice.display_name || slice.subtask_name}
+                                </span>
+                                <span
+                                  className="font-mono text-[12px] tabular-nums shrink-0"
+                                  style={{ color: "var(--fg)" }}
+                                >
+                                  {typeof metric.top_score === "number"
+                                    ? formatRawScore(metric.top_score, metric.unit)
+                                    : "—"}
+                                </span>
                               </div>
-                            )}
-                          </div>
-                          <div className="flex flex-wrap items-center gap-1.5">
-                            {slice.metrics.map((metric) => (
-                              <span
-                                key={metric.metric_summary_id}
-                                className="ec-tag"
-                                title={metric.canonical_display_name || metric.display_name}
-                              >
-                                {getCompactMetricLabel(metric.display_name)}
-                                {typeof metric.top_score === "number" ? ` · ${formatRawScore(metric.top_score, metric.unit)}` : ""}
-                              </span>
-                            ))}
-                          </div>
-                        </li>
-                      ))}
-                    </ul>
-                  </div>
-                )}
+                            )
+                          })}
+                        </div>
+                      ) : (
+                        <ul
+                          className="flex flex-col"
+                          style={{ borderTop: "1px solid var(--border-soft)" }}
+                        >
+                          {summary.subtasks.map((slice) => (
+                            <li
+                              key={slice.subtask_key}
+                              className="grid gap-x-4 py-3"
+                              style={{
+                                gridTemplateColumns: "minmax(160px, 280px) 1fr",
+                                borderBottom: "1px solid var(--border-soft)",
+                              }}
+                            >
+                              <div className="min-w-0">
+                                <div className="font-semibold text-[13px] truncate">
+                                  {slice.display_name || slice.subtask_name}
+                                </div>
+                                {slice.canonical_display_name && slice.canonical_display_name !== (slice.display_name || slice.subtask_name) && (
+                                  <div
+                                    className="mt-0.5 font-mono text-[10px] uppercase tracking-[0.08em] truncate"
+                                    style={{ color: "var(--fg-subtle)" }}
+                                    title={slice.canonical_display_name}
+                                  >
+                                    {slice.canonical_display_name}
+                                  </div>
+                                )}
+                              </div>
+                              <div className="flex flex-wrap items-center gap-1.5">
+                                {slice.metrics.map((metric) => (
+                                  <span
+                                    key={metric.metric_summary_id}
+                                    className="ec-tag"
+                                    title={metric.canonical_display_name || metric.display_name}
+                                  >
+                                    {getCompactMetricLabel(metric.display_name)}
+                                    {typeof metric.top_score === "number" ? ` · ${formatRawScore(metric.top_score, metric.unit)}` : ""}
+                                  </span>
+                                ))}
+                              </div>
+                            </li>
+                          ))}
+                        </ul>
+                      )}
+                    </div>
+                  )
+                })()}
               </section>
             ) : null}
           </div>
@@ -2719,6 +2785,22 @@ function BenchmarkCardCollapsible({
   if (!hasContent) return null
 
   const [open, setOpen] = useState(defaultOpen)
+  const sectionLinks: { label: string; id: string }[] = [
+    ...(methodology.metrics?.length || tasks.length || audience.length || meaningful(data?.size) || meaningful(data?.format) || usefulFallback(data?.source) || usefulFallback(sd?.hf_repo) || usefulFallback(sd?.dataset_name) || sd?.samples_number != null
+      ? [{ label: "dataset", id: "bc-section-dataset" }, { label: "methodology", id: "bc-section-methodology" }]
+      : []),
+    ...(isResearchView && (card.possible_risks?.length ?? 0) > 0 ? [{ label: "risks", id: "bc-section-risks" }] : []),
+    ...(resources.length > 0 ? [{ label: "resources", id: "bc-section-resources" }] : []),
+  ]
+  const handleSectionJump = (id: string) => {
+    setOpen(true)
+    requestAnimationFrame(() => {
+      requestAnimationFrame(() => {
+        const el = document.getElementById(id)
+        if (el) el.scrollIntoView({ behavior: "smooth", block: "start" })
+      })
+    })
+  }
   return (
     <Collapsible open={open} onOpenChange={setOpen}>
       <CollapsibleTrigger asChild>
@@ -2727,15 +2809,46 @@ function BenchmarkCardCollapsible({
           className="ec-card flex w-full items-center justify-between text-left transition-colors hover:bg-[color:var(--bg-warm)]"
           style={{ padding: "14px 20px" }}
         >
-          <div className="flex items-center gap-3">
+          <div className="flex items-center gap-3 flex-wrap">
             <BookOpen className="h-4 w-4" style={{ color: "var(--fg-muted)" }} />
             <span className="kicker kicker-fg">Benchmark card</span>
-            <span
-              className="font-mono text-[10px] uppercase tracking-[0.12em]"
-              style={{ color: "var(--fg-subtle)" }}
-            >
-              dataset · methodology · risks · resources
-            </span>
+            {sectionLinks.length > 0 && (
+              <span className="flex items-center gap-1.5 flex-wrap">
+                {sectionLinks.map((s, i) => (
+                  <span key={s.id} className="inline-flex items-center gap-1.5">
+                    {i > 0 && (
+                      <span
+                        className="font-mono text-[10px]"
+                        style={{ color: "var(--fg-subtle)" }}
+                        aria-hidden
+                      >
+                        ·
+                      </span>
+                    )}
+                    <span
+                      role="link"
+                      tabIndex={0}
+                      onClick={(e) => {
+                        e.preventDefault()
+                        e.stopPropagation()
+                        handleSectionJump(s.id)
+                      }}
+                      onKeyDown={(e) => {
+                        if (e.key === "Enter" || e.key === " ") {
+                          e.preventDefault()
+                          e.stopPropagation()
+                          handleSectionJump(s.id)
+                        }
+                      }}
+                      className="font-mono text-[10px] uppercase tracking-[0.12em] cursor-pointer hover:underline"
+                      style={{ color: "var(--fg-subtle)" }}
+                    >
+                      {s.label}
+                    </span>
+                  </span>
+                ))}
+              </span>
+            )}
           </div>
           {open ? (
             <ChevronUp className="h-4 w-4" style={{ color: "var(--fg-muted)" }} />
@@ -2960,16 +3073,26 @@ function BenchmarkCardPanel({
           }}
         >
           {domains.map((d) => (
-            <span key={`d-${d}`} className="ec-tag outline">
+            <Link
+              key={`d-${d}`}
+              href={`/evals?q=${encodeURIComponent(d)}`}
+              className="ec-tag outline hover:bg-[color:var(--bg-surface)]"
+              title={`Browse evaluations tagged "${d}"`}
+            >
               <Tag className="h-3 w-3 shrink-0" />
               {d}
-            </span>
+            </Link>
           ))}
           {languages.map((l) => (
-            <span key={`l-${l}`} className="ec-tag outline">
+            <Link
+              key={`l-${l}`}
+              href={`/evals?q=${encodeURIComponent(l)}`}
+              className="ec-tag outline hover:bg-[color:var(--bg-surface)]"
+              title={`Browse evaluations in ${l}`}
+            >
               <Globe className="h-3 w-3 shrink-0" />
               {l}
-            </span>
+            </Link>
           ))}
           {shortLicense && <span className="ec-tag outline">{shortLicense}</span>}
           {(flaggedFields.length > 0 || missingFields.length > 0) && (
@@ -3154,15 +3277,12 @@ function BenchmarkCardPanel({
               methodology.metrics.length > 0 || tasks.length > 0 || audience.length > 0
             if (!showDataset && !showMethodology) return null
             return (
-              <div className="grid gap-3 sm:grid-cols-2">
+              <div
+                className="grid gap-x-8 gap-y-5 sm:grid-cols-2 pt-4"
+                style={{ borderTop: "1px solid var(--border-soft)" }}
+              >
                 {showDataset && (
-                  <div
-                    style={{
-                      padding: 16,
-                      border: "1px solid var(--border-soft)",
-                      background: "var(--bg)",
-                    }}
-                  >
+                  <div id="bc-section-dataset" className="scroll-mt-24">
                     <div
                       className="mb-3 font-mono uppercase"
                       style={{ fontSize: 10, letterSpacing: "0.14em", color: "var(--fg-subtle)" }}
@@ -3193,13 +3313,7 @@ function BenchmarkCardPanel({
                 )}
 
                 {showMethodology && (
-                  <div
-                    style={{
-                      padding: 16,
-                      border: "1px solid var(--border-soft)",
-                      background: "var(--bg)",
-                    }}
-                  >
+                  <div id="bc-section-methodology" className="scroll-mt-24">
                     <div
                       className="mb-3 font-mono uppercase"
                       style={{ fontSize: 10, letterSpacing: "0.14em", color: "var(--fg-subtle)" }}
@@ -3242,7 +3356,8 @@ function BenchmarkCardPanel({
             <CollapsibleTrigger asChild>
               <button
                 type="button"
-                className="flex w-full items-center justify-between text-left transition-colors hover:bg-[color:var(--bg-warm)]"
+                id="bc-section-risks"
+                className="flex w-full items-center justify-between text-left transition-colors hover:bg-[color:var(--bg-warm)] scroll-mt-24"
                 style={{
                   padding: "12px 16px",
                   border: "1px solid var(--border-soft)",
@@ -3266,14 +3381,20 @@ function BenchmarkCardPanel({
               </button>
             </CollapsibleTrigger>
             <CollapsibleContent>
-              <div className="mt-2 grid gap-2 sm:grid-cols-2">
+              <ul
+                className="mt-2 grid sm:grid-cols-2"
+                style={{
+                  borderTop: "1px solid var(--border-soft)",
+                  borderLeft: "1px solid var(--border-soft)",
+                }}
+              >
                 {risks.map((risk, i) => (
-                  <div
+                  <li
                     key={i}
                     style={{
                       padding: 14,
-                      border: "1px solid var(--border-soft)",
-                      background: "var(--bg)",
+                      borderBottom: "1px solid var(--border-soft)",
+                      borderRight: "1px solid var(--border-soft)",
                     }}
                   >
                     <div className="mb-1.5 flex items-start justify-between gap-2">
@@ -3299,9 +3420,9 @@ function BenchmarkCardPanel({
                         {risk.description[0]}
                       </p>
                     )}
-                  </div>
+                  </li>
                 ))}
-              </div>
+              </ul>
             </CollapsibleContent>
           </Collapsible>
         )}
@@ -3428,7 +3549,7 @@ function BenchmarkCardPanel({
 
         {/* External resources */}
         {resources.length > 0 && (
-          <div>
+          <div id="bc-section-resources" className="scroll-mt-24">
             <div
               className="mb-2 font-mono uppercase"
               style={{ fontSize: 10, letterSpacing: "0.14em", color: "var(--fg-subtle)" }}

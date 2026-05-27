@@ -1,7 +1,7 @@
 import { ImageResponse } from "next/og"
 
 export const runtime = "edge"
-export const alt = "Eval Cards — a reporting layer over evaluation infrastructure"
+export const alt = "Evaluation Cards — a reporting layer over evaluation infrastructure"
 export const size = { width: 1200, height: 630 }
 export const contentType = "image/png"
 
@@ -53,7 +53,7 @@ export default function OpenGraphImage() {
               letterSpacing: "-0.01em",
             }}
           >
-            Eval Cards
+            Evaluation Cards
           </div>
           <div
             style={{

@@ -369,7 +369,7 @@ function CompositeEvalView({
       {/* POLICY NOTE (policy mode only) ----------------------------------- */}
       {isPolicy && (overview || limitations || audienceText) && (
         <section className="ec-card warm" style={{ padding: "20px 24px" }}>
-          <div className="kicker mb-3">Policy note</div>
+          <div className="kicker mb-3">At a glance</div>
           <dl className="grid gap-y-2.5 text-[14px]" style={{ gridTemplateColumns: "max-content 1fr", columnGap: 24 }}>
             {overview && (
               <>

@@ -54,7 +54,7 @@ export function Navigation() {
               width={28}
               height={28}
             />
-            <span>Eval Cards</span>
+            <span>Evaluation Cards</span>
             <span className="ec-brand-sub hidden lg:inline">Beta · EvalEval</span>
           </Link>
 
