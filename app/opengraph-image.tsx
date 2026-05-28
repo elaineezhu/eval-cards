@@ -5,7 +5,15 @@ export const alt = "Evaluation Cards — a reporting layer over evaluation infra
 export const size = { width: 1200, height: 630 }
 export const contentType = "image/png"
 
+// Brand mark URL. `ImageResponse` fetches `<img src>` at render time,
+// so it needs an absolute URL — prefer NEXT_PUBLIC_SITE_URL (set on
+// the Space), else fall back to the canonical remote.
+const LOGO_URL =
+  (process.env.NEXT_PUBLIC_SITE_URL?.trim().replace(/\/+$/, "") ?? "") + "/logo-square.png"
+const FALLBACK_LOGO_URL = "https://evalevalai.com/assets/img/logo-square.png"
+
 export default function OpenGraphImage() {
+  const logoUrl = LOGO_URL.startsWith("http") ? LOGO_URL : FALLBACK_LOGO_URL
   return new ImageResponse(
     (
       <div
@@ -28,24 +36,14 @@ export default function OpenGraphImage() {
             gap: "16px",
           }}
         >
-          <div
-            style={{
-              width: "56px",
-              height: "56px",
-              background: "#5bacd1",
-              color: "#ffffff",
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "center",
-              fontFamily: "monospace",
-              fontWeight: 600,
-              fontSize: "22px",
-              letterSpacing: "0.02em",
-              borderRadius: "4px",
-            }}
-          >
-            EE
-          </div>
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img
+            src={logoUrl}
+            width={56}
+            height={56}
+            alt=""
+            style={{ borderRadius: "4px" }}
+          />
           <div
             style={{
               fontSize: "26px",
