@@ -24,6 +24,7 @@ import type {
   BenchmarkEvalSummary,
   ModelResultForBenchmark,
 } from "@/lib/eval-processing"
+import { dedupeLeaderboardRowsByModelIdentity } from "@/lib/eval-processing"
 
 type Row = Record<string, any>
 
@@ -74,6 +75,14 @@ const EVAL_LIST_COLUMNS = `
   source_data
 `
 
+// The deployed Space returns 500s ("Invalid Error: don't know what
+// type:") on every eval-results / model-summary query because the
+// DuckDB Node binding on linux-x64 can't materialise certain complex
+// column types in the upstream parquet (nested JSON inside
+// structs, MAP, and STRUCT[]). Wrap every non-primitive column with
+// `to_json(...)` so the binding only ever sees VARCHAR per row;
+// `parseMaybeJson` undoes the wrap in JS before downstream code
+// reads the shapes.
 const CELL_JOIN_COLUMNS = `
   r.*,
   e.evaluation_name AS eval_evaluation_name,
@@ -96,9 +105,26 @@ const CELL_JOIN_COLUMNS = `
   e.is_summary_score AS eval_is_summary_score
 `
 
+// Matches an ASCII signed integer (no decimals, no leading zeros aside from
+// "0" itself). Used to detect BIGINT columns that `getRowObjectsJson()`
+// serialises as strings — the JSON form does this inconsistently per
+// value (numbers within int32 range stay numeric, larger ones become
+// strings), so consumers see a mixed-type field and `sum + value`
+// silently concatenates instead of adding.
+const BIGINT_STRING = /^-?(?:0|[1-9]\d*)$/
+
 function normalizeDuckDBValue(value: unknown): unknown {
   if (typeof value === "bigint") {
     return Number(value)
+  }
+
+  // Recover BIGINT-encoded numeric strings back to numbers, but only
+  // when the value round-trips safely (so 64-bit ints that exceed
+  // Number.MAX_SAFE_INTEGER stay as strings instead of silently losing
+  // precision).
+  if (typeof value === "string" && BIGINT_STRING.test(value)) {
+    const numeric = Number(value)
+    if (Number.isSafeInteger(numeric)) return numeric
   }
 
   if (value instanceof Date) {
@@ -164,10 +190,26 @@ function normalizeDuckDBValue(value: unknown): unknown {
 
 async function readRows<T = Row>(sql: string, params: unknown[] = []): Promise<T[]> {
   const connection = await getConnection()
-  const reader = params.length > 0
-    ? await connection.runAndReadAll(sql, params as any[])
-    : await connection.runAndReadAll(sql)
-  return reader.getRowObjects().map((row) => normalizeDuckDBValue(row) as T)
+  try {
+    const reader = params.length > 0
+      ? await connection.runAndReadAll(sql, params as any[])
+      : await connection.runAndReadAll(sql)
+    // `getRowObjectsJson()` bypasses the typed materializer that
+    // crashes ("Invalid Error: don't know what type:") on certain
+    // logical types in the linux-x64 binding. The JSON form returns
+    // JSON-serialisable shapes — STRUCTs as plain objects, LISTs as
+    // arrays, MAPs as objects, decimals as strings — which is what
+    // the rest of the file already expects. normalizeDuckDBValue is
+    // kept for the few cases (legacy code paths, future toggles back)
+    // where the typed form is reached, but it's effectively a no-op
+    // on the JSON output.
+    return reader.getRowObjectsJson().map((row) => normalizeDuckDBValue(row) as T)
+  } catch (err) {
+    const sqlSnippet = sql.replace(/\s+/g, " ").slice(0, 1200)
+    const msg = err instanceof Error ? `${err.name}: ${err.message}` : String(err)
+    console.error(`[view-data] readRows failed (${msg}) — SQL: ${sqlSnippet}`)
+    throw err
+  }
 }
 
 function asNumber(value: unknown, fallback = 0) {
@@ -192,6 +234,23 @@ function asString(value: unknown, fallback = "") {
 
 function optionalString(value: unknown) {
   return typeof value === "string" && value.length > 0 ? value : undefined
+}
+
+// Some parquet columns ship JSON-typed fields nested inside structs
+// that the DuckDB Node binding can't materialise (crashes the entire
+// query with "don't know what type:"). For those columns the SELECT
+// wraps the value in `to_json(...)` so the binding sees a single
+// VARCHAR; this helper undoes the wrap. If the value is already an
+// object (legacy snapshots without the to_json wrap, or local dev
+// where the binding handled the type), pass it through unchanged.
+function parseMaybeJson(value: unknown): unknown {
+  if (typeof value !== "string") return value
+  if (value === "" || value === "null") return null
+  try {
+    return JSON.parse(value)
+  } catch {
+    return value
+  }
 }
 
 function asArray<T>(value: unknown): T[] {
@@ -242,8 +301,9 @@ function finalizeModelCard(row: Row): EvaluationCardData {
 }
 
 function sourceMetadataFromRow(row: Row): SourceMetadata {
-  if (row.source_metadata && typeof row.source_metadata === "object") {
-    return row.source_metadata as SourceMetadata
+  const sm = parseMaybeJson(row.source_metadata)
+  if (sm && typeof sm === "object") {
+    return sm as SourceMetadata
   }
 
   return {
@@ -254,7 +314,7 @@ function sourceMetadataFromRow(row: Row): SourceMetadata {
 }
 
 function sourceDataFromRow(row: Row): BenchmarkEvaluation["source_data"] {
-  const sourceData = row.source_data ?? row.eval_source_data
+  const sourceData = parseMaybeJson(row.source_data) ?? parseMaybeJson(row.eval_source_data)
   if (sourceData) {
     return sourceData as BenchmarkEvaluation["source_data"]
   }
@@ -265,8 +325,9 @@ function sourceDataFromRow(row: Row): BenchmarkEvaluation["source_data"] {
 }
 
 function scoreDetailsFromRow(row: Row): ScoreDetails {
-  const details = row.score_details && typeof row.score_details === "object"
-    ? row.score_details as Partial<ScoreDetails>
+  const parsed = parseMaybeJson(row.score_details)
+  const details = parsed && typeof parsed === "object"
+    ? parsed as Partial<ScoreDetails>
     : {}
   const score = asNumber(details.score ?? row.score)
 
@@ -277,7 +338,7 @@ function scoreDetailsFromRow(row: Row): ScoreDetails {
 }
 
 function metricConfigFromRow(row: Row): MetricConfig {
-  const config = (row.metric_config ?? row.eval_metric_config ?? {}) as Partial<MetricConfig>
+  const config = (parseMaybeJson(row.metric_config) ?? parseMaybeJson(row.eval_metric_config) ?? {}) as Partial<MetricConfig>
   const scoreType = config.score_type === "binary" || config.score_type === "discrete"
     ? config.score_type
     : "continuous"
@@ -322,8 +383,14 @@ function modelInfoFromModelRow(row: Row): ModelInfo {
 
 function resultFromCell(row: Row): EvaluationResult {
   const scoreDetails = scoreDetailsFromRow(row)
-  const generationConfig = row.generation_config as GenerationConfig | undefined
-  const annotations = row.evalcards_annotations
+  // model_info / generation_config / source_metadata / ... all arrive
+  // JSON-encoded — CELL_JOIN_COLUMNS wraps every non-primitive column
+  // in to_json() + CAST AS VARCHAR to dodge the binding's
+  // "don't know what type:" crash. parseMaybeJson reverses the wrap;
+  // it passes through unchanged when the value is already an object
+  // (legacy snapshots / future binding fixes).
+  const generationConfig = parseMaybeJson(row.generation_config) as GenerationConfig | undefined
+  const annotations = parseMaybeJson(row.evalcards_annotations)
 
   return {
     evaluation_name: asString(row.metric_display_name ?? row.eval_evaluation_name ?? row.metric_id, "Score"),
@@ -343,9 +410,13 @@ function resultFromCell(row: Row): EvaluationResult {
 
 function reshapeCellToModelResult(row: Row): ModelResultForBenchmark {
   const scoreDetails = scoreDetailsFromRow(row)
+  // Every wrapped column needs parseMaybeJson to come back to its
+  // object shape — see CELL_JOIN_COLUMNS for the wrapping sites.
+  const modelInfo = parseMaybeJson(row.model_info)
+  const aggregateComponents = parseMaybeJson(row.aggregate_components)
 
   return {
-    model_info: (row.model_info ?? modelInfoFromModelRow(row)) as ModelInfo,
+    model_info: (modelInfo ?? modelInfoFromModelRow(row)) as ModelInfo,
     model_route_id: optionalString(row.model_route_id),
     score: scoreDetails.score,
     score_details: scoreDetails,
@@ -354,7 +425,7 @@ function reshapeCellToModelResult(row: Row): ModelResultForBenchmark {
     source_data: sourceDataFromRow(row),
     source_record_url: optionalString(row.source_record_url),
     aggregate_components: asArray<NonNullable<ModelResultForBenchmark["aggregate_components"]>[number]>(
-      row.aggregate_components
+      aggregateComponents
     ),
     result: resultFromCell(row),
   }
@@ -362,7 +433,9 @@ function reshapeCellToModelResult(row: Row): ModelResultForBenchmark {
 
 function reshapeCellToBenchmarkEvaluation(row: Row): BenchmarkEvaluation {
   const result = resultFromCell(row)
-  const modelInfo = (row.model_info ?? modelInfoFromModelRow(row)) as ModelInfo
+  const modelInfo = parseMaybeJson(row.model_info)
+  const evalLibrary = parseMaybeJson(row.eval_library)
+  const generationConfig = parseMaybeJson(row.generation_config)
 
   return {
     schema_version: "1.0",
@@ -382,9 +455,9 @@ function reshapeCellToBenchmarkEvaluation(row: Row): BenchmarkEvaluation {
     is_summary_score: Boolean(row.eval_is_summary_score ?? row.is_summary_score),
     source_data: sourceDataFromRow(row),
     source_metadata: sourceMetadataFromRow(row),
-    eval_library: row.eval_library,
-    model_info: modelInfo,
-    generation_config: row.generation_config,
+    eval_library: evalLibrary as BenchmarkEvaluation["eval_library"],
+    model_info: (modelInfo ?? modelInfoFromModelRow(row)) as ModelInfo,
+    generation_config: generationConfig as BenchmarkEvaluation["generation_config"],
     evaluation_results: [result],
   }
 }
@@ -489,7 +562,7 @@ export async function getEvalListData(): Promise<{
   totalModels: number
 }> {
   const [evalRows, countRows] = await Promise.all([
-    readRows<Row>(
+    readRows<BenchmarkEvalListItem & { benchmark_card?: unknown }>(
       `SELECT ${EVAL_LIST_COLUMNS}
        FROM evals_view
        ORDER BY evaluation_name ASC`
@@ -497,13 +570,16 @@ export async function getEvalListData(): Promise<{
     readRows<{ n: number }>("SELECT COUNT(*) AS n FROM models_view"),
   ])
 
-  const evals = evalRows.map((row) => ({
+  // benchmark_card is JSON-encoded at the SQL layer; parse it, and coerce
+  // derived_tags, before handing rows to consumers that expect object shapes.
+  const decoded = evalRows.map((row) => ({
     ...row,
     derived_tags: coerceTags(row.derived_tags),
+    benchmark_card: parseMaybeJson(row.benchmark_card),
   })) as unknown as BenchmarkEvalListItem[]
 
   return {
-    evals,
+    evals: decoded,
     totalModels: asNumber(countRows[0]?.n),
   }
 }
@@ -624,6 +700,9 @@ export async function getEvalSummaryById(evalId: string): Promise<BenchmarkEvalS
   const summary = {
     ...evalRow,
     derived_tags: coerceTags(evalRow.derived_tags),
+    // benchmark_card arrives JSON-encoded (the parquet schema nests a
+    // JSON-typed field — see CELL_JOIN_COLUMNS / EVAL_LIST_COLUMNS).
+    benchmark_card: parseMaybeJson(evalRow.benchmark_card),
     model_results: cellRows.map(reshapeCellToModelResult),
   } as unknown as BenchmarkEvalSummary
 
@@ -661,7 +740,7 @@ export async function getEvalSummaryById(evalId: string): Promise<BenchmarkEvalS
       .filter((row): row is NonNullable<typeof row> => row !== null)
 
     if (leaderboardRows.length > 0) {
-      summary.leaderboard_rows = leaderboardRows
+      summary.leaderboard_rows = dedupeLeaderboardRowsByModelIdentity(leaderboardRows)
     }
     if (matrix.subtask_metrics.length > 0) {
       const existing = (summary.leaderboard_metrics ?? []) as Array<{ column_key: string }>
@@ -676,6 +755,43 @@ export async function getEvalSummaryById(evalId: string): Promise<BenchmarkEvalS
       summary.leaderboard_metrics =
         merged as unknown as BenchmarkEvalSummary["leaderboard_metrics"]
     }
+  }
+
+  // Fallback for single-metric leaderboards with no precomputed matrix
+  // entry (e.g. big-bench-hard): the matrix block above only populates
+  // `leaderboard_rows` when a matrix exists, but consumers like the
+  // embed leaderboard read exclusively from that field. Synthesize one
+  // row per `model_results` entry using the primary metric's column_key
+  // as the values key, so the data is present regardless of whether
+  // build-time precomputation ran for this eval.
+  const hasRows = (summary.leaderboard_rows?.length ?? 0) > 0
+  if (!hasRows && (summary.model_results?.length ?? 0) > 0) {
+    const primaryMetric = (summary.leaderboard_metrics ?? []).find(
+      (m): m is typeof m & { column_key: string } =>
+        typeof (m as { column_key?: unknown }).column_key === "string"
+        && (m as { scope?: string }).scope !== "subtask",
+    )
+    const columnKey = primaryMetric?.column_key
+      ?? (summary.leaderboard_metrics ?? [])[0]?.column_key
+      ?? "score"
+    summary.leaderboard_rows = summary.model_results
+      .filter((mr) => Number.isFinite(mr.score) && mr.model_route_id)
+      .map((mr) => ({
+        model_info: mr.model_info,
+        model_route_id: mr.model_route_id,
+        evaluation_timestamp: mr.evaluation_timestamp,
+        source_metadata: mr.source_metadata,
+        source_data: mr.source_data,
+        values: { [columnKey]: mr.score as number },
+        metrics_present: 1,
+      })) as BenchmarkEvalSummary["leaderboard_rows"]
+  }
+
+  // Belt-and-suspenders: when leaderboard_rows arrived from the parquet
+  // pre-baked (no matrix) the same two-source duplication can appear, so
+  // dedup whatever is set on the summary before returning.
+  if (summary.leaderboard_rows && summary.leaderboard_rows.length > 1) {
+    summary.leaderboard_rows = dedupeLeaderboardRowsByModelIdentity(summary.leaderboard_rows)
   }
 
   return summary
@@ -717,7 +833,7 @@ export async function getBenchmarkMetadataMap(): Promise<Record<string, Benchmar
   const result: Record<string, BenchmarkCard> = {}
 
   for (const row of rows) {
-    const card = row.benchmark_card as BenchmarkCard | null | undefined
+    const card = parseMaybeJson(row.benchmark_card) as BenchmarkCard | null | undefined
     if (!card) continue
 
     const keys = [

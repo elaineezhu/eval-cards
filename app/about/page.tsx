@@ -24,8 +24,8 @@ export default function AboutPage() {
           A reporting layer for AI evaluation.
         </h1>
         <p className="mb-6 text-[19px] leading-[1.6] text-[color:var(--fg-muted)]">
-          <strong className="text-[color:var(--fg)] font-semibold">Eval Cards</strong> is a
-          structured registry of how AI models are evaluated — and, just as importantly, of
+          <strong className="text-[color:var(--fg)] font-semibold">Evaluation Cards</strong> is a
+          structured collection of how AI models are evaluated — and, just as importantly, of
           what is left undocumented. It composes existing evaluation infrastructure into a
           single audience-agnostic reading surface. It is a research artifact of the{" "}
           <strong className="text-[color:var(--fg)] font-semibold">EvalEval Coalition</strong>,
@@ -35,14 +35,9 @@ export default function AboutPage() {
         <p className="mb-5 text-base leading-[1.75] text-[color:var(--fg)]">
           Benchmark scores are routinely reported without the context required to interpret
           them: prompts, decoding parameters, evaluator identity, reproduction artifacts,
-          scope of validity. Eval Cards treats every published evaluation as a{" "}
+          scope of validity. Evaluation Cards treats every published evaluation as a{" "}
           <em>claim</em>, and every absent field as a claim <em>not made</em>. Neither is an
           error — the distinction is what makes the public record useful.
-        </p>
-        <p className="mb-14 text-base leading-[1.75] text-[color:var(--fg)]">
-          The card format is audience-agnostic. A researcher and a policy analyst look at
-          different fields on the same record. Reader modes (Research · Policy) surface the
-          fields most load-bearing for each audience; the underlying data is shared.
         </p>
 
         {/* BUILT ON ------------------------------------------------------- */}
@@ -54,11 +49,11 @@ export default function AboutPage() {
             {[
               [
                 "Auto-BenchmarkCards",
-                "A schema for benchmark-level metadata — what a benchmark measures, its splits, intended use, validity scope, and known limitations. Each benchmark family in this registry has an Auto-BenchmarkCard at the family root and a Policy Note compressed for plain-language reading.",
+                "A schema for benchmark-level metadata — what a benchmark measures, its splits, intended use, validity scope, and known limitations. Each benchmark family has an Auto-BenchmarkCard at the family root and a Policy Note compressed for plain-language reading.",
               ],
               [
                 "Every Eval Ever",
-                "A run-level corpus of public evaluation results — (model, benchmark, metric-path, value, source) tuples extracted from papers, model cards and leaderboards. Provides the raw rows the registry canonicalises and joins.",
+                "A run-level corpus of public evaluation results — (model, benchmark, metric-path, value, source) tuples extracted from papers, model cards and leaderboards. Provides the raw rows that Evaluation Cards canonicalises and joins.",
               ],
               [
                 "IBM Risk Atlas alignment",
@@ -108,11 +103,11 @@ export default function AboutPage() {
             </div>
             <div className="p-6 bg-[color:var(--fg)] text-[color:var(--bg)]">
               <div className="kicker mb-2" style={{ color: "var(--accent)" }}>
-                Policy
+                Summary view
               </div>
               <h3 className="m-0 mb-2.5 text-lg font-semibold">Plain-language read</h3>
               <p className="m-0 text-[13.5px] leading-[1.65]" style={{ color: "rgba(240,237,232,0.78)" }}>
-                Policy Notes (measures · caveat · intended for), risk-domain annotations,
+                An "at a glance" card (measures · caveat · intended for), risk-domain annotations,
                 first/third-party evaluator tags, and disclosure-gap flags are foregrounded;
                 metric configuration is compressed.
               </p>
@@ -133,25 +128,30 @@ export default function AboutPage() {
           <ol className="list-none p-0 m-0">
             {[
               [
+                "reproducibility",
                 "Reproducibility",
                 "Can a third party run this evaluation and obtain a comparable number? Tracks setup-variant disclosure, prompt and decoding parameters, harness version, seed, and code/artifact availability.",
               ],
               [
+                "completeness",
                 "Completeness",
                 "Does the record meet the standard report card for this class of model? Tracks coverage across capability, robustness, safety and fairness benchmarks expected for the model's claimed use.",
               ],
               [
+                "provenance",
                 "Provenance & risk",
                 "Who produced this number, and which deployment-relevant property does it speak to? Tracks evaluator identity (first-party / third-party), source citation, and IBM Risk Atlas-aligned risk domain.",
               ],
               [
+                "comparability",
                 "Comparability",
                 "Can two scores under the same benchmark be put side-by-side? Tracks slice, metric variant, and unit harmonisation; flags rows that cannot be ranked together.",
               ],
-            ].map(([h, p], i) => (
+            ].map(([id, h, p], i) => (
               <li
                 key={h}
-                className="grid grid-cols-[50px_1fr] gap-5 border-b border-[color:var(--border-soft)] py-5"
+                id={`signal-${id}`}
+                className="grid grid-cols-[50px_1fr] gap-5 border-b border-[color:var(--border-soft)] py-5 scroll-mt-24"
               >
                 <span
                   className="font-mono"
@@ -172,6 +172,36 @@ export default function AboutPage() {
               </li>
             ))}
           </ol>
+        </section>
+
+        {/* READER MODES --------------------------------------------------- */}
+        <section className="mb-14">
+          <div className="section-head">
+            <h2>Reader modes</h2>
+          </div>
+          <p className="mb-5 max-w-[700px] text-[15px] leading-[1.7] text-[color:var(--fg-muted)]">
+            Every model and benchmark page can be read at two levels of detail. The underlying
+            data is the same; the toggle controls how much of it is foregrounded.
+          </p>
+          <div className="grid gap-5 sm:grid-cols-2">
+            <div className="border border-[color:var(--border-soft)] p-[22px]">
+              <div className="kicker mb-2">Summary view</div>
+              <p className="m-0 text-[14px] leading-[1.65] text-[color:var(--fg-muted)]">
+                Default. Plain-language interpretation for non-technical readers — policymakers,
+                journalists, decision-makers. An "at a glance" card foregrounds what the
+                benchmark measures, its main caveat, and who it's for; technical detail is
+                tucked into collapsed sections below.
+              </p>
+            </div>
+            <div className="border border-[color:var(--border-soft)] p-[22px]">
+              <div className="kicker mb-2">Researcher view</div>
+              <p className="m-0 text-[14px] leading-[1.65] text-[color:var(--fg-muted)]">
+                For technical researchers. Foregrounds methodology and configuration —
+                specific missing fields, setup-variant differences, expanded metric configuration,
+                and the full benchmark card.
+              </p>
+            </div>
+          </div>
         </section>
 
         {/* METHODOLOGY ---------------------------------------------------- */}
@@ -195,7 +225,7 @@ export default function AboutPage() {
               ],
               [
                 "No imputation",
-                "Empty cells are empty. The registry never estimates, infers, or cross-fills missing values. Disclosure gaps are surfaced as such.",
+                "Empty cells are empty. Evaluation Cards never estimates, infers, or cross-fills missing values. Disclosure gaps are surfaced as such.",
               ],
               [
                 "Snapshot discipline",
@@ -256,7 +286,7 @@ export default function AboutPage() {
               ],
               [
                 "Corrections are welcome.",
-                "Each record links a correction path. The registry is a living artifact; coverage improves as developers publish.",
+                "Each record links a correction path. Evaluation Cards is a living artifact; coverage improves as developers publish.",
               ],
             ].map(([h, p], i) => (
               <li
@@ -287,14 +317,14 @@ export default function AboutPage() {
         {/* OUT OF SCOPE --------------------------------------------------- */}
         <section className="mb-14">
           <div className="section-head">
-            <h2>What this registry does not do</h2>
+            <h2>What Evaluation Cards does not do</h2>
           </div>
           <ul className="list-none p-0 m-0 text-[14.5px] leading-[1.75]">
             {[
               "Produce a single capability ranking. Metrics across benchmarks are heterogeneous and not commensurable; rolling them into one score throws away the information that makes evaluation useful.",
-              "Evaluate models. Eval Cards reports on what others have already evaluated. New runs go through the upstream Every Eval Ever pipeline, not this surface.",
-              "Endorse a benchmark. Inclusion in the registry is a statement about disclosure prevalence, not benchmark quality. Policy Notes describe limitations; reading them is part of using the registry.",
-              "Replace model cards or system cards. Eval Cards complements them — it is the cross-model, cross-benchmark reading surface that individual cards alone cannot provide.",
+              "Evaluate models. Evaluation Cards reports on what others have already evaluated. New runs go through the upstream Every Eval Ever pipeline, not this surface.",
+              "Endorse a benchmark. Inclusion is a statement about disclosure prevalence, not benchmark quality. Each benchmark's 'at a glance' card surfaces its main caveat; reading it is part of using Evaluation Cards.",
+              "Replace model cards or system cards. Evaluation Cards complements them — it is the cross-model, cross-benchmark reading surface that individual cards alone cannot provide.",
             ].map((t, i) => (
               <li
                 key={i}
@@ -316,7 +346,7 @@ export default function AboutPage() {
             <div className="border border-[color:var(--border-soft)] p-[22px]">
               <div className="kicker mb-2.5">Cite as</div>
               <p className="font-mono m-0 text-[12px] leading-[1.7] text-[color:var(--fg)]">
-                EvalEval Coalition. (2026). Eval Cards: a reporting layer for AI evaluation
+                EvalEval Coalition. (2026). Evaluation Cards: a reporting layer for AI evaluation
                 (Working paper v0.4, snapshot 18 Apr 2026). evalcards.evalevalai.com
               </p>
             </div>

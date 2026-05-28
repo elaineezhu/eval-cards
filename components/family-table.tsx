@@ -2,13 +2,13 @@
 
 import { Fragment, useMemo, useState } from "react"
 import { useRouter } from "next/navigation"
-import { ArrowUpRight, ChevronDown, ChevronRight, ChevronUp, ChevronsUpDown } from "lucide-react"
+import { ArrowUpRight, ChevronDown, ChevronRight, ChevronUp } from "lucide-react"
 
 import type { HierarchyBenchmark, HierarchyComposite, HierarchyFamily } from "@/lib/backend-artifacts"
 import { formatTagLabel } from "@/lib/benchmark-tags"
 import type { BenchmarkCard } from "@/lib/benchmark-schema"
 import type { BenchmarkEvalListItem } from "@/lib/eval-processing"
-import { humanizeEvaluationId, routeIdToPath } from "@/lib/utils"
+import { routeIdToPath } from "@/lib/utils"
 
 const LEAVES_INLINE_MAX = 50
 
@@ -384,7 +384,7 @@ export function FamilyTable({
 
   function SortIcon({ col }: { col: FamilySortCol }) {
     if (!onSort) return null
-    if (sortCol !== col) return <ChevronsUpDown className="h-3 w-3 opacity-30" aria-hidden />
+    if (sortCol !== col) return null
     return sortDir === "asc"
       ? <ChevronUp className="h-3 w-3" aria-hidden />
       : <ChevronDown className="h-3 w-3" aria-hidden />
@@ -412,6 +412,7 @@ export function FamilyTable({
           color: active ? "var(--fg)" : undefined,
         }}
         onClick={onSort ? () => onSort(col) : undefined}
+        title={onSort ? `Sort by ${typeof children === "string" ? children : col}` : undefined}
       >
         <span className="inline-flex items-center gap-1">
           {children}
@@ -453,11 +454,17 @@ export function FamilyTable({
                 }).filter((s) => s.leaves.length > 0)
               : []
 
+            const singleLeaf = row.leaves.length === 1 ? row.leaves[0] : null
+            const navigateToLeaf = singleLeaf
+              ? () => router.push(`/evals/${routeIdToPath(singleLeaf.id)}`)
+              : null
             return (
               <Fragment key={row.key}>
                 <tr
                   onClick={() =>
-                    setExpanded((current) => ({ ...current, [row.key]: !isExpanded }))
+                    navigateToLeaf
+                      ? navigateToLeaf()
+                      : setExpanded((current) => ({ ...current, [row.key]: !isExpanded }))
                   }
                   style={{ cursor: "pointer" }}
                 >
@@ -468,14 +475,25 @@ export function FamilyTable({
                         data-row-toggle
                         onClick={(e) => {
                           e.stopPropagation()
-                          setExpanded((current) => ({ ...current, [row.key]: !isExpanded }))
+                          if (navigateToLeaf) navigateToLeaf()
+                          else setExpanded((current) => ({ ...current, [row.key]: !isExpanded }))
                         }}
-                        aria-expanded={isExpanded}
-                        aria-label={isExpanded ? "Collapse family" : "Expand family"}
+                        aria-expanded={navigateToLeaf ? undefined : isExpanded}
+                        aria-label={
+                          navigateToLeaf
+                            ? "Open benchmark"
+                            : isExpanded
+                              ? "Collapse family"
+                              : "Expand family"
+                        }
                         className="-ml-1 mt-0.5 inline-flex h-4 w-4 items-center justify-center transition-colors hover:text-[color:var(--accent)]"
                         style={{ color: "var(--fg-muted)" }}
                       >
-                        {isExpanded ? <ChevronDown className="h-3 w-3" /> : <ChevronRight className="h-3 w-3" />}
+                        {navigateToLeaf
+                          ? <ArrowUpRight className="h-3 w-3" />
+                          : isExpanded
+                            ? <ChevronDown className="h-3 w-3" />
+                            : <ChevronRight className="h-3 w-3" />}
                       </button>
                       <div className="min-w-0">
                         <div className="font-semibold text-[14px] text-[color:var(--fg)] truncate">
@@ -528,12 +546,12 @@ export function FamilyTable({
                   </td>
                   <td>
                     <span className="font-mono text-[10px] tracking-[0.12em] uppercase text-[color:var(--accent)] inline-flex items-center gap-1">
-                      {isExpanded ? "Hide" : "Browse"}
+                      {navigateToLeaf ? "Open" : isExpanded ? "Hide" : "Browse"}
                     </span>
                   </td>
                 </tr>
 
-                {isExpanded && visibleSections.length > 0 && (
+                {!navigateToLeaf && isExpanded && visibleSections.length > 0 && (
                   <tr style={{ background: "var(--bg-warm)" }}>
                     <td colSpan={5} style={{ padding: 0 }}>
                       <div style={{ padding: "10px 24px 14px 64px" }}>
@@ -599,7 +617,7 @@ export function FamilyTable({
                                         <span className="text-[13px] font-medium truncate text-[color:var(--fg)]">
                                           {leaf.leafName}
                                         </span>
-                                        {leaf.sliceCount > 0 && (
+                                        {leaf.sliceCount > 1 && (
                                           <span
                                             className="font-mono text-[9px] uppercase tracking-[0.1em] border px-1 py-px shrink-0"
                                             style={{ color: "var(--fg-subtle)", borderColor: "var(--border-soft)" }}
@@ -608,19 +626,12 @@ export function FamilyTable({
                                           </span>
                                         )}
                                       </div>
-                                      {leaf.description ? (
+                                      {leaf.description && (
                                         <div
-                                          className="font-mono truncate mt-0.5"
-                                          style={{ fontSize: 10, color: "var(--fg-subtle)", letterSpacing: "0.03em" }}
+                                          className="truncate mt-0.5"
+                                          style={{ fontSize: 11, color: "var(--fg-muted)", lineHeight: 1.4 }}
                                         >
                                           {leaf.description}
-                                        </div>
-                                      ) : (
-                                        <div
-                                          className="font-mono truncate mt-0.5"
-                                          style={{ fontSize: 10, color: "var(--fg-subtle)", letterSpacing: "0.04em" }}
-                                        >
-                                          {humanizeEvaluationId(leaf.id)}
                                         </div>
                                       )}
                                     </div>

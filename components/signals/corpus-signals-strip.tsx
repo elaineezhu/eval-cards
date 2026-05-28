@@ -1,3 +1,6 @@
+import Link from "next/link"
+import { ArrowUpRight } from "lucide-react"
+
 import type { CorpusAggregates } from "@/lib/backend-artifacts"
 
 type SignalId =
@@ -134,8 +137,13 @@ function SignalTile({
       ? "Provenance"
       : "Comparability"
 
+  const anchor = id === "provenance" ? "provenance" : id
   return (
-    <div className="sig-tile">
+    <Link
+      href={`/about#signal-${anchor}`}
+      className="sig-tile group"
+      title={`Read how ${name.toLowerCase()} is measured`}
+    >
       <div className="sig-tile-head">
         <span
           className={`sig-glyph sig-${id}`}
@@ -144,6 +152,11 @@ function SignalTile({
           <span>{SIGNAL_GLYPHS[id]}</span>
         </span>
         <span className="sig-tile-name">{name}</span>
+        <ArrowUpRight
+          className="ml-auto h-3.5 w-3.5 opacity-0 transition-opacity group-hover:opacity-100"
+          style={{ color: "var(--accent)" }}
+          aria-hidden
+        />
       </div>
 
       <div className="sig-tile-stat">
@@ -158,7 +171,7 @@ function SignalTile({
         <span className="kicker">Asks</span>
         <span className="sig-tile-asks-text">{asks}</span>
       </div>
-    </div>
+    </Link>
   )
 }
 

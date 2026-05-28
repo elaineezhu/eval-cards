@@ -246,12 +246,21 @@ function unionTags(...lists: Array<string[] | null | undefined>): string[] {
 }
 
 /**
- * Render a tag for display: snake_case → Sentence case.
+ * Render a tag for display: snake_case → Sentence case, with a small
+ * map of overrides for terms whose default casing would mislead readers.
  * "software_engineering" → "Software engineering";
- * "humanities_and_social_sciences" → "Humanities and social sciences".
+ * "humanities_and_social_sciences" → "Humanities and social sciences";
+ * "multimodal" → "Multimodal (text+image/audio/video)" — "multimodal" alone
+ * is too ambiguous (modal what?), so we expand on first appearance.
  */
+const TAG_LABEL_OVERRIDES: Record<string, string> = {
+  multimodal: "Multimodal input",
+}
+
 export function formatTagLabel(tag: string): string {
   if (!tag) return tag
+  const override = TAG_LABEL_OVERRIDES[tag.toLowerCase()]
+  if (override) return override
   return tag
     .split("_")
     .filter(Boolean)

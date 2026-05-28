@@ -43,7 +43,7 @@ export function ReaderModeBar() {
   return (
     <div className={cn("mode-banner", `mode-${mode}`)}>
       <div className="mode-banner-inner">
-        <div className="ec-mode-toggle" title="Reader mode — same evidence, different rendering.">
+        <div className="ec-mode-toggle" title="Same evidence, different level of detail.">
           <span className="ec-mode-toggle-label" aria-label="Reader mode">
             <Eye className="h-3.5 w-3.5" />
           </span>
@@ -51,22 +51,19 @@ export function ReaderModeBar() {
             type="button"
             className={mode === "policy" ? "on" : ""}
             onClick={() => setMode("policy")}
+            title="Plain-language summary for non-technical readers"
           >
-            Policy
+            Summary view
           </button>
           <button
             type="button"
             className={mode === "research" ? "on" : ""}
             onClick={() => setMode("research")}
+            title="Full methodology, configuration, and missing-field detail"
           >
-            Research
+            Researcher view
           </button>
         </div>
-        <span className="mode-banner-text">
-          {mode === "research"
-            ? "Methodology and configuration foregrounded — specific missing fields, setup-variant differences, expanded metric configuration."
-            : "Plain-language interpretation foregrounded — Policy Notes (what / caveat / intended for), accountability framings, compressed metric detail."}
-        </span>
         <span className="mode-banner-spacer" />
         {snapshotLabel && (
           <span className="mode-banner-meta">Snapshot · {snapshotLabel}</span>

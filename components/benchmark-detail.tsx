@@ -2,8 +2,9 @@
 
 // Force recompile
 import Link from "next/link"
-import { usePathname, useSearchParams } from "next/navigation"
+import { usePathname, useRouter, useSearchParams } from "next/navigation"
 import { useAudienceMode } from "@/components/audience-mode-provider"
+import { EmbedButton } from "@/components/embed-button"
 import { formatDateISO, humanizeBenchmarkName, humanizeEvaluationId, routeIdToPath } from "@/lib/utils"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
@@ -68,6 +69,21 @@ interface BenchmarkDetailProps {
   modelCards?: BenchmarkEvaluationCardData[]
   evalHierarchy?: EvalHierarchy | null
   comparisonIndex?: ComparisonIndex | null
+  /** When set, render only the named surface — used by the /embed/...
+   *  routes so an iframe can carry a single chart instead of the whole page.
+   *  Supports:
+   *  - "reported-metrics" (Summary §4)
+   *  - "histogram" — render a single plotbox tile for the eval named in
+   *    `embedTargetEvalId`, mirroring the on-page histogram (current model
+   *    highlighted, peer rank, splits/slices, setup notes, cross-family
+   *    whisker). */
+  embedSurface?: "reported-metrics" | "histogram"
+  /** Only used when embedSurface === "histogram". Selects which plotbox to
+   *  render by matching this id against the tab.evalSummaryId of every
+   *  plotbox unit. The matching view + metric tab become the initial
+   *  selection so the embed lands on the same metric the user saw on the
+   *  page. */
+  embedTargetEvalId?: string
 }
 
 interface BenchmarkVariant {
@@ -1816,6 +1832,8 @@ export function BenchmarkDetail({
   modelCards,
   evalHierarchy,
   comparisonIndex,
+  embedSurface,
+  embedTargetEvalId,
 }: BenchmarkDetailProps) {
   const { mode } = useAudienceMode()
   const isResearchView = mode === "research"
@@ -3059,7 +3077,13 @@ export function BenchmarkDetail({
           .filter((p) => !selectedIds.has(p.model_route_id))
           .map((p) => ({
             id: p.model_route_id,
-            name: p.model_family_name,
+            // Same fallback as the rendered bar (peerBars above) — when
+            // the registry lacks a display name, fall back to the
+            // model_family_id (which is already human-readable in this
+            // codebase, e.g. "anthropic/sonnet-4.5"). Without this the
+            // dropdown label resolves to "Unknown Model" even though
+            // the bar that appears after selection reads correctly.
+            name: p.model_family_name || p.model_family_id,
             score: p.score,
             submissionCount: p.submission_count,
             submissionAxis: p.submission_axis,
@@ -4248,6 +4272,18 @@ export function BenchmarkDetail({
               </DropdownMenuContent>
             </DropdownMenu>
           )}
+          {/* Suppress the embed-this affordance when we're already
+              rendering inside an embed iframe — otherwise the embedded
+              histogram shows its own "embed this" button, which links
+              back to itself. */}
+          {activeTab.evalSummaryId && !embedHistogramOnly && (
+            <EmbedButton
+              embedPath={`/embed/eval/histogram/${routeIdToPath(activeTab.evalSummaryId)}?model=${encodeURIComponent(routeIdToPath(summary.model_info.id))}`}
+              label="Histogram"
+              defaultHeight={360}
+              size="sm"
+            />
+          )}
         </div>
 
         {/* View selector */}
@@ -4577,13 +4613,78 @@ export function BenchmarkDetail({
       : 1) * 100
   )
 
+  // When embedSurface is set the page renders just that one block
+  // (e.g. "reported-metrics" → only §4). Used by /embed/.../...
+  // routes so an iframe carries a single chart with no chrome.
+  const embedReportedMetricsOnly = embedSurface === "reported-metrics"
+  const embedHistogramOnly = embedSurface === "histogram"
+
+  // Histogram embed — find the plotbox unit + view + metric tab whose
+  // tab.evalSummaryId matches the requested target. Category-mode units
+  // get first dibs so the embed picks up the cross-family whisker (the
+  // same dedupe the on-page Category view performs). Falls back to the
+  // raw plotboxUnits when no category match is found.
+  const embedHistogramTarget = useMemo(() => {
+    if (!embedHistogramOnly || !embedTargetEvalId) return null
+    const search = (units: PlotboxUnit[]) => {
+      for (const unit of units) {
+        for (const view of unit.views) {
+          for (const tab of view.tabs) {
+            if (tab.evalSummaryId === embedTargetEvalId) {
+              return { unit, view, tab }
+            }
+          }
+        }
+      }
+      return null
+    }
+    return search(categoryPlotboxUnits) ?? search(plotboxUnits) ?? null
+  }, [embedHistogramOnly, embedTargetEvalId, categoryPlotboxUnits, plotboxUnits])
+
+  // Drive the unit's view/metric selection to the matched tab so the
+  // initial render lands on the same metric the user saw on the page.
+  useEffect(() => {
+    if (!embedHistogramTarget) return
+    const { unit, view, tab } = embedHistogramTarget
+    setActiveViewByUnit((prev) =>
+      prev[unit.unitKey] === view.viewKey ? prev : { ...prev, [unit.unitKey]: view.viewKey },
+    )
+    setActiveMetricByUnit((prev) =>
+      prev[unit.unitKey] === tab.tabKey ? prev : { ...prev, [unit.unitKey]: tab.tabKey },
+    )
+  }, [embedHistogramTarget])
+
+  // Histogram embed renders just the matched plotbox tile and nothing
+  // else — no header, no §1-4. We use a thin shell that keeps the
+  // plotbox sized to fill the iframe.
+  if (embedHistogramOnly) {
+    if (!embedHistogramTarget) {
+      return (
+        <div className="font-mono" style={{ fontSize: 12, color: "var(--fg-muted)" }}>
+          No histogram available for this model/benchmark pair.
+        </div>
+      )
+    }
+    // The plotbox tile draws its own right + bottom borders assuming the
+    // grid container supplies the top + left. Wrap with a single-cell
+    // grid that adds the missing borders so the tile has a clean frame
+    // when it's the only thing on the page.
+    return (
+      <div className="grid grid-cols-1 border-t border-l border-[color:var(--border-soft)]">
+        {renderPlotbox(embedHistogramTarget.unit, true)}
+      </div>
+    )
+  }
+
   return (
     <div className="space-y-12">
+      {!embedReportedMetricsOnly && (
+      <>
       {/* ============================================================
          Header — paper-style document hero
          ============================================================ */}
       <header className="border-b border-[color:var(--fg)] pb-6">
-        <div className="kicker">Eval Card · Registry Entry</div>
+        <div className="kicker">Evaluation Card</div>
         <div className="mt-3 flex flex-col gap-6 lg:flex-row lg:items-start lg:justify-between">
           <div className="min-w-0">
             <h1 className="ec-page-h1">{getModelDisplayName(summary.model_info.name)}</h1>
@@ -4611,7 +4712,7 @@ export function BenchmarkDetail({
           </div>
 
           <div className="lg:w-[280px]">
-            <div className="kicker mb-2">Registry ID</div>
+            <div className="kicker mb-2">Identifier</div>
             <div className="font-mono text-[12px] text-[color:var(--fg)] break-all">
               ec/models/{summary.model_info.id}
             </div>
@@ -4651,11 +4752,25 @@ export function BenchmarkDetail({
             </p>
             {(setupDrivenBenchmarkCount > 0 || sliceDrivenBenchmarkCount > 0) && (
               <p className="text-[13px] leading-[1.7] text-[color:var(--fg-muted)]">
-                Decomposition: <span className="text-[color:var(--fg)]">{setupDrivenBenchmarkCount}</span> setup-aware ·{" "}
-                <span className="text-[color:var(--fg)]">{sliceDrivenBenchmarkCount}</span> slice-aware.
+                Of the reported benchmarks,{" "}
+                <span
+                  className="text-[color:var(--fg)]"
+                  title="The reporter recorded distinct setup variants (e.g. with vs. without chain-of-thought) for this benchmark"
+                >
+                  {setupDrivenBenchmarkCount}
+                </span>{" "}
+                break out by setup variant and{" "}
+                <span
+                  className="text-[color:var(--fg)]"
+                  title="The reporter recorded distinct slices (e.g. subject-level or difficulty-level sub-scores)"
+                >
+                  {sliceDrivenBenchmarkCount}
+                </span>{" "}
+                break out by slice.
                 {reportingStats.libraryList.length > 0 && (
                   <>
-                    {" "}Eval libraries: <span className="text-[color:var(--fg)]">{reportingStats.libraryList.join(", ")}</span>.
+                    {" "}Scores come from these evaluation harnesses:{" "}
+                    <span className="text-[color:var(--fg)]">{reportingStats.libraryList.join(", ")}</span>.
                   </>
                 )}
               </p>
@@ -4718,7 +4833,7 @@ export function BenchmarkDetail({
             </>
           )}
 
-          {(summary.model_info.modalities?.input?.length || summary.model_info.modalities?.output?.length) && (
+          {((summary.model_info.modalities?.input?.length ?? 0) > 0 || (summary.model_info.modalities?.output?.length ?? 0) > 0) && (
             <>
               <dt>Modalities</dt>
               <dd>
@@ -4760,13 +4875,13 @@ export function BenchmarkDetail({
       </section>
 
       {/* ============================================================
-         §2 Coverage of registry benchmarks
+         §2 Benchmark coverage
          ============================================================ */}
       <section>
         <div className="section-head">
           <h2>
             <span className="font-mono text-[12px] tracking-[0.1em] text-[color:var(--accent)] mr-3">§2</span>
-            Coverage of registry benchmarks
+            Benchmark coverage
           </h2>
           <span className="font-mono text-[10px] uppercase tracking-[0.15em] text-[color:var(--fg-subtle)]">
             {filteredBenchmarkGroups.length} shown · {benchmarkGroups.length} reported
@@ -4869,7 +4984,10 @@ export function BenchmarkDetail({
       </section>
 
       {/* ============================================================
-         §3 Who reports what — evaluator-mix donut + per-category bars
+         §3 Who reports what — Researcher view gets the donut + per-
+         category bars; Summary view gets a single plain-language
+         sentence so the section exists in both views without burying
+         non-technical readers in provenance breakdowns.
          ============================================================ */}
       {evaluatorMix.grand > 0 && (
         <section>
@@ -4879,15 +4997,22 @@ export function BenchmarkDetail({
               Who reports what
             </h2>
             <span className="font-mono text-[10px] uppercase tracking-[0.15em] text-[color:var(--fg-subtle)]">
-              First-party · third-party · per category
+              {isResearchView ? "First-party · third-party · per category" : "Source of these scores"}
             </span>
           </div>
-          <EvaluatorMix mix={evaluatorMix} />
+          {isResearchView ? (
+            <EvaluatorMix mix={evaluatorMix} />
+          ) : (
+            <EvaluatorMixSummary mix={evaluatorMix} />
+          )}
         </section>
+      )}
+      </>
       )}
 
       {/* ============================================================
-         §4 Reported metrics — filter bar + view toggle + grid/list
+         §4 Reported metrics — Summary view shows a flat normalized bar
+         list; Researcher view keeps the full grid/category/overlaps grid.
          ============================================================ */}
       <section>
         <div className="section-head">
@@ -4897,49 +5022,112 @@ export function BenchmarkDetail({
           </h2>
           <div className="flex items-center gap-3">
             <span className="font-mono text-[10px] uppercase tracking-[0.15em] text-[color:var(--fg-subtle)]">
-              {filteredBenchmarkGroups.length} shown
+              {isResearchView ? `${filteredBenchmarkGroups.length} shown` : `${benchmarkGroups.length} reported`}
             </span>
-            <div
-              className="ec-mode-toggle"
-              title={
-                groupingMode === "source"
-                  ? "View by source: family-rooted plotboxes / accordions, no cross-family collapse."
-                  : groupingMode === "category"
-                    ? "View by category: same composite/standalone units, grouped by curated tag."
-                    : "View overlaps: cross-suite duplicate benchmarks only, with mean and 95% CI."
-              }
-            >
-              <button
-                type="button"
-                className={groupingMode === "source" ? "on" : ""}
-                onClick={() => setGroupingMode("source")}
-                aria-label="View by source"
-                title="By source"
+            {!embedReportedMetricsOnly && (
+              <EmbedButton
+                embedPath={`/embed/model/reported-metrics/${routeIdToPath(summary.model_info.id)}`}
+                label="Reported metrics"
+                defaultHeight={680}
+                size="sm"
+              />
+            )}
+            {isResearchView && (
+              <div
+                className="ec-mode-toggle"
+                title={
+                  groupingMode === "source"
+                    ? "View by source: family-rooted plotboxes / accordions, no cross-family collapse."
+                    : groupingMode === "category"
+                      ? "View by category: same composite/standalone units, grouped by curated tag."
+                      : "View overlaps: cross-suite duplicate benchmarks only, with mean and 95% CI."
+                }
               >
-                Source
-              </button>
-              <button
-                type="button"
-                className={groupingMode === "category" ? "on" : ""}
-                onClick={() => setGroupingMode("category")}
-                aria-label="View by category"
-                title="By category"
-              >
-                Category
-              </button>
-              <button
-                type="button"
-                className={groupingMode === "overlaps" ? "on" : ""}
-                onClick={() => setGroupingMode("overlaps")}
-                aria-label="View overlaps"
-                title="Cross-suite overlaps"
-              >
-                Overlaps
-              </button>
-            </div>
+                <button
+                  type="button"
+                  className={groupingMode === "source" ? "on" : ""}
+                  onClick={() => setGroupingMode("source")}
+                  aria-label="View by source"
+                  title="By source"
+                >
+                  Source
+                </button>
+                <button
+                  type="button"
+                  className={groupingMode === "category" ? "on" : ""}
+                  onClick={() => setGroupingMode("category")}
+                  aria-label="View by category"
+                  title="By category"
+                >
+                  Category
+                </button>
+                <button
+                  type="button"
+                  className={groupingMode === "overlaps" ? "on" : ""}
+                  onClick={() => setGroupingMode("overlaps")}
+                  aria-label="View overlaps"
+                  title="Cross-suite overlaps"
+                >
+                  Overlaps
+                </button>
+              </div>
+            )}
           </div>
         </div>
 
+        {/* SUMMARY VIEW — text-only list grouped by family, ranked
+            best→worst, with the category pill bar so non-technical
+            readers can filter without diving into Researcher view. */}
+        {!isResearchView && (
+          <>
+            {availableCategories.length > 0 && (
+              <div className="mb-5 flex flex-wrap items-center gap-2">
+                <span className="kicker mr-2">Category</span>
+                <button
+                  type="button"
+                  onClick={() => setSelectedCategories([])}
+                  className={`ec-pill ${selectedCategories.length === 0 ? "on" : ""}`}
+                >
+                  All
+                </button>
+                {availableCategories.map((category) => {
+                  const isSelected = selectedCategories.includes(category)
+                  return (
+                    <button
+                      key={category}
+                      type="button"
+                      onClick={() =>
+                        setSelectedCategories((current) =>
+                          current.includes(category)
+                            ? current.filter((item) => item !== category)
+                            : [...current, category]
+                        )
+                      }
+                      className={`ec-pill ${isSelected ? "on" : ""}`}
+                    >
+                      {formatTagLabel(category as unknown as string)}
+                    </button>
+                  )
+                })}
+              </div>
+            )}
+            <SummaryMetricsList
+              groups={
+                selectedCategories.length === 0
+                  ? benchmarkGroups
+                  : benchmarkGroups.filter((g) => selectedCategories.includes(g.category))
+              }
+              currentDetailHref={currentDetailHref}
+              hierarchyIndex={hierarchyIndex}
+              sourcePrefixFamily={sourcePrefixFamily}
+              modelIds={modelIds}
+              peerRanks={peerRanks}
+            />
+          </>
+        )}
+
+        {/* Researcher view: full controls + grid/category/overlaps rendering. */}
+        {isResearchView && (<>
         {/* Filter bar */}
         <div className="mb-5 flex flex-wrap items-center gap-3 border-b border-[color:var(--border-soft)] pb-5">
           <div className="relative w-full sm:max-w-sm">
@@ -5177,9 +5365,12 @@ export function BenchmarkDetail({
                           <span className="font-mono text-[10px] uppercase tracking-[0.2em] text-[color:var(--accent)] font-semibold">
                             {fam.familyDisplayName}
                           </span>
-                          <span className="font-mono text-[10px] uppercase tracking-[0.15em] text-[color:var(--fg-subtle)]">
+                          <span
+                            className="font-mono text-[10px] uppercase tracking-[0.15em] text-[color:var(--fg-subtle)]"
+                            title={compositeCount === 1 ? "One score distribution chart" : `${compositeCount} score distribution charts`}
+                          >
                             {compositeCount}{" "}
-                            {compositeCount === 1 ? "plot" : "plots"}
+                            {compositeCount === 1 ? "chart" : "charts"}
                             {totalBenchmarks !== compositeCount && (
                               <>
                                 {" "}· {totalBenchmarks} benchmark
@@ -5685,6 +5876,7 @@ export function BenchmarkDetail({
             })}
           </div>
         )}
+        </>)}
       </section>
 
       <Dialog
@@ -6449,7 +6641,7 @@ function AggregatedBenchmarkCard({
 
               {/* Slice count */}
               <span className="shrink-0 text-[11px] text-muted-foreground w-16 text-right hidden sm:block">
-                {group.variants.length} {group.variants.length === 1 ? "row" : "rows"}
+                {group.variants.length} {group.variants.length === 1 ? "result" : "results"}
               </span>
 
               <div className="shrink-0 text-muted-foreground">
@@ -7914,9 +8106,1070 @@ type EvaluatorMixData = {
 }
 
 /**
+ * Plain-language scoreboard for Summary view. Renders every reported
+ * benchmark as a text-only row — raw score on the right, a medal emoji
+ * (🥇🥈🥉) for top-3 peer ranks. No charts; non-technical readers can
+ * scan the list quickly without parsing per-benchmark plots.
+ *
+ * Rows group by family (Vals.ai · BFCL · HELM …). Within each family,
+ * rows order by peer rank (best first) and fall back to score when rank
+ * is unavailable. Each row links to the benchmark detail page; the
+ * eval_summary_id appears as a small "on …" subline so the source of
+ * the number is obvious.
+ */
+function SummaryMetricsList({
+  groups,
+  currentDetailHref,
+  hierarchyIndex,
+  sourcePrefixFamily,
+  modelIds,
+  peerRanks,
+}: {
+  groups: BenchmarkGroup[]
+  currentDetailHref?: string
+  hierarchyIndex: Map<string, HierarchyEvalLocation> | null
+  sourcePrefixFamily: Map<string, { key: string; displayName: string }>
+  modelIds: string[]
+  peerRanks: PeerRanksMap
+}) {
+  const router = useRouter()
+
+  // Eval IDs ship as "<source>%2F<bench-path>". The source prefix is
+  // the section header; the bench-path determines the row identity.
+  // Branching: variants whose bench-paths share an identifier before
+  // any `.` separator (e.g. "swebench.>4 hours" and "swebench.1-4 hours")
+  // collapse into one row with sub-variants. Variants whose bench-paths
+  // are genuinely distinct ("arc-agi" vs "arc-agi-2") stay separate.
+  const humanizeSlug = (slug: string): string => {
+    const ACRONYMS = new Set([
+      "agi", "ai", "aime", "api", "arc", "bbh", "bfcl", "ctf", "cve",
+      "gaia", "gdm", "gpqa", "gsm8k", "helm", "hf", "hle", "ifbench",
+      "ifeval", "llm", "math", "ml", "mmlu", "mmlu-pro", "mmmu", "musr",
+      "nlp", "rl", "swe", "vals", "wasp", "ace", "scicode", "usaco",
+      "vqa", "qa",
+    ])
+    return slug
+      .split(/[-_\s]+/)
+      .filter(Boolean)
+      .map((seg) => {
+        if (ACRONYMS.has(seg.toLowerCase())) return seg.toUpperCase()
+        if (/^\d/.test(seg)) return seg
+        return seg.charAt(0).toUpperCase() + seg.slice(1)
+      })
+      .join(" ")
+  }
+
+  const parseEvalId = (evalId: string | null | undefined): { source: string; benchPath: string; benchKey: string } | null => {
+    if (!evalId) return null
+    // Accept both encoded (%2F) and decoded (/) forms.
+    const decoded = decodeURIComponent(evalId)
+    const slashIdx = decoded.indexOf("/")
+    if (slashIdx < 0) return null
+    const source = decoded.slice(0, slashIdx)
+    const benchPath = decoded.slice(slashIdx + 1)
+    if (!source || !benchPath) return null
+    // benchKey = bench-path up to the first "." — same benchKey across
+    // variants collapses them into one row.
+    const dotIdx = benchPath.indexOf(".")
+    const benchKey = dotIdx >= 0 ? benchPath.slice(0, dotIdx) : benchPath
+    return { source, benchPath, benchKey }
+  }
+
+  // Pull a usable benchmark label from a variant when the parsed benchKey
+  // is degenerate (equals the source name) — happens for rows that come
+  // in as variants under a source-level group with no per-bench title.
+  const deriveBenchLabel = (v: BenchmarkVariant, fallback: string): string => {
+    const candidates = [
+      v.label,
+      v.metricLabel,
+      (v.result as { evaluation_name?: string } | undefined)?.evaluation_name,
+      (v.evaluation as { benchmark?: string } | undefined)?.benchmark,
+    ].filter(
+      (s): s is string =>
+        typeof s === "string" && s.trim().length > 0 && s.trim().toLowerCase() !== fallback.toLowerCase(),
+    )
+    return candidates[0] ?? fallback
+  }
+
+  // Flatten every variant of every group into a single list, paired
+  // with the parsed source/benchKey. Variants without a usable eval
+  // id fall back to the group's title.
+  type FlatVariant = {
+    group: BenchmarkGroup
+    variant: BenchmarkVariant
+    source: string
+    sourceKey: string
+    benchKey: string
+    benchPath: string
+    benchLabel: string
+    rawScore: number
+    unit?: string
+    lowerIsBetter: boolean
+    rankPosition: number | null
+    rankTotal: number | null
+  }
+  const flat: FlatVariant[] = []
+  for (const g of groups) {
+    for (const v of g.variants ?? []) {
+      const raw = v.result?.score_details?.score
+      if (!Number.isFinite(raw)) continue
+      // Resolve eval_summary_id, falling back to the detail-href derivation
+      // (mirrors getGroupPeerRank). Without this, variants whose
+      // eval_summary_id is null still register correctly with peerRanks.
+      const resolvedEvalIdRaw =
+        v.evaluation?.eval_summary_id ??
+        getEvalSummaryIdFromHref(getEvalDetailHref(v.evaluation, v.result))
+      const resolvedEvalId = resolvedEvalIdRaw || null
+      const parsed = parseEvalId(resolvedEvalId)
+      const source = parsed?.source ?? "other"
+      const benchKey = parsed?.benchKey ?? g.key
+      const benchPath = parsed?.benchPath ?? g.title
+      // Pick a row label: usually the humanized benchKey, but when
+      // benchKey collides with the source slug (group fell back to the
+      // family key), use evaluation_name / variant label instead.
+      const benchKeySlug = benchKey.toLowerCase()
+      const sourceSlug = source.toLowerCase()
+      // Always pass through humanizeSlug so labels match the "Tau2 Telecom"
+      // style regardless of whether they came from benchKey or a fallback.
+      const labelFallback = humanizeSlug(
+        benchKeySlug === sourceSlug
+          ? deriveBenchLabel(v, benchKey)
+          : benchKey,
+      )
+      // Sidecar rank lookup. The sidecar ships eval keys AND model
+      // keys in URL-encoded form (e.g. `llm-stats%2Faa-index`,
+      // `openai%2Fgpt-5.5`); the runtime `modelIds` carries the decoded
+      // slash form (`openai/gpt-5.5`). Try both encodings on both
+      // dimensions before falling back to the in-record rank.
+      let rankPosition: number | null = null
+      let rankTotal: number | null = null
+      const tryRankLookup = (eid: string | null | undefined): boolean => {
+        if (!eid) return false
+        const evalRanks = peerRanks[eid]
+        if (!evalRanks) return false
+        for (const mid of modelIds) {
+          const candidates = [mid, encodeURIComponent(mid), mid.replace(/\//g, "%2F")]
+          for (const cand of candidates) {
+            const r = evalRanks[cand]
+            if (r != null) {
+              rankPosition = r.position
+              rankTotal = r.total
+              return true
+            }
+          }
+        }
+        return false
+      }
+      if (!tryRankLookup(resolvedEvalId)) {
+        if (resolvedEvalId) {
+          const decoded = decodeURIComponent(resolvedEvalId)
+          if (decoded !== resolvedEvalId) tryRankLookup(decoded)
+          const reencoded = resolvedEvalId.replace(/\//g, "%2F")
+          if (reencoded !== resolvedEvalId) tryRankLookup(reencoded)
+        }
+        if (rankPosition == null && v.rankPosition != null) {
+          rankPosition = v.rankPosition
+          rankTotal = v.rankTotal
+        }
+      }
+      // Use the label-derived benchKey when we fell back, so two variants
+      // with the same evaluation_name still collapse into one row.
+      const effectiveBenchKey =
+        benchKeySlug === sourceSlug
+          ? labelFallback.toLowerCase().replace(/\s+/g, "-")
+          : benchKeySlug
+      flat.push({
+        group: g,
+        variant: v,
+        source,
+        sourceKey: source.toLowerCase(),
+        benchKey: effectiveBenchKey,
+        benchPath,
+        benchLabel: labelFallback,
+        rawScore: raw as number,
+        unit: v.result?.metric_config?.unit,
+        lowerIsBetter: Boolean(v.result?.metric_config?.lower_is_better),
+        rankPosition,
+        rankTotal,
+      })
+    }
+  }
+
+  type Row = {
+    benchKey: string
+    benchName: string
+    group: BenchmarkGroup
+    variants: FlatVariant[]
+    avgRaw: number
+    unit?: string
+    lowerIsBetter: boolean
+    rankPosition: number | null
+    rankTotal: number | null
+    rankRatio: number | null
+    evalSummaryId: string | null
+    category: CategoryType
+  }
+  type Bucket = { key: string; name: string; rows: Row[] }
+  const buckets = new Map<string, Bucket>()
+  for (const fv of flat) {
+    let bucket = buckets.get(fv.sourceKey)
+    if (!bucket) {
+      bucket = { key: fv.sourceKey, name: humanizeSlug(fv.source), rows: [] }
+      buckets.set(fv.sourceKey, bucket)
+    }
+    let row = bucket.rows.find((r) => r.benchKey === fv.benchKey)
+    if (!row) {
+      row = {
+        benchKey: fv.benchKey,
+        benchName: fv.benchLabel,
+        group: fv.group,
+        variants: [],
+        avgRaw: 0,
+        unit: fv.unit,
+        lowerIsBetter: fv.lowerIsBetter,
+        rankPosition: null,
+        rankTotal: null,
+        rankRatio: null,
+        evalSummaryId: fv.variant.evaluation?.eval_summary_id ?? null,
+        category: fv.group.category,
+      }
+      bucket.rows.push(row)
+    }
+    row.variants.push(fv)
+  }
+
+  // Finalize each row: avg raw, best rank across variants. As a final
+  // fallback delegate to getGroupPeerRank (same call Researcher view
+  // makes) so we never miss a rank Researcher view surfaces.
+  for (const bucket of buckets.values()) {
+    for (const row of bucket.rows) {
+      const scores = row.variants.map((v) => v.rawScore)
+      row.avgRaw = scores.reduce((a, b) => a + b, 0) / scores.length
+      let best: { p: number; t: number } | null = null
+      for (const v of row.variants) {
+        if (v.rankPosition == null || v.rankTotal == null || v.rankTotal <= 0) continue
+        const ratio = v.rankPosition / v.rankTotal
+        if (!best || ratio < best.p / best.t) best = { p: v.rankPosition, t: v.rankTotal }
+      }
+      if (!best) {
+        const groupRank = getGroupPeerRank(row.group, modelIds, peerRanks)
+        if (groupRank && groupRank.total > 0) best = { p: groupRank.position, t: groupRank.total }
+      }
+      if (best) {
+        row.rankPosition = best.p
+        row.rankTotal = best.t
+        row.rankRatio = best.p / best.t
+      }
+    }
+  }
+
+  const orderedBuckets = Array.from(buckets.values())
+    .map((b) => ({
+      ...b,
+      rows: b.rows.slice().sort((a, b) => {
+        const ar = a.rankRatio == null ? Infinity : a.rankRatio
+        const br = b.rankRatio == null ? Infinity : b.rankRatio
+        if (ar !== br) return ar - br
+        if (a.lowerIsBetter && b.lowerIsBetter) return a.avgRaw - b.avgRaw
+        return b.avgRaw - a.avgRaw
+      }),
+    }))
+    .sort((a, b) => {
+      const ar = Math.min(...a.rows.map((r) => r.rankRatio ?? Infinity))
+      const br = Math.min(...b.rows.map((r) => r.rankRatio ?? Infinity))
+      if (ar !== br) return ar - br
+      return a.name.localeCompare(b.name)
+    })
+
+  if (orderedBuckets.length === 0) {
+    return (
+      <p className="text-[14px] text-[color:var(--fg-muted)] py-6">
+        No reported metrics for this model yet.
+      </p>
+    )
+  }
+
+  return (
+    <div className="space-y-8 mx-auto" style={{ maxWidth: "72rem" }}>
+      <p className="text-[13px] leading-[1.65] text-[color:var(--fg-muted)]">
+        Reported benchmarks grouped by source (the prefix of the eval ID — wasp / vals-ai /
+        reward-bench-2 / …), ordered best peer rank first. The number on the right is the model's
+        raw score; <em className="not-italic font-mono text-[12px]">12 / 107</em> next to it is
+        its peer rank. A medal (🥇 🥈 🥉) marks a top-3 finish. Switch to{" "}
+        <em className="text-[color:var(--fg)] not-italic font-medium">Researcher view</em>{" "}
+        for per-benchmark plots, setup variants, and cross-suite comparisons.
+      </p>
+
+      {orderedBuckets.map((bucket) => (
+        <SummaryBucketBlock
+          key={bucket.key}
+          bucketName={bucket.name}
+          rows={bucket.rows}
+          router={router}
+          currentDetailHref={currentDetailHref}
+        />
+      ))}
+    </div>
+  )
+}
+
+type SummaryFlatVariant = {
+  group: BenchmarkGroup
+  variant: BenchmarkVariant
+  source: string
+  sourceKey: string
+  benchKey: string
+  benchPath: string
+  rawScore: number
+  unit?: string
+  lowerIsBetter: boolean
+  rankPosition: number | null
+  rankTotal: number | null
+}
+
+type SummaryRow = {
+  benchKey: string
+  benchName: string
+  group: BenchmarkGroup
+  variants: SummaryFlatVariant[]
+  avgRaw: number
+  unit?: string
+  lowerIsBetter: boolean
+  rankPosition: number | null
+  rankTotal: number | null
+  rankRatio: number | null
+  evalSummaryId: string | null
+  category: CategoryType
+}
+
+function SummaryBucketBlock({
+  bucketName,
+  rows,
+  router,
+  currentDetailHref,
+}: {
+  bucketName: string
+  rows: SummaryRow[]
+  router: ReturnType<typeof useRouter>
+  currentDetailHref?: string
+}) {
+  return (
+    <div>
+      <div
+        className="mb-3 flex items-baseline justify-between gap-3 pb-2"
+        style={{ borderBottom: "1px solid var(--border-soft)" }}
+      >
+        <h3
+          className="font-mono uppercase"
+          style={{ fontSize: 12, letterSpacing: "0.14em", color: "var(--fg)" }}
+        >
+          {bucketName}
+        </h3>
+        <span
+          className="font-mono uppercase"
+          style={{ fontSize: 11, letterSpacing: "0.12em", color: "var(--fg-subtle)" }}
+        >
+          {rows.length} benchmark{rows.length === 1 ? "" : "s"}
+        </span>
+      </div>
+      <ul className="m-0 p-0 list-none">
+        {rows.map((row) => (
+          <SummaryBenchRow
+            key={`${row.benchKey}-${row.evalSummaryId ?? ""}`}
+            row={row}
+            router={router}
+            currentDetailHref={currentDetailHref}
+          />
+        ))}
+      </ul>
+    </div>
+  )
+}
+
+function SummaryBenchRow({
+  row,
+  router,
+  currentDetailHref,
+}: {
+  row: SummaryRow
+  router: ReturnType<typeof useRouter>
+  currentDetailHref?: string
+}) {
+  const isBranched = row.variants.length > 1
+  const detailHref = row.group.evalDetailHref
+  const navigate = () => {
+    if (!detailHref) return
+    const href = currentDetailHref
+      ? `${detailHref}${detailHref.includes("?") ? "&" : "?"}from=${encodeURIComponent(currentDetailHref)}`
+      : detailHref
+    router.push(href)
+  }
+  const interactive = Boolean(detailHref)
+  const hasRank = row.rankPosition != null && row.rankTotal != null && row.rankTotal > 0
+  const parentScore = formatSummaryScore(row.avgRaw, row.unit)
+  const categoryLabel = formatTagLabel(row.category as unknown as string)
+  const primaryEvalId = row.variants[0]?.variant.evaluation?.eval_summary_id ?? null
+
+  return (
+    <>
+      <li
+        className="grid items-baseline gap-3 py-1.5"
+        style={{
+          gridTemplateColumns: "1fr auto",
+          borderBottom: "1px solid var(--border-soft)",
+          cursor: interactive ? "pointer" : "default",
+        }}
+        role={interactive ? "link" : undefined}
+        tabIndex={interactive ? 0 : -1}
+        onClick={interactive ? navigate : undefined}
+        onKeyDown={
+          interactive
+            ? (e) => {
+                if (e.key === "Enter" || e.key === " ") {
+                  e.preventDefault()
+                  navigate()
+                }
+              }
+            : undefined
+        }
+      >
+        <div className="min-w-0">
+          <div className="flex items-baseline flex-wrap gap-x-2 gap-y-0.5">
+            <span
+              className="text-[15px] truncate"
+              style={{ color: "var(--fg)", fontWeight: 500 }}
+              title={row.benchName}
+            >
+              {row.benchName}
+            </span>
+            {categoryLabel && (
+              <span
+                className="inline-flex items-center font-mono text-[10px] uppercase tracking-[0.12em] border px-1.5 py-0.5 shrink-0"
+                style={{
+                  color: "var(--fg-muted)",
+                  borderColor: "var(--border-soft)",
+                  background: "var(--bg)",
+                }}
+                title={`Category: ${categoryLabel}`}
+              >
+                {categoryLabel}
+              </span>
+            )}
+            <span
+              className="inline-flex items-center font-mono text-[10px] uppercase tracking-[0.12em] border px-1.5 py-0.5 shrink-0"
+              style={{
+                color: row.lowerIsBetter ? "var(--accent)" : "var(--fg-muted)",
+                borderColor: row.lowerIsBetter ? "var(--accent)" : "var(--border-soft)",
+                background: "var(--bg)",
+              }}
+              title={
+                row.lowerIsBetter
+                  ? "Lower raw score is better on this benchmark."
+                  : "Higher raw score is better on this benchmark."
+              }
+            >
+              {row.lowerIsBetter ? "↓ Lower is better" : "↑ Higher is better"}
+            </span>
+            {isBranched && (
+              <span
+                className="font-mono"
+                style={{ fontSize: 10, color: "var(--fg-subtle)" }}
+                title={`Average across ${row.variants.length} reported variants.`}
+              >
+                · avg of {row.variants.length}
+              </span>
+            )}
+          </div>
+          {!isBranched && primaryEvalId && (
+            <div
+              className="mt-0.5 font-mono truncate"
+              style={{
+                fontSize: 11,
+                color: "var(--fg-subtle)",
+                letterSpacing: "0.02em",
+              }}
+              title={`Source: ${decodeURIComponent(primaryEvalId)}`}
+            >
+              on {decodeURIComponent(primaryEvalId)}
+            </div>
+          )}
+        </div>
+        <div className="flex items-baseline justify-end gap-2.5 whitespace-nowrap">
+          {hasRank && (
+            <RankBadge
+              position={row.rankPosition!}
+              total={row.rankTotal!}
+              size="md"
+            />
+          )}
+          <span
+            className="font-mono tabular-nums text-[15px]"
+            style={{ color: "var(--fg)", fontWeight: 500 }}
+            title={isBranched ? "Average across reported variants" : "Raw score"}
+          >
+            {parentScore}
+          </span>
+        </div>
+      </li>
+
+      {isBranched &&
+        row.variants.map((v, idx) => {
+          const vEvalId = v.variant.evaluation?.eval_summary_id ?? null
+          const vScoreText = formatSummaryScore(v.rawScore, v.unit)
+          const vHasRank = v.rankPosition != null && v.rankTotal != null && v.rankTotal > 0
+          const setupOrSlice = v.variant.setupLabel || v.variant.sliceLabel
+          return (
+            <li
+              key={`${row.benchKey}-variant-${idx}`}
+              className="grid items-baseline gap-3 py-1"
+              style={{
+                gridTemplateColumns: "1fr auto",
+                borderBottom: "1px solid var(--border-soft)",
+                paddingLeft: 18,
+              }}
+            >
+              <div className="min-w-0 flex items-baseline gap-1.5">
+                <span
+                  className="font-mono shrink-0"
+                  style={{ fontSize: 11, color: "var(--fg-subtle)" }}
+                  aria-hidden
+                >
+                  └
+                </span>
+                <div className="min-w-0">
+                  {vEvalId && (
+                    <span
+                      className="font-mono truncate"
+                      style={{
+                        fontSize: 12,
+                        color: "var(--fg-muted)",
+                        letterSpacing: "0.02em",
+                      }}
+                      title={`Source: ${decodeURIComponent(vEvalId)}`}
+                    >
+                      on {decodeURIComponent(vEvalId)}
+                    </span>
+                  )}
+                  {setupOrSlice && (
+                    <span
+                      className="ml-2 font-mono"
+                      style={{ fontSize: 11, color: "var(--fg-subtle)" }}
+                    >
+                      · {setupOrSlice}
+                    </span>
+                  )}
+                </div>
+              </div>
+              <div className="flex items-baseline justify-end gap-2.5 whitespace-nowrap">
+                {vHasRank && (
+                  <RankBadge
+                    position={v.rankPosition!}
+                    total={v.rankTotal!}
+                    size="sm"
+                  />
+                )}
+                <span
+                  className="font-mono tabular-nums"
+                  style={{ fontSize: 13.5, color: "var(--fg)" }}
+                >
+                  {vScoreText}
+                </span>
+              </div>
+            </li>
+          )
+        })}
+    </>
+  )
+}
+
+function RankBadge({
+  position,
+  total,
+  size,
+}: {
+  position: number
+  total: number
+  size: "sm" | "md"
+}) {
+  const tone = rankBadgeColor(position)
+  const fontSize = size === "md" ? 12 : 11
+  const padding = size === "md" ? "1px 6px" : "0 5px"
+  return (
+    <span
+      className="font-mono tabular-nums inline-flex items-baseline"
+      style={{ fontSize, color: "var(--fg-muted)" }}
+      title={`Ranked ${position} of ${total} models reported on this benchmark.`}
+    >
+      <span
+        className="inline-flex items-center justify-center"
+        style={{
+          background: tone ? tone.bg : "transparent",
+          color: tone ? tone.fg : "var(--fg)",
+          padding: tone ? padding : 0,
+          borderRadius: tone ? 2 : 0,
+          fontWeight: tone ? 600 : 400,
+          minWidth: tone ? "1.4em" : undefined,
+          textAlign: "center",
+        }}
+      >
+        {position}
+      </span>
+      <span style={{ color: "var(--fg-subtle)" }}>/{total}</span>
+    </span>
+  )
+}
+
+function rankMedal(position: number | null, total: number | null): string | null {
+  if (position == null || total == null || total <= 0) return null
+  if (position === 1) return "🥇"
+  if (position === 2) return "🥈"
+  if (position === 3) return "🥉"
+  return null
+}
+
+// Gold / silver / bronze chip colors for rank 1 / 2 / 3. Returns null
+// for positions outside the top three — those render as plain mono text.
+function rankBadgeColor(position: number | null): { bg: string; fg: string } | null {
+  if (position == null) return null
+  if (position === 1) return { bg: "#D4A017", fg: "#FFFFFF" } // gold
+  if (position === 2) return { bg: "#A8A8A8", fg: "#FFFFFF" } // silver
+  if (position === 3) return { bg: "#B87333", fg: "#FFFFFF" } // bronze
+  return null
+}
+
+function formatSummaryScore(raw: number, unit?: string, displayFallback?: string): string {
+  if (!Number.isFinite(raw)) return displayFallback ?? "—"
+  const u = (unit || "").toLowerCase()
+  // Percent-style metrics always render as "<n>%" — never "<n> percent",
+  // never "<n> proportion". Handles both 0–1 (proportion) and 0–100
+  // (percent already) value ranges so the suffix stays consistent.
+  const isPercentish = !u || /percent|proportion|accuracy|score|pass@|exact|f1|%/.test(u)
+  if (isPercentish) {
+    const value = Math.abs(raw) <= 1 ? raw * 100 : raw
+    const abs = Math.abs(value)
+    const decimals = abs < 1 ? 2 : abs < 10 ? 2 : 1
+    return `${value.toFixed(decimals)}%`
+  }
+  return displayFallback ?? formatRawScoreValue(raw, unit)
+}
+
+function SummaryMetricsRow({
+  row,
+  router,
+  currentDetailHref,
+  modelIds,
+  peerRanks,
+}: {
+  row: {
+    group: BenchmarkGroup
+    rankPosition: number | null
+    rankTotal: number | null
+    rankRatio: number | null
+    rawScore: number
+    displayScore: string
+    unit?: string
+    lowerIsBetter: boolean
+    evalSummaryId: string | null
+  }
+  router: ReturnType<typeof useRouter>
+  currentDetailHref?: string
+  modelIds: string[]
+  peerRanks: PeerRanksMap
+}) {
+  const { group, rankPosition, rankTotal, lowerIsBetter, evalSummaryId } = row
+  const variants = group.variants ?? []
+  const isBranched = variants.length > 1
+  const interactive = Boolean(group.evalDetailHref)
+  const navigate = () => {
+    if (!group.evalDetailHref) return
+    const href = currentDetailHref
+      ? `${group.evalDetailHref}${
+          group.evalDetailHref.includes("?") ? "&" : "?"
+        }from=${encodeURIComponent(currentDetailHref)}`
+      : group.evalDetailHref
+    router.push(href)
+  }
+
+  const categoryLabel = formatTagLabel(group.category as unknown as string)
+  const parentMedal = rankMedal(rankPosition, rankTotal)
+  const hasParentRank = rankPosition != null && rankTotal != null && rankTotal > 0
+  const parentScore = formatSummaryScore(row.rawScore, row.unit, row.displayScore)
+
+  return (
+    <>
+      <li
+        className="grid items-baseline gap-4 py-2.5"
+        style={{
+          gridTemplateColumns: "1fr auto",
+          borderBottom: isBranched
+            ? "1px solid var(--border-soft)"
+            : "1px solid var(--border-soft)",
+          cursor: interactive ? "pointer" : "default",
+        }}
+        role={interactive ? "link" : undefined}
+        tabIndex={interactive ? 0 : -1}
+        onClick={interactive ? navigate : undefined}
+        onKeyDown={
+          interactive
+            ? (e) => {
+                if (e.key === "Enter" || e.key === " ") {
+                  e.preventDefault()
+                  navigate()
+                }
+              }
+            : undefined
+        }
+      >
+        <div className="min-w-0">
+          <div className="flex items-baseline flex-wrap gap-x-2 gap-y-1">
+            <span
+              className="text-[14px] truncate"
+              style={{ color: "var(--fg)" }}
+              title={group.title}
+            >
+              {group.title}
+            </span>
+            {categoryLabel && (
+              <span
+                className="inline-flex items-center font-mono text-[9px] uppercase tracking-[0.12em] border px-1.5 py-0.5 shrink-0"
+                style={{
+                  color: "var(--fg-muted)",
+                  borderColor: "var(--border-soft)",
+                  background: "var(--bg)",
+                }}
+                title={`Category: ${categoryLabel}`}
+              >
+                {categoryLabel}
+              </span>
+            )}
+            {lowerIsBetter && (
+              <span
+                className="font-mono"
+                style={{ fontSize: 10, color: "var(--fg-subtle)" }}
+                title="Lower raw score is better on this benchmark."
+              >
+                ↓ lower is better
+              </span>
+            )}
+            {isBranched && (
+              <span
+                className="font-mono"
+                style={{ fontSize: 10, color: "var(--fg-subtle)" }}
+                title={`Average across ${variants.length} reported variants.`}
+              >
+                · avg of {variants.length}
+              </span>
+            )}
+          </div>
+          {!isBranched && evalSummaryId && (
+            <div
+              className="mt-0.5 font-mono truncate"
+              style={{
+                fontSize: 11,
+                color: "var(--fg-subtle)",
+                letterSpacing: "0.02em",
+              }}
+              title={`Source: ${decodeURIComponent(evalSummaryId)}`}
+            >
+              on {decodeURIComponent(evalSummaryId)}
+            </div>
+          )}
+        </div>
+        <div className="flex items-baseline justify-end gap-3 whitespace-nowrap">
+          {hasParentRank && (
+            <span
+              className="font-mono tabular-nums"
+              style={{ fontSize: 11, color: "var(--fg-muted)" }}
+              title={`Ranked ${rankPosition} of ${rankTotal} models reported on this benchmark.`}
+            >
+              <span style={{ color: "var(--fg)" }}>{rankPosition}</span>
+              <span style={{ color: "var(--fg-subtle)" }}> / {rankTotal}</span>
+            </span>
+          )}
+          {parentMedal && (
+            <span
+              className="text-[15px] leading-none"
+              aria-hidden
+              title={
+                hasParentRank
+                  ? `Ranked ${rankPosition} of ${rankTotal} models.`
+                  : undefined
+              }
+            >
+              {parentMedal}
+            </span>
+          )}
+          <span
+            className="font-mono tabular-nums text-[14px]"
+            style={{ color: "var(--fg)" }}
+            title={isBranched ? "Average across reported variants" : "Raw score"}
+          >
+            {parentScore}
+          </span>
+        </div>
+      </li>
+
+      {isBranched &&
+        variants.map((v, idx) => {
+          const vEvalId = v.evaluation?.eval_summary_id ?? null
+          const vRawScore = v.result?.score_details?.score
+          const vUnit = v.result?.metric_config?.unit
+          const vDisplay = v.displayScore || formatRawScoreValue(vRawScore ?? NaN, vUnit)
+          // Sidecar lookup per-variant — the in-record `v.rankPosition`
+          // is null for most benchmarks (only embedded ranks). Prefer the
+          // peer-ranks sidecar, fall back to the in-record rank.
+          let vRankPosition = v.rankPosition ?? null
+          let vRankTotal = v.rankTotal ?? null
+          if (vEvalId && vRankPosition == null) {
+            const evalRanks = peerRanks[vEvalId]
+            if (evalRanks) {
+              for (const mid of modelIds) {
+                const r = evalRanks[mid]
+                if (r != null) {
+                  vRankPosition = r.position
+                  vRankTotal = r.total
+                  break
+                }
+              }
+            }
+          }
+          const vMedal = rankMedal(vRankPosition, vRankTotal)
+          const vHasRank =
+            vRankPosition != null && vRankTotal != null && vRankTotal > 0
+          const vScoreText = formatSummaryScore(vRawScore ?? NaN, vUnit, vDisplay)
+          const setupOrSlice = v.setupLabel || v.sliceLabel
+          return (
+            <li
+              key={`${group.key}-variant-${idx}`}
+              className="grid items-baseline gap-4 py-2"
+              style={{
+                gridTemplateColumns: "1fr auto",
+                borderBottom: "1px solid var(--border-soft)",
+                paddingLeft: 20,
+              }}
+            >
+              <div className="min-w-0 flex items-baseline gap-2">
+                <span
+                  className="font-mono shrink-0"
+                  style={{ fontSize: 11, color: "var(--fg-subtle)" }}
+                  aria-hidden
+                >
+                  └
+                </span>
+                <div className="min-w-0">
+                  {vEvalId && (
+                    <span
+                      className="font-mono truncate"
+                      style={{
+                        fontSize: 11,
+                        color: "var(--fg-muted)",
+                        letterSpacing: "0.02em",
+                      }}
+                      title={`Source: ${decodeURIComponent(vEvalId)}`}
+                    >
+                      on {decodeURIComponent(vEvalId)}
+                    </span>
+                  )}
+                  {setupOrSlice && (
+                    <span
+                      className="ml-2 font-mono"
+                      style={{ fontSize: 10, color: "var(--fg-subtle)" }}
+                    >
+                      · {setupOrSlice}
+                    </span>
+                  )}
+                </div>
+              </div>
+              <div className="flex items-baseline justify-end gap-3 whitespace-nowrap">
+                {vHasRank && (
+                  <span
+                    className="font-mono tabular-nums"
+                    style={{ fontSize: 11, color: "var(--fg-muted)" }}
+                    title={`Ranked ${vRankPosition} of ${vRankTotal}.`}
+                  >
+                    <span style={{ color: "var(--fg)" }}>{vRankPosition}</span>
+                    <span style={{ color: "var(--fg-subtle)" }}>
+                      {" "}
+                      / {vRankTotal}
+                    </span>
+                  </span>
+                )}
+                {vMedal && (
+                  <span className="text-[14px] leading-none" aria-hidden>
+                    {vMedal}
+                  </span>
+                )}
+                <span
+                  className="font-mono tabular-nums"
+                  style={{ fontSize: 13, color: "var(--fg)" }}
+                >
+                  {vScoreText}
+                </span>
+              </div>
+            </li>
+          )
+        })}
+    </>
+  )
+}
+
+function SummaryMetricsFamilyBlock({
+  familyName,
+  rows,
+  router,
+  currentDetailHref,
+  modelIds,
+  peerRanks,
+}: {
+  familyName: string
+  rows: {
+    group: BenchmarkGroup
+    rankPosition: number | null
+    rankTotal: number | null
+    rankRatio: number | null
+    rawScore: number
+    displayScore: string
+    unit?: string
+    lowerIsBetter: boolean
+    evalSummaryId: string | null
+  }[]
+  router: ReturnType<typeof useRouter>
+  currentDetailHref?: string
+  modelIds: string[]
+  peerRanks: PeerRanksMap
+}) {
+  return (
+    <div>
+      <div
+        className="mb-3 flex items-baseline justify-between gap-3 pb-2"
+        style={{ borderBottom: "1px solid var(--border-soft)" }}
+      >
+        <h3
+          className="font-mono uppercase"
+          style={{ fontSize: 11, letterSpacing: "0.14em", color: "var(--fg)" }}
+        >
+          {familyName}
+        </h3>
+        <span
+          className="font-mono uppercase"
+          style={{ fontSize: 10, letterSpacing: "0.12em", color: "var(--fg-subtle)" }}
+        >
+          {rows.length} benchmark{rows.length === 1 ? "" : "s"}
+        </span>
+      </div>
+      <ul className="m-0 p-0 list-none">
+        {rows.map((row) => (
+          <SummaryMetricsRow
+            key={row.group.key}
+            row={row}
+            router={router}
+            currentDetailHref={currentDetailHref}
+            modelIds={modelIds}
+            peerRanks={peerRanks}
+          />
+        ))}
+      </ul>
+    </div>
+  )
+}
+
+/**
  * Donut + per-category bars showing first-party vs third-party row counts.
  * Adapted from mock_design/model_detail_a.jsx#EvaluatorMix.
  */
+/**
+ * Plain-language version of §3 for Summary view. One sentence with the
+ * first/third-party split + a thin inline bar; skips the per-category
+ * breakdown and donut. Researcher view keeps the full EvaluatorMix.
+ */
+function EvaluatorMixSummary({ mix }: { mix: EvaluatorMixData }) {
+  const { firstTotal, thirdTotal, collabTotal, otherTotal, grand } = mix
+  if (grand <= 0) return null
+  const pct = (n: number) => Math.round((n / grand) * 100)
+  const fFirst = pct(firstTotal)
+  const fThird = pct(thirdTotal)
+  const fCollab = pct(collabTotal)
+
+  const headline = (() => {
+    if (thirdTotal === grand) return "Every reported score comes from an independent third-party evaluator."
+    if (firstTotal === grand) return "Every reported score comes from the model's own developer (first-party)."
+    return `${fThird}% of reported scores come from independent third-party evaluators; ${fFirst}% are from the model's own developer.`
+  })()
+
+  return (
+    <div className="space-y-3 max-w-[64rem]">
+      <p className="text-[14px] leading-[1.65] text-[color:var(--fg)]">{headline}</p>
+
+      <div
+        className="flex h-2 overflow-hidden"
+        style={{ background: "var(--bg-surface)" }}
+        aria-label={`First-party ${fFirst}%, third-party ${fThird}%, collaborative ${fCollab}%`}
+      >
+        {firstTotal > 0 && (
+          <div
+            style={{ width: `${(firstTotal / grand) * 100}%`, background: "var(--fg)" }}
+            title={`${firstTotal} first-party (${fFirst}%)`}
+          />
+        )}
+        {thirdTotal > 0 && (
+          <div
+            style={{ width: `${(thirdTotal / grand) * 100}%`, background: "var(--accent)" }}
+            title={`${thirdTotal} third-party · independent (${fThird}%)`}
+          />
+        )}
+        {collabTotal > 0 && (
+          <div
+            style={{ width: `${(collabTotal / grand) * 100}%`, background: "var(--accent-hover)" }}
+            title={`${collabTotal} collaborative (${fCollab}%)`}
+          />
+        )}
+        {otherTotal > 0 && (
+          <div
+            style={{ width: `${(otherTotal / grand) * 100}%`, background: "var(--fg-subtle)" }}
+            title={`${otherTotal} unspecified`}
+          />
+        )}
+      </div>
+
+      <div className="flex flex-wrap items-center gap-x-5 gap-y-1 text-[12px]">
+        <LegendDot color="var(--fg)" label={`${firstTotal} first-party`} pct={fFirst} />
+        <LegendDot color="var(--accent)" label={`${thirdTotal} third-party · independent`} pct={fThird} />
+        {collabTotal > 0 && (
+          <LegendDot color="var(--accent-hover)" label={`${collabTotal} collaborative`} pct={fCollab} />
+        )}
+        {otherTotal > 0 && (
+          <LegendDot color="var(--fg-subtle)" label={`${otherTotal} unspecified`} pct={pct(otherTotal)} />
+        )}
+      </div>
+
+      <p className="text-[12px] leading-[1.55] text-[color:var(--fg-muted)]">
+        Independent reports cross-check a developer's own numbers. Switch to{" "}
+        <em className="text-[color:var(--fg)] not-italic font-medium">Researcher view</em>{" "}
+        to see the breakdown by category.
+      </p>
+    </div>
+  )
+}
+
+function LegendDot({ color, label, pct }: { color: string; label: string; pct: number }) {
+  return (
+    <span className="inline-flex items-baseline gap-2">
+      <span
+        className="inline-block h-3 w-3 shrink-0 translate-y-0.5"
+        style={{ background: color }}
+        aria-hidden
+      />
+      <span style={{ color: "var(--fg-muted)" }}>{label}</span>
+      <span
+        className="font-mono tabular-nums"
+        style={{ fontSize: 11, color: "var(--fg-subtle)" }}
+      >
+        {pct}%
+      </span>
+    </span>
+  )
+}
+
 function EvaluatorMix({ mix }: { mix: EvaluatorMixData }) {
   const { rows, firstTotal, thirdTotal, collabTotal, otherTotal, grand } = mix
   const R = 64
@@ -7963,8 +9216,11 @@ function EvaluatorMix({ mix }: { mix: EvaluatorMixData }) {
           />
         </svg>
         <div className="absolute inset-0 flex flex-col items-center justify-center">
-          <div className="font-mono text-[9.5px] uppercase tracking-[0.16em] text-[color:var(--fg-subtle)]">
-            Total rows
+          <div
+            className="font-mono text-[9.5px] uppercase tracking-[0.16em] text-[color:var(--fg-subtle)] text-center max-w-[80%]"
+            title="One row per (model, benchmark, metric-path) reported result"
+          >
+            Reported results
           </div>
           <div className="text-[36px] font-bold leading-[1.05] tracking-[-0.02em] text-[color:var(--fg)] tabular-nums">
             {grand}
@@ -8030,7 +9286,7 @@ function EvaluatorMix({ mix }: { mix: EvaluatorMixData }) {
                 <div>
                   <div className="text-[13px] font-medium capitalize">{row.label}</div>
                   <div className="font-mono text-[10px] uppercase tracking-[0.1em] text-[color:var(--fg-subtle)] mt-0.5">
-                    {row.total} row{row.total === 1 ? "" : "s"}
+                    {row.total} result{row.total === 1 ? "" : "s"}
                   </div>
                 </div>
                 <div className="flex h-3 overflow-hidden bg-[color:var(--bg-surface)]">

@@ -485,9 +485,8 @@
 
   /* Corpus card */
   .corpus-meta {
-    border: 1px solid var(--border-soft);
-    background: var(--bg-warm);
-    padding: 28px;
+    border-top: 1px solid var(--border-soft);
+    padding: 24px 0 0;
   }
   .corpus-meta .kicker {
     display: block;
@@ -546,6 +545,22 @@
     flex-direction: column;
     gap: 2px;
     min-width: 0;
+    text-decoration: none;
+    color: inherit;
+    transition: border-color 120ms ease, background-color 120ms ease;
+  }
+  a.hierarchy-node:hover {
+    border-color: var(--accent);
+    background: var(--bg-warm);
+  }
+  a.hierarchy-node:hover .hier-name {
+    color: var(--accent);
+  }
+  .hier-def {
+    font-size: 11px;
+    margin-top: 4px;
+    color: var(--fg-muted);
+    line-height: 1.45;
   }
   .hier-num {
     font-family: var(--font-mono);
@@ -642,8 +657,11 @@
     gap: 12px;
     background: var(--bg);
     transition: background 0.2s ease;
+    color: inherit;
+    text-decoration: none;
   }
-  .sig-tile:hover { background: var(--bg-warm); }
+  a.sig-tile:hover { background: var(--bg-warm); }
+  a.sig-tile:hover .sig-tile-name { color: var(--accent); }
   .sig-tile-head {
     display: flex;
     align-items: center;

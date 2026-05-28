@@ -37,6 +37,7 @@ function EvalsPageInner() {
   const router = useRouter()
   const searchParams = useSearchParams()
   const familyParam = searchParams.get("family")
+  const queryParam = searchParams.get("q")
 
   const [hierarchy, setHierarchy] = useState<EvalHierarchy | null>(null)
   const [totalModels, setTotalModels] = useState<number>(0)
@@ -46,6 +47,7 @@ function EvalsPageInner() {
   const [searchQuery, setSearchQuery] = useState("")
   const [visibleCount, setVisibleCount] = useState(PAGE_SIZE)
   const [selectedCategories, setSelectedCategories] = useState<string[]>([])
+  const [agentMode, setAgentMode] = useState<"all" | "agentic" | "non-agentic">("all")
   const [sortCol, setSortCol] = useState<FamilySortCol>("name")
   const [sortDir, setSortDir] = useState<"asc" | "desc">("asc")
   const deferredSearchQuery = useDeferredValue(searchQuery)
@@ -72,6 +74,11 @@ function EvalsPageInner() {
       .catch(console.error)
       .finally(() => setLoading(false))
   }, [])
+
+  // Resolve the `?q=<term>` deep link from tag chips on benchmark pages.
+  useEffect(() => {
+    if (queryParam) setSearchQuery(queryParam)
+  }, [queryParam])
 
   // Resolve the `?family=<key>` deep link from the home page family cards.
   // For families with a clean family-level summary we redirect to the
@@ -113,11 +120,16 @@ function EvalsPageInner() {
   }, [families])
 
   // Tag → family-count map, sorted by descending count so the most
-  // common tags surface first in the pill bar.
+  // common tags surface first in the pill bar. Excludes "agentic" — it
+  // lives on its own dedicated toggle since it's an orthogonal axis
+  // (interaction style) rather than a category.
   const availableTags = useMemo(() => {
     const counts = new Map<string, number>()
     for (const tags of familyTags.values()) {
-      for (const tag of tags) counts.set(tag, (counts.get(tag) ?? 0) + 1)
+      for (const tag of tags) {
+        if (tag.toLowerCase() === "agentic") continue
+        counts.set(tag, (counts.get(tag) ?? 0) + 1)
+      }
     }
     return Array.from(counts.entries())
       .sort((a, b) => b[1] - a[1] || a[0].localeCompare(b[0]))
@@ -180,6 +192,14 @@ function EvalsPageInner() {
       })
     }
 
+    if (agentMode !== "all") {
+      list = list.filter((fam) => {
+        const tags = familyTags.get(fam.key)
+        const hasAgentic = !!tags && Array.from(tags).some((t) => t.toLowerCase() === "agentic")
+        return agentMode === "agentic" ? hasAgentic : !hasAgentic
+      })
+    }
+
     return list.slice().sort((a, b) => {
       let cmp = 0
       switch (sortCol) {
@@ -195,11 +215,11 @@ function EvalsPageInner() {
       }
       return sortDir === "asc" ? cmp : -cmp
     })
-  }, [families, deferredSearchQuery, selectedCategories, familyTags, sortCol, sortDir])
+  }, [families, deferredSearchQuery, selectedCategories, agentMode, familyTags, sortCol, sortDir])
 
   useEffect(() => {
     setVisibleCount(PAGE_SIZE)
-  }, [deferredSearchQuery, selectedCategories, sortCol, sortDir])
+  }, [deferredSearchQuery, selectedCategories, agentMode, sortCol, sortDir])
 
   const visibleFamilies = useMemo(
     () => filteredFamilies.slice(0, visibleCount),
@@ -210,8 +230,6 @@ function EvalsPageInner() {
     setVisibleCount((current) => Math.min(current + PAGE_SIZE, filteredFamilies.length))
   }, [filteredFamilies.length])
 
-  const stats = hierarchy?.stats
-
   return (
     <div className="min-h-screen bg-background">
       <Navigation />
@@ -221,63 +239,59 @@ function EvalsPageInner() {
         <div className="kicker">Index</div>
         <h1 className="ec-page-h1">Evaluations</h1>
         <p className="ec-page-lede">
-          Evaluations are grouped into <strong>families</strong>. A family holds one or more
-          benchmarks; each benchmark has one or more slices; each slice reports one or more
-          metrics.
+          Evaluations are grouped into <strong>families</strong>. A family may hold a single
+          standalone benchmark or many related ones; each benchmark has one or more slices, and
+          each slice reports one or more metrics.
         </p>
 
-        {/* META + SEARCH ROW --------------------------------------- */}
-        <div className="ec-page-meta mb-6 items-center border-b border-[color:var(--border-soft)] pb-5">
-          {stats && (
-            <>
-              <div className="ec-page-meta-item">
-                <span className="ec-page-meta-item-l">Families</span>
-                <span className="ec-page-meta-item-v">
-                  {stats.family_count.toLocaleString()}
-                </span>
-              </div>
-              <div className="ec-page-meta-item">
-                <span className="ec-page-meta-item-l">Composites</span>
-                <span className="ec-page-meta-item-v">
-                  {stats.composite_count.toLocaleString()}
-                </span>
-              </div>
-              <div className="ec-page-meta-item">
-                <span className="ec-page-meta-item-l">Single benchmarks</span>
-                <span className="ec-page-meta-item-v">
-                  {(stats.benchmark_count ?? 0).toLocaleString()}
-                </span>
-              </div>
-              <div className="ec-page-meta-item">
-                <span className="ec-page-meta-item-l">Slices</span>
-                <span className="ec-page-meta-item-v">
-                  {stats.slice_count.toLocaleString()}
-                </span>
-              </div>
-              <div className="ec-page-meta-item">
-                <span className="ec-page-meta-item-l">Metrics</span>
-                <span className="ec-page-meta-item-v">
-                  {stats.metric_count.toLocaleString()}
-                </span>
-              </div>
-            </>
-          )}
-
+        {/* SEARCH ROW ---------------------------------------------- */}
+        <div className="mb-6 flex items-center border-b border-[color:var(--border-soft)] pb-5">
           <div className="relative ml-auto min-w-[180px] flex-1 sm:max-w-[360px]">
             <Search className="pointer-events-none absolute left-3 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-[color:var(--fg-subtle)]" />
             <input
               className="ec-input pl-9"
               value={searchQuery}
               onChange={(event) => setSearchQuery(event.target.value)}
-              placeholder="Search family, category…"
+              placeholder="Search family, benchmark, or category…"
             />
           </div>
+        </div>
+
+        {/* INTERACTION STYLE TOGGLE — orthogonal axis from category,
+            surfaced on its own so users don't mix "is this an agent
+            benchmark?" with "what category is this in?" */}
+        <div className="mb-4 flex flex-wrap items-center gap-2">
+          <span className="kicker mr-2">Interaction style</span>
+          <button
+            type="button"
+            onClick={() => setAgentMode("all")}
+            className={`ec-pill ${agentMode === "all" ? "on" : ""}`}
+          >
+            All
+          </button>
+          <button
+            type="button"
+            onClick={() => setAgentMode("non-agentic")}
+            className={`ec-pill ${agentMode === "non-agentic" ? "on" : ""}`}
+            title="Single-turn or non-agent benchmarks"
+          >
+            Non-agent
+          </button>
+          <button
+            type="button"
+            onClick={() => setAgentMode("agentic")}
+            className={`ec-pill ${agentMode === "agentic" ? "on" : ""}`}
+            title="Agentic / multi-step / tool-use benchmarks"
+          >
+            Agent
+          </button>
         </div>
 
         {/* CATEGORY PILLS — multi-select filter by curated benchmark
             tag (data/benchmarks/categories.json), with the legacy
             inferCategoryFromBenchmark buckets mixed in for benchmarks
-            not present in the curated file. */}
+            not present in the curated file. Agentic is excluded — it
+            has its own dedicated toggle above. */}
         {availableTags.length > 0 && (
           <div className="mb-5 flex flex-wrap items-center gap-2">
             <span className="kicker mr-2">Category</span>

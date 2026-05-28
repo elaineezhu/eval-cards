@@ -110,18 +110,15 @@ export default async function HomePage() {
         {/* HERO ----------------------------------------------------------- */}
         <section className="home-hero">
           <div>
-            <div className="kicker kicker-accent">
-              {aggregates ? `Signals v${aggregates.signal_version}` : "Eval Cards · Beta"}
-            </div>
             <h1 className="home-hero-h1">
-              A reporting <em className="accent-em">layer</em>
+              A reporting layer
               <br />
               over evaluation
               <br />
               infrastructure.
             </h1>
             <p className="home-hero-lede">
-              <strong>Eval Cards</strong> is a registry of reported model–benchmark results,
+              <strong>Evaluation Cards</strong> is a collection of reported model–benchmark results,
               organised under a five-level rollout hierarchy and four interpretive signals
               computed over the joined record.
             </p>
@@ -132,6 +129,7 @@ export default async function HomePage() {
               </Link>
               <Link href="/evals" className="btn-ec outline">
                 Browse evaluations
+                <ArrowRight className="h-3.5 w-3.5" aria-hidden />
               </Link>
               <Link href="/about" className="btn-ec ghost">
                 About
@@ -142,7 +140,12 @@ export default async function HomePage() {
           <div>
             <div className="corpus-meta">
               <div className="kicker">
-                Corpus snapshot{generatedAt ? ` · ${generatedAt}` : ""}
+                Corpus snapshot{generatedAt ? (
+                  <>
+                    {" · "}
+                    <span style={{ color: "var(--accent)" }}>{generatedAt}</span>
+                  </>
+                ) : ""}
               </div>
               <div className="corpus-grid">
                 <CorpusStat
@@ -178,58 +181,6 @@ export default async function HomePage() {
               </div>
             </div>
           </div>
-        </section>
-
-        {/* FIVE-LEVEL HIERARCHY STRIP -------------------------------------- */}
-        <section className="hierarchy-strip">
-          <div className="kicker">Five-level rollout hierarchy</div>
-          <div className="hierarchy-row">
-            {[
-              {
-                name: "Family",
-                count: formatNumber(familyCount),
-                ex: "SWE-bench family, MMLU family",
-              },
-              {
-                name: "Composite",
-                count: formatNumber(compositeCount),
-                ex: "Open LLM Leaderboard v2, HELM Instruct",
-              },
-              {
-                name: "Single benchmark",
-                count: formatNumber(benchmarkLeafCount),
-                ex: "GSM8K, IFEval, MMLU-Pro",
-              },
-              {
-                name: "Slice",
-                count: formatNumber(sliceCount),
-                ex: "algebra (within MATH), level-5, multi-turn",
-              },
-              {
-                name: "Metric",
-                count: formatNumber(metricCount),
-                ex: "pass@1, accuracy, F1",
-              },
-            ].map((node, i, arr) => (
-              <Fragment key={node.name}>
-                <div className="hierarchy-node">
-                  <div className="hier-num">{String(i + 1).padStart(2, "0")}</div>
-                  <div className="hier-name">{node.name}</div>
-                  <div className="hier-count">{node.count}</div>
-                  <div className="hier-ex">{node.ex}</div>
-                </div>
-                {i < arr.length - 1 && (
-                  <div className="hier-arrow" aria-hidden>
-                    →
-                  </div>
-                )}
-              </Fragment>
-            ))}
-          </div>
-          <p className="hierarchy-note">
-            Every score resolves to an explicit path through this hierarchy, so aggregate claims
-            drill down to the evidence supporting them.
-          </p>
         </section>
 
         {/* FOUR INTERPRETIVE SIGNALS -------------------------------------- */}
@@ -292,6 +243,69 @@ export default async function HomePage() {
             </div>
           </section>
         )}
+
+        {/* FIVE-LEVEL HIERARCHY STRIP -------------------------------------- */}
+        <section className="hierarchy-strip">
+          <div className="kicker">Five-level rollout hierarchy</div>
+          <div className="hierarchy-row">
+            {[
+              {
+                name: "Family",
+                count: formatNumber(familyCount),
+                ex: "SWE-bench family, MMLU family",
+                def: "A curated group of related benchmarks under one umbrella.",
+                href: "/evals",
+              },
+              {
+                name: "Composite",
+                count: formatNumber(compositeCount),
+                ex: "Open LLM Leaderboard v2, HELM Instruct",
+                def: "A leaderboard or suite that bundles several benchmarks into one report.",
+                href: "/evals",
+              },
+              {
+                name: "Single benchmark",
+                count: formatNumber(benchmarkLeafCount),
+                ex: "GSM8K, IFEval, MMLU-Pro",
+                def: "An individual evaluation dataset with its own protocol.",
+                href: "/benchmarks",
+              },
+              {
+                name: "Slice",
+                count: formatNumber(sliceCount),
+                ex: "algebra (within MATH), level-5, multi-turn",
+                def: "A subset of a benchmark scored separately (e.g. a category or difficulty).",
+                href: "/benchmarks",
+              },
+              {
+                name: "Metric",
+                count: formatNumber(metricCount),
+                ex: "pass@1, accuracy, F1",
+                def: "The number reported for a slice — what was actually measured.",
+                href: "/benchmarks",
+              },
+            ].map((node, i, arr) => (
+              <Fragment key={node.name}>
+                <Link href={node.href} className="hierarchy-node">
+                  <div className="hier-num">{String(i + 1).padStart(2, "0")}</div>
+                  <div className="hier-name">{node.name}</div>
+                  <div className="hier-count">{node.count}</div>
+                  <div className="hier-ex">{node.ex}</div>
+                  <div className="hier-def">{node.def}</div>
+                </Link>
+                {i < arr.length - 1 && (
+                  <div className="hier-arrow" aria-hidden>
+                    →
+                  </div>
+                )}
+              </Fragment>
+            ))}
+          </div>
+          <p className="hierarchy-note">
+            Every score resolves to an explicit path through this hierarchy, so aggregate claims
+            drill down to the evidence supporting them.
+          </p>
+        </section>
       </main>
     </div>
   )

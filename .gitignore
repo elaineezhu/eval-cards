@@ -46,3 +46,6 @@ pipeline_revised.py
 mock_design/
 shoot.mjs
 whisker-render.mjs
+output/
+public/peer-ranks.json
+**/* (1).tsx

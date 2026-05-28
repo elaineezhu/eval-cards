@@ -111,7 +111,6 @@ export function CorpusDashboard({
             </div>
 
             <div className="flex flex-wrap items-center gap-2">
-              <Badge variant="outline">Signals v{aggregates.signal_version}</Badge>
               <Badge variant="outline">Generated {formatGeneratedDate(aggregates.generated_at)}</Badge>
               <div className="inline-flex rounded-full border bg-muted/20 p-1">
                 <Button

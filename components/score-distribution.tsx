@@ -37,6 +37,16 @@ interface ScoreDistributionProps {
   initialKey?: string
   /** Compact variant — shorter, used for matrix per-column distributions. */
   compact?: boolean
+  /** Initial view when the active series supports both modes. Defaults
+   *  to "distribution". The /embed/.../frontier route passes "frontier"
+   *  to open directly on the Pareto-frontier view. */
+  defaultView?: "distribution" | "frontier"
+  /** When false, the Distribution/Frontier chip toggle is hidden so the
+   *  caller can lock the panel to a single view (e.g. inside an embed
+   *  iframe that the user explicitly chose to embed as Distribution
+   *  *or* Frontier). The metric chips above still appear when the panel
+   *  carries more than one series. Defaults to true. */
+  showViewToggle?: boolean
 }
 
 interface SummaryStats {
@@ -129,6 +139,8 @@ export function ScoreDistribution({
   series,
   initialKey,
   compact = false,
+  defaultView,
+  showViewToggle = true,
 }: ScoreDistributionProps) {
   // Normalize: either we got a single series (via values) or many.
   const seriesList: ScoreSeries[] = useMemo(() => {
@@ -181,11 +193,17 @@ export function ScoreDistribution({
   }, [active])
 
   const canShowFrontier = frontier != null
-  const [view, setView] = useState<"distribution" | "frontier">("distribution")
+  const [view, setView] = useState<"distribution" | "frontier">(
+    defaultView ?? "distribution",
+  )
   // If the active series doesn't support frontier (e.g. user switched to
   // a metric whose models don't carry release_date), fall back to the
   // distribution view rather than rendering an empty panel.
   const effectiveView = canShowFrontier ? view : "distribution"
+  // When the caller hides the toggle (embed locks to one view), force the
+  // panel to whatever defaultView/view it was created with — the user
+  // can't switch, so any "frontier" inference must come from props.
+  const renderViewToggle = showViewToggle && canShowFrontier
 
   const density = useMemo(() => {
     if (!active || !stats) return null
@@ -281,9 +299,9 @@ export function ScoreDistribution({
                 className="font-mono uppercase shrink-0"
                 style={{ fontSize: 10, letterSpacing: "0.14em", color: "var(--fg-subtle)" }}
               >
-                {canShowFrontier ? "View" : "Score distribution"}
+                {renderViewToggle ? "View" : "Score distribution"}
               </span>
-              {canShowFrontier && (
+              {renderViewToggle && (
                 <div
                   role="tablist"
                   aria-label="Chart view"

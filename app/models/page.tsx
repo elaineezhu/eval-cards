@@ -30,9 +30,7 @@ const MODEL_DEFAULT_DIR: Record<ModelSort, SortDir> = {
   developer: "asc",
   released: "desc",
   params: "desc",
-  benchmarks: "desc",
   results: "desc",
-  coverage: "desc",
 }
 const DEV_DEFAULT_DIR: Record<DevSort, SortDir> = {
   name: "asc",
@@ -60,7 +58,7 @@ export default function ModelsPage() {
   const [loadingDevelopers, setLoadingDevelopers] = useState(false)
   const [developersReady, setDevelopersReady] = useState(false)
   const [groupByDeveloper, setGroupByDeveloper] = useState(false)
-  const [modelSortBy, setModelSortBy] = useState<ModelSort>("coverage")
+  const [modelSortBy, setModelSortBy] = useState<ModelSort>("released")
   const [modelSortDir, setModelSortDir] = useState<SortDir>("desc")
   const [developerSortBy, setDeveloperSortBy] = useState<DevSort>("models")
   const [developerSortDir, setDeveloperSortDir] = useState<SortDir>("desc")
@@ -163,14 +161,16 @@ export default function ModelsPage() {
     }
 
     const dirMul = modelSortDir === "asc" ? 1 : -1
+    const nameOf = (row: BenchmarkEvaluationCardData) => row.model_name ?? ""
+    const developerOf = (row: BenchmarkEvaluationCardData) => row.developer ?? ""
     return filtered.slice().sort((a, b) => {
       let cmp = 0
       switch (modelSortBy) {
         case "name":
-          cmp = (a.model_name ?? "").localeCompare(b.model_name ?? "")
+          cmp = nameOf(a).localeCompare(nameOf(b))
           break
         case "developer":
-          cmp = (a.developer ?? "").localeCompare(b.developer ?? "")
+          cmp = developerOf(a).localeCompare(developerOf(b))
           break
         case "released":
           cmp = safeTimestamp(a.release_date) - safeTimestamp(b.release_date)
@@ -181,13 +181,9 @@ export default function ModelsPage() {
         case "results":
           cmp = a.evaluations_count - b.evaluations_count
           break
-        case "coverage":
-        case "benchmarks":
-          cmp = a.benchmarks_count - b.benchmarks_count
-          break
       }
       // Stable tie-break by model name so equal rows don't shuffle.
-      if (cmp === 0) return (a.model_name ?? "").localeCompare(b.model_name ?? "")
+      if (cmp === 0) return nameOf(a).localeCompare(nameOf(b))
       return cmp * dirMul
     })
   }, [evaluations, deferredSearchQuery, modelSortBy, modelSortDir, numericMinParams, numericMaxParams, showUnknownSize])
@@ -208,16 +204,18 @@ export default function ModelsPage() {
       filtered = filtered.filter(
         (dev) =>
           (dev.developer ?? "").toLowerCase().includes(query) ||
-          dev.popular_evals.some((ev) => (ev.benchmark ?? "").toLowerCase().includes(query)),
+          (dev.popular_evals ?? []).some((ev) => (ev?.benchmark ?? "").toLowerCase().includes(query)),
       )
     }
 
     const dirMul = developerSortDir === "asc" ? 1 : -1
     return filtered.slice().sort((a, b) => {
+      const devA = a.developer ?? ""
+      const devB = b.developer ?? ""
       let cmp = 0
       switch (developerSortBy) {
         case "name":
-          cmp = (a.developer ?? "").localeCompare(b.developer ?? "")
+          cmp = devA.localeCompare(devB)
           break
         case "models":
           cmp = a.model_count - b.model_count
@@ -229,7 +227,7 @@ export default function ModelsPage() {
           cmp = a.evaluation_count - b.evaluation_count
           break
       }
-      if (cmp === 0) return (a.developer ?? "").localeCompare(b.developer ?? "")
+      if (cmp === 0) return devA.localeCompare(devB)
       return cmp * dirMul
     })
   }, [developers, deferredSearchQuery, developerSortBy, developerSortDir, developerScope])
@@ -288,12 +286,11 @@ export default function ModelsPage() {
             ? "Every reporting organisation in the corpus and the breadth of evaluation it ships."
             : (
               <>
-                Every indexed model and the shape of its published evaluation record. Coverage shows the
-                share of the{" "}
+                Every indexed model and the shape of its published evaluation record across{" "}
                 <span className="font-mono text-[13px]">
-                  {totalBenchmarks.toLocaleString()}-benchmark
+                  {totalBenchmarks.toLocaleString()}
                 </span>{" "}
-                registry that the developer (or a third party) has reported on.
+                benchmarks reported on by the developer (or a third party).
               </>
             )}
         </p>
@@ -317,7 +314,7 @@ export default function ModelsPage() {
             {!groupByDeveloper && (
               <span>
                 · <span className="text-[color:var(--fg)] tabular-nums font-semibold mr-1">{selectedModels.length}/{MAX_COMPARE_MODELS}</span>
-                tray
+                selected to compare
               </span>
             )}
           </div>
@@ -419,7 +416,7 @@ export default function ModelsPage() {
               className="btn-ec outline"
               onClick={() => {
                 setSearchQuery("")
-                setModelSortBy("coverage")
+                setModelSortBy("released")
                 setModelSortDir("desc")
                 setDeveloperSortBy("models")
                 setDeveloperSortDir("desc")
@@ -439,7 +436,6 @@ export default function ModelsPage() {
         ) : (
           <ModelTable
             rows={visibleEvaluations}
-            totalBenchmarks={totalBenchmarks}
             selectedIds={selectedModelIds}
             onToggleSelect={toggleModelSelection}
             maxCompare={MAX_COMPARE_MODELS}
@@ -462,7 +458,7 @@ export default function ModelsPage() {
             <div className="pointer-events-auto w-full max-w-5xl border border-[color:var(--fg)] bg-[color:var(--bg)] p-4 shadow-[var(--shadow-card)]">
               <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
                 <div className="space-y-2">
-                  <div className="kicker">Compare tray</div>
+                  <div className="kicker">Models selected to compare</div>
                   <div className="flex flex-wrap gap-2">
                     {selectedModels.map((model) => (
                       <span
