@@ -110,9 +110,6 @@ export default async function HomePage() {
         {/* HERO ----------------------------------------------------------- */}
         <section className="home-hero">
           <div>
-            <div className="kicker kicker-accent">
-              Evaluation Cards · Beta
-            </div>
             <h1 className="home-hero-h1">
               A reporting layer
               <br />
