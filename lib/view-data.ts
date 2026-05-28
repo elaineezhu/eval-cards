@@ -68,7 +68,8 @@ const EVAL_LIST_COLUMNS = `
   metric_config, models_count, evaluator_names, source_types,
   latest_source_name, third_party_ratio,
   missing_generation_config_count, best_model, worst_model,
-  avg_score, avg_score_norm, has_card, to_json(benchmark_card) AS benchmark_card,
+  avg_score, avg_score_norm, has_card,
+  CAST(to_json(benchmark_card) AS VARCHAR) AS benchmark_card,
   is_aggregated, aggregate_sources, tags,
   metrics_count, metric_names, instance_data, top_score,
   subtasks_count, is_summary_score, summary_eval_ids,
@@ -85,17 +86,23 @@ const EVAL_LIST_COLUMNS = `
 // `to_json(...)` so the binding only ever sees VARCHAR per row;
 // `parseMaybeJson` undoes the wrap in JS before downstream code
 // reads the shapes.
+// Note the `::VARCHAR` cast on every to_json wrap. `to_json()` returns
+// DuckDB's `JSON` type, which is a VARCHAR alias with extra metadata —
+// the linux-x64 binding interprets that metadata tag as its own
+// (unsupported) type and still throws "don't know what type:" on row
+// materialisation. Casting to plain VARCHAR strips the tag so the
+// binding sees the same primitive type it handles everywhere else.
 const CELL_JOIN_COLUMNS = `
   r.* REPLACE (
-    to_json(r.model_info) AS model_info,
-    to_json(r.generation_config) AS generation_config,
-    to_json(r.score_details) AS score_details,
-    to_json(r.source_metadata) AS source_metadata,
-    to_json(r.source_data) AS source_data,
-    to_json(r.eval_library) AS eval_library,
-    to_json(r.aggregate_components) AS aggregate_components,
-    to_json(r.evalcards_annotations) AS evalcards_annotations,
-    to_json(r.scores_by_organization) AS scores_by_organization
+    CAST(to_json(r.model_info) AS VARCHAR) AS model_info,
+    CAST(to_json(r.generation_config) AS VARCHAR) AS generation_config,
+    CAST(to_json(r.score_details) AS VARCHAR) AS score_details,
+    CAST(to_json(r.source_metadata) AS VARCHAR) AS source_metadata,
+    CAST(to_json(r.source_data) AS VARCHAR) AS source_data,
+    CAST(to_json(r.eval_library) AS VARCHAR) AS eval_library,
+    CAST(to_json(r.aggregate_components) AS VARCHAR) AS aggregate_components,
+    CAST(to_json(r.evalcards_annotations) AS VARCHAR) AS evalcards_annotations,
+    CAST(to_json(r.scores_by_organization) AS VARCHAR) AS scores_by_organization
   ),
   e.evaluation_name AS eval_evaluation_name,
   e.canonical_display_name AS eval_canonical_display_name,
@@ -110,10 +117,10 @@ const CELL_JOIN_COLUMNS = `
   e.composite_display_name AS eval_composite_benchmark_name,
   e.family_display_name AS eval_benchmark_family_name,
   e.category AS eval_category,
-  to_json(e.metric_config) AS eval_metric_config,
-  to_json(e.source_data) AS eval_source_data,
-  to_json(e.benchmark_card) AS eval_benchmark_card,
-  to_json(e.tags) AS eval_tags,
+  CAST(to_json(e.metric_config) AS VARCHAR) AS eval_metric_config,
+  CAST(to_json(e.source_data) AS VARCHAR) AS eval_source_data,
+  CAST(to_json(e.benchmark_card) AS VARCHAR) AS eval_benchmark_card,
+  CAST(to_json(e.tags) AS VARCHAR) AS eval_tags,
   e.is_summary_score AS eval_is_summary_score,
   e.summary_eval_ids AS eval_summary_eval_ids
 `
@@ -775,7 +782,7 @@ export async function getBenchmarkMetadataMap(): Promise<Record<string, Benchmar
     `SELECT evaluation_id, evaluation_name,
             family_id AS composite_benchmark_key,
             benchmark_id,
-            to_json(benchmark_card) AS benchmark_card
+            CAST(to_json(benchmark_card) AS VARCHAR) AS benchmark_card
      FROM evals_view
      WHERE benchmark_card IS NOT NULL`
   )
