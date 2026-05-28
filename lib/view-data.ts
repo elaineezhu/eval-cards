@@ -210,7 +210,7 @@ async function readRows<T = Row>(sql: string, params: unknown[] = []): Promise<T
     // That bubbles up as a 500 with an empty body, which is impossible
     // to debug from outside the container. Log the SQL preamble + raw
     // error so the deploy logs at least show which query failed.
-    const sqlSnippet = sql.replace(/\s+/g, " ").slice(0, 240)
+    const sqlSnippet = sql.replace(/\s+/g, " ").slice(0, 1200)
     const msg = err instanceof Error ? `${err.name}: ${err.message}` : String(err)
     console.error(`[view-data] readRows failed (${msg}) — SQL: ${sqlSnippet}`)
     throw err
