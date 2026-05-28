@@ -30,7 +30,7 @@ export async function GET(
     if (summary) {
       modelName = summary.model_info?.name ?? modelName
       developer = summary.model_info?.developer ?? null
-      const categories = summary.evaluations_by_category ?? {}
+      const categories = summary.evaluations_by_tag ?? {}
       const seen = new Set<string>()
       let total = 0
       for (const items of Object.values(categories)) {

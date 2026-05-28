@@ -1077,7 +1077,7 @@ function collapseValsAiSetupVariants(h: CleanableHierarchy) {
       if (!canonical) continue
 
       const existingSliceKeys = new Set((canonical.slices ?? []).map((s) => s.key))
-      const mergedEvalIds = new Set(canonical.summary_eval_ids ?? [])
+      const mergedEvalIds = new Set(canonical.constituent_evaluation_ids ?? [])
 
       for (const l of leaked) {
         const m = l.key.match(PATTERN)
@@ -1096,10 +1096,10 @@ function collapseValsAiSetupVariants(h: CleanableHierarchy) {
           })
           existingSliceKeys.add(sliceKey)
         }
-        for (const id of l.summary_eval_ids ?? []) mergedEvalIds.add(id)
+        for (const id of l.constituent_evaluation_ids ?? []) mergedEvalIds.add(id)
         removeKeys.add(l.key)
       }
-      canonical.summary_eval_ids = Array.from(mergedEvalIds)
+      canonical.constituent_evaluation_ids = Array.from(mergedEvalIds)
     }
 
     if (removeKeys.size > 0) {

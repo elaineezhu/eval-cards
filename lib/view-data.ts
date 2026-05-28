@@ -18,7 +18,7 @@ import {
   type SourceData,
   type SourceMetadata,
 } from "@/lib/benchmark-schema"
-import type { DeveloperListEntry } from "@/lib/backend-artifacts"
+import type { DeveloperListEntry, RowAnnotations } from "@/lib/backend-artifacts"
 import type {
   BenchmarkEvalListItem,
   BenchmarkEvalSummary,
@@ -390,7 +390,7 @@ function resultFromCell(row: Row): EvaluationResult {
   // it passes through unchanged when the value is already an object
   // (legacy snapshots / future binding fixes).
   const generationConfig = parseMaybeJson(row.generation_config) as GenerationConfig | undefined
-  const annotations = parseMaybeJson(row.evalcards_annotations)
+  const annotations = parseMaybeJson(row.evalcards_annotations) as RowAnnotations | undefined
 
   return {
     evaluation_name: asString(row.metric_display_name ?? row.eval_evaluation_name ?? row.metric_id, "Score"),

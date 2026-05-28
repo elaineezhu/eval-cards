@@ -27,7 +27,7 @@ export async function generateMetadata(props: {
         summary.evaluation_name ??
         summary.composite_display_name ??
         evalName
-      category = summary.category ?? null
+      category = summary.derived_tags?.[0] ?? null
       modelsCount = summary.models_count ?? null
     }
   } catch {

@@ -8307,7 +8307,7 @@ function SummaryMetricsList({
     rankTotal: number | null
     rankRatio: number | null
     evalSummaryId: string | null
-    category: CategoryType
+    category: EvalTag
   }
   type Bucket = { key: string; name: string; rows: Row[] }
   const buckets = new Map<string, Bucket>()
@@ -8439,7 +8439,7 @@ type SummaryRow = {
   rankTotal: number | null
   rankRatio: number | null
   evalSummaryId: string | null
-  category: CategoryType
+  category: EvalTag
 }
 
 function SummaryBucketBlock({
