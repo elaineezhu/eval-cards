@@ -77,18 +77,26 @@ const EVAL_LIST_COLUMNS = `
   source_data
 `
 
-// The deployed Space started returning 500s ("Invalid Error: don't
-// know what type:") on every eval-results / model-summary query after
-// a parquet snapshot bump that landed nested `JSON` fields inside
-// structs (e.g. `evalcards_annotations.variant_divergence.differing_
-// fields[].values JSON` and `benchmark_card.flagged_fields JSON`).
-// The DuckDB Node binding crashes when it tries to materialise those
-// nested-JSON structs row-by-row. Wrap the offending columns with
-// `to_json(...)` so the binding sees a single VARCHAR per row; the
-// reshape helpers JSON.parse the string back into the same shape
-// downstream code expects.
+// The deployed Space returns 500s ("Invalid Error: don't know what
+// type:") on every eval-results / model-summary query because the
+// DuckDB Node binding on linux-x64 can't materialise certain complex
+// column types in the upstream parquet (nested JSON inside
+// structs, MAP, and STRUCT[]). Wrap every non-primitive column with
+// `to_json(...)` so the binding only ever sees VARCHAR per row;
+// `parseMaybeJson` undoes the wrap in JS before downstream code
+// reads the shapes.
 const CELL_JOIN_COLUMNS = `
-  r.* REPLACE (to_json(r.evalcards_annotations) AS evalcards_annotations),
+  r.* REPLACE (
+    to_json(r.model_info) AS model_info,
+    to_json(r.generation_config) AS generation_config,
+    to_json(r.score_details) AS score_details,
+    to_json(r.source_metadata) AS source_metadata,
+    to_json(r.source_data) AS source_data,
+    to_json(r.eval_library) AS eval_library,
+    to_json(r.aggregate_components) AS aggregate_components,
+    to_json(r.evalcards_annotations) AS evalcards_annotations,
+    to_json(r.scores_by_organization) AS scores_by_organization
+  ),
   e.evaluation_name AS eval_evaluation_name,
   e.canonical_display_name AS eval_canonical_display_name,
   e.benchmark_id AS eval_benchmark_id,
@@ -102,10 +110,10 @@ const CELL_JOIN_COLUMNS = `
   e.composite_display_name AS eval_composite_benchmark_name,
   e.family_display_name AS eval_benchmark_family_name,
   e.category AS eval_category,
-  e.metric_config AS eval_metric_config,
-  e.source_data AS eval_source_data,
+  to_json(e.metric_config) AS eval_metric_config,
+  to_json(e.source_data) AS eval_source_data,
   to_json(e.benchmark_card) AS eval_benchmark_card,
-  e.tags AS eval_tags,
+  to_json(e.tags) AS eval_tags,
   e.is_summary_score AS eval_is_summary_score,
   e.summary_eval_ids AS eval_summary_eval_ids
 `
@@ -255,8 +263,9 @@ function emptyEvaluationsByCategory(): Record<CategoryType, BenchmarkEvaluation[
 }
 
 function sourceMetadataFromRow(row: Row): SourceMetadata {
-  if (row.source_metadata && typeof row.source_metadata === "object") {
-    return row.source_metadata as SourceMetadata
+  const sm = parseMaybeJson(row.source_metadata)
+  if (sm && typeof sm === "object") {
+    return sm as SourceMetadata
   }
 
   return {
@@ -267,7 +276,7 @@ function sourceMetadataFromRow(row: Row): SourceMetadata {
 }
 
 function sourceDataFromRow(row: Row): BenchmarkEvaluation["source_data"] {
-  const sourceData = row.source_data ?? row.eval_source_data
+  const sourceData = parseMaybeJson(row.source_data) ?? parseMaybeJson(row.eval_source_data)
   if (sourceData) {
     return sourceData as BenchmarkEvaluation["source_data"]
   }
@@ -278,8 +287,9 @@ function sourceDataFromRow(row: Row): BenchmarkEvaluation["source_data"] {
 }
 
 function scoreDetailsFromRow(row: Row): ScoreDetails {
-  const details = row.score_details && typeof row.score_details === "object"
-    ? row.score_details as Partial<ScoreDetails>
+  const parsed = parseMaybeJson(row.score_details)
+  const details = parsed && typeof parsed === "object"
+    ? parsed as Partial<ScoreDetails>
     : {}
   const score = asNumber(details.score ?? row.score)
 
@@ -290,7 +300,7 @@ function scoreDetailsFromRow(row: Row): ScoreDetails {
 }
 
 function metricConfigFromRow(row: Row): MetricConfig {
-  const config = (row.metric_config ?? row.eval_metric_config ?? {}) as Partial<MetricConfig>
+  const config = (parseMaybeJson(row.metric_config) ?? parseMaybeJson(row.eval_metric_config) ?? {}) as Partial<MetricConfig>
   const scoreType = config.score_type === "binary" || config.score_type === "discrete"
     ? config.score_type
     : "continuous"
