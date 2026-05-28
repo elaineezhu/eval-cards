@@ -1,12 +1,12 @@
 import { describe, expect, it } from "vitest"
 
-// Executable spec for `notes/transformations/08-benchmark-display-names.md`.
+// Executable spec for the benchmark-display-names transformation.
 //
 // Replicates BENCHMARK_NAMES + normalizeBenchmarkKeyForLookup + humanizeToken +
-// getBenchmarkDisplayName from lib/model-data.ts:90-148 verbatim.
+// getBenchmarkDisplayName from lib/model-data.ts verbatim.
 //
 // Also replicates the duplicate getBenchmarkDisplayName from
-// lib/eval-processing.ts:861-885 (Group D — functionally dead, tested for
+// lib/eval-processing.ts (Group D — functionally dead, tested for
 // completeness so a pipeline implementer porting the rules sees the
 // disagreement explicitly).
 

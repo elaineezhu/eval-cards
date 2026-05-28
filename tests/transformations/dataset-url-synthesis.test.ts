@@ -1,8 +1,8 @@
 import { describe, expect, it } from "vitest"
 
-// Executable spec for `notes/transformations/04-dataset-url-synthesis.md`.
+// Executable spec for the dataset-url-synthesis transformation.
 //
-// Replicates the 4-step fallback chain from components/eval-card.tsx:83-86
+// Replicates the 4-step fallback chain from components/eval-card.tsx
 // verbatim. Pipeline must produce identical outputs for every case below.
 // Verify cross-corpus equivalence with `scripts/verify-dataset-url.mjs`.
 

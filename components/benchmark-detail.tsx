@@ -36,8 +36,8 @@ import {
   ChevronDown, ChevronUp, BarChart3, Award, AlertTriangle, ArrowUpRight,
   Cpu, Tag, Globe, Network, Activity, MessageSquare, Clock, Hash, Layers, Search, FlaskConical, Scale, BookOpenText, Plus, X, List, LayoutGrid
 } from "lucide-react"
-import type { BenchmarkCard, BenchmarkEvaluation, CategoryType, EvaluationResult } from "@/lib/benchmark-schema"
-import { getCategoryColor as getCategoryTone, inferCategoryFromBenchmark } from "@/lib/benchmark-schema"
+import type { BenchmarkCard, BenchmarkEvaluation, EvalTag, EvaluationResult } from "@/lib/benchmark-schema"
+import { getTagColor as getCategoryTone, inferTagsFromBenchmark } from "@/lib/benchmark-schema"
 import { formatTagLabel } from "@/lib/benchmark-tags"
 import type { BenchmarkEvalSummary } from "@/lib/eval-processing"
 import type { ModelSummaryCore } from "@/lib/benchmark-schema"
@@ -95,7 +95,7 @@ interface BenchmarkGroup {
   title: string
   canonicalTitle: string
   evalDetailHref: string
-  category: CategoryType
+  category: EvalTag
   description: string
   scoreType: EvaluationResult["metric_config"]["score_type"] | "mixed"
   avgRawScore: number
@@ -121,15 +121,12 @@ interface CompositeGroup {
 
 const INSTANCE_PREVIEW_LIMIT = 5
 
-// SUITE_DISPLAY_NAMES (38-entry hardcoded slug→display map) was deleted
-// in Step 4c of the hierarchy-alignment work
-// (notes/hierarchy-alignment.md §6 / §7 Step 4). The producer now ships
-// curated display names for every family / composite / benchmark via
-// prettify_display + the registry's display_overrides.yaml. This
-// component reads the shipped name; the DISPLAY_TOKEN_OVERRIDES /
-// DISPLAY_NAME_OVERRIDES below remain as a per-token polish layer
-// (mostly for raw model identifier rendering, where the producer's
-// metadata doesn't carry a curated display).
+// The producer now ships curated display names for every family /
+// composite / benchmark via prettify_display + the registry's
+// display_overrides.yaml. This component reads the shipped name; the
+// DISPLAY_TOKEN_OVERRIDES / DISPLAY_NAME_OVERRIDES below remain as a
+// per-token polish layer (mostly for raw model identifier rendering,
+// where the producer's metadata doesn't carry a curated display).
 
 const DISPLAY_TOKEN_OVERRIDES: Record<string, string> = {
   ace: "ACE",
@@ -373,7 +370,7 @@ function getCompositeKey(
   hierarchyIndex: Map<string, HierarchyEvalLocation> | null,
 ): string {
   // Prefer the curated grouping from hierarchy.json. The eval row's own
-  // family_id is null for ~7% of evals (e.g. CySE2 composites) and points
+  // family_id is null for some evals (e.g. CySE2 composites) and points
   // at the leaf for singleton families, so the hierarchy is the only
   // source that captures family→composite groupings authoritatively.
   const location = getHierarchyLocation(group, hierarchyIndex)
@@ -1481,8 +1478,8 @@ function getGroupPeerRank(
 }
 
 // peer-ranks.json now ships as a sidecar inside the pinned `SNAPSHOT_URL`
-// snapshot (Stage J emits it alongside hierarchy.json / comparison-index.json
-// — see eval_cards_backend_pipeline commit ffbfe71). Routing through the
+// snapshot (Stage J emits it alongside hierarchy.json / comparison-index.json).
+// Routing through the
 // same `/api/peer-ranks` endpoint as the other sidecars keeps peer ranks
 // pinned to the snapshot the rest of the page is reading from, instead of
 // drifting to the unversioned `main`-branch copy at the dataset root.
@@ -1541,7 +1538,7 @@ function getVariantDedupKey(variant: BenchmarkVariant) {
 }
 
 function buildBenchmarkGroups(
-  entries: Array<{ evaluation: BenchmarkEvaluation; result: EvaluationResult; category: CategoryType }>,
+  entries: Array<{ evaluation: BenchmarkEvaluation; result: EvaluationResult; category: EvalTag }>,
   benchmarkCards: Record<string, BenchmarkCard> | undefined,
   returnTo?: string
 ): BenchmarkGroup[] {
@@ -1827,7 +1824,7 @@ export function BenchmarkDetail({
   const [benchmarkSearch, setBenchmarkSearch] = useState("")
   // Sort dropdown was removed — ordering is driven by the source/category
   // grouping itself, not a user-selected sort.
-  const [selectedCategories, setSelectedCategories] = useState<CategoryType[]>([])
+  const [selectedCategories, setSelectedCategories] = useState<EvalTag[]>([])
   const [selectedFamilies, setSelectedFamilies] = useState<string[]>([])
   const [expandedSuites, setExpandedSuites] = useState<Set<string>>(new Set())
   const [activeBenchmarkGroupKey, setActiveBenchmarkGroupKey] = useState<string | null>(null)
@@ -1864,7 +1861,7 @@ export function BenchmarkDetail({
       }
     }
     // Also add IDs from individual evaluations, including pipeline-computed family_id
-    for (const evals of Object.values(summary.evaluations_by_category)) {
+    for (const evals of Object.values(summary.evaluations_by_tag)) {
       for (const e of evals) {
         if (e.model_info?.id) ids.add(e.model_info.id)
         const familyId = (e.model_info as any)?.family_id
@@ -1882,7 +1879,7 @@ export function BenchmarkDetail({
   }, [])
 
   // Build an eval_summary_id → family/composite lookup from hierarchy.json.
-  // ~31 eval_summary_ids appear in multiple families (e.g. mmlu-pro under
+  // Some constituent_evaluation_ids appear in multiple families (e.g. mmlu-pro under
   // both `mmlu` and `artificial-analysis`); use the eval row's own family_id
   // as the disambiguating preference when present.
   const hierarchyIndex = useMemo(() => {
@@ -1890,7 +1887,7 @@ export function BenchmarkDetail({
       return null
     }
     const familyIdByEvalSummaryId = new Map<string, string>()
-    for (const evals of Object.values(summary.evaluations_by_category)) {
+    for (const evals of Object.values(summary.evaluations_by_tag)) {
       for (const evaluation of evals) {
         if (evaluation.eval_summary_id && evaluation.family_id) {
           familyIdByEvalSummaryId.set(evaluation.eval_summary_id, evaluation.family_id)
@@ -1901,14 +1898,14 @@ export function BenchmarkDetail({
       evalHierarchy,
       (evalSummaryId) => familyIdByEvalSummaryId.get(evalSummaryId) ?? null,
     )
-  }, [evalHierarchy, summary.evaluations_by_category])
+  }, [evalHierarchy, summary.evaluations_by_tag])
 
   // Source-prefix → hierarchy-family lookup. The producer ships
   // benchmark-canonical `family_id`s on each comparison-index entry
   // (e.g. `family_id="aime"` for every AIME variant across sources)
   // alongside source-leaderboard families in hierarchy.json (e.g.
   // `artificial-analysis`, `vals-ai`, `llm-stats`). Most evals are
-  // listed in `family.eval_summary_ids` and resolve via
+  // listed in `family.constituent_evaluation_ids` and resolve via
   // `hierarchyIndex` directly, but variant rows the producer
   // emits under the same canonical (e.g. `aime-2025`, `aime-2024`)
   // are NOT enumerated at family level — they fall back to
@@ -1919,7 +1916,7 @@ export function BenchmarkDetail({
   const sourcePrefixFamily = useMemo(() => {
     const out = new Map<string, { key: string; displayName: string }>()
     for (const fam of evalHierarchy?.families ?? []) {
-      for (const id of fam.eval_summary_ids ?? []) {
+      for (const id of fam.constituent_evaluation_ids ?? []) {
         const prefix = id.includes("%2F") ? id.split("%2F")[0] : null
         if (!prefix) continue
         if (!out.has(prefix)) {
@@ -1949,7 +1946,7 @@ export function BenchmarkDetail({
     //   - umbrellas (suites like "artificial analysis", aggregators like
     //     "llm stats") whose appearances span many benchmark_keys.
     // First-wins on raw iteration order let the umbrellas claim
-    // eval_summary_ids that should map to the benchmark canonical (e.g.
+    // constituent_evaluation_ids that should map to the benchmark canonical (e.g.
     // `artificial-analysis-llms/mmlu-pro` → "artificial analysis"
     // instead of "mmlu-pro"), which left 3 distinct MMLU-Pro tiles in
     // category view. Process benchmark canonicals first so they win
@@ -1970,7 +1967,7 @@ export function BenchmarkDetail({
     for (const entry of ordered) {
       const idSet = new Set<string>()
       for (const app of entry.appearances ?? []) {
-        for (const id of app.eval_summary_ids ?? []) idSet.add(id)
+        for (const id of app.constituent_evaluation_ids ?? []) idSet.add(id)
       }
       const ids = Array.from(idSet)
       for (const id of ids) {
@@ -2021,7 +2018,7 @@ export function BenchmarkDetail({
 
     // Find latest timestamp across all evaluations for recency normalization
     const allTimestamps: number[] = []
-    for (const evals of Object.values(summary.evaluations_by_category)) {
+    for (const evals of Object.values(summary.evaluations_by_tag)) {
       for (const e of evals) {
         const ts = parseFloat(e.retrieved_timestamp)
         if (Number.isFinite(ts)) allTimestamps.push(ts)
@@ -2054,11 +2051,11 @@ export function BenchmarkDetail({
 
       return population * 0.4 + rankExtremity * 0.3 + hasMetadata * 0.2 + recency * 0.1
     }
-  }, [peerRanks, modelIds, summary.evaluations_by_category])
+  }, [peerRanks, modelIds, summary.evaluations_by_tag])
 
   const allEvaluations = useMemo(
-    () => Object.values(summary.evaluations_by_category).flat(),
-    [summary.evaluations_by_category]
+    () => Object.values(summary.evaluations_by_tag).flat(),
+    [summary.evaluations_by_tag]
   )
   
   const reportingStats = useMemo(() => {
@@ -2097,7 +2094,7 @@ export function BenchmarkDetail({
 
   const allCategoryResults = useMemo(
     () =>
-      Object.entries(summary.evaluations_by_category).flatMap(([fallbackCategory, evals]) =>
+      Object.entries(summary.evaluations_by_tag).flatMap(([fallbackCategory, evals]) =>
         evals.flatMap((evaluation) => {
           // Re-bucket by curated tag from data/benchmarks/categories.json.
           // The hierarchy lookup gives us the leaf benchmark's derivedTags;
@@ -2109,7 +2106,7 @@ export function BenchmarkDetail({
           // by categories.json so visually-identical categories (the
           // legacy "General" fallback and the curated "general" tag, the
           // legacy "Safety" and "safety", etc.) collapse to the same
-          // CategoryType — otherwise downstream surfaces show two
+          // EvalTag — otherwise downstream surfaces show two
           // adjacent rows / pills with the same label.
           const evalSummaryId = evaluation.eval_summary_id
           const tags = evalSummaryId ? hierarchyIndex?.get(evalSummaryId)?.tags : undefined
@@ -2118,7 +2115,7 @@ export function BenchmarkDetail({
             .toLowerCase()
             .trim()
             .replace(/\s+/g, "_")
-          const category = (primaryTag ?? normalisedFallback) as CategoryType
+          const category = (primaryTag ?? normalisedFallback) as EvalTag
           return evaluation.evaluation_results.map((result) => ({
             evaluation,
             result,
@@ -2126,7 +2123,7 @@ export function BenchmarkDetail({
           }))
         })
       ),
-    [summary.evaluations_by_category, hierarchyIndex]
+    [summary.evaluations_by_tag, hierarchyIndex]
   )
 
   const policyHighlights = useMemo(() => {
@@ -2275,7 +2272,7 @@ export function BenchmarkDetail({
       }
     }
     cats.sort((a, b) => formatTagLabel(a).localeCompare(formatTagLabel(b)))
-    return cats as unknown as CategoryType[]
+    return cats as unknown as EvalTag[]
   }, [benchmarkGroups])
 
   // Family names present in this model's benchmark groups — used for
@@ -2300,10 +2297,10 @@ export function BenchmarkDetail({
   const evaluatorMix = useMemo(() => {
     // Bucket counts per category, then re-bucket by display label so
     // visually-identical labels collapse: the curated tag vocab can
-    // produce two distinct CategoryType strings ("general" vs
+    // produce two distinct EvalTag strings ("general" vs
     // "general_other") that both render as "General". Without this the
     // donut shows two "General" / "Safety" rows.
-    const byCat = new Map<CategoryType, { first: number; third: number; collab: number; other: number }>()
+    const byCat = new Map<EvalTag, { first: number; third: number; collab: number; other: number }>()
     let firstTotal = 0
     let thirdTotal = 0
     let collabTotal = 0
@@ -2320,7 +2317,7 @@ export function BenchmarkDetail({
       byCat.set(group.category, slot)
     }
     type Row = {
-      category: CategoryType
+      category: EvalTag
       label: string
       first: number
       third: number
@@ -2400,7 +2397,7 @@ export function BenchmarkDetail({
 
   const groupedFilteredBenchmarkGroups = useMemo(() => {
     const order = new Map(availableCategories.map((category, index) => [category, index]))
-    const groups = new Map<CategoryType, BenchmarkGroup[]>()
+    const groups = new Map<EvalTag, BenchmarkGroup[]>()
 
     for (const benchmarkGroup of filteredBenchmarkGroups) {
       const bucket = groups.get(benchmarkGroup.category) ?? []
@@ -2428,7 +2425,7 @@ export function BenchmarkDetail({
     const order = new Map(
       availableCategories.map((category, index) => [category, index])
     )
-    const byCategory = new Map<CategoryType, Map<string, ListFamily>>()
+    const byCategory = new Map<EvalTag, Map<string, ListFamily>>()
 
     for (const group of filteredBenchmarkGroups) {
       const evalId = group.variants.find((v) => v.evaluation.eval_summary_id)
@@ -2553,7 +2550,7 @@ export function BenchmarkDetail({
   )
 
   const categoryScoreRanges = useMemo(() => {
-    const ranges = new Map<CategoryType, ScoreRange>()
+    const ranges = new Map<EvalTag, ScoreRange>()
 
     for (const section of categoryCompositeSections) {
       ranges.set(
@@ -2653,7 +2650,7 @@ export function BenchmarkDetail({
   }, [availableFamilies])
 
   // Shared YYYY-MM-DD formatter (lib/utils#formatDateISO). Used for the
-  // "Updated" <dd> at line ~3514, the "Released" line, and any other
+  // "Updated" <dd>, the "Released" line, and any other
   // date-cell render in this component. Other surfaces (eval-detail
   // table, model-table summary) use the same helper so the corpus
   // renders one consistent date style.
@@ -2789,7 +2786,7 @@ export function BenchmarkDetail({
       for (const appearance of entry.appearances ?? []) {
         const familyKey = appearance.family_key
         const familyName = familyDisplayByKey.get(familyKey) ?? familyKey
-        for (const evalId of appearance.eval_summary_ids ?? []) {
+        for (const evalId of appearance.constituent_evaluation_ids ?? []) {
           const evalEntry = comparisonIndex.evals[evalId]
           if (!evalEntry) continue
           const targetMetric =
@@ -2823,7 +2820,7 @@ export function BenchmarkDetail({
         }
       }
       // Two-stage dedup:
-      //   1. Drop duplicate eval_summary_ids — benchmark_index can list
+      //   1. Drop duplicate constituent_evaluation_ids — benchmark_index can list
       //      the same eval under multiple family_keys (e.g.
       //      `artificial-analysis-llms/mmlu-pro` is listed under both
       //      `artificial-analysis` and `mmlu`), but that's the same
@@ -3025,8 +3022,8 @@ export function BenchmarkDetail({
           .map((p) => ({
             modelId: p.model_route_id,
             // Fall back to model_family_id when the registry has no display
-            // name for this model. ~86% of score entries today land here;
-            // root cause (registry coverage) is Step 2 work. The id is
+            // name for this model. Many score entries land here; the root cause
+            // is registry coverage. The id is
             // already human-readable in this codebase ("anthropic/Sonnet 4.5"),
             // so the fallback is more useful than "Unknown Model".
             modelName: getModelDisplayName(p.model_family_name || p.model_family_id),
@@ -3137,7 +3134,7 @@ export function BenchmarkDetail({
      *  plotboxes. Falls back to `familyKey` for standalone families. */
     parentFamilyKey: string
     parentFamilyDisplayName: string
-    category: CategoryType
+    category: EvalTag
     kind: "single-eval" | "multi-eval"
     childKindLabel: "metric" | "benchmark" | "component" | "slice" | null
     views: PlotboxView[]
@@ -3171,7 +3168,7 @@ export function BenchmarkDetail({
       compositeKey: string | null
       compositeDisplayName: string | null
       bucketDisplayName: string
-      category: CategoryType
+      category: EvalTag
       resolved: ResolvedGroup[]
     }
     // Composite-level bucketing. For evals that hierarchy.json places under a
@@ -3192,10 +3189,10 @@ export function BenchmarkDetail({
       if (!evalEntry) continue
 
       // Prefer hierarchy.json grouping. The comparison-index family_id is
-      // null for ~7% of evals (e.g. CySE2 composites) and points at the
+      // null for some evals (e.g. CySE2 composites) and points at the
       // leaf for singleton families, so the hierarchy is the only source
       // that captures family→composite groupings authoritatively.
-      // For evals not enumerated in any family's `eval_summary_ids`
+      // For evals not enumerated in any family's `constituent_evaluation_ids`
       // (e.g. `artificial-analysis-llms%2Faime-2025`, where only the
       // base `…%2Faime` variant is listed at family level), prefer
       // source-prefix inference over `evalEntry.family_id` so the
@@ -3275,10 +3272,10 @@ export function BenchmarkDetail({
       variant: BenchmarkVariant,
       isRollup: boolean
     ): PlotboxMetricTab => ({
-      tabKey: `${evalEntry.eval_summary_id}::${metric.metric_summary_id}`,
+      tabKey: `${evalEntry.evaluation_id}::${metric.metric_summary_id}`,
       label: deriveMetricTabLabel(metric.metric_name, metric.metric_summary_id),
-      histKey: histKeyFor(evalEntry.eval_summary_id, metric.metric_summary_id),
-      evalSummaryId: evalEntry.eval_summary_id,
+      histKey: histKeyFor(evalEntry.evaluation_id, metric.metric_summary_id),
+      evalSummaryId: evalEntry.evaluation_id,
       metricSummaryId: metric.metric_summary_id,
       evalDisplayName: evalEntry.display_name || group.title,
       evalEntry,
@@ -3310,9 +3307,9 @@ export function BenchmarkDetail({
         // evals live in ONE group. The producer doesn't always carry a
         // `slice_name`, so each variant's sliceLabel can be null even
         // though they're conceptually distinct splits — the eval page
-        // surfaces them via hierarchy `summary_eval_ids` instead. Mirror
+        // surfaces them via hierarchy `constituent_evaluation_ids` instead. Mirror
         // that here: when the folded group's variants span multiple
-        // eval_summary_ids, treat each eval as its own split view (the
+        // constituent_evaluation_ids, treat each eval as its own split view (the
         // dropdown matches the eval-page split selector).
         const distinctEvalIds = new Set<string>()
         for (const v of group.variants) {
@@ -3327,7 +3324,7 @@ export function BenchmarkDetail({
         if (isMultiEvalSliceFold) {
           const variantsByEvalId = new Map<string, BenchmarkVariant[]>()
           for (const v of group.variants) {
-            const evId = v.evaluation.eval_summary_id ?? evalEntry.eval_summary_id
+            const evId = v.evaluation.eval_summary_id ?? evalEntry.evaluation_id
             const list = variantsByEvalId.get(evId) ?? []
             list.push(v)
             variantsByEvalId.set(evId, list)
@@ -3494,7 +3491,7 @@ export function BenchmarkDetail({
           if (tabs.length === 0) return null
 
           return {
-            viewKey: r.evalEntry.eval_summary_id,
+            viewKey: r.evalEntry.evaluation_id,
             label: label || rawLabel,
             evalDisplayName: rawLabel,
             evalEntry: r.evalEntry,
@@ -5145,7 +5142,7 @@ export function BenchmarkDetail({
               {
                 familyKey: string
                 familyDisplayName: string
-                category: CategoryType
+                category: EvalTag
                 units: PlotboxUnit[]
               }
             >()
@@ -5218,11 +5215,11 @@ export function BenchmarkDetail({
             // Pull the full tag list off the curated hierarchy index;
             // fall back to the unit's primary category when no tags are
             // available (legacy 5-bucket fallback).
-            const normaliseCategory = (raw: string): CategoryType =>
-              raw.toLowerCase().trim().replace(/\s+/g, "_") as CategoryType
-            const categoriesForUnit = (unit: PlotboxUnit): CategoryType[] => {
-              const seen = new Set<CategoryType>()
-              const out: CategoryType[] = []
+            const normaliseCategory = (raw: string): EvalTag =>
+              raw.toLowerCase().trim().replace(/\s+/g, "_") as EvalTag
+            const categoriesForUnit = (unit: PlotboxUnit): EvalTag[] => {
+              const seen = new Set<EvalTag>()
+              const out: EvalTag[] = []
               for (const view of unit.views) {
                 for (const tab of view.tabs) {
                   const evalId = tab.evalSummaryId
@@ -5241,7 +5238,7 @@ export function BenchmarkDetail({
               if (out.length === 0) return [unit.category]
               return out
             }
-            const byCategory = new Map<CategoryType, PlotboxUnit[]>()
+            const byCategory = new Map<EvalTag, PlotboxUnit[]>()
             for (const unit of categoryPlotboxUnits) {
               for (const cat of categoriesForUnit(unit)) {
                 const list = byCategory.get(cat) ?? []
@@ -6800,7 +6797,7 @@ function BenchmarkDeepDiveDialogPanel({
   // Cross-family appearances: hierarchy.json's `benchmark_index[]` cross-links
   // a canonical benchmark across multiple families (e.g. AIME appears in
   // artificial-analysis, llm-stats, and vals-ai). When any of this group's
-  // variant eval_summary_ids show up in a benchmark_index entry, surface the
+  // variant constituent_evaluation_ids show up in a benchmark_index entry, surface the
   // other appearances as a "this benchmark also reports as" panel so the
   // reader sees the duplication without leaving the dialog.
   const crossFamilyAppearances = useMemo(() => {
@@ -6843,7 +6840,7 @@ function BenchmarkDeepDiveDialogPanel({
     for (const entry of benchmarkIndex) {
       const flat: Array<{ familyKey: string; evalSummaryId: string }> = []
       for (const app of entry.appearances ?? []) {
-        for (const id of app.eval_summary_ids ?? []) {
+        for (const id of app.constituent_evaluation_ids ?? []) {
           flat.push({ familyKey: app.family_key, evalSummaryId: id })
         }
       }
@@ -7901,7 +7898,7 @@ function HeroStat({
 
 type EvaluatorMixData = {
   rows: Array<{
-    category: CategoryType
+    category: EvalTag
     label: string
     first: number
     third: number
@@ -8084,7 +8081,7 @@ function CategoryStatsView({
   stats, 
   summary
 }: { 
-  stats: { category: CategoryType; count: number; avg_score: number }[]
+  stats: { category: EvalTag; count: number; avg_score: number }[]
   summary: ModelSummaryCore
 }) {
   const getCategoryColor = (score: number) => {
@@ -8093,14 +8090,14 @@ function CategoryStatsView({
     return 'text-red-600'
   }
   
-  const getCategoryLabel = (category: CategoryType): string => {
+  const getCategoryLabel = (category: EvalTag): string => {
     return category.split('-').map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' ')
   }
   
   return (
     <div className="grid gap-6 md:grid-cols-2">
       {stats.map((stat) => {
-        const evals = summary.evaluations_by_category[stat.category] || []
+        const evals = summary.evaluations_by_tag[stat.category] || []
         
         return (
           <Card key={stat.category} className="overflow-hidden">
@@ -8116,10 +8113,12 @@ function CategoryStatsView({
             <CardContent className="p-0">
               <div className="divide-y">
                 {evals.map((eval_: BenchmarkEvaluation, idx: number) => {
-                  // Filter results to only show those that match this category
+                  // Filter results to only show those carrying this tag
                   const relevantResults = eval_.evaluation_results.filter((result: any) => {
-                    const resultCategory = inferCategoryFromBenchmark(result.evaluation_name)
-                    return resultCategory === stat.category
+                    const resultTags = eval_.derived_tags && eval_.derived_tags.length > 0
+                      ? eval_.derived_tags
+                      : inferTagsFromBenchmark(result.evaluation_name)
+                    return resultTags.includes(stat.category)
                   })
                   
                   if (relevantResults.length === 0) return null

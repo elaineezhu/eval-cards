@@ -154,10 +154,10 @@ export default function ModelsPage() {
     if (query) {
       filtered = filtered.filter((row) => {
         return (
-          row.model_name.toLowerCase().includes(query) ||
-          row.canonical_model_name.toLowerCase().includes(query) ||
-          row.developer.toLowerCase().includes(query) ||
-          (row.benchmark_names ?? []).some((b) => b.toLowerCase().includes(query))
+          (row.model_name ?? "").toLowerCase().includes(query) ||
+          (row.canonical_model_name ?? "").toLowerCase().includes(query) ||
+          (row.developer ?? "").toLowerCase().includes(query) ||
+          (row.benchmark_names ?? []).some((b) => (b ?? "").toLowerCase().includes(query))
         )
       })
     }
@@ -167,10 +167,10 @@ export default function ModelsPage() {
       let cmp = 0
       switch (modelSortBy) {
         case "name":
-          cmp = a.model_name.localeCompare(b.model_name)
+          cmp = (a.model_name ?? "").localeCompare(b.model_name ?? "")
           break
         case "developer":
-          cmp = a.developer.localeCompare(b.developer)
+          cmp = (a.developer ?? "").localeCompare(b.developer ?? "")
           break
         case "released":
           cmp = safeTimestamp(a.release_date) - safeTimestamp(b.release_date)
@@ -187,7 +187,7 @@ export default function ModelsPage() {
           break
       }
       // Stable tie-break by model name so equal rows don't shuffle.
-      if (cmp === 0) return a.model_name.localeCompare(b.model_name)
+      if (cmp === 0) return (a.model_name ?? "").localeCompare(b.model_name ?? "")
       return cmp * dirMul
     })
   }, [evaluations, deferredSearchQuery, modelSortBy, modelSortDir, numericMinParams, numericMaxParams, showUnknownSize])
@@ -207,8 +207,8 @@ export default function ModelsPage() {
     if (query) {
       filtered = filtered.filter(
         (dev) =>
-          dev.developer.toLowerCase().includes(query) ||
-          dev.popular_evals.some((ev) => ev.benchmark.toLowerCase().includes(query)),
+          (dev.developer ?? "").toLowerCase().includes(query) ||
+          dev.popular_evals.some((ev) => (ev.benchmark ?? "").toLowerCase().includes(query)),
       )
     }
 
@@ -217,7 +217,7 @@ export default function ModelsPage() {
       let cmp = 0
       switch (developerSortBy) {
         case "name":
-          cmp = a.developer.localeCompare(b.developer)
+          cmp = (a.developer ?? "").localeCompare(b.developer ?? "")
           break
         case "models":
           cmp = a.model_count - b.model_count
@@ -229,7 +229,7 @@ export default function ModelsPage() {
           cmp = a.evaluation_count - b.evaluation_count
           break
       }
-      if (cmp === 0) return a.developer.localeCompare(b.developer)
+      if (cmp === 0) return (a.developer ?? "").localeCompare(b.developer ?? "")
       return cmp * dirMul
     })
   }, [developers, deferredSearchQuery, developerSortBy, developerSortDir, developerScope])

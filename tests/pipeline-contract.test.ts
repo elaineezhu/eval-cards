@@ -4,8 +4,7 @@ import { fileURLToPath } from "url"
 
 import { describe, expect, it } from "vitest"
 
-import type { HFEvalDetail, HFEvalModelResult, HFModelDetail, HFModelCardEntry } from "../lib/hf-data"
-import { flattenModelEvaluations } from "../lib/hf-data"
+import type { HFEvalDetail, HFEvalModelResult, HFModelDetail } from "../lib/hf-data"
 
 import { fixtureEntries, loadAllFixtures, walkHierarchyResults } from "./fixtures/loader"
 
@@ -120,22 +119,6 @@ describe("Tier A — pipeline contracts (model files)", () => {
     expect(violations, formatViolations(violations)).toEqual([])
   })
 
-  it("flattenModelEvaluations output has source_metadata on every evaluation (cross-check)", () => {
-    const violations: Violation[] = []
-    for (const { id, data } of models) {
-      const evaluations = flattenModelEvaluations(data)
-      for (const [idx, evalEntry] of evaluations.entries()) {
-        if (!evalEntry.source_metadata) {
-          violations.push({
-            fixture: id,
-            path: `flattenModelEvaluations(${id})[${idx}]`,
-            detail: "missing source_metadata after flatten",
-          })
-        }
-      }
-    }
-    expect(violations, formatViolations(violations)).toEqual([])
-  })
 })
 
 describe("Tier A — pipeline contracts (eval-detail files)", () => {
@@ -196,18 +179,12 @@ describe("Tier A — pipeline contracts (eval-detail files)", () => {
     expect(violations, formatViolations(violations)).toEqual([])
   })
 
-  // Replaces the deleted `prefersBenchmarkName` heuristic in
-  // `lib/model-data.ts hfEvalEntryToListItem`. That heuristic detected when a
-  // display string was in a "<generic-metric> on <benchmark>" / "for scorer" /
-  // "model_graded" shape and substituted the benchmark name. Audit against the
-  // full corpus showed 0/587 matches (verified 2026-04-28). The heuristic was
-  // deleted in favor of this explicit contract; if pipeline ever starts
-  // emitting display strings in those shapes again, this test fails loudly.
-  //
-  // The four fields below mirror the resolution order the deleted code used
-  // (`entry.evaluation_name || entry.display_name || entry.benchmark_leaf_name
-  // || entry.eval_summary_id`).
-  it("eval-list display strings don't match prefersBenchmarkName patterns (deleted heuristic)", () => {
+  // Guards against the eval-list emitting display strings in a
+  // "<generic-metric> on <benchmark>" / "for scorer" / "model_graded" shape.
+  // If the pipeline starts emitting those shapes, this test fails loudly.
+  // The four fields below mirror the eval-list resolution order
+  // (`evaluation_name || display_name || benchmark_leaf_name || eval_summary_id`).
+  it("eval-list display strings don't match generic-metric-on-benchmark patterns", () => {
     const violations: Violation[] = []
     for (const { id, data } of evals) {
       // Pipeline emits `evaluation_name` and `display_name` on eval entries
@@ -232,54 +209,6 @@ describe("Tier A — pipeline contracts (eval-detail files)", () => {
           path: "evaluation_name|display_name|benchmark_leaf_name|eval_summary_id",
           detail: `${JSON.stringify(raw)} matches: ${reasons.join(", ")}`,
         })
-      }
-    }
-    expect(violations, formatViolations(violations)).toEqual([])
-  })
-})
-
-describe("Tier A — pipeline contracts (model card list entries)", () => {
-  const cards = loadAllFixtures<HFModelCardEntry>("model_cards")
-
-  it("model card has model_route_id === pipelineSlugify(model_family_id)", () => {
-    const violations: Violation[] = []
-    for (const { id, data } of cards) {
-      if (!data.model_family_id) {
-        violations.push({ fixture: id, path: "model_family_id", detail: "missing" })
-        continue
-      }
-      const expected = data.model_family_id.replace(/\//g, "__")
-      if (data.model_route_id !== expected) {
-        violations.push({
-          fixture: id,
-          path: "model_route_id",
-          detail: `${data.model_route_id} !== ${expected}`,
-        })
-      }
-    }
-    expect(violations, formatViolations(violations)).toEqual([])
-  })
-})
-
-describe("Tier A — pipeline contracts (developer files)", () => {
-  const developers = loadAllFixtures<{ developer: string; models: HFModelCardEntry[] }>("developers")
-
-  it("every developer payload has developer + models[]", () => {
-    const violations: Violation[] = []
-    for (const { id, data } of developers) {
-      if (!data.developer) violations.push({ fixture: id, path: "developer", detail: "missing" })
-      if (!Array.isArray(data.models)) violations.push({ fixture: id, path: "models", detail: "not an array" })
-    }
-    expect(violations, formatViolations(violations)).toEqual([])
-  })
-
-  it("every model in developer.models has model_family_id", () => {
-    const violations: Violation[] = []
-    for (const { id, data } of developers) {
-      for (const [modelIdx, model] of (data.models ?? []).entries()) {
-        if (!model.model_family_id) {
-          violations.push({ fixture: id, path: `models[${modelIdx}].model_family_id`, detail: "missing" })
-        }
       }
     }
     expect(violations, formatViolations(violations)).toEqual([])

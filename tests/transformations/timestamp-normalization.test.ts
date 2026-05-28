@@ -1,17 +1,17 @@
 import { describe, expect, it } from "vitest"
 
-// Executable spec for `notes/transformations/07-timestamp-normalization.md`.
+// Executable spec for the timestamp-normalization transformation.
 //
 // Three implementations of timestamp normalization exist in TS:
-//   - Variant A: lib/model-data.ts:76 (normalizeEvalTimestamp)
-//   - Variant B: lib/hf-data.ts:1049 (toComparableTimestamp)
-//   - Variant C: components/benchmark-detail.tsx:1418 (toComparableTimestamp)
+//   - Variant A: lib/model-data.ts (normalizeEvalTimestamp)
+//   - Variant B: lib/hf-data.ts (toComparableTimestamp)
+//   - Variant C: components/benchmark-detail.tsx (toComparableTimestamp)
 //
 // They DIVERGE on cross-format comparisons but converge on production data
 // (99.99% unix-seconds-strings). This test file documents all three with
 // their distinct semantics.
 
-// === Variant A: lib/model-data.ts:76 — Number(), * 1000 if numeric & no dash ===
+// === Variant A: lib/model-data.ts — Number(), * 1000 if numeric & no dash ===
 function normalizeEvalTimestamp(value: string): number {
   const numericTimestamp = Number(value)
   return !Number.isNaN(numericTimestamp) && !value.includes("-")
@@ -19,7 +19,7 @@ function normalizeEvalTimestamp(value: string): number {
     : new Date(value).getTime()
 }
 
-// === Variant B: lib/hf-data.ts:1049 — parseFloat, no multiplier, undefined-safe ===
+// === Variant B: lib/hf-data.ts — parseFloat, no multiplier, undefined-safe ===
 function toComparableTimestampHfData(timestamp: string | undefined): number {
   if (!timestamp) return Number.NEGATIVE_INFINITY
   const numericTimestamp = Number.parseFloat(timestamp)
@@ -28,7 +28,7 @@ function toComparableTimestampHfData(timestamp: string | undefined): number {
   return Number.isFinite(parsedTimestamp) ? parsedTimestamp : Number.NEGATIVE_INFINITY
 }
 
-// === Variant C: components/benchmark-detail.tsx:1418 — same as B but no undefined check ===
+// === Variant C: components/benchmark-detail.tsx — same as B but no undefined check ===
 function toComparableTimestampBenchmarkDetail(timestamp: string): number {
   const numericTimestamp = Number.parseFloat(timestamp)
   if (Number.isFinite(numericTimestamp)) return numericTimestamp

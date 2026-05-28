@@ -55,7 +55,7 @@ export default async function HomePage() {
   const compositeCount = stats?.composite_count ?? 0
   // v3 hierarchy ships `benchmark_count` directly. The legacy
   // `single_benchmark_count` / `standalone_benchmark_count` synthesis
-  // is gone with the adapter (Step 4b); v3's `benchmark_count` is the
+  // is gone with the adapter; v3's `benchmark_count` is the
   // distinct (composite, benchmark) row count from the dim.
   const benchmarkLeafCount = stats?.benchmark_count ?? 0
   const sliceCount = stats?.slice_count ?? 0
@@ -79,7 +79,7 @@ export default async function HomePage() {
   // their benchmarks under composites[].benchmarks[] after the adapter;
   // singletons land in standalone_benchmarks[] or benchmarks[]. Pull
   // from all four shapes so the count reflects the union (matches
-  // family-table.tsx:313's logic).
+  // the benchmark-counting logic in family-table.tsx).
   const featuredFamilies = hierarchy.families.slice(0, 6).map((family) => {
     // v3 family layouts: exactly one of standalone_benchmarks / benchmarks /
     // composites is present per family. Walk all three to count benchmarks.

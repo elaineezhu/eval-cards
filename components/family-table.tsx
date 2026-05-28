@@ -77,7 +77,7 @@ function buildLeafEntry(
   famKey: string,
   benchmarkCards?: Record<string, BenchmarkCard>,
 ): LeafEntry | null {
-  const summaryIds = benchmark.summary_eval_ids ?? []
+  const summaryIds = benchmark.constituent_evaluation_ids ?? []
   const ids = summaryIds.length > 0
     ? summaryIds
     : benchmark.key ? [`${famKey}_${benchmark.key}`, benchmark.key] : []
@@ -274,7 +274,7 @@ export function FamilyTable({
     const sources: Array<string[]> = [
       benchmarkCards?.[fam.key]?.benchmark_details?.domains ?? [],
     ]
-    for (const id of fam.eval_summary_ids ?? []) {
+    for (const id of fam.constituent_evaluation_ids ?? []) {
       sources.push(benchmarkCards?.[id]?.benchmark_details?.domains ?? [])
     }
     for (const list of sources) {

@@ -10,7 +10,7 @@ export interface HierarchyEvalLocation {
   compositeKey?: string
   compositeDisplayName?: string
   /** Resolved leaf benchmark — set when `eval_summary_id` lives inside a
-   *  hierarchy benchmark's `summary_eval_ids`. Lets the model-detail
+   *  hierarchy benchmark's `constituent_evaluation_ids`. Lets the model-detail
    *  plotbox builder bucket every eval row that resolves to the same
    *  benchmark together (so a standalone like Fibble Arena with N
    *  per-split eval rows renders as one plotbox, not N). */
@@ -42,7 +42,7 @@ function findComposite(
   const sourcePrefix = evalSummaryId.split("%2F")[0]
   const byPrefix = composites.find((composite) => composite.key === sourcePrefix)
   if (byPrefix) return byPrefix
-  // Fallback: scan benchmarks' `summary_eval_ids`. The clean-hierarchy
+  // Fallback: scan benchmarks' `constituent_evaluation_ids`. The clean-hierarchy
   // post-processor synthesises composites for split families (Fibble
   // Arena's per-N-lies splits, CapArena-Auto, AgentHarm) whose
   // children carry mixed source prefixes (`fibble1-arena%2F…`,
@@ -50,7 +50,7 @@ function findComposite(
   // composite's key by prefix alone.
   return composites.find((composite) =>
     composite.benchmarks?.some((bench) =>
-      bench.summary_eval_ids?.includes(evalSummaryId),
+      bench.constituent_evaluation_ids?.includes(evalSummaryId),
     ),
   )
 }
@@ -68,7 +68,7 @@ function findBenchmark(
     ...(family.benchmarks ?? []),
   ]
   for (const benchmark of benchmarks) {
-    if (benchmark.summary_eval_ids?.includes(evalSummaryId)) {
+    if (benchmark.constituent_evaluation_ids?.includes(evalSummaryId)) {
       return {
         key: benchmark.key,
         displayName: benchmark.display_name,
@@ -88,7 +88,7 @@ function buildAppearancesIndex(
   }
 
   for (const family of hierarchy.families) {
-    for (const evalSummaryId of family.eval_summary_ids ?? []) {
+    for (const evalSummaryId of family.constituent_evaluation_ids ?? []) {
       const composite = findComposite(family, evalSummaryId)
       const bench = findBenchmark(family, composite, evalSummaryId)
       const list = index.get(evalSummaryId) ?? []
@@ -109,12 +109,12 @@ function buildAppearancesIndex(
 /**
  * Build a lookup that maps each `eval_summary_id` to the family / composite
  * that contains it in `hierarchy.json`. The model-detail benchmark grouping
- * needs this because the eval row's own `family_id` is null for ~7% of evals
+ * needs this because the eval row's own `family_id` is null for some evals
  * (e.g. CySE2 composites) and points at the leaf instead of the parent for
- * ~70% (singleton families). The hierarchy is the only source that captures
+ * singleton families. The hierarchy is the only source that captures
  * curated family→composite→benchmark grouping.
  *
- * 31 eval_summary_ids appear in multiple families. The optional
+ * Some constituent_evaluation_ids appear in multiple families. The optional
  * `preferFamilyKey(evalSummaryId)` callback lets the caller pick the canonical
  * family — typically by passing in the eval row's own `family_id`. When no
  * preference is given, the first family encountered wins.

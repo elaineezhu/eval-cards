@@ -247,9 +247,7 @@ export interface ComparabilityCorpusBlock {
 // Hierarchy types (v3 — family-rooted tree).
 //
 // The producer emits this shape via eval_card_backend's
-// `write_hierarchy()` after the Step 3 reshape. See
-// /Users/jchim/projects/evaleval/notes/hierarchy-alignment.md §5.1
-// for the canonical spec.
+// `write_hierarchy()` after the producer's hierarchy reshape.
 //
 // Top level: `families[]` is the rich entity. Composites nest under
 // families[].composites[]. `benchmark_index[]` cross-links a canonical
@@ -273,7 +271,7 @@ export interface HierarchyMetric {
   /** Producer-supplied list of organisations whose results back this
    *  metric. Empty when source attribution wasn't recoverable. */
   sources?: string[]
-  /** Per spec §5.1 — true when this is the benchmark's primary metric
+  /** True when this is the benchmark's primary metric
    *  (matches `primary_metric_key`). */
   is_primary?: boolean
   /** Distinct model count contributing to this metric — drives
@@ -315,7 +313,8 @@ export interface HierarchyBenchmark extends SignalSummaries {
   tags: HierarchyTags
   slices: HierarchySlice[]
   metrics: HierarchyMetric[]
-  summary_eval_ids?: string[]
+  /** Evaluation_ids this node is composed of (rolled-up coverage). */
+  constituent_evaluation_ids?: string[]
   /** Categorical tags derived client-side; see HierarchyFamily.derivedTags. */
   derivedTags?: string[]
 }
@@ -327,7 +326,7 @@ export interface HierarchyComposite extends SignalSummaries {
   tags: HierarchyTags
   benchmarks: HierarchyBenchmark[]
   evals_count?: number
-  summary_eval_ids?: string[]
+  constituent_evaluation_ids?: string[]
   /** True for the headline composite within a multi-composite family. */
   is_primary?: boolean
   /** Categorical tags derived client-side; see HierarchyFamily.derivedTags. */
@@ -340,7 +339,7 @@ export interface HierarchyFamily extends SignalSummaries {
   category: string
   tags: HierarchyTags
   evals_count: number
-  eval_summary_ids: string[]
+  constituent_evaluation_ids: string[]
   /** Exactly ONE of the three layout fields below is present. */
   standalone_benchmarks?: HierarchyBenchmark[]
   benchmarks?: HierarchyBenchmark[]
@@ -356,7 +355,7 @@ export interface HierarchyFamily extends SignalSummaries {
 export interface BenchmarkIndexAppearance {
   family_key: string
   benchmark_key: string
-  eval_summary_ids: string[]
+  constituent_evaluation_ids: string[]
   /** True when the family this appearance is under is the benchmark's
    *  natural "home" family (family_key === benchmark_key). */
   is_canonical_home: boolean
@@ -442,7 +441,7 @@ export interface ComparisonMetricEntry {
 }
 
 export interface ComparisonEvalEntry {
-  eval_summary_id: string
+  evaluation_id: string
   benchmark_id: string | null
   family_id: string | null
   family_display_name: string | null
@@ -454,7 +453,6 @@ export interface ComparisonEvalEntry {
   is_slice: boolean
   is_summary_score: boolean
   summary_score_for: string | null
-  summary_eval_ids: string[]
   metrics: ComparisonMetricEntry[]
 }
 

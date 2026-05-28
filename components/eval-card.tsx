@@ -18,7 +18,7 @@ import {
 } from "lucide-react"
 import { routeIdToPath } from "@/lib/utils"
 import type { BenchmarkEvalListItem } from "@/lib/eval-processing"
-import { getCategoryColor } from "@/lib/benchmark-schema"
+import { getTagColor, tagLabel } from "@/lib/benchmark-schema"
 
 const LICENSE_COLORS: Record<string, string> = {
   "mit": "bg-emerald-100 text-emerald-800 border-emerald-200 dark:bg-emerald-950/40 dark:text-emerald-200",
@@ -105,11 +105,11 @@ export function EvalCard({ summary, delayMs = 0 }: EvalCardProps) {
             <div className="text-[10px] font-semibold uppercase tracking-[0.24em] text-muted-foreground">
               Single Benchmark
             </div>
-            {summary.category && (
-              <span className={`rounded-full border px-2 py-0.5 text-[10px] font-semibold ${getCategoryColor(summary.category)}`}>
-                {summary.category}
+            {summary.derived_tags?.map((tag) => (
+              <span key={tag} className={`rounded-full border px-2 py-0.5 text-[10px] font-semibold ${getTagColor(tag)}`}>
+                {tagLabel(tag)}
               </span>
-            )}
+            ))}
           </div>
           {shortLicense && (
             <span className={`rounded-full border px-2 py-0.5 text-[10px] font-semibold ${licenseBadgeClass(license)}`}>

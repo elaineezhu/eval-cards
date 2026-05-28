@@ -20,27 +20,9 @@ import type {
   HierarchyFamily,
   HierarchySlice,
 } from "@/lib/backend-artifacts"
-import { inferCategoryFromBenchmark, type CategoryType } from "@/lib/benchmark-schema"
+import { inferTagsFromBenchmark } from "@/lib/benchmark-schema"
 
 const REF: Record<string, string[]> = categoriesJson as Record<string, string[]>
-
-// inferCategoryFromBenchmark returns the legacy 5-bucket CapitalCase
-// vocabulary (Safety / Agentic / Reasoning / Knowledge / General). The
-// ref file uses lowercase snake_case (safety / agentic / mathematics /
-// software_engineering / …). Without this map the filter pill bar
-// renders duplicate pills like "Safety" + "safety" with disjoint match
-// sets. We project the regex fallback into the ref vocabulary so there
-// is exactly one vocabulary in the UI.
-const FALLBACK_TO_REF: Record<CategoryType, string> = {
-  Safety: "safety",
-  Agentic: "agentic",
-  // Reasoning is the most generic catch-all in the regex; the ref file
-  // splits it into mathematics / software_engineering / *_reasoning.
-  // applied_reasoning is the closest umbrella term.
-  Reasoning: "applied_reasoning",
-  Knowledge: "knowledge",
-  General: "general",
-}
 
 // Two normalised lookup tables built once at module load. The first
 // keeps spaces (so "MMLU Pro" still differs from "MMLUPro" if both
@@ -113,9 +95,8 @@ export function getBenchmarkTags(
   // injecting whatever the regex's substring matcher happens to
   // catch on the child name.
   if (parentTags && parentTags.length > 0) return parentTags
-  // Final fallback: regex-based inference projected into ref vocab.
-  const fallback = inferCategoryFromBenchmark(names[0] ?? "")
-  return [FALLBACK_TO_REF[fallback]]
+  // Final fallback: regex-based tag inference (17-tag vocabulary).
+  return inferTagsFromBenchmark(names[0] ?? "")
 }
 
 /**
@@ -141,9 +122,6 @@ export function hasCuratedTags(...candidates: Array<string | null | undefined>):
  * Mutates in place — fetchEvalHierarchy passes the just-loaded object
  * straight in, so no allocations beyond the new tag arrays. Idempotent:
  * calling twice produces the same result.
- *
- * Coverage measured against a real snapshot (72 families, 697 leaf
- * benchmarks, 709 slices): 95.8% / 98.6% / 99.7% respectively.
  */
 export function decorateHierarchyDerivedTags(h: EvalHierarchy): EvalHierarchy {
   // Idempotent guard: cleanHierarchy (server-side) tags fully-processed

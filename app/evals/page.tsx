@@ -144,7 +144,7 @@ function EvalsPageInner() {
         for (const b of benches) {
           if (b.key && b.key.toLowerCase().includes(query)) return true
           if (b.display_name && b.display_name.toLowerCase().includes(query)) return true
-          for (const id of b.summary_eval_ids ?? []) {
+          for (const id of b.constituent_evaluation_ids ?? []) {
             const decoded = decodeURIComponent(id).toLowerCase()
             if (decoded.includes(query) || id.toLowerCase().includes(query)) return true
           }

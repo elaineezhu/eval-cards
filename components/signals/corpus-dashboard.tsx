@@ -14,7 +14,7 @@ import type {
   ProvenanceCorpusBlock,
   ReproducibilityCorpusBlock,
 } from "@/lib/backend-artifacts"
-import { getCategoryColor } from "@/lib/benchmark-schema"
+import { getTagColor } from "@/lib/benchmark-schema"
 import {
   formatFieldLabel,
   formatPercent,
@@ -307,7 +307,7 @@ function CategoryPanel({
     <section className="rounded-2xl border border-border/70 bg-card p-4 shadow-sm">
       <div className="mb-4 flex items-center justify-between gap-3">
         <h2 className="font-semibold">{categoryLabel}</h2>
-        <Badge className={getCategoryColor(categoryLabel)}>{categoryLabel}</Badge>
+        <Badge className={getTagColor(categoryLabel)}>{categoryLabel}</Badge>
       </div>
       <div className="grid gap-3 sm:grid-cols-2">
         <MiniMetric label="Reproducibility gaps" value={formatPercent(reproducibility?.reproducibility_gap_rate)} />

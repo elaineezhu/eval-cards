@@ -1,9 +1,9 @@
 import { describe, expect, it } from "vitest"
 
-// Executable spec for `notes/transformations/03-license-normalization.md`.
+// Executable spec for the license-normalization transformation.
 //
 // These tests describe the `shortenLicense` function as it currently runs in
-// production (components/eval-card.tsx:38-48). Quirks (lowercase SPDX
+// production (components/eval-card.tsx). Quirks (lowercase SPDX
 // identifiers passing through, free-form CC BY descriptions truncating, the
 // asymmetric length>24 vs slice(0,22) cut) are preserved on purpose. The
 // migration target is to move this transformation upstream without changing

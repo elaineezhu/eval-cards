@@ -2,7 +2,7 @@ import { describe, expect, it } from "vitest"
 
 import { getCanonicalModelIdentity, getModelFamilyRouteId } from "../../lib/model-family"
 
-// Executable spec for `notes/transformations/01-identity-canonicalization.md`.
+// Executable spec for the identity-canonicalization transformation.
 //
 // Each table here corresponds to a Group in the spec. Pipeline-side
 // implementation must produce identical outputs for every row. Adding a row
@@ -10,7 +10,7 @@ import { getCanonicalModelIdentity, getModelFamilyRouteId } from "../../lib/mode
 //
 // When the pipeline ships matching values, run `scripts/verify-identity.mjs`
 // against the full live cache to confirm cross-corpus equivalence before
-// deleting the TS implementation (task #5b in the migration tasklist).
+// deleting the TS implementation.
 
 interface Case {
   id: string

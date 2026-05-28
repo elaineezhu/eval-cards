@@ -1,9 +1,9 @@
 import { describe, expect, it } from "vitest"
 
-// Executable spec for `notes/transformations/06-developer-name-canonicalization.md`.
+// Executable spec for the developer-name-canonicalization transformation.
 //
 // Replicates KNOWN_DEVELOPER_NAMES + normalizeDeveloperName from
-// lib/model-data.ts:217-244 verbatim.
+// lib/model-data.ts verbatim.
 
 const KNOWN_DEVELOPER_NAMES: Record<string, string> = {
   openai: "OpenAI",

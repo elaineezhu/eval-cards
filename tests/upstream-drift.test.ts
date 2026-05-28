@@ -127,12 +127,10 @@ describe.skipIf(!shouldRun)(`Tier A drift — live cache contracts (${modelFiles
     expect(counts.size, `Unknown evaluator_relationship values: ${summary}`).toBe(0)
   })
 
-  // Mirrors the fixture-based contract added in pipeline-contract.test.ts
-  // when the `prefersBenchmarkName` heuristic was deleted from
-  // lib/model-data.ts. Audit against full corpus on 2026-04-28 found 0/587
-  // matches; this drift check fails loudly if pipeline ever starts emitting
-  // display strings in those shapes again.
-  it("eval-list display strings don't match deleted prefersBenchmarkName patterns", () => {
+  // Drift check mirroring the contract in pipeline-contract.test.ts: fails
+  // loudly if the pipeline starts emitting eval-list display strings in a
+  // "<generic-metric> on <benchmark>" / "for scorer" / "model_graded" shape.
+  it("eval-list display strings don't match generic-metric-on-benchmark patterns", () => {
     const cachePath = path.resolve(import.meta.dirname, "..", ".cache", "hf-data", "eval-list.json")
     if (!fs.existsSync(cachePath)) {
       throw new Error(`eval-list.json missing from live cache (expected at ${cachePath}); run pnpm cache-hf-data`)

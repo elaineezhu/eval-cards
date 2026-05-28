@@ -24,7 +24,7 @@ type CleanableHierarchy = EvalHierarchy & { [CLEANED_MARKER]?: boolean }
 //     benchmark whose `slices[]` are the former children. Used for
 //     AgentHarm where each child is a category score (Harassment, Fraud,
 //     Disinformation, …) of one underlying benchmark. The synthetic
-//     standalone owns the union of summary_eval_ids; each slice carries
+//     standalone owns the union of constituent_evaluation_ids; each slice carries
 //     its source child's metrics verbatim.
 //
 // Keyed by `family.key`.
@@ -150,6 +150,9 @@ const SPLIT_FAMILIES: Record<string, SplitFamilyRule> = {
 const PROTECTED_LEADERBOARD_FAMILIES = new Set<string>(["hf-open-llm-v2"])
 
 /**
+ * NOTE: this hierarchy cleaning belongs in the producer pipeline; it lives
+ * here as a stopgap until that backend refactor lands.
+ *
  * One-shot post-processor that turns the warehouse's raw hierarchy into a
  * frontend-ready artefact:
  *   1. Sanitises display names that the upstream pipeline accidentally
@@ -245,10 +248,10 @@ export function cleanHierarchy(
  * model-card layer — which exposes the slash-form `route_id` — resolve.
  *
  * Steps:
- *   1. Walk every surviving benchmark's summary_eval_ids to build
+ *   1. Walk every surviving benchmark's constituent_evaluation_ids to build
  *      eval_summary_id → benchmark_key.
  *   2. Walk comparison-index scores to collect, per model, the set of
- *      eval_summary_ids it has a finite score for.
+ *      constituent_evaluation_ids it has a finite score for.
  *   3. For each model, count the distinct benchmark_keys reachable
  *      from its covered eval ids; emit under both id surfaces.
  */
@@ -259,7 +262,7 @@ function buildModelCoverageMap(
   // Step 1: eval_summary_id → benchmark_key
   const evalToBenchmark = new Map<string, string>()
   const visitBench = (b: HierarchyBenchmark) => {
-    for (const id of b.summary_eval_ids ?? []) {
+    for (const id of b.constituent_evaluation_ids ?? []) {
       if (!evalToBenchmark.has(id)) evalToBenchmark.set(id, b.key)
     }
   }
@@ -440,10 +443,10 @@ function dedupAggregatorBenchesByScore(
     if (aggHandles.length === 0 || nonAgg.length === 0) continue
 
     for (const agg of aggHandles) {
-      const aggIds = agg.bench.summary_eval_ids ?? []
+      const aggIds = agg.bench.constituent_evaluation_ids ?? []
       if (aggIds.length === 0) continue
       for (const peer of nonAgg) {
-        const peerIds = peer.bench.summary_eval_ids ?? []
+        const peerIds = peer.bench.constituent_evaluation_ids ?? []
         if (peerIds.length === 0) continue
         // Try to match scores between aggregator's eval and peer's
         // eval. Compare against the first eval id pair where both
@@ -556,9 +559,9 @@ function consolidateDedicatedHomeBenchmarks(h: CleanableHierarchy) {
   }
 
   const sharesAnyEvalId = (a: HierarchyBenchmark, b: HierarchyBenchmark) => {
-    const aIds = new Set(a.summary_eval_ids ?? [])
+    const aIds = new Set(a.constituent_evaluation_ids ?? [])
     if (aIds.size === 0) return false
-    for (const id of b.summary_eval_ids ?? []) if (aIds.has(id)) return true
+    for (const id of b.constituent_evaluation_ids ?? []) if (aIds.has(id)) return true
     return false
   }
 
@@ -649,12 +652,12 @@ function consolidateDedicatedHomeBenchmarks(h: CleanableHierarchy) {
 
   // Two appearances of the same benchmark key are "physically the
   // same" only when they share at least one eval_summary_id. Different
-  // eval_summary_ids mean different sources independently reporting on
+  // constituent_evaluation_ids mean different sources independently reporting on
   // the same canonical benchmark (e.g. llm-stats and openai-humaneval
   // both list HumanEval but report it from their own data). Don't
   // collapse those.
   const evalIds = (b: HierarchyBenchmark) =>
-    new Set(b.summary_eval_ids ?? [])
+    new Set(b.constituent_evaluation_ids ?? [])
   const sharesEvalId = (
     a: HierarchyBenchmark,
     b: HierarchyBenchmark,
@@ -735,7 +738,7 @@ function consolidateDedicatedHomeBenchmarks(h: CleanableHierarchy) {
   // "-leaderboard" and contains exactly one benchmark whose key matches
   // the family key minus that suffix is a thin wrapper around a
   // benchmark that's already covered by another family. Merge the
-  // wrapper's eval_summary_ids into the canonical bench so we don't
+  // wrapper's constituent_evaluation_ids into the canonical bench so we don't
   // lose the leaderboard's source row, then drop the wrapper family.
   // Example: `swe-bench-verified-leaderboard` family with sole bench
   // `swe-bench-verified` — merge its `swe-bench-verified-leaderboard%
@@ -746,13 +749,13 @@ function consolidateDedicatedHomeBenchmarks(h: CleanableHierarchy) {
   // family. Score-equality-based aggregator dedup (per the user's
   // earlier guidance) lives in the Overlaps view, not here. We use this
   // set only as a tie-breaker when deciding which family inherits a
-  // wrapper's eval_summary_ids.
+  // wrapper's constituent_evaluation_ids.
   const AGGREGATOR_KEYS = new Set<string>(["llm-stats"])
   const isAggregator = (fam: HierarchyFamily) => AGGREGATOR_KEYS.has(fam.key)
 
   // (b2) leaderboard-wrapper merge. A `*-leaderboard` family with one
   // benchmark whose key matches its parent name is a thin wrapper
-  // around that benchmark. Merge its eval_summary_ids into a sibling
+  // around that benchmark. Merge its constituent_evaluation_ids into a sibling
   // family that already carries the same bench, then drop the wrapper.
   // Prefer a non-aggregator merge target so the leaderboard's row lands
   // in the canonical paper home rather than llm-stats.
@@ -789,14 +792,14 @@ function consolidateDedicatedHomeBenchmarks(h: CleanableHierarchy) {
     )
     if (!peer) continue
     const merged = new Set<string>()
-    for (const id of peer.bench.summary_eval_ids ?? []) merged.add(id)
-    for (const id of sole.summary_eval_ids ?? []) merged.add(id)
-    peer.bench.summary_eval_ids = [...merged]
+    for (const id of peer.bench.constituent_evaluation_ids ?? []) merged.add(id)
+    for (const id of sole.constituent_evaluation_ids ?? []) merged.add(id)
+    peer.bench.constituent_evaluation_ids = [...merged]
     dropped.add(a)
   }
 
   // (c) sole-bench / shared-eval-id tie. Two families that each carry a
-  // single benchmark with the SAME eval_summary_ids are surfacing the
+  // single benchmark with the SAME constituent_evaluation_ids are surfacing the
   // same physical data under different family keys — keys can differ
   // (livecodebench vs livecodebenchpro both wrap the
   // `livecodebenchpro%2Flivecodebench-pro` row). Drop one, preferring
@@ -809,14 +812,14 @@ function consolidateDedicatedHomeBenchmarks(h: CleanableHierarchy) {
     const aBenches = benchesByFam.get(a) ?? []
     if (aBenches.length !== 1) continue
     const aSole = aBenches[0].bench
-    const aIds = new Set(aSole.summary_eval_ids ?? [])
+    const aIds = new Set(aSole.constituent_evaluation_ids ?? [])
     if (aIds.size === 0) continue
     for (const b of allFamilies) {
       if (a === b || dropped.has(b)) continue
       const bBenches = benchesByFam.get(b) ?? []
       if (bBenches.length !== 1) continue
       const bSole = bBenches[0].bench
-      const bIds = new Set(bSole.summary_eval_ids ?? [])
+      const bIds = new Set(bSole.constituent_evaluation_ids ?? [])
       if (bIds.size !== aIds.size) continue
       let same = true
       for (const id of aIds) if (!bIds.has(id)) { same = false; break }
@@ -847,7 +850,7 @@ function consolidateDedicatedHomeBenchmarks(h: CleanableHierarchy) {
   // new data path.
   //
   // A family qualifies for drop only when (1) it has exactly one
-  // bench, and (2) every one of that bench's eval_summary_ids is
+  // bench, and (2) every one of that bench's constituent_evaluation_ids is
   // already carried by some other surviving family. That keeps
   // independent sources alive — `mmlu-pro` (eval_id
   // `mmlu-pro%2Fmmlu-pro`) and `mmlu-pro-leaderboard` (eval_id
@@ -858,7 +861,7 @@ function consolidateDedicatedHomeBenchmarks(h: CleanableHierarchy) {
     if (dropped.has(fam)) continue
     const ids = new Set<string>()
     for (const handle of benchesByFam.get(fam) ?? []) {
-      for (const id of handle.bench.summary_eval_ids ?? []) ids.add(id)
+      for (const id of handle.bench.constituent_evaluation_ids ?? []) ids.add(id)
     }
     idsCoveredByFamily.set(fam, ids)
   }
@@ -882,7 +885,7 @@ function consolidateDedicatedHomeBenchmarks(h: CleanableHierarchy) {
     // itself, since that's the family BEING the canonical home.)
     if (soleBench.key === fam.key) continue
     if (!familyKeysAlive.has(soleBench.key)) continue
-    const soleIds = soleBench.summary_eval_ids ?? []
+    const soleIds = soleBench.constituent_evaluation_ids ?? []
     if (soleIds.length === 0) continue
     const allCoveredElsewhere = soleIds.every((id) => {
       for (const [otherFam, otherIds] of idsCoveredByFamily) {
@@ -902,7 +905,7 @@ function consolidateDedicatedHomeBenchmarks(h: CleanableHierarchy) {
  * from different upstream sources into one merged family card.
  *
  * Triggered when ≥2 single-bench families share a bench key but their
- * bench rows have non-overlapping eval_summary_ids — i.e. independent
+ * bench rows have non-overlapping constituent_evaluation_ids — i.e. independent
  * sources publishing the same benchmark. The richest family (most
  * models) keeps its slot; other families contribute their bench under
  * the survivor as siblings, with each bench's display_name suffixed
@@ -952,7 +955,7 @@ function groupSameBenchAcrossSources(h: CleanableHierarchy) {
     const seenIds = new Set<string>()
     let disjoint = true
     for (const entry of group) {
-      for (const id of entry.bench.summary_eval_ids ?? []) {
+      for (const id of entry.bench.constituent_evaluation_ids ?? []) {
         if (seenIds.has(id)) { disjoint = false; break }
         seenIds.add(id)
       }
@@ -1008,8 +1011,8 @@ function groupSameBenchAcrossSources(h: CleanableHierarchy) {
  *
  * Consolidate everything under HELM AIR-Bench: drop the standalone
  * family, strip AIR-Bench rows out of agentharm, and plant the union
- * of every AIR-Bench eval id under helm's `eval_summary_ids` and the
- * helm-air-bench composite's benchmark `summary_eval_ids`. The
+ * of every AIR-Bench eval id under helm's `constituent_evaluation_ids` and the
+ * helm-air-bench composite's benchmark `constituent_evaluation_ids`. The
  * benchmark-id heuristic — `air-bench-2024` prefix — is narrow enough
  * to be safe and broad enough to catch alternate sources.
  */
@@ -1088,12 +1091,12 @@ function consolidateAirBench(h: CleanableHierarchy) {
   // Collect every AIR-Bench eval id surfaced anywhere in the hierarchy.
   const airBenchEvalIds = new Set<string>()
   for (const fam of h.families ?? []) {
-    for (const id of fam.eval_summary_ids ?? []) {
+    for (const id of fam.constituent_evaluation_ids ?? []) {
       if (isAirBenchEvalId(id)) airBenchEvalIds.add(id)
     }
     // The HELM AIR-Bench composite ships its 60+ leaf categories as
     // entries on the rollup benchmark's `slices[]`, NOT in
-    // `family.eval_summary_ids` (which only carries the rollup itself).
+    // `family.constituent_evaluation_ids` (which only carries the rollup itself).
     // Reconstruct the slice eval ids by combining the source prefix with
     // each slice key so the consolidation step can plant them all under
     // helm. Without this the leaves orphan to evalEntry.family_id and
@@ -1103,11 +1106,16 @@ function consolidateAirBench(h: CleanableHierarchy) {
       for (const bench of composite.benchmarks ?? []) {
         if (!isAirBenchBenchmarkKey(bench.key)) continue
         const sourcePrefixes = new Set<string>()
-        for (const id of bench.summary_eval_ids ?? []) {
+        for (const id of bench.constituent_evaluation_ids ?? []) {
           if (id.includes("%2F")) sourcePrefixes.add(id.split("%2F")[0])
         }
         if (sourcePrefixes.size === 0) sourcePrefixes.add(composite.key)
         for (const slice of bench.slices ?? []) {
+          // Only synthesise ids for real category slices (clean slugs). The
+          // raw fine-subtask keys ("airbench 2024 - #1.1: ...") aren't real
+          // evals, so they'd produce phantom constituents that 404. Stopgap —
+          // the proper fix is resolving those names to slugs upstream in the data.
+          if (!/^[a-z0-9][a-z0-9._-]*$/.test(slice.key)) continue
           for (const prefix of sourcePrefixes) {
             airBenchEvalIds.add(`${prefix}%2F${slice.key}`)
           }
@@ -1122,7 +1130,7 @@ function consolidateAirBench(h: CleanableHierarchy) {
   // 2. Strip AIR-Bench from non-HELM families (agentharm in practice).
   for (const fam of h.families) {
     if (fam.key === "helm") continue
-    fam.eval_summary_ids = (fam.eval_summary_ids ?? []).filter(
+    fam.constituent_evaluation_ids = (fam.constituent_evaluation_ids ?? []).filter(
       (id) => !airBenchEvalIds.has(id),
     )
     if (fam.benchmarks) {
@@ -1143,13 +1151,13 @@ function consolidateAirBench(h: CleanableHierarchy) {
   }
 
   // 3. Plant every AIR-Bench eval id under helm > helm-air-bench, and
-  //    extend the composite's benchmark `summary_eval_ids` so the
+  //    extend the composite's benchmark `constituent_evaluation_ids` so the
   //    hierarchy lookup routes them all to the same composite.
   const helm = h.families.find((f) => f.key === "helm")
   if (helm) {
-    const helmIds = new Set(helm.eval_summary_ids ?? [])
+    const helmIds = new Set(helm.constituent_evaluation_ids ?? [])
     for (const id of airBenchEvalIds) helmIds.add(id)
-    helm.eval_summary_ids = [...helmIds]
+    helm.constituent_evaluation_ids = [...helmIds]
 
     const composite = (helm.composites ?? []).find(
       (c) => c.key === "helm-air-bench",
@@ -1159,9 +1167,9 @@ function consolidateAirBench(h: CleanableHierarchy) {
         (composite.benchmarks ?? []).find((b) => b.key === "air-bench-2024") ??
         (composite.benchmarks ?? [])[0]
       if (bench) {
-        const benchIds = new Set(bench.summary_eval_ids ?? [])
+        const benchIds = new Set(bench.constituent_evaluation_ids ?? [])
         for (const id of airBenchEvalIds) benchIds.add(id)
-        bench.summary_eval_ids = [...benchIds]
+        bench.constituent_evaluation_ids = [...benchIds]
       }
     }
   }
@@ -1270,7 +1278,7 @@ function flattenSplitFamilies(h: CleanableHierarchy) {
             display_name: titleize(metricLabel),
           })
         }
-        for (const id of child.summary_eval_ids ?? []) group.summaryIds.add(id)
+        for (const id of child.constituent_evaluation_ids ?? []) group.summaryIds.add(id)
         groups.set(prefix, group)
       }
       const standalones: HierarchyBenchmark[] = []
@@ -1286,15 +1294,15 @@ function flattenSplitFamilies(h: CleanableHierarchy) {
           key: slugify(group.prefix),
           display_name: group.prefix,
           tags: { domains: [], languages: [], tasks: [] },
-          summary_eval_ids: [...group.summaryIds],
+          constituent_evaluation_ids: [...group.summaryIds],
           slices: [rootSlice],
         } as unknown as HierarchyBenchmark)
       }
       // Re-route family-level eval lookup to the merged benchmarks.
-      const famIdsM = new Set<string>(fam.eval_summary_ids ?? [])
+      const famIdsM = new Set<string>(fam.constituent_evaluation_ids ?? [])
       for (const s of standalones)
-        for (const id of s.summary_eval_ids ?? []) famIdsM.add(id)
-      fam.eval_summary_ids = [...famIdsM]
+        for (const id of s.constituent_evaluation_ids ?? []) famIdsM.add(id)
+      fam.constituent_evaluation_ids = [...famIdsM]
       fam.standalone_benchmarks = standalones
       fam.benchmarks = []
       fam.composites = []
@@ -1330,7 +1338,7 @@ function flattenSplitFamilies(h: CleanableHierarchy) {
           (child.slices ?? []).find((s: any) => (s?.metrics ?? []).length > 0) ??
           null
         const childMetrics = childRoot?.metrics ?? (child as any).metrics ?? []
-        for (const id of child.summary_eval_ids ?? []) group.summaryIds.add(id)
+        for (const id of child.constituent_evaluation_ids ?? []) group.summaryIds.add(id)
         group.slices.push({
           key: slugify(splitLabel),
           display_name: splitLabel,
@@ -1346,17 +1354,17 @@ function flattenSplitFamilies(h: CleanableHierarchy) {
           key: slugify(group.prefix),
           display_name: group.prefix,
           tags: { domains: [], languages: [], tasks: [] },
-          summary_eval_ids: [...group.summaryIds],
+          constituent_evaluation_ids: [...group.summaryIds],
           slices: group.slices,
         } as unknown as HierarchyBenchmark)
       }
       // Re-route family-level eval lookup so split eval ids resolve to
       // the surviving benchmarks (frontend's plotbox builder otherwise
       // splits them back out into separate grids).
-      const famIdsS = new Set<string>(fam.eval_summary_ids ?? [])
+      const famIdsS = new Set<string>(fam.constituent_evaluation_ids ?? [])
       for (const s of standalones)
-        for (const id of s.summary_eval_ids ?? []) famIdsS.add(id)
-      fam.eval_summary_ids = [...famIdsS]
+        for (const id of s.constituent_evaluation_ids ?? []) famIdsS.add(id)
+      fam.constituent_evaluation_ids = [...famIdsS]
       fam.standalone_benchmarks = standalones
       fam.benchmarks = []
       fam.composites = []
@@ -1377,27 +1385,27 @@ function flattenSplitFamilies(h: CleanableHierarchy) {
     const parentSlices = (parent?.slices as any[] | undefined) ?? []
     if (parent && parentSlices.length > 0) {
       // Case (a): keep parent verbatim. Merge each dropped sibling's
-      // `summary_eval_ids` into the parent so the hierarchy lookup
+      // `constituent_evaluation_ids` into the parent so the hierarchy lookup
       // routes orphaned eval rows (e.g. `fibble1-arena%2F…`) back to
       // the surviving Fibble Arena benchmark — without this the
       // model-detail plotbox builder rebuilds the splits as separate
       // grids.
-      const mergedIds = new Set<string>(parent.summary_eval_ids ?? [])
+      const mergedIds = new Set<string>(parent.constituent_evaluation_ids ?? [])
       for (const child of benchmarks) {
         if (child.key === parent.key) continue
-        for (const id of child.summary_eval_ids ?? []) mergedIds.add(id)
+        for (const id of child.constituent_evaluation_ids ?? []) mergedIds.add(id)
       }
       const standalone = {
         ...parent,
         display_name: rule.syntheticDisplayName,
-        summary_eval_ids: [...mergedIds],
+        constituent_evaluation_ids: [...mergedIds],
       } as HierarchyBenchmark
-      // Same fix at family level — `family.eval_summary_ids` drives
+      // Same fix at family level — `family.constituent_evaluation_ids` drives
       // `buildHierarchyEvalIndex`, so missing sibling ids would orphan
       // the lookup.
-      const famIds = new Set<string>(fam.eval_summary_ids ?? [])
+      const famIds = new Set<string>(fam.constituent_evaluation_ids ?? [])
       for (const id of mergedIds) famIds.add(id)
-      fam.eval_summary_ids = [...famIds]
+      fam.constituent_evaluation_ids = [...famIds]
       fam.standalone_benchmarks = [standalone]
       fam.benchmarks = []
       fam.composites = []
@@ -1409,7 +1417,7 @@ function flattenSplitFamilies(h: CleanableHierarchy) {
     const allSummaryIds = new Set<string>()
     const slices: any[] = []
     if (parent) {
-      for (const id of parent.summary_eval_ids ?? []) allSummaryIds.add(id)
+      for (const id of parent.constituent_evaluation_ids ?? []) allSummaryIds.add(id)
       const parentMetrics = (parent as any).metrics ?? []
       // Synthesise a root slice carrying the parent's own metrics so the
       // overall benchmark scope is preserved (AgentHarm rollup metrics).
@@ -1431,7 +1439,7 @@ function flattenSplitFamilies(h: CleanableHierarchy) {
     }
     for (const child of benchmarks) {
       if (child.key === rule.syntheticKey) continue
-      for (const id of child.summary_eval_ids ?? []) allSummaryIds.add(id)
+      for (const id of child.constituent_evaluation_ids ?? []) allSummaryIds.add(id)
       const childRoot =
         (child.slices ?? []).find((s: any) => s?.is_bare_stem === true) ??
         (child.slices ?? []).find((s: any) => (s?.metrics ?? []).length > 0) ??
@@ -1450,15 +1458,15 @@ function flattenSplitFamilies(h: CleanableHierarchy) {
       key: rule.syntheticKey,
       display_name: rule.syntheticDisplayName,
       tags: parent?.tags ?? { domains: [], languages: [], tasks: [] },
-      summary_eval_ids: [...allSummaryIds],
+      constituent_evaluation_ids: [...allSummaryIds],
       slices,
     } as unknown as HierarchyBenchmark
     // Make sure family-level lookup routes these eval ids back to the
     // surviving benchmark too (otherwise the model-detail plotbox
     // builder rebuilds the splits as separate grids).
-    const famIds = new Set<string>(fam.eval_summary_ids ?? [])
+    const famIds = new Set<string>(fam.constituent_evaluation_ids ?? [])
     for (const id of allSummaryIds) famIds.add(id)
-    fam.eval_summary_ids = [...famIds]
+    fam.constituent_evaluation_ids = [...famIds]
     fam.standalone_benchmarks = [standalone]
     fam.benchmarks = []
     fam.composites = []
@@ -1492,14 +1500,14 @@ function filterBenchmarkIndex(
     for (const app of entry.appearances ?? []) {
       if (!survivingFamilyKeys.has(app.family_key)) continue
       const newIds: string[] = []
-      for (const id of app.eval_summary_ids ?? []) {
+      for (const id of app.constituent_evaluation_ids ?? []) {
         const pair = `${app.family_key}::${id}`
         if (seenPair.has(pair)) continue
         seenPair.add(pair)
         newIds.push(id)
       }
       if (newIds.length === 0) continue
-      cleanedApps.push({ ...app, eval_summary_ids: newIds })
+      cleanedApps.push({ ...app, constituent_evaluation_ids: newIds })
     }
 
     // Second pass: drop appearances whose eval_summary_id set is fully
@@ -1513,7 +1521,7 @@ function filterBenchmarkIndex(
     const dedupedApps: BenchmarkIndexAppearance[] = []
     const dropped = new Set<number>()
     const idSet = (a: BenchmarkIndexAppearance) =>
-      new Set(a.eval_summary_ids ?? [])
+      new Set(a.constituent_evaluation_ids ?? [])
     const isStrictlyContainedOrEqualWithLossTie = (
       iA: number,
       iB: number,
@@ -1547,10 +1555,10 @@ function filterBenchmarkIndex(
     }
 
     // Skip degenerate entries: need ≥2 families AND ≥2 distinct
-    // eval_summary_ids for there to be something to cross-reference.
+    // constituent_evaluation_ids for there to be something to cross-reference.
     const distinctFamilies = new Set(dedupedApps.map((a) => a.family_key))
     const distinctIds = new Set<string>()
-    for (const a of dedupedApps) for (const id of a.eval_summary_ids) distinctIds.add(id)
+    for (const a of dedupedApps) for (const id of a.constituent_evaluation_ids) distinctIds.add(id)
     if (distinctFamilies.size <= 1 || distinctIds.size <= 1) continue
 
     out.push({ ...entry, appearances: dedupedApps })

@@ -2,14 +2,13 @@ import { describe, expect, it } from "vitest"
 
 import { getCanonicalModelIdentity } from "../../lib/model-family"
 
-// Executable spec for `notes/transformations/02-setup-alias-merging.md`.
+// Executable spec for the setup-alias-merging transformation.
 //
 // These tests describe TS as it currently runs in production. Quirks are
 // preserved on purpose — the migration target is to move the computation
 // upstream without changing what users see, not to fix transformation
 // decisions. If a test below looks "wrong" to product sense, that's a
-// future product decision (see the "Future product decision" section of the
-// spec); fixing it is explicitly out of scope for this migration.
+// future product decision; fixing it is out of scope here.
 //
 // Pipeline-side implementation must produce identical outputs for every
 // row. Verify cross-corpus equivalence with `scripts/verify-setup-alias.mjs`
@@ -19,8 +18,8 @@ import { getCanonicalModelIdentity } from "../../lib/model-family"
 // Group A — isSetupAliasQualifier truth table
 // ---------------------------------------------------------------------------
 //
-// Reproduces the function from lib/hf-data.ts:708-720 (and its identical
-// twin in scripts/cache-hf-data.mjs:199-211). Pipeline must match exactly.
+// Reproduces the function from lib/hf-data.ts (and its identical
+// twin in scripts/cache-hf-data.mjs). Pipeline must match exactly.
 
 function normalizeSetupAliasQualifier(value: string | null | undefined): string {
   return value?.trim().toLowerCase().replace(/[_\s]+/g, "-") ?? ""
@@ -74,7 +73,7 @@ describe("Group A — isSetupAliasQualifier", () => {
 // Group B — End-to-end variant normalization (TS-as-is)
 // ---------------------------------------------------------------------------
 //
-// Replicates lib/hf-data.ts:759-786 verbatim, NO date-format fix applied.
+// Replicates lib/hf-data.ts verbatim, NO date-format fix applied.
 // Documents the dashed-date fall-through behaviour as the canonical spec.
 
 interface VariantInput {

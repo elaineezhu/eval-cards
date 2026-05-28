@@ -1,9 +1,9 @@
 import { describe, expect, it } from "vitest"
 
-// Executable spec for `notes/transformations/12-instance-level-data.md`.
+// Executable spec for the instance-level-data transformation.
 //
-// Replicates `parseInstanceLevelData` from `lib/hf-data.ts:933-1043` verbatim.
-// `fetchInstanceLevelData` (lib/hf-data.ts:890-917) is currently orphaned;
+// Replicates `parseInstanceLevelData` from `lib/hf-data.ts` verbatim.
+// `fetchInstanceLevelData` (lib/hf-data.ts) is currently orphaned;
 // not tested here (it just wraps fetch + JSON.parse + re-uses the parser).
 
 interface SampleResult {

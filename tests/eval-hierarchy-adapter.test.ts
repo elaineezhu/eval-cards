@@ -3,10 +3,9 @@ import { describe, expect, it, vi } from "vitest"
 import type { EvalHierarchy } from "../lib/backend-artifacts"
 import { adaptEvalHierarchy } from "../lib/hf-data"
 
-// adaptEvalHierarchy is a passthrough validator post-Step-4 — the
-// producer's write_hierarchy() emits the v3 family-rooted tree
-// directly (notes/hierarchy-alignment.md §5.1), so the adapter no
-// longer synthesises legacy shapes. These tests confirm the
+// adaptEvalHierarchy is a passthrough validator — the producer's
+// write_hierarchy() emits the v3 family-rooted tree directly, so the
+// adapter no longer synthesises legacy shapes. These tests confirm the
 // passthrough preserves data and that the schema_version warning
 // fires for unknown versions.
 
@@ -29,7 +28,7 @@ describe("adaptEvalHierarchy (passthrough)", () => {
           category: "knowledge",
           tags: { domains: ["reasoning"], languages: [], tasks: ["qa"] },
           evals_count: 4,
-          eval_summary_ids: ["wasp%2Fgpqa", "wasp%2Fgpqa-diamond"],
+          constituent_evaluation_ids: ["wasp%2Fgpqa", "wasp%2Fgpqa-diamond"],
           benchmarks: [
             {
               key: "gpqa",
@@ -42,7 +41,7 @@ describe("adaptEvalHierarchy (passthrough)", () => {
               tags: { domains: ["reasoning"], languages: [], tasks: ["qa"] },
               metrics: [{ key: "accuracy", display_name: "Accuracy" }],
               slices: [],
-              summary_eval_ids: ["wasp%2Fgpqa"],
+              constituent_evaluation_ids: ["wasp%2Fgpqa"],
             },
             {
               key: "gpqa-diamond",
@@ -55,7 +54,7 @@ describe("adaptEvalHierarchy (passthrough)", () => {
               tags: { domains: ["reasoning"], languages: [], tasks: ["qa"] },
               metrics: [{ key: "accuracy", display_name: "Accuracy" }],
               slices: [],
-              summary_eval_ids: ["wasp%2Fgpqa-diamond"],
+              constituent_evaluation_ids: ["wasp%2Fgpqa-diamond"],
             },
           ],
         },

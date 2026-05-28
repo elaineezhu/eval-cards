@@ -1,9 +1,9 @@
 import { describe, expect, it } from "vitest"
 
-// Executable spec for `notes/transformations/05-slug-candidates.md`.
+// Executable spec for the slug-candidates transformation.
 //
 // Replicates pipelineSlugify, getModelDetailSlugCandidates, and
-// getDeveloperSlugCandidates from lib/model-data.ts:150-211 verbatim.
+// getDeveloperSlugCandidates from lib/model-data.ts verbatim.
 // Pipeline must produce identical outputs for every case below.
 
 function pipelineSlugify(text: string): string {

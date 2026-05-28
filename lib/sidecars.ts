@@ -281,15 +281,13 @@ export function fetchPeerRanks(): Promise<PeerRanksMap> {
 
 /**
  * Fail fast on contract regressions. Comparison-index rows must carry
- * `family_id`; the model-page graph view collapses without it. See
- * `notes/hierarchy-alignment.md` §5.2.
+ * `family_id`; the model-page graph view collapses without it.
  */
 export function assertComparisonIndexShape(index: ComparisonIndex): void {
   for (const [evalId, entry] of Object.entries(index.evals ?? {})) {
     if (!Object.prototype.hasOwnProperty.call(entry, "family_id")) {
       throw new Error(
-        `comparison-index contract regression: evals[${evalId}] is missing family_id. ` +
-          `See notes/hierarchy-alignment.md §5.2.`,
+        `comparison-index contract regression: evals[${evalId}] is missing family_id.`,
       )
     }
   }

@@ -204,7 +204,7 @@ export function PolicyOverview({ summary }: PolicyOverviewProps) {
     ? "Lower scores are better"
     : "Higher scores are better"
 
-  // Policy-note triple (paper §4.2.2): What it measures · Main caveat · Intended for.
+  // Policy-note triple: What it measures · Main caveat · Intended for.
   // Filter the literal "Not specified" sentinel so the row collapses
   // entirely instead of rendering a placeholder.
   const measuresText = visibleText

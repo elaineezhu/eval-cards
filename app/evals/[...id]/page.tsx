@@ -18,6 +18,7 @@ import {
   buildHierarchyEvalIndex,
   type HierarchyEvalLocation,
 } from "@/lib/hierarchy-lookup"
+import { tagLabel } from "@/lib/benchmark-schema"
 
 function findBenchmarkSplitIds(hierarchy: EvalHierarchy | null, evalId: string): string[] {
   if (!hierarchy) return []
@@ -28,8 +29,8 @@ function findBenchmarkSplitIds(hierarchy: EvalHierarchy | null, evalId: string):
       ...(fam.composites ?? []).flatMap((c) => c.benchmarks ?? []),
     ]
     for (const bench of benches) {
-      if (bench.summary_eval_ids?.includes(evalId)) {
-        return bench.summary_eval_ids
+      if (bench.constituent_evaluation_ids?.includes(evalId)) {
+        return bench.constituent_evaluation_ids
       }
     }
   }
@@ -107,7 +108,7 @@ export default function EvalDetailPage() {
           setSubSummaries(subs.filter((s): s is BenchmarkEvalSummary => s !== null))
         } else {
           // Detect benchmark splits: non-composite evals whose hierarchy
-          // benchmark has multiple summary_eval_ids (e.g. fibble-arena variants).
+          // benchmark has multiple constituent_evaluation_ids (e.g. fibble-arena variants).
           const siblings = findBenchmarkSplitIds(evalHierarchy, evalId)
           if (siblings.length > 1) {
             setSplitIds(siblings)
@@ -276,7 +277,7 @@ export default function EvalDetailPage() {
 }
 
 // ---------------------------------------------------------------------------
-// Composite view — paper §3.2 "composite reporting unit"
+// Composite view — the composite reporting unit
 // Surfaces sub-benchmarks as a hairline grid and a per-model × per-metric
 // matrix table. Both modes (research / policy) share the same chrome; the
 // policy-note panel changes per benchmark, surfaced from the sub-summary card.
@@ -338,8 +339,12 @@ function CompositeEvalView({
               <span style={{ color: "var(--fg-subtle)" }}>·</span>
             </>
           )}
-          <span>{summary.category}</span>
-          <span style={{ color: "var(--fg-subtle)" }}>·</span>
+          {summary.derived_tags && summary.derived_tags.length > 0 && (
+            <>
+              <span>{summary.derived_tags.map(tagLabel).join(", ")}</span>
+              <span style={{ color: "var(--fg-subtle)" }}>·</span>
+            </>
+          )}
           <span>{summary.metric_config.lower_is_better ? "Lower is better ↓" : "Higher is better ↑"}</span>
         </div>
         <p className="ec-page-lede">{lede}</p>

@@ -5,10 +5,8 @@ import path from "node:path"
 import { getConnection } from "@/lib/duckdb"
 import { fetchHeadline } from "@/lib/sidecars"
 import {
-  EVALUATION_CATEGORIES,
   type BenchmarkCard,
   type BenchmarkEvaluation,
-  type CategoryType,
   type EvaluationCardData,
   type EvaluationResult,
   type GenerationConfig,
@@ -32,7 +30,7 @@ type Row = Record<string, any>
 const MODEL_CARD_COLUMNS = `
   id, model_key, route_id, model_name, model_id, canonical_model_name, developer,
   evaluations_count, benchmarks_count, variant_count,
-  categories, category_stats, latest_timestamp,
+  derived_tags AS tags, tag_stats, latest_timestamp,
   evaluator_count, evaluator_names, source_type_count, source_types,
   evidence_count, missing_generation_config_count,
   third_party_eval_count, independent_verification_ratio,
@@ -44,8 +42,8 @@ const MODEL_CARD_COLUMNS = `
   architecture, params, inference_engine, inference_platform
 `
 
-// The composite/family/slice taxonomy refactor (eval_card_backend
-// notes/09-) replaced the legacy `composite_benchmark_key` /
+// The composite/family/slice taxonomy replaced the legacy
+// `composite_benchmark_key` /
 // `composite_benchmark_name` columns with `composite_slug` /
 // `composite_display_name`. The `family_id` / `family_display_name` /
 // `is_slice` columns are the canonical identity surface; we still
@@ -63,14 +61,14 @@ const EVAL_LIST_COLUMNS = `
   composite_slug AS composite_benchmark_key,
   composite_display_name AS composite_benchmark_name,
   family_display_name AS benchmark_family_name,
-  category,
+  derived_tags,
   metric_config, models_count, evaluator_names, source_types,
   latest_source_name, third_party_ratio,
   missing_generation_config_count, best_model, worst_model,
   avg_score, avg_score_norm, has_card, benchmark_card,
   is_aggregated, aggregate_sources, tags,
   metrics_count, metric_names, instance_data, top_score,
-  subtasks_count, is_summary_score, summary_eval_ids,
+  subtasks_count, is_summary_score,
   root_metrics, subtasks, leaderboard_metrics,
   reproducibility_summary, provenance_summary, comparability_summary,
   source_data
@@ -90,13 +88,12 @@ const CELL_JOIN_COLUMNS = `
   e.composite_slug AS eval_composite_benchmark_key,
   e.composite_display_name AS eval_composite_benchmark_name,
   e.family_display_name AS eval_benchmark_family_name,
-  e.category AS eval_category,
+  e.derived_tags AS eval_derived_tags,
   e.metric_config AS eval_metric_config,
   e.source_data AS eval_source_data,
   e.benchmark_card AS eval_benchmark_card,
   e.tags AS eval_tags,
-  e.is_summary_score AS eval_is_summary_score,
-  e.summary_eval_ids AS eval_summary_eval_ids
+  e.is_summary_score AS eval_is_summary_score
 `
 
 function normalizeDuckDBValue(value: unknown): unknown {
@@ -201,17 +198,47 @@ function asArray<T>(value: unknown): T[] {
   return Array.isArray(value) ? value as T[] : []
 }
 
-function normalizeCategory(value: unknown): CategoryType {
-  return EVALUATION_CATEGORIES.includes(value as CategoryType)
-    ? value as CategoryType
-    : "General"
+// derived_tags arrives as a native list (models_view: VARCHAR[]) or a
+// JSON-encoded string (evals_view / eval_results_view: VARCHAR). Coerce
+// either into a string[].
+function coerceTags(value: unknown): string[] {
+  if (Array.isArray(value)) return value.filter((t): t is string => typeof t === "string")
+  if (typeof value === "string" && value.length > 0) {
+    try {
+      const parsed = JSON.parse(value)
+      return Array.isArray(parsed) ? parsed.filter((t): t is string => typeof t === "string") : []
+    } catch {
+      return []
+    }
+  }
+  return []
 }
 
-function emptyEvaluationsByCategory(): Record<CategoryType, BenchmarkEvaluation[]> {
-  return EVALUATION_CATEGORIES.reduce((acc, category) => {
-    acc[category] = []
-    return acc
-  }, {} as Record<CategoryType, BenchmarkEvaluation[]>)
+// tag_stats is a JSON column ({tag: count}); coerce string-or-object into
+// a plain Record<string, number>.
+function coerceTagStats(value: unknown): Record<string, number> {
+  let obj: unknown = value
+  if (typeof value === "string" && value.length > 0) {
+    try { obj = JSON.parse(value) } catch { return {} }
+  }
+  if (obj && typeof obj === "object" && !Array.isArray(obj)) {
+    const out: Record<string, number> = {}
+    for (const [k, v] of Object.entries(obj as Record<string, unknown>)) {
+      out[k] = Number(v) || 0
+    }
+    return out
+  }
+  return {}
+}
+
+// Model-card rows carry `tags` (derived_tags AS tags) and `tag_stats`
+// straight off the parquet; normalise their runtime shapes.
+function finalizeModelCard(row: Row): EvaluationCardData {
+  return {
+    ...row,
+    tags: coerceTags(row.tags),
+    tag_stats: coerceTagStats(row.tag_stats),
+  } as EvaluationCardData
 }
 
 function sourceMetadataFromRow(row: Row): SourceMetadata {
@@ -345,7 +372,7 @@ function reshapeCellToBenchmarkEvaluation(row: Row): BenchmarkEvaluation {
     benchmark: optionalString(row.eval_evaluation_name ?? row.benchmark_id),
     display_name: optionalString(row.eval_evaluation_name),
     canonical_display_name: optionalString(row.eval_canonical_display_name),
-    category: normalizeCategory(row.eval_category ?? row.category),
+    derived_tags: coerceTags(row.eval_derived_tags ?? row.derived_tags),
     family_id: optionalString(row.eval_family_id),
     benchmark_family_name: optionalString(row.eval_family_display_name),
     parent_benchmark_id: optionalString(row.eval_parent_benchmark_id),
@@ -363,16 +390,20 @@ function reshapeCellToBenchmarkEvaluation(row: Row): BenchmarkEvaluation {
 }
 
 function modelSummaryFromRows(modelRow: Row, cellRows: Row[]): ModelEvaluationSummary {
-  const evaluationsByCategory = emptyEvaluationsByCategory()
+  // An evaluation can carry several tags, so it appears under each of its
+  // tags (multi-membership), unlike the old single-category grouping.
+  const evaluationsByTag: Record<string, BenchmarkEvaluation[]> = {}
   for (const cellRow of cellRows) {
     const evaluation = reshapeCellToBenchmarkEvaluation(cellRow)
-    const category = normalizeCategory(evaluation.category)
-    evaluationsByCategory[category].push(evaluation)
+    const tags = evaluation.derived_tags && evaluation.derived_tags.length > 0
+      ? evaluation.derived_tags
+      : ["general"]
+    for (const tag of tags) {
+      (evaluationsByTag[tag] ??= []).push(evaluation)
+    }
   }
 
-  const categoriesCovered = asArray<CategoryType>(modelRow.categories).filter((category) =>
-    EVALUATION_CATEGORIES.includes(category)
-  )
+  const tagsCovered = coerceTags(modelRow.tags ?? modelRow.derived_tags)
   const modelInfo = (modelRow.model_info ?? modelInfoFromModelRow(modelRow)) as ModelInfo
   const totalEvaluations = asNumber(modelRow.total_evaluations ?? modelRow.evaluations_count)
   const lastUpdated = asString(modelRow.last_updated ?? modelRow.latest_timestamp, "")
@@ -380,12 +411,10 @@ function modelSummaryFromRows(modelRow: Row, cellRows: Row[]): ModelEvaluationSu
 
   const core = {
     model_info: modelInfo,
-    evaluations_by_category: evaluationsByCategory,
+    evaluations_by_tag: evaluationsByTag,
     total_evaluations: totalEvaluations,
     last_updated: lastUpdated,
-    categories_covered: categoriesCovered.length > 0
-      ? categoriesCovered
-      : EVALUATION_CATEGORIES.filter((category) => evaluationsByCategory[category].length > 0),
+    tags_covered: tagsCovered.length > 0 ? tagsCovered : Object.keys(evaluationsByTag),
     reproducibility_summary: modelRow.reproducibility_summary,
     provenance_summary: modelRow.provenance_summary,
     comparability_summary: modelRow.comparability_summary,
@@ -403,9 +432,9 @@ function modelSummaryFromRows(modelRow: Row, cellRows: Row[]): ModelEvaluationSu
     family_name: asString(variant.family_name ?? modelRow.model_family_name, modelRow.model_family_name),
     total_evaluations: asNumber(variant.total_evaluations ?? totalEvaluations),
     last_updated: asString(variant.last_updated ?? lastUpdated, lastUpdated),
-    categories_covered: asArray<CategoryType>(variant.categories_covered).length > 0
-      ? asArray<CategoryType>(variant.categories_covered)
-      : core.categories_covered,
+    tags_covered: coerceTags(variant.tags_covered ?? variant.derived_tags).length > 0
+      ? coerceTags(variant.tags_covered ?? variant.derived_tags)
+      : core.tags_covered,
     model_info: {
       ...modelInfo,
       name: asString(variant.variant_display_name ?? variant.variant_label ?? modelInfo.name, modelInfo.name),
@@ -432,39 +461,46 @@ async function getModelEvaluationRows(modelKey: string): Promise<Row[]> {
      LEFT JOIN evals_view e ON r.evaluation_id = e.evaluation_id
      WHERE r.model_key = ?
        AND r.score IS NOT NULL
-     ORDER BY r.category, r.percentile DESC NULLS LAST`,
+     ORDER BY r.percentile DESC NULLS LAST`,
     [modelKey]
   )
 }
 
 export async function getModelCards(): Promise<EvaluationCardData[]> {
-  return readRows<EvaluationCardData>(
+  const rows = await readRows<Row>(
     `SELECT ${MODEL_CARD_COLUMNS}
      FROM models_view
      ORDER BY latest_timestamp DESC NULLS LAST`
   )
+  return rows.map(finalizeModelCard)
 }
 
 export async function getModelCardsLite(): Promise<EvaluationCardData[]> {
-  return readRows<EvaluationCardData>(
+  const rows = await readRows<Row>(
     `SELECT ${MODEL_CARD_COLUMNS}
      FROM models_view
      ORDER BY benchmarks_count DESC NULLS LAST, evaluations_count DESC NULLS LAST, model_name ASC`
   )
+  return rows.map(finalizeModelCard)
 }
 
 export async function getEvalListData(): Promise<{
   evals: BenchmarkEvalListItem[]
   totalModels: number
 }> {
-  const [evals, countRows] = await Promise.all([
-    readRows<BenchmarkEvalListItem>(
+  const [evalRows, countRows] = await Promise.all([
+    readRows<Row>(
       `SELECT ${EVAL_LIST_COLUMNS}
        FROM evals_view
        ORDER BY evaluation_name ASC`
     ),
     readRows<{ n: number }>("SELECT COUNT(*) AS n FROM models_view"),
   ])
+
+  const evals = evalRows.map((row) => ({
+    ...row,
+    derived_tags: coerceTags(row.derived_tags),
+  })) as unknown as BenchmarkEvalListItem[]
 
   return {
     evals,
@@ -587,8 +623,9 @@ export async function getEvalSummaryById(evalId: string): Promise<BenchmarkEvalS
 
   const summary = {
     ...evalRow,
+    derived_tags: coerceTags(evalRow.derived_tags),
     model_results: cellRows.map(reshapeCellToModelResult),
-  } as BenchmarkEvalSummary
+  } as unknown as BenchmarkEvalSummary
 
   // Splice in precomputed multi-metric leaderboard_rows and subtask
   // leaderboard_metrics from data/eval-matrices.json. Models in the matrix
@@ -654,7 +691,7 @@ export async function getDeveloperSummaryById(routeId: string) {
   const developer = developers.find((entry) => entry.route_id === routeId)
   if (!developer) return null
 
-  const models = await readRows<EvaluationCardData>(
+  const modelRows = await readRows<Row>(
     `SELECT ${MODEL_CARD_COLUMNS}
      FROM models_view
      WHERE developer = ?
@@ -664,7 +701,7 @@ export async function getDeveloperSummaryById(routeId: string) {
 
   return {
     ...developer,
-    models,
+    models: modelRows.map(finalizeModelCard),
   }
 }
 

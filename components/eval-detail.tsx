@@ -51,6 +51,7 @@ import {
   X,
 } from "lucide-react"
 import type { BenchmarkCard, SourceData } from "@/lib/benchmark-schema"
+import { tagLabel } from "@/lib/benchmark-schema"
 import type { BenchmarkEvalSummary, ModelResultForBenchmark } from "@/lib/eval-processing"
 import type { ComparisonIndex, EvalHierarchy } from "@/lib/backend-artifacts"
 import type { HierarchyEvalLocation } from "@/lib/hierarchy-lookup"
@@ -1003,7 +1004,7 @@ export function EvalDetail({
 
   return (
     <div className="space-y-12">
-      {/* HERO — paper §3.1 ------------------------------------------------ */}
+      {/* HERO ------------------------------------------------ */}
       <header className="motion-academic-enter">
         {reporterLabel && (
           <div
@@ -1023,7 +1024,7 @@ export function EvalDetail({
           className="font-bold tracking-[-0.025em]"
           style={{ fontSize: "clamp(40px, 5vw, 60px)", lineHeight: 1.04, margin: "0 0 12px" }}
         >
-          {summary.evaluation_name}
+          {lb.evaluation_name}
         </h1>
         <div
           className="mb-6 flex flex-wrap items-center gap-3 font-mono text-[11px] uppercase tracking-[0.12em]"
@@ -1035,13 +1036,19 @@ export function EvalDetail({
               <span style={{ color: "var(--fg-subtle)" }}>·</span>
             </>
           )}
-          <span>{summary.metric_config.score_type}</span>
+          <span>{lb.metric_config.score_type}</span>
           <span style={{ color: "var(--fg-subtle)" }}>·</span>
-          <span>{summary.metric_config.lower_is_better ? "Lower is better ↓" : "Higher is better ↑"}</span>
-          {summary.tags?.languages && summary.tags.languages.length > 0 && (
+          <span>{lb.metric_config.lower_is_better ? "Lower is better ↓" : "Higher is better ↑"}</span>
+          {lb.derived_tags && lb.derived_tags.length > 0 && (
             <>
               <span style={{ color: "var(--fg-subtle)" }}>·</span>
-              <span>{summary.tags.languages.slice(0, 3).join(", ")}</span>
+              <span>{lb.derived_tags.map(tagLabel).join(", ")}</span>
+            </>
+          )}
+          {lb.tags?.languages && lb.tags.languages.length > 0 && (
+            <>
+              <span style={{ color: "var(--fg-subtle)" }}>·</span>
+              <span>{lb.tags.languages.slice(0, 3).join(", ")}</span>
             </>
           )}
         </div>
@@ -1126,7 +1133,7 @@ export function EvalDetail({
 
         <CollapsibleContent className="mt-3">
           <div className="space-y-4">
-            {/* Four interpretive signals (paper §4.2.1), benchmark-level. */}
+            {/* Four interpretive signals, benchmark-level. */}
             <BenchmarkSignalsStrip
               summary={summary}
               evalHierarchy={evalHierarchy}
@@ -1563,7 +1570,7 @@ export function EvalDetail({
                             )}
                             <div className="min-w-0">
                               <Link
-                                href={`/models/${routeIdToPath(getModelFamilyRouteId(modelResult.model_info))}`}
+                                href={`/models/${routeIdToPath(modelResult.model_route_id ?? getModelFamilyRouteId(modelResult.model_info))}`}
                                 className="font-semibold text-[14px] hover:text-[color:var(--accent)] transition-colors"
                                 style={{ color: "var(--fg)" }}
                               >
@@ -2513,7 +2520,7 @@ function MultiMetricLeaderboard({
                       )}
                       <div className="min-w-0">
                         <Link
-                          href={`/models/${routeIdToPath(getModelFamilyRouteId(row.model_info))}`}
+                          href={`/models/${routeIdToPath(row.model_route_id ?? getModelFamilyRouteId(row.model_info))}`}
                           className="font-semibold text-[14px] hover:text-[color:var(--accent)] transition-colors"
                           style={{ color: "var(--fg)" }}
                         >

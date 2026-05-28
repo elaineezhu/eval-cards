@@ -2,14 +2,14 @@
 
 import { ArrowUpRight } from "lucide-react"
 import { cn } from "@/lib/utils"
-import type { CategoryType } from "@/lib/benchmark-schema"
+import type { EvalTag } from "@/lib/benchmark-schema"
 
 export interface EvalNodeTableRow {
   id: string
   title: string
   kind: string
   kindLabel: string
-  category: CategoryType
+  category: EvalTag
   familyLabel?: string
   suiteLabel?: string
   description: string

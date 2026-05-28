@@ -36,12 +36,12 @@ const SIGNAL_ASKS: Record<SignalId, string> = {
 }
 
 /**
- * Reproducibility — paper §4.2.1, signal spec §3.
+ * Reproducibility signal.
  *
  * The spec lists `temperature, top_p, max_tokens, prompt_template` as the
  * base required fields. In the live EEE corpus only `temperature` and
  * `max_tokens` are reliably populated, so we restrict the check to those
- * two for now (per maintainer guidance). Agentic benchmarks additionally
+ * two for now. Agentic benchmarks additionally
  * require `eval_plan` and `eval_limits` — the spec's classification rule
  * is followed verbatim.
  */
@@ -100,8 +100,8 @@ interface BenchmarkSignalsStripProps {
 }
 
 /**
- * Benchmark-level rollup of the four interpretive signals (paper §4.2.1,
- * spec v1.0 §§3-6). Each tile reports one headline statistic that reads
+ * Benchmark-level rollup of the four interpretive signals. Each tile
+ * reports one headline statistic that reads
  * "higher is better, more documentation = better", and is clickable to
  * open a Dialog explaining how the score was computed.
  */
@@ -166,7 +166,7 @@ export function BenchmarkSignalsStrip({
 }
 
 // ──────────────────────────────────────────────────────────────────────────
-// Reproducibility (spec §3)
+// Reproducibility
 // ──────────────────────────────────────────────────────────────────────────
 
 function isAgenticBenchmark(summary: BenchmarkEvalSummary): boolean {
@@ -293,7 +293,7 @@ function deriveReproducibility(summary: BenchmarkEvalSummary): DerivedSignal {
 }
 
 // ──────────────────────────────────────────────────────────────────────────
-// Completeness (spec §4)
+// Completeness
 // ──────────────────────────────────────────────────────────────────────────
 
 interface CompletenessField {
@@ -337,7 +337,7 @@ const COMPLETENESS_FIELD_SET: readonly CompletenessField[] = [
     coverage: "partial",
     subitems: ["privacy_and_anonymity", "data_licensing", "consent_procedures", "compliance_with_regulations"],
   },
-  // Reserved — counted in the denominator even when unset (spec §4.2).
+  // Reserved — counted in the denominator even when unset.
   { path: "evalcards.lifecycle_status", label: "lifecycle status", coverage: "reserved" },
 ] as const
 
@@ -351,7 +351,7 @@ function deriveCompleteness(summary: BenchmarkEvalSummary): DerivedSignal {
     if (field.coverage === "reserved") {
       // The eval-summary payload doesn't currently carry an
       // evalcards.lifecycle_status section, so this scores 0 for now.
-      // It still occupies a denominator slot per spec.
+      // It still occupies a denominator slot.
       score = 0
     } else if (field.coverage === "full") {
       const value = card ? readCardPath(card, field.path) : undefined
@@ -451,7 +451,7 @@ function readCardPath(card: unknown, path: string): unknown {
 }
 
 // ──────────────────────────────────────────────────────────────────────────
-// Provenance (spec §5)
+// Provenance
 // ──────────────────────────────────────────────────────────────────────────
 
 type ProvenanceSourceType = "first_party" | "third_party" | "collaborative" | "unspecified"
@@ -595,7 +595,7 @@ function deriveProvenance(
 }
 
 // ──────────────────────────────────────────────────────────────────────────
-// Comparability (spec §6) — cross-suite first, within-page fallback
+// Comparability — cross-suite first, within-page fallback
 // ──────────────────────────────────────────────────────────────────────────
 
 function computeThreshold(metricConfig: BenchmarkEvalSummary["metric_config"]): number {
@@ -658,7 +658,7 @@ function findCanonicalEntry(
   }
 
   // Strategy 1 — exact match: the page's evaluation_id appears in some
-  // appearance.eval_summary_ids list (e.g. mmlu-pro-leaderboard%2Fmmlu-pro).
+  // appearance.constituent_evaluation_ids list (e.g. mmlu-pro-leaderboard%2Fmmlu-pro).
   const evalSummaryId = summary.evaluation_id
   if (evalSummaryId) {
     let exactCanonical: BenchmarkIndexEntry | null = null
@@ -666,7 +666,7 @@ function findCanonicalEntry(
     for (const entry of index) {
       const apps = entry.appearances ?? []
       if (apps.length === 0) continue
-      const hit = apps.some((a) => (a.eval_summary_ids ?? []).includes(evalSummaryId))
+      const hit = apps.some((a) => (a.constituent_evaluation_ids ?? []).includes(evalSummaryId))
       if (!hit) continue
       const kind = classify(entry)
       if (kind === "canonical") exactCanonical ??= entry
@@ -728,7 +728,7 @@ function buildCrossSuiteAggregate(
   const appearances: CrossSuiteAppearance[] = []
   const seenEvalIds = new Set<string>()
   for (const app of entry.appearances ?? []) {
-    for (const id of app.eval_summary_ids ?? []) {
+    for (const id of app.constituent_evaluation_ids ?? []) {
       if (seenEvalIds.has(id)) continue
       seenEvalIds.add(id)
       appearances.push({

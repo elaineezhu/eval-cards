@@ -55,8 +55,8 @@ async function writeSyntheticStageJSnapshot(snapshotDir: string) {
         TIMESTAMP '2026-05-03 00:00:00' AS latest_timestamp,
         'OpenAI' AS latest_source_name,
         ['MMLU']::VARCHAR[] AS benchmark_names,
-        ['Reasoning']::VARCHAR[] AS categories,
-        struct_pack("General" := 0, "Reasoning" := 1, "Agentic" := 0, "Safety" := 0, "Knowledge" := 0) AS category_stats,
+        ['applied_reasoning']::VARCHAR[] AS derived_tags,
+        '{"applied_reasoning":1}'::JSON AS tag_stats,
         'complete' AS reproducibility_status,
         struct_pack(results_total := 1, has_reproducibility_gap_count := 0, populated_ratio_avg := 1.0) AS reproducibility_summary,
         struct_pack(
@@ -90,7 +90,7 @@ async function writeSyntheticStageJSnapshot(snapshotDir: string) {
           version_qualifier := NULL::VARCHAR,
           total_evaluations := 1,
           last_updated := TIMESTAMP '2026-05-03 00:00:00',
-          categories_covered := ['Reasoning']::VARCHAR[]
+          tags_covered := ['applied_reasoning']::VARCHAR[]
         )] AS variants,
         ['openai/gpt-5']::VARCHAR[] AS raw_model_ids
     `,
@@ -115,7 +115,7 @@ async function writeSyntheticStageJSnapshot(snapshotDir: string) {
         'MMLU' AS family_display_name,
         false AS is_slice,
         NULL AS parent_benchmark_id,
-        'Reasoning' AS category,
+        '["applied_reasoning"]' AS derived_tags,
         struct_pack(
           evaluation_description := 'Accuracy on MMLU',
           lower_is_better := false,
@@ -140,7 +140,7 @@ async function writeSyntheticStageJSnapshot(snapshotDir: string) {
         false AS is_aggregated,
         [] AS aggregate_sources,
         false AS is_summary_score,
-        []::VARCHAR[] AS summary_eval_ids,
+        []::VARCHAR[] AS constituent_evaluation_ids,
         struct_pack(domains := ['knowledge']::VARCHAR[], languages := ['en']::VARCHAR[], tasks := ['qa']::VARCHAR[]) AS tags,
         struct_pack(
           dataset_name := 'MMLU',
@@ -229,7 +229,7 @@ async function writeSyntheticStageJSnapshot(snapshotDir: string) {
         'Accuracy' AS metric_display_name,
         'proportion' AS metric_unit,
         false AS lower_is_better,
-        'Reasoning' AS category,
+        '["applied_reasoning"]' AS derived_tags,
         0.8 AS score,
         struct_pack(
           score := 0.8,
@@ -430,7 +430,7 @@ describe("Stage J view-layer backend", () => {
         totalModels: 1,
         evals: [{ evaluation_id: "mmlu", evaluation_name: "MMLU", models_count: 1 }],
       })
-      expect(modelSummary?.evaluations_by_category.Reasoning).toHaveLength(1)
+      expect(modelSummary?.evaluations_by_tag.applied_reasoning).toHaveLength(1)
       expect(evalSummary?.model_results[0]).toMatchObject({
         model_route_id: "openai%2Fgpt-5",
         score: 0.8,

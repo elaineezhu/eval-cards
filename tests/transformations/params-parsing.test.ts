@@ -1,21 +1,21 @@
 import { describe, expect, it } from "vitest"
 
-// Executable spec for `notes/transformations/10-params-parsing.md`.
+// Executable spec for the params-parsing transformation.
 //
 // Five implementations of params-billions parsing exist in TS:
-//   - Variant A: lib/model-data.ts:312-354 (parseParamsBillions)
-//   - Variant B: components/eval-detail.tsx:81-119 (parseParamsBillionsFromText)
-//   - Variant C: components/eval-detail.tsx:121-155 (parseParamsBillionsFromModelName)
-//   - Variant D: components/eval-detail.tsx:157-184 (getParamsBillionsFromModelInfo — orchestrator)
-//   - Variant E: components/model-compare-dialog.tsx:44-60 (parseParamsBillionsFromModelName)
-//   - Variant F: app/evals/[id]/page.tsx:434-437 (inline regex on `name + " " + id`)
+//   - Variant A: lib/model-data.ts (parseParamsBillions)
+//   - Variant B: components/eval-detail.tsx (parseParamsBillionsFromText)
+//   - Variant C: components/eval-detail.tsx (parseParamsBillionsFromModelName)
+//   - Variant D: components/eval-detail.tsx (getParamsBillionsFromModelInfo — orchestrator)
+//   - Variant E: components/model-compare-dialog.tsx (parseParamsBillionsFromModelName)
+//   - Variant F: app/evals/[id]/page.tsx (inline regex on `name + " " + id`)
 //
 // They DIVERGE on edge cases (units accepted, anchoring, fallback chains, ≤0 handling)
 // but converge on the most common production inputs (clean "7B" / "34.389" strings).
 // Migration target: pipeline emits a single canonical numeric `params_billions` per
 // model-result; all five parsers delete.
 
-// === Variant A: lib/model-data.ts:312 ===
+// === Variant A: lib/model-data.ts ===
 function parseParamsBillions(value: unknown): number | null {
   if (typeof value === "number") {
     return Number.isFinite(value) && value > 0 ? value : null
@@ -41,7 +41,7 @@ function parseParamsBillions(value: unknown): number | null {
   return Number.isFinite(numeric) && numeric > 0 ? numeric : null
 }
 
-// === Variant B: components/eval-detail.tsx:81 ===
+// === Variant B: components/eval-detail.tsx ===
 function parseParamsBillionsFromText(value: string | null | undefined): number | null {
   if (!value) return null
   const normalized = value.trim().toLowerCase()
@@ -62,7 +62,7 @@ function parseParamsBillionsFromText(value: string | null | undefined): number |
   return Number.isFinite(numeric) ? numeric : null
 }
 
-// === Variant C: components/eval-detail.tsx:121 ===
+// === Variant C: components/eval-detail.tsx ===
 function parseParamsBillionsFromModelNameC(modelName: string | null | undefined): number | null {
   if (!modelName) return null
   const sizeTokens = Array.from(modelName.matchAll(/\b(\d+(?:\.\d+)?)\s*([tmbk])\b/gi))
@@ -80,7 +80,7 @@ function parseParamsBillionsFromModelNameC(modelName: string | null | undefined)
   return null
 }
 
-// === Variant E: components/model-compare-dialog.tsx:44 ===
+// === Variant E: components/model-compare-dialog.tsx ===
 function parseParamsBillionsFromModelNameE(modelName: string | null | undefined): number | null {
   if (!modelName) return null
   const sizeTokens = Array.from(modelName.matchAll(/\b(\d+(?:\.\d+)?)\s*([bm])\b/gi))

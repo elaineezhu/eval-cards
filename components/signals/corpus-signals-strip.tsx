@@ -14,7 +14,7 @@ const SIGNAL_GLYPHS: Record<SignalId, string> = {
 }
 
 /**
- * Corpus-level rollup of the four interpretive signals (paper §4.2.1).
+ * Corpus-level rollup of the four interpretive signals.
  * Renders as a 4-up grid of "signal tiles" matching the EvalEval design system:
  * monochrome typography, mono numerals, glyphs that double as colour anchors.
  */

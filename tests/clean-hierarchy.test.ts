@@ -10,7 +10,7 @@ function family(key: string, displayName: string, extra: Partial<HierarchyFamily
     category: "General",
     tags: { domains: [], languages: [], tasks: [] },
     evals_count: 0,
-    eval_summary_ids: [],
+    constituent_evaluation_ids: [],
     ...extra,
   } as HierarchyFamily
 }
@@ -25,8 +25,8 @@ describe("cleanHierarchy", () => {
           key: "aime",
           display_name: "AIME",
           appearances: [
-            { family_key: "artificial-analysis", benchmark_key: "aime", eval_summary_ids: ["aa%2Faime"], is_canonical_home: false },
-            { family_key: "llm-stats", benchmark_key: "aime", eval_summary_ids: ["llm-stats%2Faime"], is_canonical_home: false },
+            { family_key: "artificial-analysis", benchmark_key: "aime", constituent_evaluation_ids: ["aa%2Faime"], is_canonical_home: false },
+            { family_key: "llm-stats", benchmark_key: "aime", constituent_evaluation_ids: ["llm-stats%2Faime"], is_canonical_home: false },
           ],
         },
         // Real 2-key entry — should keep.
@@ -34,8 +34,8 @@ describe("cleanHierarchy", () => {
           key: "math-500",
           display_name: "MATH-500",
           appearances: [
-            { family_key: "vals-ai", benchmark_key: "math-500", eval_summary_ids: ["vals-ai%2Fmath-500"], is_canonical_home: false },
-            { family_key: "llm-stats", benchmark_key: "math", eval_summary_ids: ["llm-stats%2Fmath"], is_canonical_home: false },
+            { family_key: "vals-ai", benchmark_key: "math-500", constituent_evaluation_ids: ["vals-ai%2Fmath-500"], is_canonical_home: false },
+            { family_key: "llm-stats", benchmark_key: "math", constituent_evaluation_ids: ["llm-stats%2Fmath"], is_canonical_home: false },
           ],
         },
         // Family-rollup with 5 distinct benchmark_keys — should drop.
@@ -43,11 +43,11 @@ describe("cleanHierarchy", () => {
           key: "artificial analysis",
           display_name: "artificial analysis",
           appearances: [
-            { family_key: "artificial-analysis", benchmark_key: "aa-lcr", eval_summary_ids: ["aa%2Faa-lcr"], is_canonical_home: false },
-            { family_key: "artificial-analysis", benchmark_key: "aime", eval_summary_ids: ["aa%2Faime"], is_canonical_home: false },
-            { family_key: "artificial-analysis", benchmark_key: "gpqa", eval_summary_ids: ["aa%2Fgpqa"], is_canonical_home: false },
-            { family_key: "artificial-analysis", benchmark_key: "hle", eval_summary_ids: ["aa%2Fhle"], is_canonical_home: false },
-            { family_key: "artificial-analysis", benchmark_key: "math-500", eval_summary_ids: ["aa%2Fmath-500"], is_canonical_home: false },
+            { family_key: "artificial-analysis", benchmark_key: "aa-lcr", constituent_evaluation_ids: ["aa%2Faa-lcr"], is_canonical_home: false },
+            { family_key: "artificial-analysis", benchmark_key: "aime", constituent_evaluation_ids: ["aa%2Faime"], is_canonical_home: false },
+            { family_key: "artificial-analysis", benchmark_key: "gpqa", constituent_evaluation_ids: ["aa%2Fgpqa"], is_canonical_home: false },
+            { family_key: "artificial-analysis", benchmark_key: "hle", constituent_evaluation_ids: ["aa%2Fhle"], is_canonical_home: false },
+            { family_key: "artificial-analysis", benchmark_key: "math-500", constituent_evaluation_ids: ["aa%2Fmath-500"], is_canonical_home: false },
           ],
         },
       ],
@@ -72,8 +72,8 @@ describe("cleanHierarchy", () => {
           key: "math-500",
           display_name: "MATH-500",
           appearances: [
-            { family_key: "artificial-analysis", benchmark_key: "math-500", eval_summary_ids: ["aa%2Fmath-500", "aa%2Fmath-500"], is_canonical_home: false },
-            { family_key: "vals-ai", benchmark_key: "math-500", eval_summary_ids: ["vals-ai%2Fmath-500"], is_canonical_home: false },
+            { family_key: "artificial-analysis", benchmark_key: "math-500", constituent_evaluation_ids: ["aa%2Fmath-500", "aa%2Fmath-500"], is_canonical_home: false },
+            { family_key: "vals-ai", benchmark_key: "math-500", constituent_evaluation_ids: ["vals-ai%2Fmath-500"], is_canonical_home: false },
           ],
         },
       ],
@@ -83,7 +83,7 @@ describe("cleanHierarchy", () => {
     const entry = cleaned.benchmark_index?.[0]
     expect(entry).toBeDefined()
     const aaApp = entry!.appearances.find((a) => a.family_key === "artificial-analysis")
-    expect(aaApp?.eval_summary_ids).toEqual(["aa%2Fmath-500"])
+    expect(aaApp?.constituent_evaluation_ids).toEqual(["aa%2Fmath-500"])
   })
 
   it("drops degenerate entries with only one distinct family", () => {
@@ -94,8 +94,8 @@ describe("cleanHierarchy", () => {
           key: "lonely",
           display_name: "Lonely",
           appearances: [
-            { family_key: "fam-a", benchmark_key: "lonely", eval_summary_ids: ["fam-a%2Flonely"], is_canonical_home: false },
-            { family_key: "fam-a", benchmark_key: "lonely", eval_summary_ids: ["fam-a%2Flonely-2"], is_canonical_home: false },
+            { family_key: "fam-a", benchmark_key: "lonely", constituent_evaluation_ids: ["fam-a%2Flonely"], is_canonical_home: false },
+            { family_key: "fam-a", benchmark_key: "lonely", constituent_evaluation_ids: ["fam-a%2Flonely-2"], is_canonical_home: false },
           ],
         },
       ],
@@ -157,7 +157,7 @@ describe("cleanHierarchy", () => {
                   tags: { domains: [], languages: [], tasks: [] },
                   slices: [],
                   metrics: [],
-                  summary_eval_ids: ["fibble1-arena%2Ffibble1-arena"],
+                  constituent_evaluation_ids: ["fibble1-arena%2Ffibble1-arena"],
                 },
               ],
             },
@@ -177,7 +177,7 @@ describe("cleanHierarchy", () => {
                   tags: { domains: [], languages: [], tasks: [] },
                   slices: [],
                   metrics: [],
-                  summary_eval_ids: ["fibble2-arena%2Ffibble2-arena"],
+                  constituent_evaluation_ids: ["fibble2-arena%2Ffibble2-arena"],
                 },
               ],
             },
@@ -196,7 +196,7 @@ describe("cleanHierarchy", () => {
               tags: { domains: [], languages: [], tasks: [] },
               slices: [],
               metrics: [],
-              summary_eval_ids: ["caparena-auto%2Fcaparena-auto-avg"],
+              constituent_evaluation_ids: ["caparena-auto%2Fcaparena-auto-avg"],
             },
             {
               key: "caparena-vs-gpt-4o",
@@ -208,7 +208,7 @@ describe("cleanHierarchy", () => {
               tags: { domains: [], languages: [], tasks: [] },
               slices: [],
               metrics: [],
-              summary_eval_ids: ["caparena-auto%2Fcaparena-vs-gpt-4o"],
+              constituent_evaluation_ids: ["caparena-auto%2Fcaparena-vs-gpt-4o"],
             },
           ],
         }),
@@ -225,7 +225,7 @@ describe("cleanHierarchy", () => {
               tags: { domains: [], languages: [], tasks: [] },
               slices: [],
               metrics: [],
-              summary_eval_ids: ["agentharm%2Fcopyright"],
+              constituent_evaluation_ids: ["agentharm%2Fcopyright"],
             },
             {
               key: "cybercrime",
@@ -237,7 +237,7 @@ describe("cleanHierarchy", () => {
               tags: { domains: [], languages: [], tasks: [] },
               slices: [],
               metrics: [],
-              summary_eval_ids: ["agentharm%2Fcybercrime"],
+              constituent_evaluation_ids: ["agentharm%2Fcybercrime"],
             },
           ],
         }),
@@ -296,7 +296,7 @@ describe("cleanHierarchy", () => {
     const raw: EvalHierarchy = {
       families: [
         family("helm", "HELM", {
-          eval_summary_ids: ["helm-air-bench%2Fair-bench-2024"],
+          constituent_evaluation_ids: ["helm-air-bench%2Fair-bench-2024"],
           composites: [
             {
               key: "helm-air-bench",
@@ -314,14 +314,14 @@ describe("cleanHierarchy", () => {
                   tags: { domains: [], languages: [], tasks: [] },
                   slices: [],
                   metrics: [],
-                  summary_eval_ids: ["helm-air-bench%2Fair-bench-2024"],
+                  constituent_evaluation_ids: ["helm-air-bench%2Fair-bench-2024"],
                 },
               ],
             },
           ],
         }),
         family("agentharm", "agentharm", {
-          eval_summary_ids: [
+          constituent_evaluation_ids: [
             "agentharm%2FCopyright",
             "agentharm%2Fair-bench-2024-13-harassment",
             "agentharm%2Fair-bench-2024-32-fraud",
@@ -337,7 +337,7 @@ describe("cleanHierarchy", () => {
               tags: { domains: [], languages: [], tasks: [] },
               slices: [],
               metrics: [],
-              summary_eval_ids: ["agentharm%2FCopyright"],
+              constituent_evaluation_ids: ["agentharm%2FCopyright"],
             },
             {
               key: "air-bench-2024-13-harassment",
@@ -349,7 +349,7 @@ describe("cleanHierarchy", () => {
               tags: { domains: [], languages: [], tasks: [] },
               slices: [],
               metrics: [],
-              summary_eval_ids: ["agentharm%2Fair-bench-2024-13-harassment"],
+              constituent_evaluation_ids: ["agentharm%2Fair-bench-2024-13-harassment"],
             },
             {
               key: "air-bench-2024-32-fraud",
@@ -361,12 +361,12 @@ describe("cleanHierarchy", () => {
               tags: { domains: [], languages: [], tasks: [] },
               slices: [],
               metrics: [],
-              summary_eval_ids: ["agentharm%2Fair-bench-2024-32-fraud"],
+              constituent_evaluation_ids: ["agentharm%2Fair-bench-2024-32-fraud"],
             },
           ],
         }),
         family("air-bench-2024", "Air Bench 2024", {
-          eval_summary_ids: [
+          constituent_evaluation_ids: [
             "agentharm%2Fair-bench-2024-13-harassment",
             "agentharm%2Fair-bench-2024-32-fraud",
           ],
@@ -384,10 +384,10 @@ describe("cleanHierarchy", () => {
     // composite from flattenSplitFamilies should only have Copyright
     // (the lone non-AIR-Bench leaf in this fixture).
     const agentharm = fams.agentharm
-    expect(agentharm.eval_summary_ids).not.toContain(
+    expect(agentharm.constituent_evaluation_ids).not.toContain(
       "agentharm%2Fair-bench-2024-13-harassment",
     )
-    expect(agentharm.eval_summary_ids).not.toContain(
+    expect(agentharm.constituent_evaluation_ids).not.toContain(
       "agentharm%2Fair-bench-2024-32-fraud",
     )
     const agentharmComposite = agentharm.composites?.[0]
@@ -397,7 +397,7 @@ describe("cleanHierarchy", () => {
 
     // HELM family now lists every AIR-Bench eval id (rollup + the 2
     // agentharm-sourced ones).
-    expect(fams.helm.eval_summary_ids).toEqual(
+    expect(fams.helm.constituent_evaluation_ids).toEqual(
       expect.arrayContaining([
         "helm-air-bench%2Fair-bench-2024",
         "agentharm%2Fair-bench-2024-13-harassment",
@@ -410,7 +410,7 @@ describe("cleanHierarchy", () => {
       (c) => c.key === "helm-air-bench",
     )
     const airBenchBench = helmAirBench?.benchmarks?.[0]
-    expect(airBenchBench?.summary_eval_ids).toEqual(
+    expect(airBenchBench?.constituent_evaluation_ids).toEqual(
       expect.arrayContaining([
         "helm-air-bench%2Fair-bench-2024",
         "agentharm%2Fair-bench-2024-13-harassment",
@@ -427,8 +427,8 @@ describe("cleanHierarchy", () => {
           key: "aime",
           display_name: "AIME",
           appearances: [
-            { family_key: "fam-a", benchmark_key: "aime", eval_summary_ids: ["fam-a%2Faime"], is_canonical_home: false },
-            { family_key: "fam-b", benchmark_key: "aime", eval_summary_ids: ["fam-b%2Faime"], is_canonical_home: false },
+            { family_key: "fam-a", benchmark_key: "aime", constituent_evaluation_ids: ["fam-a%2Faime"], is_canonical_home: false },
+            { family_key: "fam-b", benchmark_key: "aime", constituent_evaluation_ids: ["fam-b%2Faime"], is_canonical_home: false },
           ],
         },
       ],

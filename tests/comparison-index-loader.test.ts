@@ -7,16 +7,15 @@ import { describe, expect, it } from "vitest"
 import type { ComparisonIndex } from "../lib/backend-artifacts"
 import { assertComparisonIndexShape } from "../lib/sidecars"
 
-// Shared fixture: a comparison-index that mirrors the post-migration
-// shape from notes/hierarchy-alignment.md §5.2. Tests mutate copies of
-// this to exercise contract assertions.
+// Shared fixture: a comparison-index in the current (v3) shape. Tests
+// mutate copies of this to exercise contract assertions.
 const validFixture: ComparisonIndex = {
   generated_at: "2026-05-04T00:00:00Z",
   config_version: 2,
   metric_group_order: ["capability", "robustness", "efficiency", "cost", "latency", "rank", "other"],
   evals: {
     "helm-classic%2Fmmlu": {
-      eval_summary_id: "helm-classic%2Fmmlu",
+      evaluation_id: "helm-classic%2Fmmlu",
       benchmark_id: "mmlu",
       family_id: "helm",
       family_display_name: "HELM",
@@ -28,11 +27,10 @@ const validFixture: ComparisonIndex = {
       is_slice: false,
       is_summary_score: false,
       summary_score_for: null,
-      summary_eval_ids: [],
       metrics: [],
     },
     "helm-classic%2Fmmlu%2Fanatomy": {
-      eval_summary_id: "helm-classic%2Fmmlu%2Fanatomy",
+      evaluation_id: "helm-classic%2Fmmlu%2Fanatomy",
       benchmark_id: "mmlu",
       family_id: "helm",
       family_display_name: "HELM",
@@ -44,7 +42,6 @@ const validFixture: ComparisonIndex = {
       is_slice: true,
       is_summary_score: false,
       summary_score_for: null,
-      summary_eval_ids: [],
       metrics: [],
     },
   },

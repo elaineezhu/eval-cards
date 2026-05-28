@@ -14,9 +14,9 @@ import {
   MoreHorizontal,
 } from "lucide-react"
 
-import type { CategoryType } from "@/lib/benchmark-schema"
+import type { EvalTag } from "@/lib/benchmark-schema"
 import type { SignalSummaries } from "@/lib/backend-artifacts"
-import { getCategoryColor } from "@/lib/benchmark-schema"
+import { getTagColor, tagLabel } from "@/lib/benchmark-schema"
 import type { BenchmarkCard } from "@/lib/benchmark-schema"
 import { lookupBenchmarkCard } from "@/lib/benchmark-metadata-utils"
 import { routeIdToPath } from "@/lib/utils"
@@ -36,8 +36,8 @@ export type BenchmarkEvaluationCardData = {
   evaluations_count: number
   benchmarks_count: number
   variant_count: number
-  categories: CategoryType[]
-  category_stats: Record<CategoryType, number>
+  tags: EvalTag[]
+  tag_stats: Record<string, number>
   latest_timestamp: string
   evaluator_count: number
   evaluator_names: string[]
@@ -159,27 +159,39 @@ function getTopBenchmarks(data: BenchmarkEvaluationCardData) {
   return []
 }
 
-const CATEGORY_PLOT_COLORS: Record<string, string> = {
-  "General": "#2563eb",
-  "Reasoning": "#7c3aed",
-  "Agentic": "#ea580c",
-  "Safety": "#16a34a",
-  "Knowledge": "#0f766e",
+const TAG_PLOT_COLORS: Record<string, string> = {
+  general: "#0284c7",
+  knowledge: "#059669",
+  safety: "#e11d48",
+  agentic: "#d97706",
+  mathematics: "#7c3aed",
+  logical_reasoning: "#4f46e5",
+  commonsense_reasoning: "#9333ea",
+  applied_reasoning: "#c026d3",
+  software_engineering: "#2563eb",
+  linguistic_core: "#0d9488",
+  multimodal: "#0891b2",
+  natural_sciences: "#16a34a",
+  humanities_and_social_sciences: "#ea580c",
+  law: "#78716c",
+  finance: "#65a30d",
+  hallucination: "#db2777",
+  robustness: "#ca8a04",
 }
 
-function getCategoryPlotColor(category: string) {
-  return CATEGORY_PLOT_COLORS[category] ?? "#64748b"
+function getTagPlotColor(tag: string) {
+  return TAG_PLOT_COLORS[tag] ?? "#64748b"
 }
 
-function CategoryCoveragePlot({
+function TagCoveragePlot({
   coverage,
 }: {
-  coverage: Array<{ category: CategoryType; count: number }>
+  coverage: Array<{ tag: EvalTag; count: number }>
 }) {
   if (coverage.length === 0) {
     return (
       <div className="rounded-xl border border-dashed border-border/60 px-3 py-4 text-sm text-muted-foreground">
-        No category coverage recorded.
+        No tag coverage recorded.
       </div>
     )
   }
@@ -190,18 +202,18 @@ function CategoryCoveragePlot({
     <div className="space-y-2">
       <div
         className="flex h-3 w-full items-stretch gap-1 rounded-full bg-muted/70"
-        aria-label="Category coverage distribution"
+        aria-label="Tag coverage distribution"
         role="img"
       >
         {coverage.map((item) => (
           <div
-            key={item.category}
+            key={item.tag}
             className="min-w-2 rounded-full"
             style={{
               width: `${(item.count / totalCount) * 100}%`,
-              backgroundColor: getCategoryPlotColor(item.category),
+              backgroundColor: getTagPlotColor(item.tag),
             }}
-            title={`${item.category}: ${item.count} benchmark${item.count !== 1 ? "s" : ""}`}
+            title={`${tagLabel(item.tag)}: ${item.count} benchmark${item.count !== 1 ? "s" : ""}`}
           />
         ))}
       </div>
@@ -209,14 +221,14 @@ function CategoryCoveragePlot({
       <div className="flex flex-wrap gap-1.5">
         {coverage.slice(0, 4).map((item) => (
           <span
-            key={item.category}
-            className={`inline-flex items-center gap-1 rounded-full border px-2 py-0.5 text-[10px] font-semibold ${getCategoryColor(item.category)}`}
+            key={item.tag}
+            className={`inline-flex items-center gap-1 rounded-full border px-2 py-0.5 text-[10px] font-semibold ${getTagColor(item.tag)}`}
           >
             <span
               className="h-1.5 w-1.5 rounded-full"
-              style={{ backgroundColor: getCategoryPlotColor(item.category) }}
+              style={{ backgroundColor: getTagPlotColor(item.tag) }}
             />
-            {item.category}
+            {tagLabel(item.tag)}
             <span className="opacity-70">{item.count}</span>
           </span>
         ))}
@@ -251,16 +263,16 @@ export function BenchmarkEvaluationCard({
       .sort((a, b) => b[1] - a[1] || a[0].localeCompare(b[0]))
       .map(([domain]) => domain)
   }, [benchmarkCards, data.top_scores])
-  const categoryCoverage = useMemo(
+  const tagCoverage = useMemo(
     () =>
-      Object.entries(data.category_stats)
+      Object.entries(data.tag_stats)
         .filter(([, count]) => count > 0)
         .sort((a, b) => b[1] - a[1] || a[0].localeCompare(b[0]))
-        .map(([category, count]) => ({
-          category: category as CategoryType,
+        .map(([tag, count]) => ({
+          tag: tag as EvalTag,
           count,
         })),
-    [data.category_stats]
+    [data.tag_stats]
   )
   const paramsBillions = formatParamsBillions(data.params_billions)
   const coverageSummaryLabel = getCoverageSummaryLabel(data)
@@ -377,10 +389,10 @@ export function BenchmarkEvaluationCard({
           <div className="flex flex-wrap items-center justify-between gap-3">
             <div>
               <div className="text-[11px] font-semibold uppercase tracking-[0.18em] text-muted-foreground">
-                Category coverage
+                Tag coverage
               </div>
               <div className="mt-1 text-sm text-muted-foreground">
-                {categoryCoverage.length} {categoryCoverage.length === 1 ? "category" : "categories"}
+                {tagCoverage.length} {tagCoverage.length === 1 ? "tag" : "tags"}
               </div>
             </div>
             <div className="text-right">
@@ -390,7 +402,7 @@ export function BenchmarkEvaluationCard({
           </div>
 
           <div className="mt-3">
-            <CategoryCoveragePlot coverage={categoryCoverage} />
+            <TagCoveragePlot coverage={tagCoverage} />
           </div>
         </div>
 

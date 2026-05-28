@@ -382,8 +382,7 @@ export function ResearcherReproducibilityCard({
   // to the same labels so the two views agree.
   //
   // TODO(repro-allowlist): expand both views together once the corpus
-  // populates more fields reliably. Tracked in:
-  //   docs/issues/repro-fields-allowlist-harmonization.md
+  // populates more fields reliably.
   const requiredFieldLabels = new Set<string>(["temperature", "max tokens"])
   if (hasAgentSetup) {
     requiredFieldLabels.add("eval plan")

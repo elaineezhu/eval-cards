@@ -1,11 +1,11 @@
 import { describe, expect, it } from "vitest"
 
-// Executable spec for `notes/transformations/09-metric-display-name-expansion.md`.
+// Executable spec for the metric-display-name-expansion transformation.
 //
 // Replicates two TS transformations verbatim:
 //   - GENERIC_EVALUATION_NAMES + getEvaluationDisplayName + getBenchmarkName
-//     from lib/eval-processing.ts:27-86
-//   - prefersBenchmarkName (inline) from lib/model-data.ts:459-470
+//     from lib/eval-processing.ts
+//   - prefersBenchmarkName (inline) from lib/model-data.ts
 
 // ---------------------------------------------------------------------------
 // Replicas

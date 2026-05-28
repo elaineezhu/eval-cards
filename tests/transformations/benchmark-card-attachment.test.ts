@@ -1,18 +1,18 @@
 import { describe, expect, it } from "vitest"
 
-// Executable spec for `notes/transformations/11-benchmark-card-attachment.md`.
+// Executable spec for the benchmark-card-attachment transformation.
 //
 // Replicates the four transformation pieces from
-//   lib/benchmark-metadata.ts:11-49
-//   lib/benchmark-metadata-utils.ts:10-33
-//   lib/model-data.ts:860-875
-//   lib/duckdb-data.ts:133-156
+//   lib/benchmark-metadata.ts
+//   lib/benchmark-metadata-utils.ts
+//   lib/model-data.ts
+//   lib/duckdb-data.ts
 // verbatim. Pipeline must produce identical attach behaviour for every case
 // below — and the migration target is "always inline benchmark_card so this
 // retry loop becomes dead code."
 
 // ---------------------------------------------------------------------------
-// Verbatim copies of lib/benchmark-metadata-utils.ts:10-33
+// Verbatim copies of lib/benchmark-metadata-utils.ts
 // ---------------------------------------------------------------------------
 
 function normalizeBenchmarkKey(name: string): string {
@@ -38,7 +38,7 @@ function candidateBenchmarkKeys(name: string): string[] {
 }
 
 // ---------------------------------------------------------------------------
-// Verbatim copy of lib/benchmark-metadata.ts:11-49 (map build + getBenchmarkCard)
+// Verbatim copy of lib/benchmark-metadata.ts (map build + getBenchmarkCard)
 // ---------------------------------------------------------------------------
 
 interface MinimalCard {
@@ -72,7 +72,7 @@ function getBenchmarkCard(
 }
 
 // ---------------------------------------------------------------------------
-// Verbatim copy of lib/model-data.ts:860-875 (summary attach order: name, name, key)
+// Verbatim copy of lib/model-data.ts (summary attach order: name, name, key)
 // ---------------------------------------------------------------------------
 
 interface MinimalSummary {
@@ -100,7 +100,7 @@ function attachBenchmarkCardToSummary(
 }
 
 // ---------------------------------------------------------------------------
-// Verbatim copy of lib/duckdb-data.ts:133-156 (list attach order: name, key, name)
+// Verbatim copy of lib/duckdb-data.ts (list attach order: name, key, name)
 // ---------------------------------------------------------------------------
 
 interface MinimalListItem {
