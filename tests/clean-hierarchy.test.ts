@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest"
 
-import type { EvalHierarchy, HierarchyFamily } from "@/lib/backend-artifacts"
+import type { EvalHierarchy, HierarchyBenchmark, HierarchyFamily } from "@/lib/backend-artifacts"
 import { cleanHierarchy, isHierarchyCleaned } from "@/lib/clean-hierarchy"
 
 function family(key: string, displayName: string, extra: Partial<HierarchyFamily> = {}): HierarchyFamily {
@@ -15,10 +15,34 @@ function family(key: string, displayName: string, extra: Partial<HierarchyFamily
   } as HierarchyFamily
 }
 
+// Minimal benchmark so a family survives cleanHierarchy's "drop emptied
+// families" pruning (a benchmark_index appearance is only honoured when its
+// family_key still exists after consolidation).
+function bench(key: string, displayName = key): HierarchyBenchmark {
+  return {
+    key,
+    display_name: displayName,
+    family_id: "",
+    is_slice: false,
+    is_overall: false,
+    has_card: false,
+    tags: { domains: [], languages: [], tasks: [] },
+    slices: [],
+    metrics: [],
+    constituent_evaluation_ids: [],
+  } as HierarchyBenchmark
+}
+
 describe("cleanHierarchy", () => {
   it("filters family-rollup benchmark_index entries (>2 distinct benchmark_keys)", () => {
     const raw: EvalHierarchy = {
-      families: [],
+      families: [
+        family("artificial-analysis", "Artificial Analysis", {
+          standalone_benchmarks: [bench("aa-lcr"), bench("aime"), bench("gpqa"), bench("hle"), bench("math-500")],
+        }),
+        family("llm-stats", "LLM Stats", { standalone_benchmarks: [bench("aime"), bench("math")] }),
+        family("vals-ai", "Vals AI", { standalone_benchmarks: [bench("math-500")] }),
+      ],
       benchmark_index: [
         // Real cross-family entry (1 distinct benchmark_key) — should keep.
         {
@@ -66,7 +90,10 @@ describe("cleanHierarchy", () => {
     // same row. After cleaning, the appearances should have unique
     // pairs per (family_key, eval_summary_id).
     const raw: EvalHierarchy = {
-      families: [],
+      families: [
+        family("artificial-analysis", "Artificial Analysis", { standalone_benchmarks: [bench("aa-keepalive")] }),
+        family("vals-ai", "Vals AI", { standalone_benchmarks: [bench("vals-keepalive")] }),
+      ],
       benchmark_index: [
         {
           key: "math-500",
@@ -135,7 +162,7 @@ describe("cleanHierarchy", () => {
     expect(fam.derivedTags?.length).toBeGreaterThan(0)
   })
 
-  it("flattens split families (Fibble Arena, CapArena, AgentHarm) into a single composite", () => {
+  it("flattens split families (Fibble Arena, CapArena, AgentHarm) into a single sliced benchmark", () => {
     const raw: EvalHierarchy = {
       families: [
         // Fibble: each split sits in its own composite.
@@ -249,14 +276,14 @@ describe("cleanHierarchy", () => {
               display_name: "HELM Classic",
               category: "General",
               tags: { domains: [], languages: [], tasks: [] },
-              benchmarks: [],
+              benchmarks: [bench("mmlu")],
             },
             {
               key: "helm-safety",
               display_name: "HELM Safety",
               category: "General",
               tags: { domains: [], languages: [], tasks: [] },
-              benchmarks: [],
+              benchmarks: [bench("harm-bench")],
             },
           ],
         }),
@@ -266,29 +293,36 @@ describe("cleanHierarchy", () => {
     const cleaned = cleanHierarchy(raw)
     const fams = Object.fromEntries(cleaned.families.map((f) => [f.key, f]))
 
-    // Fibble: 2 composites collapse to 1; benchmarks preserved.
-    expect(fams["fibble-arena"].composites).toHaveLength(1)
-    expect(fams["fibble-arena"].composites?.[0].key).toBe("fibble-arena")
-    expect(fams["fibble-arena"].composites?.[0].benchmarks?.map((b) => b.key)).toEqual(
-      ["fibble1-arena", "fibble2-arena"],
+    // Fibble: the sibling composites fold into ONE standalone benchmark
+    // whose slices carry the siblings (plus a bare-stem slice). "slices"
+    // mode — no composite survives.
+    const fibble = fams["fibble-arena"].standalone_benchmarks ?? []
+    expect(fams["fibble-arena"].composites ?? []).toHaveLength(0)
+    expect(fibble).toHaveLength(1)
+    expect(fibble[0].key).toBe("fibble-arena")
+    expect(fibble[0].slices?.map((s) => s.key)).toEqual(
+      ["fibble-arena", "fibble1-arena", "fibble2-arena"],
     )
 
-    // CapArena: family-level benchmarks moved into a synthetic composite.
+    // CapArena: family-level siblings fold into one standalone benchmark + slices.
+    const caparena = fams.caparena.standalone_benchmarks ?? []
     expect(fams.caparena.benchmarks ?? []).toHaveLength(0)
-    expect(fams.caparena.composites).toHaveLength(1)
-    expect(fams.caparena.composites?.[0].key).toBe("caparena-auto")
-    expect(fams.caparena.composites?.[0].benchmarks?.map((b) => b.key)).toEqual(
-      ["caparena-auto-avg", "caparena-vs-gpt-4o"],
+    expect(fams.caparena.composites ?? []).toHaveLength(0)
+    expect(caparena[0].key).toBe("caparena-auto")
+    expect(caparena[0].slices?.map((s) => s.key)).toEqual(
+      ["caparena-auto", "caparena-auto-avg", "caparena-vs-gpt-4o"],
     )
 
-    // AgentHarm: family-level benchmarks moved into a synthetic composite.
+    // AgentHarm: sibling category benchmarks fold in as slices.
+    const agentharm = fams.agentharm.standalone_benchmarks ?? []
     expect(fams.agentharm.benchmarks ?? []).toHaveLength(0)
-    expect(fams.agentharm.composites?.[0].key).toBe("agentharm")
-    expect(fams.agentharm.composites?.[0].benchmarks?.map((b) => b.key)).toEqual(
-      ["copyright", "cybercrime"],
+    expect(fams.agentharm.composites ?? []).toHaveLength(0)
+    expect(agentharm[0].key).toBe("agentharm")
+    expect(agentharm[0].slices?.map((s) => s.key)).toEqual(
+      ["agentharm", "copyright", "cybercrime"],
     )
 
-    // Control: HELM keeps its two composites untouched.
+    // Control: HELM (not a split family) keeps its two composites untouched.
     expect(fams.helm.composites).toHaveLength(2)
   })
 
@@ -390,8 +424,12 @@ describe("cleanHierarchy", () => {
     expect(agentharm.constituent_evaluation_ids).not.toContain(
       "agentharm%2Fair-bench-2024-32-fraud",
     )
-    const agentharmComposite = agentharm.composites?.[0]
-    expect(agentharmComposite?.benchmarks?.map((b) => b.key)).toEqual([
+    // agentharm flattens via "slices" mode: the lone remaining leaf
+    // (Copyright) folds into the agentharm standalone benchmark as a slice
+    // alongside the bare-stem slice — no composite is produced.
+    expect(agentharm.composites ?? []).toHaveLength(0)
+    expect(agentharm.standalone_benchmarks?.[0].slices?.map((s) => s.key)).toEqual([
+      "agentharm",
       "Copyright",
     ])
 
