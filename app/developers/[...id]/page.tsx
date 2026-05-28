@@ -21,9 +21,7 @@ const MODEL_DEFAULT_DIR: Record<ModelTableSortCol, SortDir> = {
   developer: "asc",
   released: "desc",
   params: "desc",
-  benchmarks: "desc",
   results: "desc",
-  coverage: "desc",
 }
 
 function safeTimestamp(value: string | null | undefined) {
@@ -107,13 +105,17 @@ export default function DeveloperDetailPage() {
 
     const dirMul = sortDir === "asc" ? 1 : -1
     filtered.sort((a, b) => {
+      const nameA = a.model_name ?? ""
+      const nameB = b.model_name ?? ""
+      const devA = a.developer ?? ""
+      const devB = b.developer ?? ""
       let cmp = 0
       switch (sortBy) {
         case "name":
-          cmp = a.model_name.localeCompare(b.model_name)
+          cmp = nameA.localeCompare(nameB)
           break
         case "developer":
-          cmp = a.developer.localeCompare(b.developer)
+          cmp = devA.localeCompare(devB)
           break
         case "released":
           cmp = safeTimestamp(a.release_date) - safeTimestamp(b.release_date)
@@ -124,12 +126,8 @@ export default function DeveloperDetailPage() {
         case "results":
           cmp = a.evaluations_count - b.evaluations_count
           break
-        case "coverage":
-        case "benchmarks":
-          cmp = a.benchmarks_count - b.benchmarks_count
-          break
       }
-      if (cmp === 0) return a.model_name.localeCompare(b.model_name)
+      if (cmp === 0) return nameA.localeCompare(nameB)
       return cmp * dirMul
     })
 
@@ -211,7 +209,7 @@ export default function DeveloperDetailPage() {
             <>
               {" "}— a slice of the{" "}
               <span className="font-mono text-[13px]">{totalBenchmarks.toLocaleString()}-benchmark</span>{" "}
-              registry
+              catalog
             </>
           )}
           .
@@ -254,7 +252,6 @@ export default function DeveloperDetailPage() {
         ) : (
           <ModelTable
             rows={visibleModels}
-            totalBenchmarks={totalBenchmarks}
             selectedIds={selectedModelIds}
             onToggleSelect={toggleModelSelection}
             maxCompare={4}

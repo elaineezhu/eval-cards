@@ -11,13 +11,10 @@ export type ModelTableSortCol =
   | "developer"
   | "released"
   | "params"
-  | "benchmarks"
   | "results"
-  | "coverage"
 
 interface ModelTableProps {
   rows: BenchmarkEvaluationCardData[]
-  totalBenchmarks: number
   selectedIds: string[]
   onToggleSelect: (id: string) => void
   maxCompare: number
@@ -57,7 +54,6 @@ function clampPct(value: number) {
 
 export function ModelTable({
   rows,
-  totalBenchmarks,
   selectedIds,
   onToggleSelect,
   maxCompare,
@@ -115,7 +111,6 @@ export function ModelTable({
             <SortTh col="developer">Developer</SortTh>
             <SortTh col="released">Released</SortTh>
             <SortTh col="params">Params</SortTh>
-            <SortTh col="benchmarks" className="num">Benchmarks</SortTh>
             <SortTh col="results" className="num">Results</SortTh>
             <th style={{ width: 90 }} />
           </tr>
@@ -182,13 +177,6 @@ export function ModelTable({
                 </td>
                 <td className="font-mono text-[12px] text-[color:var(--fg-muted)]">
                   {formatParams(row)}
-                </td>
-                <td className="num font-mono text-[13px]">
-                  {row.benchmarks_count.toLocaleString()}
-                  <span className="text-[color:var(--fg-subtle)]">
-                    {" "}
-                    / {totalBenchmarks.toLocaleString()}
-                  </span>
                 </td>
                 <td className="num font-mono text-[13px]">
                   {row.evaluations_count.toLocaleString()}

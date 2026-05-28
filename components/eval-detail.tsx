@@ -9,6 +9,7 @@ import { getCompletenessPopulatedCount } from "@/components/signals/signal-utils
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible"
 import { ScoreDistribution } from "@/components/score-distribution"
 import { ParamRangePicker } from "@/components/param-range-picker"
+import { EmbedButton } from "@/components/embed-button"
 import {
   PARAM_RANGE_MAX_INDEX,
   paramStepToNumeric,
@@ -1437,6 +1438,30 @@ export function EvalDetail({
               with an optional Frontier toggle when models carry release dates. */}
           {leaderboardRows.length >= 3 && (
             <div className="mb-4">
+              <div className="flex justify-end mb-2">
+                <EmbedButton
+                  label="Score distribution"
+                  defaultHeight={420}
+                  size="sm"
+                  variants={[
+                    {
+                      id: "distribution",
+                      label: "Distribution",
+                      embedPath: `/embed/eval/distribution/${routeIdToPath(summary.evaluation_id)}`,
+                    },
+                    {
+                      id: "frontier",
+                      label: "Frontier",
+                      embedPath: `/embed/eval/frontier/${routeIdToPath(summary.evaluation_id)}`,
+                    },
+                    {
+                      id: "both",
+                      label: "Both",
+                      embedPath: `/embed/eval/distribution/${routeIdToPath(summary.evaluation_id)}?view=both`,
+                    },
+                  ]}
+                />
+              </div>
               <ScoreDistribution
                 series={[{
                   key: "primary",
@@ -1474,8 +1499,130 @@ export function EvalDetail({
             </div>
           )}
 
+          <div className="flex justify-end mb-2">
+            <EmbedButton
+              embedPath={`/embed/eval/leaderboard/${routeIdToPath(summary.evaluation_id)}`}
+              label="Leaderboard"
+              defaultHeight={560}
+              size="sm"
+            />
+          </div>
           <div className="ec-card" style={{ padding: 0, overflow: "hidden" }}>
-            <div className="overflow-x-auto">
+            {/* Mobile (< lg): compact embed-style list — rank, model ·
+                developer, score. Drops the expand chevron, the score
+                bar, and the four extra columns. Tapping the row's model
+                name still navigates to the model page; everything else
+                stays on the desktop layout below. */}
+            <div className="lg:hidden">
+              <table style={{ width: "100%", borderCollapse: "collapse" }}>
+                <thead>
+                  <tr style={{ borderBottom: "1px solid var(--fg)" }}>
+                    <th
+                      className="font-mono uppercase"
+                      style={{
+                        fontSize: 10,
+                        letterSpacing: "0.12em",
+                        color: "var(--fg-muted)",
+                        padding: "10px 14px",
+                        textAlign: "left",
+                        width: 44,
+                      }}
+                    >
+                      #
+                    </th>
+                    <th
+                      className="font-mono uppercase"
+                      style={{
+                        fontSize: 10,
+                        letterSpacing: "0.12em",
+                        color: "var(--fg-muted)",
+                        padding: "10px 8px",
+                        textAlign: "left",
+                      }}
+                    >
+                      Model
+                    </th>
+                    <th
+                      className="font-mono uppercase"
+                      style={{
+                        fontSize: 10,
+                        letterSpacing: "0.12em",
+                        color: "var(--fg-muted)",
+                        padding: "10px 14px",
+                        textAlign: "right",
+                        whiteSpace: "nowrap",
+                      }}
+                    >
+                      {lb.metric_config.unit ?? "Score"}
+                    </th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {pagedLeaderboardRows.map(({ key, rank, modelResult }) => (
+                    <tr key={key} style={{ borderBottom: "1px solid var(--border-soft)" }}>
+                      <td
+                        className="font-mono tabular-nums"
+                        style={{
+                          padding: "10px 14px",
+                          color: rank === 1 ? "var(--accent)" : "var(--fg-subtle)",
+                          fontSize: 12,
+                          fontWeight: rank === 1 ? 600 : 500,
+                        }}
+                      >
+                        {rank}
+                      </td>
+                      <td style={{ padding: "10px 8px", color: "var(--fg)" }}>
+                        <Link
+                          href={`/models/${routeIdToPath(getModelFamilyRouteId(modelResult.model_info))}`}
+                          className="hover:text-[color:var(--accent)] transition-colors"
+                          style={{ color: "var(--fg)", fontWeight: 500, fontSize: 14 }}
+                        >
+                          {modelResult.model_info.name}
+                        </Link>
+                        {modelResult.model_info.developer && (
+                          <span
+                            className="ml-2"
+                            style={{ fontSize: 11, color: "var(--fg-muted)" }}
+                          >
+                            · {modelResult.model_info.developer}
+                          </span>
+                        )}
+                      </td>
+                      <td
+                        className="font-mono tabular-nums"
+                        style={{
+                          padding: "10px 14px",
+                          textAlign: "right",
+                          fontSize: 13.5,
+                          fontWeight: 600,
+                          color: "var(--fg)",
+                          whiteSpace: "nowrap",
+                        }}
+                      >
+                        {/* Unit suffix omitted — already shown in the
+                            column header so it doesn't need to repeat
+                            on every row. */}
+                        {formatRawScore(modelResult.score)}
+                      </td>
+                    </tr>
+                  ))}
+                  {pagedLeaderboardRows.length === 0 && (
+                    <tr>
+                      <td
+                        colSpan={3}
+                        style={{ padding: "32px 16px", textAlign: "center", color: "var(--fg-muted)" }}
+                      >
+                        No leaderboard entries match the selected parameter range.
+                      </td>
+                    </tr>
+                  )}
+                </tbody>
+              </table>
+            </div>
+
+            {/* Desktop (≥ lg): full rich table with sortable columns,
+                row expansion, score bar, evaluator/source/release/updated. */}
+            <div className="overflow-x-auto hidden lg:block">
             <table className="ec-htable" style={{ minWidth: 980 }}>
               <thead>
                 <tr>
@@ -1643,9 +1790,12 @@ export function EvalDetail({
                                   {familyLabel}
                                 </div>
                               )}
-                              {/* mobile-only developer line */}
+                              {/* Mobile-only developer line. On desktop the
+                                  Developer is its own column; on narrow
+                                  viewports it folds under the model name
+                                  to save horizontal space. */}
                               <div
-                                className="mt-0.5 lg:hidden text-[12px]"
+                                className="mt-0.5 lg:hidden truncate text-[12px]"
                                 style={{ color: "var(--fg-muted)" }}
                               >
                                 {modelResult.model_info.developer ?? "Unknown developer"}
@@ -2442,11 +2592,43 @@ function MultiMetricLeaderboard({
         if (distSeries.length === 0) return null
         return (
           <div className="mb-4">
+            <div className="flex justify-end mb-2">
+              <EmbedButton
+                label="Score distribution"
+                defaultHeight={420}
+                size="sm"
+                variants={[
+                  {
+                    id: "distribution",
+                    label: "Distribution",
+                    embedPath: `/embed/eval/distribution/${routeIdToPath(summary.evaluation_id)}`,
+                  },
+                  {
+                    id: "frontier",
+                    label: "Frontier",
+                    embedPath: `/embed/eval/frontier/${routeIdToPath(summary.evaluation_id)}`,
+                  },
+                  {
+                    id: "both",
+                    label: "Both",
+                    embedPath: `/embed/eval/distribution/${routeIdToPath(summary.evaluation_id)}?view=both`,
+                  },
+                ]}
+              />
+            </div>
             <ScoreDistribution series={distSeries} />
           </div>
         )
       })()}
 
+      <div className="flex justify-end mb-2">
+        <EmbedButton
+          embedPath={`/embed/eval/leaderboard/${routeIdToPath(summary.evaluation_id)}`}
+          label="Leaderboard"
+          defaultHeight={560}
+          size="sm"
+        />
+      </div>
       <div className="ec-card" style={{ padding: 0, overflow: "hidden" }}>
         {hasParameterData && (
           <div className="border-b bg-background px-5 py-4 sm:px-6">

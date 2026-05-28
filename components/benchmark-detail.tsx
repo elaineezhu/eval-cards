@@ -4,6 +4,7 @@
 import Link from "next/link"
 import { usePathname, useRouter, useSearchParams } from "next/navigation"
 import { useAudienceMode } from "@/components/audience-mode-provider"
+import { EmbedButton } from "@/components/embed-button"
 import { formatDateISO, humanizeBenchmarkName, humanizeEvaluationId, routeIdToPath } from "@/lib/utils"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
@@ -68,6 +69,21 @@ interface BenchmarkDetailProps {
   modelCards?: BenchmarkEvaluationCardData[]
   evalHierarchy?: EvalHierarchy | null
   comparisonIndex?: ComparisonIndex | null
+  /** When set, render only the named surface — used by the /embed/...
+   *  routes so an iframe can carry a single chart instead of the whole page.
+   *  Supports:
+   *  - "reported-metrics" (Summary §4)
+   *  - "histogram" — render a single plotbox tile for the eval named in
+   *    `embedTargetEvalId`, mirroring the on-page histogram (current model
+   *    highlighted, peer rank, splits/slices, setup notes, cross-family
+   *    whisker). */
+  embedSurface?: "reported-metrics" | "histogram"
+  /** Only used when embedSurface === "histogram". Selects which plotbox to
+   *  render by matching this id against the tab.evalSummaryId of every
+   *  plotbox unit. The matching view + metric tab become the initial
+   *  selection so the embed lands on the same metric the user saw on the
+   *  page. */
+  embedTargetEvalId?: string
 }
 
 interface BenchmarkVariant {
@@ -1819,6 +1835,8 @@ export function BenchmarkDetail({
   modelCards,
   evalHierarchy,
   comparisonIndex,
+  embedSurface,
+  embedTargetEvalId,
 }: BenchmarkDetailProps) {
   const { mode } = useAudienceMode()
   const isResearchView = mode === "research"
@@ -3062,7 +3080,13 @@ export function BenchmarkDetail({
           .filter((p) => !selectedIds.has(p.model_route_id))
           .map((p) => ({
             id: p.model_route_id,
-            name: p.model_family_name,
+            // Same fallback as the rendered bar (peerBars above) — when
+            // the registry lacks a display name, fall back to the
+            // model_family_id (which is already human-readable in this
+            // codebase, e.g. "anthropic/sonnet-4.5"). Without this the
+            // dropdown label resolves to "Unknown Model" even though
+            // the bar that appears after selection reads correctly.
+            name: p.model_family_name || p.model_family_id,
             score: p.score,
             submissionCount: p.submission_count,
             submissionAxis: p.submission_axis,
@@ -4251,6 +4275,14 @@ export function BenchmarkDetail({
               </DropdownMenuContent>
             </DropdownMenu>
           )}
+          {activeTab.evalSummaryId && (
+            <EmbedButton
+              embedPath={`/embed/eval/histogram/${routeIdToPath(activeTab.evalSummaryId)}?model=${encodeURIComponent(routeIdToPath(summary.model_info.id))}`}
+              label="Histogram"
+              defaultHeight={360}
+              size="sm"
+            />
+          )}
         </div>
 
         {/* View selector */}
@@ -4580,13 +4612,78 @@ export function BenchmarkDetail({
       : 1) * 100
   )
 
+  // When embedSurface is set the page renders just that one block
+  // (e.g. "reported-metrics" → only §4). Used by /embed/.../...
+  // routes so an iframe carries a single chart with no chrome.
+  const embedReportedMetricsOnly = embedSurface === "reported-metrics"
+  const embedHistogramOnly = embedSurface === "histogram"
+
+  // Histogram embed — find the plotbox unit + view + metric tab whose
+  // tab.evalSummaryId matches the requested target. Category-mode units
+  // get first dibs so the embed picks up the cross-family whisker (the
+  // same dedupe the on-page Category view performs). Falls back to the
+  // raw plotboxUnits when no category match is found.
+  const embedHistogramTarget = useMemo(() => {
+    if (!embedHistogramOnly || !embedTargetEvalId) return null
+    const search = (units: PlotboxUnit[]) => {
+      for (const unit of units) {
+        for (const view of unit.views) {
+          for (const tab of view.tabs) {
+            if (tab.evalSummaryId === embedTargetEvalId) {
+              return { unit, view, tab }
+            }
+          }
+        }
+      }
+      return null
+    }
+    return search(categoryPlotboxUnits) ?? search(plotboxUnits) ?? null
+  }, [embedHistogramOnly, embedTargetEvalId, categoryPlotboxUnits, plotboxUnits])
+
+  // Drive the unit's view/metric selection to the matched tab so the
+  // initial render lands on the same metric the user saw on the page.
+  useEffect(() => {
+    if (!embedHistogramTarget) return
+    const { unit, view, tab } = embedHistogramTarget
+    setActiveViewByUnit((prev) =>
+      prev[unit.unitKey] === view.viewKey ? prev : { ...prev, [unit.unitKey]: view.viewKey },
+    )
+    setActiveMetricByUnit((prev) =>
+      prev[unit.unitKey] === tab.tabKey ? prev : { ...prev, [unit.unitKey]: tab.tabKey },
+    )
+  }, [embedHistogramTarget])
+
+  // Histogram embed renders just the matched plotbox tile and nothing
+  // else — no header, no §1-4. We use a thin shell that keeps the
+  // plotbox sized to fill the iframe.
+  if (embedHistogramOnly) {
+    if (!embedHistogramTarget) {
+      return (
+        <div className="font-mono" style={{ fontSize: 12, color: "var(--fg-muted)" }}>
+          No histogram available for this model/benchmark pair.
+        </div>
+      )
+    }
+    // The plotbox tile draws its own right + bottom borders assuming the
+    // grid container supplies the top + left. Wrap with a single-cell
+    // grid that adds the missing borders so the tile has a clean frame
+    // when it's the only thing on the page.
+    return (
+      <div className="grid grid-cols-1 border-t border-l border-[color:var(--border-soft)]">
+        {renderPlotbox(embedHistogramTarget.unit, true)}
+      </div>
+    )
+  }
+
   return (
     <div className="space-y-12">
+      {!embedReportedMetricsOnly && (
+      <>
       {/* ============================================================
          Header — paper-style document hero
          ============================================================ */}
       <header className="border-b border-[color:var(--fg)] pb-6">
-        <div className="kicker">Evaluation Card · Registry Entry</div>
+        <div className="kicker">Evaluation Card</div>
         <div className="mt-3 flex flex-col gap-6 lg:flex-row lg:items-start lg:justify-between">
           <div className="min-w-0">
             <h1 className="ec-page-h1">{getModelDisplayName(summary.model_info.name)}</h1>
@@ -4614,7 +4711,7 @@ export function BenchmarkDetail({
           </div>
 
           <div className="lg:w-[280px]">
-            <div className="kicker mb-2">Registry ID</div>
+            <div className="kicker mb-2">Identifier</div>
             <div className="font-mono text-[12px] text-[color:var(--fg)] break-all">
               ec/models/{summary.model_info.id}
             </div>
@@ -4735,7 +4832,7 @@ export function BenchmarkDetail({
             </>
           )}
 
-          {(summary.model_info.modalities?.input?.length || summary.model_info.modalities?.output?.length) && (
+          {((summary.model_info.modalities?.input?.length ?? 0) > 0 || (summary.model_info.modalities?.output?.length ?? 0) > 0) && (
             <>
               <dt>Modalities</dt>
               <dd>
@@ -4777,13 +4874,13 @@ export function BenchmarkDetail({
       </section>
 
       {/* ============================================================
-         §2 Coverage of registry benchmarks
+         §2 Benchmark coverage
          ============================================================ */}
       <section>
         <div className="section-head">
           <h2>
             <span className="font-mono text-[12px] tracking-[0.1em] text-[color:var(--accent)] mr-3">§2</span>
-            Coverage of registry benchmarks
+            Benchmark coverage
           </h2>
           <span className="font-mono text-[10px] uppercase tracking-[0.15em] text-[color:var(--fg-subtle)]">
             {filteredBenchmarkGroups.length} shown · {benchmarkGroups.length} reported
@@ -4909,6 +5006,8 @@ export function BenchmarkDetail({
           )}
         </section>
       )}
+      </>
+      )}
 
       {/* ============================================================
          §4 Reported metrics — Summary view shows a flat normalized bar
@@ -4924,6 +5023,14 @@ export function BenchmarkDetail({
             <span className="font-mono text-[10px] uppercase tracking-[0.15em] text-[color:var(--fg-subtle)]">
               {isResearchView ? `${filteredBenchmarkGroups.length} shown` : `${benchmarkGroups.length} reported`}
             </span>
+            {!embedReportedMetricsOnly && (
+              <EmbedButton
+                embedPath={`/embed/model/reported-metrics/${routeIdToPath(summary.model_info.id)}`}
+                label="Reported metrics"
+                defaultHeight={680}
+                size="sm"
+              />
+            )}
             {isResearchView && (
               <div
                 className="ec-mode-toggle"

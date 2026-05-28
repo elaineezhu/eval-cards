@@ -272,6 +272,109 @@ export type BenchmarkEvalListItem = Omit<BenchmarkEvalSummary, "model_results">
  * every consumer of the summary — eval detail page, modal previews,
  * cross-referenced model summaries, etc. — sees the same picture.
  */
+/**
+ * Collapse leaderboard rows that describe the same model under two
+ * source attributions (typical: one record with `developer: "OpenAI"`,
+ * another with `developer: "unknown"` from a source that didn't carry
+ * the developer field, both pointing at the same physical model). We
+ * only merge when every shared score column is byte-equal across the
+ * duplicates — that guarantees we never mask a legitimate second run
+ * that happens to share a name. When merging, we keep the attribution
+ * that actually identifies a developer.
+ */
+function devAttributionScore(developer: string | undefined | null): number {
+  if (!developer) return 0
+  const lower = developer.trim().toLowerCase()
+  if (!lower || lower === "unknown") return 0
+  return 1
+}
+
+function routeAttributionScore(routeId: string | undefined | null): number {
+  if (!routeId) return 0
+  const lower = routeId.toLowerCase()
+  return lower.startsWith("unknown%2f") || lower.startsWith("unknown/") ? 0 : 1
+}
+
+export function dedupeLeaderboardRowsByModelIdentity(
+  rows: BenchmarkLeaderboardRow[],
+): BenchmarkLeaderboardRow[] {
+  if (rows.length < 2) return rows
+  const groups = new Map<string, BenchmarkLeaderboardRow[]>()
+  for (const row of rows) {
+    const name = (row.model_info?.name ?? "").trim().toLowerCase()
+    if (!name) continue
+    const bucket = groups.get(name)
+    if (bucket) bucket.push(row)
+    else groups.set(name, [row])
+  }
+
+  const result: BenchmarkLeaderboardRow[] = []
+  const consumed = new WeakSet<BenchmarkLeaderboardRow>()
+  for (const row of rows) {
+    if (consumed.has(row)) continue
+    const name = (row.model_info?.name ?? "").trim().toLowerCase()
+    const bucket = name ? groups.get(name) : null
+    if (!bucket || bucket.length < 2) {
+      result.push(row)
+      continue
+    }
+
+    // Verify per-column score agreement before merging. Any conflict
+    // (two different numbers for the same column key) means the rows
+    // are distinct runs that happen to share a model name — leave them.
+    let conflict = false
+    const valuesByKey: Record<string, number> = {}
+    outer: for (const candidate of bucket) {
+      for (const [key, raw] of Object.entries(candidate.values ?? {})) {
+        if (typeof raw !== "number" || !Number.isFinite(raw)) continue
+        if (key in valuesByKey) {
+          if (valuesByKey[key] !== raw) {
+            conflict = true
+            break outer
+          }
+        } else {
+          valuesByKey[key] = raw
+        }
+      }
+    }
+    if (conflict) {
+      result.push(row)
+      continue
+    }
+
+    // Pick the canonical row: best developer attribution, then best
+    // route id, then most populated values map as a tiebreaker.
+    const canonical = [...bucket].sort((a, b) => {
+      const devDelta = devAttributionScore(b.model_info?.developer) - devAttributionScore(a.model_info?.developer)
+      if (devDelta !== 0) return devDelta
+      const routeDelta = routeAttributionScore(b.model_route_id) - routeAttributionScore(a.model_route_id)
+      if (routeDelta !== 0) return routeDelta
+      return Object.keys(b.values ?? {}).length - Object.keys(a.values ?? {}).length
+    })[0]
+
+    const mergedValues: Record<string, number | null> = { ...(canonical.values ?? {}) }
+    const mergedAnnotations: Record<string, unknown> = { ...(canonical.annotations_by_metric ?? {}) }
+    for (const candidate of bucket) {
+      if (candidate === canonical) continue
+      for (const [key, raw] of Object.entries(candidate.values ?? {})) {
+        if (mergedValues[key] == null && raw != null) mergedValues[key] = raw
+      }
+      for (const [key, ann] of Object.entries(candidate.annotations_by_metric ?? {})) {
+        if (mergedAnnotations[key] == null && ann != null) mergedAnnotations[key] = ann
+      }
+      consumed.add(candidate)
+    }
+
+    result.push({
+      ...canonical,
+      values: mergedValues,
+      annotations_by_metric: mergedAnnotations as typeof canonical.annotations_by_metric,
+    })
+    consumed.add(canonical)
+  }
+  return result
+}
+
 export function normalizeEvalSummary<T extends BenchmarkEvalSummary>(summary: T): T {
   if (summary.instance_data?.available && summary.instance_data.url_count > 0) {
     return summary

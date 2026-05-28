@@ -121,7 +121,7 @@ export default async function HomePage() {
               infrastructure.
             </h1>
             <p className="home-hero-lede">
-              <strong>Evaluation Cards</strong> is a registry of reported model–benchmark results,
+              <strong>Evaluation Cards</strong> is a collection of reported model–benchmark results,
               organised under a five-level rollout hierarchy and four interpretive signals
               computed over the joined record.
             </p>

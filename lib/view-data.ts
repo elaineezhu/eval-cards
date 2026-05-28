@@ -26,6 +26,7 @@ import type {
   BenchmarkEvalSummary,
   ModelResultForBenchmark,
 } from "@/lib/eval-processing"
+import { dedupeLeaderboardRowsByModelIdentity } from "@/lib/eval-processing"
 
 type Row = Record<string, any>
 
@@ -624,7 +625,7 @@ export async function getEvalSummaryById(evalId: string): Promise<BenchmarkEvalS
       .filter((row): row is NonNullable<typeof row> => row !== null)
 
     if (leaderboardRows.length > 0) {
-      summary.leaderboard_rows = leaderboardRows
+      summary.leaderboard_rows = dedupeLeaderboardRowsByModelIdentity(leaderboardRows)
     }
     if (matrix.subtask_metrics.length > 0) {
       const existing = (summary.leaderboard_metrics ?? []) as Array<{ column_key: string }>
@@ -639,6 +640,43 @@ export async function getEvalSummaryById(evalId: string): Promise<BenchmarkEvalS
       summary.leaderboard_metrics =
         merged as unknown as BenchmarkEvalSummary["leaderboard_metrics"]
     }
+  }
+
+  // Fallback for single-metric leaderboards with no precomputed matrix
+  // entry (e.g. big-bench-hard): the matrix block above only populates
+  // `leaderboard_rows` when a matrix exists, but consumers like the
+  // embed leaderboard read exclusively from that field. Synthesize one
+  // row per `model_results` entry using the primary metric's column_key
+  // as the values key, so the data is present regardless of whether
+  // build-time precomputation ran for this eval.
+  const hasRows = (summary.leaderboard_rows?.length ?? 0) > 0
+  if (!hasRows && (summary.model_results?.length ?? 0) > 0) {
+    const primaryMetric = (summary.leaderboard_metrics ?? []).find(
+      (m): m is typeof m & { column_key: string } =>
+        typeof (m as { column_key?: unknown }).column_key === "string"
+        && (m as { scope?: string }).scope !== "subtask",
+    )
+    const columnKey = primaryMetric?.column_key
+      ?? (summary.leaderboard_metrics ?? [])[0]?.column_key
+      ?? "score"
+    summary.leaderboard_rows = summary.model_results
+      .filter((mr) => Number.isFinite(mr.score) && mr.model_route_id)
+      .map((mr) => ({
+        model_info: mr.model_info,
+        model_route_id: mr.model_route_id,
+        evaluation_timestamp: mr.evaluation_timestamp,
+        source_metadata: mr.source_metadata,
+        source_data: mr.source_data,
+        values: { [columnKey]: mr.score as number },
+        metrics_present: 1,
+      })) as BenchmarkEvalSummary["leaderboard_rows"]
+  }
+
+  // Belt-and-suspenders: when leaderboard_rows arrived from the parquet
+  // pre-baked (no matrix) the same two-source duplication can appear, so
+  // dedup whatever is set on the summary before returning.
+  if (summary.leaderboard_rows && summary.leaderboard_rows.length > 1) {
+    summary.leaderboard_rows = dedupeLeaderboardRowsByModelIdentity(summary.leaderboard_rows)
   }
 
   return summary

@@ -25,7 +25,7 @@ export default function AboutPage() {
         </h1>
         <p className="mb-6 text-[19px] leading-[1.6] text-[color:var(--fg-muted)]">
           <strong className="text-[color:var(--fg)] font-semibold">Evaluation Cards</strong> is a
-          structured registry of how AI models are evaluated — and, just as importantly, of
+          structured collection of how AI models are evaluated — and, just as importantly, of
           what is left undocumented. It composes existing evaluation infrastructure into a
           single audience-agnostic reading surface. It is a research artifact of the{" "}
           <strong className="text-[color:var(--fg)] font-semibold">EvalEval Coalition</strong>,
@@ -49,11 +49,11 @@ export default function AboutPage() {
             {[
               [
                 "Auto-BenchmarkCards",
-                "A schema for benchmark-level metadata — what a benchmark measures, its splits, intended use, validity scope, and known limitations. Each benchmark family in this registry has an Auto-BenchmarkCard at the family root and a Policy Note compressed for plain-language reading.",
+                "A schema for benchmark-level metadata — what a benchmark measures, its splits, intended use, validity scope, and known limitations. Each benchmark family has an Auto-BenchmarkCard at the family root and a Policy Note compressed for plain-language reading.",
               ],
               [
                 "Every Eval Ever",
-                "A run-level corpus of public evaluation results — (model, benchmark, metric-path, value, source) tuples extracted from papers, model cards and leaderboards. Provides the raw rows the registry canonicalises and joins.",
+                "A run-level corpus of public evaluation results — (model, benchmark, metric-path, value, source) tuples extracted from papers, model cards and leaderboards. Provides the raw rows that Evaluation Cards canonicalises and joins.",
               ],
               [
                 "IBM Risk Atlas alignment",
@@ -225,7 +225,7 @@ export default function AboutPage() {
               ],
               [
                 "No imputation",
-                "Empty cells are empty. The registry never estimates, infers, or cross-fills missing values. Disclosure gaps are surfaced as such.",
+                "Empty cells are empty. Evaluation Cards never estimates, infers, or cross-fills missing values. Disclosure gaps are surfaced as such.",
               ],
               [
                 "Snapshot discipline",
@@ -286,7 +286,7 @@ export default function AboutPage() {
               ],
               [
                 "Corrections are welcome.",
-                "Each record links a correction path. The registry is a living artifact; coverage improves as developers publish.",
+                "Each record links a correction path. Evaluation Cards is a living artifact; coverage improves as developers publish.",
               ],
             ].map(([h, p], i) => (
               <li
@@ -317,13 +317,13 @@ export default function AboutPage() {
         {/* OUT OF SCOPE --------------------------------------------------- */}
         <section className="mb-14">
           <div className="section-head">
-            <h2>What this registry does not do</h2>
+            <h2>What Evaluation Cards does not do</h2>
           </div>
           <ul className="list-none p-0 m-0 text-[14.5px] leading-[1.75]">
             {[
               "Produce a single capability ranking. Metrics across benchmarks are heterogeneous and not commensurable; rolling them into one score throws away the information that makes evaluation useful.",
               "Evaluate models. Evaluation Cards reports on what others have already evaluated. New runs go through the upstream Every Eval Ever pipeline, not this surface.",
-              "Endorse a benchmark. Inclusion in the registry is a statement about disclosure prevalence, not benchmark quality. Each benchmark's 'at a glance' card surfaces its main caveat; reading it is part of using the registry.",
+              "Endorse a benchmark. Inclusion is a statement about disclosure prevalence, not benchmark quality. Each benchmark's 'at a glance' card surfaces its main caveat; reading it is part of using Evaluation Cards.",
               "Replace model cards or system cards. Evaluation Cards complements them — it is the cross-model, cross-benchmark reading surface that individual cards alone cannot provide.",
             ].map((t, i) => (
               <li

@@ -17,6 +17,7 @@ import {
   type ModelResultForBenchmark,
   createEvaluationCard,
   createModelFamilySummary,
+  dedupeLeaderboardRowsByModelIdentity,
   groupEvaluationsByBenchmark,
   groupEvaluationsByModelFamily,
   groupEvaluationsByModel,
@@ -672,7 +673,9 @@ function buildBenchmarkLeaderboardMatrix(detail: HFEvalDetail) {
     }
   }
 
-  const leaderboardRows = Array.from(rowStates.values()).map(({ _timestampValue, ...row }) => ({
+  const rawLeaderboardRows = Array.from(rowStates.values()).map(({ _timestampValue, ...row }) => row)
+  const dedupedRows = dedupeLeaderboardRowsByModelIdentity(rawLeaderboardRows)
+  const leaderboardRows = dedupedRows.map((row) => ({
     ...row,
     metrics_present: leaderboardMetrics.reduce(
       (count, metric) => count + (typeof row.values[metric.column_key] === "number" ? 1 : 0),
@@ -1171,7 +1174,9 @@ function buildSingleMetricSuiteMatrixSummary(
         max_score: 1,
       }
 
-  const leaderboardRows = Array.from(rowStates.values()).map(({ _timestampValue, ...row }) => ({
+  const rawLeaderboardRows = Array.from(rowStates.values()).map(({ _timestampValue, ...row }) => row)
+  const dedupedRows = dedupeLeaderboardRowsByModelIdentity(rawLeaderboardRows)
+  const leaderboardRows = dedupedRows.map((row) => ({
     ...row,
     metrics_present: leaderboardMetrics.reduce(
       (count, metric) => count + (typeof row.values[metric.column_key] === "number" ? 1 : 0),
