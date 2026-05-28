@@ -4275,7 +4275,11 @@ export function BenchmarkDetail({
               </DropdownMenuContent>
             </DropdownMenu>
           )}
-          {activeTab.evalSummaryId && (
+          {/* Suppress the embed-this affordance when we're already
+              rendering inside an embed iframe — otherwise the embedded
+              histogram shows its own "embed this" button, which links
+              back to itself. */}
+          {activeTab.evalSummaryId && !embedHistogramOnly && (
             <EmbedButton
               embedPath={`/embed/eval/histogram/${routeIdToPath(activeTab.evalSummaryId)}?model=${encodeURIComponent(routeIdToPath(summary.model_info.id))}`}
               label="Histogram"

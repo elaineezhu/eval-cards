@@ -17,7 +17,7 @@
     "audit-adapters": "tsx scripts/audit-adapters.mjs"
   },
   "dependencies": {
-    "@duckdb/node-api": "1.5.2-r.1",
+    "@duckdb/node-api": "1.5.3-r.2",
     "@hookform/resolvers": "^3.10.0",
     "@radix-ui/react-accordion": "1.2.2",
     "@radix-ui/react-alert-dialog": "1.1.4",
