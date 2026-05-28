@@ -68,7 +68,7 @@ const EVAL_LIST_COLUMNS = `
   metric_config, models_count, evaluator_names, source_types,
   latest_source_name, third_party_ratio,
   missing_generation_config_count, best_model, worst_model,
-  avg_score, avg_score_norm, has_card, benchmark_card,
+  avg_score, avg_score_norm, has_card, to_json(benchmark_card) AS benchmark_card,
   is_aggregated, aggregate_sources, tags,
   metrics_count, metric_names, instance_data, top_score,
   subtasks_count, is_summary_score, summary_eval_ids,
@@ -77,8 +77,18 @@ const EVAL_LIST_COLUMNS = `
   source_data
 `
 
+// The deployed Space started returning 500s ("Invalid Error: don't
+// know what type:") on every eval-results / model-summary query after
+// a parquet snapshot bump that landed nested `JSON` fields inside
+// structs (e.g. `evalcards_annotations.variant_divergence.differing_
+// fields[].values JSON` and `benchmark_card.flagged_fields JSON`).
+// The DuckDB Node binding crashes when it tries to materialise those
+// nested-JSON structs row-by-row. Wrap the offending columns with
+// `to_json(...)` so the binding sees a single VARCHAR per row; the
+// reshape helpers JSON.parse the string back into the same shape
+// downstream code expects.
 const CELL_JOIN_COLUMNS = `
-  r.*,
+  r.* REPLACE (to_json(r.evalcards_annotations) AS evalcards_annotations),
   e.evaluation_name AS eval_evaluation_name,
   e.canonical_display_name AS eval_canonical_display_name,
   e.benchmark_id AS eval_benchmark_id,
@@ -94,7 +104,7 @@ const CELL_JOIN_COLUMNS = `
   e.category AS eval_category,
   e.metric_config AS eval_metric_config,
   e.source_data AS eval_source_data,
-  e.benchmark_card AS eval_benchmark_card,
+  to_json(e.benchmark_card) AS eval_benchmark_card,
   e.tags AS eval_tags,
   e.is_summary_score AS eval_is_summary_score,
   e.summary_eval_ids AS eval_summary_eval_ids
@@ -210,6 +220,23 @@ function optionalString(value: unknown) {
   return typeof value === "string" && value.length > 0 ? value : undefined
 }
 
+// Some parquet columns ship JSON-typed fields nested inside structs
+// that the DuckDB Node binding can't materialise (crashes the entire
+// query with "don't know what type:"). For those columns the SELECT
+// wraps the value in `to_json(...)` so the binding sees a single
+// VARCHAR; this helper undoes the wrap. If the value is already an
+// object (legacy snapshots without the to_json wrap, or local dev
+// where the binding handled the type), pass it through unchanged.
+function parseMaybeJson(value: unknown): unknown {
+  if (typeof value !== "string") return value
+  if (value === "" || value === "null") return null
+  try {
+    return JSON.parse(value)
+  } catch {
+    return value
+  }
+}
+
 function asArray<T>(value: unknown): T[] {
   return Array.isArray(value) ? value as T[] : []
 }
@@ -309,7 +336,12 @@ function modelInfoFromModelRow(row: Row): ModelInfo {
 function resultFromCell(row: Row): EvaluationResult {
   const scoreDetails = scoreDetailsFromRow(row)
   const generationConfig = row.generation_config as GenerationConfig | undefined
-  const annotations = row.evalcards_annotations
+  // evalcards_annotations arrives JSON-encoded — the parquet schema
+  // nests a JSON-typed field which the DuckDB Node binding can't
+  // materialise directly, so view-data's SELECT wraps the whole
+  // column in to_json() and we parse it back on the JS side. See
+  // CELL_JOIN_COLUMNS for the wrapping site.
+  const annotations = parseMaybeJson(row.evalcards_annotations)
 
   return {
     evaluation_name: asString(row.metric_display_name ?? row.eval_evaluation_name ?? row.metric_id, "Score"),
@@ -471,7 +503,7 @@ export async function getEvalListData(): Promise<{
   totalModels: number
 }> {
   const [evals, countRows] = await Promise.all([
-    readRows<BenchmarkEvalListItem>(
+    readRows<BenchmarkEvalListItem & { benchmark_card?: unknown }>(
       `SELECT ${EVAL_LIST_COLUMNS}
        FROM evals_view
        ORDER BY evaluation_name ASC`
@@ -479,8 +511,15 @@ export async function getEvalListData(): Promise<{
     readRows<{ n: number }>("SELECT COUNT(*) AS n FROM models_view"),
   ])
 
+  // benchmark_card is JSON-encoded at the SQL layer; parse before
+  // handing it to consumers that expect the object shape.
+  const decoded = evals.map((row) => ({
+    ...row,
+    benchmark_card: parseMaybeJson(row.benchmark_card),
+  })) as BenchmarkEvalListItem[]
+
   return {
-    evals,
+    evals: decoded,
     totalModels: asNumber(countRows[0]?.n),
   }
 }
@@ -600,6 +639,9 @@ export async function getEvalSummaryById(evalId: string): Promise<BenchmarkEvalS
 
   const summary = {
     ...evalRow,
+    // benchmark_card arrives JSON-encoded (the parquet schema nests a
+    // JSON-typed field — see CELL_JOIN_COLUMNS / EVAL_LIST_COLUMNS).
+    benchmark_card: parseMaybeJson(evalRow.benchmark_card),
     model_results: cellRows.map(reshapeCellToModelResult),
   } as BenchmarkEvalSummary
 
@@ -723,14 +765,14 @@ export async function getBenchmarkMetadataMap(): Promise<Record<string, Benchmar
     `SELECT evaluation_id, evaluation_name,
             family_id AS composite_benchmark_key,
             benchmark_id,
-            benchmark_card
+            to_json(benchmark_card) AS benchmark_card
      FROM evals_view
      WHERE benchmark_card IS NOT NULL`
   )
   const result: Record<string, BenchmarkCard> = {}
 
   for (const row of rows) {
-    const card = row.benchmark_card as BenchmarkCard | null | undefined
+    const card = parseMaybeJson(row.benchmark_card) as BenchmarkCard | null | undefined
     if (!card) continue
 
     const keys = [
