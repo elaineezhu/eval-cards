@@ -108,9 +108,26 @@ const CELL_JOIN_COLUMNS = `
   e.summary_eval_ids AS eval_summary_eval_ids
 `
 
+// Matches an ASCII signed integer (no decimals, no leading zeros aside from
+// "0" itself). Used to detect BIGINT columns that `getRowObjectsJson()`
+// serialises as strings — the JSON form does this inconsistently per
+// value (numbers within int32 range stay numeric, larger ones become
+// strings), so consumers see a mixed-type field and `sum + value`
+// silently concatenates instead of adding.
+const BIGINT_STRING = /^-?(?:0|[1-9]\d*)$/
+
 function normalizeDuckDBValue(value: unknown): unknown {
   if (typeof value === "bigint") {
     return Number(value)
+  }
+
+  // Recover BIGINT-encoded numeric strings back to numbers, but only
+  // when the value round-trips safely (so 64-bit ints that exceed
+  // Number.MAX_SAFE_INTEGER stay as strings instead of silently losing
+  // precision).
+  if (typeof value === "string" && BIGINT_STRING.test(value)) {
+    const numeric = Number(value)
+    if (Number.isSafeInteger(numeric)) return numeric
   }
 
   if (value instanceof Date) {
