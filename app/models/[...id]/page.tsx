@@ -17,7 +17,7 @@ import {
 } from "@/lib/dashboard-data-client"
 import type { BenchmarkEvaluationCardData } from "@/components/benchmark-evaluation-card"
 import type { ComparisonIndex, EvalHierarchy } from "@/lib/backend-artifacts"
-import { routeIdFromSegments } from "@/lib/utils"
+import { routeIdFromSegments, routeIdToPath } from "@/lib/utils"
 
 export default function ModelDetailPage() {
   const params = useParams()
@@ -96,7 +96,7 @@ export default function ModelDetailPage() {
       nextParams.set("version", nextVersion)
       const nextQuery = nextParams.toString()
       router.replace(
-        nextQuery ? `/models/${routeId}?${nextQuery}` : `/models/${routeId}`,
+        nextQuery ? `/models/${routeIdToPath(routeId)}?${nextQuery}` : `/models/${routeIdToPath(routeId)}`,
         { scroll: false }
       )
     },
@@ -213,7 +213,7 @@ export default function ModelDetailPage() {
     const nextQuery = nextParams.toString()
 
     router.replace(
-      nextQuery ? `/models/${routeId}?${nextQuery}` : `/models/${routeId}`,
+      nextQuery ? `/models/${routeIdToPath(routeId)}?${nextQuery}` : `/models/${routeIdToPath(routeId)}`,
       { scroll: false }
     )
   }, [routeId, router, searchParams, summary])
