@@ -47,15 +47,8 @@ export function Navigation() {
       <header className="ec-topbar motion-academic-enter-soft">
         <div className="ec-topbar-inner">
           <Link href="/" className="ec-brand">
-            <img
-              src="https://evalevalai.com/assets/img/logo-square.png"
-              alt=""
-              className="ec-brand-mark-img h-7 w-7 shrink-0"
-              width={28}
-              height={28}
-            />
             <span>Evaluation Cards</span>
-            <span className="ec-brand-sub hidden lg:inline">Beta · EvalEval</span>
+            <span className="ec-brand-sub hidden lg:inline">Beta</span>
           </Link>
 
           <nav className="ec-nav-links hidden lg:flex">

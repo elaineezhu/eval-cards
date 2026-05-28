@@ -4,8 +4,7 @@
 @custom-variant dark (&:is(.dark *));
 
 /* ============================================================
-   EvalEval Coalition — Design Tokens (paper-aligned).
-   Source of truth: extracted from evaleval/evaleval.github.io.
+   Evaluation Cards — Design Tokens (paper-aligned).
    ============================================================ */
 
 @import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=Inter:wght@300;400;500;600;700&display=swap');
@@ -187,8 +186,6 @@
 
 /* ============================================================
    Design-system component classes
-   (named to match the EvalEval prototype so future components
-   can be ported verbatim where it makes sense)
    ============================================================ */
 
 @layer components {

@@ -7,9 +7,9 @@ import type React from "react"
  * (leaderboard, distribution, frontier, etc.) at the size the parent
  * iframe allocates.
  *
- * A small EvalEval brand mark sits in the top-left corner of every
- * embed and links out to the canonical Evaluation Cards site, so embed
- * viewers can always trace the data back to the source.
+ * A small brand mark sits in the top-left corner of every embed and
+ * links back to the site root so embed viewers can trace the data
+ * back to the source.
  */
 export default function EmbedLayout({
   children,
@@ -27,7 +27,7 @@ export default function EmbedLayout({
       }}
     >
       <a
-        href="https://evalcards.evalevalai.com/"
+        href="/"
         target="_blank"
         rel="noopener noreferrer"
         className="font-mono"
@@ -43,13 +43,6 @@ export default function EmbedLayout({
         }}
         title="Open Evaluation Cards"
       >
-        <img
-          src="https://evalevalai.com/assets/img/logo-square.png"
-          alt=""
-          width={20}
-          height={20}
-          style={{ display: "block", borderRadius: 3 }}
-        />
         <span style={{ fontWeight: 600 }}>Evaluation Cards</span>
         <span
           className="uppercase"
@@ -59,7 +52,7 @@ export default function EmbedLayout({
             color: "var(--fg-subtle)",
           }}
         >
-          · EvalEval
+          · Beta
         </span>
       </a>
       {children}

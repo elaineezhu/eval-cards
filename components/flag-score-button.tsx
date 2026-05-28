@@ -213,17 +213,8 @@ export function FlagScoreButton({
                   }}
                 >
                   No upstream record URL is recorded for this row, so we can't link directly to
-                  the dataset. Copy the context below and file an issue at{" "}
-                  <a
-                    className="underline-offset-4 hover:underline"
-                    href="https://huggingface.co/datasets/evaleval/EEE_datastore/discussions"
-                    target="_blank"
-                    rel="noreferrer"
-                    style={{ color: "var(--accent)" }}
-                  >
-                    evaleval/EEE_datastore/discussions
-                  </a>
-                  .
+                  the dataset. Copy the context below and file an issue via the project's
+                  corrections channel.
                 </div>
               )}
             </div>

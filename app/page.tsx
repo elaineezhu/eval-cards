@@ -111,7 +111,7 @@ export default async function HomePage() {
         <section className="home-hero">
           <div>
             <div className="kicker kicker-accent">
-              {aggregates ? `Signals v${aggregates.signal_version}` : "Evaluation Cards · Beta"}
+              Evaluation Cards · Beta
             </div>
             <h1 className="home-hero-h1">
               A reporting layer
@@ -143,7 +143,12 @@ export default async function HomePage() {
           <div>
             <div className="corpus-meta">
               <div className="kicker">
-                Corpus snapshot{generatedAt ? ` · ${generatedAt}` : ""}
+                Corpus snapshot{generatedAt ? (
+                  <>
+                    {" · "}
+                    <span style={{ color: "var(--accent)" }}>{generatedAt}</span>
+                  </>
+                ) : ""}
               </div>
               <div className="corpus-grid">
                 <CorpusStat

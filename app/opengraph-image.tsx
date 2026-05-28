@@ -70,7 +70,7 @@ export default function OpenGraphImage() {
               height: "32px",
             }}
           >
-            Beta · EvalEval
+            Beta
           </div>
         </div>
 
@@ -139,7 +139,7 @@ export default function OpenGraphImage() {
             <span style={{ color: "#9c9a95" }}>·</span>
             <span style={{ color: "#1a1916", fontWeight: 600 }}>Comparability</span>
           </div>
-          <div style={{ color: "#9c9a95" }}>evalcards.evalevalai.com</div>
+          <div style={{ color: "#9c9a95" }}>Evaluation Cards</div>
         </div>
       </div>
     ),

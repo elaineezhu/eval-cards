@@ -1,6 +1,5 @@
 /**
- * Benchmark-first evaluation schema types
- * Based on the evalevalai.com schema structure
+ * Benchmark-first evaluation schema types.
  */
 
 import type { EvalcardsAnnotations, RowAnnotations, SignalSummaries } from "@/lib/backend-artifacts"

@@ -5,14 +5,12 @@ import { AudienceModeProvider } from "@/components/audience-mode-provider"
 import { BackendRefreshListener } from "@/components/backend-refresh-listener"
 import { ThemeProvider } from "@/components/theme-provider"
 
-const SITE_URL = "https://evalcards.evalevalai.com"
 const SITE_NAME = "Evaluation Cards"
 const SITE_TITLE = "Evaluation Cards — a reporting layer for AI evaluations"
 const SITE_DESCRIPTION =
   "A public collection of reported model–benchmark results, organised under a five-level rollout hierarchy and four interpretive signals: reproducibility, completeness, provenance, and comparability."
 
 export const metadata: Metadata = {
-  metadataBase: new URL(SITE_URL),
   title: {
     default: SITE_TITLE,
     template: "%s · Evaluation Cards",
@@ -24,32 +22,20 @@ export const metadata: Metadata = {
     "benchmark",
     "model card",
     "reproducibility",
-    "EvalEval",
-    "Hugging Face",
     "LLM benchmarks",
     "evaluation cards",
   ],
-  authors: [{ name: "EvalEval Coalition", url: "https://evalevalai.com" }],
-  creator: "EvalEval Coalition",
-  publisher: "EvalEval Coalition",
-  icons: {
-    icon: "https://evalevalai.com/assets/img/logo-square.png",
-    shortcut: "https://evalevalai.com/assets/img/logo-square.png",
-    apple: "https://evalevalai.com/assets/img/logo-square.png",
-  },
   openGraph: {
     type: "website",
     siteName: SITE_NAME,
     title: SITE_TITLE,
     description: SITE_DESCRIPTION,
-    url: SITE_URL,
     locale: "en_US",
   },
   twitter: {
     card: "summary_large_image",
     title: SITE_TITLE,
     description: SITE_DESCRIPTION,
-    creator: "@huggingface",
   },
   robots: {
     index: true,

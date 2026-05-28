@@ -27,10 +27,7 @@ export default function AboutPage() {
           <strong className="text-[color:var(--fg)] font-semibold">Evaluation Cards</strong> is a
           structured collection of how AI models are evaluated — and, just as importantly, of
           what is left undocumented. It composes existing evaluation infrastructure into a
-          single audience-agnostic reading surface. It is a research artifact of the{" "}
-          <strong className="text-[color:var(--fg)] font-semibold">EvalEval Coalition</strong>,
-          a community of academic and industrial labs working on broader-impact evaluation of
-          AI systems.
+          single audience-agnostic reading surface.
         </p>
         <p className="mb-5 text-base leading-[1.75] text-[color:var(--fg)]">
           Benchmark scores are routinely reported without the context required to interpret
@@ -346,20 +343,17 @@ export default function AboutPage() {
             <div className="border border-[color:var(--border-soft)] p-[22px]">
               <div className="kicker mb-2.5">Cite as</div>
               <p className="font-mono m-0 text-[12px] leading-[1.7] text-[color:var(--fg)]">
-                EvalEval Coalition. (2026). Evaluation Cards: a reporting layer for AI evaluation
-                (Working paper v0.4, snapshot 18 Apr 2026). evalcards.evalevalai.com
+                Evaluation Cards: a reporting layer for AI evaluation
+                (Working paper v0.4, snapshot 18 Apr 2026).
               </p>
             </div>
             <div className="border border-[color:var(--border-soft)] p-[22px]">
               <div className="kicker mb-2.5">Submit a correction</div>
-              <p className="m-0 mb-2 text-[13.5px] leading-[1.65] text-[color:var(--fg-muted)]">
+              <p className="m-0 text-[13.5px] leading-[1.65] text-[color:var(--fg-muted)]">
                 Each record links a correction path. Disclosure gaps close as developers and
                 third parties publish; we accept patches against any (model, benchmark,
                 metric-path) tuple with a citation.
               </p>
-              <span className="font-mono text-[color:var(--fg-subtle)] text-[11px] uppercase tracking-[0.1em]">
-                corrections@evalevalai.com
-              </span>
             </div>
           </div>
         </section>
