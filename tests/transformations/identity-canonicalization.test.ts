@@ -184,6 +184,11 @@ describe("Group E — namespace + rawHandle extraction", () => {
 // ---------------------------------------------------------------------------
 
 describe("Group F — familyId and model_route_id", () => {
+  // KNOWN-RED (intentional): getModelFamilyRouteId now returns percent-encoded
+  // ids (e.g. `openai%2Fgpt-5`) — the correct v2 form, matching the warehouse
+  // `route_id`. These cases still assert the legacy `__` form.
+  // TODO: clean up route_id upstream (Stage J producer) to slash-form, then
+  // align getModelFamilyRouteId + these expectations.
   const cases = [
     { familyId: "anthropic/claude-opus-4.5", routeId: "anthropic__claude-opus-4.5" },
     { familyId: "openai/gpt-5", routeId: "openai__gpt-5" },
