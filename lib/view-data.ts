@@ -168,10 +168,22 @@ function normalizeDuckDBValue(value: unknown): unknown {
 
 async function readRows<T = Row>(sql: string, params: unknown[] = []): Promise<T[]> {
   const connection = await getConnection()
-  const reader = params.length > 0
-    ? await connection.runAndReadAll(sql, params as any[])
-    : await connection.runAndReadAll(sql)
-  return reader.getRowObjects().map((row) => normalizeDuckDBValue(row) as T)
+  try {
+    const reader = params.length > 0
+      ? await connection.runAndReadAll(sql, params as any[])
+      : await connection.runAndReadAll(sql)
+    return reader.getRowObjects().map((row) => normalizeDuckDBValue(row) as T)
+  } catch (err) {
+    // The DuckDB Node binding can throw "Invalid Error: don't know what
+    // type:" when it hits a parquet column type it can't materialise.
+    // That bubbles up as a 500 with an empty body, which is impossible
+    // to debug from outside the container. Log the SQL preamble + raw
+    // error so the deploy logs at least show which query failed.
+    const sqlSnippet = sql.replace(/\s+/g, " ").slice(0, 240)
+    const msg = err instanceof Error ? `${err.name}: ${err.message}` : String(err)
+    console.error(`[view-data] readRows failed (${msg}) — SQL: ${sqlSnippet}`)
+    throw err
+  }
 }
 
 function asNumber(value: unknown, fallback = 0) {
