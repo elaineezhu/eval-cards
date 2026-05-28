@@ -1580,7 +1580,7 @@ export function EvalDetail({
                       </td>
                       <td style={{ padding: "10px 8px", color: "var(--fg)" }}>
                         <Link
-                          href={`/models/${routeIdToPath(getModelFamilyRouteId(modelResult.model_info))}`}
+                          href={`/models/${routeIdToPath(modelResult.model_route_id ?? getModelFamilyRouteId(modelResult.model_info))}`}
                           className="hover:text-[color:var(--accent)] transition-colors"
                           style={{ color: "var(--fg)", fontWeight: 500, fontSize: 14 }}
                         >
