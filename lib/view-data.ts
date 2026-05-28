@@ -86,30 +86,48 @@ const EVAL_LIST_COLUMNS = `
 // `to_json(...)` so the binding only ever sees VARCHAR per row;
 // `parseMaybeJson` undoes the wrap in JS before downstream code
 // reads the shapes.
-// Note the `::VARCHAR` cast on every to_json wrap. `to_json()` returns
-// DuckDB's `JSON` type, which is a VARCHAR alias with extra metadata —
-// the linux-x64 binding interprets that metadata tag as its own
-// (unsupported) type and still throws "don't know what type:" on row
-// materialisation. Casting to plain VARCHAR strips the tag so the
-// binding sees the same primitive type it handles everywhere else.
+// Enumerate every column we need from eval_results_view (r) explicitly.
+// `SELECT r.* REPLACE (...)` keeps producing "Invalid Error: don't know
+// what type:" on the deployed Space even after wrapping every nested
+// type — apparently the `*` expansion itself plus the `REPLACE` rewrite
+// drags a column whose type the linux-x64 binding can't materialise,
+// regardless of what comes out the SELECT.  Listing the columns we
+// actually consume sidesteps the expansion entirely.  Anything
+// non-scalar is funnelled through `CAST(to_json(...) AS VARCHAR)` so
+// the binding only ever sees primitive types; parseMaybeJson restores
+// the shape on the JS side.
 const CELL_JOIN_COLUMNS = `
-  r.* REPLACE (
-    CAST(to_json(r.model_info) AS VARCHAR) AS model_info,
-    CAST(to_json(r.generation_config) AS VARCHAR) AS generation_config,
-    CAST(to_json(r.score_details) AS VARCHAR) AS score_details,
-    CAST(to_json(r.source_metadata) AS VARCHAR) AS source_metadata,
-    CAST(to_json(r.source_data) AS VARCHAR) AS source_data,
-    CAST(to_json(r.eval_library) AS VARCHAR) AS eval_library,
-    CAST(to_json(r.aggregate_components) AS VARCHAR) AS aggregate_components,
-    CAST(to_json(r.evalcards_annotations) AS VARCHAR) AS evalcards_annotations,
-    CAST(to_json(r.scores_by_organization) AS VARCHAR) AS scores_by_organization,
-    CAST(to_json(r.evaluator_relationships) AS VARCHAR) AS evaluator_relationships,
-    CAST(to_json(r.reporting_orgs) AS VARCHAR) AS reporting_orgs,
-    CAST(r.snapshot_id AS VARCHAR) AS snapshot_id,
-    CAST(r.evaluation_timestamp AS VARCHAR) AS evaluation_timestamp,
-    CAST(r.benchmark_updated AS VARCHAR) AS benchmark_updated,
-    CAST(r.retrieved_timestamp AS VARCHAR) AS retrieved_timestamp
-  ),
+  r.evaluation_id,
+  r.metric_summary_id,
+  r.composite_slug,
+  r.composite_display_name,
+  r.benchmark_id,
+  r.family_id,
+  r.family_display_name,
+  r.is_slice,
+  r.parent_benchmark_id,
+  r.metric_id,
+  r.model_key,
+  r.model_id,
+  r.model_route_id,
+  CAST(to_json(r.model_info) AS VARCHAR) AS model_info,
+  CAST(to_json(r.generation_config) AS VARCHAR) AS generation_config,
+  r.metric_display_name,
+  r.metric_unit,
+  r.lower_is_better,
+  r.category,
+  r.score,
+  CAST(to_json(r.score_details) AS VARCHAR) AS score_details,
+  r.position,
+  CAST(r.evaluation_timestamp AS VARCHAR) AS evaluation_timestamp,
+  CAST(to_json(r.source_metadata) AS VARCHAR) AS source_metadata,
+  CAST(to_json(r.source_data) AS VARCHAR) AS source_data,
+  r.source_record_url,
+  r.is_summary_score,
+  CAST(to_json(r.aggregate_components) AS VARCHAR) AS aggregate_components,
+  CAST(to_json(r.evalcards_annotations) AS VARCHAR) AS evalcards_annotations,
+  CAST(to_json(r.eval_library) AS VARCHAR) AS eval_library,
+  r.instance_file_path,
   e.evaluation_name AS eval_evaluation_name,
   e.canonical_display_name AS eval_canonical_display_name,
   e.benchmark_id AS eval_benchmark_id,
@@ -358,12 +376,13 @@ function modelInfoFromModelRow(row: Row): ModelInfo {
 
 function resultFromCell(row: Row): EvaluationResult {
   const scoreDetails = scoreDetailsFromRow(row)
-  const generationConfig = row.generation_config as GenerationConfig | undefined
-  // evalcards_annotations arrives JSON-encoded — the parquet schema
-  // nests a JSON-typed field which the DuckDB Node binding can't
-  // materialise directly, so view-data's SELECT wraps the whole
-  // column in to_json() and we parse it back on the JS side. See
-  // CELL_JOIN_COLUMNS for the wrapping site.
+  // model_info / generation_config / source_metadata / ... all arrive
+  // JSON-encoded — CELL_JOIN_COLUMNS wraps every non-primitive column
+  // in to_json() + CAST AS VARCHAR to dodge the binding's
+  // "don't know what type:" crash. parseMaybeJson reverses the wrap;
+  // it passes through unchanged when the value is already an object
+  // (legacy snapshots / future binding fixes).
+  const generationConfig = parseMaybeJson(row.generation_config) as GenerationConfig | undefined
   const annotations = parseMaybeJson(row.evalcards_annotations)
 
   return {
@@ -384,9 +403,13 @@ function resultFromCell(row: Row): EvaluationResult {
 
 function reshapeCellToModelResult(row: Row): ModelResultForBenchmark {
   const scoreDetails = scoreDetailsFromRow(row)
+  // Every wrapped column needs parseMaybeJson to come back to its
+  // object shape — see CELL_JOIN_COLUMNS for the wrapping sites.
+  const modelInfo = parseMaybeJson(row.model_info)
+  const aggregateComponents = parseMaybeJson(row.aggregate_components)
 
   return {
-    model_info: (row.model_info ?? modelInfoFromModelRow(row)) as ModelInfo,
+    model_info: (modelInfo ?? modelInfoFromModelRow(row)) as ModelInfo,
     model_route_id: optionalString(row.model_route_id),
     score: scoreDetails.score,
     score_details: scoreDetails,
@@ -395,7 +418,7 @@ function reshapeCellToModelResult(row: Row): ModelResultForBenchmark {
     source_data: sourceDataFromRow(row),
     source_record_url: optionalString(row.source_record_url),
     aggregate_components: asArray<NonNullable<ModelResultForBenchmark["aggregate_components"]>[number]>(
-      row.aggregate_components
+      aggregateComponents
     ),
     result: resultFromCell(row),
   }
@@ -403,7 +426,9 @@ function reshapeCellToModelResult(row: Row): ModelResultForBenchmark {
 
 function reshapeCellToBenchmarkEvaluation(row: Row): BenchmarkEvaluation {
   const result = resultFromCell(row)
-  const modelInfo = (row.model_info ?? modelInfoFromModelRow(row)) as ModelInfo
+  const modelInfo = parseMaybeJson(row.model_info)
+  const evalLibrary = parseMaybeJson(row.eval_library)
+  const generationConfig = parseMaybeJson(row.generation_config)
 
   return {
     schema_version: "1.0",
@@ -423,9 +448,9 @@ function reshapeCellToBenchmarkEvaluation(row: Row): BenchmarkEvaluation {
     is_summary_score: Boolean(row.eval_is_summary_score ?? row.is_summary_score),
     source_data: sourceDataFromRow(row),
     source_metadata: sourceMetadataFromRow(row),
-    eval_library: row.eval_library,
-    model_info: modelInfo,
-    generation_config: row.generation_config,
+    eval_library: evalLibrary as BenchmarkEvaluation["eval_library"],
+    model_info: (modelInfo ?? modelInfoFromModelRow(row)) as ModelInfo,
+    generation_config: generationConfig as BenchmarkEvaluation["generation_config"],
     evaluation_results: [result],
   }
 }
