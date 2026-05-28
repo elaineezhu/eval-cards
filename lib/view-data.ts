@@ -102,7 +102,13 @@ const CELL_JOIN_COLUMNS = `
     CAST(to_json(r.eval_library) AS VARCHAR) AS eval_library,
     CAST(to_json(r.aggregate_components) AS VARCHAR) AS aggregate_components,
     CAST(to_json(r.evalcards_annotations) AS VARCHAR) AS evalcards_annotations,
-    CAST(to_json(r.scores_by_organization) AS VARCHAR) AS scores_by_organization
+    CAST(to_json(r.scores_by_organization) AS VARCHAR) AS scores_by_organization,
+    CAST(to_json(r.evaluator_relationships) AS VARCHAR) AS evaluator_relationships,
+    CAST(to_json(r.reporting_orgs) AS VARCHAR) AS reporting_orgs,
+    CAST(r.snapshot_id AS VARCHAR) AS snapshot_id,
+    CAST(r.evaluation_timestamp AS VARCHAR) AS evaluation_timestamp,
+    CAST(r.benchmark_updated AS VARCHAR) AS benchmark_updated,
+    CAST(r.retrieved_timestamp AS VARCHAR) AS retrieved_timestamp
   ),
   e.evaluation_name AS eval_evaluation_name,
   e.canonical_display_name AS eval_canonical_display_name,
