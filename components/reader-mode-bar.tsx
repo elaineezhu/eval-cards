@@ -53,7 +53,7 @@ export function ReaderModeBar() {
             onClick={() => setMode("policy")}
             title="Plain-language summary for non-technical readers"
           >
-            Summary view
+            Policy view
           </button>
           <button
             type="button"

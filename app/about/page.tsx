@@ -100,7 +100,7 @@ export default function AboutPage() {
             </div>
             <div className="p-6 bg-[color:var(--fg)] text-[color:var(--bg)]">
               <div className="kicker mb-2" style={{ color: "var(--accent)" }}>
-                Summary view
+                Policy view
               </div>
               <h3 className="m-0 mb-2.5 text-lg font-semibold">Plain-language read</h3>
               <p className="m-0 text-[13.5px] leading-[1.65]" style={{ color: "rgba(240,237,232,0.78)" }}>
@@ -182,7 +182,7 @@ export default function AboutPage() {
           </p>
           <div className="grid gap-5 sm:grid-cols-2">
             <div className="border border-[color:var(--border-soft)] p-[22px]">
-              <div className="kicker mb-2">Summary view</div>
+              <div className="kicker mb-2">Policy view</div>
               <p className="m-0 text-[14px] leading-[1.65] text-[color:var(--fg-muted)]">
                 Default. Plain-language interpretation for non-technical readers — policymakers,
                 journalists, decision-makers. An "at a glance" card foregrounds what the
