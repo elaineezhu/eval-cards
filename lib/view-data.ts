@@ -101,7 +101,7 @@ const CELL_JOIN_COLUMNS = `
   r.metric_display_name,
   r.metric_unit,
   r.lower_is_better,
-  r.derived_tags,
+  CAST(to_json(r.derived_tags) AS VARCHAR) AS derived_tags,
   r.score,
   CAST(to_json(r.score_details) AS VARCHAR) AS score_details,
   r.fact_row_count,
@@ -144,7 +144,7 @@ const CELL_JOIN_COLUMNS = `
   e.composite_slug AS eval_composite_benchmark_key,
   e.composite_display_name AS eval_composite_benchmark_name,
   e.family_display_name AS eval_benchmark_family_name,
-  e.derived_tags AS eval_derived_tags,
+  CAST(to_json(e.derived_tags) AS VARCHAR) AS eval_derived_tags,
   CAST(to_json(e.metric_config) AS VARCHAR) AS eval_metric_config,
   CAST(to_json(e.source_data) AS VARCHAR) AS eval_source_data,
   CAST(to_json(e.benchmark_card) AS VARCHAR) AS eval_benchmark_card,
@@ -329,15 +329,24 @@ function asArray<T>(value: unknown): T[] {
 // JSON-encoded string (evals_view / eval_results_view: VARCHAR). Coerce
 // either into a string[].
 function coerceTags(value: unknown): string[] {
-  if (Array.isArray(value)) return value.filter((t): t is string => typeof t === "string")
-  if (typeof value === "string" && value.length > 0) {
+  let current: unknown = value
+
+  for (let depth = 0; depth < 3; depth += 1) {
+    if (Array.isArray(current)) {
+      return current.filter((t): t is string => typeof t === "string")
+    }
+
+    if (typeof current !== "string" || current.length === 0) {
+      return []
+    }
+
     try {
-      const parsed = JSON.parse(value)
-      return Array.isArray(parsed) ? parsed.filter((t): t is string => typeof t === "string") : []
+      current = JSON.parse(current)
     } catch {
       return []
     }
   }
+
   return []
 }
 
