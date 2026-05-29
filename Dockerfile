@@ -14,7 +14,7 @@ ARG PNPM_VERSION=10.25.0
 # Override at build time via `--build-arg ...`.
 ARG DATA_BACKEND=v2
 ARG HF_DATASET_REPO=https://huggingface.co/datasets/evaleval/card_backend
-ARG SNAPSHOT_URL=https://huggingface.co/datasets/j-chim/temp_evalcard_backend/resolve/main/warehouse/2026-05-03T21-46-50Z
+ARG SNAPSHOT_URL=https://huggingface.co/datasets/evaleval/card_backend/resolve/main/warehouse/2026-05-29T00-24-44Z
 # Static prerender (`next build`) executes route handlers. In legacy mode the
 # cache populated by `cache-hf-data.mjs` lives at `/app/.cache/hf-data`; in v2
 # the cache step is skipped and the app reads the pinned Stage J snapshot.
@@ -48,7 +48,7 @@ FROM node:18-bullseye-slim AS runner
 WORKDIR /app
 
 ARG DATA_BACKEND=v2
-ARG SNAPSHOT_URL=https://huggingface.co/datasets/j-chim/temp_evalcard_backend/resolve/main/warehouse/2026-05-03T21-46-50Z
+ARG SNAPSHOT_URL=https://huggingface.co/datasets/evaleval/card_backend/resolve/main/warehouse/2026-05-29T00-24-44Z
 
 # Runtime needs the same data-source envs that the builder used. Docker
 # multi-stage doesn't carry ENVs across stages, so keep backend selection and
