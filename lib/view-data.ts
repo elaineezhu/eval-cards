@@ -190,24 +190,45 @@ function normalizeDuckDBValue(value: unknown): unknown {
 
 async function readRows<T = Row>(sql: string, params: unknown[] = []): Promise<T[]> {
   const connection = await getConnection()
+  // Split the call so we can inspect column metadata even when the
+  // chunk-fetch step crashes. `runAndRead` returns a reader without
+  // fetching any chunks; `readAll` triggers the fetch loop, which is
+  // where the linux-x64 binding throws "Invalid Error: don't know
+  // what type: " for certain aliased logical types (JSON, etc.).
+  // `getRowObjectsJson()` is the lib's documented JSON-serialisable
+  // path — STRUCT→object, LIST→array, MAP→object, decimals→string —
+  // which is what the rest of the file already expects.
+  // normalizeDuckDBValue is kept as a no-op safety net on top.
+  let reader
   try {
-    const reader = params.length > 0
-      ? await connection.runAndReadAll(sql, params as any[])
-      : await connection.runAndReadAll(sql)
-    // `getRowObjectsJson()` bypasses the typed materializer that
-    // crashes ("Invalid Error: don't know what type:") on certain
-    // logical types in the linux-x64 binding. The JSON form returns
-    // JSON-serialisable shapes — STRUCTs as plain objects, LISTs as
-    // arrays, MAPs as objects, decimals as strings — which is what
-    // the rest of the file already expects. normalizeDuckDBValue is
-    // kept for the few cases (legacy code paths, future toggles back)
-    // where the typed form is reached, but it's effectively a no-op
-    // on the JSON output.
+    reader = params.length > 0
+      ? await connection.runAndRead(sql, params as any[])
+      : await connection.runAndRead(sql)
+  } catch (err) {
+    const sqlSnippet = sql.replace(/\s+/g, " ").slice(0, 1200)
+    const msg = err instanceof Error ? `${err.name}: ${err.message}` : String(err)
+    console.error(`[view-data] runAndRead failed (${msg}) — SQL: ${sqlSnippet}`)
+    throw err
+  }
+
+  try {
+    await reader.readAll()
     return reader.getRowObjectsJson().map((row) => normalizeDuckDBValue(row) as T)
   } catch (err) {
     const sqlSnippet = sql.replace(/\s+/g, " ").slice(0, 1200)
     const msg = err instanceof Error ? `${err.name}: ${err.message}` : String(err)
-    console.error(`[view-data] readRows failed (${msg}) — SQL: ${sqlSnippet}`)
+    let columnSchema: string = "<unavailable>"
+    try {
+      columnSchema = JSON.stringify(reader.columnNameAndTypeObjectsJson())
+    } catch (introspectErr) {
+      columnSchema = `<introspect-failed: ${
+        introspectErr instanceof Error ? introspectErr.message : String(introspectErr)
+      }>`
+    }
+    console.error(
+      `[view-data] readAll/getRows failed (${msg}) — columnCount=${reader.columnCount} ` +
+        `columns=${columnSchema} — SQL: ${sqlSnippet}`
+    )
     throw err
   }
 }
