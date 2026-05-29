@@ -136,6 +136,29 @@ export async function getConnection(): Promise<DuckDBConnection> {
     connectionPromise = (async () => {
       const connection = await DuckDBConnection.create()
 
+      // Ensure the JSON extension is loaded. The upstream parquet
+      // nests `JSON`-typed fields inside structs (e.g.
+      // `evals_view.benchmark_card.flagged_fields`); without the JSON
+      // extension active, the Node binding can't materialise rows
+      // containing those columns and surfaces "Invalid Error: don't
+      // know what type:" at result-fetch time. Some linux-x64 builds
+      // ship without JSON auto-loaded — installing explicitly here
+      // makes the behaviour identical across platforms. INSTALL is
+      // idempotent and a no-op when bundled.
+      try {
+        await connection.run("INSTALL json")
+      } catch {
+        // INSTALL can fail when offline; LOAD will still succeed if
+        // the extension is bundled.
+      }
+      try {
+        await connection.run("LOAD json")
+      } catch {
+        // No-op when the extension isn't available — the queries that
+        // need it will throw a clearer error than the binding's bare
+        // "don't know what type:" message.
+      }
+
       // Mirror parquet views to local disk before opening DuckDB views
       // so query-time range reads hit the local SSD instead of HF over
       // HTTPS. Cold first start pays a one-time download (a few hundred
