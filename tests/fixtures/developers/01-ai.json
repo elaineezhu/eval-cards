@@ -2,7 +2,7 @@
   "developer": "01-ai",
   "models": [
     {
-      "model_family_id": "01-ai/yi-34b",
+      "model_group_id": "01-ai/yi-34b",
       "model_route_id": "01-ai__yi-34b",
       "model_family_name": "Yi 34B",
       "developer": "01-ai",
@@ -215,7 +215,7 @@
       ]
     },
     {
-      "model_family_id": "01-ai/yi-6b",
+      "model_group_id": "01-ai/yi-6b",
       "model_route_id": "01-ai__yi-6b",
       "model_family_name": "Yi 6B",
       "developer": "01-ai",
@@ -428,7 +428,7 @@
       ]
     },
     {
-      "model_family_id": "01-ai/yi-34b-chat",
+      "model_group_id": "01-ai/yi-34b-chat",
       "model_route_id": "01-ai__yi-34b-chat",
       "model_family_name": "Yi Chat 34B",
       "developer": "01-ai",
@@ -560,7 +560,7 @@
       ]
     },
     {
-      "model_family_id": "01-ai/yi-large-preview",
+      "model_group_id": "01-ai/yi-large-preview",
       "model_route_id": "01-ai__yi-large-preview",
       "model_family_name": "Yi Large Preview",
       "developer": "01-ai",
@@ -730,7 +730,7 @@
       ]
     },
     {
-      "model_family_id": "01-ai/yi-1-5-34b",
+      "model_group_id": "01-ai/yi-1-5-34b",
       "model_route_id": "01-ai__yi-1-5-34b",
       "model_family_name": "Yi-1.5-34B",
       "developer": "01-ai",
@@ -851,7 +851,7 @@
       ]
     },
     {
-      "model_family_id": "01-ai/yi-1-5-34b-32k",
+      "model_group_id": "01-ai/yi-1-5-34b-32k",
       "model_route_id": "01-ai__yi-1-5-34b-32k",
       "model_family_name": "Yi-1.5-34B-32K",
       "developer": "01-ai",
@@ -972,7 +972,7 @@
       ]
     },
     {
-      "model_family_id": "01-ai/yi-1-5-34b-chat",
+      "model_group_id": "01-ai/yi-1-5-34b-chat",
       "model_route_id": "01-ai__yi-1-5-34b-chat",
       "model_family_name": "Yi-1.5-34B-Chat",
       "developer": "01-ai",
@@ -1093,7 +1093,7 @@
       ]
     },
     {
-      "model_family_id": "01-ai/yi-1-5-34b-chat-16k",
+      "model_group_id": "01-ai/yi-1-5-34b-chat-16k",
       "model_route_id": "01-ai__yi-1-5-34b-chat-16k",
       "model_family_name": "Yi-1.5-34B-Chat-16K",
       "developer": "01-ai",
@@ -1214,7 +1214,7 @@
       ]
     },
     {
-      "model_family_id": "01-ai/yi-1-5-6b",
+      "model_group_id": "01-ai/yi-1-5-6b",
       "model_route_id": "01-ai__yi-1-5-6b",
       "model_family_name": "Yi-1.5-6B",
       "developer": "01-ai",
@@ -1335,7 +1335,7 @@
       ]
     },
     {
-      "model_family_id": "01-ai/yi-1-5-6b-chat",
+      "model_group_id": "01-ai/yi-1-5-6b-chat",
       "model_route_id": "01-ai__yi-1-5-6b-chat",
       "model_family_name": "Yi-1.5-6B-Chat",
       "developer": "01-ai",
@@ -1456,7 +1456,7 @@
       ]
     },
     {
-      "model_family_id": "01-ai/yi-1-5-9b",
+      "model_group_id": "01-ai/yi-1-5-9b",
       "model_route_id": "01-ai__yi-1-5-9b",
       "model_family_name": "Yi-1.5-9B",
       "developer": "01-ai",
@@ -1577,7 +1577,7 @@
       ]
     },
     {
-      "model_family_id": "01-ai/yi-1-5-9b-32k",
+      "model_group_id": "01-ai/yi-1-5-9b-32k",
       "model_route_id": "01-ai__yi-1-5-9b-32k",
       "model_family_name": "Yi-1.5-9B-32K",
       "developer": "01-ai",
@@ -1698,7 +1698,7 @@
       ]
     },
     {
-      "model_family_id": "01-ai/yi-1-5-9b-chat",
+      "model_group_id": "01-ai/yi-1-5-9b-chat",
       "model_route_id": "01-ai__yi-1-5-9b-chat",
       "model_family_name": "Yi-1.5-9B-Chat",
       "developer": "01-ai",
@@ -1819,7 +1819,7 @@
       ]
     },
     {
-      "model_family_id": "01-ai/yi-1-5-9b-chat-16k",
+      "model_group_id": "01-ai/yi-1-5-9b-chat-16k",
       "model_route_id": "01-ai__yi-1-5-9b-chat-16k",
       "model_family_name": "Yi-1.5-9B-Chat-16K",
       "developer": "01-ai",
@@ -1940,7 +1940,7 @@
       ]
     },
     {
-      "model_family_id": "01-ai/yi-34b-200k",
+      "model_group_id": "01-ai/yi-34b-200k",
       "model_route_id": "01-ai__yi-34b-200k",
       "model_family_name": "Yi-34B-200K",
       "developer": "01-ai",
@@ -2061,7 +2061,7 @@
       ]
     },
     {
-      "model_family_id": "01-ai/yi-6b-200k",
+      "model_group_id": "01-ai/yi-6b-200k",
       "model_route_id": "01-ai__yi-6b-200k",
       "model_family_name": "Yi-6B-200K",
       "developer": "01-ai",
@@ -2182,7 +2182,7 @@
       ]
     },
     {
-      "model_family_id": "01-ai/yi-6b-chat",
+      "model_group_id": "01-ai/yi-6b-chat",
       "model_route_id": "01-ai__yi-6b-chat",
       "model_family_name": "Yi-6B-Chat",
       "developer": "01-ai",
@@ -2303,7 +2303,7 @@
       ]
     },
     {
-      "model_family_id": "01-ai/yi-9b",
+      "model_group_id": "01-ai/yi-9b",
       "model_route_id": "01-ai__yi-9b",
       "model_family_name": "Yi-9B",
       "developer": "01-ai",
@@ -2424,7 +2424,7 @@
       ]
     },
     {
-      "model_family_id": "01-ai/yi-9b-200k",
+      "model_group_id": "01-ai/yi-9b-200k",
       "model_route_id": "01-ai__yi-9b-200k",
       "model_family_name": "Yi-9B-200K",
       "developer": "01-ai",
@@ -2545,7 +2545,7 @@
       ]
     },
     {
-      "model_family_id": "01-ai/yi-coder-9b-chat",
+      "model_group_id": "01-ai/yi-coder-9b-chat",
       "model_route_id": "01-ai__yi-coder-9b-chat",
       "model_family_name": "Yi-Coder-9B-Chat",
       "developer": "01-ai",

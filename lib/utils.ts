@@ -31,6 +31,22 @@ export function routeIdFromSegments(value: string | string[] | undefined): strin
 }
 
 /**
+ * Build the backend `%2F`-encoded route id form from a plain canonical
+ * model id (`org/name`). Matches the producer's `route_id` /
+ * `model_route_id` encoding (RFC 3986 percent-encoding of the whole id),
+ * so the result can be fed straight into `routeIdToPath` for a URL path.
+ *
+ * This is the model-resolution-rework replacement for the old
+ * client-side family-route computation (since removed): the
+ * group/leaf id is now server-provided (`model_group_id`), and we only
+ * need to encode it for routing — never re-derive it.
+ */
+export function routeIdFromModelId(id: string | null | undefined): string {
+  if (!id) return ""
+  return encodeURIComponent(id.trim())
+}
+
+/**
  * Title-case a benchmark / family / eval label that arrives in slug or
  * snake-case form. Example inputs and outputs:
  *   `gdm_intercode_ctf` → `GDM Intercode CTF`

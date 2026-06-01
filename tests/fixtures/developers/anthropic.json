@@ -2,7 +2,7 @@
   "developer": "Anthropic",
   "models": [
     {
-      "model_family_id": "anthropic/claude-v1-3",
+      "model_group_id": "anthropic/claude-v1-3",
       "model_route_id": "anthropic__claude-v1-3",
       "model_family_name": "Anthropic Claude v1.3",
       "developer": "anthropic",
@@ -217,7 +217,7 @@
       ]
     },
     {
-      "model_family_id": "anthropic/claude-2-0",
+      "model_group_id": "anthropic/claude-2-0",
       "model_route_id": "anthropic__claude-2-0",
       "model_family_name": "Claude 2.0",
       "developer": "anthropic",
@@ -378,7 +378,7 @@
       ]
     },
     {
-      "model_family_id": "anthropic/claude-2-1",
+      "model_group_id": "anthropic/claude-2-1",
       "model_route_id": "anthropic__claude-2-1",
       "model_family_name": "Claude 2.1",
       "developer": "anthropic",
@@ -548,7 +548,7 @@
       ]
     },
     {
-      "model_family_id": "anthropic/claude-21",
+      "model_group_id": "anthropic/claude-21",
       "model_route_id": "anthropic__claude-21",
       "model_family_name": "Claude 2.1",
       "developer": "anthropic",
@@ -743,7 +743,7 @@
       ]
     },
     {
-      "model_family_id": "anthropic/claude-3-haiku",
+      "model_group_id": "anthropic/claude-3-haiku",
       "model_route_id": "anthropic__claude-3-haiku",
       "model_family_name": "Claude 3 Haiku",
       "developer": "anthropic",
@@ -978,7 +978,7 @@
       ]
     },
     {
-      "model_family_id": "anthropic/claude-3-opus",
+      "model_group_id": "anthropic/claude-3-opus",
       "model_route_id": "anthropic__claude-3-opus",
       "model_family_name": "Claude 3 Opus",
       "developer": "anthropic",
@@ -1214,7 +1214,7 @@
       ]
     },
     {
-      "model_family_id": "anthropic/claude-3-sonnet",
+      "model_group_id": "anthropic/claude-3-sonnet",
       "model_route_id": "anthropic__claude-3-sonnet",
       "model_family_name": "Claude 3 Sonnet",
       "developer": "anthropic",
@@ -1446,7 +1446,7 @@
       ]
     },
     {
-      "model_family_id": "anthropic/claude-3-5-haiku",
+      "model_group_id": "anthropic/claude-3-5-haiku",
       "model_route_id": "anthropic__claude-3-5-haiku",
       "model_family_name": "Claude 3.5 Haiku",
       "developer": "anthropic",
@@ -1672,7 +1672,7 @@
       ]
     },
     {
-      "model_family_id": "anthropic/claude-3-5-sonnet",
+      "model_group_id": "anthropic/claude-3-5-sonnet",
       "model_route_id": "anthropic__claude-3-5-sonnet",
       "model_family_name": "Claude 3.5 Sonnet",
       "developer": "anthropic",
@@ -1920,7 +1920,7 @@
       ]
     },
     {
-      "model_family_id": "anthropic/claude-35-sonnet-june-24",
+      "model_group_id": "anthropic/claude-35-sonnet-june-24",
       "model_route_id": "anthropic__claude-35-sonnet-june-24",
       "model_family_name": "Claude 3.5 Sonnet (June '24)",
       "developer": "anthropic",
@@ -2106,7 +2106,7 @@
       ]
     },
     {
-      "model_family_id": "anthropic/claude-35-sonnet",
+      "model_group_id": "anthropic/claude-35-sonnet",
       "model_route_id": "anthropic__claude-35-sonnet",
       "model_family_name": "Claude 3.5 Sonnet (Oct '24)",
       "developer": "anthropic",
@@ -2301,7 +2301,7 @@
       ]
     },
     {
-      "model_family_id": "anthropic/claude-3-7",
+      "model_group_id": "anthropic/claude-3-7",
       "model_route_id": "anthropic__claude-3-7",
       "model_family_name": "Claude 3.7",
       "developer": "anthropic",
@@ -2370,7 +2370,7 @@
       ]
     },
     {
-      "model_family_id": "anthropic/claude-3-7-sonnet",
+      "model_group_id": "anthropic/claude-3-7-sonnet",
       "model_route_id": "anthropic__claude-3-7-sonnet",
       "model_family_name": "Claude 3.7 Sonnet",
       "developer": "anthropic",
@@ -2613,7 +2613,7 @@
       ]
     },
     {
-      "model_family_id": "anthropic/claude-3-7-sonnet-thinking",
+      "model_group_id": "anthropic/claude-3-7-sonnet-thinking",
       "model_route_id": "anthropic__claude-3-7-sonnet-thinking",
       "model_family_name": "Claude 3.7 Sonnet (Reasoning)",
       "developer": "anthropic",
@@ -2808,7 +2808,7 @@
       ]
     },
     {
-      "model_family_id": "anthropic/claude-3-7-thinking-16k",
+      "model_group_id": "anthropic/claude-3-7-thinking-16k",
       "model_route_id": "anthropic__claude-3-7-thinking-16k",
       "model_family_name": "Claude 3.7 Thinking 16K",
       "developer": "anthropic",
@@ -2877,7 +2877,7 @@
       ]
     },
     {
-      "model_family_id": "anthropic/claude-3-7-thinking-1k",
+      "model_group_id": "anthropic/claude-3-7-thinking-1k",
       "model_route_id": "anthropic__claude-3-7-thinking-1k",
       "model_family_name": "Claude 3.7 Thinking 1K",
       "developer": "anthropic",
@@ -2946,7 +2946,7 @@
       ]
     },
     {
-      "model_family_id": "anthropic/claude-3-7-thinking-8k",
+      "model_group_id": "anthropic/claude-3-7-thinking-8k",
       "model_route_id": "anthropic__claude-3-7-thinking-8k",
       "model_family_name": "Claude 3.7 Thinking 8K",
       "developer": "anthropic",
@@ -3015,7 +3015,7 @@
       ]
     },
     {
-      "model_family_id": "anthropic/claude-4-opus-thinking",
+      "model_group_id": "anthropic/claude-4-opus-thinking",
       "model_route_id": "anthropic__claude-4-opus-thinking",
       "model_family_name": "Claude 4 Opus (Reasoning)",
       "developer": "anthropic",
@@ -3210,7 +3210,7 @@
       ]
     },
     {
-      "model_family_id": "anthropic/claude-4-sonnet-thinking",
+      "model_group_id": "anthropic/claude-4-sonnet-thinking",
       "model_route_id": "anthropic__claude-4-sonnet-thinking",
       "model_family_name": "Claude 4 Sonnet (Reasoning)",
       "developer": "anthropic",
@@ -3405,7 +3405,7 @@
       ]
     },
     {
-      "model_family_id": "anthropic/claude-4-1-opus",
+      "model_group_id": "anthropic/claude-4-1-opus",
       "model_route_id": "anthropic__claude-4-1-opus",
       "model_family_name": "Claude 4.1 Opus (Non-reasoning)",
       "developer": "anthropic",
@@ -3540,7 +3540,7 @@
       ]
     },
     {
-      "model_family_id": "anthropic/claude-4-1-opus-thinking",
+      "model_group_id": "anthropic/claude-4-1-opus-thinking",
       "model_route_id": "anthropic__claude-4-1-opus-thinking",
       "model_family_name": "Claude 4.1 Opus (Reasoning)",
       "developer": "anthropic",
@@ -3735,7 +3735,7 @@
       ]
     },
     {
-      "model_family_id": "anthropic/claude-4-5-haiku",
+      "model_group_id": "anthropic/claude-4-5-haiku",
       "model_route_id": "anthropic__claude-4-5-haiku",
       "model_family_name": "Claude 4.5 Haiku (Non-reasoning)",
       "developer": "anthropic",
@@ -3930,7 +3930,7 @@
       ]
     },
     {
-      "model_family_id": "anthropic/claude-4-5-haiku-reasoning",
+      "model_group_id": "anthropic/claude-4-5-haiku-reasoning",
       "model_route_id": "anthropic__claude-4-5-haiku-reasoning",
       "model_family_name": "Claude 4.5 Haiku (Reasoning)",
       "developer": "anthropic",
@@ -4125,7 +4125,7 @@
       ]
     },
     {
-      "model_family_id": "anthropic/claude-4-5-sonnet-thinking",
+      "model_group_id": "anthropic/claude-4-5-sonnet-thinking",
       "model_route_id": "anthropic__claude-4-5-sonnet-thinking",
       "model_family_name": "Claude 4.5 Sonnet (Reasoning)",
       "developer": "anthropic",
@@ -4320,7 +4320,7 @@
       ]
     },
     {
-      "model_family_id": "anthropic/claude-code",
+      "model_group_id": "anthropic/claude-code",
       "model_route_id": "anthropic__claude-code",
       "model_family_name": "Claude Code",
       "developer": "Anthropic",
@@ -4389,7 +4389,7 @@
       ]
     },
     {
-      "model_family_id": "anthropic/claude-instant",
+      "model_group_id": "anthropic/claude-instant",
       "model_route_id": "anthropic__claude-instant",
       "model_family_name": "Claude Instant",
       "developer": "anthropic",
@@ -4575,7 +4575,7 @@
       ]
     },
     {
-      "model_family_id": "anthropic/claude-instant-1-2",
+      "model_group_id": "anthropic/claude-instant-1-2",
       "model_route_id": "anthropic__claude-instant-1-2",
       "model_family_name": "Claude Instant 1.2",
       "developer": "anthropic",
@@ -4745,7 +4745,7 @@
       ]
     },
     {
-      "model_family_id": "anthropic/claude-mythos-preview",
+      "model_group_id": "anthropic/claude-mythos-preview",
       "model_route_id": "anthropic__claude-mythos-preview",
       "model_family_name": "Claude Mythos Preview",
       "developer": "anthropic",
@@ -4955,7 +4955,7 @@
       ]
     },
     {
-      "model_family_id": "anthropic/claude-opus-4",
+      "model_group_id": "anthropic/claude-opus-4",
       "model_route_id": "anthropic__claude-opus-4",
       "model_family_name": "Claude Opus 4",
       "developer": "anthropic",
@@ -5220,7 +5220,7 @@
       ]
     },
     {
-      "model_family_id": "anthropic/claude-opus-4-5-thinking",
+      "model_group_id": "anthropic/claude-opus-4-5-thinking",
       "model_route_id": "anthropic__claude-opus-4-5-thinking",
       "model_family_name": "Claude Opus 4.5 (Reasoning)",
       "developer": "anthropic",
@@ -5415,7 +5415,7 @@
       ]
     },
     {
-      "model_family_id": "anthropic/claude-opus-4-6-adaptive",
+      "model_group_id": "anthropic/claude-opus-4-6-adaptive",
       "model_route_id": "anthropic__claude-opus-4-6-adaptive",
       "model_family_name": "Claude Opus 4.6 (Adaptive Reasoning, Max Effort)",
       "developer": "anthropic",
@@ -5610,7 +5610,7 @@
       ]
     },
     {
-      "model_family_id": "anthropic/claude-sonnet-4",
+      "model_group_id": "anthropic/claude-sonnet-4",
       "model_route_id": "anthropic__claude-sonnet-4",
       "model_family_name": "Claude Sonnet 4",
       "developer": "anthropic",
@@ -5875,7 +5875,7 @@
       ]
     },
     {
-      "model_family_id": "anthropic/claude-sonnet-4-6-adaptive",
+      "model_group_id": "anthropic/claude-sonnet-4-6-adaptive",
       "model_route_id": "anthropic__claude-sonnet-4-6-adaptive",
       "model_family_name": "Claude Sonnet 4.6 (Adaptive Reasoning, Max Effort)",
       "developer": "anthropic",
@@ -6070,7 +6070,7 @@
       ]
     },
     {
-      "model_family_id": "anthropic/claude-sonnet-4-6-non-reasoning-low-effort",
+      "model_group_id": "anthropic/claude-sonnet-4-6-non-reasoning-low-effort",
       "model_route_id": "anthropic__claude-sonnet-4-6-non-reasoning-low-effort",
       "model_family_name": "Claude Sonnet 4.6 (Non-reasoning, Low Effort)",
       "developer": "anthropic",
@@ -6265,7 +6265,7 @@
       ]
     },
     {
-      "model_family_id": "anthropic/claude-3-5-sonnet-oct",
+      "model_group_id": "anthropic/claude-3-5-sonnet-oct",
       "model_route_id": "anthropic__claude-3-5-sonnet-oct",
       "model_family_name": "Claude-3.5-Sonnet(Oct)",
       "developer": "anthropic",
@@ -6385,7 +6385,7 @@
       ]
     },
     {
-      "model_family_id": "anthropic/claude-4-sonnet",
+      "model_group_id": "anthropic/claude-4-sonnet",
       "model_route_id": "anthropic__claude-4-sonnet",
       "model_family_name": "Claude-4-Sonnet",
       "developer": "anthropic",
@@ -6604,7 +6604,7 @@
       ]
     },
     {
-      "model_family_id": "anthropic/claude-4-5-sonnet",
+      "model_group_id": "anthropic/claude-4-5-sonnet",
       "model_route_id": "anthropic__claude-4-5-sonnet",
       "model_family_name": "Claude-4.5-Sonnet",
       "developer": "anthropic",
@@ -6802,7 +6802,7 @@
       ]
     },
     {
-      "model_family_id": "anthropic/claude-sonnet-4-6-high",
+      "model_group_id": "anthropic/claude-sonnet-4-6-high",
       "model_route_id": "anthropic__claude-sonnet-4-6-high",
       "model_family_name": "Claude-Sonnet-4.6-high",
       "developer": "Anthropic",
@@ -6883,7 +6883,7 @@
       ]
     },
     {
-      "model_family_id": "anthropic/opus-4-1",
+      "model_group_id": "anthropic/opus-4-1",
       "model_route_id": "anthropic__opus-4-1",
       "model_family_name": "Opus 4.1",
       "developer": "anthropic",
@@ -6952,7 +6952,7 @@
       ]
     },
     {
-      "model_family_id": "anthropic/opus-4-5",
+      "model_group_id": "anthropic/opus-4-5",
       "model_route_id": "anthropic__opus-4-5",
       "model_family_name": "Opus 4.5",
       "developer": "anthropic",
@@ -7043,7 +7043,7 @@
       ]
     },
     {
-      "model_family_id": "anthropic/opus-4-6",
+      "model_group_id": "anthropic/opus-4-6",
       "model_route_id": "anthropic__opus-4-6",
       "model_family_name": "Opus 4.6",
       "developer": "anthropic",
@@ -7112,7 +7112,7 @@
       ]
     },
     {
-      "model_family_id": "anthropic/sonnet-4-5",
+      "model_group_id": "anthropic/sonnet-4-5",
       "model_route_id": "anthropic__sonnet-4-5",
       "model_family_name": "Sonnet 4.5",
       "developer": "anthropic",
@@ -7181,7 +7181,7 @@
       ]
     },
     {
-      "model_family_id": "anthropic/opus-4-6-max-effort",
+      "model_group_id": "anthropic/opus-4-6-max-effort",
       "model_route_id": "anthropic__opus-4-6-max-effort",
       "model_family_name": "anthropic-opus-4-6-max-effort",
       "developer": "anthropic",
@@ -7250,7 +7250,7 @@
       ]
     },
     {
-      "model_family_id": "anthropic/anthropic-claude-3-7-sonnet",
+      "model_group_id": "anthropic/anthropic-claude-3-7-sonnet",
       "model_route_id": "anthropic__anthropic-claude-3-7-sonnet",
       "model_family_name": "anthropic/anthropic/claude-3-7-sonnet-20250219",
       "developer": "anthropic",
@@ -7319,7 +7319,7 @@
       ]
     },
     {
-      "model_family_id": "anthropic/claude-2",
+      "model_group_id": "anthropic/claude-2",
       "model_route_id": "anthropic__claude-2",
       "model_family_name": "claude-2",
       "developer": "anthropic",
@@ -7507,7 +7507,7 @@
       ]
     },
     {
-      "model_family_id": "anthropic/claude-4-opus",
+      "model_group_id": "anthropic/claude-4-opus",
       "model_route_id": "anthropic__claude-4-opus",
       "model_family_name": "claude-4-opus-20250514",
       "developer": "anthropic",
@@ -7715,7 +7715,7 @@
       ]
     },
     {
-      "model_family_id": "anthropic/claude-haiku-4-5",
+      "model_group_id": "anthropic/claude-haiku-4-5",
       "model_route_id": "anthropic__claude-haiku-4-5",
       "model_family_name": "claude-haiku-4-5-20251001",
       "developer": "anthropic",
@@ -7985,7 +7985,7 @@
       ]
     },
     {
-      "model_family_id": "anthropic/claude-opus-4-1",
+      "model_group_id": "anthropic/claude-opus-4-1",
       "model_route_id": "anthropic__claude-opus-4-1",
       "model_family_name": "claude-opus-4-1-20250805",
       "developer": "anthropic",
@@ -8125,7 +8125,7 @@
       ]
     },
     {
-      "model_family_id": "anthropic/claude-opus-4-5",
+      "model_group_id": "anthropic/claude-opus-4-5",
       "model_route_id": "anthropic__claude-opus-4-5",
       "model_family_name": "claude-opus-4-5-20251101",
       "developer": "anthropic",
@@ -8398,7 +8398,7 @@
       ]
     },
     {
-      "model_family_id": "anthropic/claude-opus-4-6",
+      "model_group_id": "anthropic/claude-opus-4-6",
       "model_route_id": "anthropic__claude-opus-4-6",
       "model_family_name": "claude-opus-4-6",
       "developer": "anthropic",
@@ -8624,7 +8624,7 @@
       ]
     },
     {
-      "model_family_id": "anthropic/claude-opus-4-6-thinking-120k-high",
+      "model_group_id": "anthropic/claude-opus-4-6-thinking-120k-high",
       "model_route_id": "anthropic__claude-opus-4-6-thinking-120k-high",
       "model_family_name": "claude-opus-4-6-thinking-120K-high",
       "developer": "anthropic",
@@ -8693,7 +8693,7 @@
       ]
     },
     {
-      "model_family_id": "anthropic/claude-opus-4-6-thinking-120k-low",
+      "model_group_id": "anthropic/claude-opus-4-6-thinking-120k-low",
       "model_route_id": "anthropic__claude-opus-4-6-thinking-120k-low",
       "model_family_name": "claude-opus-4-6-thinking-120K-low",
       "developer": "anthropic",
@@ -8762,7 +8762,7 @@
       ]
     },
     {
-      "model_family_id": "anthropic/claude-opus-4-6-thinking-120k-max",
+      "model_group_id": "anthropic/claude-opus-4-6-thinking-120k-max",
       "model_route_id": "anthropic__claude-opus-4-6-thinking-120k-max",
       "model_family_name": "claude-opus-4-6-thinking-120K-max",
       "developer": "anthropic",
@@ -8831,7 +8831,7 @@
       ]
     },
     {
-      "model_family_id": "anthropic/claude-opus-4-6-thinking-120k-medium",
+      "model_group_id": "anthropic/claude-opus-4-6-thinking-120k-medium",
       "model_route_id": "anthropic__claude-opus-4-6-thinking-120k-medium",
       "model_family_name": "claude-opus-4-6-thinking-120K-medium",
       "developer": "anthropic",
@@ -8900,7 +8900,7 @@
       ]
     },
     {
-      "model_family_id": "anthropic/claude-opus-4-7",
+      "model_group_id": "anthropic/claude-opus-4-7",
       "model_route_id": "anthropic__claude-opus-4-7",
       "model_family_name": "claude-opus-4-7",
       "developer": "anthropic",
@@ -9079,7 +9079,7 @@
       ]
     },
     {
-      "model_family_id": "anthropic/claude-sonnet-4-5",
+      "model_group_id": "anthropic/claude-sonnet-4-5",
       "model_route_id": "anthropic__claude-sonnet-4-5",
       "model_family_name": "claude-sonnet-4-5-20250929",
       "developer": "anthropic",
@@ -9353,7 +9353,7 @@
       ]
     },
     {
-      "model_family_id": "anthropic/claude-sonnet-4-6",
+      "model_group_id": "anthropic/claude-sonnet-4-6",
       "model_route_id": "anthropic__claude-sonnet-4-6",
       "model_family_name": "claude-sonnet-4-6",
       "developer": "anthropic",
@@ -9563,7 +9563,7 @@
       ]
     },
     {
-      "model_family_id": "anthropic/claude-sonnet-4-6-max",
+      "model_group_id": "anthropic/claude-sonnet-4-6-max",
       "model_route_id": "anthropic__claude-sonnet-4-6-max",
       "model_family_name": "claude_sonnet_4_6_max",
       "developer": "anthropic",

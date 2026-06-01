@@ -551,6 +551,8 @@ function reshapeCellToModelResult(row: Row): ModelResultForBenchmark {
   return {
     model_info: (modelInfo ?? modelInfoFromModelRow(row)) as ModelInfo,
     model_route_id: optionalString(row.model_route_id),
+    // model-resolution-rework: server-provided group id for routing fallback.
+    model_group_id: optionalString(row.model_group_id),
     score: scoreDetails.score,
     score_details: scoreDetails,
     evaluation_timestamp: asString(row.evaluation_timestamp, ""),
@@ -634,7 +636,7 @@ function modelSummaryFromRows(modelRow: Row, cellRows: Row[]): ModelEvaluationSu
     variant_label: asString(variant.variant_label ?? variant.variant_display_name, "Default"),
     variant_display_name: asString(variant.variant_display_name ?? variant.variant_label ?? modelRow.model_name, modelRow.model_name),
     raw_model_ids: asArray<string>(variant.raw_model_ids),
-    family_id: asString(variant.family_id ?? modelRow.model_family_id, modelRow.model_family_id),
+    family_id: asString(variant.family_id ?? modelRow.model_group_id, modelRow.model_group_id),
     family_name: asString(variant.family_name ?? modelRow.model_family_name, modelRow.model_family_name),
     total_evaluations: asNumber(variant.total_evaluations ?? totalEvaluations),
     last_updated: asString(variant.last_updated ?? lastUpdated, lastUpdated),
@@ -649,10 +651,17 @@ function modelSummaryFromRows(modelRow: Row, cellRows: Row[]): ModelEvaluationSu
 
   return {
     ...core,
-    model_family_id: asString(modelRow.model_family_id ?? modelRow.model_key ?? modelRow.model_id, modelRow.model_key ?? modelRow.model_id),
+    model_group_id: asString(modelRow.model_group_id ?? modelRow.model_key ?? modelRow.model_id, modelRow.model_key ?? modelRow.model_id),
     model_route_id: asString(modelRow.model_route_id ?? modelRow.route_id, modelRow.route_id),
     model_family_name: asString(modelRow.model_family_name ?? modelRow.model_name, modelRow.model_name),
     raw_model_ids: rawModelIds.length > 0 ? rawModelIds : [asString(modelRow.model_key ?? modelRow.model_id, "")].filter(Boolean),
+    // model-resolution-rework (additive, nullable). The summary builder
+    // reads `SELECT *` from models_view, so these columns flow through
+    // once the producer view layer emits them (post-M9). Until then
+    // optionalString yields undefined and the UI conditionally omits them.
+    lineage_origin_model_id: optionalString(modelRow.lineage_origin_model_id),
+    resolution_source: optionalString(modelRow.resolution_source),
+    resolution_granularity: optionalString(modelRow.resolution_granularity),
     variants,
   }
 }
@@ -751,7 +760,7 @@ export async function getDashboardData() {
 
 export async function getModelSummaryById(routeId: string): Promise<ModelEvaluationSummary | null> {
   // Lookups use the addressable identifier (`model_key`/`route_id`/
-  // `model_route_id`/`model_family_id`) so unresolved models — whose
+  // `model_route_id`/`model_group_id`) so unresolved models — whose
   // `model_id` is NULL — are still findable. `model_id` is kept in the
   // OR chain as a back-compat fallback for old links.
   //
@@ -760,14 +769,14 @@ export async function getModelSummaryById(routeId: string): Promise<ModelEvaluat
   //     Next.js already decodes path params before they reach here, so
   //     `routeId` lands as `google/gemini-3-pro`.
   //   - Plain canonical id with `/` (same shape after Next.js decode).
-  //   - Legacy `__`-separated form (e.g. `google__gemini-3-pro`) — old
-  //     `getModelFamilyRouteId` emitted this; bookmarks may still use
-  //     it. Convert `__` → `/` for lookup.
+  //   - Legacy `__`-separated form (e.g. `google__gemini-3-pro`) — the
+  //     old client-side family route computation emitted this; bookmarks
+  //     may still use it. Convert `__` → `/` for lookup.
   const dunder = routeId.includes("__") ? routeId.replace(/__/g, "/") : routeId
   const rows = await readRows<Row>(
     `SELECT *
      FROM models_view
-     WHERE model_key = ? OR route_id = ? OR model_route_id = ? OR model_family_id = ? OR model_id = ?
+     WHERE model_key = ? OR route_id = ? OR model_route_id = ? OR model_group_id = ? OR model_id = ?
         OR model_key = ? OR model_id = ?
      LIMIT 1`,
     [routeId, routeId, routeId, routeId, routeId, dunder, dunder],
@@ -888,6 +897,7 @@ export async function getEvalSummaryById(evalId: string): Promise<BenchmarkEvalS
         return {
           model_info: base.model_info,
           model_route_id: row.model_route_id,
+          model_group_id: base.model_group_id,
           evaluation_timestamp: base.evaluation_timestamp,
           source_metadata: base.source_metadata,
           source_data: base.source_data,
@@ -939,6 +949,7 @@ export async function getEvalSummaryById(evalId: string): Promise<BenchmarkEvalS
       .map((mr) => ({
         model_info: mr.model_info,
         model_route_id: mr.model_route_id,
+        model_group_id: mr.model_group_id,
         evaluation_timestamp: mr.evaluation_timestamp,
         source_metadata: mr.source_metadata,
         source_data: mr.source_data,

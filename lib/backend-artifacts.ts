@@ -414,7 +414,7 @@ export interface ComparisonSubmission {
 
 export interface ComparisonScoreEntry {
   model_route_id: string
-  model_family_id: string
+  model_group_id: string
   model_family_name: string
   developer: string
   variant_key: string

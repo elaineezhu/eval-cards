@@ -1,5 +1,5 @@
 {
-  "model_family_id": "anthropic/claude-opus-4.5",
+  "model_group_id": "anthropic/claude-opus-4.5",
   "model_route_id": "anthropic__claude-opus-4.5",
   "model_family_name": "Claude Opus 4.5",
   "developer": "anthropic",

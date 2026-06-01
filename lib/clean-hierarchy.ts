@@ -195,7 +195,7 @@ type ComparisonIndexLike = {
         metric_name?: string | null
         scores: Array<{
           model_route_id?: string | null
-          model_family_id?: string | null
+          model_group_id?: string | null
           score?: number | null
         }>
       }>
@@ -280,7 +280,7 @@ function buildModelCoverageMap(
   for (const [evalId, entry] of Object.entries(comparisonIndex.evals ?? {})) {
     for (const metric of entry.metrics ?? []) {
       for (const row of metric.scores ?? []) {
-        const modelId = row.model_route_id || row.model_family_id
+        const modelId = row.model_route_id || row.model_group_id
         if (!modelId || row.score == null || !Number.isFinite(row.score as number)) continue
         const set = modelEvals.get(modelId) ?? new Set<string>()
         set.add(evalId)
@@ -415,7 +415,7 @@ function dedupAggregatorBenchesByScore(
       usableMetrics[0]
     const map = new Map<string, number>()
     for (const row of target.scores ?? []) {
-      const id = row.model_route_id || row.model_family_id
+      const id = row.model_route_id || row.model_group_id
       if (!id || row.score == null || !Number.isFinite(row.score)) continue
       map.set(id, row.score as number)
     }

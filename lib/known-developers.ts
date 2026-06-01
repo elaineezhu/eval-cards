@@ -20,12 +20,38 @@ export const KNOWN_DEVELOPER_NAMES: Record<string, string> = {
   "x-ai": "xAI",
 }
 
-// Canonical names treated as "official" model-developer organisations.
-// Seeded from KNOWN_DEVELOPER_NAMES values; extend with org names that
-// arrive already-canonical from the backend registry (no case fix needed).
+// Canonical display names treated as "official" model-developer organisations.
+// MIRRORS the registry's `canonical_orgs.kind == 'lab'` set — the `developer`
+// string the backend emits is already the org's canonical display_name, so we
+// match on it directly. Keep in sync when curated labs are added to the registry
+// (eval-card-registry/seed/orgs.yaml). Durable follow-up: have the producer emit
+// an `is_official` flag on the developer list so this hand-maintained set can be
+// retired. (KNOWN_DEVELOPER_NAMES values are a subset, included via the spread.)
 export const OFFICIAL_DEVELOPER_NAMES: Set<string> = new Set([
   ...Object.values(KNOWN_DEVELOPER_NAMES),
+  "01.AI",
+  "AI21 Labs",
   "Allen Institute for AI",
+  "BigScience",
+  "ByteDance",
+  "Databricks",
+  "EleutherAI",
+  "Google DeepMind",
+  "Hugging Face",
+  "Inception Labs",
+  "MiniMax",
+  "Moonshot AI",
+  "Nous Research",
+  "Perplexity AI",
+  "Sarvam AI",
+  "Stability AI",
+  "Stanford CRFM",
+  "Stanford University",
+  "StepFun",
+  "Technology Innovation Institute",
+  "Upstage",
+  "Writer",
+  "Z.AI",
 ])
 
 export function normalizeDeveloperName(name: string): string {

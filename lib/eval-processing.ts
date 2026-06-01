@@ -25,6 +25,12 @@ export type { ModelEvaluationSummary }
 export interface ModelResultForBenchmark {
   model_info: ModelInfo
   model_route_id?: string
+  /**
+   * model-resolution-rework: server-provided group canonical id. Used as
+   * the routing fallback when `model_route_id` is absent — replaces the
+   * old client-side family-route computation (since removed).
+   */
+  model_group_id?: string
   score: number
   score_details: ScoreDetails
   evaluation_timestamp: string
@@ -163,6 +169,8 @@ export interface BenchmarkLeaderboardMetric {
 export interface BenchmarkLeaderboardRow {
   model_info: ModelInfo
   model_route_id?: string
+  /** model-resolution-rework: server group id, routing fallback. */
+  model_group_id?: string
   evaluation_timestamp: string
   source_metadata: SourceMetadata
   source_data: BenchmarkEvaluation["source_data"]

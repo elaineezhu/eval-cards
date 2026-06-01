@@ -95,13 +95,13 @@ describe.skipIf(!shouldRun)(`Tier A drift — live cache contracts (${modelFiles
     expect(violations, `${violations} eval-details without category. Examples: ${examples.join(", ")}`).toBe(0)
   })
 
-  it("every model card has model_route_id === pipelineSlugify(model_family_id)", () => {
+  it("every model card has model_route_id === pipelineSlugify(model_group_id)", () => {
     let violations = 0
     const examples: string[] = []
     const cardsPath = path.resolve(import.meta.dirname, "..", ".cache", "hf-data", "model-cards.json")
     const cards = JSON.parse(fs.readFileSync(cardsPath, "utf8"))
     for (const card of cards) {
-      const expected = (card.model_family_id || "").replace(/\//g, "__")
+      const expected = (card.model_group_id || "").replace(/\//g, "__")
       if (card.model_route_id !== expected) {
         violations += 1
         if (examples.length < 5) examples.push(`${card.model_route_id} (expected ${expected})`)

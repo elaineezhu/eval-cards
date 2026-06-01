@@ -33,8 +33,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
-import { getModelFamilyRouteId } from "@/lib/model-family"
-import { cn, formatDateISO, humanizeEvaluationId, routeIdToPath } from "@/lib/utils"
+import { cn, formatDateISO, humanizeEvaluationId, routeIdFromModelId, routeIdToPath } from "@/lib/utils"
 import {
   AlertTriangle,
   BarChart3,
@@ -1580,7 +1579,7 @@ export function EvalDetail({
                       </td>
                       <td style={{ padding: "10px 8px", color: "var(--fg)" }}>
                         <Link
-                          href={`/models/${routeIdToPath(modelResult.model_route_id ?? getModelFamilyRouteId(modelResult.model_info))}`}
+                          href={`/models/${routeIdToPath(modelResult.model_route_id ?? routeIdFromModelId(modelResult.model_group_id))}`}
                           className="hover:text-[color:var(--accent)] transition-colors"
                           style={{ color: "var(--fg)", fontWeight: 500, fontSize: 14 }}
                         >
@@ -1783,7 +1782,7 @@ export function EvalDetail({
                             )}
                             <div className="min-w-0">
                               <Link
-                                href={`/models/${routeIdToPath(modelResult.model_route_id ?? getModelFamilyRouteId(modelResult.model_info))}`}
+                                href={`/models/${routeIdToPath(modelResult.model_route_id ?? routeIdFromModelId(modelResult.model_group_id))}`}
                                 className="font-semibold text-[14px] hover:text-[color:var(--accent)] transition-colors"
                                 style={{ color: "var(--fg)" }}
                               >
@@ -2768,7 +2767,7 @@ function MultiMetricLeaderboard({
                       )}
                       <div className="min-w-0">
                         <Link
-                          href={`/models/${routeIdToPath(row.model_route_id ?? getModelFamilyRouteId(row.model_info))}`}
+                          href={`/models/${routeIdToPath(row.model_route_id ?? routeIdFromModelId(row.model_group_id))}`}
                           className="font-semibold text-[14px] hover:text-[color:var(--accent)] transition-colors"
                           style={{ color: "var(--fg)" }}
                         >

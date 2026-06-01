@@ -2,7 +2,7 @@
   "developer": "OpenAI",
   "models": [
     {
-      "model_family_id": "openai/chatgpt-agent",
+      "model_group_id": "openai/chatgpt-agent",
       "model_route_id": "openai__chatgpt-agent",
       "model_family_name": "ChatGPT Agent",
       "developer": "OpenAI",
@@ -71,7 +71,7 @@
       ]
     },
     {
-      "model_family_id": "openai/codex",
+      "model_group_id": "openai/codex",
       "model_route_id": "openai__codex",
       "model_family_name": "CodeX",
       "developer": "OpenAI",
@@ -140,7 +140,7 @@
       ]
     },
     {
-      "model_family_id": "openai/gpt-oss-20b-high",
+      "model_group_id": "openai/gpt-oss-20b-high",
       "model_route_id": "openai__gpt-oss-20b-high",
       "model_family_name": "GPT OSS 20B High",
       "developer": "openai",
@@ -209,7 +209,7 @@
       ]
     },
     {
-      "model_family_id": "openai/gpt-3-5-turbo-0125",
+      "model_group_id": "openai/gpt-3-5-turbo-0125",
       "model_route_id": "openai__gpt-3-5-turbo-0125",
       "model_family_name": "GPT-3.5 Turbo",
       "developer": "openai",
@@ -380,7 +380,7 @@
       ]
     },
     {
-      "model_family_id": "openai/gpt-35-turbo",
+      "model_group_id": "openai/gpt-35-turbo",
       "model_route_id": "openai__gpt-35-turbo",
       "model_family_name": "GPT-3.5 Turbo",
       "developer": "openai",
@@ -539,7 +539,7 @@
       ]
     },
     {
-      "model_family_id": "openai/gpt-3-5-turbo-0301",
+      "model_group_id": "openai/gpt-3-5-turbo-0301",
       "model_route_id": "openai__gpt-3-5-turbo-0301",
       "model_family_name": "GPT-3.5 Turbo 0301",
       "developer": "openai",
@@ -753,7 +753,7 @@
       ]
     },
     {
-      "model_family_id": "openai/gpt-3-5-turbo-0613",
+      "model_group_id": "openai/gpt-3-5-turbo-0613",
       "model_route_id": "openai__gpt-3-5-turbo-0613",
       "model_family_name": "GPT-3.5 Turbo 0613",
       "developer": "openai",
@@ -990,7 +990,7 @@
       ]
     },
     {
-      "model_family_id": "openai/gpt-3-5-turbo-1106",
+      "model_group_id": "openai/gpt-3-5-turbo-1106",
       "model_route_id": "openai__gpt-3-5-turbo-1106",
       "model_family_name": "GPT-3.5 Turbo 1106",
       "developer": "openai",
@@ -1119,7 +1119,7 @@
       ]
     },
     {
-      "model_family_id": "openai/gpt-4-0613",
+      "model_group_id": "openai/gpt-4-0613",
       "model_route_id": "openai__gpt-4-0613",
       "model_family_name": "GPT-4",
       "developer": "openai",
@@ -1334,7 +1334,7 @@
       ]
     },
     {
-      "model_family_id": "openai/gpt-4",
+      "model_group_id": "openai/gpt-4",
       "model_route_id": "openai__gpt-4",
       "model_family_name": "GPT-4",
       "developer": "openai",
@@ -1466,7 +1466,7 @@
       ]
     },
     {
-      "model_family_id": "openai/gpt-4-0314",
+      "model_group_id": "openai/gpt-4-0314",
       "model_route_id": "openai__gpt-4-0314",
       "model_family_name": "GPT-4 0314",
       "developer": "openai",
@@ -1598,7 +1598,7 @@
       ]
     },
     {
-      "model_family_id": "openai/gpt-4-turbo",
+      "model_group_id": "openai/gpt-4-turbo",
       "model_route_id": "openai__gpt-4-turbo",
       "model_family_name": "GPT-4 Turbo",
       "developer": "openai",
@@ -1825,7 +1825,7 @@
       ]
     },
     {
-      "model_family_id": "openai/gpt-4-1-nano",
+      "model_group_id": "openai/gpt-4-1-nano",
       "model_route_id": "openai__gpt-4-1-nano",
       "model_family_name": "GPT-4.1 nano",
       "developer": "openai",
@@ -2064,7 +2064,7 @@
       ]
     },
     {
-      "model_family_id": "openai/gpt-4-5",
+      "model_group_id": "openai/gpt-4-5",
       "model_route_id": "openai__gpt-4-5",
       "model_family_name": "GPT-4.5",
       "developer": "openai",
@@ -2290,7 +2290,7 @@
       ]
     },
     {
-      "model_family_id": "openai/gpt-4-5-preview",
+      "model_group_id": "openai/gpt-4-5-preview",
       "model_route_id": "openai__gpt-4-5-preview",
       "model_family_name": "GPT-4.5 2025-02-27 preview",
       "developer": "openai",
@@ -2419,7 +2419,7 @@
       ]
     },
     {
-      "model_family_id": "openai/gpt-4o",
+      "model_group_id": "openai/gpt-4o",
       "model_route_id": "openai__gpt-4o",
       "model_family_name": "GPT-4o",
       "developer": "openai",
@@ -2709,7 +2709,7 @@
       ]
     },
     {
-      "model_family_id": "openai/gpt-4o-chatgpt",
+      "model_group_id": "openai/gpt-4o-chatgpt",
       "model_route_id": "openai__gpt-4o-chatgpt",
       "model_family_name": "GPT-4o (ChatGPT)",
       "developer": "openai",
@@ -2895,7 +2895,7 @@
       ]
     },
     {
-      "model_family_id": "openai/gpt-4o-chatgpt-03-25",
+      "model_group_id": "openai/gpt-4o-chatgpt-03-25",
       "model_route_id": "openai__gpt-4o-chatgpt-03-25",
       "model_family_name": "GPT-4o (March 2025, chatgpt-4o-latest)",
       "developer": "openai",
@@ -3090,7 +3090,7 @@
       ]
     },
     {
-      "model_family_id": "openai/gpt-4o-realtime-dec-2024",
+      "model_group_id": "openai/gpt-4o-realtime-dec-2024",
       "model_route_id": "openai__gpt-4o-realtime-dec-2024",
       "model_family_name": "GPT-4o Realtime (Dec '24)",
       "developer": "openai",
@@ -3204,7 +3204,7 @@
       ]
     },
     {
-      "model_family_id": "openai/gpt-4o-mini",
+      "model_group_id": "openai/gpt-4o-mini",
       "model_route_id": "openai__gpt-4o-mini",
       "model_family_name": "GPT-4o mini",
       "developer": "openai",
@@ -3444,7 +3444,7 @@
       ]
     },
     {
-      "model_family_id": "openai/gpt-4o-mini-realtime-dec-2024",
+      "model_group_id": "openai/gpt-4o-mini-realtime-dec-2024",
       "model_route_id": "openai__gpt-4o-mini-realtime-dec-2024",
       "model_family_name": "GPT-4o mini Realtime (Dec '24)",
       "developer": "openai",
@@ -3558,7 +3558,7 @@
       ]
     },
     {
-      "model_family_id": "openai/gpt-4o-1120",
+      "model_group_id": "openai/gpt-4o-1120",
       "model_route_id": "openai__gpt-4o-1120",
       "model_family_name": "GPT-4o-1120",
       "developer": "openai",
@@ -3678,7 +3678,7 @@
       ]
     },
     {
-      "model_family_id": "openai/gpt-5",
+      "model_group_id": "openai/gpt-5",
       "model_route_id": "openai__gpt-5",
       "model_family_name": "GPT-5",
       "developer": "openai",
@@ -3985,7 +3985,7 @@
       ]
     },
     {
-      "model_family_id": "openai/gpt-5-chatgpt",
+      "model_group_id": "openai/gpt-5-chatgpt",
       "model_route_id": "openai__gpt-5-chatgpt",
       "model_family_name": "GPT-5 (ChatGPT)",
       "developer": "openai",
@@ -4180,7 +4180,7 @@
       ]
     },
     {
-      "model_family_id": "openai/gpt-5-low",
+      "model_group_id": "openai/gpt-5-low",
       "model_route_id": "openai__gpt-5-low",
       "model_family_name": "GPT-5 (low)",
       "developer": "openai",
@@ -4375,7 +4375,7 @@
       ]
     },
     {
-      "model_family_id": "openai/gpt-5-medium",
+      "model_group_id": "openai/gpt-5-medium",
       "model_route_id": "openai__gpt-5-medium",
       "model_family_name": "GPT-5 (medium)",
       "developer": "openai",
@@ -4570,7 +4570,7 @@
       ]
     },
     {
-      "model_family_id": "openai/gpt-5-minimal",
+      "model_group_id": "openai/gpt-5-minimal",
       "model_route_id": "openai__gpt-5-minimal",
       "model_family_name": "GPT-5 (minimal)",
       "developer": "openai",
@@ -4765,7 +4765,7 @@
       ]
     },
     {
-      "model_family_id": "openai/gpt-5-codex",
+      "model_group_id": "openai/gpt-5-codex",
       "model_route_id": "openai__gpt-5-codex",
       "model_family_name": "GPT-5 Codex (high)",
       "developer": "openai",
@@ -4964,7 +4964,7 @@
       ]
     },
     {
-      "model_family_id": "openai/gpt-5-mini-medium",
+      "model_group_id": "openai/gpt-5-mini-medium",
       "model_route_id": "openai__gpt-5-mini-medium",
       "model_family_name": "GPT-5 mini (medium)",
       "developer": "openai",
@@ -5159,7 +5159,7 @@
       ]
     },
     {
-      "model_family_id": "openai/gpt-5-mini-minimal",
+      "model_group_id": "openai/gpt-5-mini-minimal",
       "model_route_id": "openai__gpt-5-mini-minimal",
       "model_family_name": "GPT-5 mini (minimal)",
       "developer": "openai",
@@ -5354,7 +5354,7 @@
       ]
     },
     {
-      "model_family_id": "openai/gpt-5-nano",
+      "model_group_id": "openai/gpt-5-nano",
       "model_route_id": "openai__gpt-5-nano",
       "model_family_name": "GPT-5 nano",
       "developer": "openai",
@@ -5618,7 +5618,7 @@
       ]
     },
     {
-      "model_family_id": "openai/gpt-5-nano-medium",
+      "model_group_id": "openai/gpt-5-nano-medium",
       "model_route_id": "openai__gpt-5-nano-medium",
       "model_family_name": "GPT-5 nano (medium)",
       "developer": "openai",
@@ -5813,7 +5813,7 @@
       ]
     },
     {
-      "model_family_id": "openai/gpt-5-nano-minimal",
+      "model_group_id": "openai/gpt-5-nano-minimal",
       "model_route_id": "openai__gpt-5-nano-minimal",
       "model_family_name": "GPT-5 nano (minimal)",
       "developer": "openai",
@@ -6008,7 +6008,7 @@
       ]
     },
     {
-      "model_family_id": "openai/gpt-5-1-non-reasoning",
+      "model_group_id": "openai/gpt-5-1-non-reasoning",
       "model_route_id": "openai__gpt-5-1-non-reasoning",
       "model_family_name": "GPT-5.1 (Non-reasoning)",
       "developer": "openai",
@@ -6203,7 +6203,7 @@
       ]
     },
     {
-      "model_family_id": "openai/gpt-5-1-codex-mini",
+      "model_group_id": "openai/gpt-5-1-codex-mini",
       "model_route_id": "openai__gpt-5-1-codex-mini",
       "model_family_name": "GPT-5.1 Codex mini (high)",
       "developer": "openai",
@@ -6401,7 +6401,7 @@
       ]
     },
     {
-      "model_family_id": "openai/gpt-5-1-high",
+      "model_group_id": "openai/gpt-5-1-high",
       "model_route_id": "openai__gpt-5-1-high",
       "model_family_name": "GPT-5.1 High",
       "developer": "openai",
@@ -6470,7 +6470,7 @@
       ]
     },
     {
-      "model_family_id": "openai/gpt-5-1-codex-max",
+      "model_group_id": "openai/gpt-5-1-codex-max",
       "model_route_id": "openai__gpt-5-1-codex-max",
       "model_family_name": "GPT-5.1-Codex-Max",
       "developer": "OpenAI",
@@ -6539,7 +6539,7 @@
       ]
     },
     {
-      "model_family_id": "openai/gpt-5-2-non-reasoning",
+      "model_group_id": "openai/gpt-5-2-non-reasoning",
       "model_route_id": "openai__gpt-5-2-non-reasoning",
       "model_family_name": "GPT-5.2 (Non-reasoning)",
       "developer": "openai",
@@ -6734,7 +6734,7 @@
       ]
     },
     {
-      "model_family_id": "openai/gpt-5-2-medium",
+      "model_group_id": "openai/gpt-5-2-medium",
       "model_route_id": "openai__gpt-5-2-medium",
       "model_family_name": "GPT-5.2 (medium)",
       "developer": "openai",
@@ -6929,7 +6929,7 @@
       ]
     },
     {
-      "model_family_id": "openai/gpt-5-2-pro",
+      "model_group_id": "openai/gpt-5-2-pro",
       "model_route_id": "openai__gpt-5-2-pro",
       "model_family_name": "GPT-5.2 Pro",
       "developer": "openai",
@@ -7106,7 +7106,7 @@
       ]
     },
     {
-      "model_family_id": "openai/gpt-5-4-non-reasoning",
+      "model_group_id": "openai/gpt-5-4-non-reasoning",
       "model_route_id": "openai__gpt-5-4-non-reasoning",
       "model_family_name": "GPT-5.4 (Non-reasoning)",
       "developer": "openai",
@@ -7301,7 +7301,7 @@
       ]
     },
     {
-      "model_family_id": "openai/gpt-5-4-pro",
+      "model_group_id": "openai/gpt-5-4-pro",
       "model_route_id": "openai__gpt-5-4-pro",
       "model_family_name": "GPT-5.4 Pro (xhigh)",
       "developer": "openai",
@@ -7415,7 +7415,7 @@
       ]
     },
     {
-      "model_family_id": "openai/gpt-5-4-mini-non-reasoning",
+      "model_group_id": "openai/gpt-5-4-mini-non-reasoning",
       "model_route_id": "openai__gpt-5-4-mini-non-reasoning",
       "model_family_name": "GPT-5.4 mini (Non-Reasoning)",
       "developer": "openai",
@@ -7610,7 +7610,7 @@
       ]
     },
     {
-      "model_family_id": "openai/gpt-5-4-mini-medium",
+      "model_group_id": "openai/gpt-5-4-mini-medium",
       "model_route_id": "openai__gpt-5-4-mini-medium",
       "model_family_name": "GPT-5.4 mini (medium)",
       "developer": "openai",
@@ -7807,7 +7807,7 @@
       ]
     },
     {
-      "model_family_id": "openai/gpt-5-4-nano-non-reasoning",
+      "model_group_id": "openai/gpt-5-4-nano-non-reasoning",
       "model_route_id": "openai__gpt-5-4-nano-non-reasoning",
       "model_family_name": "GPT-5.4 nano (Non-Reasoning)",
       "developer": "openai",
@@ -8002,7 +8002,7 @@
       ]
     },
     {
-      "model_family_id": "openai/gpt-5-4-nano-medium",
+      "model_group_id": "openai/gpt-5-4-nano-medium",
       "model_route_id": "openai__gpt-5-4-nano-medium",
       "model_family_name": "GPT-5.4 nano (medium)",
       "developer": "openai",
@@ -8199,7 +8199,7 @@
       ]
     },
     {
-      "model_family_id": "openai/gpt-5-4-high",
+      "model_group_id": "openai/gpt-5-4-high",
       "model_route_id": "openai__gpt-5-4-high",
       "model_family_name": "GPT-5.4-high",
       "developer": "OpenAI",
@@ -8280,7 +8280,7 @@
       ]
     },
     {
-      "model_family_id": "openai/gpt-5-5",
+      "model_group_id": "openai/gpt-5-5",
       "model_route_id": "openai__gpt-5-5",
       "model_family_name": "GPT-5.5",
       "developer": "openai",
@@ -8497,7 +8497,7 @@
       ]
     },
     {
-      "model_family_id": "openai/gpt-5-5-pro",
+      "model_group_id": "openai/gpt-5-5-pro",
       "model_route_id": "openai__gpt-5-5-pro",
       "model_family_name": "GPT-5.5 Pro",
       "developer": "openai",
@@ -8606,7 +8606,7 @@
       ]
     },
     {
-      "model_family_id": "openai/gpt-j-6b",
+      "model_group_id": "openai/gpt-j-6b",
       "model_route_id": "openai__gpt-j-6b",
       "model_family_name": "GPT-J 6B",
       "developer": "openai",
@@ -8818,7 +8818,7 @@
       ]
     },
     {
-      "model_family_id": "openai/gpt-neox-20b",
+      "model_group_id": "openai/gpt-neox-20b",
       "model_route_id": "openai__gpt-neox-20b",
       "model_family_name": "GPT-NeoX 20B",
       "developer": "openai",
@@ -9030,7 +9030,7 @@
       ]
     },
     {
-      "model_family_id": "openai/lingma-agent-lingma-swe-gpt-72b-v0918",
+      "model_group_id": "openai/lingma-agent-lingma-swe-gpt-72b-v0918",
       "model_route_id": "openai__lingma-agent-lingma-swe-gpt-72b-v0918",
       "model_family_name": "Lingma Agent + Lingma SWE-GPT 72b (v0918)",
       "developer": "openai",
@@ -9099,7 +9099,7 @@
       ]
     },
     {
-      "model_family_id": "openai/lingma-agent-lingma-swe-gpt-72b-v0925",
+      "model_group_id": "openai/lingma-agent-lingma-swe-gpt-72b-v0925",
       "model_route_id": "openai__lingma-agent-lingma-swe-gpt-72b-v0925",
       "model_family_name": "Lingma Agent + Lingma SWE-GPT 72b (v0925)",
       "developer": "openai",
@@ -9168,7 +9168,7 @@
       ]
     },
     {
-      "model_family_id": "openai/lingma-agent-lingma-swe-gpt-7b-v0918",
+      "model_group_id": "openai/lingma-agent-lingma-swe-gpt-7b-v0918",
       "model_route_id": "openai__lingma-agent-lingma-swe-gpt-7b-v0918",
       "model_family_name": "Lingma Agent + Lingma SWE-GPT 7b (v0918)",
       "developer": "openai",
@@ -9237,7 +9237,7 @@
       ]
     },
     {
-      "model_family_id": "openai/lingma-agent-lingma-swe-gpt-7b-v0925",
+      "model_group_id": "openai/lingma-agent-lingma-swe-gpt-7b-v0925",
       "model_route_id": "openai__lingma-agent-lingma-swe-gpt-7b-v0925",
       "model_family_name": "Lingma Agent + Lingma SWE-GPT 7b (v0925)",
       "developer": "openai",
@@ -9306,7 +9306,7 @@
       ]
     },
     {
-      "model_family_id": "openai/deep-research",
+      "model_group_id": "openai/deep-research",
       "model_route_id": "openai__deep-research",
       "model_family_name": "OpenAI Deep Research",
       "developer": "OpenAI",
@@ -9375,7 +9375,7 @@
       ]
     },
     {
-      "model_family_id": "openai/openai-o1",
+      "model_group_id": "openai/openai-o1",
       "model_route_id": "openai__openai-o1",
       "model_family_name": "OpenAI-o1",
       "developer": "openai",
@@ -9495,7 +9495,7 @@
       ]
     },
     {
-      "model_family_id": "openai/openai-o3-mini-high",
+      "model_group_id": "openai/openai-o3-mini-high",
       "model_route_id": "openai__openai-o3-mini-high",
       "model_family_name": "OpenAI-o3-mini-high",
       "developer": "openai",
@@ -9615,7 +9615,7 @@
       ]
     },
     {
-      "model_family_id": "openai/ada-350m",
+      "model_group_id": "openai/ada-350m",
       "model_route_id": "openai__ada-350m",
       "model_family_name": "ada 350M",
       "developer": "openai",
@@ -9827,7 +9827,7 @@
       ]
     },
     {
-      "model_family_id": "openai/babbage-1-3b",
+      "model_group_id": "openai/babbage-1-3b",
       "model_route_id": "openai__babbage-1-3b",
       "model_family_name": "babbage 1.3B",
       "developer": "openai",
@@ -10039,7 +10039,7 @@
       ]
     },
     {
-      "model_family_id": "openai/codex-mini-latest",
+      "model_group_id": "openai/codex-mini-latest",
       "model_route_id": "openai__codex-mini-latest",
       "model_family_name": "codex-mini-latest",
       "developer": "openai",
@@ -10108,7 +10108,7 @@
       ]
     },
     {
-      "model_family_id": "openai/curie-6-7b",
+      "model_group_id": "openai/curie-6-7b",
       "model_route_id": "openai__curie-6-7b",
       "model_family_name": "curie 6.7B",
       "developer": "openai",
@@ -10320,7 +10320,7 @@
       ]
     },
     {
-      "model_family_id": "openai/davinci-175b",
+      "model_group_id": "openai/davinci-175b",
       "model_route_id": "openai__davinci-175b",
       "model_family_name": "davinci 175B",
       "developer": "openai",
@@ -10532,7 +10532,7 @@
       ]
     },
     {
-      "model_family_id": "openai/gpt-4-1106-preview",
+      "model_group_id": "openai/gpt-4-1106-preview",
       "model_route_id": "openai__gpt-4-1106-preview",
       "model_family_name": "gpt-4-1106-preview",
       "developer": "openai",
@@ -10713,7 +10713,7 @@
       ]
     },
     {
-      "model_family_id": "openai/gpt-4-1",
+      "model_group_id": "openai/gpt-4-1",
       "model_route_id": "openai__gpt-4-1",
       "model_family_name": "gpt-4.1-2025-04-14",
       "developer": "openai",
@@ -10967,7 +10967,7 @@
       ]
     },
     {
-      "model_family_id": "openai/gpt-4-1-mini",
+      "model_group_id": "openai/gpt-4-1-mini",
       "model_route_id": "openai__gpt-4-1-mini",
       "model_family_name": "gpt-4.1-mini-2025-04-14",
       "developer": "openai",
@@ -11211,7 +11211,7 @@
       ]
     },
     {
-      "model_family_id": "openai/gpt-5-4-low",
+      "model_group_id": "openai/gpt-5-4-low",
       "model_route_id": "openai__gpt-5-4-low",
       "model_family_name": "gpt-5-4-low",
       "developer": "openai",
@@ -11280,7 +11280,7 @@
       ]
     },
     {
-      "model_family_id": "openai/gpt-5-4-medium",
+      "model_group_id": "openai/gpt-5-4-medium",
       "model_route_id": "openai__gpt-5-4-medium",
       "model_family_name": "gpt-5-4-medium",
       "developer": "openai",
@@ -11349,7 +11349,7 @@
       ]
     },
     {
-      "model_family_id": "openai/gpt-5-4-mini-high",
+      "model_group_id": "openai/gpt-5-4-mini-high",
       "model_route_id": "openai__gpt-5-4-mini-high",
       "model_family_name": "gpt-5-4-mini-high",
       "developer": "openai",
@@ -11418,7 +11418,7 @@
       ]
     },
     {
-      "model_family_id": "openai/gpt-5-4-mini-low",
+      "model_group_id": "openai/gpt-5-4-mini-low",
       "model_route_id": "openai__gpt-5-4-mini-low",
       "model_family_name": "gpt-5-4-mini-low",
       "developer": "openai",
@@ -11487,7 +11487,7 @@
       ]
     },
     {
-      "model_family_id": "openai/gpt-5-4-mini-xhigh",
+      "model_group_id": "openai/gpt-5-4-mini-xhigh",
       "model_route_id": "openai__gpt-5-4-mini-xhigh",
       "model_family_name": "gpt-5-4-mini-xhigh",
       "developer": "openai",
@@ -11556,7 +11556,7 @@
       ]
     },
     {
-      "model_family_id": "openai/gpt-5-4-nano-high",
+      "model_group_id": "openai/gpt-5-4-nano-high",
       "model_route_id": "openai__gpt-5-4-nano-high",
       "model_family_name": "gpt-5-4-nano-high",
       "developer": "openai",
@@ -11625,7 +11625,7 @@
       ]
     },
     {
-      "model_family_id": "openai/gpt-5-4-nano-low",
+      "model_group_id": "openai/gpt-5-4-nano-low",
       "model_route_id": "openai__gpt-5-4-nano-low",
       "model_family_name": "gpt-5-4-nano-low",
       "developer": "openai",
@@ -11694,7 +11694,7 @@
       ]
     },
     {
-      "model_family_id": "openai/gpt-5-4-nano-xhigh",
+      "model_group_id": "openai/gpt-5-4-nano-xhigh",
       "model_route_id": "openai__gpt-5-4-nano-xhigh",
       "model_family_name": "gpt-5-4-nano-xhigh",
       "developer": "openai",
@@ -11763,7 +11763,7 @@
       ]
     },
     {
-      "model_family_id": "openai/gpt-5-4-pro-xhigh",
+      "model_group_id": "openai/gpt-5-4-pro-xhigh",
       "model_route_id": "openai__gpt-5-4-pro-xhigh",
       "model_family_name": "gpt-5-4-pro-xhigh",
       "developer": "openai",
@@ -11832,7 +11832,7 @@
       ]
     },
     {
-      "model_family_id": "openai/gpt-5-4-xhigh",
+      "model_group_id": "openai/gpt-5-4-xhigh",
       "model_route_id": "openai__gpt-5-4-xhigh",
       "model_family_name": "gpt-5-4-xhigh",
       "developer": "openai",
@@ -11901,7 +11901,7 @@
       ]
     },
     {
-      "model_family_id": "openai/gpt-5-mini",
+      "model_group_id": "openai/gpt-5-mini",
       "model_route_id": "openai__gpt-5-mini",
       "model_family_name": "gpt-5-mini-2025-08-07",
       "developer": "openai",
@@ -12168,7 +12168,7 @@
       ]
     },
     {
-      "model_family_id": "openai/gpt-5-pro",
+      "model_group_id": "openai/gpt-5-pro",
       "model_route_id": "openai__gpt-5-pro",
       "model_family_name": "gpt-5-pro-2025-10-06",
       "developer": "openai",
@@ -12237,7 +12237,7 @@
       ]
     },
     {
-      "model_family_id": "openai/gpt-5-1",
+      "model_group_id": "openai/gpt-5-1",
       "model_route_id": "openai__gpt-5-1",
       "model_family_name": "gpt-5.1-2025-11-13",
       "developer": "openai",
@@ -12508,7 +12508,7 @@
       ]
     },
     {
-      "model_family_id": "openai/gpt-5-1-codex",
+      "model_group_id": "openai/gpt-5-1-codex",
       "model_route_id": "openai__gpt-5-1-codex",
       "model_family_name": "gpt-5.1-codex",
       "developer": "openai",
@@ -12709,7 +12709,7 @@
       ]
     },
     {
-      "model_family_id": "openai/gpt-5-1-codex-high",
+      "model_group_id": "openai/gpt-5-1-codex-high",
       "model_route_id": "openai__gpt-5-1-codex-high",
       "model_family_name": "gpt-5.1-codex-high",
       "developer": "openai",
@@ -12778,7 +12778,7 @@
       ]
     },
     {
-      "model_family_id": "openai/gpt-5-1-instant",
+      "model_group_id": "openai/gpt-5-1-instant",
       "model_route_id": "openai__gpt-5-1-instant",
       "model_family_name": "gpt-5.1-instant-2025-11-12",
       "developer": "openai",
@@ -12897,7 +12897,7 @@
       ]
     },
     {
-      "model_family_id": "openai/gpt-5-1-medium",
+      "model_group_id": "openai/gpt-5-1-medium",
       "model_route_id": "openai__gpt-5-1-medium",
       "model_family_name": "gpt-5.1-medium-2025-11-12",
       "developer": "openai",
@@ -12966,7 +12966,7 @@
       ]
     },
     {
-      "model_family_id": "openai/gpt-5-1-thinking",
+      "model_group_id": "openai/gpt-5-1-thinking",
       "model_route_id": "openai__gpt-5-1-thinking",
       "model_family_name": "gpt-5.1-thinking-2025-11-12",
       "developer": "openai",
@@ -13085,7 +13085,7 @@
       ]
     },
     {
-      "model_family_id": "openai/gpt-5-2",
+      "model_group_id": "openai/gpt-5-2",
       "model_route_id": "openai__gpt-5-2",
       "model_family_name": "gpt-5.2-2025-12-11",
       "developer": "openai",
@@ -13378,7 +13378,7 @@
       ]
     },
     {
-      "model_family_id": "openai/gpt-5-2-codex",
+      "model_group_id": "openai/gpt-5-2-codex",
       "model_route_id": "openai__gpt-5-2-codex",
       "model_family_name": "gpt-5.2-codex",
       "developer": "openai",
@@ -13580,7 +13580,7 @@
       ]
     },
     {
-      "model_family_id": "openai/gpt-5-3-chat-latest",
+      "model_group_id": "openai/gpt-5-3-chat-latest",
       "model_route_id": "openai__gpt-5-3-chat-latest",
       "model_family_name": "gpt-5.3-chat-latest",
       "developer": "openai",
@@ -13659,7 +13659,7 @@
       ]
     },
     {
-      "model_family_id": "openai/gpt-5-3-codex",
+      "model_group_id": "openai/gpt-5-3-codex",
       "model_route_id": "openai__gpt-5-3-codex",
       "model_family_name": "gpt-5.3-codex",
       "developer": "openai",
@@ -13864,7 +13864,7 @@
       ]
     },
     {
-      "model_family_id": "openai/gpt-5-4",
+      "model_group_id": "openai/gpt-5-4",
       "model_route_id": "openai__gpt-5-4",
       "model_family_name": "gpt-5.4",
       "developer": "openai",
@@ -14089,7 +14089,7 @@
       ]
     },
     {
-      "model_family_id": "openai/gpt-5-4-mini",
+      "model_group_id": "openai/gpt-5-4-mini",
       "model_route_id": "openai__gpt-5-4-mini",
       "model_family_name": "gpt-5.4-mini",
       "developer": "openai",
@@ -14296,7 +14296,7 @@
       ]
     },
     {
-      "model_family_id": "openai/gpt-5-4-nano",
+      "model_group_id": "openai/gpt-5-4-nano",
       "model_route_id": "openai__gpt-5-4-nano",
       "model_family_name": "gpt-5.4-nano",
       "developer": "openai",
@@ -14501,7 +14501,7 @@
       ]
     },
     {
-      "model_family_id": "openai/gpt-oss-120b-low",
+      "model_group_id": "openai/gpt-oss-120b-low",
       "model_route_id": "openai__gpt-oss-120b-low",
       "model_family_name": "gpt-oss-120B (low)",
       "developer": "openai",
@@ -14696,7 +14696,7 @@
       ]
     },
     {
-      "model_family_id": "openai/gpt-oss-120b",
+      "model_group_id": "openai/gpt-oss-120b",
       "model_route_id": "openai__gpt-oss-120b",
       "model_family_name": "gpt-oss-120b",
       "developer": "openai",
@@ -14921,7 +14921,7 @@
       ]
     },
     {
-      "model_family_id": "openai/gpt-oss-120b-high",
+      "model_group_id": "openai/gpt-oss-120b-high",
       "model_route_id": "openai__gpt-oss-120b-high",
       "model_family_name": "gpt-oss-120b-high",
       "developer": "openai",
@@ -15011,7 +15011,7 @@
       ]
     },
     {
-      "model_family_id": "openai/gpt-oss-20b-low",
+      "model_group_id": "openai/gpt-oss-20b-low",
       "model_route_id": "openai__gpt-oss-20b-low",
       "model_family_name": "gpt-oss-20B (low)",
       "developer": "openai",
@@ -15206,7 +15206,7 @@
       ]
     },
     {
-      "model_family_id": "openai/gpt-oss-20b",
+      "model_group_id": "openai/gpt-oss-20b",
       "model_route_id": "openai__gpt-oss-20b",
       "model_family_name": "gpt-oss-20b",
       "developer": "openai",
@@ -15427,7 +15427,7 @@
       ]
     },
     {
-      "model_family_id": "openai/o1",
+      "model_group_id": "openai/o1",
       "model_route_id": "openai__o1",
       "model_family_name": "o1",
       "developer": "openai",
@@ -15655,7 +15655,7 @@
       ]
     },
     {
-      "model_family_id": "openai/o1-mini",
+      "model_group_id": "openai/o1-mini",
       "model_route_id": "openai__o1-mini",
       "model_family_name": "o1-mini",
       "developer": "openai",
@@ -15872,7 +15872,7 @@
       ]
     },
     {
-      "model_family_id": "openai/o1-preview",
+      "model_group_id": "openai/o1-preview",
       "model_route_id": "openai__o1-preview",
       "model_family_name": "o1-preview",
       "developer": "openai",
@@ -16075,7 +16075,7 @@
       ]
     },
     {
-      "model_family_id": "openai/o1-pro",
+      "model_group_id": "openai/o1-pro",
       "model_route_id": "openai__o1-pro",
       "model_family_name": "o1-pro",
       "developer": "openai",
@@ -16208,7 +16208,7 @@
       ]
     },
     {
-      "model_family_id": "openai/o3",
+      "model_group_id": "openai/o3",
       "model_route_id": "openai__o3",
       "model_family_name": "o3",
       "developer": "openai",
@@ -16482,7 +16482,7 @@
       ]
     },
     {
-      "model_family_id": "openai/o3-mini",
+      "model_group_id": "openai/o3-mini",
       "model_route_id": "openai__o3-mini",
       "model_family_name": "o3-mini",
       "developer": "openai",
@@ -16746,7 +16746,7 @@
       ]
     },
     {
-      "model_family_id": "openai/o3-mini-high",
+      "model_group_id": "openai/o3-mini-high",
       "model_route_id": "openai__o3-mini-high",
       "model_family_name": "o3-mini (high)",
       "developer": "openai",
@@ -16941,7 +16941,7 @@
       ]
     },
     {
-      "model_family_id": "openai/o3-pro",
+      "model_group_id": "openai/o3-pro",
       "model_route_id": "openai__o3-pro",
       "model_family_name": "o3-pro",
       "developer": "openai",
@@ -17122,7 +17122,7 @@
       ]
     },
     {
-      "model_family_id": "openai/o4-mini",
+      "model_group_id": "openai/o4-mini",
       "model_route_id": "openai__o4-mini",
       "model_family_name": "o4-mini",
       "developer": "openai",
@@ -17390,7 +17390,7 @@
       ]
     },
     {
-      "model_family_id": "openai/gpt-4-0125-preview",
+      "model_group_id": "openai/gpt-4-0125-preview",
       "model_route_id": "openai__gpt-4-0125-preview",
       "model_family_name": "openai/gpt-4-0125-preview",
       "developer": "openai",
@@ -17468,7 +17468,7 @@
       ]
     },
     {
-      "model_family_id": "openai/text-ada-001",
+      "model_group_id": "openai/text-ada-001",
       "model_route_id": "openai__text-ada-001",
       "model_family_name": "text-ada-001",
       "developer": "openai",
@@ -17680,7 +17680,7 @@
       ]
     },
     {
-      "model_family_id": "openai/text-babbage-001",
+      "model_group_id": "openai/text-babbage-001",
       "model_route_id": "openai__text-babbage-001",
       "model_family_name": "text-babbage-001",
       "developer": "openai",
@@ -17892,7 +17892,7 @@
       ]
     },
     {
-      "model_family_id": "openai/text-curie-001",
+      "model_group_id": "openai/text-curie-001",
       "model_route_id": "openai__text-curie-001",
       "model_family_name": "text-curie-001",
       "developer": "openai",
@@ -18104,7 +18104,7 @@
       ]
     },
     {
-      "model_family_id": "openai/text-davinci-002",
+      "model_group_id": "openai/text-davinci-002",
       "model_route_id": "openai__text-davinci-002",
       "model_family_name": "text-davinci-002",
       "developer": "openai",
@@ -18324,7 +18324,7 @@
       ]
     },
     {
-      "model_family_id": "openai/text-davinci-003",
+      "model_group_id": "openai/text-davinci-003",
       "model_route_id": "openai__text-davinci-003",
       "model_family_name": "text-davinci-003",
       "developer": "openai",
