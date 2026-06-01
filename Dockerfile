@@ -60,8 +60,8 @@ ENV NODE_ENV=production \
     HF_DATA_LOCAL_DIR=/app/.cache/hf-data \
     HF_DATA_OFFLINE=1
 
-# minimal packages for certificates (if needed by model download / https)
-RUN apt-get update && apt-get install -y ca-certificates --no-install-recommends && rm -rf /var/lib/apt/lists/*
+# minimal runtime packages for HTTPS plus HF Spaces dev-mode git setup
+RUN apt-get update && apt-get install -y ca-certificates git --no-install-recommends && rm -rf /var/lib/apt/lists/*
 
 # copy runtime artifacts from builder
 COPY --from=builder /app/package*.json ./
