@@ -243,6 +243,12 @@ async function writeSyntheticStageJSnapshot(snapshotDir: string) {
         1.0 AS percentile,
         TIMESTAMP '2026-05-03 00:00:00' AS evaluation_timestamp,
         struct_pack(
+          temperature := 0.2,
+          top_p := 0.95,
+          max_tokens := 512,
+          stop_sequences := ['<END>']::VARCHAR[]
+        ) AS generation_config,
+        struct_pack(
           source_name := 'OpenAI report',
           source_type := 'documentation',
           source_organization_name := 'OpenAI',
@@ -431,10 +437,22 @@ describe("Stage J view-layer backend", () => {
         evals: [{ evaluation_id: "mmlu", evaluation_name: "MMLU", models_count: 1 }],
       })
       expect(modelSummary?.evaluations_by_tag.applied_reasoning).toHaveLength(1)
+      expect(modelSummary?.evaluations_by_tag.applied_reasoning[0]?.generation_config).toMatchObject({
+        temperature: 0.2,
+        top_p: 0.95,
+        max_tokens: 512,
+        stop_sequences: ["<END>"],
+      })
       expect(evalSummary?.model_results[0]).toMatchObject({
         model_route_id: "openai%2Fgpt-5",
         score: 0.8,
         result: { metric_summary_id: "mmlu%3Aaccuracy" },
+      })
+      expect(evalSummary?.model_results[0]?.result.generation_config).toMatchObject({
+        temperature: 0.2,
+        top_p: 0.95,
+        max_tokens: 512,
+        stop_sequences: ["<END>"],
       })
       expect(developers[0]).toMatchObject({ developer: "OpenAI", route_id: "OpenAI" })
       expect(developerSummary?.models).toHaveLength(1)

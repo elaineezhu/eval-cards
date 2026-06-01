@@ -109,6 +109,7 @@ const CELL_JOIN_COLUMNS = `
   r.total,
   r.percentile,
   r.evaluation_timestamp,
+  CAST(to_json(r.generation_config) AS VARCHAR) AS generation_config,
   CAST(to_json(r.source_metadata) AS VARCHAR) AS source_metadata,
   CAST(to_json(r.source_data) AS VARCHAR) AS source_data,
   r.source_record_url,
