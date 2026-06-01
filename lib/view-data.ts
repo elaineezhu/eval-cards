@@ -91,7 +91,40 @@ const EVAL_LIST_COLUMNS = `
 // `to_json(...)` so the binding only ever sees VARCHAR per row;
 // `parseMaybeJson` undoes the wrap in JS before downstream code
 // reads the shapes.
-const CELL_JOIN_COLUMNS = `
+const MODEL_CELL_JOIN_COLUMNS = `
+  r.evaluation_id,
+  r.metric_summary_id,
+  r.benchmark_id,
+  r.metric_id,
+  r.model_key,
+  CAST(to_json(r.model_info) AS VARCHAR) AS model_info,
+  r.metric_display_name,
+  r.metric_unit,
+  r.lower_is_better,
+  CAST(to_json(r.derived_tags) AS VARCHAR) AS derived_tags,
+  r.score,
+  CAST(to_json(r.score_details) AS VARCHAR) AS score_details,
+  CAST(r.evaluation_timestamp AS VARCHAR) AS evaluation_timestamp,
+  CAST(to_json(r.generation_config) AS VARCHAR) AS generation_config,
+  CAST(to_json(r.source_metadata) AS VARCHAR) AS source_metadata,
+  CAST(to_json(r.source_data) AS VARCHAR) AS source_data,
+  CAST(to_json(r.eval_library) AS VARCHAR) AS eval_library,
+  CAST(to_json(r.evalcards_annotations) AS VARCHAR) AS evalcards_annotations,
+  r.instance_file_path,
+  e.evaluation_name AS eval_evaluation_name,
+  e.canonical_display_name AS eval_canonical_display_name,
+  e.family_id AS eval_family_id,
+  e.family_display_name AS eval_family_display_name,
+  e.is_slice AS eval_is_slice,
+  e.parent_benchmark_id AS eval_parent_benchmark_id,
+  e.composite_display_name AS eval_composite_benchmark_name,
+  CAST(to_json(e.derived_tags) AS VARCHAR) AS eval_derived_tags,
+  CAST(to_json(e.metric_config) AS VARCHAR) AS eval_metric_config,
+  CAST(to_json(e.source_data) AS VARCHAR) AS eval_source_data,
+  e.is_summary_score AS eval_is_summary_score
+`
+
+const EVAL_CELL_JOIN_COLUMNS = `
   r.evaluation_id,
   r.metric_summary_id,
   r.benchmark_id,
@@ -629,7 +662,7 @@ async function getModelEvaluationRows(modelKey: string): Promise<Row[]> {
   // resolved and unresolved models (the latter fall back to the raw source
   // name). Querying by model_id alone would silently miss unresolved models.
   return readRows<Row>(
-    `SELECT ${CELL_JOIN_COLUMNS}
+    `SELECT ${MODEL_CELL_JOIN_COLUMNS}
      FROM eval_results_view r
      LEFT JOIN evals_view e ON r.evaluation_id = e.evaluation_id
      WHERE r.model_key = ?
@@ -789,7 +822,7 @@ export async function getEvalSummaryById(evalId: string): Promise<BenchmarkEvalS
   if (!evalRow) return null
 
   let cellRows = await readRows<Row>(
-    `SELECT ${CELL_JOIN_COLUMNS}
+    `SELECT ${EVAL_CELL_JOIN_COLUMNS}
      FROM eval_results_view r
      LEFT JOIN evals_view e ON r.evaluation_id = e.evaluation_id
      WHERE r.evaluation_id = ?
@@ -802,7 +835,7 @@ export async function getEvalSummaryById(evalId: string): Promise<BenchmarkEvalS
 
   if (cellRows.length === 0) {
     cellRows = await readRows<Row>(
-      `SELECT ${CELL_JOIN_COLUMNS}
+      `SELECT ${EVAL_CELL_JOIN_COLUMNS}
        FROM eval_results_view r
        LEFT JOIN evals_view e ON r.evaluation_id = e.evaluation_id
        WHERE r.evaluation_id = ?
