@@ -28,6 +28,8 @@ import { dedupeLeaderboardRowsByModelIdentity } from "@/lib/eval-processing"
 
 type Row = Record<string, any>
 
+let readRowsSequence = 0
+
 const MODEL_CARD_COLUMNS = `
   id, model_key, route_id, model_name, model_id, canonical_model_name, developer,
   evaluations_count, benchmarks_count, variant_count,
@@ -89,7 +91,6 @@ const EVAL_LIST_COLUMNS = `
 // `parseMaybeJson` undoes the wrap in JS before downstream code
 // reads the shapes.
 const CELL_JOIN_COLUMNS = `
-  r.snapshot_id,
   r.evaluation_id,
   r.metric_summary_id,
   r.benchmark_id,
@@ -104,52 +105,27 @@ const CELL_JOIN_COLUMNS = `
   CAST(to_json(r.derived_tags) AS VARCHAR) AS derived_tags,
   r.score,
   CAST(to_json(r.score_details) AS VARCHAR) AS score_details,
-  r.fact_row_count,
-  r.position,
-  r.total,
-  r.percentile,
-  r.evaluation_timestamp,
+  CAST(r.evaluation_timestamp AS VARCHAR) AS evaluation_timestamp,
   CAST(to_json(r.generation_config) AS VARCHAR) AS generation_config,
   CAST(to_json(r.source_metadata) AS VARCHAR) AS source_metadata,
   CAST(to_json(r.source_data) AS VARCHAR) AS source_data,
   r.source_record_url,
   CAST(to_json(r.eval_library) AS VARCHAR) AS eval_library,
-  CAST(to_json(r.evaluator_relationships) AS VARCHAR) AS evaluator_relationships,
-  r.has_first_party,
-  r.has_third_party,
-  r.coverage_cell,
-  CAST(to_json(r.reporting_orgs) AS VARCHAR) AS reporting_orgs,
-  CAST(to_json(r.scores_by_organization) AS VARCHAR) AS scores_by_organization,
   r.is_summary_score,
-  r.summary_score_for,
   CAST(to_json(r.aggregate_components) AS VARCHAR) AS aggregate_components,
-  r.has_reproducibility_gap,
-  r.completeness_score,
-  r.is_multi_source,
-  r.first_party_only,
-  r.has_variant_divergence,
-  r.has_cross_party_divergence,
   CAST(to_json(r.evalcards_annotations) AS VARCHAR) AS evalcards_annotations,
   r.instance_file_path,
-  r.instance_file_format,
-  r.instance_rows,
   e.evaluation_name AS eval_evaluation_name,
   e.canonical_display_name AS eval_canonical_display_name,
-  e.benchmark_id AS eval_benchmark_id,
-  e.composite_slug AS eval_composite_slug,
   e.composite_display_name AS eval_composite_display_name,
   e.family_id AS eval_family_id,
   e.family_display_name AS eval_family_display_name,
   e.is_slice AS eval_is_slice,
   e.parent_benchmark_id AS eval_parent_benchmark_id,
-  e.composite_slug AS eval_composite_benchmark_key,
   e.composite_display_name AS eval_composite_benchmark_name,
-  e.family_display_name AS eval_benchmark_family_name,
   CAST(to_json(e.derived_tags) AS VARCHAR) AS eval_derived_tags,
   CAST(to_json(e.metric_config) AS VARCHAR) AS eval_metric_config,
   CAST(to_json(e.source_data) AS VARCHAR) AS eval_source_data,
-  CAST(to_json(e.benchmark_card) AS VARCHAR) AS eval_benchmark_card,
-  CAST(to_json(e.tags) AS VARCHAR) AS eval_tags,
   e.is_summary_score AS eval_is_summary_score
 `
 
@@ -160,6 +136,14 @@ const CELL_JOIN_COLUMNS = `
 // strings), so consumers see a mixed-type field and `sum + value`
 // silently concatenates instead of adding.
 const BIGINT_STRING = /^-?(?:0|[1-9]\d*)$/
+
+function queryLogSnippet(sql: string) {
+  return sql.replace(/\s+/g, " ").slice(0, 1200)
+}
+
+function shouldLogQuery(sql: string) {
+  return sql.includes("eval_results_view")
+}
 
 function normalizeDuckDBValue(value: unknown): unknown {
   if (typeof value === "bigint") {
@@ -238,6 +222,16 @@ function normalizeDuckDBValue(value: unknown): unknown {
 
 async function readRows<T = Row>(sql: string, params: unknown[] = []): Promise<T[]> {
   const connection = await getConnection()
+  const queryId = ++readRowsSequence
+  const logThisQuery = shouldLogQuery(sql)
+  const sqlSnippet = queryLogSnippet(sql)
+
+  if (logThisQuery) {
+    console.warn(
+      `[view-data] query#${queryId} start params=${params.length} — SQL: ${sqlSnippet}`
+    )
+  }
+
   // Split the call so we can inspect column metadata even when the
   // chunk-fetch step crashes. `runAndRead` returns a reader without
   // fetching any chunks; `readAll` triggers the fetch loop, which is
@@ -252,18 +246,38 @@ async function readRows<T = Row>(sql: string, params: unknown[] = []): Promise<T
     reader = params.length > 0
       ? await connection.runAndRead(sql, params as any[])
       : await connection.runAndRead(sql)
+
+    if (logThisQuery) {
+      let columnSchema = "<unavailable>"
+      try {
+        columnSchema = JSON.stringify(reader.columnNameAndTypeObjectsJson())
+      } catch (introspectErr) {
+        columnSchema = `<introspect-failed: ${
+          introspectErr instanceof Error ? introspectErr.message : String(introspectErr)
+        }>`
+      }
+
+      console.warn(
+        `[view-data] query#${queryId} runAndRead ok columnCount=${reader.columnCount} ` +
+          `columns=${columnSchema}`
+      )
+    }
   } catch (err) {
-    const sqlSnippet = sql.replace(/\s+/g, " ").slice(0, 1200)
     const msg = err instanceof Error ? `${err.name}: ${err.message}` : String(err)
-    console.error(`[view-data] runAndRead failed (${msg}) — SQL: ${sqlSnippet}`)
+    console.error(`[view-data] query#${queryId} runAndRead failed (${msg}) — SQL: ${sqlSnippet}`)
     throw err
   }
 
   try {
     await reader.readAll()
-    return reader.getRowObjectsJson().map((row) => normalizeDuckDBValue(row) as T)
+    const rows = reader.getRowObjectsJson().map((row) => normalizeDuckDBValue(row) as T)
+
+    if (logThisQuery) {
+      console.warn(`[view-data] query#${queryId} readAll ok rows=${rows.length}`)
+    }
+
+    return rows
   } catch (err) {
-    const sqlSnippet = sql.replace(/\s+/g, " ").slice(0, 1200)
     const msg = err instanceof Error ? `${err.name}: ${err.message}` : String(err)
     let columnSchema: string = "<unavailable>"
     try {
@@ -274,7 +288,7 @@ async function readRows<T = Row>(sql: string, params: unknown[] = []): Promise<T
       }>`
     }
     console.error(
-      `[view-data] readAll/getRows failed (${msg}) — columnCount=${reader.columnCount} ` +
+      `[view-data] query#${queryId} readAll/getRows failed (${msg}) — columnCount=${reader.columnCount} ` +
         `columns=${columnSchema} — SQL: ${sqlSnippet}`
     )
     throw err
