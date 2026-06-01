@@ -29,6 +29,7 @@ import { dedupeLeaderboardRowsByModelIdentity } from "@/lib/eval-processing"
 type Row = Record<string, any>
 
 let readRowsSequence = 0
+let readRowsQueue: Promise<unknown> = Promise.resolve()
 
 const MODEL_CARD_COLUMNS = `
   id, model_key, route_id, model_name, model_id, canonical_model_name, developer,
@@ -221,34 +222,61 @@ function normalizeDuckDBValue(value: unknown): unknown {
 }
 
 async function readRows<T = Row>(sql: string, params: unknown[] = []): Promise<T[]> {
-  const connection = await getConnection()
-  const queryId = ++readRowsSequence
-  const logThisQuery = shouldLogQuery(sql)
-  const sqlSnippet = queryLogSnippet(sql)
-
-  if (logThisQuery) {
-    console.warn(
-      `[view-data] query#${queryId} start params=${params.length} — SQL: ${sqlSnippet}`
-    )
-  }
-
-  // Split the call so we can inspect column metadata even when the
-  // chunk-fetch step crashes. `runAndRead` returns a reader without
-  // fetching any chunks; `readAll` triggers the fetch loop, which is
-  // where the linux-x64 binding throws "Invalid Error: don't know
-  // what type: " for certain aliased logical types (JSON, etc.).
-  // `getRowObjectsJson()` is the lib's documented JSON-serialisable
-  // path — STRUCT→object, LIST→array, MAP→object, decimals→string —
-  // which is what the rest of the file already expects.
-  // normalizeDuckDBValue is kept as a no-op safety net on top.
-  let reader
-  try {
-    reader = params.length > 0
-      ? await connection.runAndRead(sql, params as any[])
-      : await connection.runAndRead(sql)
+  const runQuery = async () => {
+    const connection = await getConnection()
+    const queryId = ++readRowsSequence
+    const logThisQuery = shouldLogQuery(sql)
+    const sqlSnippet = queryLogSnippet(sql)
 
     if (logThisQuery) {
-      let columnSchema = "<unavailable>"
+      console.warn(
+        `[view-data] query#${queryId} start params=${params.length} — SQL: ${sqlSnippet}`
+      )
+    }
+
+    // HF Spaces runs a single shared DuckDB connection. Serialising
+    // runAndRead/readAll prevents overlapping readers on that connection,
+    // which can otherwise trip linux-only binding failures during model/eval
+    // detail loads.
+    let reader
+    try {
+      reader = params.length > 0
+        ? await connection.runAndRead(sql, params as any[])
+        : await connection.runAndRead(sql)
+
+      if (logThisQuery) {
+        let columnSchema = "<unavailable>"
+        try {
+          columnSchema = JSON.stringify(reader.columnNameAndTypeObjectsJson())
+        } catch (introspectErr) {
+          columnSchema = `<introspect-failed: ${
+            introspectErr instanceof Error ? introspectErr.message : String(introspectErr)
+          }>`
+        }
+
+        console.warn(
+          `[view-data] query#${queryId} runAndRead ok columnCount=${reader.columnCount} ` +
+            `columns=${columnSchema}`
+        )
+      }
+    } catch (err) {
+      const msg = err instanceof Error ? `${err.name}: ${err.message}` : String(err)
+      console.error(`[view-data] query#${queryId} runAndRead failed (${msg}) — SQL: ${sqlSnippet}`)
+      throw err
+    }
+
+    try {
+      await reader.readAll()
+      const rows = reader.getRowObjectsJson().map((row) => normalizeDuckDBValue(row) as T)
+
+      if (logThisQuery) {
+        console.warn(`[view-data] query#${queryId} readAll ok rows=${rows.length}`)
+      }
+
+      return rows
+    } catch (err) {
+      const msg = err instanceof Error ? `${err.name}: ${err.message}` : String(err)
+      let columnSchema: string = "<unavailable>"
       try {
         columnSchema = JSON.stringify(reader.columnNameAndTypeObjectsJson())
       } catch (introspectErr) {
@@ -256,43 +284,17 @@ async function readRows<T = Row>(sql: string, params: unknown[] = []): Promise<T
           introspectErr instanceof Error ? introspectErr.message : String(introspectErr)
         }>`
       }
-
-      console.warn(
-        `[view-data] query#${queryId} runAndRead ok columnCount=${reader.columnCount} ` +
-          `columns=${columnSchema}`
+      console.error(
+        `[view-data] query#${queryId} readAll/getRows failed (${msg}) — columnCount=${reader.columnCount} ` +
+          `columns=${columnSchema} — SQL: ${sqlSnippet}`
       )
+      throw err
     }
-  } catch (err) {
-    const msg = err instanceof Error ? `${err.name}: ${err.message}` : String(err)
-    console.error(`[view-data] query#${queryId} runAndRead failed (${msg}) — SQL: ${sqlSnippet}`)
-    throw err
   }
 
-  try {
-    await reader.readAll()
-    const rows = reader.getRowObjectsJson().map((row) => normalizeDuckDBValue(row) as T)
-
-    if (logThisQuery) {
-      console.warn(`[view-data] query#${queryId} readAll ok rows=${rows.length}`)
-    }
-
-    return rows
-  } catch (err) {
-    const msg = err instanceof Error ? `${err.name}: ${err.message}` : String(err)
-    let columnSchema: string = "<unavailable>"
-    try {
-      columnSchema = JSON.stringify(reader.columnNameAndTypeObjectsJson())
-    } catch (introspectErr) {
-      columnSchema = `<introspect-failed: ${
-        introspectErr instanceof Error ? introspectErr.message : String(introspectErr)
-      }>`
-    }
-    console.error(
-      `[view-data] query#${queryId} readAll/getRows failed (${msg}) — columnCount=${reader.columnCount} ` +
-        `columns=${columnSchema} — SQL: ${sqlSnippet}`
-    )
-    throw err
-  }
+  const scheduled = readRowsQueue.then(runQuery, runQuery)
+  readRowsQueue = scheduled.then(() => undefined, () => undefined)
+  return scheduled
 }
 
 function asNumber(value: unknown, fallback = 0) {
