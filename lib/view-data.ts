@@ -218,16 +218,25 @@ function normalizeDuckDBValue(value: unknown): unknown {
   return value
 }
 
-async function readRows<T = Row>(sql: string, params: unknown[] = []): Promise<T[]> {
+interface ReadRowsOptions {
+  contextLabel?: string
+}
+
+async function readRows<T = Row>(
+  sql: string,
+  params: unknown[] = [],
+  options: ReadRowsOptions = {},
+): Promise<T[]> {
   const runQuery = async () => {
     const connection = await getConnection()
     const queryId = ++readRowsSequence
     const logThisQuery = shouldLogQuery(sql)
     const sqlSnippet = queryLogSnippet(sql)
+    const contextSuffix = options.contextLabel ? ` [${options.contextLabel}]` : ""
 
     if (logThisQuery) {
       console.warn(
-        `[view-data] query#${queryId} start params=${params.length} — SQL: ${sqlSnippet}`
+        `[view-data] query#${queryId}${contextSuffix} start params=${params.length} — SQL: ${sqlSnippet}`
       )
     }
 
@@ -252,13 +261,13 @@ async function readRows<T = Row>(sql: string, params: unknown[] = []): Promise<T
         }
 
         console.warn(
-          `[view-data] query#${queryId} runAndRead ok columnCount=${reader.columnCount} ` +
+          `[view-data] query#${queryId}${contextSuffix} runAndRead ok columnCount=${reader.columnCount} ` +
             `columns=${columnSchema}`
         )
       }
     } catch (err) {
       const msg = err instanceof Error ? `${err.name}: ${err.message}` : String(err)
-      console.error(`[view-data] query#${queryId} runAndRead failed (${msg}) — SQL: ${sqlSnippet}`)
+      console.error(`[view-data] query#${queryId}${contextSuffix} runAndRead failed (${msg}) — SQL: ${sqlSnippet}`)
       throw err
     }
 
@@ -267,7 +276,7 @@ async function readRows<T = Row>(sql: string, params: unknown[] = []): Promise<T
       const rows = reader.getRowObjectsJson().map((row) => normalizeDuckDBValue(row) as T)
 
       if (logThisQuery) {
-        console.warn(`[view-data] query#${queryId} readAll ok rows=${rows.length}`)
+        console.warn(`[view-data] query#${queryId}${contextSuffix} readAll ok rows=${rows.length}`)
       }
 
       return rows
@@ -282,7 +291,7 @@ async function readRows<T = Row>(sql: string, params: unknown[] = []): Promise<T
         }>`
       }
       console.error(
-        `[view-data] query#${queryId} readAll/getRows failed (${msg}) — columnCount=${reader.columnCount} ` +
+        `[view-data] query#${queryId}${contextSuffix} readAll/getRows failed (${msg}) — columnCount=${reader.columnCount} ` +
           `columns=${columnSchema} — SQL: ${sqlSnippet}`
       )
       throw err
@@ -626,7 +635,8 @@ async function getModelEvaluationRows(modelKey: string): Promise<Row[]> {
      WHERE r.model_key = ?
        AND r.score IS NOT NULL
      ORDER BY r.percentile DESC NULLS LAST`,
-    [modelKey]
+    [modelKey],
+    { contextLabel: `model_key=${modelKey}` }
   )
 }
 
@@ -727,7 +737,8 @@ export async function getModelSummaryById(routeId: string): Promise<ModelEvaluat
      WHERE model_key = ? OR route_id = ? OR model_route_id = ? OR model_family_id = ? OR model_id = ?
         OR model_key = ? OR model_id = ?
      LIMIT 1`,
-    [routeId, routeId, routeId, routeId, routeId, dunder, dunder]
+    [routeId, routeId, routeId, routeId, routeId, dunder, dunder],
+    { contextLabel: `model_lookup=${routeId}` }
   )
   const modelRow = rows[0]
   if (!modelRow) return null
@@ -771,7 +782,8 @@ export async function getEvalSummaryById(evalId: string): Promise<BenchmarkEvalS
      FROM evals_view
      WHERE evaluation_id = ?
      LIMIT 1`,
-    [evalId]
+    [evalId],
+    { contextLabel: `eval_lookup=${evalId}` }
   )
   const evalRow = evalRows[0]
   if (!evalRow) return null
@@ -784,7 +796,8 @@ export async function getEvalSummaryById(evalId: string): Promise<BenchmarkEvalS
        AND r.metric_id = (SELECT primary_metric_id FROM evals_view WHERE evaluation_id = ?)
        AND r.score IS NOT NULL
      ORDER BY r.position ASC NULLS LAST`,
-    [evalId, evalId]
+    [evalId, evalId],
+    { contextLabel: `eval_id=${evalId} primary_metric` }
   )
 
   if (cellRows.length === 0) {
@@ -795,7 +808,8 @@ export async function getEvalSummaryById(evalId: string): Promise<BenchmarkEvalS
        WHERE r.evaluation_id = ?
          AND r.score IS NOT NULL
        ORDER BY r.position ASC NULLS LAST`,
-      [evalId]
+      [evalId],
+      { contextLabel: `eval_id=${evalId} fallback` }
     )
   }
 
