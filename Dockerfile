@@ -71,6 +71,7 @@ COPY --from=builder /app/public ./public
 COPY --from=builder /app/data ./data
 COPY --from=builder /app/.cache ./.cache
 COPY --from=builder /app/next.config.mjs ./next.config.mjs
+COPY --from=builder /app/scripts/warm-startup-cache.mjs ./scripts/warm-startup-cache.mjs
 
 # Expose a common port (informational). Hugging Face Spaces will inject $PORT at runtime
 # and the CMD below ensures Next listens on that port. Do not hardcode PORT here.
@@ -79,6 +80,8 @@ EXPOSE 3000
 # If you use private/gated HF models, set HF_TOKEN in the Space secrets and expose here
 # e.g. in Space settings: add secret HF_TOKEN with your token
 
-# Ensure `next start` uses the $PORT provided by the Spaces runtime. We use a shell
-# wrapper so the environment variable is expanded at container runtime.
-CMD ["sh", "-c", "npm run start -- -p ${PORT:-3000}"]
+# Ensure `next start` uses the $PORT provided by the Spaces runtime. Start the
+# server in the background, warm the high-traffic data endpoints against the
+# local instance so `/data/sidecars` and Next route caches are hot, then keep
+# the server process in the foreground.
+ENTRYPOINT ["sh", "-c", "npm run start -- -p ${PORT:-3000} & server_pid=$!; node scripts/warm-startup-cache.mjs http://127.0.0.1:${PORT:-3000}; wait $server_pid"]

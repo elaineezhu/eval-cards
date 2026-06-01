@@ -29,5 +29,9 @@ export async function GET() {
       ? { ...aggregates, total_benchmarks: cleanedTotal }
       : aggregates
 
-  return NextResponse.json(merged)
+  return NextResponse.json(merged, {
+    headers: {
+      "Cache-Control": "public, max-age=600, stale-while-revalidate=3600",
+    },
+  })
 }

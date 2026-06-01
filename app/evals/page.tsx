@@ -7,6 +7,7 @@ import { Search } from "lucide-react"
 import { FamilyTable, getFamilyNavId, type FamilySortCol } from "@/components/family-table"
 import { InfiniteScrollSentinel } from "@/components/infinite-scroll"
 import { Navigation } from "@/components/navigation"
+import { PageLoadingState, type PageLoadingStage } from "@/components/page-loading-state"
 import type { EvalHierarchy, HierarchyFamily } from "@/lib/backend-artifacts"
 import { fetchBenchmarkMetadata, fetchEvalHierarchy, fetchEvalList } from "@/lib/dashboard-data-client"
 import type { BenchmarkEvalListItem } from "@/lib/eval-processing"
@@ -43,6 +44,9 @@ function EvalsPageInner() {
   const [totalModels, setTotalModels] = useState<number>(0)
   const [evalItems, setEvalItems] = useState<Map<string, BenchmarkEvalListItem>>(new Map())
   const [benchmarkCards, setBenchmarkCards] = useState<Record<string, BenchmarkCard>>({})
+  const [hierarchyStageDone, setHierarchyStageDone] = useState(false)
+  const [evalListStageDone, setEvalListStageDone] = useState(false)
+  const [metadataStageDone, setMetadataStageDone] = useState(false)
   const [loading, setLoading] = useState(true)
   const [searchQuery, setSearchQuery] = useState("")
   const [visibleCount, setVisibleCount] = useState(PAGE_SIZE)
@@ -62,18 +66,39 @@ function EvalsPageInner() {
   }, [sortCol])
 
   useEffect(() => {
-    Promise.all([fetchEvalHierarchy(), fetchEvalList(), fetchBenchmarkMetadata()])
-      .then(([h, list, metadata]) => {
+    const hierarchyRequest = fetchEvalHierarchy()
+      .then((h) => {
         setHierarchy(h)
+        setHierarchyStageDone(true)
+      })
+      .catch(console.error)
+
+    const evalListRequest = fetchEvalList()
+      .then((list) => {
         setTotalModels(list.totalModels)
         const map = new Map<string, BenchmarkEvalListItem>()
         for (const item of list.evals) map.set(item.evaluation_id, item)
         setEvalItems(map)
-        setBenchmarkCards(metadata)
+        setEvalListStageDone(true)
       })
       .catch(console.error)
+
+    const benchmarkMetadataRequest = fetchBenchmarkMetadata()
+      .then((metadata) => {
+        setBenchmarkCards(metadata)
+        setMetadataStageDone(true)
+      })
+      .catch(console.error)
+
+    Promise.allSettled([hierarchyRequest, evalListRequest, benchmarkMetadataRequest])
       .finally(() => setLoading(false))
   }, [])
+
+  const loadingStages = useMemo<PageLoadingStage[]>(() => [
+    { label: "Evaluation hierarchy", done: hierarchyStageDone },
+    { label: `Evaluation index${totalModels > 0 ? ` (${totalModels.toLocaleString()} models)` : ""}`, done: evalListStageDone },
+    { label: "Benchmark metadata", done: metadataStageDone },
+  ], [evalListStageDone, hierarchyStageDone, metadataStageDone, totalModels])
 
   // Resolve the `?q=<term>` deep link from tag chips on benchmark pages.
   useEffect(() => {
@@ -326,9 +351,12 @@ function EvalsPageInner() {
 
         {/* TABLE ---------------------------------------------------- */}
         {loading ? (
-          <div className="py-24 text-center font-mono text-[11px] uppercase tracking-[0.2em] text-[color:var(--fg-subtle)]">
-            Loading…
-          </div>
+          <PageLoadingState
+            title="Loading evaluations"
+            description="Refreshing the family hierarchy, evaluation index, and benchmark metadata."
+            stages={loadingStages}
+            className="py-14"
+          />
         ) : filteredFamilies.length === 0 ? (
           <div className="py-16 text-center border border-dashed border-[color:var(--border-soft)] bg-[color:var(--bg-warm)]">
             <p className="mb-4 text-base text-[color:var(--fg-muted)]">

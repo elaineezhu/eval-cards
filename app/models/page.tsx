@@ -9,6 +9,7 @@ import { InfiniteScrollSentinel } from "@/components/infinite-scroll"
 import { ModelCompareDialog } from "@/components/model-compare-dialog"
 import { ModelTable, type ModelTableSortCol } from "@/components/model-table"
 import { Navigation } from "@/components/navigation"
+import { PageLoadingState, type PageLoadingStage } from "@/components/page-loading-state"
 import { ParamRangePicker } from "@/components/param-range-picker"
 import { fetchCorpusAggregates, fetchDevelopers, fetchModelCards, fetchBenchmarkMetadata, type DeveloperListItem } from "@/lib/dashboard-data-client"
 import type { BenchmarkCard } from "@/lib/benchmark-schema"
@@ -54,6 +55,9 @@ export default function ModelsPage() {
   const [developers, setDevelopers] = useState<DeveloperListItem[]>([])
   const [benchmarkCards, setBenchmarkCards] = useState<Record<string, BenchmarkCard>>({})
   const [totalBenchmarksFromHeadline, setTotalBenchmarksFromHeadline] = useState<number | null>(null)
+  const [modelsStageDone, setModelsStageDone] = useState(false)
+  const [metadataStageDone, setMetadataStageDone] = useState(false)
+  const [headlineStageDone, setHeadlineStageDone] = useState(false)
   const [loadingModels, setLoadingModels] = useState(true)
   const [loadingDevelopers, setLoadingDevelopers] = useState(false)
   const [developersReady, setDevelopersReady] = useState(false)
@@ -97,25 +101,38 @@ export default function ModelsPage() {
   const numericMaxParams = useMemo(() => paramStepToNumeric(maxParamStep, "max"), [maxParamStep])
 
   useEffect(() => {
-    Promise.all([fetchModelCards(), fetchBenchmarkMetadata()])
-      .then(([cards, metadata]) => {
+    const modelCardsRequest = fetchModelCards()
+      .then((cards) => {
         setEvaluations(cards)
-        setBenchmarkCards(metadata)
+        setModelsStageDone(true)
       })
       .catch((error) => {
         console.error("Failed to load evaluations:", error)
       })
-      .finally(() => setLoadingModels(false))
 
-    fetchCorpusAggregates()
+    const benchmarkMetadataRequest = fetchBenchmarkMetadata()
+      .then((metadata) => {
+        setBenchmarkCards(metadata)
+        setMetadataStageDone(true)
+      })
+      .catch((error) => {
+        console.error("Failed to load benchmark metadata:", error)
+      })
+
+    const corpusAggregatesRequest = fetchCorpusAggregates()
       .then((aggregates) => {
         if (typeof aggregates?.total_benchmarks === "number") {
           setTotalBenchmarksFromHeadline(aggregates.total_benchmarks)
         }
+        setHeadlineStageDone(true)
       })
       .catch((error) => {
         console.error("Failed to load corpus aggregates:", error)
+        setHeadlineStageDone(true)
       })
+
+    Promise.allSettled([modelCardsRequest, benchmarkMetadataRequest, corpusAggregatesRequest])
+      .finally(() => setLoadingModels(false))
   }, [])
 
   const totalBenchmarks = useMemo(
@@ -136,6 +153,23 @@ export default function ModelsPage() {
         setDevelopersReady(true)
       })
   }, [developersReady, groupByDeveloper, loadingDevelopers])
+
+  const loadingStages = useMemo<PageLoadingStage[]>(() => {
+    if (groupByDeveloper && !developersReady) {
+      return [
+        { label: "Model index", done: modelsStageDone },
+        { label: "Benchmark metadata", done: metadataStageDone },
+        { label: "Corpus totals", done: headlineStageDone },
+        { label: "Developer rollups", done: developersReady },
+      ]
+    }
+
+    return [
+      { label: "Model index", done: modelsStageDone },
+      { label: "Benchmark metadata", done: metadataStageDone },
+      { label: "Corpus totals", done: headlineStageDone },
+    ]
+  }, [developersReady, groupByDeveloper, headlineStageDone, metadataStageDone, modelsStageDone])
 
   // Models — filter + sort
   const sortedEvaluations = useMemo(() => {
@@ -401,9 +435,16 @@ export default function ModelsPage() {
 
         {/* TABLE ---------------------------------------------------- */}
         {loading ? (
-          <div className="py-24 text-center font-mono text-[11px] uppercase tracking-[0.2em] text-[color:var(--fg-subtle)]">
-            Loading…
-          </div>
+          <PageLoadingState
+            title={groupByDeveloper ? "Loading developers" : "Loading models"}
+            description={
+              groupByDeveloper
+                ? "Refreshing the model index, benchmark metadata, and developer rollups."
+                : "Refreshing the model index, benchmark metadata, and corpus totals."
+            }
+            stages={loadingStages}
+            className="py-14"
+          />
         ) : totalCount === 0 ? (
           <div className="py-16 text-center border border-dashed border-[color:var(--border-soft)] bg-[color:var(--bg-warm)]">
             <p className="mb-4 text-base text-[color:var(--fg-muted)]">
