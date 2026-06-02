@@ -10,7 +10,7 @@ export const dynamic = "force-dynamic"
 // Space hardware to isolate which column / read-path / thread setting
 // triggers it. Remove once the root cause is fixed.
 //
-// Usage: /api/_diag?id=deepseek/deepseek-v4-flash[&threads=1][&http=1]
+// Usage: /api/diag?id=deepseek/deepseek-v4-flash[&threads=1][&http=1]
 
 const NESTED_COLUMNS = [
   "model_info",
