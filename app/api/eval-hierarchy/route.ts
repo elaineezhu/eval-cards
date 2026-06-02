@@ -1,12 +1,8 @@
-import { NextResponse } from "next/server"
-
+import { cachedGzipJson } from "@/lib/cached-json-response"
 import { getEvalHierarchyData } from "@/lib/data-backend"
 
-export async function GET() {
-  const hierarchy = await getEvalHierarchyData()
-  return NextResponse.json(hierarchy, {
-    headers: {
-      "Cache-Control": "public, max-age=600, stale-while-revalidate=3600",
-    },
-  })
+const TTL_MS = 600_000
+
+export async function GET(request: Request) {
+  return cachedGzipJson(request, "eval-hierarchy", TTL_MS, getEvalHierarchyData)
 }

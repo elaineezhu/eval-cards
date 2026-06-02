@@ -1,11 +1,8 @@
-import { NextResponse } from "next/server"
+import { cachedGzipJson } from "@/lib/cached-json-response"
 import { getAllBenchmarkCards } from "@/lib/benchmark-metadata"
 
-export async function GET() {
-  const cards = await getAllBenchmarkCards()
-  return NextResponse.json(cards, {
-    headers: {
-      "Cache-Control": "public, max-age=600, stale-while-revalidate=3600",
-    },
-  })
+const TTL_MS = 600_000
+
+export async function GET(request: Request) {
+  return cachedGzipJson(request, "benchmark-metadata", TTL_MS, getAllBenchmarkCards)
 }

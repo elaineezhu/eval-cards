@@ -1,22 +1,11 @@
-import { NextResponse } from "next/server"
-
+import { cachedGzipJson } from "@/lib/cached-json-response"
 import { fetchComparisonIndex } from "@/lib/hf-data"
 
-export async function GET() {
-  try {
-    const index = await fetchComparisonIndex()
-    return NextResponse.json(index, {
-      headers: {
-        // The index is ~26 MB uncompressed but recomputed per pipeline run.
-        // Hot-cache aggressively in the browser; HF's own CDN handles the
-        // dataset-side caching for us.
-        "Cache-Control": "public, max-age=600, stale-while-revalidate=3600",
-      },
-    })
-  } catch (err) {
-    return NextResponse.json(
-      { error: err instanceof Error ? err.message : "failed to load comparison index" },
-      { status: 500 }
-    )
-  }
+// ~20 MB recomputed per pipeline run, previously shipped RAW on every detail page.
+// Gzip (~13x smaller) + per-process memoize with an ETag/304; immutable per
+// snapshot so the 10-min TTL is safe. Same helper as the /models, /evals index routes.
+const TTL_MS = 600_000
+
+export async function GET(request: Request) {
+  return cachedGzipJson(request, "comparison-index", TTL_MS, fetchComparisonIndex)
 }
