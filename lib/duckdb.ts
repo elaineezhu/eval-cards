@@ -30,7 +30,7 @@ const VIEW_FILES = {
 
 export async function getConnection(): Promise<DuckDBConnection> {
   if (!connectionPromise) {
-    connectionPromise = (async () => {
+    const pending = (async () => {
       const connection = await DuckDBConnection.create()
 
       // Materialise each parquet snapshot into an in-memory DuckDB table at
@@ -65,6 +65,15 @@ export async function getConnection(): Promise<DuckDBConnection> {
 
       return connection
     })()
+    connectionPromise = pending
+    // If init fails (e.g. a transient httpfs blip during the snapshot
+    // read), clear the cached rejected promise so the NEXT request retries
+    // instead of every request awaiting a permanently-rejected promise
+    // until the Space restarts. Guard on identity so a later retry already
+    // in flight is never stomped.
+    pending.catch(() => {
+      if (connectionPromise === pending) connectionPromise = null
+    })
   }
 
   return connectionPromise
