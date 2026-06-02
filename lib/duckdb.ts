@@ -131,6 +131,17 @@ async function ensureLocalParquet(url: string): Promise<string> {
   }
 }
 
+// Resolved per-view sources (local cache path or fallback URL), recorded
+// at connection-open time so diagnostics can introspect what the views
+// actually read from. Keyed by view name.
+const resolvedSources: Record<string, string> = {}
+export function getResolvedSources(): Record<string, string> {
+  return { ...resolvedSources }
+}
+export function getSnapshotArtifactUrl(name: string): string {
+  return snapshotArtifact(name)
+}
+
 export async function getConnection(): Promise<DuckDBConnection> {
   if (!connectionPromise) {
     connectionPromise = (async () => {
@@ -150,6 +161,7 @@ export async function getConnection(): Promise<DuckDBConnection> {
       )
 
       for (const { viewName, source } of sources) {
+        resolvedSources[viewName] = source
         await connection.run(
           `CREATE OR REPLACE VIEW ${viewName} AS SELECT * FROM read_parquet(${sqlString(source)})`
         )

@@ -1,26 +1,37 @@
 import "server-only"
 
 import { NextResponse } from "next/server"
-import { getConnection } from "@/lib/duckdb"
+import { createHash } from "node:crypto"
+import { copyFileSync, statSync, createReadStream } from "node:fs"
+import { join } from "node:path"
+import { tmpdir } from "node:os"
+import {
+  getConnection,
+  getResolvedSources,
+  getSnapshotArtifactUrl,
+} from "@/lib/duckdb"
 
 export const dynamic = "force-dynamic"
 
 // Temporary read-only diagnostic for the linux-x64 Space "don't know what
 // type:" Parquet-decode failure. Probes the live DuckDB connection on the
-// Space hardware to isolate which column / read-path / thread setting
-// triggers it. Remove once the root cause is fixed.
+// Space hardware to isolate which column / read-path triggers it. The
+// failing query selects only PRIMITIVE columns, and reading the same bytes
+// over httpfs succeeds while the local /data cache read fails — pointing at
+// the local-file (mmap on the /data network mount) read path. These probes
+// confirm that. Remove once the root cause is fixed.
 //
 // Usage: /api/diag?id=deepseek/deepseek-v4-flash[&threads=1][&http=1]
 
-const NESTED_COLUMNS = [
-  "model_info",
-  "derived_tags",
-  "score_details",
-  "generation_config",
-  "source_metadata",
-  "source_data",
-  "eval_library",
-  "evalcards_annotations",
+const PRIMITIVE_COLUMNS = [
+  "evaluation_id",
+  "metric_summary_id",
+  "benchmark_id",
+  "metric_id",
+  "model_key",
+  "score",
+  "metric_display_name",
+  "instance_file_path",
 ]
 
 type ProbeResult = {
@@ -52,6 +63,16 @@ async function probe(
   }
 }
 
+function sha256File(path: string): Promise<string> {
+  return new Promise((resolve, reject) => {
+    const hash = createHash("sha256")
+    createReadStream(path)
+      .on("data", (d) => hash.update(d))
+      .on("end", () => resolve(hash.digest("hex")))
+      .on("error", reject)
+  })
+}
+
 export async function GET(request: Request) {
   const { searchParams } = new URL(request.url)
   const modelKey = searchParams.get("id") ?? "deepseek/deepseek-v4-flash"
@@ -60,15 +81,14 @@ export async function GET(request: Request) {
 
   const connection = await getConnection()
   const snapshotUrl = (process.env.SNAPSHOT_URL ?? "").replace(/\/+$/, "")
+  const sources = getResolvedSources()
+  const localPath = sources["eval_results_view"] ?? ""
+  const remoteUrl = getSnapshotArtifactUrl("eval_results_view.parquet")
 
-  // When http=1, read straight from the remote parquet (range reads over
-  // HTTPS) instead of the disk-cached local file the views point at, so we
-  // can tell a local-file/mmap issue apart from a decode issue.
   const source = useHttp
-    ? `read_parquet('${snapshotUrl}/eval_results_view.parquet')`
+    ? `read_parquet('${remoteUrl}')`
     : `eval_results_view`
 
-  // Count rows through a reader; the JSON-row variant is what the app uses.
   const run = async (sql: string, params?: unknown[]) => {
     const reader = params?.length
       ? await connection.runAndRead(sql, params as any[])
@@ -87,6 +107,24 @@ export async function GET(request: Request) {
     }
   }
 
+  // ---- File integrity: is the local cached file byte-identical to remote? ----
+  const fileInfo: Record<string, unknown> = { localPath, remoteUrl }
+  try {
+    fileInfo.localSize = statSync(localPath).size
+    fileInfo.localSha256 = await sha256File(localPath)
+  } catch (err) {
+    fileInfo.localError = err instanceof Error ? err.message : String(err)
+  }
+  try {
+    const res = await fetch(remoteUrl)
+    const buf = Buffer.from(await res.arrayBuffer())
+    fileInfo.remoteSize = buf.length
+    fileInfo.remoteSha256 = createHash("sha256").update(buf).digest("hex")
+    fileInfo.sha256Match = fileInfo.remoteSha256 === fileInfo.localSha256
+  } catch (err) {
+    fileInfo.remoteError = err instanceof Error ? err.message : String(err)
+  }
+
   const probes: ProbeResult[] = []
 
   probes.push(
@@ -95,49 +133,53 @@ export async function GET(request: Request) {
     ),
   )
 
-  probes.push(
-    await probe("count_rows", async () =>
-      run(`SELECT count(*) AS n FROM ${source} WHERE model_key = ?`, [modelKey]),
-    ),
-  )
-
-  probes.push(
-    await probe("scan_primitives", async () =>
-      run(
-        `SELECT evaluation_id, score, model_key FROM ${source} WHERE model_key = ? AND score IS NOT NULL`,
-        [modelKey],
-      ),
-    ),
-  )
-
-  // The decisive probe: one to_json column at a time, so we learn exactly
-  // which nested column's decode trips the Thrift "don't know what type:".
-  for (const col of NESTED_COLUMNS) {
+  // Isolate exactly which primitive column's decode fails.
+  for (const col of PRIMITIVE_COLUMNS) {
     probes.push(
-      await probe(`tojson_${col}`, async () =>
+      await probe(`col_${col}`, async () =>
         run(
-          `SELECT CAST(to_json(${col}) AS VARCHAR) AS x FROM ${source} WHERE model_key = ? AND score IS NOT NULL`,
+          `SELECT ${col} FROM ${source} WHERE model_key = ? AND score IS NOT NULL`,
           [modelKey],
         ),
       ),
     )
   }
 
-  // Same projection but reading every row (no model filter), to learn
-  // whether the bad page is confined to this model's row group.
-  probes.push(
-    await probe(
-      "tojson_evalcards_all_rows",
-      async () =>
-        run(
-          `SELECT CAST(to_json(evalcards_annotations) AS VARCHAR) AS x FROM ${source} WHERE score IS NOT NULL`,
-        ),
-      "all rows, not just this model",
-    ),
-  )
+  // ---- Read the SAME local file copied to /tmp (container-ephemeral disk)
+  // instead of /data (HF persistent/overlay mount). If /tmp works and /data
+  // fails on identical bytes, it's the /data filesystem + DuckDB's local
+  // reader (mmap), not the file or the data. ----
+  if (localPath && !useHttp) {
+    const tmpCopy = join(tmpdir(), "diag-eval_results_view.parquet")
+    probes.push(
+      await probe(
+        "col_evaluation_id_from_tmp_copy",
+        async () => {
+          copyFileSync(localPath, tmpCopy)
+          return run(
+            `SELECT evaluation_id FROM read_parquet('${tmpCopy}') WHERE model_key = ? AND score IS NOT NULL`,
+            [modelKey],
+          )
+        },
+        "same bytes, read from os.tmpdir() instead of /data",
+      ),
+    )
 
-  // Reset threads to engine default so the diagnostic doesn't leave the
-  // shared connection in a weird state for normal traffic.
+    // And explicitly from the /data path via read_parquet (not the view),
+    // to confirm the view isn't the variable.
+    probes.push(
+      await probe(
+        "col_evaluation_id_from_data_path",
+        async () =>
+          run(
+            `SELECT evaluation_id FROM read_parquet('${localPath}') WHERE model_key = ? AND score IS NOT NULL`,
+            [modelKey],
+          ),
+        "explicit /data path",
+      ),
+    )
+  }
+
   if (appliedThreads) {
     try {
       await connection.run("RESET threads")
@@ -151,6 +193,7 @@ export async function GET(request: Request) {
     snapshotUrl,
     source: useHttp ? "remote-httpfs" : "local-cache-view",
     appliedThreads: appliedThreads ?? "(default)",
+    fileInfo,
     probes,
   })
 }
