@@ -28,17 +28,6 @@ const VIEW_FILES = {
   eval_results_view: "eval_results_view.parquet",
 } as const
 
-// Resolved per-table sources (the parquet URL/path each table loaded from),
-// recorded at connection-open time so diagnostics can introspect what the
-// tables actually read from. Keyed by table name.
-const resolvedSources: Record<string, string> = {}
-export function getResolvedSources(): Record<string, string> {
-  return { ...resolvedSources }
-}
-export function getSnapshotArtifactUrl(name: string): string {
-  return snapshotArtifact(name)
-}
-
 export async function getConnection(): Promise<DuckDBConnection> {
   if (!connectionPromise) {
     connectionPromise = (async () => {
@@ -66,7 +55,6 @@ export async function getConnection(): Promise<DuckDBConnection> {
         // file:// SNAPSHOT_URL (local dev) is a filesystem path to
         // read_parquet, not an httpfs URL.
         const source = url.startsWith("file://") ? fileURLToPath(url) : url
-        resolvedSources[viewName] = source
         await connection.run(
           `CREATE OR REPLACE TABLE ${viewName} AS SELECT * FROM read_parquet(${sqlString(source)})`,
         )
