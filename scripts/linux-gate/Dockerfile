@@ -10,5 +10,7 @@ RUN apt-get update \
 WORKDIR /gate
 ARG DUCKDB_VERSION=1.5.3-r.2
 RUN npm install --no-audit --no-fund "@duckdb/node-api@${DUCKDB_VERSION}"
-COPY smoke.mjs .
-ENTRYPOINT ["node", "smoke.mjs"]
+COPY smoke.mjs parity.mjs ./
+# Default to the fast smoke; `docker run … parity.mjs` runs the heavier parity gate.
+ENTRYPOINT ["node"]
+CMD ["smoke.mjs"]
