@@ -22,7 +22,7 @@
     "model_route_id": "google__gemini-3-flash",
     "model_version": null
   },
-  "model_family_id": "google/gemini-3-flash",
+  "model_group_id": "google/gemini-3-flash",
   "model_route_id": "google__gemini-3-flash",
   "model_family_name": "Gemini 3 Flash Preview (Non-reasoning)",
   "raw_model_ids": [

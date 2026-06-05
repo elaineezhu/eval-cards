@@ -5,7 +5,7 @@ import Link from "next/link"
 import { usePathname, useRouter, useSearchParams } from "next/navigation"
 import { useAudienceMode } from "@/components/audience-mode-provider"
 import { EmbedButton } from "@/components/embed-button"
-import { formatDateISO, humanizeBenchmarkName, humanizeEvaluationId, routeIdToPath } from "@/lib/utils"
+import { formatDateISO, humanizeBenchmarkName, humanizeEvaluationId, routeIdFromModelId, routeIdToPath } from "@/lib/utils"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
@@ -779,7 +779,7 @@ function getComparisonScoreEntryForVariant(
   const modelId = row.variant.evaluation.model_info.id
   return (
     metricEntry.scores.find(
-      (score) => score.model_route_id === modelId || score.model_family_id === modelId
+      (score) => score.model_route_id === modelId || score.model_group_id === modelId
     ) ?? null
   )
 }
@@ -2733,10 +2733,19 @@ export function BenchmarkDetail({
   // Used to (a) pull our own score out of `by_model` and (b) drop ourselves
   // out of the peer score list.
   const currentModelIdentityKeys = useMemo(() => {
+    const id = summary.model_info.id || ""
+    // Include BOTH the plain id and its encoded (route_id) form: comparison
+    // score rows are keyed by the percent-encoded route, while the summary
+    // exposes the plain `id`. Without the encoded forms the current model
+    // never matches its own score row (so it isn't excluded from peers).
     const keys = new Set<string>(
       [
-        summary.model_info.id,
-        (summary as any).model_family_id,
+        id,
+        id && encodeURIComponent(id),
+        (summary as any).model_route_id,
+        (summary as any).variant_key,
+        (summary as any).model_group_id,
+        (summary as any).model_group_id && encodeURIComponent((summary as any).model_group_id),
         (summary.model_info as any).family_id,
         (summary.model_info as any).model_route_id,
         ...((summary as any).raw_model_ids ?? []),
@@ -2745,15 +2754,19 @@ export function BenchmarkDetail({
     return keys
   }, [summary])
 
-  // The primary model_route_id that keys into comparison-index.by_model for
-  // this page. Prefer an explicit route id; otherwise derive one.
+  // The model_route_id that keys into comparison-index.by_model (which is keyed
+  // by the GROUP route_id). The page renders the selected variant as `summary`,
+  // so prefer its carried-through model_route_id, then variant_key, and finally
+  // encode the plain id — never the legacy `__` form, which the v2 backend's
+  // percent-encoded keys don't use.
   const currentModelRouteId = useMemo(() => {
     const explicit =
+      (summary as any).model_route_id ||
       (summary.model_info as any).model_route_id ||
-      (summary as any).model_route_id
+      (summary as any).variant_key
     if (typeof explicit === "string" && explicit.length > 0) return explicit
     const id = summary.model_info.id || ""
-    return id.replace(/[/]/g, "__")
+    return id ? encodeURIComponent(id) : ""
   }, [summary])
 
   // Cross-suite overlaps: walk `benchmark_index[]` (already pre-filtered by
@@ -2779,7 +2792,7 @@ export function BenchmarkDetail({
       for (const row of metric.scores) {
         if (
           currentModelIdentityKeys.has(row.model_route_id) ||
-          currentModelIdentityKeys.has(row.model_family_id)
+          currentModelIdentityKeys.has(row.model_group_id)
         ) {
           if (Number.isFinite(row.score)) return row.score
         }
@@ -2985,7 +2998,7 @@ export function BenchmarkDetail({
         for (const s of metric.scores) {
           if (
             currentModelIdentityKeys.has(s.model_route_id) ||
-            currentModelIdentityKeys.has(s.model_family_id)
+            currentModelIdentityKeys.has(s.model_group_id)
           ) {
             currentRow = s
             break
@@ -3012,7 +3025,7 @@ export function BenchmarkDetail({
         const peerRows = metric.scores.filter(
           (s) =>
             !currentModelIdentityKeys.has(s.model_route_id) &&
-            !currentModelIdentityKeys.has(s.model_family_id)
+            !currentModelIdentityKeys.has(s.model_group_id)
         )
 
         const defaults = new Set<string>()
@@ -3039,11 +3052,10 @@ export function BenchmarkDetail({
           .filter((p) => selectedIds.has(p.model_route_id))
           .map((p) => ({
             modelId: p.model_route_id,
-            // Fall back to model_family_id when the registry has no display
-            // name for this model. Many score entries land here; the root cause
-            // is registry coverage. The id is
-            // already human-readable in this codebase ("anthropic/Sonnet 4.5"),
-            // so the fallback is more useful than "Unknown Model".
+            // Most comparison score rows carry an empty model_family_name, so
+            // fall back to model_family_id (always present, and already
+            // human-readable in this codebase, e.g. "anthropic/sonnet-4.5").
+            // Without this the peer bars all read "Unknown Model".
             modelName: getModelDisplayName(p.model_family_name || p.model_family_id),
             score: p.score,
             isCurrent: false,
@@ -3077,12 +3089,10 @@ export function BenchmarkDetail({
           .filter((p) => !selectedIds.has(p.model_route_id))
           .map((p) => ({
             id: p.model_route_id,
-            // Same fallback as the rendered bar (peerBars above) — when
-            // the registry lacks a display name, fall back to the
-            // model_family_id (which is already human-readable in this
-            // codebase, e.g. "anthropic/sonnet-4.5"). Without this the
-            // dropdown label resolves to "Unknown Model" even though
-            // the bar that appears after selection reads correctly.
+            // Same fallback as the rendered bar (peerBars above): score rows
+            // usually have an empty model_family_name, so fall back to
+            // model_family_id (always present, human-readable). Without this the
+            // dropdown label resolves to "Unknown Model".
             name: p.model_family_name || p.model_family_id,
             score: p.score,
             submissionCount: p.submission_count,
@@ -3924,7 +3934,7 @@ export function BenchmarkDetail({
           for (const row of siblingMetric.scores) {
             if (
               currentModelIdentityKeys.has(row.model_route_id) ||
-              currentModelIdentityKeys.has(row.model_family_id)
+              currentModelIdentityKeys.has(row.model_group_id)
             ) {
               if (Number.isFinite(row.score)) {
                 siblingScore = row.score
@@ -4395,6 +4405,8 @@ export function BenchmarkDetail({
             return (
               <div
                 key={bar.modelId}
+                data-model-bar={bar.modelId}
+                data-bar-current={bar.isCurrent ? "1" : "0"}
                 className="group flex min-w-0 flex-col items-center"
               >
                 <div className="relative flex h-44 w-full items-end">
@@ -4708,6 +4720,13 @@ export function BenchmarkDetail({
                   <span>{formatParamsBillions(summary.model_info.additional_details?.params_billions)}</span>
                 </>
               )}
+              {/* model-resolution-rework: served-by inference platform (nullable). */}
+              {summary.model_info.inference_platform && (
+                <>
+                  <span className="text-[color:var(--fg-subtle)]">·</span>
+                  <span>Served by {summary.model_info.inference_platform}</span>
+                </>
+              )}
             </div>
           </div>
 
@@ -4731,6 +4750,41 @@ export function BenchmarkDetail({
             <div className="mt-1 text-right font-mono text-[10px] uppercase tracking-[0.15em] text-[color:var(--fg-subtle)]">
               {Math.max(0, reproducibilityResultsTotal - reproducibilityGapCount)} / {reproducibilityResultsTotal} reported
             </div>
+
+            {/* model-resolution-rework: lineage + resolution provenance.
+                All fields are nullable (server-provided); the block only
+                renders rows that are present. */}
+            {(summary.lineage_origin_model_id ||
+              summary.resolution_source ||
+              summary.resolution_granularity) && (
+              <dl className="mt-4 space-y-1 text-[11px] text-[color:var(--fg-muted)]">
+                {summary.lineage_origin_model_id && (
+                  <div className="flex items-baseline justify-between gap-2">
+                    <dt className="kicker shrink-0">Base model</dt>
+                    <dd className="min-w-0 truncate text-right">
+                      <Link
+                        href={`/models/${routeIdToPath(routeIdFromModelId(summary.lineage_origin_model_id))}`}
+                        className="font-mono hover:text-[color:var(--accent)]"
+                      >
+                        {summary.lineage_origin_model_id}
+                      </Link>
+                    </dd>
+                  </div>
+                )}
+                {summary.resolution_source && (
+                  <div className="flex items-baseline justify-between gap-2">
+                    <dt className="kicker shrink-0">Resolved via</dt>
+                    <dd className="font-mono">{summary.resolution_source}</dd>
+                  </div>
+                )}
+                {summary.resolution_granularity && (
+                  <div className="flex items-baseline justify-between gap-2">
+                    <dt className="kicker shrink-0">Granularity</dt>
+                    <dd className="font-mono">{summary.resolution_granularity}</dd>
+                  </div>
+                )}
+              </dl>
+            )}
           </div>
         </div>
       </header>

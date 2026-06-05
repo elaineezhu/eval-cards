@@ -551,6 +551,8 @@ function reshapeCellToModelResult(row: Row): ModelResultForBenchmark {
   return {
     model_info: (modelInfo ?? modelInfoFromModelRow(row)) as ModelInfo,
     model_route_id: optionalString(row.model_route_id),
+    // model-resolution-rework: server-provided group id for routing fallback.
+    model_group_id: optionalString(row.model_group_id),
     score: scoreDetails.score,
     score_details: scoreDetails,
     evaluation_timestamp: asString(row.evaluation_timestamp, ""),
@@ -631,10 +633,16 @@ function modelSummaryFromRows(modelRow: Row, cellRows: Row[]): ModelEvaluationSu
     ...variant,
     variant_id: asString(variant.variant_id ?? variant.variant_key, `variant-${index}`),
     variant_key: asString(variant.variant_key, `variant-${index}`),
+    // Carry the GROUP's encoded route onto every variant. comparison-index /
+    // peer-ranks are keyed by the group route_id, and the model detail page
+    // renders the selected VARIANT as its summary — without this the variant
+    // has no model_route_id and the page falls back to a non-matching id, so
+    // peer-comparison charts find no scores.
+    model_route_id: asString(modelRow.model_route_id ?? modelRow.route_id, modelRow.route_id),
     variant_label: asString(variant.variant_label ?? variant.variant_display_name, "Default"),
     variant_display_name: asString(variant.variant_display_name ?? variant.variant_label ?? modelRow.model_name, modelRow.model_name),
     raw_model_ids: asArray<string>(variant.raw_model_ids),
-    family_id: asString(variant.family_id ?? modelRow.model_family_id, modelRow.model_family_id),
+    family_id: asString(variant.family_id ?? modelRow.model_group_id, modelRow.model_group_id),
     family_name: asString(variant.family_name ?? modelRow.model_family_name, modelRow.model_family_name),
     total_evaluations: asNumber(variant.total_evaluations ?? totalEvaluations),
     last_updated: asString(variant.last_updated ?? lastUpdated, lastUpdated),
@@ -649,10 +657,17 @@ function modelSummaryFromRows(modelRow: Row, cellRows: Row[]): ModelEvaluationSu
 
   return {
     ...core,
-    model_family_id: asString(modelRow.model_family_id ?? modelRow.model_key ?? modelRow.model_id, modelRow.model_key ?? modelRow.model_id),
+    model_group_id: asString(modelRow.model_group_id ?? modelRow.model_key ?? modelRow.model_id, modelRow.model_key ?? modelRow.model_id),
     model_route_id: asString(modelRow.model_route_id ?? modelRow.route_id, modelRow.route_id),
     model_family_name: asString(modelRow.model_family_name ?? modelRow.model_name, modelRow.model_name),
     raw_model_ids: rawModelIds.length > 0 ? rawModelIds : [asString(modelRow.model_key ?? modelRow.model_id, "")].filter(Boolean),
+    // model-resolution-rework (additive, nullable). The summary builder
+    // reads `SELECT *` from models_view, so these columns flow through
+    // once the producer view layer emits them (post-M9). Until then
+    // optionalString yields undefined and the UI conditionally omits them.
+    lineage_origin_model_id: optionalString(modelRow.lineage_origin_model_id),
+    resolution_source: optionalString(modelRow.resolution_source),
+    resolution_granularity: optionalString(modelRow.resolution_granularity),
     variants,
   }
 }
@@ -751,7 +766,7 @@ export async function getDashboardData() {
 
 export async function getModelSummaryById(routeId: string): Promise<ModelEvaluationSummary | null> {
   // Lookups use the addressable identifier (`model_key`/`route_id`/
-  // `model_route_id`/`model_family_id`) so unresolved models — whose
+  // `model_route_id`/`model_group_id`) so unresolved models — whose
   // `model_id` is NULL — are still findable. `model_id` is kept in the
   // OR chain as a back-compat fallback for old links.
   //
@@ -760,20 +775,38 @@ export async function getModelSummaryById(routeId: string): Promise<ModelEvaluat
   //     Next.js already decodes path params before they reach here, so
   //     `routeId` lands as `google/gemini-3-pro`.
   //   - Plain canonical id with `/` (same shape after Next.js decode).
-  //   - Legacy `__`-separated form (e.g. `google__gemini-3-pro`) — old
-  //     `getModelFamilyRouteId` emitted this; bookmarks may still use
-  //     it. Convert `__` → `/` for lookup.
+  //   - Legacy `__`-separated form (e.g. `google__gemini-3-pro`) — the
+  //     old client-side family route computation emitted this; bookmarks
+  //     may still use it. Convert `__` → `/` for lookup.
   const dunder = routeId.includes("__") ? routeId.replace(/__/g, "/") : routeId
   const rows = await readRows<Row>(
     `SELECT *
      FROM models_view
-     WHERE model_key = ? OR route_id = ? OR model_route_id = ? OR model_family_id = ? OR model_id = ?
+     WHERE model_key = ? OR route_id = ? OR model_route_id = ? OR model_group_id = ? OR model_id = ?
         OR model_key = ? OR model_id = ?
      LIMIT 1`,
     [routeId, routeId, routeId, routeId, routeId, dunder, dunder],
     { contextLabel: `model_lookup=${routeId}` }
   )
-  const modelRow = rows[0]
+  let modelRow = rows[0]
+  if (!modelRow) {
+    // The id may be a FOLDED raw id — a dated snapshot / older-cased / variant
+    // spelling the producer collapsed into a group (e.g.
+    // `mistralai/mistral-medium-2505` folds into `mistralai/mistral-medium`).
+    // Such ids exist only inside the owning group row's `raw_model_ids` list,
+    // never as their own row, so resolve them to that group. Case-insensitive,
+    // since raw_model_ids preserve HF casing. This makes every inbound model
+    // link/bookmark resolve to a real page instead of 404-ing.
+    const byRaw = await readRows<Row>(
+      `SELECT *
+       FROM models_view
+       WHERE list_contains(list_transform(raw_model_ids, x -> lower(x)), lower(?))
+          OR list_contains(list_transform(raw_model_ids, x -> lower(x)), lower(?))
+       LIMIT 1`,
+      [routeId, dunder]
+    )
+    modelRow = byRaw[0]
+  }
   if (!modelRow) return null
 
   const cellRows = await getModelEvaluationRows(asString(modelRow.model_key ?? modelRow.model_id, routeId))
@@ -888,6 +921,7 @@ export async function getEvalSummaryById(evalId: string): Promise<BenchmarkEvalS
         return {
           model_info: base.model_info,
           model_route_id: row.model_route_id,
+          model_group_id: base.model_group_id,
           evaluation_timestamp: base.evaluation_timestamp,
           source_metadata: base.source_metadata,
           source_data: base.source_data,
@@ -939,6 +973,7 @@ export async function getEvalSummaryById(evalId: string): Promise<BenchmarkEvalS
       .map((mr) => ({
         model_info: mr.model_info,
         model_route_id: mr.model_route_id,
+        model_group_id: mr.model_group_id,
         evaluation_timestamp: mr.evaluation_timestamp,
         source_metadata: mr.source_metadata,
         source_data: mr.source_data,
@@ -962,9 +997,25 @@ export async function getDeveloperList(): Promise<DeveloperListEntry[]> {
   return [...(headline.developers ?? [])].sort((a, b) => a.developer.localeCompare(b.developer))
 }
 
+function decodeLoose(value: string): string {
+  try {
+    return decodeURIComponent(value)
+  } catch {
+    return value
+  }
+}
+
 export async function getDeveloperSummaryById(routeId: string) {
   const developers = await getDeveloperList()
-  const developer = developers.find((entry) => entry.route_id === routeId)
+  // `route_id` is stored pre-percent-encoded for names with spaces/parens
+  // (e.g. "Mistral AI" -> "Mistral%20AI"), but the incoming routeId arrives
+  // already decoded (routeIdFromSegments only round-trips %2F). Compare on the
+  // decoded form so those developers' detail pages resolve. Exact match is
+  // tried first as a fast path.
+  const target = decodeLoose(routeId)
+  const developer =
+    developers.find((entry) => entry.route_id === routeId) ??
+    developers.find((entry) => decodeLoose(entry.route_id) === target)
   if (!developer) return null
 
   const modelRows = await readRows<Row>(

@@ -31,7 +31,6 @@ import type {
   SourceData,
   SourceMetadata,
 } from "@/lib/benchmark-schema"
-import { getCanonicalModelIdentity, getModelFamilyRouteId } from "@/lib/model-family"
 
 // ---------------------------------------------------------------------------
 // HuggingFace dataset base URL
@@ -512,7 +511,7 @@ export interface HFModelDetail extends SignalSummaries {
     variant_label?: string
     model_route_id?: string
   }
-  model_family_id: string
+  model_group_id: string
   model_route_id: string
   model_family_name?: string
   raw_model_ids?: string[]

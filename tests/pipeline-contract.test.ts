@@ -100,19 +100,19 @@ describe("Tier A — pipeline contracts (model files)", () => {
     expect(violations, formatViolations(violations)).toEqual([])
   })
 
-  it("model card has model_family_id matching pipelineSlugify(model_family_id) → model_route_id", () => {
+  it("model card has model_group_id matching pipelineSlugify(model_group_id) → model_route_id", () => {
     const violations: Violation[] = []
     for (const { id, data } of models) {
-      if (!data.model_family_id) {
-        violations.push({ fixture: id, path: "model_family_id", detail: "missing" })
+      if (!data.model_group_id) {
+        violations.push({ fixture: id, path: "model_group_id", detail: "missing" })
         continue
       }
-      const expected = data.model_family_id.replace(/\//g, "__")
+      const expected = data.model_group_id.replace(/\//g, "__")
       if (data.model_route_id !== expected) {
         violations.push({
           fixture: id,
           path: "model_route_id",
-          detail: `${data.model_route_id} !== ${expected} (derived from ${data.model_family_id})`,
+          detail: `${data.model_route_id} !== ${expected} (derived from ${data.model_group_id})`,
         })
       }
     }

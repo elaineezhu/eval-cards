@@ -27,7 +27,7 @@ async function writeSyntheticStageJSnapshot(snapshotDir: string) {
         'openai/gpt-5' AS id,
         'openai%2Fgpt-5' AS route_id,
         'openai%2Fgpt-5' AS model_route_id,
-        'openai/gpt-5' AS model_family_id,
+        'openai/gpt-5' AS model_group_id,
         'GPT 5' AS model_name,
         'GPT 5' AS canonical_model_name,
         'GPT 5' AS model_family_name,

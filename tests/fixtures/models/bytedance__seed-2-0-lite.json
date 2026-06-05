@@ -25,7 +25,7 @@
     "model_route_id": "bytedance__seed-2-0-lite",
     "model_version": null
   },
-  "model_family_id": "bytedance/seed-2-0-lite",
+  "model_group_id": "bytedance/seed-2-0-lite",
   "model_route_id": "bytedance__seed-2-0-lite",
   "model_family_name": "Seed 2.0 Lite",
   "raw_model_ids": [

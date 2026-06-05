@@ -15,6 +15,8 @@ export default defineConfig({
     // self-skips otherwise. We DON'T exclude the path here because vitest's
     // exclude wins over an explicit path arg, which would silently make
     // `pnpm test:drift` find zero tests.
-    exclude: ["**/node_modules/**", "**/dist/**"],
+    // tests/e2e/ is the Playwright (@playwright/test) suite — a different runner.
+    // Excluded so `pnpm test` (vitest) doesn't try to collect its *.spec.ts.
+    exclude: ["**/node_modules/**", "**/dist/**", "**/tests/e2e/**"],
   },
 })

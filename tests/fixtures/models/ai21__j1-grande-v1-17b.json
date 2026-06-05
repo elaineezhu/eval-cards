@@ -13,7 +13,7 @@
     "model_route_id": "ai21__j1-grande-v1-17b",
     "model_version": null
   },
-  "model_family_id": "ai21/j1-grande-v1-17b",
+  "model_group_id": "ai21/j1-grande-v1-17b",
   "model_route_id": "ai21__j1-grande-v1-17b",
   "model_family_name": "J1-Grande v1 17B",
   "raw_model_ids": [

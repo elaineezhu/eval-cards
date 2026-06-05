@@ -261,6 +261,12 @@ export interface ModelSummaryCore extends SignalSummaries {
   total_evaluations: number
   last_updated: string
   tags_covered: EvalTag[]
+  // model-resolution-rework (additive, all nullable). Server-provided model
+  // identity provenance; surfaced on the model detail page. Carried here on
+  // the core so both the summary and variant shapes expose them.
+  lineage_origin_model_id?: string    // deepest non-variant ancestor (base model)
+  resolution_source?: string          // enum: hf | models_dev | curated | inferred | none
+  resolution_granularity?: string     // enum: variant | group | family
 }
 
 export interface ModelVariantSummary extends ModelSummaryCore {
@@ -276,7 +282,7 @@ export interface ModelVariantSummary extends ModelSummaryCore {
 }
 
 export interface ModelEvaluationSummary extends ModelSummaryCore {
-  model_family_id: string
+  model_group_id: string
   model_route_id: string
   model_family_name: string
   raw_model_ids: string[]
@@ -347,6 +353,14 @@ export interface EvaluationCardData {
   params?: string
   inference_engine?: string
   inference_platform?: string
+
+  // model-resolution-rework (additive, all nullable). Server-provided
+  // (producer view layer) — the frontend no longer computes families
+  // client-side. See notes/backend-v2-migration.md.
+  model_group_id?: string             // group canonical id (membership / grouping root)
+  lineage_origin_model_id?: string    // deepest non-variant ancestor (base model)
+  resolution_source?: string          // enum: hf | models_dev | curated | inferred | none
+  resolution_granularity?: string     // enum: variant | group | family
 }
 
 // ── Benchmark Card types (from metadata/benchmark_card_*.json) ────────────────

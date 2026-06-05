@@ -10,7 +10,7 @@ export default function AboutPage() {
 
       <main className="mx-auto w-full max-w-[64rem] px-4 pb-24 pt-12 sm:px-8">
         {/* HEADER --------------------------------------------------------- */}
-        <div className="kicker">About · Working paper v0.4</div>
+        <div className="kicker">About</div>
         <h1
           className="mt-2 mb-7"
           style={{
@@ -347,19 +347,16 @@ export default function AboutPage() {
               <div className="kicker mb-2.5">Cite as</div>
               <p className="font-mono m-0 text-[12px] leading-[1.7] text-[color:var(--fg)]">
                 EvalEval Coalition. (2026). Evaluation Cards: a reporting layer for AI evaluation
-                (Working paper v0.4, snapshot 18 Apr 2026). evalcards.evalevalai.com
+                (snapshot 5 Jun 2026). evalcards.evalevalai.com
               </p>
             </div>
             <div className="border border-[color:var(--border-soft)] p-[22px]">
               <div className="kicker mb-2.5">Submit a correction</div>
-              <p className="m-0 mb-2 text-[13.5px] leading-[1.65] text-[color:var(--fg-muted)]">
+              <p className="m-0 text-[13.5px] leading-[1.65] text-[color:var(--fg-muted)]">
                 Each record links a correction path. Disclosure gaps close as developers and
                 third parties publish; we accept patches against any (model, benchmark,
                 metric-path) tuple with a citation.
               </p>
-              <span className="font-mono text-[color:var(--fg-subtle)] text-[11px] uppercase tracking-[0.1em]">
-                corrections@evalevalai.com
-              </span>
             </div>
           </div>
         </section>
