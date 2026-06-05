@@ -53,3 +53,7 @@ public/peer-ranks.json
 # private working notes / design specs / migration plans — not for publishing
 notes/
 docs/INTERPRETIVE_SIGNALS.md
+
+# Playwright e2e output (tests/e2e via @playwright/test)
+test-results/
+playwright-report/
