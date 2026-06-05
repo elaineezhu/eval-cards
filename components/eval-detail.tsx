@@ -2038,6 +2038,7 @@ export function EvalDetail({
                                       score={formatRawScore(modelResult.score, lb.metric_config.unit)}
                                       sourceUrl={modelResult.source_metadata.source_url}
                                       sourceRecordUrl={modelResult.source_record_url}
+                                      eeeRecordUrl={modelResult.eee_record_url}
                                     />
                                   </div>
                                 </div>
@@ -2850,6 +2851,7 @@ function MultiMetricLeaderboard({
                             score={formatRawScore(matchingResult.score, summary.metric_config.unit)}
                             sourceUrl={matchingResult.source_metadata.source_url}
                             sourceRecordUrl={matchingResult.source_record_url}
+                            eeeRecordUrl={matchingResult.eee_record_url}
                           />
                         </div>
                       </div>

@@ -39,6 +39,8 @@ export interface ModelResultForBenchmark {
   result: EvaluationResult
   /** URL to the underlying record JSON in the upstream HF dataset, when known. */
   source_record_url?: string
+  /** Deep-link to the raw EEE_datastore source record this score came from, when known. */
+  eee_record_url?: string
   aggregate_components?: Array<{
     evaluation_id: string
     composite_benchmark_key: string

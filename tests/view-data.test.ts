@@ -268,6 +268,7 @@ async function writeSyntheticStageJSnapshot(snapshotDir: string) {
           dataset_version := 'v1'
         ) AS source_data,
         'https://example.test/record.json' AS source_record_url,
+        'https://example.test/eee-record.json' AS eee_record_url,
         struct_pack(name := 'openai-evals', version := '1.0', fork := NULL::VARCHAR) AS eval_library,
         ['first_party']::VARCHAR[] AS evaluator_relationships,
         true AS has_first_party,

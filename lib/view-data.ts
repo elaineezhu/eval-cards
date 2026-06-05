@@ -143,6 +143,7 @@ const EVAL_CELL_JOIN_COLUMNS = `
   CAST(to_json(r.source_metadata) AS VARCHAR) AS source_metadata,
   CAST(to_json(r.source_data) AS VARCHAR) AS source_data,
   r.source_record_url,
+  r.eee_record_url,
   CAST(to_json(r.eval_library) AS VARCHAR) AS eval_library,
   CAST(to_json(r.aggregate_components) AS VARCHAR) AS aggregate_components,
   CAST(to_json(r.evalcards_annotations) AS VARCHAR) AS evalcards_annotations,
@@ -559,6 +560,7 @@ function reshapeCellToModelResult(row: Row): ModelResultForBenchmark {
     source_metadata: sourceMetadataFromRow(row),
     source_data: sourceDataFromRow(row),
     source_record_url: optionalString(row.source_record_url),
+    eee_record_url: optionalString(row.eee_record_url),
     aggregate_components: asArray<NonNullable<ModelResultForBenchmark["aggregate_components"]>[number]>(
       aggregateComponents
     ),
