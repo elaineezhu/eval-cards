@@ -2733,10 +2733,19 @@ export function BenchmarkDetail({
   // Used to (a) pull our own score out of `by_model` and (b) drop ourselves
   // out of the peer score list.
   const currentModelIdentityKeys = useMemo(() => {
+    const id = summary.model_info.id || ""
+    // Include BOTH the plain id and its encoded (route_id) form: comparison
+    // score rows are keyed by the percent-encoded route, while the summary
+    // exposes the plain `id`. Without the encoded forms the current model
+    // never matches its own score row (so it isn't excluded from peers).
     const keys = new Set<string>(
       [
-        summary.model_info.id,
+        id,
+        id && encodeURIComponent(id),
+        (summary as any).model_route_id,
+        (summary as any).variant_key,
         (summary as any).model_group_id,
+        (summary as any).model_group_id && encodeURIComponent((summary as any).model_group_id),
         (summary.model_info as any).family_id,
         (summary.model_info as any).model_route_id,
         ...((summary as any).raw_model_ids ?? []),
@@ -2745,15 +2754,19 @@ export function BenchmarkDetail({
     return keys
   }, [summary])
 
-  // The primary model_route_id that keys into comparison-index.by_model for
-  // this page. Prefer an explicit route id; otherwise derive one.
+  // The model_route_id that keys into comparison-index.by_model (which is keyed
+  // by the GROUP route_id). The page renders the selected variant as `summary`,
+  // so prefer its carried-through model_route_id, then variant_key, and finally
+  // encode the plain id — never the legacy `__` form, which the v2 backend's
+  // percent-encoded keys don't use.
   const currentModelRouteId = useMemo(() => {
     const explicit =
+      (summary as any).model_route_id ||
       (summary.model_info as any).model_route_id ||
-      (summary as any).model_route_id
+      (summary as any).variant_key
     if (typeof explicit === "string" && explicit.length > 0) return explicit
     const id = summary.model_info.id || ""
-    return id.replace(/[/]/g, "__")
+    return id ? encodeURIComponent(id) : ""
   }, [summary])
 
   // Cross-suite overlaps: walk `benchmark_index[]` (already pre-filtered by
@@ -3039,12 +3052,11 @@ export function BenchmarkDetail({
           .filter((p) => selectedIds.has(p.model_route_id))
           .map((p) => ({
             modelId: p.model_route_id,
-            // Fall back to model_group_id when the registry has no display
-            // name for this model. Many score entries land here; the root cause
-            // is registry coverage. The id is
-            // already human-readable in this codebase ("anthropic/Sonnet 4.5"),
-            // so the fallback is more useful than "Unknown Model".
-            modelName: getModelDisplayName(p.model_family_name || p.model_group_id),
+            // Most comparison score rows carry an empty model_family_name, so
+            // fall back to model_family_id (always present, and already
+            // human-readable in this codebase, e.g. "anthropic/sonnet-4.5").
+            // Without this the peer bars all read "Unknown Model".
+            modelName: getModelDisplayName(p.model_family_name || p.model_family_id),
             score: p.score,
             isCurrent: false,
             isDefault: defaults.has(p.model_route_id),
@@ -3077,13 +3089,11 @@ export function BenchmarkDetail({
           .filter((p) => !selectedIds.has(p.model_route_id))
           .map((p) => ({
             id: p.model_route_id,
-            // Same fallback as the rendered bar (peerBars above) — when
-            // the registry lacks a display name, fall back to the
-            // model_group_id (which is already human-readable in this
-            // codebase, e.g. "anthropic/sonnet-4.5"). Without this the
-            // dropdown label resolves to "Unknown Model" even though
-            // the bar that appears after selection reads correctly.
-            name: p.model_family_name || p.model_group_id,
+            // Same fallback as the rendered bar (peerBars above): score rows
+            // usually have an empty model_family_name, so fall back to
+            // model_family_id (always present, human-readable). Without this the
+            // dropdown label resolves to "Unknown Model".
+            name: p.model_family_name || p.model_family_id,
             score: p.score,
             submissionCount: p.submission_count,
             submissionAxis: p.submission_axis,
@@ -4395,6 +4405,8 @@ export function BenchmarkDetail({
             return (
               <div
                 key={bar.modelId}
+                data-model-bar={bar.modelId}
+                data-bar-current={bar.isCurrent ? "1" : "0"}
                 className="group flex min-w-0 flex-col items-center"
               >
                 <div className="relative flex h-44 w-full items-end">

@@ -1,10 +1,10 @@
 import { describe, expect, it } from "vitest"
 
 import {
-  buildRedirects,
+  buildRedirectsFromModelsView,
   routeId,
   serializeRedirectModule,
-  type Baseline,
+  type ModelsViewRow,
 } from "@/lib/model-url-redirects-build"
 import { resolveModelRedirect } from "@/lib/model-url-redirects"
 import { routeIdFromModelId, routeIdToPath } from "@/lib/utils"
@@ -62,113 +62,68 @@ describe("route id percent-encoding round-trips", () => {
 })
 
 // ---------------------------------------------------------------------------
-// buildRedirects — map construction from a baseline
+// buildRedirectsFromModelsView — map construction from the warehouse
 // ---------------------------------------------------------------------------
 
-describe("buildRedirects", () => {
-  it("emits a flip redirect from group root to leaf canonical", () => {
-    const baseline: Baseline = {
-      "anthropic/claude-3-haiku-20240307": {
-        model_id: "anthropic/claude-3-haiku-20240307",
-        canonical_id: "anthropic/claude-3-haiku-20240307",
-        resolved_leaf_id: "anthropic/claude-3-haiku-20240307",
-        root_model_id: "anthropic/claude-3-haiku",
+describe("buildRedirectsFromModelsView", () => {
+  it("maps a folded raw spelling to its owning group route", () => {
+    const rows: ModelsViewRow[] = [
+      {
+        model_route_id: "mistralai%2Fmistral-medium",
+        model_id: "mistralai/mistral-medium",
+        route_id: "mistralai%2Fmistral-medium",
+        model_key: "mistralai/mistral-medium",
+        model_group_id: "mistralai/mistral-medium",
+        raw_model_ids: ["mistralai/mistral-medium-2505", "mistralai/Mistral-Medium"],
       },
-    }
-    const { redirects, flipCount, casingCount } = buildRedirects(baseline)
-    expect(flipCount).toBe(1)
-    expect(casingCount).toBe(0)
-    expect(redirects.get(routeId("anthropic/claude-3-haiku"))).toBe(
-      routeId("anthropic/claude-3-haiku-20240307"),
-    )
+    ]
+    const { redirects } = buildRedirectsFromModelsView(rows)
+    expect(redirects.get(routeId("mistralai/mistral-medium-2505"))).toBe("mistralai%2Fmistral-medium")
+    expect(redirects.get(routeId("mistralai/Mistral-Medium"))).toBe("mistralai%2Fmistral-medium")
   })
 
-  it("prefers model_group_id over root_model_id when both present", () => {
-    const baseline: Baseline = {
-      x: {
-        model_id: "org/leaf",
-        canonical_id: "org/leaf",
-        model_group_id: "org/group-new",
-        root_model_id: "org/group-old",
+  it("never redirects an addressable id — no group->leaf hijack", () => {
+    const rows: ModelsViewRow[] = [
+      {
+        model_route_id: "mistralai%2Fmistral-medium",
+        model_id: "mistralai/mistral-medium",
+        // the group's own id appearing in its raw list must NOT become a redirect
+        raw_model_ids: ["mistralai/mistral-medium"],
       },
-    }
-    const { redirects } = buildRedirects(baseline)
-    expect(redirects.get(routeId("org/group-new"))).toBe(routeId("org/leaf"))
-    expect(redirects.has(routeId("org/group-old"))).toBe(false)
-  })
-
-  it("emits a casing redirect from lowercase canonical to HF-true casing", () => {
-    const baseline: Baseline = {
-      "eleutherai/gpt-neo-125m": {
-        model_id: "eleutherai/gpt-neo-125m",
-        canonical_id: "eleutherai/gpt-neo-125m",
-        json_fixed_hf_model_id: "EleutherAI/gpt-neo-125m",
-      },
-    }
-    const { redirects, flipCount, casingCount } = buildRedirects(baseline)
-    expect(flipCount).toBe(0)
-    expect(casingCount).toBe(1)
-    expect(redirects.get(routeId("eleutherai/gpt-neo-125m"))).toBe(
-      routeId("EleutherAI/gpt-neo-125m"),
-    )
-  })
-
-  it("does NOT treat a genuinely different id as a casing re-key", () => {
-    const baseline: Baseline = {
-      a: {
-        model_id: "org/model-a",
-        canonical_id: "org/model-a",
-        json_fixed_hf_model_id: "org/model-b", // differs beyond case
-      },
-    }
-    const { redirects, casingCount } = buildRedirects(baseline)
-    expect(casingCount).toBe(0)
+    ]
+    const { redirects } = buildRedirectsFromModelsView(rows)
     expect(redirects.size).toBe(0)
   })
 
-  it("skips no-op self-redirects", () => {
-    const baseline: Baseline = {
-      a: {
-        model_id: "org/model",
-        canonical_id: "org/model",
-        root_model_id: "org/model", // == canonical -> no redirect
-      },
+  it("every redirect target is an addressable model_route_id", () => {
+    const rows: ModelsViewRow[] = [
+      { model_route_id: "org%2Fgroup-a", model_id: "org/group-a", raw_model_ids: ["org/snap-1"] },
+      { model_route_id: "org%2Fgroup-b", model_id: "org/group-b", raw_model_ids: ["org/snap-2"] },
+    ]
+    const { redirects } = buildRedirectsFromModelsView(rows)
+    const addressable = new Set(rows.map((r) => r.model_route_id))
+    for (const target of redirects.values()) {
+      expect(addressable.has(target)).toBe(true)
     }
-    const { redirects, noopCount } = buildRedirects(baseline)
-    expect(redirects.size).toBe(0)
-    // root == canonical is filtered before `add`, so it's not counted as noop;
-    // the important invariant is simply that no redirect is emitted.
-    expect(noopCount).toBe(0)
   })
 
-  it("excludes (does not arbitrarily pick) a group root that fans out to multiple leaves", () => {
-    const baseline: Baseline = {
-      leafA: {
-        model_id: "anthropic/claude-3.5-sonnet-20240620",
-        canonical_id: "anthropic/claude-3.5-sonnet-20240620",
-        root_model_id: "anthropic/claude-3.5-sonnet",
-      },
-      leafB: {
-        model_id: "anthropic/claude-3.5-sonnet-20241022",
-        canonical_id: "anthropic/claude-3.5-sonnet-20241022",
-        root_model_id: "anthropic/claude-3.5-sonnet",
-      },
-    }
-    const { redirects, ambiguous } = buildRedirects(baseline)
-    expect(redirects.has(routeId("anthropic/claude-3.5-sonnet"))).toBe(false)
-    const amb = ambiguous.get(routeId("anthropic/claude-3.5-sonnet"))
-    expect(amb).toBeDefined()
-    expect(amb!.size).toBe(2)
+  it("excludes (does not arbitrarily pick) a spelling that fans out to multiple groups", () => {
+    const rows: ModelsViewRow[] = [
+      { model_route_id: "org%2Fgroup-a", model_id: "org/group-a", raw_model_ids: ["org/shared"] },
+      { model_route_id: "org%2Fgroup-b", model_id: "org/group-b", raw_model_ids: ["org/shared"] },
+    ]
+    const { redirects, ambiguous } = buildRedirectsFromModelsView(rows)
+    expect(redirects.has(routeId("org/shared"))).toBe(false)
+    expect(ambiguous.get(routeId("org/shared"))?.size).toBe(2)
   })
 
-  it("is idempotent for a repeated identical old->new pair", () => {
-    const baseline: Baseline = {
-      one: { model_id: "org/leaf", canonical_id: "org/leaf", root_model_id: "org/group" },
-      two: { model_id: "org/leaf", canonical_id: "org/leaf", root_model_id: "org/group" },
-    }
-    const { redirects, flipCount } = buildRedirects(baseline)
+  it("is idempotent when the same spelling appears repeatedly", () => {
+    const rows: ModelsViewRow[] = [
+      { model_route_id: "org%2Fg", model_id: "org/g", raw_model_ids: ["org/snap", "org/snap"] },
+    ]
+    const { redirects } = buildRedirectsFromModelsView(rows)
     expect(redirects.size).toBe(1)
-    expect(flipCount).toBe(1)
+    expect(redirects.get(routeId("org/snap"))).toBe("org%2Fg")
   })
 })
 
@@ -177,16 +132,17 @@ describe("buildRedirects", () => {
 // ---------------------------------------------------------------------------
 
 describe("serializeRedirectModule", () => {
-  it("produces sorted, parseable entries and marks the data provisional", () => {
+  it("produces sorted, parseable entries derived from the warehouse", () => {
     const map = new Map([
       ["b%2Fx", "b%2Fy"],
       ["a%2Fx", "a%2Fy"],
     ])
-    const src = serializeRedirectModule(map, { source: "test.json", flipCount: 1, casingCount: 1 })
-    expect(src).toContain("PROVISIONAL")
+    const src = serializeRedirectModule(map, { source: "warehouse/test" })
+    expect(src).toContain("Derived from the warehouse")
     // sorted: a before b
     expect(src.indexOf('"a%2Fx"')).toBeLessThan(src.indexOf('"b%2Fx"'))
     expect(src).toContain("export const MODEL_URL_REDIRECTS")
+    expect(src).toContain("export function resolveModelRedirect")
   })
 })
 
@@ -219,11 +175,12 @@ function buildRedirectTarget(incomingUrl: string): { url: URL; status: number } 
 }
 
 describe("redirect target construction (middleware contract)", () => {
-  // A known provisional redirect from the generated map.
-  const OLD = "anthropic/claude-3-haiku"
-  const NEW = "anthropic/claude-3-haiku-20240307"
+  // A known folded-spelling -> group redirect from the generated map: the dated
+  // snapshot folds into the moving group pointer.
+  const OLD = "anthropic/claude-3-haiku-20240307"
+  const NEW = "anthropic/claude-3-haiku"
 
-  it("the generated map contains the expected provisional redirect", () => {
+  it("the generated map contains the expected folded-spelling -> group redirect", () => {
     expect(resolveModelRedirect(routeId(OLD))).toBe(routeId(NEW))
   })
 

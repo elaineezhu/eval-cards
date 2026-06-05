@@ -414,6 +414,12 @@ export interface ComparisonSubmission {
 
 export interface ComparisonScoreEntry {
   model_route_id: string
+  // The group root id, slash-form (e.g. "zhipu/glm-4-6-fc-thinking") — the field
+  // comparison-index score rows actually carry. Peer labels fall back to it when
+  // model_family_name is empty (most rows). NOTE: `model_group_id` below is NOT
+  // present on these rows; it stays declared only because other consumers read
+  // it as a `|| model_group_id` fallback (always undefined here, harmless).
+  model_family_id: string
   model_group_id: string
   model_family_name: string
   developer: string
