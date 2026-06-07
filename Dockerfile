@@ -14,13 +14,14 @@ ARG PNPM_VERSION=10.25.0
 # Override at build time via `--build-arg ...`.
 ARG DATA_BACKEND=v2
 ARG HF_DATASET_REPO=https://huggingface.co/datasets/evaleval/card_backend
-ARG SNAPSHOT_URL=https://huggingface.co/datasets/evaleval/card_backend/resolve/main/warehouse/2026-05-29T00-24-44Z
-# Static prerender (`next build`) executes route handlers. In legacy mode the
-# cache populated by `cache-hf-data.mjs` lives at `/app/.cache/hf-data`; in v2
-# the cache step is skipped and the app reads the pinned Stage J snapshot.
+# SNAPSHOT_URL is resolved at build time (see the build step below): pass an
+# explicit `--build-arg SNAPSHOT_URL=...` to pin a snapshot; leave it empty to
+# default to the latest published one. The resolved value is baked for runtime
+# so prerendered pages and live queries read the same snapshot.
+ARG SNAPSHOT_URL=
+# Static prerender (`next build`) executes route handlers against SNAPSHOT_URL.
 ENV DATA_BACKEND=${DATA_BACKEND} \
     HF_DATASET_REPO=${HF_DATASET_REPO} \
-    SNAPSHOT_URL=${SNAPSHOT_URL} \
     LOCAL_PIPELINE_OUTPUT=/app/.cache/hf-data \
     HF_DATA_LOCAL_DIR=/app/.cache/hf-data \
     HF_DATA_OFFLINE=1
@@ -42,20 +43,28 @@ RUN apt-get update \
 
 # copy source and build
 COPY . ./
-RUN pnpm run build
+# Resolve the snapshot once: an explicit SNAPSHOT_URL build-arg wins; otherwise
+# fall back to the latest published snapshot. Bake the resolved value to a file
+# so the runtime stage serves the exact snapshot we prerendered against. Fails
+# the build (test -n) rather than shipping an empty/guessed snapshot.
+RUN set -e; \
+    if [ -z "${SNAPSHOT_URL:-}" ]; then SNAPSHOT_URL="$(node scripts/resolve-latest-snapshot.mjs)"; fi; \
+    test -n "$SNAPSHOT_URL"; \
+    printf '%s' "$SNAPSHOT_URL" > /app/.resolved-snapshot-url; \
+    echo "[docker] building against snapshot: $SNAPSHOT_URL"; \
+    DATA_BACKEND="${DATA_BACKEND}" SNAPSHOT_URL="$SNAPSHOT_URL" pnpm run build
 
 FROM node:18-bullseye-slim AS runner
 WORKDIR /app
 
 ARG DATA_BACKEND=v2
-ARG SNAPSHOT_URL=https://huggingface.co/datasets/evaleval/card_backend/resolve/main/warehouse/2026-05-29T00-24-44Z
 
-# Runtime needs the same data-source envs that the builder used. Docker
-# multi-stage doesn't carry ENVs across stages, so keep backend selection and
-# snapshot/cache pointers explicit here too.
+# Runtime data-source envs (multi-stage doesn't carry ENVs across stages).
+# SNAPSHOT_URL is intentionally NOT set here: the entrypoint defaults it to the
+# snapshot resolved at build time (.resolved-snapshot-url, copied from the
+# builder), and a SNAPSHOT_URL injected by the Space runtime overrides it.
 ENV NODE_ENV=production \
     DATA_BACKEND=${DATA_BACKEND} \
-    SNAPSHOT_URL=${SNAPSHOT_URL} \
     LOCAL_PIPELINE_OUTPUT=/app/.cache/hf-data \
     HF_DATA_LOCAL_DIR=/app/.cache/hf-data \
     HF_DATA_OFFLINE=1
@@ -70,6 +79,7 @@ COPY --from=builder /app/.next ./.next
 COPY --from=builder /app/public ./public
 COPY --from=builder /app/data ./data
 COPY --from=builder /app/.cache ./.cache
+COPY --from=builder /app/.resolved-snapshot-url ./.resolved-snapshot-url
 COPY --from=builder /app/next.config.mjs ./next.config.mjs
 COPY --from=builder /app/scripts/warm-startup-cache.mjs ./scripts/warm-startup-cache.mjs
 
@@ -84,4 +94,4 @@ EXPOSE 3000
 # server in the background, warm the high-traffic data endpoints against the
 # local instance so `/data/sidecars` and Next route caches are hot, then keep
 # the server process in the foreground.
-ENTRYPOINT ["sh", "-c", "npm run start -- -p ${PORT:-3000} & server_pid=$!; node scripts/warm-startup-cache.mjs http://127.0.0.1:${PORT:-3000}; wait $server_pid"]
+ENTRYPOINT ["sh", "-c", "export SNAPSHOT_URL=\"${SNAPSHOT_URL:-$(cat /app/.resolved-snapshot-url)}\"; echo \"[docker] serving snapshot: $SNAPSHOT_URL\"; npm run start -- -p ${PORT:-3000} & server_pid=$!; node scripts/warm-startup-cache.mjs http://127.0.0.1:${PORT:-3000}; wait $server_pid"]

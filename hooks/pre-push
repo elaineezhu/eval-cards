@@ -1,8 +1,8 @@
 #!/usr/bin/env bash
 #
-# Pre-push linux gate (invariant I5). Pushing to the HF Space deploys to prod and
-# runs NO tests there — so this is the enforcement point between local and prod.
-# Aborts the push if the linux gate is red.
+# Pre-push linux gate. Pushing to the HF Space deploys to prod and runs NO tests
+# there — so this is the enforcement point between local and prod. Aborts the
+# push if the linux gate is red.
 #
 # Activate once per clone:   git config core.hooksPath hooks
 # Escape hatch (docs-only / emergency):   SKIP_LINUX_GATE=1 git push

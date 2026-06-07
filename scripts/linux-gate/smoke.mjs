@@ -4,8 +4,9 @@
 //
 // This is the net for the class of failure that passes on Mac and broke prod:
 // the "Invalid Error: don't know what type:" struct/timestamp marshalling crash
-// on the linux-x64 binding (R2/I2). It mirrors prod's getConnection() exactly:
-// in-memory tables loaded over httpfs (NO /data mmap — R1/I1).
+// on the linux-x64 binding. It mirrors prod's getConnection() exactly: in-memory
+// tables loaded over httpfs (NO /data mmap — a local-file mmap on HF's /data
+// mount could read back incoherent pages and throw the same error).
 //
 // SNAPSHOT_URL is passed in by scripts/linux-gate.sh.
 import { DuckDBConnection } from "@duckdb/node-api"

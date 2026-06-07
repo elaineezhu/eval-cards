@@ -12,7 +12,14 @@ set -euo pipefail
 
 ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 cd "$ROOT"
-: "${SNAPSHOT_URL:=https://huggingface.co/datasets/evaleval/card_backend/resolve/main/warehouse/2026-05-29T00-24-44Z}"
+# Default to the latest published snapshot; pin by exporting SNAPSHOT_URL first.
+if [ -z "${SNAPSHOT_URL:-}" ]; then
+  echo "[migration-gate] resolving latest published snapshot (set SNAPSHOT_URL to pin)…"
+  SNAPSHOT_URL="$(node "$ROOT/scripts/resolve-latest-snapshot.mjs")" || {
+    echo "[migration-gate] could not resolve latest snapshot — set SNAPSHOT_URL explicitly" >&2
+    exit 2
+  }
+fi
 
 DUCKDB_VERSION="$(grep -m1 -oE '@duckdb/node-api@[0-9][A-Za-z0-9.+-]*' pnpm-lock.yaml | sed 's#.*@##' || true)"
 DUCKDB_VERSION="${DUCKDB_VERSION:-1.5.3-r.2}"
@@ -23,7 +30,7 @@ docker build --platform=linux/amd64 --build-arg "DUCKDB_VERSION=${DUCKDB_VERSION
 echo "[migration-gate] leaderboard parity (query vs live comparison-index)…"
 docker run --platform=linux/amd64 --rm -e SNAPSHOT_URL="$SNAPSHOT_URL" evalcard-linux-gate parity.mjs
 
-# TODO add as the migration proceeds (see notes/comparison-index-rootcause-design.md §7):
+# TODO add as the migration proceeds:
 #   - render-equivalence (eval-page leaderboard / histogram bars / whisker N-min-max / DeepDive run-labels)
 #   - by_model-removal consumer test (slash/percent/dunder identity resolution)
 echo "[migration-gate] PASS ✅"

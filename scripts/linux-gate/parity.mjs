@@ -21,7 +21,7 @@ for (const [v, f] of [["models_view", "models_view.parquet"], ["evals_view", "ev
 const rows = async (sql) => { const r = await c.runAndRead(sql); await r.readAll(); return r.getRowObjectsJson() }
 const num = (x) => (typeof x === "bigint" || typeof x === "string") ? Number(x) : x
 
-// Group-key column resolution (design decision #2): scores[].model_family_id is fed the
+// Group-key column resolution: scores[].model_family_id is fed the
 // GROUP KEY. On the current pre-split snapshot that lives under `model_family_id`; on a
 // post-rebaseline snapshot it's `model_group_id` (and `model_family_id` becomes the
 // distinct structural id). Detect and use whichever carries the group key.
