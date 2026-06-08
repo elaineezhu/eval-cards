@@ -36,6 +36,11 @@ export function Navigation() {
       label: "About",
       isActive: pathname === "/about",
     },
+    {
+      href: "/feedback",
+      label: "Feedback",
+      isActive: pathname === "/feedback",
+    },
   ]
 
   useEffect(() => {
