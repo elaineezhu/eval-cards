@@ -106,7 +106,7 @@ export default function AboutPage() {
                 Summary view
               </div>
               <h3 className="m-0 mb-2.5 text-lg font-semibold">Plain-language read</h3>
-              <p className="m-0 text-[13.5px] leading-[1.65]" style={{ color: "rgba(240,237,232,0.78)" }}>
+              <p className="m-0 text-[13.5px] leading-[1.65]" style={{ color: "color-mix(in srgb, var(--bg) 78%, transparent)" }}>
                 An "at a glance" card (measures · caveat · intended for), risk-domain annotations,
                 first/third-party evaluator tags, and disclosure-gap flags are foregrounded;
                 metric configuration is compressed.
