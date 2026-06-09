@@ -1485,3 +1485,149 @@
     transition: none;
   }
 }
+
+/* ---------------------------------------------------------------------------
+   Tutorial prose — rendered markdown for /help guides. Scoped so it can't
+   leak into the rest of the app; uses the same design tokens as the site.
+--------------------------------------------------------------------------- */
+.tutorial-prose {
+  color: var(--fg);
+  font-size: 16px;
+  line-height: 1.7;
+}
+.tutorial-prose > :first-child {
+  margin-top: 0;
+}
+.tutorial-prose h1 {
+  font-size: clamp(32px, 4.4vw, 44px);
+  font-weight: 700;
+  letter-spacing: -0.03em;
+  line-height: 1.08;
+  margin: 0 0 0.5em;
+  color: var(--fg);
+}
+.tutorial-prose h2 {
+  font-size: 24px;
+  font-weight: 650;
+  letter-spacing: -0.015em;
+  margin: 2em 0 0.6em;
+  padding-bottom: 0.3em;
+  border-bottom: 1px solid var(--border-soft);
+  color: var(--fg);
+}
+.tutorial-prose h3 {
+  font-size: 18px;
+  font-weight: 600;
+  margin: 1.6em 0 0.4em;
+  color: var(--fg);
+}
+.tutorial-prose p {
+  margin: 0 0 1.1em;
+  color: var(--fg-muted);
+}
+.tutorial-prose strong {
+  color: var(--fg);
+  font-weight: 600;
+}
+.tutorial-prose a {
+  color: var(--fg);
+  text-decoration: underline;
+  text-underline-offset: 2px;
+  text-decoration-color: var(--border-strong);
+}
+.tutorial-prose a:hover {
+  text-decoration-color: var(--accent);
+}
+.tutorial-prose ul,
+.tutorial-prose ol {
+  margin: 0 0 1.1em;
+  padding-left: 1.4em;
+  color: var(--fg-muted);
+}
+.tutorial-prose li {
+  margin: 0.3em 0;
+}
+.tutorial-prose li::marker {
+  color: var(--fg-subtle);
+}
+.tutorial-prose code {
+  font-family: var(--font-mono, ui-monospace, monospace);
+  font-size: 0.86em;
+  background: var(--bg-subtle);
+  border: 1px solid var(--border-soft);
+  border-radius: 3px;
+  padding: 0.1em 0.35em;
+  color: var(--fg);
+}
+.tutorial-prose pre {
+  background: var(--bg-subtle);
+  border: 1px solid var(--border-soft);
+  border-radius: var(--radius);
+  padding: 1em 1.2em;
+  overflow-x: auto;
+  margin: 0 0 1.4em;
+}
+.tutorial-prose pre code {
+  background: none;
+  border: none;
+  padding: 0;
+  font-size: 13px;
+}
+.tutorial-prose blockquote {
+  margin: 0 0 1.4em;
+  padding: 0.2em 0 0.2em 1.1em;
+  border-left: 3px solid var(--border-strong);
+  color: var(--fg-muted);
+}
+.tutorial-prose blockquote p {
+  margin: 0.3em 0;
+}
+.tutorial-prose hr {
+  border: none;
+  border-top: 1px solid var(--border-soft);
+  margin: 2.2em 0;
+}
+.tutorial-prose table {
+  width: 100%;
+  border-collapse: collapse;
+  margin: 0 0 1.6em;
+  font-size: 14px;
+}
+.tutorial-prose th,
+.tutorial-prose td {
+  border: 1px solid var(--border-soft);
+  padding: 0.6em 0.8em;
+  text-align: left;
+  vertical-align: top;
+}
+.tutorial-prose th {
+  background: var(--bg-warm);
+  font-weight: 600;
+  color: var(--fg);
+}
+.tutorial-prose td {
+  color: var(--fg-muted);
+}
+.tutorial-prose .tut-figure {
+  margin: 1.8em 0;
+}
+/* Cap height so very tall full-page captures scroll inside a frame rather than
+   stretching the page; normal section crops fall well under this. */
+.tutorial-prose .tut-figure-frame {
+  max-height: 560px;
+  overflow: auto;
+  border: 1px solid var(--border-soft);
+  border-radius: var(--radius);
+  background: var(--bg-subtle);
+}
+.tutorial-prose .tut-figure img {
+  width: 100%;
+  height: auto;
+  display: block;
+}
+.tutorial-prose .tut-figure figcaption {
+  margin-top: 0.6em;
+  font-size: 13px;
+  line-height: 1.5;
+  color: var(--fg-subtle);
+}

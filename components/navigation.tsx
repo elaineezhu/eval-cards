@@ -32,6 +32,11 @@ export function Navigation() {
       isActive: pathname === "/evals" || pathname?.startsWith("/evals/"),
     },
     {
+      href: "/help",
+      label: "Help",
+      isActive: pathname === "/help" || pathname?.startsWith("/help/"),
+    },
+    {
       href: "/about",
       label: "About",
       isActive: pathname === "/about",

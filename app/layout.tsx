@@ -3,6 +3,8 @@ import type { Metadata } from "next"
 import "./globals.css"
 import { AudienceModeProvider } from "@/components/audience-mode-provider"
 import { BackendRefreshListener } from "@/components/backend-refresh-listener"
+import { QuickStartProvider } from "@/components/quick-start"
+import { SiteFooter } from "@/components/site-footer"
 import { ThemeProvider } from "@/components/theme-provider"
 
 const SITE_URL = "https://evalcards.evalevalai.com"
@@ -67,8 +69,11 @@ export default function RootLayout({
       <body className="font-sans">
         <ThemeProvider attribute="class" defaultTheme="system" enableSystem disableTransitionOnChange>
           <AudienceModeProvider>
-            <BackendRefreshListener />
-            {children}
+            <QuickStartProvider>
+              <BackendRefreshListener />
+              {children}
+              <SiteFooter />
+            </QuickStartProvider>
           </AudienceModeProvider>
         </ThemeProvider>
       </body>

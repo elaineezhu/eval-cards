@@ -57,3 +57,5 @@ docs/INTERPRETIVE_SIGNALS.md
 # Playwright e2e output (tests/e2e via @playwright/test)
 test-results/
 playwright-report/
+
+public/tutorials/screenshots/
