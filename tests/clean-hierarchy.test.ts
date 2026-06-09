@@ -457,6 +457,109 @@ describe("cleanHierarchy", () => {
     )
   })
 
+  it("drops a grouping's own *-leaderboard rollup but keeps real members", () => {
+    // HELM's `helm-safety` composite ("HELM Safety", a grouping) ships a
+    // `helm-safety-leaderboard` benchmark that is the composite's own
+    // aggregate — it makes the group show up as both a family and a
+    // benchmark. The rollup leaf is dropped; the real members survive.
+    const raw: EvalHierarchy = {
+      families: [
+        family("helm", "HELM", {
+          composites: [
+            {
+              key: "helm-safety",
+              display_name: "HELM Safety",
+              category: "Safety",
+              tags: { domains: [], languages: [], tasks: [] },
+              benchmarks: [
+                bench("bbq", "BBQ"),
+                bench("harmbench", "HarmBench"),
+                bench("helm-safety-leaderboard", "HELM-Safety-Leaderboard"),
+              ],
+            },
+          ],
+        }),
+      ],
+    }
+
+    const cleaned = cleanHierarchy(raw)
+    const helm = cleaned.families.find((f) => f.key === "helm")!
+    const safety = helm.composites!.find((c) => c.key === "helm-safety")!
+    const keys = (safety.benchmarks ?? []).map((b) => b.key)
+    expect(keys).not.toContain("helm-safety-leaderboard")
+    expect(keys).toEqual(expect.arrayContaining(["bbq", "harmbench"]))
+  })
+
+  it("keeps a real sibling whose slug matches the family but lacks the -leaderboard suffix", () => {
+    // reward-bench's genuine `rewardbench` benchmark slugifies the same as
+    // the `reward-bench` family but is a real member, not a rollup. The
+    // -leaderboard-only rule must leave it (and its siblings) alone.
+    const raw: EvalHierarchy = {
+      families: [
+        family("foo-bench", "Foo Bench", {
+          benchmarks: [bench("foobench", "Foo Bench"), bench("foobench-2", "Foo Bench 2")],
+        }),
+      ],
+    }
+
+    const cleaned = cleanHierarchy(raw)
+    const fam = cleaned.families.find((f) => f.key === "foo-bench")!
+    const keys = [...(fam.benchmarks ?? []), ...(fam.standalone_benchmarks ?? [])].map((b) => b.key)
+    expect(keys).toEqual(expect.arrayContaining(["foobench", "foobench-2"]))
+  })
+
+  it("drops a family-level rollup and preserves its eval ids on the family", () => {
+    const raw: EvalHierarchy = {
+      families: [
+        family("widget-bench", "Widget Bench", {
+          constituent_evaluation_ids: [
+            "widget-bench%2Fwidget-bench-leaderboard",
+            "widget-bench%2Fwidget-a",
+          ],
+          standalone_benchmarks: [
+            bench("widget-bench-leaderboard", "Widget Bench Leaderboard"),
+            bench("widget-a", "Widget A"),
+          ],
+        }),
+      ],
+    }
+
+    const cleaned = cleanHierarchy(raw)
+    const fam = cleaned.families.find((f) => f.key === "widget-bench")!
+    const keys = [...(fam.benchmarks ?? []), ...(fam.standalone_benchmarks ?? [])].map((b) => b.key)
+    // Rollup leaf gone, real member kept.
+    expect(keys).not.toContain("widget-bench-leaderboard")
+    expect(keys).toContain("widget-a")
+    // …but the rollup's eval id stays on the family so it still resolves.
+    expect(fam.constituent_evaluation_ids).toContain(
+      "widget-bench%2Fwidget-bench-leaderboard",
+    )
+  })
+
+  it("never empties a group: a lone *-leaderboard bench is kept", () => {
+    const raw: EvalHierarchy = {
+      families: [
+        family("solo", "Solo", {
+          composites: [
+            {
+              key: "solo-grp",
+              display_name: "Solo Grp",
+              category: "General",
+              tags: { domains: [], languages: [], tasks: [] },
+              benchmarks: [bench("solo-grp-leaderboard", "Solo Grp Leaderboard")],
+            },
+          ],
+        }),
+      ],
+    }
+
+    const cleaned = cleanHierarchy(raw)
+    const grp = cleaned.families
+      .find((f) => f.key === "solo")
+      ?.composites?.find((c) => c.key === "solo-grp")
+    expect(grp?.benchmarks?.map((b) => b.key)).toEqual(["solo-grp-leaderboard"])
+  })
+
   it("is idempotent: re-applying produces identical output", () => {
     const raw: EvalHierarchy = {
       families: [family("aime", "AIME")],

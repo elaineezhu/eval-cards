@@ -66,6 +66,12 @@ function EvalsPageInner() {
   )
   const [evaluatorSortCol, setEvaluatorSortCol] = useState<EvaluatorTableSortCol>("evals")
   const [evaluatorSortDir, setEvaluatorSortDir] = useState<"asc" | "desc">("desc")
+  // In verified-only mode the Verified column is hidden (it equals
+  // Evaluations reported), so a stale "verified" sort would otherwise sit
+  // active on a column the user can no longer see or toggle. Clamp it to
+  // "evals" — same ordering, but on a visible, interactive header.
+  const effectiveEvaluatorSortCol: EvaluatorTableSortCol =
+    verifiedOnly && evaluatorSortCol === "verified" ? "evals" : evaluatorSortCol
   const deferredSearchQuery = useDeferredValue(searchQuery)
 
   const handleEvaluatorSort = useCallback((col: EvaluatorTableSortCol) => {
@@ -178,13 +184,13 @@ function EvalsPageInner() {
     const dirMul = evaluatorSortDir === "asc" ? 1 : -1
     return list.slice().sort((a, b) => {
       let cmp = 0
-      if (evaluatorSortCol === "name") cmp = a.name.localeCompare(b.name)
-      else if (evaluatorSortCol === "verified") cmp = a.verifiedCount - b.verifiedCount
+      if (effectiveEvaluatorSortCol === "name") cmp = a.name.localeCompare(b.name)
+      else if (effectiveEvaluatorSortCol === "verified") cmp = a.verifiedCount - b.verifiedCount
       else cmp = a.evalCount - b.evalCount
       if (cmp === 0) cmp = a.name.localeCompare(b.name)
       return cmp * dirMul
     })
-  }, [evaluatorGroups, deferredSearchQuery, evaluatorSortCol, evaluatorSortDir])
+  }, [evaluatorGroups, deferredSearchQuery, effectiveEvaluatorSortCol, evaluatorSortDir])
 
   const families = hierarchy?.families ?? []
 
@@ -502,7 +508,7 @@ function EvalsPageInner() {
         ) : groupBy === "evaluator" ? (
           <EvaluatorTable
             rows={visibleEvaluators}
-            sortCol={evaluatorSortCol}
+            sortCol={effectiveEvaluatorSortCol}
             sortDir={evaluatorSortDir}
             onSort={handleEvaluatorSort}
             verifiedOnly={verifiedOnly}

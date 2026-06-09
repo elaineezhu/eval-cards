@@ -67,7 +67,11 @@ export function EvaluatorTable({ rows, sortCol, sortDir, onSort, verifiedOnly }:
           <tr>
             <SortTh col="name" style={{ width: "55%" }}>Evaluator</SortTh>
             <SortTh col="evals" className="num">Evaluations reported</SortTh>
-            <SortTh col="verified" className="num">Verified</SortTh>
+            {/* In verified-only mode every (eval, org) membership is already
+                verified, so verifiedCount === evalCount for every row — the
+                two columns are identical. Drop the redundant Verified column
+                there and keep it only when the counts can differ. */}
+            {!verifiedOnly && <SortTh col="verified" className="num">Verified</SortTh>}
             <th style={{ width: 90 }} />
           </tr>
         </thead>
@@ -85,18 +89,27 @@ export function EvaluatorTable({ rows, sortCol, sortDir, onSort, verifiedOnly }:
                 </Link>
               </td>
               <td className="num font-mono text-[13px]">
-                {row.evalCount.toLocaleString()}
-              </td>
-              <td className="num font-mono text-[13px]">
-                {row.verifiedCount > 0 ? (
+                {verifiedOnly ? (
                   <span className="inline-flex items-center gap-1 text-[color:var(--accent)]">
-                    {row.verifiedCount.toLocaleString()}
+                    {row.evalCount.toLocaleString()}
                     <VerifiedBadge verified size="sm" withTooltip={false} />
                   </span>
                 ) : (
-                  <span className="text-[color:var(--fg-subtle)]">—</span>
+                  row.evalCount.toLocaleString()
                 )}
               </td>
+              {!verifiedOnly && (
+                <td className="num font-mono text-[13px]">
+                  {row.verifiedCount > 0 ? (
+                    <span className="inline-flex items-center gap-1 text-[color:var(--accent)]">
+                      {row.verifiedCount.toLocaleString()}
+                      <VerifiedBadge verified size="sm" withTooltip={false} />
+                    </span>
+                  ) : (
+                    <span className="text-[color:var(--fg-subtle)]">—</span>
+                  )}
+                </td>
+              )}
               <td>
                 <Link
                   href={hrefFor(row.slug)}

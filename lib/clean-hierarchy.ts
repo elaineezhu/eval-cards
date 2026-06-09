@@ -214,6 +214,7 @@ export function cleanHierarchy(
   collapseValsAiSetupVariants(h)
   dedupValsAiAliasedBenches(h)
   flattenSplitFamilies(h)
+  dropGroupingLeaderboardRollups(h)
   if (comparisonIndex) {
     dedupAggregatorBenchesByScore(h, comparisonIndex)
   }
@@ -1553,6 +1554,67 @@ function flattenSplitFamilies(h: CleanableHierarchy) {
     fam.benchmarks = []
     fam.composites = []
     fam.display_name = (rule as { syntheticDisplayName: string }).syntheticDisplayName
+  }
+}
+
+/**
+ * Drop a grouping's own aggregate "leaderboard" rollup benchmark.
+ *
+ * Some sources ship, inside a composite (or a multi-benchmark family), an
+ * extra benchmark that is just the aggregate score for the whole group —
+ * e.g. HELM's `helm-safety` composite ("HELM Safety") carries a
+ * `helm-safety-leaderboard` benchmark ("HELM-Safety-Leaderboard") that is
+ * the composite's own rollup. Listing it as a sibling benchmark makes the
+ * grouping show up as BOTH a family/group AND a benchmark — a semantic
+ * duplicate ("HELM Safety" is only a family, not a benchmark). We strip the
+ * rollup leaf so the group is only ever a group; the real member benchmarks
+ * (BBQ, HarmBench, …) stay.
+ *
+ * Detection is deliberately narrow: a leaf qualifies only when its key is
+ * the parent grouping's key plus a `-leaderboard` suffix
+ * (`${parentKey}-leaderboard`). That suffix is an unambiguous rollup signal
+ * — it catches all six HELM composites without touching real sibling
+ * benchmarks whose slug merely coincides with the family (e.g.
+ * `reward-bench`'s genuine `rewardbench` benchmark sitting beside
+ * RewardBench 2 / Safety / Reasoning). We only strip within groups that
+ * keep at least one other benchmark, so single-benchmark families — where
+ * the lone bench legitimately IS the family — are never touched.
+ *
+ * We drop only the benchmark leaf, NOT the rollup's eval ids from
+ * `family.constituent_evaluation_ids`. Those ids stay so the rollup eval row
+ * still resolves to its family/composite in the hierarchy lookup (it just
+ * no longer carries a benchmark-leaf label) — the row is an aggregate, not
+ * a distinct benchmark, which is exactly the outcome we want.
+ */
+function dropGroupingLeaderboardRollups(h: CleanableHierarchy) {
+  const slug = (s: string) => (s ?? "").toLowerCase().replace(/[^a-z0-9]+/g, "")
+  const isSelfRollup = (b: HierarchyBenchmark, parentKey: string): boolean =>
+    Boolean(b.key) &&
+    b.key.endsWith("-leaderboard") &&
+    slug(b.key.replace(/-leaderboard$/, "")) === slug(parentKey)
+
+  const strip = (
+    benches: HierarchyBenchmark[],
+    parentKey: string,
+  ): HierarchyBenchmark[] => {
+    if (benches.length < 2) return benches
+    const kept = benches.filter((b) => !isSelfRollup(b, parentKey))
+    // Never empty a group; only apply when something actually dropped.
+    return kept.length > 0 && kept.length < benches.length ? kept : benches
+  }
+
+  for (const fam of h.families ?? []) {
+    // Composites are always groupings — strip their self-rollup leaf.
+    for (const c of fam.composites ?? []) {
+      if (c.benchmarks) c.benchmarks = strip(c.benchmarks, c.key)
+    }
+    // Family-level rollup (a `${family.key}-leaderboard` bench sitting
+    // directly under a multi-benchmark family). None in the current
+    // snapshot, but keep the hierarchy consistent if one appears.
+    if (fam.benchmarks) fam.benchmarks = strip(fam.benchmarks, fam.key)
+    if (fam.standalone_benchmarks) {
+      fam.standalone_benchmarks = strip(fam.standalone_benchmarks, fam.key)
+    }
   }
 }
 
