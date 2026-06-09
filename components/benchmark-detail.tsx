@@ -1856,7 +1856,10 @@ export function BenchmarkDetail({
   // families. "overlaps" = cross-family duplicates only, rendered as a
   // table (no plotbox/list toggle) with mean and 95% CI for the model's
   // score across each canonical's appearances.
-  const [groupingMode, setGroupingMode] = useState<"source" | "category" | "overlaps">("source")
+  // `null` until the user explicitly picks a view; the effective default is
+  // derived from the data (overlaps when this model has any cross-suite
+  // overlaps, else source) — see `groupingMode` just after `overlapsRows`.
+  const [pickedGroupingMode, setGroupingMode] = useState<"source" | "category" | "overlaps" | null>(null)
   const [expandedFamilies, setExpandedFamilies] = useState<Set<string>>(new Set())
   const toggleFamily = (key: string) =>
     setExpandedFamilies((prev) => {
@@ -2257,6 +2260,7 @@ export function BenchmarkDetail({
     return buildModelPolicySummary({
       summary,
       thirdPartyEvaluations: reportingStats.thirdPartyEvaluations,
+      reportedEvaluationCount: allEvaluations.length,
       organizationCount: reportingStats.organizationCount,
       organizationNames: reportingStats.organizationNames,
       benchmarkCount,
@@ -2264,6 +2268,7 @@ export function BenchmarkDetail({
     })
   }, [
     allCategoryResults,
+    allEvaluations.length,
     reportingStats.thirdPartyEvaluations,
     reportingStats.organizationCount,
     reportingStats.organizationNames,
@@ -2960,6 +2965,11 @@ export function BenchmarkDetail({
     currentModelRouteId,
     currentModelIdentityKeys,
   ])
+
+  // Effective view: honour the user's explicit pick; otherwise default to
+  // overlaps when this model has cross-suite overlaps, falling back to source
+  // when it has none (so models without overlaps don't open on an empty view).
+  const groupingMode = pickedGroupingMode ?? (overlapsRows.length > 0 ? "overlaps" : "source")
 
   // Per-(eval, metric) leaderboards sourced from comparison-index.json.
   const benchmarkHistograms = useMemo<Map<string, BenchmarkHistogram>>(() => {
@@ -5130,6 +5140,16 @@ export function BenchmarkDetail({
           </div>
         </div>
 
+        {isResearchView && !embedReportedMetricsOnly && (
+          <p className="text-[14px] leading-[1.7] text-[color:var(--fg-muted)] max-w-[64rem] mb-6">
+            {groupingMode === "overlaps"
+              ? "Cross-suite overlaps — benchmarks this model reports under more than one suite, with the mean and 95% CI across appearances. Each source links through to its eval. Switch to Source or Category for the full result set."
+              : groupingMode === "category"
+                ? "Every reported result, regrouped under curated category tags so similar benchmarks cluster across families."
+                : "Every reported result in the warehouse's natural shape — family-rooted plots and accordions, with no cross-family collapse."}
+          </p>
+        )}
+
         {/* SUMMARY VIEW — text-only list grouped by family, ranked
             best→worst, with the category pill bar so non-technical
             readers can filter without diving into Researcher view. */}
@@ -5354,14 +5374,15 @@ export function BenchmarkDetail({
                     </div>
                     <div className="flex flex-wrap gap-1">
                       {row.appearances.map((app) => (
-                        <span
+                        <Link
                           key={`${row.canonicalKey}::${app.familyKey}::${app.evalSummaryId}`}
-                          className="ec-tag"
+                          href={`/evals/${routeIdToPath(app.evalSummaryId)}?from=${encodeURIComponent(currentDetailHref)}`}
+                          className="ec-tag outline hover:border-[color:var(--accent)] hover:text-[color:var(--accent)] transition-colors"
                           style={{ fontSize: 10 }}
-                          title={`${app.familyName} · ${app.metricName}`}
+                          title={`${app.familyName} · ${app.metricName} — view eval`}
                         >
                           {app.familyName} · {fmt(app.score)}
-                        </span>
+                        </Link>
                       ))}
                     </div>
                   </div>

@@ -127,6 +127,11 @@ interface ModelPolicyInputs {
   /** Pre-computed third-party tally from caller (cheap to compute, but
    *  caller already has it in benchmark-detail). */
   thirdPartyEvaluations: number
+  /** Denominator for the third-party share. MUST be counted from the same
+   *  population as `thirdPartyEvaluations` (the caller's flattened evaluation
+   *  list), not the warehouse's distinct `total_evaluations` — those have
+   *  different grains, which made the share exceed 100%. */
+  reportedEvaluationCount: number
   organizationCount: number
   organizationNames: string[]
   /** Distinct benchmark count derived from group reduction. */
@@ -138,12 +143,17 @@ interface ModelPolicyInputs {
 export function buildModelPolicySummary({
   summary,
   thirdPartyEvaluations,
+  reportedEvaluationCount,
   organizationCount,
   organizationNames,
   benchmarkCount,
   reportedCategories,
 }: ModelPolicyInputs): ModelPolicySummary {
   const totalEvals = summary.total_evaluations
+  // Denominator for the third-party share, counted from the same population as
+  // the numerator so the ratio stays within 0–100%. Falls back to totalEvals
+  // only if the caller passed nothing.
+  const thirdPartyBase = reportedEvaluationCount > 0 ? reportedEvaluationCount : totalEvals
   const repro = summary.reproducibility_summary
   const reproGap = repro?.has_reproducibility_gap_count ?? 0
   const reproTotal = repro?.results_total ?? totalEvals
@@ -191,8 +201,8 @@ export function buildModelPolicySummary({
     provenance?.first_party_only_groups != null && provenance.total_groups > 0
       ? provenance.first_party_only_groups === provenance.total_groups
       : null
-  const allThirdParty = totalEvals > 0 && thirdPartyEvaluations === totalEvals
-  const noThirdParty = thirdPartyEvaluations === 0 && totalEvals > 0
+  const allThirdParty = thirdPartyBase > 0 && thirdPartyEvaluations === thirdPartyBase
+  const noThirdParty = thirdPartyEvaluations === 0 && thirdPartyBase > 0
   const lead = organizationNames[0]
 
   let reportingSentence: string
@@ -253,11 +263,11 @@ export function buildModelPolicySummary({
 
   // ── 6. Verification headline ─────────────────────────────────────────
   let verificationLabel: string | null = null
-  if (allThirdParty && totalEvals > 0) {
-    verificationLabel = "Independently verified"
-  } else if (thirdPartyEvaluations > 0 && totalEvals > 0) {
-    const pct = Math.round((thirdPartyEvaluations / totalEvals) * 100)
-    verificationLabel = `${pct}% independently verified`
+  if (allThirdParty && thirdPartyBase > 0) {
+    verificationLabel = "100% third party"
+  } else if (thirdPartyEvaluations > 0 && thirdPartyBase > 0) {
+    const pct = Math.min(100, Math.round((thirdPartyEvaluations / thirdPartyBase) * 100))
+    verificationLabel = `${pct}% third party`
   } else if (noThirdParty) {
     verificationLabel = "Developer-reported only"
   }

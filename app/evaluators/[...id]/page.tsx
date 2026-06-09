@@ -4,15 +4,14 @@ import { Suspense, useCallback, useEffect, useMemo, useState } from "react"
 import { useParams, useRouter, useSearchParams } from "next/navigation"
 import { ArrowLeft, Search } from "lucide-react"
 
-import { EvalCard } from "@/components/eval-card"
-import { InfiniteScrollSentinel } from "@/components/infinite-scroll"
+import { FamilyTable, type FamilySortCol } from "@/components/family-table"
 import { Navigation } from "@/components/navigation"
 import { VerifiedBadge } from "@/components/signals/verified-badge"
-import { fetchEvalList } from "@/lib/dashboard-data-client"
+import type { EvalHierarchy } from "@/lib/backend-artifacts"
+import type { BenchmarkCard } from "@/lib/benchmark-schema"
+import { fetchBenchmarkMetadata, fetchEvalHierarchy, fetchEvalList } from "@/lib/dashboard-data-client"
 import type { BenchmarkEvalListItem } from "@/lib/eval-processing"
-import { getEvalsForEvaluator } from "@/lib/evaluators"
-
-const PAGE_SIZE = 24
+import { getEvalsForEvaluator, verifiedEvalIds } from "@/lib/evaluators"
 
 function EvaluatorDetailInner() {
   const params = useParams()
@@ -29,70 +28,81 @@ function EvaluatorDetailInner() {
   }, [params.id])
 
   const [allEvals, setAllEvals] = useState<BenchmarkEvalListItem[]>([])
+  const [hierarchy, setHierarchy] = useState<EvalHierarchy | null>(null)
+  const [benchmarkCards, setBenchmarkCards] = useState<Record<string, BenchmarkCard>>({})
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const [searchQuery, setSearchQuery] = useState("")
-  const [visibleCount, setVisibleCount] = useState(PAGE_SIZE)
+  const [sortCol, setSortCol] = useState<FamilySortCol>("name")
+  const [sortDir, setSortDir] = useState<"asc" | "desc">("asc")
 
   useEffect(() => {
-    fetchEvalList()
+    const evalListRequest = fetchEvalList()
       .then((list) => setAllEvals(list.evals))
       .catch((err) => {
         console.error(err)
         setError("Failed to load evaluations")
       })
-      .finally(() => setLoading(false))
+    const hierarchyRequest = fetchEvalHierarchy()
+      .then((h) => setHierarchy(h))
+      .catch(console.error)
+    const metadataRequest = fetchBenchmarkMetadata()
+      .then((metadata) => setBenchmarkCards(metadata))
+      .catch(console.error)
+    Promise.allSettled([evalListRequest, hierarchyRequest, metadataRequest]).finally(() =>
+      setLoading(false),
+    )
   }, [])
+
+  const handleSort = useCallback((col: FamilySortCol) => {
+    if (sortCol === col) {
+      setSortDir((d) => (d === "asc" ? "desc" : "asc"))
+    } else {
+      setSortCol(col)
+      setSortDir("asc")
+    }
+  }, [sortCol])
 
   const { name, isVerified, evals } = useMemo(
     () => getEvalsForEvaluator(allEvals, slug, { verifiedOnly }),
     [allEvals, slug, verifiedOnly],
   )
 
-  const filteredEvals = useMemo(() => {
-    const query = searchQuery.trim().toLowerCase()
-    const list = query
-      ? evals.filter((ev) => {
-          const haystacks = [
-            ev.evaluation_name,
-            ev.family_display_name,
-            ev.composite_benchmark_name,
-          ]
-          return haystacks.some((v) => v?.toLowerCase().includes(query))
-        })
-      : evals
-    return list.slice().sort((a, b) => a.evaluation_name.localeCompare(b.evaluation_name))
-  }, [evals, searchQuery])
+  // Eval-id universe owned by this evaluator — restricts the family tree to
+  // this org's evaluations (slices already excluded by getEvalsForEvaluator).
+  const restrictEvalIds = useMemo(() => {
+    const set = new Set<string>()
+    for (const ev of evals) set.add(ev.evaluation_id)
+    return set
+  }, [evals])
 
-  // Quantified facts for the header, derived from the org's owned evals.
-  // familyCount = distinct benchmark families covered; verifiedCount = evals
-  // where this org is a verified evaluator.
+  const verifiedIds = useMemo(() => verifiedEvalIds(allEvals), [allEvals])
+
+  const evalItems = useMemo(() => {
+    const map = new Map<string, BenchmarkEvalListItem>()
+    for (const ev of allEvals) map.set(ev.evaluation_id, ev)
+    return map
+  }, [allEvals])
+
+  const families = hierarchy?.families ?? []
+
+  // Quantified facts for the header. familyCount counts the top-level families
+  // the table actually renders for this org (those whose constituent evals
+  // intersect this evaluator's set), so the header agrees with the accordion
+  // below it rather than the finer family_display_name grouping.
   const { familyCount, verifiedCount } = useMemo(() => {
-    const families = new Set<string>()
     let verified = 0
     for (const ev of evals) {
-      const fam = ev.family_display_name?.trim()
-      if (fam) families.add(fam)
       if (name && (ev.verified_evaluator_names ?? []).includes(name)) verified += 1
     }
-    return {
-      familyCount: families.size,
-      verifiedCount: verified,
+    let familyCount = 0
+    for (const fam of families) {
+      if ((fam.constituent_evaluation_ids ?? []).some((id) => restrictEvalIds.has(id))) {
+        familyCount += 1
+      }
     }
-  }, [evals, name])
-
-  useEffect(() => {
-    setVisibleCount(PAGE_SIZE)
-  }, [searchQuery, slug, verifiedOnly])
-
-  const visibleEvals = useMemo(
-    () => filteredEvals.slice(0, visibleCount),
-    [filteredEvals, visibleCount],
-  )
-  const hasMore = visibleCount < filteredEvals.length
-  const handleLoadMore = useCallback(() => {
-    setVisibleCount((current) => Math.min(current + PAGE_SIZE, filteredEvals.length))
-  }, [filteredEvals.length])
+    return { familyCount, verifiedCount: verified }
+  }, [evals, name, families, restrictEvalIds])
 
   const handleBack = useCallback(() => {
     router.push(verifiedOnly ? "/evals?groupBy=evaluator&verified=1" : "/evals?groupBy=evaluator")
@@ -164,8 +174,8 @@ function EvaluatorDetailInner() {
           <span>{verifiedCount} verified</span>
         </div>
         <p className="ec-page-lede">
-          Reported <strong>{filteredEvals.length.toLocaleString()}</strong>{" "}
-          {filteredEvals.length === 1 ? "evaluation" : "evaluations"} across{" "}
+          Reported <strong>{evals.length.toLocaleString()}</strong>{" "}
+          {evals.length === 1 ? "evaluation" : "evaluations"} across{" "}
           <strong>{familyCount.toLocaleString()}</strong>{" "}
           {familyCount === 1 ? "benchmark family" : "benchmark families"}
           {verifiedCount > 0 && (
@@ -179,7 +189,7 @@ function EvaluatorDetailInner() {
         <div className="ec-page-meta mt-2">
           <div className="ec-page-meta-item">
             <span className="ec-page-meta-item-l">Evaluations</span>
-            <span className="ec-page-meta-item-v">{filteredEvals.length.toLocaleString()}</span>
+            <span className="ec-page-meta-item-v">{evals.length.toLocaleString()}</span>
           </div>
           <div className="ec-page-meta-item">
             <span className="ec-page-meta-item-l">Verified</span>
@@ -191,14 +201,14 @@ function EvaluatorDetailInner() {
           </div>
         </div>
 
-        {/* META + FILTER BAR --------------------------------------- */}
+        {/* FILTER BAR ---------------------------------------------- */}
         <div className="mb-6 flex flex-wrap items-center gap-x-8 gap-y-3 border-y border-[color:var(--border-soft)] py-4">
           <div className="flex shrink-0 flex-wrap items-baseline gap-x-4 gap-y-1 font-mono text-[11px] tracking-[0.1em] uppercase text-[color:var(--fg-subtle)]">
             <span>
               <span className="text-[color:var(--fg)] tabular-nums font-semibold mr-1">
-                {filteredEvals.length.toLocaleString()}
+                {evals.length.toLocaleString()}
               </span>
-              {filteredEvals.length === 1 ? "evaluation" : "evaluations"}
+              {evals.length === 1 ? "evaluation" : "evaluations"}
             </span>
           </div>
 
@@ -210,30 +220,29 @@ function EvaluatorDetailInner() {
               className="ec-input pl-9"
               value={searchQuery}
               onChange={(event) => setSearchQuery(event.target.value)}
-              placeholder="Search evaluations…"
+              placeholder="Search benchmarks…"
             />
           </div>
         </div>
 
-        {/* EVAL CARDS ---------------------------------------------- */}
-        {filteredEvals.length === 0 ? (
+        {/* FAMILY TABLE — scoped to this evaluator's evaluations ---- */}
+        {restrictEvalIds.size === 0 ? (
           <div className="border border-dashed border-[color:var(--border-soft)] bg-[color:var(--bg-warm)] py-12 text-center font-mono text-[11px] uppercase tracking-[0.2em] text-[color:var(--fg-subtle)]">
             No evaluations match the current filters
           </div>
         ) : (
-          <div className="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-3">
-            {visibleEvals.map((ev, i) => (
-              <EvalCard key={ev.evaluation_id} summary={ev} delayMs={Math.min(i, 8) * 40} />
-            ))}
-          </div>
+          <FamilyTable
+            families={families}
+            evalItems={evalItems}
+            benchmarkCards={benchmarkCards}
+            searchQuery={searchQuery}
+            verifiedEvalIds={verifiedOnly ? verifiedIds : null}
+            restrictEvalIds={restrictEvalIds}
+            sortCol={sortCol}
+            sortDir={sortDir}
+            onSort={handleSort}
+          />
         )}
-
-        <InfiniteScrollSentinel
-          hasMore={hasMore}
-          onLoadMore={handleLoadMore}
-          loadingLabel="Loading more…"
-          endLabel={`Showing ${Math.min(visibleCount, filteredEvals.length).toLocaleString()} of ${filteredEvals.length.toLocaleString()} evaluations`}
-        />
       </main>
     </div>
   )

@@ -29,6 +29,12 @@ interface FamilyTableProps {
    *  mode — the set is the verified-eval id universe). Null/undefined =
    *  no restriction. */
   verifiedEvalIds?: Set<string> | null
+  /** When provided, restrict leaves to those mapping to one of these
+   *  evaluation_ids (drives the /evaluators/<slug> detail page — the set is
+   *  the eval-id universe owned by one reporting org). Composes with
+   *  verifiedEvalIds: when both are present a leaf must intersect both.
+   *  Null/undefined = no restriction. */
+  restrictEvalIds?: Set<string> | null
   sortCol?: FamilySortCol
   sortDir?: "asc" | "desc"
   onSort?: (col: FamilySortCol) => void
@@ -214,6 +220,7 @@ export function FamilyTable({
   categoryFilter,
   searchQuery,
   verifiedEvalIds,
+  restrictEvalIds,
   sortCol,
   sortDir,
   onSort,
@@ -224,9 +231,10 @@ export function FamilyTable({
   const domainFilterActive = Boolean(domainFilter && domainFilter.size > 0)
   const categoryFilterActive = Boolean(categoryFilter && categoryFilter.size > 0)
   const verifiedFilterActive = Boolean(verifiedEvalIds)
+  const restrictFilterActive = Boolean(restrictEvalIds)
   const normalizedQuery = (searchQuery ?? "").trim().toLowerCase()
   const searchActive = normalizedQuery.length > 0
-  const filterActive = domainFilterActive || categoryFilterActive || searchActive || verifiedFilterActive
+  const filterActive = domainFilterActive || categoryFilterActive || searchActive || verifiedFilterActive || restrictFilterActive
 
   function leafMatchesDomain(leaf: LeafEntry): boolean {
     if (!domainFilterActive || !domainFilter) return true
@@ -252,10 +260,16 @@ export function FamilyTable({
     return leaf.evalIds.some((id) => verifiedEvalIds.has(id))
   }
 
+  function leafMatchesRestrict(leaf: LeafEntry): boolean {
+    if (!restrictFilterActive || !restrictEvalIds) return true
+    return leaf.evalIds.some((id) => restrictEvalIds.has(id))
+  }
+
   function leafMatchesFilter(leaf: LeafEntry, opts?: { skipQuery?: boolean }): boolean {
     if (!leafMatchesDomain(leaf)) return false
     if (!leafMatchesCategory(leaf)) return false
     if (!leafMatchesVerified(leaf)) return false
+    if (!leafMatchesRestrict(leaf)) return false
     if (!opts?.skipQuery && !leafMatchesQuery(leaf)) return false
     return true
   }
@@ -279,12 +293,12 @@ export function FamilyTable({
     if (leafEntries.some((leaf) => leafMatchesFilter(leaf))) return true
     // Family-level search match keeps the row even if no leaf survives
     // the leaf-query filter (the row will fall back to showing all
-    // leaves). But the verified filter is a hard leaf-level gate: never
-    // resurrect a family that has zero verified leaves.
+    // leaves). But the verified and restrict filters are hard leaf-level
+    // gates: never resurrect a family that has zero surviving leaves.
     if (
       searchActive &&
       familyMatchedAtFamilyLevel(fam) &&
-      leafEntries.some((leaf) => leafMatchesVerified(leaf))
+      leafEntries.some((leaf) => leafMatchesVerified(leaf) && leafMatchesRestrict(leaf))
     )
       return true
     if (categoryFilterActive && categoryFilter) {
@@ -402,7 +416,7 @@ export function FamilyTable({
     }
     return out
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [families, evalItems, benchmarkCards, domainFilter, categoryFilter, searchQuery])
+  }, [families, evalItems, benchmarkCards, domainFilter, categoryFilter, searchQuery, verifiedEvalIds, restrictEvalIds])
 
   function SortIcon({ col }: { col: FamilySortCol }) {
     if (!onSort) return null
