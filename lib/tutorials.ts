@@ -150,20 +150,22 @@ function transformScreenshotBlocks(raw: string, existing: Set<string>): string {
   const out: string[] = []
 
   for (let i = 0; i < lines.length; i++) {
-    if (!/^>\s*🖼️/.test(lines[i])) {
+    // Allow leading whitespace: screenshot blocks nested under a list item are
+    // indented (e.g. "  > 🖼️ …") and must still be matched.
+    if (!/^\s*>\s*🖼️/.test(lines[i])) {
       out.push(lines[i])
       continue
     }
 
     // Collect the contiguous blockquote that starts with the screenshot marker.
     const block: string[] = []
-    while (i < lines.length && /^>/.test(lines[i])) {
+    while (i < lines.length && /^\s*>/.test(lines[i])) {
       block.push(lines[i])
       i++
     }
     i-- // the outer loop will advance past the last consumed line
 
-    const inner = block.map((l) => l.replace(/^>\s?/, "")).join("\n")
+    const inner = block.map((l) => l.replace(/^\s*>\s?/, "")).join("\n")
     const file = inner.match(/`([^`]+\.png)`/)?.[1]
     if (!file) continue // malformed marker — drop it rather than render noise
 
