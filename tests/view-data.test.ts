@@ -46,6 +46,7 @@ async function writeSyntheticStageJSnapshot(snapshotDir: string) {
         1::INTEGER AS variant_count,
         1::BIGINT AS evaluator_count,
         ['OpenAI']::VARCHAR[] AS evaluator_names,
+        ['OpenAI']::VARCHAR[] AS verified_evaluator_names,
         1::INTEGER AS source_type_count,
         ['documentation']::VARCHAR[] AS source_types,
         0::BIGINT AS third_party_eval_count,
@@ -126,6 +127,7 @@ async function writeSyntheticStageJSnapshot(snapshotDir: string) {
         ) AS metric_config,
         1::BIGINT AS models_count,
         ['OpenAI']::VARCHAR[] AS evaluator_names,
+        ['OpenAI']::VARCHAR[] AS verified_evaluator_names,
         ['documentation']::VARCHAR[] AS source_types,
         'OpenAI' AS latest_source_name,
         0.0 AS third_party_ratio,
@@ -288,7 +290,8 @@ async function writeSyntheticStageJSnapshot(snapshotDir: string) {
         NULL AS evalcards_annotations,
         NULL::VARCHAR AS instance_file_path,
         NULL::VARCHAR AS instance_file_format,
-        0::INTEGER AS instance_rows
+        0::INTEGER AS instance_rows,
+        true AS is_verified_evaluator
     `,
     path.join(snapshotDir, "eval_results_view.parquet")
   )
@@ -447,7 +450,7 @@ describe("Stage J view-layer backend", () => {
       expect(evalSummary?.model_results[0]).toMatchObject({
         model_route_id: "openai%2Fgpt-5",
         score: 0.8,
-        result: { metric_summary_id: "mmlu%3Aaccuracy" },
+        result: { metric_summary_id: "mmlu%3Aaccuracy", is_verified_evaluator: true },
       })
       expect(evalSummary?.model_results[0]?.result.generation_config).toMatchObject({
         temperature: 0.2,

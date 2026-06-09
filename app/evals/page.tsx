@@ -4,6 +4,7 @@ import { Suspense, useCallback, useDeferredValue, useEffect, useMemo, useState }
 import { useRouter, useSearchParams } from "next/navigation"
 import { Search } from "lucide-react"
 
+import { EvaluatorTable, type EvaluatorTableSortCol } from "@/components/evaluator-table"
 import { FamilyTable, getFamilyNavId, type FamilySortCol } from "@/components/family-table"
 import { InfiniteScrollSentinel } from "@/components/infinite-scroll"
 import { Navigation } from "@/components/navigation"
@@ -13,6 +14,7 @@ import { fetchBenchmarkMetadata, fetchEvalHierarchy, fetchEvalList } from "@/lib
 import type { BenchmarkEvalListItem } from "@/lib/eval-processing"
 import type { BenchmarkCard } from "@/lib/benchmark-schema"
 import { formatTagLabel } from "@/lib/benchmark-tags"
+import { groupEvalsByEvaluator, verifiedEvalIds } from "@/lib/evaluators"
 
 const PAGE_SIZE = 60
 
@@ -39,6 +41,8 @@ function EvalsPageInner() {
   const searchParams = useSearchParams()
   const familyParam = searchParams.get("family")
   const queryParam = searchParams.get("q")
+  const groupByParam = searchParams.get("groupBy")
+  const verifiedParam = searchParams.get("verified")
 
   const [hierarchy, setHierarchy] = useState<EvalHierarchy | null>(null)
   const [totalModels, setTotalModels] = useState<number>(0)
@@ -54,7 +58,26 @@ function EvalsPageInner() {
   const [agentMode, setAgentMode] = useState<"all" | "agentic" | "non-agentic">("all")
   const [sortCol, setSortCol] = useState<FamilySortCol>("name")
   const [sortDir, setSortDir] = useState<"asc" | "desc">("asc")
+  const [groupBy, setGroupBy] = useState<"family" | "evaluator">(
+    groupByParam === "evaluator" ? "evaluator" : "family",
+  )
+  const [verifiedOnly, setVerifiedOnly] = useState<boolean>(
+    verifiedParam === "1" || verifiedParam === "true",
+  )
+  const [evaluatorSortCol, setEvaluatorSortCol] = useState<EvaluatorTableSortCol>("evals")
+  const [evaluatorSortDir, setEvaluatorSortDir] = useState<"asc" | "desc">("desc")
   const deferredSearchQuery = useDeferredValue(searchQuery)
+
+  const handleEvaluatorSort = useCallback((col: EvaluatorTableSortCol) => {
+    setEvaluatorSortCol((current) => {
+      if (current === col) {
+        setEvaluatorSortDir((dir) => (dir === "asc" ? "desc" : "asc"))
+        return current
+      }
+      setEvaluatorSortDir(col === "name" ? "asc" : "desc")
+      return col
+    })
+  }, [])
 
   const handleSort = useCallback((col: FamilySortCol) => {
     if (sortCol === col) {
@@ -121,6 +144,47 @@ function EvalsPageInner() {
     }
     setSearchQuery(fam.display_name || fam.key)
   }, [familyParam, hierarchy, benchmarkCards, router])
+
+  // Reflect groupBy / verified into the URL (nice-to-have deep link).
+  // Shallow replace so the back button isn't spammed and data isn't refetched.
+  useEffect(() => {
+    const params = new URLSearchParams(searchParams.toString())
+    if (groupBy === "evaluator") params.set("groupBy", "evaluator")
+    else params.delete("groupBy")
+    if (verifiedOnly) params.set("verified", "1")
+    else params.delete("verified")
+    const qs = params.toString()
+    router.replace(qs ? `/evals?${qs}` : "/evals", { scroll: false })
+    // searchParams intentionally omitted — we only push when our own toggles change.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [groupBy, verifiedOnly])
+
+  const allEvals = useMemo(() => Array.from(evalItems.values()), [evalItems])
+
+  // Verified-eval id universe — drives the Family-mode "Verified only" gate.
+  const verifiedIds = useMemo(() => verifiedEvalIds(allEvals), [allEvals])
+
+  // Evaluator groups (group-by-Evaluator mode). Verified filter is
+  // evaluator-aware: counts only (eval, org) pairs where org is verified.
+  const evaluatorGroups = useMemo(
+    () => groupEvalsByEvaluator(allEvals, { verifiedOnly }),
+    [allEvals, verifiedOnly],
+  )
+
+  const filteredEvaluators = useMemo(() => {
+    const query = deferredSearchQuery.trim().toLowerCase()
+    let list = evaluatorGroups
+    if (query) list = list.filter((g) => g.name.toLowerCase().includes(query))
+    const dirMul = evaluatorSortDir === "asc" ? 1 : -1
+    return list.slice().sort((a, b) => {
+      let cmp = 0
+      if (evaluatorSortCol === "name") cmp = a.name.localeCompare(b.name)
+      else if (evaluatorSortCol === "verified") cmp = a.verifiedCount - b.verifiedCount
+      else cmp = a.evalCount - b.evalCount
+      if (cmp === 0) cmp = a.name.localeCompare(b.name)
+      return cmp * dirMul
+    })
+  }, [evaluatorGroups, deferredSearchQuery, evaluatorSortCol, evaluatorSortDir])
 
   const families = hierarchy?.families ?? []
 
@@ -244,16 +308,21 @@ function EvalsPageInner() {
 
   useEffect(() => {
     setVisibleCount(PAGE_SIZE)
-  }, [deferredSearchQuery, selectedCategories, agentMode, sortCol, sortDir])
+  }, [deferredSearchQuery, selectedCategories, agentMode, sortCol, sortDir, groupBy, verifiedOnly, evaluatorSortCol, evaluatorSortDir])
 
   const visibleFamilies = useMemo(
     () => filteredFamilies.slice(0, visibleCount),
     [filteredFamilies, visibleCount],
   )
-  const hasMore = visibleCount < filteredFamilies.length
+  const visibleEvaluators = useMemo(
+    () => filteredEvaluators.slice(0, visibleCount),
+    [filteredEvaluators, visibleCount],
+  )
+  const totalRows = groupBy === "evaluator" ? filteredEvaluators.length : filteredFamilies.length
+  const hasMore = visibleCount < totalRows
   const handleLoadMore = useCallback(() => {
-    setVisibleCount((current) => Math.min(current + PAGE_SIZE, filteredFamilies.length))
-  }, [filteredFamilies.length])
+    setVisibleCount((current) => Math.min(current + PAGE_SIZE, totalRows))
+  }, [totalRows])
 
   return (
     <div className="min-h-screen bg-background">
@@ -264,24 +333,76 @@ function EvalsPageInner() {
         <div className="kicker">Index</div>
         <h1 className="ec-page-h1">Evaluations</h1>
         <p className="ec-page-lede">
-          Evaluations are grouped into <strong>families</strong>. A family may hold a single
-          standalone benchmark or many related ones; each benchmark has one or more slices, and
-          each slice reports one or more metrics.
+          {groupBy === "evaluator" ? (
+            <>
+              Evaluations grouped by the <strong>organisation that reported them</strong>. A
+              verified evaluator submitted the results from the org that ran the evaluation.
+            </>
+          ) : (
+            <>
+              Evaluations are grouped into <strong>families</strong>. A family may hold a single
+              standalone benchmark or many related ones; each benchmark has one or more slices, and
+              each slice reports one or more metrics.
+            </>
+          )}
         </p>
 
-        {/* SEARCH ROW ---------------------------------------------- */}
-        <div className="mb-6 flex items-center border-b border-[color:var(--border-soft)] pb-5">
+        {/* MODE + FILTER ROW --------------------------------------- */}
+        <div className="mb-6 flex flex-wrap items-center gap-x-6 gap-y-3 border-y border-[color:var(--border-soft)] py-4">
+          <div className="ec-mode-toggle" role="group" aria-label="Group evaluations by">
+            <button
+              type="button"
+              className={groupBy === "family" ? "on" : ""}
+              onClick={() => setGroupBy("family")}
+            >
+              Family
+            </button>
+            <button
+              type="button"
+              className={groupBy === "evaluator" ? "on" : ""}
+              onClick={() => setGroupBy("evaluator")}
+            >
+              Evaluator
+            </button>
+          </div>
+
+          <div className="ec-mode-toggle" role="group" aria-label="Verified only filter">
+            <button
+              type="button"
+              className={!verifiedOnly ? "on" : ""}
+              onClick={() => setVerifiedOnly(false)}
+            >
+              All
+            </button>
+            <button
+              type="button"
+              className={verifiedOnly ? "on" : ""}
+              onClick={() => setVerifiedOnly(true)}
+            >
+              Verified only
+            </button>
+          </div>
+
           <div className="relative ml-auto min-w-[180px] flex-1 sm:max-w-[360px]">
             <Search className="pointer-events-none absolute left-3 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-[color:var(--fg-subtle)]" />
             <input
               className="ec-input pl-9"
               value={searchQuery}
               onChange={(event) => setSearchQuery(event.target.value)}
-              placeholder="Search family, benchmark, or category…"
+              placeholder={
+                groupBy === "evaluator"
+                  ? "Search evaluator…"
+                  : "Search family, benchmark, or category…"
+              }
             />
           </div>
         </div>
 
+        {/* Family-mode-only filters: interaction style + category pills.
+            These operate on the family hierarchy and have no meaning in
+            the evaluator grouping. */}
+        {groupBy === "family" && (
+        <>
         {/* INTERACTION STYLE TOGGLE — orthogonal axis from category,
             surfaced on its own so users don't mix "is this an agent
             benchmark?" with "what category is this in?" */}
@@ -348,6 +469,8 @@ function EvalsPageInner() {
             })}
           </div>
         )}
+        </>
+        )}
 
         {/* TABLE ---------------------------------------------------- */}
         {loading ? (
@@ -357,10 +480,12 @@ function EvalsPageInner() {
             stages={loadingStages}
             className="py-14"
           />
-        ) : filteredFamilies.length === 0 ? (
+        ) : totalRows === 0 ? (
           <div className="py-16 text-center border border-dashed border-[color:var(--border-soft)] bg-[color:var(--bg-warm)]">
             <p className="mb-4 text-base text-[color:var(--fg-muted)]">
-              No families found matching your filters.
+              {groupBy === "evaluator"
+                ? "No evaluators found matching your filters."
+                : "No families found matching your filters."}
             </p>
             <button
               type="button"
@@ -368,11 +493,20 @@ function EvalsPageInner() {
               onClick={() => {
                 setSearchQuery("")
                 setSelectedCategories([])
+                setVerifiedOnly(false)
               }}
             >
               Reset filters
             </button>
           </div>
+        ) : groupBy === "evaluator" ? (
+          <EvaluatorTable
+            rows={visibleEvaluators}
+            sortCol={evaluatorSortCol}
+            sortDir={evaluatorSortDir}
+            onSort={handleEvaluatorSort}
+            verifiedOnly={verifiedOnly}
+          />
         ) : (
           <FamilyTable
             families={visibleFamilies}
@@ -380,6 +514,7 @@ function EvalsPageInner() {
             benchmarkCards={benchmarkCards}
             categoryFilter={new Set(selectedCategories)}
             searchQuery={deferredSearchQuery}
+            verifiedEvalIds={verifiedOnly ? verifiedIds : null}
             sortCol={sortCol}
             sortDir={sortDir}
             onSort={handleSort}
@@ -390,7 +525,7 @@ function EvalsPageInner() {
           hasMore={hasMore}
           onLoadMore={handleLoadMore}
           loadingLabel="Loading more…"
-          endLabel={`Showing ${Math.min(visibleCount, filteredFamilies.length).toLocaleString()} of ${filteredFamilies.length.toLocaleString()} families`}
+          endLabel={`Showing ${Math.min(visibleCount, totalRows).toLocaleString()} of ${totalRows.toLocaleString()} ${groupBy === "evaluator" ? "evaluators" : "families"}`}
         />
       </main>
     </div>

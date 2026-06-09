@@ -132,7 +132,8 @@ async function main() {
       r.evaluation_id,
       r.metric_id,
       r.model_route_id,
-      r.score
+      r.score,
+      r.is_verified_evaluator
     FROM read_parquet(${fileRef("eval_results_view.parquet")}) r
     WHERE r.score IS NOT NULL
       AND r.model_route_id IS NOT NULL
@@ -160,7 +161,8 @@ async function main() {
       f.slice_key,
       f.slice_name,
       f.model_id,
-      AVG(f.score) AS score
+      AVG(f.score) AS score,
+      bool_or(f.is_verified_evaluator) AS is_verified_evaluator
     FROM read_parquet(${fileRef("fact_results.parquet")}) f
     WHERE f.score IS NOT NULL
       AND f.slice_key IS NOT NULL
@@ -258,14 +260,25 @@ async function main() {
     return out[evalId]
   }
 
+  // modelEntry holds parallel maps: `values` (column_key → score) and
+  // `verified` (column_key → bool), so the per-cell verified-evaluator flag
+  // rides alongside each non-primary metric / slice column.
+  const ensureModelEntry = (bucket, route) => {
+    let modelEntry = bucket.leaderboard_rows.get(route)
+    if (!modelEntry) {
+      modelEntry = { values: {}, verified: {} }
+      bucket.leaderboard_rows.set(route, modelEntry)
+    }
+    return modelEntry
+  }
+
   for (const row of metricRows.getRowObjects().map(normalizeDuck)) {
     const bucket = ensureEval(row.evaluation_id)
-    let modelEntry = bucket.leaderboard_rows.get(row.model_route_id)
-    if (!modelEntry) {
-      modelEntry = {}
-      bucket.leaderboard_rows.set(row.model_route_id, modelEntry)
+    const modelEntry = ensureModelEntry(bucket, row.model_route_id)
+    modelEntry.values[row.metric_id] = Number(row.score)
+    if (row.is_verified_evaluator != null) {
+      modelEntry.verified[row.metric_id] = Boolean(row.is_verified_evaluator)
     }
-    modelEntry[row.metric_id] = Number(row.score)
   }
 
   // Plant slice scores. Each (metric_id, slice_key) becomes a column
@@ -289,12 +302,11 @@ async function main() {
 
     for (const evalId of evalIds) {
       const bucket = ensureEval(evalId)
-      let modelEntry = bucket.leaderboard_rows.get(route)
-      if (!modelEntry) {
-        modelEntry = {}
-        bucket.leaderboard_rows.set(route, modelEntry)
+      const modelEntry = ensureModelEntry(bucket, route)
+      modelEntry.values[columnKey] = score
+      if (row.is_verified_evaluator != null) {
+        modelEntry.verified[columnKey] = Boolean(row.is_verified_evaluator)
       }
-      modelEntry[columnKey] = score
 
       if (!bucket.subtask_metric_keys.has(columnKey)) {
         bucket.subtask_metric_keys.add(columnKey)
@@ -328,8 +340,8 @@ async function main() {
   const finalEvals = {}
   for (const [evalId, bucket] of Object.entries(out)) {
     const rows = []
-    for (const [routeId, values] of bucket.leaderboard_rows) {
-      rows.push({ model_route_id: routeId, values })
+    for (const [routeId, entry] of bucket.leaderboard_rows) {
+      rows.push({ model_route_id: routeId, values: entry.values, verified: entry.verified })
     }
     // Skip evals where every model has at most one metric and no
     // subtask data — adds no information beyond the existing summary.

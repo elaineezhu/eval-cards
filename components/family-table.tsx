@@ -24,6 +24,11 @@ interface FamilyTableProps {
    *  decided which families pass; FamilyTable uses the same query to
    *  narrow each row's visible leaves to the matches and auto-expand. */
   searchQuery?: string
+  /** When provided, restrict leaves to those mapping to one of these
+   *  evaluation_ids (drives the /evals "Verified only" filter in Family
+   *  mode — the set is the verified-eval id universe). Null/undefined =
+   *  no restriction. */
+  verifiedEvalIds?: Set<string> | null
   sortCol?: FamilySortCol
   sortDir?: "asc" | "desc"
   onSort?: (col: FamilySortCol) => void
@@ -52,6 +57,8 @@ function humanizeFamilyKey(key: string): string {
 
 interface LeafEntry {
   id: string
+  /** All evaluation_ids this leaf maps to (constituent ids or fallbacks). */
+  evalIds: string[]
   leafKey: string
   leafName: string
   evalsCount: number
@@ -98,6 +105,7 @@ function buildLeafEntry(
 
   return {
     id: ids[0],
+    evalIds: ids,
     leafKey: benchmark.key,
     leafName: benchmark.display_name || benchmark.key,
     evalsCount: ids.length,
@@ -205,6 +213,7 @@ export function FamilyTable({
   domainFilter,
   categoryFilter,
   searchQuery,
+  verifiedEvalIds,
   sortCol,
   sortDir,
   onSort,
@@ -214,9 +223,10 @@ export function FamilyTable({
 
   const domainFilterActive = Boolean(domainFilter && domainFilter.size > 0)
   const categoryFilterActive = Boolean(categoryFilter && categoryFilter.size > 0)
+  const verifiedFilterActive = Boolean(verifiedEvalIds)
   const normalizedQuery = (searchQuery ?? "").trim().toLowerCase()
   const searchActive = normalizedQuery.length > 0
-  const filterActive = domainFilterActive || categoryFilterActive || searchActive
+  const filterActive = domainFilterActive || categoryFilterActive || searchActive || verifiedFilterActive
 
   function leafMatchesDomain(leaf: LeafEntry): boolean {
     if (!domainFilterActive || !domainFilter) return true
@@ -237,9 +247,15 @@ export function FamilyTable({
     return false
   }
 
+  function leafMatchesVerified(leaf: LeafEntry): boolean {
+    if (!verifiedFilterActive || !verifiedEvalIds) return true
+    return leaf.evalIds.some((id) => verifiedEvalIds.has(id))
+  }
+
   function leafMatchesFilter(leaf: LeafEntry, opts?: { skipQuery?: boolean }): boolean {
     if (!leafMatchesDomain(leaf)) return false
     if (!leafMatchesCategory(leaf)) return false
+    if (!leafMatchesVerified(leaf)) return false
     if (!opts?.skipQuery && !leafMatchesQuery(leaf)) return false
     return true
   }
@@ -263,8 +279,14 @@ export function FamilyTable({
     if (leafEntries.some((leaf) => leafMatchesFilter(leaf))) return true
     // Family-level search match keeps the row even if no leaf survives
     // the leaf-query filter (the row will fall back to showing all
-    // leaves).
-    if (searchActive && familyMatchedAtFamilyLevel(fam)) return true
+    // leaves). But the verified filter is a hard leaf-level gate: never
+    // resurrect a family that has zero verified leaves.
+    if (
+      searchActive &&
+      familyMatchedAtFamilyLevel(fam) &&
+      leafEntries.some((leaf) => leafMatchesVerified(leaf))
+    )
+      return true
     if (categoryFilterActive && categoryFilter) {
       for (const tag of fam.derivedTags ?? []) {
         if (categoryFilter.has(tag) && !domainFilterActive) return true

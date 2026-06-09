@@ -24,6 +24,7 @@ import {
 } from "@/components/signals/provenance-badge"
 import { SignalsRowBadges } from "@/components/signals/signals-row-badges"
 import { SignalTooltip } from "@/components/signals/signal-tooltip"
+import { VerifiedBadge } from "@/components/signals/verified-badge"
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -9443,8 +9444,9 @@ function CategoryStatsView({
                             : normalizeDisplayLabel(eval_.source_data.dataset_name))}
                         </div>
                       </div>
-                      <div className="font-mono font-semibold">
+                      <div className="flex items-center gap-1.5 font-mono font-semibold">
                         {formatRawScoreValue(result.score_details.score, result.metric_config.unit)}
+                        <VerifiedBadge verified={result.is_verified_evaluator} />
                       </div>
                     </div>
                   ))

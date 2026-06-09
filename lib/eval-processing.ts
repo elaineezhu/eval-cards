@@ -36,6 +36,8 @@ export interface ModelResultForBenchmark {
   evaluation_timestamp: string
   source_metadata: SourceMetadata
   source_data: BenchmarkEvaluation['source_data']
+  /** Per-result verification flag; mirrors `result.is_verified_evaluator`. */
+  is_verified_evaluator?: boolean
   result: EvaluationResult
   /** URL to the underlying record JSON in the upstream HF dataset, when known. */
   source_record_url?: string
@@ -68,6 +70,8 @@ export interface BenchmarkEvalSummary extends SignalSummaries {
   models_count: number
   /** Unique evaluator organisation names */
   evaluator_names: string[]
+  /** Subset of `evaluator_names` that are validated submitters (badge). */
+  verified_evaluator_names?: string[]
   source_types: SourceMetadata["source_type"][]
   latest_source_name?: string
   third_party_ratio: number
@@ -177,6 +181,8 @@ export interface BenchmarkLeaderboardRow {
   source_metadata: SourceMetadata
   source_data: BenchmarkEvaluation["source_data"]
   values: Record<string, number | null>
+  /** Per-column verified-evaluator flag, keyed identically to `values`. */
+  verified?: Record<string, boolean>
   annotations_by_metric?: Record<string, RowAnnotations | null | undefined>
   metrics_present: number
 }

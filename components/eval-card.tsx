@@ -4,6 +4,7 @@ import type { ComponentType, CSSProperties } from "react"
 import { useAudienceMode } from "@/components/audience-mode-provider"
 import { Badge } from "@/components/ui/badge"
 import { Card, CardContent, CardHeader } from "@/components/ui/card"
+import { VerifiedBadge } from "@/components/signals/verified-badge"
 import { useRouter } from "next/navigation"
 import {
   AlertTriangle,
@@ -16,7 +17,9 @@ import {
   Scale,
   Users,
 } from "lucide-react"
+import Link from "next/link"
 import { routeIdToPath } from "@/lib/utils"
+import { evaluatorSlug } from "@/lib/evaluators"
 import type { BenchmarkEvalListItem } from "@/lib/eval-processing"
 import { getTagColor, tagLabel } from "@/lib/benchmark-schema"
 
@@ -78,6 +81,8 @@ export function EvalCard({ summary, delayMs = 0 }: EvalCardProps) {
   const rawSimilar = card?.benchmark_details?.similar_benchmarks
   const similarBenchmarks: string[] = Array.isArray(rawSimilar) ? rawSimilar : rawSimilar ? [rawSimilar] : []
   const domainPreview = domains.slice(0, 2)
+  // Validated evaluators (subset of evaluator_names) for the badge.
+  const verifiedEvaluators = new Set(summary.verified_evaluator_names ?? [])
   // Source provenance pulled from the pipeline's source_data
   const sourceData = summary.source_data
   const reproducibilitySummary = summary.reproducibility_summary
@@ -258,7 +263,28 @@ export function EvalCard({ summary, delayMs = 0 }: EvalCardProps) {
             <div className="rounded-xl border bg-muted/10 p-3">
               <div className="space-y-1.5 text-sm">
                 <DataRow label="Avg score" value={scorePercent} />
-                <DataRow label="Reported by" value={summary.evaluator_names.join(", ") || "Unknown"} />
+                <div className="flex items-start justify-between gap-3">
+                  <span className="shrink-0 text-muted-foreground">Reported by</span>
+                  <span className="text-right font-medium text-foreground">
+                    {summary.evaluator_names.length === 0
+                      ? "Unknown"
+                      : summary.evaluator_names.map((name, i) => (
+                          <span key={name} className="inline-flex items-center">
+                            {i > 0 ? ", " : null}
+                            <Link
+                              href={`/evaluators/${evaluatorSlug(name)}`}
+                              className="hover:text-[color:var(--accent)] hover:underline"
+                              onClick={(e) => e.stopPropagation()}
+                            >
+                              {name}
+                            </Link>
+                            {verifiedEvaluators.has(name) ? (
+                              <VerifiedBadge verified size="sm" className="ml-1 align-middle" />
+                            ) : null}
+                          </span>
+                        ))}
+                  </span>
+                </div>
                 {reproducibilityGapCount > 0 && (
                   <p className="pt-1 text-xs text-muted-foreground">
                     {reproducibilityGapCount} of {reproducibilityResultsTotal} reported scores are not fully documented.

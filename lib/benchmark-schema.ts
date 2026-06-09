@@ -110,6 +110,13 @@ export interface EvaluationResult {
   detailed_evaluation_results_url?: string
   generation_config?: GenerationConfig
   evalcards?: { annotations?: RowAnnotations }
+  /** Per-result verification flag emitted by the producer's
+   *  `eval_results_view.is_verified_evaluator` column (one boolean per
+   *  (model, benchmark, metric) triple). When true the UI renders a
+   *  small VerifiedBadge next to the metric value. Nullable/absent for
+   *  snapshots produced before the column shipped — treated as
+   *  unverified. */
+  is_verified_evaluator?: boolean
 }
 
 export interface MetricConfig {

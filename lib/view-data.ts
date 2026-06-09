@@ -67,7 +67,7 @@ const EVAL_LIST_COLUMNS = `
   family_display_name AS benchmark_family_name,
   derived_tags,
   CAST(to_json(metric_config) AS VARCHAR) AS metric_config,
-  models_count, evaluator_names, source_types,
+  models_count, evaluator_names, verified_evaluator_names, source_types,
   latest_source_name, third_party_ratio,
   missing_generation_config_count, best_model, worst_model,
   avg_score, avg_score_norm, has_card, CAST(to_json(benchmark_card) AS VARCHAR) AS benchmark_card,
@@ -111,6 +111,7 @@ const MODEL_CELL_JOIN_COLUMNS = `
   CAST(to_json(r.eval_library) AS VARCHAR) AS eval_library,
   CAST(to_json(r.evalcards_annotations) AS VARCHAR) AS evalcards_annotations,
   r.instance_file_path,
+  r.is_verified_evaluator,
   e.evaluation_name AS eval_evaluation_name,
   e.canonical_display_name AS eval_canonical_display_name,
   e.family_id AS eval_family_id,
@@ -148,6 +149,7 @@ const EVAL_CELL_JOIN_COLUMNS = `
   CAST(to_json(r.aggregate_components) AS VARCHAR) AS aggregate_components,
   CAST(to_json(r.evalcards_annotations) AS VARCHAR) AS evalcards_annotations,
   r.instance_file_path,
+  r.is_verified_evaluator,
   e.evaluation_name AS eval_evaluation_name,
   e.canonical_display_name AS eval_canonical_display_name,
   e.family_id AS eval_family_id,
@@ -539,6 +541,11 @@ function resultFromCell(row: Row): EvaluationResult {
     generation_config: generationConfig,
     detailed_evaluation_results_url: optionalString(row.instance_file_path),
     evalcards: annotations ? { annotations } : undefined,
+    // Per-result verification flag (eval_results_view.is_verified_evaluator).
+    // Coerced to a strict boolean; absent on pre-rollout snapshots →
+    // undefined → treated as unverified by the UI.
+    is_verified_evaluator:
+      row.is_verified_evaluator == null ? undefined : Boolean(row.is_verified_evaluator),
   }
 }
 
@@ -822,7 +829,7 @@ export async function getModelSummaryById(routeId: string): Promise<ModelEvaluat
 // nobody ran `pnpm build-eval-matrices` yet), we fall through and the
 // summary degrades to single-metric exactly like before.
 type MatrixEntry = {
-  leaderboard_rows: Array<{ model_route_id: string; values: Record<string, number | null> }>
+  leaderboard_rows: Array<{ model_route_id: string; values: Record<string, number | null>; verified?: Record<string, boolean> }>
   subtask_metrics: Array<Record<string, unknown>>
 }
 
@@ -928,6 +935,7 @@ export async function getEvalSummaryById(evalId: string): Promise<BenchmarkEvalS
           source_metadata: base.source_metadata,
           source_data: base.source_data,
           values: row.values,
+          verified: row.verified,
           metrics_present: Object.values(row.values).filter(
             (v): v is number => typeof v === "number" && Number.isFinite(v),
           ).length,
@@ -980,6 +988,9 @@ export async function getEvalSummaryById(evalId: string): Promise<BenchmarkEvalS
         source_metadata: mr.source_metadata,
         source_data: mr.source_data,
         values: { [columnKey]: mr.score as number },
+        verified: mr.result?.is_verified_evaluator
+          ? { [columnKey]: true }
+          : undefined,
         metrics_present: 1,
       })) as BenchmarkEvalSummary["leaderboard_rows"]
   }

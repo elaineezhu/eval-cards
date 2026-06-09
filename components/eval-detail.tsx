@@ -5,6 +5,7 @@ import { Fragment, useEffect, useMemo, useState } from "react"
 import Link from "next/link"
 import { BenchmarkSignalsStrip } from "@/components/signals/benchmark-signals-strip"
 import { SignalsRowBadges } from "@/components/signals/signals-row-badges"
+import { VerifiedBadge } from "@/components/signals/verified-badge"
 import { getCompletenessPopulatedCount } from "@/components/signals/signal-utils"
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible"
 import { ScoreDistribution } from "@/components/score-distribution"
@@ -53,6 +54,7 @@ import {
 import type { BenchmarkCard, SourceData } from "@/lib/benchmark-schema"
 import { tagLabel } from "@/lib/benchmark-schema"
 import type { BenchmarkEvalSummary, ModelResultForBenchmark } from "@/lib/eval-processing"
+import { evaluatorSlug } from "@/lib/evaluators"
 import type { ComparisonIndex, EvalHierarchy } from "@/lib/backend-artifacts"
 import type { HierarchyEvalLocation } from "@/lib/hierarchy-lookup"
 import { PolicyOverview } from "@/components/policy-overview"
@@ -407,6 +409,38 @@ function formatMetadataValue(value: unknown): string {
 const formatDate = formatDateISO
 
 /**
+ * Render an evaluator org name. When `linkName` is a known evaluator (a
+ * de-aliased name with a /evaluators/<slug> page) the name links there;
+ * otherwise it renders as plain text so we never emit a broken link. The
+ * slug uses the shared, deterministic `evaluatorSlug` base helper.
+ */
+function EvaluatorName({
+  display,
+  linkName,
+  className,
+  style,
+}: {
+  display: React.ReactNode
+  linkName: string | null
+  className?: string
+  style?: React.CSSProperties
+}) {
+  if (!linkName) {
+    return <span className={className} style={style}>{display}</span>
+  }
+  return (
+    <Link
+      href={`/evaluators/${evaluatorSlug(linkName)}`}
+      className={cn("hover:text-[color:var(--accent)] hover:underline", className)}
+      style={style}
+      onClick={(e) => e.stopPropagation()}
+    >
+      {display}
+    </Link>
+  )
+}
+
+/**
  * Render a benchmark-card field path (e.g. `methodology.metrics`,
  * `purpose_and_intended_users.goal`) as a human-readable label —
  * `Methodology › Metrics`, `Purpose and intended users › Goal`.
@@ -535,11 +569,42 @@ function getCompactMetricLabel(value: string | undefined): string {
 }
 
 /**
- * Build a chip-friendly label for a leaderboard metric. Prefers
- * display_name, then metric_name, then a humanised tail of metric_id /
- * column_key. The upstream pipeline frequently leaves display_name
- * blank (e.g. inspect_evals/avg_full_score), in which case the
- * column_key tail ('avg_full_score') is what we want to surface.
+ * Humanise a raw metric identifier (metric_id / column_key) into a
+ * compact, readable label.
+ *
+ * Two shapes the upstream view layer leaves un-curated:
+ *  - path-ish keys (`inspect_evals/avg_full_score`) → keep the tail
+ *    (`avg full score`).
+ *  - `<benchmark-slug>.<stat>` keys (`cyse2-vulnerability-exploit.mean`,
+ *    `swebench-…-mariushobbhahn.mean`) → the slug prefix just repeats the
+ *    eval name, so collapse to the trailing stat (`Mean`). Without this the
+ *    column header echoes the raw UPPER.SLUG.
+ */
+function humanizeMetricKey(raw: string): string {
+  const tail = compactizePath(raw)
+  // `<slug>.mean` / `.std` / `.stderr` → just the trailing stat.
+  const dotMatch = /^(.+)\.([a-z0-9_]+)$/i.exec(tail)
+  if (dotMatch) {
+    const [, prefix, stat] = dotMatch
+    // Only collapse when the prefix looks like a slug (has a hyphen or is
+    // long), not a genuinely dotted metric name.
+    if (prefix.includes("-") || prefix.length > 6) {
+      return humanizeMetricKey(stat)
+    }
+  }
+  const spaced = tail.replace(/_/g, " ").trim()
+  if (!spaced) return tail
+  return spaced.charAt(0).toUpperCase() + spaced.slice(1)
+}
+
+/**
+ * Build a chip-friendly label for a leaderboard metric. Prefers a curated
+ * display_name / metric_name, then a humanised tail of metric_id /
+ * column_key. The upstream pipeline frequently leaves display_name blank
+ * (e.g. inspect_evals/avg_full_score → ifeval's final_acc, inst_loose_acc)
+ * or echoes the raw column key as the "display name" (cyse2's
+ * `cyse2-vulnerability-exploit.mean`). In both cases the humanised key tail
+ * is what we want to surface — never the literal 'Metric' or a raw slug.
  */
 function getMetricChipLabel(metric: {
   display_name?: string | null
@@ -547,16 +612,23 @@ function getMetricChipLabel(metric: {
   metric_id?: string | null
   column_key?: string | null
 }): string {
+  const key = metric.metric_id ?? metric.column_key ?? null
+  // Treat a display/metric name that merely echoes the raw column key as
+  // absent — it carries no more information than the key itself.
+  const isRawEcho = (value: string | null | undefined) =>
+    !!value && !!key && value.trim() === key.trim()
+
   const candidates = [
-    metric.display_name,
-    metric.metric_name,
-    metric.metric_id,
-    metric.column_key,
+    isRawEcho(metric.display_name) ? null : metric.display_name,
+    isRawEcho(metric.metric_name) ? null : metric.metric_name,
   ]
   for (const c of candidates) {
     if (c && String(c).trim()) {
       return compactizePath(String(c)).replace(/_/g, " ")
     }
+  }
+  if (key && key.trim()) {
+    return humanizeMetricKey(key)
   }
   return "Metric"
 }
@@ -931,17 +1003,6 @@ export function EvalDetail({
     return userRowSort.dir === "asc" ? "↑" : "↓"
   }
 
-  // Hide the "Updated" column when no row has a usable timestamp —
-  // every cell would say "Unknown" otherwise. formatDate returns the
-  // string "Unknown" for null / empty / unparseable inputs.
-  const hasAnyUpdatedTimestamp = useMemo(
-    () =>
-      leaderboardRows.some(
-        ({ modelResult }) => formatDate(modelResult.evaluation_timestamp) !== "Unknown",
-      ),
-    [leaderboardRows],
-  )
-
   const avgScoreLabel = formatRawScore(lb.avg_score, lb.metric_config.unit)
   const scoreDirectionLabel = lb.metric_config.lower_is_better ? "Lower scores rank higher" : "Higher scores rank higher"
   const leaderboardTitle = isResearchView ? "Leaderboard" : "Reporting Comparison"
@@ -989,12 +1050,41 @@ export function EvalDetail({
   // identical in chrome — naming the evaluator up-front is the cheapest
   // way to make the pages visually distinct.
   const evaluatorList = summary.evaluator_names ?? []
-  const reporterLabel = (() => {
-    if (evaluatorList.length === 0) return null
-    const head = evaluatorList.slice(0, 2)
-    const extra = evaluatorList.length - head.length
-    return extra > 0 ? `${head.join(", ")} +${extra} more` : head.join(", ")
-  })()
+  // Validated evaluators (de-aliased names, same space as evaluator_names),
+  // straight from the backend rollup — used to badge the "Reported by" names.
+  const verifiedEvaluators = useMemo(
+    () => new Set(summary.verified_evaluator_names ?? []),
+    [summary.verified_evaluator_names],
+  )
+
+  // De-aliased evaluator names that have a /evaluators/<slug> page. The header
+  // renders these names directly (always linkable); the per-row Source column
+  // shows a *raw* source name, so we resolve it case-insensitively against the
+  // known evaluator names and only link when it maps to a real evaluator page.
+  // We key on the union of summary + active-split evaluator names so a split
+  // view's Source cells still resolve.
+  const knownEvaluatorByLower = useMemo(() => {
+    const m = new Map<string, string>()
+    for (const n of [...(summary.evaluator_names ?? []), ...(lb.evaluator_names ?? [])]) {
+      const t = (n ?? "").trim()
+      if (t) m.set(t.toLowerCase(), t)
+    }
+    return m
+  }, [summary.evaluator_names, lb.evaluator_names])
+
+  // Resolve a (raw or de-aliased) org name to a known evaluator's de-aliased
+  // name, or null when it isn't a known evaluator (→ render plain text). The
+  // per-row Source value is the *raw* source name (e.g. "crfm"), which can be
+  // an alias of a de-aliased evaluator ("Stanford CRFM"); when it doesn't match
+  // directly but the eval has exactly one evaluator, that row unambiguously
+  // belongs to it, so we link to the sole evaluator.
+  const soleEvaluator =
+    knownEvaluatorByLower.size === 1 ? Array.from(knownEvaluatorByLower.values())[0] : null
+  const resolveEvaluatorName = (raw: string | undefined | null): string | null => {
+    const t = (raw ?? "").trim()
+    if (!t) return null
+    return knownEvaluatorByLower.get(t.toLowerCase()) ?? soleEvaluator
+  }
 
   const heroLede = isResearchView
     ? summary.metric_config.evaluation_description
@@ -1006,7 +1096,7 @@ export function EvalDetail({
     <div className="space-y-12">
       {/* HERO ------------------------------------------------ */}
       <header className="motion-academic-enter">
-        {reporterLabel && (
+        {evaluatorList.length > 0 && (
           <div
             className="font-mono uppercase"
             style={{
@@ -1017,7 +1107,18 @@ export function EvalDetail({
             }}
           >
             <span style={{ color: "var(--fg-muted)" }}>Reported by </span>
-            <span style={{ color: "var(--fg)" }}>{reporterLabel}</span>
+            {evaluatorList.slice(0, 2).map((name, i) => (
+              <span key={name} style={{ color: "var(--fg)" }}>
+                {i > 0 ? ", " : null}
+                <EvaluatorName display={name} linkName={resolveEvaluatorName(name)} />
+                {verifiedEvaluators.has(name) ? (
+                  <VerifiedBadge verified size="sm" className="ml-1 align-middle" />
+                ) : null}
+              </span>
+            ))}
+            {evaluatorList.length > 2 ? (
+              <span style={{ color: "var(--fg)" }}> +{evaluatorList.length - 2} more</span>
+            ) : null}
           </div>
         )}
         <h1
@@ -1684,17 +1785,6 @@ export function EvalDetail({
                       title="Sort by model release date"
                     />
                   </th>
-                  {hasAnyUpdatedTimestamp && (
-                    <th className="hidden xl:table-cell num" style={{ width: 110 }}>
-                      <SortableTh
-                        label="Updated"
-                        active={userRowSort.key === "updated"}
-                        indicator={rowSortIndicator("updated")}
-                        onClick={() => cycleRowSort("updated")}
-                        title="Sort by report timestamp"
-                      />
-                    </th>
-                  )}
                 </tr>
               </thead>
               <tbody>
@@ -1735,6 +1825,13 @@ export function EvalDetail({
                     (!Array.isArray(modelResult.source_data) && modelResult.source_data.source_type) ||
                     modelResult.source_metadata.source_type ||
                     ""
+                  // Link the Source value to its evaluator page when the row's
+                  // org resolves to a known (de-aliased) evaluator. Try the org
+                  // name first, then the displayed source label.
+                  const sourceEvaluatorName =
+                    resolveEvaluatorName(modelResult.source_metadata.source_organization_name) ??
+                    resolveEvaluatorName(modelResult.source_metadata.source_name) ??
+                    resolveEvaluatorName(sourceTypeLabel)
                   const familyLabel = modelResult.model_info.architecture
                     ?? modelResult.model_info.parameter_count
                     ?? null
@@ -1898,25 +1995,35 @@ export function EvalDetail({
 
                         <td className="num hidden lg:table-cell align-top">
                           {sourceTypeLabel ? (
-                            modelResult.source_metadata.source_url ? (
-                              <a
-                                href={modelResult.source_metadata.source_url}
-                                target="_blank"
-                                rel="noreferrer"
-                                className="font-mono lowercase hover:text-[color:var(--accent)]"
-                                style={{ fontSize: 11, color: "var(--fg-muted)" }}
-                                onClick={(e) => e.stopPropagation()}
-                              >
-                                {sourceTypeLabel}
-                              </a>
-                            ) : (
-                              <span
-                                className="font-mono lowercase"
-                                style={{ fontSize: 11, color: "var(--fg-muted)" }}
-                              >
-                                {sourceTypeLabel}
-                              </span>
-                            )
+                            <span className="inline-flex items-center justify-end gap-1">
+                              {sourceEvaluatorName ? (
+                                <EvaluatorName
+                                  display={sourceTypeLabel}
+                                  linkName={sourceEvaluatorName}
+                                  className="font-mono lowercase"
+                                  style={{ fontSize: 11, color: "var(--fg-muted)" }}
+                                />
+                              ) : modelResult.source_metadata.source_url ? (
+                                <a
+                                  href={modelResult.source_metadata.source_url}
+                                  target="_blank"
+                                  rel="noreferrer"
+                                  className="font-mono lowercase hover:text-[color:var(--accent)]"
+                                  style={{ fontSize: 11, color: "var(--fg-muted)" }}
+                                  onClick={(e) => e.stopPropagation()}
+                                >
+                                  {sourceTypeLabel}
+                                </a>
+                              ) : (
+                                <span
+                                  className="font-mono lowercase"
+                                  style={{ fontSize: 11, color: "var(--fg-muted)" }}
+                                >
+                                  {sourceTypeLabel}
+                                </span>
+                              )}
+                              <VerifiedBadge verified={modelResult.result?.is_verified_evaluator} size="sm" />
+                            </span>
                           ) : (
                             <span style={{ color: "var(--fg-subtle)" }}>—</span>
                           )}
@@ -1931,16 +2038,11 @@ export function EvalDetail({
                             : <span style={{ color: "var(--fg-subtle)" }}>—</span>}
                         </td>
 
-                        {hasAnyUpdatedTimestamp && (
-                          <td className="num hidden xl:table-cell align-top font-mono tabular-nums" style={{ fontSize: 11, color: "var(--fg-muted)" }}>
-                            {formatDate(modelResult.evaluation_timestamp)}
-                          </td>
-                        )}
                       </tr>
 
                       {isExpanded && (
                         <tr>
-                          <td colSpan={hasAnyUpdatedTimestamp ? 8 : 7} style={{ background: "var(--bg-warm)", padding: 0 }}>
+                          <td colSpan={7} style={{ background: "var(--bg-warm)", padding: 0 }}>
                             <div className="space-y-5 px-4 py-5 sm:px-6">
                               {/* The Model Profile / Provenance / Score Breakdown
                                   panels were removed — model metadata lives on
@@ -2134,7 +2236,7 @@ export function EvalDetail({
                 })}
                 {leaderboardRows.length === 0 && (
                   <tr>
-                    <td colSpan={hasAnyUpdatedTimestamp ? 8 : 7} style={{ padding: "32px 16px", textAlign: "center", color: "var(--fg-muted)" }}>
+                    <td colSpan={7} style={{ padding: "32px 16px", textAlign: "center", color: "var(--fg-muted)" }}>
                       No leaderboard entries match the selected parameter range.
                     </td>
                   </tr>
@@ -2192,6 +2294,24 @@ function MultiMetricLeaderboard({
   const [minParamStep, setMinParamStep] = useState(0)
   const [maxParamStep, setMaxParamStep] = useState(PARAM_RANGE_MAX_INDEX)
   const [expandedRows, setExpandedRows] = useState<Record<string, boolean>>({})
+
+  // Resolve a raw Source-column org name to a known (de-aliased) evaluator name
+  // so the cell can link to /evaluators/<slug>; null → render plain text.
+  const knownEvaluatorByLower = useMemo(() => {
+    const m = new Map<string, string>()
+    for (const n of summary.evaluator_names ?? []) {
+      const t = (n ?? "").trim()
+      if (t) m.set(t.toLowerCase(), t)
+    }
+    return m
+  }, [summary.evaluator_names])
+  const soleEvaluator =
+    knownEvaluatorByLower.size === 1 ? Array.from(knownEvaluatorByLower.values())[0] : null
+  const resolveEvaluatorName = (raw: string | undefined | null): string | null => {
+    const t = (raw ?? "").trim()
+    if (!t) return null
+    return knownEvaluatorByLower.get(t.toLowerCase()) ?? soleEvaluator
+  }
 
   // Index ModelResultForBenchmark entries by model_info.id so we can power the
   // research-mode reproducibility card from a multi-metric row. There may be
@@ -2251,10 +2371,48 @@ function MultiMetricLeaderboard({
 
   const hasSliceTabs = sliceTabs.length > 1
 
+  // A `<benchmark-slug>.mean` column whose per-row values are identical to an
+  // earlier column (e.g. cyse2's `cyse2-vulnerability-exploit.mean` mirrors
+  // `accuracy`) is a redundant alias of the primary score, not a distinct
+  // measure. Suppress it so the matrix doesn't render two columns of the same
+  // numbers under a humanised "Mean" header next to the real metric.
+  const duplicateMeanColumnKeys = useMemo(() => {
+    const dupes = new Set<string>()
+    const meanMetrics = leaderboardMetrics.filter(
+      (m) => m.scope !== "subtask" && /\.mean$/i.test(m.column_key),
+    )
+    if (meanMetrics.length === 0) return dupes
+    const others = leaderboardMetrics.filter((m) => m.scope !== "subtask")
+    const valuesEqual = (a: string, b: string) => {
+      let comparable = 0
+      for (const row of leaderboardRows) {
+        const va = row.values[a]
+        const vb = row.values[b]
+        const aNum = isNumericScore(va)
+        const bNum = isNumericScore(vb)
+        if (aNum !== bNum) return false
+        if (aNum && bNum && Math.abs(va - vb) > 1e-6) return false
+        if (aNum && bNum) comparable += 1
+      }
+      return comparable > 0
+    }
+    for (const mean of meanMetrics) {
+      const twin = others.find(
+        (o) => o.column_key !== mean.column_key && valuesEqual(mean.column_key, o.column_key),
+      )
+      if (twin) dupes.add(mean.column_key)
+    }
+    return dupes
+  }, [leaderboardMetrics, leaderboardRows])
+
   const visibleMetrics = useMemo(
     () =>
       leaderboardMetrics.filter((metric) => {
         if (!visibleMetricKeySet.has(metric.column_key)) {
+          return false
+        }
+
+        if (duplicateMeanColumnKeys.has(metric.column_key)) {
           return false
         }
 
@@ -2266,7 +2424,7 @@ function MultiMetricLeaderboard({
 
         return metric.scope === "subtask" && metric.subtask_key === activeSliceTab
       }),
-    [activeSliceTab, hasSliceTabs, leaderboardMetrics, visibleMetricKeySet]
+    [activeSliceTab, duplicateMeanColumnKeys, hasSliceTabs, leaderboardMetrics, visibleMetricKeySet]
   )
   const visibleMetricColumnKeySet = useMemo(
     () => new Set(visibleMetrics.map((metric) => metric.column_key)),
@@ -2683,7 +2841,7 @@ function MultiMetricLeaderboard({
                   // name is already shown above the table — no need to
                   // repeat it as a per-column topline.
                   const showSliceTopline = false
-                  const mainLabel = getCompactMetricLabel(metric.display_name)
+                  const mainLabel = getMetricChipLabel(metric)
                   return (
                     <th
                       key={metric.column_key}
@@ -2710,6 +2868,8 @@ function MultiMetricLeaderboard({
                     </th>
                   )
                 })}
+                <th className="hidden lg:table-cell" style={{ width: 110 }}>Evaluator</th>
+                <th className="num hidden lg:table-cell" style={{ width: 100 }}>Source</th>
                 <th
                   className="num hidden lg:table-cell"
                   style={{ width: 110, cursor: "pointer" }}
@@ -2717,13 +2877,6 @@ function MultiMetricLeaderboard({
                   title="Sort by model release date"
                 >
                   Released{getSortIndicator("released")}
-                </th>
-                <th
-                  className="num hidden xl:table-cell"
-                  style={{ width: 110, cursor: "pointer" }}
-                  onClick={() => handleSort("updated")}
-                >
-                  Updated{getSortIndicator("updated")}
                 </th>
               </tr>
             </thead>
@@ -2818,6 +2971,42 @@ function MultiMetricLeaderboard({
                     )
                   })}
 
+                  <td className="hidden lg:table-cell align-top">
+                    <span className="font-mono uppercase" style={{ fontSize: 11, color: "var(--fg-muted)" }}>
+                      {row.source_metadata?.evaluator_relationship === "first_party"
+                        ? "SELF"
+                        : row.source_metadata?.evaluator_relationship === "third_party"
+                          ? "THIRD-PARTY"
+                          : "—"}
+                    </span>
+                  </td>
+                  <td className="num hidden lg:table-cell align-top">
+                    {(() => {
+                      const sourceLabel =
+                        row.source_metadata?.source_name?.trim()
+                        || row.source_metadata?.source_organization_name?.trim()
+                      const sourceEvaluatorName =
+                        resolveEvaluatorName(row.source_metadata?.source_organization_name)
+                        ?? resolveEvaluatorName(row.source_metadata?.source_name)
+                      return sourceLabel ? (
+                      <span className="inline-flex items-center justify-end gap-1">
+                        <EvaluatorName
+                          display={sourceLabel}
+                          linkName={sourceEvaluatorName}
+                          className="font-mono lowercase"
+                          style={{ fontSize: 11, color: "var(--fg-muted)" }}
+                        />
+                        <VerifiedBadge
+                          verified={Object.values(row.verified ?? {}).some(Boolean)}
+                          size="sm"
+                        />
+                      </span>
+                    ) : (
+                      <span style={{ color: "var(--fg-subtle)" }}>—</span>
+                    )
+                    })()}
+                  </td>
+
                   <td
                     className="num hidden lg:table-cell align-top font-mono tabular-nums"
                     style={{ fontSize: 11, color: "var(--fg-muted)" }}
@@ -2826,14 +3015,11 @@ function MultiMetricLeaderboard({
                       ? formatDate(row.model_info.release_date).split(",")[0]
                       : <span style={{ color: "var(--fg-subtle)" }}>—</span>}
                   </td>
-                  <td className="num hidden xl:table-cell align-top font-mono tabular-nums" style={{ fontSize: 11, color: "var(--fg-muted)" }}>
-                    {formatDate(row.evaluation_timestamp)}
-                  </td>
                 </tr>
                 {isResearchView && isExpanded && matchingResult && (
                   <tr>
                     <td
-                      colSpan={visibleMetrics.length + 6}
+                      colSpan={visibleMetrics.length + 7}
                       style={{ background: "var(--bg-warm)", padding: "20px 24px" }}
                     >
                       <div className="space-y-3">
@@ -2863,7 +3049,7 @@ function MultiMetricLeaderboard({
 
               {filteredRows.length === 0 && (
                 <tr>
-                  <td colSpan={visibleMetrics.length + 5} style={{ padding: "32px 16px", textAlign: "center", color: "var(--fg-muted)" }}>
+                  <td colSpan={visibleMetrics.length + 6} style={{ padding: "32px 16px", textAlign: "center", color: "var(--fg-muted)" }}>
                     No models match the selected parameter range.
                   </td>
                 </tr>
