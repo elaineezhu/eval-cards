@@ -62,10 +62,10 @@ For research: a category that is **entirely first-party** is a known blind spot:
 ### §4 Reported metrics
 This is where you read off the actual numbers. In Researcher View the section has a grouping toggle for **Overlaps**, **Category**, and **Source**, plus a family selector, a search box, and a grid/list switch. Each grouping answers a different question.
 
-**Overlaps** shows cross-suite overlaps: benchmarks this model reports under more than one suite, with the **mean and 95% CI** across appearances and the **range** of reported scores. The fastest way to find where the *same* benchmark was run by different reporters, and how far the numbers move.
+**Overlaps** gives one row per benchmark, with the **mean and 95% CI** across this model's appearances and the **range** of reported scores (plus a Δ for how far the numbers move). Expand any row to see each source's score, its generation settings, and the per-result **flags** for the signals that result trips. The **All / Overlaps only** filter narrows the list to benchmarks reported by more than one source, where divergence is easiest to spot.
 
 > 🖼️ **Screenshot — `24-research-overlaps.png`**
-> *What to capture:* §4 in **Overlaps** grouping (per-benchmark N, mean / CI, range, sources).
+> *What to capture:* §4 in **Overlaps** grouping with a row expanded, showing each source's score, settings, and per-result flags.
 
 **Category** regroups every reported result under curated category tags, so similar benchmarks cluster across families. Read the model's profile by capability area (math, safety, agentic, …) rather than by benchmark name.
 

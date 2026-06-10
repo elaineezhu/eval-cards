@@ -95,10 +95,10 @@ For example: *MMLU (family) → MMLU-Pro (composite) → a single benchmark → 
    > 🖼️ **Screenshot — `23-reader-bar.png`**
    > *What to capture:* The Summary / Researcher View toggle at the top of a model page (the snapshot date sits at the right of the same bar).
 
-   In Researcher View, §4 gains a per-result table: for each benchmark it lists the number of results (**N**), the **mean and 95% CI**, the **range** of reported scores, and each **source** that reported them. That's the spread and provenance behind the summary number.
+   In Researcher View, §4 lists one row per benchmark with the number of results (**N**), the **mean and 95% CI**, and the **range** of reported scores. Expand a row to see each source's score, its generation settings, and the per-result **flags** showing which signals each result trips. That's the spread and provenance behind the summary number.
 
    > 🖼️ **Screenshot — `21-card-researcher-metrics.png`**
-   > *What to capture:* The per-result table in Researcher View (N, mean / CI, range, sources).
+   > *What to capture:* An Overlaps row expanded to show each source's score, settings, and per-result flags.
 
 6. **Note the snapshot date.** Every model and evaluation page shows a snapshot date in that same top bar (e.g. *Snapshot · Jun 9, 2026*), and the homepage shows it in the **Corpus snapshot** header. The corpus is versioned, so numbers change between snapshots. Cite the snapshot date with any figure so others can find exactly what you saw.
 
