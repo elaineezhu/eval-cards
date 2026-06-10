@@ -28,7 +28,7 @@ export const TUTORIALS: TutorialMeta[] = [
     slug: "quickstart",
     title: "Quickstart",
     category: "guide",
-    audience: "Stakeholder-agnostic · ~10 min",
+    audience: "Stakeholder-agnostic · ~6 min",
     blurb:
       "The four signals, the five-level hierarchy, and your first five minutes on the site.",
   },
@@ -77,6 +77,14 @@ export const TUTORIALS: TutorialMeta[] = [
  * the same markdown pipeline and routed under /help/<slug>.
  */
 export const DOCS: TutorialMeta[] = [
+  {
+    slug: "what-its-built-on",
+    title: "What Evaluation Cards is built on",
+    category: "doc",
+    audience: "Data sources & structure",
+    blurb:
+      "The infrastructure behind the corpus — Auto-BenchmarkCards, Every Eval Ever, IBM Risk Atlas, and the five-level hierarchy.",
+  },
   {
     slug: "how-signals-are-computed",
     title: "How the four signals are computed",

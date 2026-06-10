@@ -9,6 +9,7 @@ import {
   Boxes,
   FlaskConical,
   Layers,
+  MessageSquare,
   ShieldQuestion,
 } from "lucide-react"
 
@@ -34,6 +35,8 @@ interface Slide {
   kicker: string
   title: string
   body: string
+  /** Optional in-slide call-to-action link (e.g. the Beta feedback slide). */
+  link?: { href: string; label: string }
 }
 
 const SLIDES: Slide[] = [
@@ -59,13 +62,20 @@ const SLIDES: Slide[] = [
     icon: Boxes,
     kicker: "Models",
     title: "The Models tab",
-    body: "This is every model we track. Search or sort by developer, size, or release date, open one to see its full card, and pick up to four to compare.",
+    body: "This is every model we track. Search or sort by developer, size, or release date, open one to see its full page, and pick up to four to compare.",
   },
   {
     icon: FlaskConical,
     kicker: "Evaluations",
     title: "The Evaluations tab",
     body: "Here you'll find the benchmarks, grouped from broad families down to single metrics. Filter by risk area or agentic tasks, and open any benchmark to see what it tests, where it falls short, and who's reported results on it.",
+  },
+  {
+    icon: MessageSquare,
+    kicker: "Beta",
+    title: "We're in Beta — tell us what you think",
+    body: "Evaluation Cards is new and still evolving. Found a bug, want a feature, or hit something confusing? We'd genuinely love to hear it. You can reach the feedback form from any page via Feedback in the top bar.",
+    link: { href: "/feedback", label: "Send feedback" },
   },
   {
     icon: ShieldQuestion,
@@ -153,14 +163,28 @@ function QuickStartDialog({
             {slide.body}
           </DialogDescription>
 
+          {slide.link && (
+            <div className="mt-5">
+              <Link
+                href={slide.link.href}
+                className="btn-ec"
+                onClick={() => onOpenChange(false)}
+              >
+                {slide.link.label}
+                <ArrowRight className="h-3.5 w-3.5" aria-hidden />
+              </Link>
+            </div>
+          )}
+
           {isLast && (
             <div className="mt-5 flex flex-wrap gap-2.5">
               <Link href="/models" className="btn-ec" onClick={() => onOpenChange(false)}>
                 Explore models
                 <ArrowRight className="h-3.5 w-3.5" aria-hidden />
               </Link>
-              <Link href="/help" className="btn-ec outline" onClick={() => onOpenChange(false)}>
-                Open the full guide
+              <Link href="/evals" className="btn-ec outline" onClick={() => onOpenChange(false)}>
+                Explore evaluations
+                <ArrowRight className="h-3.5 w-3.5" aria-hidden />
               </Link>
             </div>
           )}
@@ -196,9 +220,10 @@ function QuickStartDialog({
             )}
 
             {isLast ? (
-              <button type="button" className="btn-ec" onClick={() => onOpenChange(false)}>
-                Get started
-              </button>
+              <Link href="/help" className="btn-ec" onClick={() => onOpenChange(false)}>
+                Open the full guide
+                <ArrowRight className="h-3.5 w-3.5" aria-hidden />
+              </Link>
             ) : (
               <button
                 type="button"

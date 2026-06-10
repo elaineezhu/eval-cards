@@ -17,34 +17,36 @@ The design principles that matter most for research use:
 - **Evaluator identity is preserved.** First-party and third-party results are kept distinct.
 - **Snapshot discipline.** No retroactive edits; corrections are versioned. Your analyses are reproducible against a dated snapshot.
 
+Some of our next steps are aimed squarely at research use — including making **all evaluation data, metadata plus run-level results, downloadable** directly from Evaluation Cards. In the meantime, run-level data is available from [Every Eval Ever](https://github.com/evaleval/every_eval_ever), the structured datastore that powers the corpus. If there's a feature that would help your work, tell us on the [public roadmap](https://changemap.co/evaleval/evalcards/) — we'd love to build what the research community needs, so let us know.
+
 ---
 
 ## The Researcher View
 
-The model card has two modes, toggled top-right. **Summary View** is for orientation; **Researcher View** is where you work.
+The model page has two modes, toggled top-right. **Summary View** is for orientation; **Researcher View** is where you work.
 
 > 🖼️ **Screenshot — `19-card-researcher-full.png`**
-> *What to capture:* A model card (e.g. `/models/anthropic/claude-opus-4.7`) after clicking **Researcher View** — show the expanded per-result detail.
+> *What to capture:* A model page (e.g. `/models/anthropic/claude-opus-4.7`) after clicking **Researcher View** — show the expanded per-result detail.
 
 > 🖼️ **Screenshot — `20-card-researcher-top.png`**
 > *What to capture:* The top of the Researcher View (the view toggle + the documentation summary line).
 
-Researcher View exposes the per-result granularity behind the summary aggregates: setup variants, slices, metric paths, source harnesses, and the document each number came from.
+Researcher View exposes the per-result granularity behind the summary aggregates: setup variants, splits, metric paths, source harnesses, and the document each number came from.
 
 ---
 
-## Working through a card, section by section
+## Working through the page, section by section
 
-A model Evaluation Card is organized into four numbered sections.
+A model page is organized into four numbered sections.
 
 ### §1 Identification
 Model name, developer, release date, modalities (e.g. *image, text → text*), system ID, and last-updated. The stable identifier (`ec/models/<dev>/<model>`) is what you cite.
 
 > 🖼️ **Screenshot — `15-card-identification.png`**
-> *What to capture:* The §1 Identification block of a model card.
+> *What to capture:* The §1 Identification block of a model page.
 
 ### §2 Benchmark coverage
-A benchmark-first view grouped by category, surfacing **setup spread** and **slice-vs-setup** differences up front. Watch the "slice spread" note (e.g. *"2 benchmarks include multiple slices or setups"*) — these are exactly the cases where naïve aggregation hides variance.
+A benchmark-first view grouped by category, surfacing **setup spread** and **split-vs-setup** differences up front. Watch the "split spread" note (e.g. *"2 benchmarks include multiple splits or setups"*) — these are exactly the cases where naïve aggregation hides variance.
 
 > 🖼️ **Screenshot — `16-card-coverage.png`**
 > *What to capture:* The §2 Benchmark coverage section.
@@ -58,13 +60,22 @@ A first-party / third-party split as a donut plus per-category bars. This is the
 For research: a category that is **entirely first-party** is a known blind spot — there is no independent corroboration of those numbers.
 
 ### §4 Reported metrics
-Per-benchmark charts with controls to filter by **Source**, **Category**, and **Overlaps**, plus a family selector. Each chart marks direction ("higher is better"), the slices included, and the reporting org. This is where you read off the actual numbers and their setup context.
+This is where you read off the actual numbers. In Researcher View the section has a grouping toggle — **Overlaps**, **Category**, and **Source** — plus a family selector, a search box, and a grid/list switch. Each grouping answers a different question.
 
-> 🖼️ **Screenshot — `18-card-metrics.png`**
-> *What to capture:* The §4 Reported metrics section, ideally with a benchmark chart expanded.
+**Overlaps** — cross-suite overlaps: benchmarks this model reports under more than one suite, with the **mean and 95% CI** across appearances and the **range** of reported scores. The fastest way to find where the *same* benchmark was run by different reporters, and how far the numbers move.
 
-> 🖼️ **Screenshot — `21-card-researcher-metrics.png`**
-> *What to capture:* The §4 metrics area in **Researcher View**, showing the per-result detail (setup variants / slices).
+> 🖼️ **Screenshot — `24-research-overlaps.png`**
+> *What to capture:* §4 in **Overlaps** grouping (per-benchmark N, mean / CI, range, sources).
+
+**Category** — every reported result regrouped under curated category tags, so similar benchmarks cluster across families. Read the model's profile by capability area (math, safety, agentic, …) rather than by benchmark name.
+
+> 🖼️ **Screenshot — `25-research-category.png`**
+> *What to capture:* §4 in **Category** grouping.
+
+**Source** — the warehouse's natural shape: family-rooted plots and accordions with no cross-family collapse. This is the full result set (and the default view); drill into any plot for the per-result setup context.
+
+> 🖼️ **Screenshot — `26-research-source.png`**
+> *What to capture:* §4 in **Source** grouping.
 
 ---
 
@@ -75,7 +86,7 @@ Per-benchmark charts with controls to filter by **Source**, **Category**, and **
 | **Reproducibility** | Disclosure of setup variants, prompts, decoding params, harness version, seeds, code availability. | "Reproducible in principle" ≠ "reproduced." Only ~3% of scores have complete setup documentation corpus-wide. |
 | **Completeness** | Coverage across capability / robustness / safety / fairness for the model class. | A complete *capability* record can still be silent on safety. Completeness is relative to expectations, not absolute. |
 | **Provenance & Risk** | First- vs third-party; mapping to **IBM Risk Atlas** risk domains. | First-party numbers are not wrong, but they are not independent. Check §3 before ranking. |
-| **Comparability** | Slice, metric variant, and unit differences within the same benchmark. | Two "MMLU" numbers may use different slices or metrics — flagged here. Do not rank across incomparable setups. |
+| **Comparability** | Split, metric variant, and unit differences within the same benchmark. | Two "MMLU" numbers may use different splits or metrics — flagged here. Do not rank across incomparable setups. |
 
 ---
 
@@ -89,14 +100,14 @@ Per-benchmark charts with controls to filter by **Source**, **Category**, and **
 - **Side-by-side compare:** select up to four models via the **Add to compare** buttons.
   > ⚠️ *As of this writing the populated compare view is intermittently unavailable on the beta backend (cold-start errors). If it fails, retry after a few seconds.*
 
-- **Evaluations index** (`/evals`): families filterable by **interaction style** (agent / non-agent) and category. Drill into a family at `/evals?family=<slug>` to see its benchmarks → slices → metrics.
+- **Evaluations index** (`/evals`): families filterable by **interaction style** (agent / non-agent) and category. Drill into a family at `/evals?family=<slug>` to see its benchmarks → splits → metrics.
 
   > 🖼️ **Screenshot — `08-evals-family-expanded.png`**
-  > *What to capture:* A benchmark family detail page (e.g. `/evals?family=artificial-analysis`) showing its benchmarks and slices.
+  > *What to capture:* A benchmark family detail page (e.g. `/evals?family=artificial-analysis`) showing its benchmarks and splits.
 
 ---
 
-## Methodological caveats to carry
+## Limitations
 
 1. **Comparability is bounded by setup.** The site flags when two scores under the same benchmark are not directly comparable — respect those flags in any ranking or meta-analysis.
 2. **Coverage ≠ quality.** Many results with weak documentation can look like "good coverage." Weight by the signals.

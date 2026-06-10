@@ -1,7 +1,4 @@
-import Link from "next/link"
-
 import { CiteBlock } from "@/components/cite-block"
-import { cn } from "@/lib/utils"
 
 export const PAPER_URL = "https://arxiv.org/abs/2606.09809"
 export const PAPER_BIBTEX = `@article{ghosh2026evaluationcards,
@@ -23,49 +20,30 @@ export const EEE_BIBTEX = `@misc{evaleval2026everyevalever,
 
 /**
  * The "How to cite" body — share note, reference, copy-pasteable BibTeX. Shared
- * by the About and Help pages so the citation stays in one place. Pass
- * `showCorrection` to include the About page's correction card.
+ * by the About and Help pages so the citation stays in one place.
  */
-export function CiteSection({ showCorrection = false }: { showCorrection?: boolean }) {
+export function CiteSection() {
   return (
     <>
       <p className="mb-5 max-w-[700px] text-[15px] leading-[1.7] text-[color:var(--fg-muted)]">
         If you find this effort useful, please consider citing our paper and sharing our work on
         socials.
       </p>
-      <div className={cn("mb-5 grid gap-5", showCorrection && "lg:grid-cols-2")}>
-        <div className="border border-[color:var(--border-soft)] p-[22px]">
-          <div className="kicker mb-2.5">Reference</div>
-          <p className="m-0 text-[13.5px] leading-[1.7] text-[color:var(--fg)]">
-            Ghosh, A., Reuel, A., Chim, J., et al. (2026). Evaluation Cards: An Interpretive Layer
-            for AI Evaluation Reporting.{" "}
-            <a
-              href={PAPER_URL}
-              target="_blank"
-              rel="noreferrer"
-              className="underline underline-offset-2"
-            >
-              arXiv:2606.09809
-            </a>
-            .
-          </p>
-        </div>
-        {showCorrection && (
-          <div className="border border-[color:var(--border-soft)] p-[22px]">
-            <div className="kicker mb-2.5">Submit a correction</div>
-            <p className="m-0 text-[13.5px] leading-[1.65] text-[color:var(--fg-muted)]">
-              Spotted a wrong or missing number? Send it through our{" "}
-              <Link
-                href="/feedback"
-                className="text-[color:var(--fg)] underline underline-offset-2"
-              >
-                feedback form
-              </Link>{" "}
-              with a source, and we'll get it corrected. Coverage improves as developers and third
-              parties publish.
-            </p>
-          </div>
-        )}
+      <div className="mb-5 border border-[color:var(--border-soft)] p-[22px]">
+        <div className="kicker mb-2.5">Reference</div>
+        <p className="m-0 text-[13.5px] leading-[1.7] text-[color:var(--fg)]">
+          Ghosh, A., Reuel, A., Chim, J., Kennedy, W. M., et al. (2026). Evaluation Cards: An
+          Interpretive Layer for AI Evaluation Reporting.{" "}
+          <a
+            href={PAPER_URL}
+            target="_blank"
+            rel="noreferrer"
+            className="underline underline-offset-2"
+          >
+            arXiv:2606.09809
+          </a>
+          .
+        </p>
       </div>
       <CiteBlock bibtex={PAPER_BIBTEX} label="BibTeX · Evaluation Cards" />
 
@@ -78,8 +56,17 @@ export function CiteSection({ showCorrection = false }: { showCorrection?: boole
         >
           Every Eval Ever
         </a>{" "}
-        (EEE) is a sister project and one of the data sources that powers Evaluation Cards — please
-        show it some love and cite it too. 💜
+        (EEE) is a sister{" "}
+        <a
+          href="https://evalevalai.com/"
+          target="_blank"
+          rel="noreferrer"
+          className="text-[color:var(--fg)] underline underline-offset-2"
+        >
+          EvalEval
+        </a>{" "}
+        project and one of the data sources that powers Evaluation Cards — please show it some
+        love and cite it too. 💜
       </p>
       <CiteBlock bibtex={EEE_BIBTEX} label="BibTeX · Every Eval Ever" />
     </>

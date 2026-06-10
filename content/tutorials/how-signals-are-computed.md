@@ -2,7 +2,7 @@
 
 *The technical companion to the four interpretive signals. This formalizes how each one is calculated, the fields it depends on, and how it rolls up across the corpus. Adapted from Appendix H.1 of the paper.*
 
-> **See also:** the [About page](/about#four-interpretive-signals) explains what each signal means in plain language. This page is the precise definition behind it.
+> **See also:** the [Quickstart](/help/quickstart) introduces what each signal means in plain language. This page is the precise definition behind it.
 
 ---
 

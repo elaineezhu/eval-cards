@@ -50,7 +50,7 @@ Every result is rated on four simple ideas. You don't need the math — just the
 
 ---
 
-## How to read a model's "card"
+## How to read a model's page
 
 Let's walk through one.
 
@@ -59,15 +59,15 @@ Let's walk through one.
 > 🖼️ **Screenshot — `09-models-index.png`**
 > *What to capture:* The Models list page.
 
-**Step 2 — Open its card.** Each model gets an "Evaluation Card."
+**Step 2 — Open its page.** Each model has its own page.
 
 > 🖼️ **Screenshot — `13-card-summary-full.png`**
-> *What to capture:* A full model card in **Summary View**.
+> *What to capture:* A full model page in **Summary View**.
 
 **Step 3 — Look for the "Documented" number.** Near the top you'll see something like **"36% documented."** Higher means more of the test details were shared. A low number isn't a scandal — it's just telling you *"take these scores with a grain of salt; a lot wasn't disclosed."*
 
 > 🖼️ **Screenshot — `14-card-summary-top.png`**
-> *What to capture:* The top of a model card with the DOCUMENTED percentage.
+> *What to capture:* The top of a model page with the DOCUMENTED percentage.
 
 **Step 4 — See who did the testing.** Scroll to **"Who reports what."** A simple chart splits results into the **company's own** results vs **independent** ones.
 
@@ -75,6 +75,18 @@ Let's walk through one.
 > *What to capture:* The "Who reports what" chart (company vs. independent).
 
 That's it. You can stop there and already read these results more wisely than most headlines do.
+
+---
+
+## Looking up a test (benchmark)
+
+The **Evaluations** tab lists the tests (benchmarks) that models are scored on. Open one and the **At a glance** box explains, in plain terms, what the test checks, its main catch, and who it's for — so a name like "MMLU" stops being a mystery.
+
+> 🖼️ **Screenshot — `05-evals-index.png`**
+> *What to capture:* The Evaluations list of benchmark families.
+
+> 🖼️ **Screenshot — `27-eval-detail-card.png`**
+> *What to capture:* A benchmark's "At a glance" box — what it measures and its main caveat.
 
 ---
 

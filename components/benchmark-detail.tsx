@@ -2967,9 +2967,10 @@ export function BenchmarkDetail({
   ])
 
   // Effective view: honour the user's explicit pick; otherwise default to
-  // overlaps when this model has cross-suite overlaps, falling back to source
-  // when it has none (so models without overlaps don't open on an empty view).
-  const groupingMode = pickedGroupingMode ?? (overlapsRows.length > 0 ? "overlaps" : "source")
+  // source (the warehouse's natural shape — the full result set), so the
+  // Researcher view opens with the same evals the Summary view shows. Overlaps
+  // remains available via the grouping toggle.
+  const groupingMode = pickedGroupingMode ?? "source"
 
   // Per-(eval, metric) leaderboards sourced from comparison-index.json.
   const benchmarkHistograms = useMemo<Map<string, BenchmarkHistogram>>(() => {

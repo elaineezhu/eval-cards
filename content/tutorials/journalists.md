@@ -25,7 +25,7 @@ The project's framing is useful for reporters: a published score is a **claim**,
 
 A company claims "Model X leads on benchmark Y." Before you repeat it:
 
-**1. Find the model card.** Models → search.
+**1. Find the model page.** Models → search.
 
 > 🖼️ **Screenshot — `09-models-index.png`**
 > *What to capture:* The Models index.
@@ -38,9 +38,9 @@ A company claims "Model X leads on benchmark Y." Before you repeat it:
 **3. How documented is it?** The **`DOCUMENTED`** badge (e.g. "36% — 14/39 reported") tells you how much of the record is fully specified. A flashy score with weak documentation is a weak claim — worth a caveat.
 
 > 🖼️ **Screenshot — `14-card-summary-top.png`**
-> *What to capture:* The card header with the DOCUMENTED badge.
+> *What to capture:* The page header with the DOCUMENTED badge.
 
-**4. Is the comparison even valid?** The **Comparability** signal flags when two scores on the "same" benchmark used different slices, metrics, or units. "Beats the competition" headlines frequently fail this test.
+**4. Is the comparison even valid?** The **Comparability** signal flags when two scores on the "same" benchmark used different splits, metrics, or units. "Beats the competition" headlines frequently fail this test.
 
 **5. Was the relevant area tested at all?** Check **§2 Benchmark coverage**. If a safety/robustness claim has no corresponding evaluation, the absence is your story.
 
@@ -51,7 +51,7 @@ A company claims "Model X leads on benchmark Y." Before you repeat it:
 
 ## Finding who reported what (sourcing)
 
-Every score is attributed to its source document and reporting organization. Use the **Evaluations** page to explore a benchmark family and see which organizations reported results, and the model card's §4 to see the source harness behind each number.
+Every score is attributed to its source document and reporting organization. Use the **Evaluations** page to explore a benchmark family and see which organizations reported results, and the model page's §4 to see the source harness behind each number.
 
 > 🖼️ **Screenshot — `05-evals-index.png`**
 > *What to capture:* The Evaluations index (families with categories, benchmark and result counts).
@@ -66,9 +66,9 @@ This lets you write "according to [organization], reported in [source]" rather t
 ## Citing it correctly
 
 - **Cite the snapshot.** Every page is dated; the corpus is versioned and not retroactively edited. Write: *"per Evaluation Cards, snapshot [date]."*
-- **Use the stable identifier.** Each model has an ID like `ec/models/anthropic/claude-opus-4.7`. Link the card directly.
+- **Use the stable identifier.** Each model has an ID like `ec/models/anthropic/claude-opus-4.7`. Link the page directly.
 - **Attribute the evaluator,** not just the model: *"a third-party result reported by [org]"* vs *"the developer's own reported result."*
-- **Quote the number with its context** — the slice/metric and whether it's directly comparable.
+- **Quote the number with its context** — the split/metric and whether it's directly comparable.
 
 ---
 

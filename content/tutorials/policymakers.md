@@ -47,13 +47,13 @@ For policy, the headline score is rarely the decision-relevant variable. **The d
 
 ## First-party vs third-party: the independence check
 
-The single most useful view for governance is **§3 "Who reports what"** on any model card. It splits a model's results into:
+The single most useful view for governance is **§3 "Who reports what"** on any model page. It splits a model's results into:
 
 - **First-party** — produced by the model's own developer.
 - **Third-party** — produced independently.
 
 > 🖼️ **Screenshot — `17-card-who-reports.png`**
-> *What to capture:* The §3 "Who reports what" first-party vs third-party breakdown on a model card.
+> *What to capture:* The §3 "Who reports what" first-party vs third-party breakdown on a model page.
 
 In the captured example, a flagship model's record was **31% first-party / 69% third-party**, and some categories were *entirely* third-party or entirely first-party. A category with **no independent evaluations** is a place where policy should not lean on the numbers without seeking corroboration.
 
@@ -63,14 +63,14 @@ In the captured example, a flagship model's record was **31% first-party / 69% t
 
 Suppose you need to assess the evidence base for a specific model.
 
-1. **Open its card.** Models → search the model.
+1. **Open its page.** Models → search the model.
    > 🖼️ **Screenshot — `09-models-index.png`**
    > *What to capture:* The Models index list.
 
 2. **Read the `DOCUMENTED` badge** (e.g. "36% — 14 / 39 reported"). This is, at a glance, how much of the record is fully documented. Treat a low number as "claims that are hard to verify."
 
    > 🖼️ **Screenshot — `14-card-summary-top.png`**
-   > *What to capture:* The top of a model card showing the DOCUMENTED badge and the summary paragraph.
+   > *What to capture:* The top of a model page showing the DOCUMENTED badge and the summary paragraph.
 
 3. **Check §3 (Who reports what)** for independence, by category.
 
@@ -79,6 +79,18 @@ Suppose you need to assess the evidence base for a specific model.
    > *What to capture:* The §2 Benchmark coverage section.
 
 5. **Note the snapshot date.** The corpus is versioned; cite the date.
+
+---
+
+## Looking up a benchmark
+
+When a claim cites a specific benchmark ("scores X on a safety benchmark"), the **Evaluations** tab lets you check what that benchmark actually measures before you weigh the number. Each benchmark's **At a glance** card states what it tests, its main caveat, and who it's intended for, links to the source, and flags whether scores on it can be compared directly across reporters.
+
+> 🖼️ **Screenshot — `05-evals-index.png`**
+> *What to capture:* The Evaluations index — benchmark families with their categories and counts.
+
+> 🖼️ **Screenshot — `27-eval-detail-card.png`**
+> *What to capture:* A benchmark's "At a glance" card (what it measures, its caveat, and sources).
 
 ---
 

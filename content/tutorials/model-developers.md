@@ -19,7 +19,7 @@ A high benchmark number with weak signals reads as a weak claim. The good news: 
 
 ## Step 1 — Find your model (and your org)
 
-- **Models view** (`/models`): search for your model, filter by parameter range, and open its card.
+- **Models view** (`/models`): search for your model, filter by parameter range, and open its page.
 
   > 🖼️ **Screenshot — `09-models-index.png`**
   > *What to capture:* The Models index list.
@@ -31,29 +31,29 @@ A high benchmark number with weak signals reads as a weak claim. The good news: 
 
 ---
 
-## Step 2 — Read your card honestly
+## Step 2 — Read your page honestly
 
-Open your model's card in **Summary View**, then switch to **Researcher View** to see the per-result detail others will scrutinize.
+Open your model's page in **Summary View**, then switch to **Researcher View** to see the per-result detail others will scrutinize.
 
 > 🖼️ **Screenshot — `13-card-summary-full.png`**
-> *What to capture:* A full model card in Summary View.
+> *What to capture:* A full model page in Summary View.
 
 > 🖼️ **Screenshot — `19-card-researcher-full.png`**
-> *What to capture:* The same card after clicking **Researcher View**.
+> *What to capture:* The same page after clicking **Researcher View**.
 
 Three things to look at first:
 
 1. **The `DOCUMENTED` badge** (e.g. "36% — 14 / 39 reported"). This is the headline read on your reporting hygiene: how much of your reported record is fully specified. Treat a low number as a backlog, not a verdict.
 
    > 🖼️ **Screenshot — `14-card-summary-top.png`**
-   > *What to capture:* The card header with the DOCUMENTED badge.
+   > *What to capture:* The page header with the DOCUMENTED badge.
 
 2. **§1 Identification** — confirm the basics are right: model name, developer, release date, modalities, system ID. Errors here propagate everywhere.
 
    > 🖼️ **Screenshot — `15-card-identification.png`**
    > *What to capture:* The §1 Identification block.
 
-3. **§2 Benchmark coverage** — what categories are present, and where the **slice spread** is. Gaps here are visible to everyone reading your card.
+3. **§2 Benchmark coverage** — what categories are present, and where the **split spread** is. Gaps here are visible to everyone reading your page.
 
    > 🖼️ **Screenshot — `16-card-coverage.png`**
    > *What to capture:* The §2 Benchmark coverage section.
@@ -78,7 +78,7 @@ Completeness is judged relative to expectations for your model class. A strong *
 - ✅ If a category is intentionally out of scope, the absence will still show — consider documenting why.
 
 ### 👤 Provenance & Risk — *invite independent evaluation*
-Your card splits results into **first-party** (your own) vs **third-party** (independent), and maps results to **IBM Risk Atlas** risk domains. A category that is **entirely first-party** is a visible blind spot: impressive, but uncorroborated.
+Your page splits results into **first-party** (your own) vs **third-party** (independent), and maps results to **IBM Risk Atlas** risk domains. A category that is **entirely first-party** is a visible blind spot: impressive, but uncorroborated.
 
 > 🖼️ **Screenshot — `17-card-who-reports.png`**
 > *What to capture:* The §3 "Who reports what" first-party vs third-party breakdown.
@@ -87,12 +87,12 @@ Your card splits results into **first-party** (your own) vs **third-party** (ind
 - ✅ Don't expect self-reported numbers alone to carry weight with careful readers.
 
 ### ⚖️ Comparability — *report so your scores can be compared*
-The site flags when two scores on the same benchmark used different slices, metric variants, or units — which invalidates direct comparison.
+The site flags when two scores on the same benchmark used different splits, metric variants, or units — which invalidates direct comparison.
 
 > 🖼️ **Screenshot — `18-card-metrics.png`**
 > *What to capture:* The §4 Reported metrics section with benchmark charts.
 
-- ✅ Use the standard slices and metric definitions for each benchmark.
+- ✅ Use the standard splits and metric definitions for each benchmark.
 - ✅ State units explicitly; don't silently switch metric variants.
 - ✅ Use the **Evaluations** page to see how others report the same benchmark family.
 
@@ -107,7 +107,7 @@ The corpus follows **snapshot discipline**: no retroactive edits, only versioned
 
 - A number you published is attributed to its source document and tied to a dated snapshot — it won't be silently rewritten.
 - If something is genuinely wrong or missing, the path is a **correction in a future snapshot**, not an edit-in-place. Keep your own source documents stable and clearly dated so they can be cited cleanly.
-- Because nothing is imputed, the fastest way to improve your card is simply to **report more, and report it precisely** — the corpus will reflect it on the next snapshot.
+- Because nothing is imputed, the fastest way to improve your page is simply to **report more, and report it precisely** — the corpus will reflect it on the next snapshot.
 
 ---
 
@@ -117,11 +117,11 @@ Before your next model announcement, check that each headline benchmark claim sh
 
 - [ ] Harness name + version, and a link to runnable code/config
 - [ ] Decoding settings and seeds
-- [ ] The exact slice and metric (with units), matching how the benchmark is normally reported
+- [ ] The exact split and metric (with units), matching how the benchmark is normally reported
 - [ ] Coverage beyond capability — at least some safety / robustness / fairness results
 - [ ] At least one path to independent (third-party) evaluation for key claims
 - [ ] A stable, dated source document for every number
 
 Closing these is what moves your `DOCUMENTED` percentage — and turns marketing numbers into claims that hold up.
 
-➡️ Related: [Evaluation researchers](evaluation-researchers.md) (how researchers will scrutinize your card) · [Journalists](journalists.md) (how reporters will source your claims) · [Quickstart](quickstart.md).
+➡️ Related: [Evaluation researchers](evaluation-researchers.md) (how researchers will scrutinize your page) · [Journalists](journalists.md) (how reporters will source your claims) · [Quickstart](quickstart.md).
