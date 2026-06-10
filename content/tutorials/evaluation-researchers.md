@@ -23,7 +23,7 @@ Some of our next steps are aimed squarely at research use — including making *
 
 ## The Researcher View
 
-The model page has two modes, toggled top-right. **Summary View** is for orientation; **Researcher View** is where you work.
+The model page has two modes, toggled top-right. Use **Summary View** to get oriented, and **Researcher View** to do the actual work.
 
 > 🖼️ **Screenshot — `19-card-researcher-full.png`**
 > *What to capture:* A model page (e.g. `/models/anthropic/claude-opus-4.7`) after clicking **Researcher View** — show the expanded per-result detail.

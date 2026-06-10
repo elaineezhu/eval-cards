@@ -2,7 +2,7 @@
 
 *How to source AI benchmark claims accurately, cite them defensibly, and avoid the common overclaiming traps.*
 
-> **Prerequisite:** the [Quickstart](quickstart.md) (~10 min) covers the four signals and the snapshot model.
+> **Prerequisite:** the [Quickstart](quickstart.md) (~6 min) covers the four signals and the snapshot model.
 
 ---
 

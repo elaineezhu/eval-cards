@@ -2,15 +2,15 @@
 
 *How your model appears in the corpus, how to read what's documented vs. missing, and how to make your evaluation reporting stronger.*
 
-> **Prerequisite:** the [Quickstart](quickstart.md) (~10 min) covers the four signals, the five-level hierarchy, and the snapshot model.
+> **Prerequisite:** the [Quickstart](quickstart.md) (~6 min) covers the four signals, the five-level hierarchy, and the snapshot model.
 
 ---
 
 ## Why you should care how your model is carded
 
-Whatever you publish about your model's evaluations, Evaluation Cards re-presents it as a structured record alongside everyone else's — and, crucially, shows **what you did not disclose**. The project treats a published score as a **claim** and an undisclosed detail as **a claim deliberately not made** (not an error). That means your card is, in effect, a public read on how *legible* and *verifiable* your reporting is.
+Whatever you publish about your model's evaluations, Evaluation Cards re-presents it as a structured record alongside everyone else's, and also shows **what you did not disclose**. The project treats a published score as a **claim** and an undisclosed detail as **a claim deliberately not made** (not an error). That means your card is, in effect, a public read on how *legible* and *verifiable* your reporting is.
 
-A high benchmark number with weak signals reads as a weak claim. The good news: most of the gaps are cheap to close, and this guide is organized as a checklist for doing exactly that.
+A high benchmark number with weak signals reads as a weak claim. Most of those gaps are cheap to close, and this guide is a checklist for doing so.
 
 > 🖼️ **Screenshot — `01-home-overview.png`**
 > *What to capture:* The homepage with the corpus snapshot and the four signals.

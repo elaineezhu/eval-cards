@@ -2,7 +2,7 @@
 
 *How to read AI evaluation evidence for governance decisions — what it supports, and what it does not.*
 
-> **Prerequisite:** the [Quickstart](quickstart.md) explains the four signals and the snapshot model in ~10 minutes.
+> **Prerequisite:** the [Quickstart](quickstart.md) explains the four signals and the snapshot model in a few minutes.
 
 ---
 
@@ -10,7 +10,7 @@
 
 When a company says "our model scored X% on a safety benchmark," that is a **claim**, not an audited fact. Evaluation Cards exists to show you the *quality of the evidence* behind such claims: who produced it, whether it can be reproduced, and whether it can be fairly compared to anyone else's number.
 
-For policy, the headline score is rarely the decision-relevant variable. **The documentation and independence behind the score are.**
+For policy, the headline score is rarely the variable that matters — the documentation and independence behind it usually are.
 
 > 🖼️ **Screenshot — `01-home-overview.png`**
 > *What to capture:* The homepage with the corpus snapshot and the four signals.

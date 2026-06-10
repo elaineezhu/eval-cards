@@ -12,7 +12,7 @@ You don't need a technical background for this guide. If you've seen headlines l
 
 When companies build AI models, they run them through standardized tests called **benchmarks** (think: a standardized exam for AI). They then publish scores. But a score by itself — "92%" — leaves out a lot: Who gave the test? Under what conditions? Can anyone else get the same result? Were important topics even tested?
 
-Evaluation Cards collects these scores from across the industry and, crucially, shows you **what's missing** — so a polished number doesn't get mistaken for the full story.
+Evaluation Cards collects these scores from across the industry and also shows you **what's missing**, so a polished number doesn't get mistaken for the full story.
 
 > 🖼️ **Screenshot — `01-home-overview.png`**
 > *What to capture:* The homepage showing the totals (thousands of models and results).
