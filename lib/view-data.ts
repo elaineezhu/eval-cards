@@ -110,6 +110,10 @@ const MODEL_CELL_JOIN_COLUMNS = `
   CAST(to_json(r.source_data) AS VARCHAR) AS source_data,
   CAST(to_json(r.eval_library) AS VARCHAR) AS eval_library,
   CAST(to_json(r.evalcards_annotations) AS VARCHAR) AS evalcards_annotations,
+  r.is_multi_source,
+  r.first_party_only,
+  r.coverage_cell,
+  r.completeness_score,
   r.instance_file_path,
   r.is_verified_evaluator,
   e.evaluation_name AS eval_evaluation_name,
@@ -168,6 +172,10 @@ const EVAL_CELL_JOIN_COLUMNS = `
   CAST(to_json(r.eval_library) AS VARCHAR) AS eval_library,
   CAST(to_json(r.aggregate_components) AS VARCHAR) AS aggregate_components,
   CAST(to_json(r.evalcards_annotations) AS VARCHAR) AS evalcards_annotations,
+  r.is_multi_source,
+  r.first_party_only,
+  r.coverage_cell,
+  r.completeness_score,
   r.instance_file_path,
   r.is_verified_evaluator,
   e.evaluation_name AS eval_evaluation_name,
@@ -537,6 +545,42 @@ function modelInfoFromModelRow(row: Row): ModelInfo {
   }
 }
 
+// The view emits the group-level signal verdicts as flat columns
+// (is_multi_source / first_party_only / completeness_score — uniform across
+// the (model, benchmark, metric) group, see stage J), not inside the
+// evalcards_annotations struct. Fold them into the annotation blocks the
+// spec'd types declare so every annotations consumer sees one shape.
+function withGroupSignals(
+  annotations: RowAnnotations | undefined,
+  row: Row
+): RowAnnotations | undefined {
+  if (!annotations) return annotations
+  return {
+    ...annotations,
+    provenance: annotations.provenance
+      ? {
+          ...annotations.provenance,
+          is_multi_source:
+            row.is_multi_source == null
+              ? annotations.provenance.is_multi_source
+              : Boolean(row.is_multi_source),
+          first_party_only:
+            row.first_party_only == null
+              ? annotations.provenance.first_party_only
+              : Boolean(row.first_party_only),
+          coverage_cell:
+            row.coverage_cell == null
+              ? annotations.provenance.coverage_cell
+              : (String(row.coverage_cell) as "both" | "self" | "third"),
+        }
+      : annotations.provenance,
+    reporting_completeness:
+      row.completeness_score == null
+        ? annotations.reporting_completeness
+        : { completeness_score: Number(row.completeness_score) },
+  }
+}
+
 function resultFromCell(row: Row): EvaluationResult {
   const scoreDetails = scoreDetailsFromRow(row)
   // model_info / generation_config / source_metadata / ... all arrive
@@ -546,7 +590,10 @@ function resultFromCell(row: Row): EvaluationResult {
   // it passes through unchanged when the value is already an object
   // (legacy snapshots / future binding fixes).
   const generationConfig = parseMaybeJson(row.generation_config) as GenerationConfig | undefined
-  const annotations = parseMaybeJson(row.evalcards_annotations) as RowAnnotations | undefined
+  const annotations = withGroupSignals(
+    parseMaybeJson(row.evalcards_annotations) as RowAnnotations | undefined,
+    row
+  )
 
   return {
     evaluation_name: asString(row.metric_display_name ?? row.eval_evaluation_name ?? row.metric_id, "Score"),

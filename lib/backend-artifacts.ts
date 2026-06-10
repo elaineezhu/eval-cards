@@ -31,12 +31,19 @@ export interface BackendManifestStatus {
 // EvalCards interpretive signals v1.0
 // ---------------------------------------------------------------------------
 
+// NOTE: the view layer currently emits `populated_count`/`required_count`
+// and no `has_reproducibility_gap` boolean — the spec'd field names below
+// are what the backend SHOULD emit (INTERPRETIVE_SIGNALS.md) but does not
+// yet. Consumers must treat all of these as possibly absent and derive the
+// gap from `missing_fields` until the producer catches up.
 export interface ReproducibilityGap {
-  has_reproducibility_gap: boolean
+  has_reproducibility_gap?: boolean
   missing_fields: string[]
-  required_field_count: number
-  populated_field_count: number
-  signal_version: string
+  required_field_count?: number
+  populated_field_count?: number
+  required_count?: number
+  populated_count?: number
+  signal_version?: string
 }
 
 export type ProvenanceSourceType =
@@ -45,12 +52,22 @@ export type ProvenanceSourceType =
   | "collaborative"
   | "unspecified"
 
+// Same caveat: the view layer emits `source_type`/`evaluator_relationship`/
+// `organization_name` only; the group-level flags are spec'd but not yet
+// produced — treat as possibly absent.
 export interface Provenance {
   source_type: ProvenanceSourceType
-  is_multi_source: boolean
-  first_party_only: boolean
-  distinct_reporting_organizations: number
-  signal_version: string
+  evaluator_relationship?: string
+  organization_name?: string | null
+  is_multi_source?: boolean
+  first_party_only?: boolean
+  // Group-level evaluator coverage across all sources of the (model,
+  // benchmark, metric) group: 'both' parties reported, only 'self'
+  // (first-party), or only 'third'. Folded in from the view's flat
+  // coverage_cell column (see view-data.ts withGroupSignals).
+  coverage_cell?: "both" | "self" | "third" | null
+  distinct_reporting_organizations?: number
+  signal_version?: string
 }
 
 export type DivergenceThresholdBasis =
@@ -97,6 +114,10 @@ export interface RowAnnotations {
   provenance: Provenance | null
   variant_divergence: VariantDivergence | null
   cross_party_divergence: CrossPartyDivergence | null
+  // Folded in client-side from the view's flat completeness_score column
+  // (group-level C(b) per the paper's 28-field scoring) — see
+  // view-data.ts withGroupSignals. Not part of the producer's struct.
+  reporting_completeness?: Pick<ReportingCompleteness, "completeness_score"> | null
 }
 
 export interface ReportingCompleteness {

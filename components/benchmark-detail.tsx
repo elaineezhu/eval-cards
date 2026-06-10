@@ -18,15 +18,15 @@ import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } f
 import { Input } from "@/components/ui/input"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import {
-  ProvenanceBadge,
   getRelationshipBadgeTone,
   getRelationshipDisplayName,
   getRelationshipShortLabel,
 } from "@/components/signals/provenance-badge"
-import { ReproducibilityBadge } from "@/components/signals/reproducibility-badge"
+import { RowFlagSquares } from "@/components/signals/flag-squares"
 import { SignalsRowBadges } from "@/components/signals/signals-row-badges"
 import { SignalTooltip } from "@/components/signals/signal-tooltip"
 import { VerifiedBadge } from "@/components/signals/verified-badge"
+import { isRecognizedEvaluator } from "@/lib/evaluators"
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -5335,11 +5335,6 @@ export function BenchmarkDetail({
                           const notReported = (
                             <span className="text-[color:var(--fg-subtle)]">not reported</span>
                           )
-                          const hasRepro = Boolean(
-                            app.annotations?.reproducibility_gap?.has_reproducibility_gap,
-                          )
-                          const provType = app.annotations?.provenance?.source_type
-                          const hasProv = provType != null && provType !== "unspecified"
                           return (
                             <div
                               key={`${row.canonicalKey}::${app.familyKey}::${app.evalSummaryId}`}
@@ -5378,18 +5373,7 @@ export function BenchmarkDetail({
                                 {app.maxTokens != null ? app.maxTokens : notReported}
                               </div>
                               <div className="flex flex-wrap items-center gap-1">
-                                {hasRepro || hasProv ? (
-                                  <>
-                                    <ReproducibilityBadge
-                                      gap={app.annotations?.reproducibility_gap}
-                                    />
-                                    <ProvenanceBadge
-                                      provenance={app.annotations?.provenance}
-                                    />
-                                  </>
-                                ) : (
-                                  <span className="text-[color:var(--fg-subtle)]">—</span>
-                                )}
+                                <RowFlagSquares annotations={app.annotations} />
                               </div>
                             </div>
                           )
@@ -9478,7 +9462,13 @@ function CategoryStatsView({
                       </div>
                       <div className="flex items-center gap-1.5 font-mono font-semibold">
                         {formatRawScoreValue(result.score_details.score, result.metric_config.unit)}
-                        <VerifiedBadge verified={result.is_verified_evaluator} />
+                        <VerifiedBadge
+                          verified={result.is_verified_evaluator}
+                          recognized={isRecognizedEvaluator(
+                            eval_.source_metadata?.source_name
+                              ?? eval_.source_metadata?.source_organization_name,
+                          )}
+                        />
                       </div>
                     </div>
                   ))
