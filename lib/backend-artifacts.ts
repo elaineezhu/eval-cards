@@ -432,6 +432,11 @@ export interface ComparisonScoreEntry {
   headline_run_kind?: SubmissionAxis
   headline_run_label?: string
   submissions?: ComparisonSubmission[]
+  /** Generation params from the headline run's generation config. Optional:
+   *  absent on snapshots produced before the fields shipped, null when the
+   *  source never reported them. */
+  temperature?: number | null
+  max_tokens?: number | null
 }
 
 export interface ComparisonMetricEntry {
@@ -475,7 +480,9 @@ export interface ComparisonIndex {
   config_version: number
   metric_group_order: MetricGroup[]
   evals: Record<string, ComparisonEvalEntry>
-  by_model: Record<string, Record<string, Record<string, ComparisonByModelEntry>>>
+  /** Per-model score acceleration map. Optional — slated for removal from the
+   *  producer; consumers must fall back to the per-metric scores[] scan. */
+  by_model?: Record<string, Record<string, Record<string, ComparisonByModelEntry>>>
 }
 
 // ---------------------------------------------------------------------------

@@ -495,6 +495,7 @@ export interface HFEvalDetail extends SignalSummaries {
   benchmark_leaf_name: string
   benchmark_parent_key?: string
   benchmark_parent_name?: string
+  parent_benchmark_display_name?: string
   category: string
   source_data: SourceData
   benchmark_card: BenchmarkCard | null
@@ -577,6 +578,7 @@ export interface HFModelHierarchyNode {
   benchmark_family_name: string
   benchmark_parent_key: string
   benchmark_parent_name: string
+  parent_benchmark_display_name?: string
   benchmark_leaf_key: string
   benchmark_leaf_name: string
   benchmark_component_key?: string | null

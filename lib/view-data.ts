@@ -125,6 +125,26 @@ const MODEL_CELL_JOIN_COLUMNS = `
   e.is_summary_score AS eval_is_summary_score
 `
 
+// parent_benchmark_display_name is additive (2026-06 producer): the actual
+// display name of a slice row's parent benchmark, NULL for non-slice rows.
+// Distinct from composite_display_name, which for cross-benchmark suites is
+// the SUITE label. Older snapshots don't carry the column, and a missing
+// column binder-errors the whole query, so callers probe `evalsViewHas
+// ParentDisplayName()` and splice in a NULL alias when absent.
+function evalListColumns(hasParentDisplayName: boolean) {
+  return `${EVAL_LIST_COLUMNS},
+  ${hasParentDisplayName
+    ? "parent_benchmark_display_name"
+    : "CAST(NULL AS VARCHAR) AS parent_benchmark_display_name"}`
+}
+
+function modelCellJoinColumns(hasParentDisplayName: boolean) {
+  return `${MODEL_CELL_JOIN_COLUMNS},
+  ${hasParentDisplayName
+    ? "e.parent_benchmark_display_name"
+    : "CAST(NULL AS VARCHAR)"} AS eval_parent_benchmark_display_name`
+}
+
 const EVAL_CELL_JOIN_COLUMNS = `
   r.evaluation_id,
   r.metric_summary_id,
@@ -593,7 +613,12 @@ function reshapeCellToBenchmarkEvaluation(row: Row): BenchmarkEvaluation {
     family_id: optionalString(row.eval_family_id),
     benchmark_family_name: optionalString(row.eval_family_display_name),
     parent_benchmark_id: optionalString(row.eval_parent_benchmark_id),
-    benchmark_parent_name: optionalString(row.eval_composite_benchmark_name),
+    parent_benchmark_display_name: optionalString(row.eval_parent_benchmark_display_name),
+    // Prefer the real parent display name; older snapshots only ship the
+    // composite/suite label, which mislabels cross-benchmark suites.
+    benchmark_parent_name:
+      optionalString(row.eval_parent_benchmark_display_name) ??
+      optionalString(row.eval_composite_benchmark_name),
     benchmark_leaf_name: optionalString(row.eval_evaluation_name),
     is_slice: Boolean(row.eval_is_slice),
     is_summary_score: Boolean(row.eval_is_summary_score ?? row.is_summary_score),
@@ -681,12 +706,34 @@ function modelSummaryFromRows(modelRow: Row, cellRows: Row[]): ModelEvaluationSu
   }
 }
 
+// Probe (once per process) whether the loaded snapshot's evals_view carries
+// the additive parent_benchmark_display_name column, so projections degrade
+// to a NULL alias on older snapshots instead of binder-erroring the query.
+let evalsViewParentDisplayNameCache: boolean | undefined
+async function evalsViewHasParentDisplayName(): Promise<boolean> {
+  if (evalsViewParentDisplayNameCache === undefined) {
+    try {
+      const columns = await readRows<{ column_name: string }>("DESCRIBE evals_view")
+      evalsViewParentDisplayNameCache = columns.some(
+        (column) => column.column_name === "parent_benchmark_display_name"
+      )
+    } catch {
+      // Probe failed (e.g. connection init blip) — don't cache, so the next
+      // request re-probes; the data query that follows surfaces the real
+      // error if the connection is genuinely broken.
+      return false
+    }
+  }
+  return evalsViewParentDisplayNameCache
+}
+
 async function getModelEvaluationRows(modelKey: string): Promise<Row[]> {
+  const hasParentDisplayName = await evalsViewHasParentDisplayName()
   // model_key is the producer's addressable identifier — non-null for both
   // resolved and unresolved models (the latter fall back to the raw source
   // name). Querying by model_id alone would silently miss unresolved models.
   return readRows<Row>(
-    `SELECT ${MODEL_CELL_JOIN_COLUMNS}
+    `SELECT ${modelCellJoinColumns(hasParentDisplayName)}
      FROM eval_results_view r
      LEFT JOIN evals_view e ON r.evaluation_id = e.evaluation_id
      WHERE r.model_key = ?
@@ -719,9 +766,10 @@ export async function getEvalListData(): Promise<{
   evals: BenchmarkEvalListItem[]
   totalModels: number
 }> {
+  const hasParentDisplayName = await evalsViewHasParentDisplayName()
   const [evalRows, countRows] = await Promise.all([
     readRows<BenchmarkEvalListItem & { benchmark_card?: unknown }>(
-      `SELECT ${EVAL_LIST_COLUMNS}
+      `SELECT ${evalListColumns(hasParentDisplayName)}
        FROM evals_view
        ORDER BY evaluation_name ASC`
     ),
@@ -853,7 +901,7 @@ export async function getEvalSummaryById(evalId: string): Promise<BenchmarkEvalS
   // populated. A bare `SELECT *` returns the raw v2 column names which
   // leaves the legacy fields NULL on the deserialised summary.
   const evalRows = await readRows<Row>(
-    `SELECT ${EVAL_LIST_COLUMNS}
+    `SELECT ${evalListColumns(await evalsViewHasParentDisplayName())}
      FROM evals_view
      WHERE evaluation_id = ?
      LIMIT 1`,

@@ -18,10 +18,12 @@ import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } f
 import { Input } from "@/components/ui/input"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import {
+  ProvenanceBadge,
   getRelationshipBadgeTone,
   getRelationshipDisplayName,
   getRelationshipShortLabel,
 } from "@/components/signals/provenance-badge"
+import { ReproducibilityBadge } from "@/components/signals/reproducibility-badge"
 import { SignalsRowBadges } from "@/components/signals/signals-row-badges"
 import { SignalTooltip } from "@/components/signals/signal-tooltip"
 import { VerifiedBadge } from "@/components/signals/verified-badge"
@@ -56,6 +58,13 @@ import type {
   SubmissionAxis,
 } from "@/lib/backend-artifacts"
 import { fetchPeerRanks } from "@/lib/dashboard-data-client"
+import {
+  buildOverlapRows,
+  countMultiSourceRows,
+  type OverlapRow,
+  type OverlapSummaryCandidate,
+  type OverlapSummaryJoinRow,
+} from "@/lib/overlaps"
 import { ModelPolicyOverview } from "@/components/model-policy-overview"
 import { buildModelPolicySummary } from "@/lib/policy-summaries"
 import {
@@ -1604,8 +1613,20 @@ function buildBenchmarkGroups(
       if (!sourcePrefix) return null
       return `${sourcePrefix}%2F${entry.evaluation.parent_benchmark_id}`
     })()
+    // benchmark_parent_name carries the producer's real parent display name
+    // when the snapshot ships parent_benchmark_display_name; on older
+    // snapshots it falls back to the composite display name, which for
+    // cross-benchmark suites (llm-stats) is the SUITE label, not the parent
+    // benchmark — so still prefer the family display name when the family
+    // root is the parent itself (air-bench, tau2-bench, mmmu hit this path).
+    const sliceParentDisplayName =
+      isFoldableSlice &&
+      entry.evaluation.family_id === entry.evaluation.parent_benchmark_id
+        ? entry.evaluation.benchmark_family_name
+        : undefined
     const title = isFoldableSlice
-      ? (entry.evaluation.benchmark_parent_name ||
+      ? (sliceParentDisplayName ||
+          entry.evaluation.benchmark_parent_name ||
           entry.evaluation.parent_benchmark_id ||
           entry.evaluation.display_name ||
           entry.evaluation.benchmark ||
@@ -1860,6 +1881,15 @@ export function BenchmarkDetail({
   // derived from the data (overlaps when this model has any cross-suite
   // overlaps, else source) — see `groupingMode` just after `overlapsRows`.
   const [pickedGroupingMode, setGroupingMode] = useState<"source" | "category" | "overlaps" | null>(null)
+  const [overlapsFilter, setOverlapsFilter] = useState<"all" | "multi">("all")
+  const [expandedOverlapRows, setExpandedOverlapRows] = useState<Set<string>>(new Set())
+  const toggleOverlapRow = (key: string) =>
+    setExpandedOverlapRows((prev) => {
+      const next = new Set(prev)
+      if (next.has(key)) next.delete(key)
+      else next.add(key)
+      return next
+    })
   const [expandedFamilies, setExpandedFamilies] = useState<Set<string>>(new Set())
   const toggleFamily = (key: string) =>
     setExpandedFamilies((prev) => {
@@ -2523,31 +2553,6 @@ export function BenchmarkDetail({
     rowDisposition: Map<string, RowDisposition>
   }
 
-  // OverlapsRow types and the useMemo that builds the data live further
-  // down — they need `currentModelRouteId` and `currentModelIdentityKeys`.
-  type OverlapAppearance = {
-    familyKey: string
-    familyName: string
-    evalSummaryId: string
-    metricSummaryId: string
-    metricName: string
-    score: number
-    displayScore: string
-    unit: string | null
-  }
-  type OverlapRow = {
-    canonicalKey: string
-    canonicalDisplayName: string
-    appearances: OverlapAppearance[]
-    mean: number
-    stddev: number
-    min: number
-    max: number
-    ci95: { low: number; high: number } | null
-    /** Tagged 0-1 (proportion) vs 0-100 (percent) — drives display. */
-    isPercentScale: boolean
-  }
-
   const compositeGroups = useMemo(() => {
     const groups = groupByComposite(filteredBenchmarkGroups, modelIds, peerRanks, hierarchyIndex)
     // Re-sort composites by max relevance of their benchmarks
@@ -2775,195 +2780,78 @@ export function BenchmarkDetail({
     return id ? encodeURIComponent(id) : ""
   }, [summary])
 
-  // Cross-suite overlaps: walk `benchmark_index[]` (already pre-filtered by
-  // `cleanHierarchy` to canonicals appearing in ≥2 distinct families) and
-  // resolve this model's score in each appearance via `comparisonIndex`.
-  // Aggregate per canonical with mean, SD, and 95% CI from Student's-t
-  // (df=N-1). N=2 widths are very wide on purpose: with two samples we
-  // genuinely don't know the spread, and surfacing that beats fake
-  // precision.
+  // Inputs for the overlaps builder sourced from the model's own summary
+  // payload: one candidate per benchmark group (merged in when the benchmark
+  // has no benchmark_index entry) and one join row per result row (backfills
+  // generation params / annotations onto comparison-index appearances).
+  const overlapSummaryInputs = useMemo(() => {
+    const candidates: OverlapSummaryCandidate[] = []
+    const joinRows: OverlapSummaryJoinRow[] = []
+    for (const group of benchmarkGroups) {
+      const ids: string[] = []
+      for (const variant of group.variants) {
+        const id = variant.evaluation.eval_summary_id
+        if (!id) continue
+        if (!ids.includes(id)) ids.push(id)
+        const gc = variant.result.generation_config ?? variant.evaluation.generation_config
+        joinRows.push({
+          evalSummaryId: id,
+          temperature: gc?.generation_args?.temperature ?? null,
+          maxTokens: gc?.generation_args?.max_tokens ?? null,
+          annotations: variant.result.evalcards?.annotations ?? null,
+        })
+      }
+      const primary = group.variants[0]
+      if (!primary) continue
+      const score = primary.result.score_details.score
+      if (!Number.isFinite(score)) continue
+      const gc = primary.result.generation_config ?? primary.evaluation.generation_config
+      candidates.push({
+        groupKey: group.key,
+        displayName: group.title,
+        evalSummaryIds: ids,
+        familyKey:
+          primary.evaluation.family_id ??
+          primary.evaluation.source_metadata.source_organization_name ??
+          "source",
+        familyName:
+          primary.evaluation.benchmark_family_name ||
+          getOrganizationDisplayName(primary.evaluation.source_metadata.source_organization_name),
+        score,
+        unit: primary.result.metric_config.unit ?? null,
+        metricSummaryId: primary.result.metric_summary_id ?? "",
+        metricName: primary.metricLabel,
+        temperature: gc?.generation_args?.temperature ?? null,
+        maxTokens: gc?.generation_args?.max_tokens ?? null,
+        annotations: primary.result.evalcards?.annotations ?? null,
+      })
+    }
+    return { candidates, joinRows }
+  }, [benchmarkGroups])
+
+  // Cross-suite overlaps table data — see lib/overlaps.ts for the row
+  // semantics (multi-family rows via benchmark_index + comparison-index,
+  // single-family rows merged from the summary payload, stats, dedup).
   const overlapsRows = useMemo<OverlapRow[]>(() => {
-    if (!evalHierarchy?.benchmark_index || !comparisonIndex) return []
     const familyDisplayByKey = new Map<string, string>()
-    for (const fam of evalHierarchy.families ?? []) {
+    for (const fam of evalHierarchy?.families ?? []) {
       familyDisplayByKey.set(fam.key, fam.display_name)
     }
-    const byModel = comparisonIndex.by_model[currentModelRouteId] ?? {}
-    const lookupModelScore = (
-      evalId: string,
-      metric: ComparisonMetricEntry,
-    ): number | null => {
-      const cell = byModel[evalId]?.[metric.metric_summary_id]
-      if (cell != null && Number.isFinite(cell.score)) return cell.score
-      for (const row of metric.scores) {
-        if (
-          currentModelIdentityKeys.has(row.model_route_id) ||
-          currentModelIdentityKeys.has(row.model_group_id)
-        ) {
-          if (Number.isFinite(row.score)) return row.score
-        }
-      }
-      return null
-    }
-    const tCrit95: Record<number, number> = {
-      1: 12.706, 2: 4.303, 3: 3.182, 4: 2.776, 5: 2.571,
-      6: 2.447, 7: 2.365, 8: 2.306, 9: 2.262, 10: 2.228,
-      15: 2.131, 20: 2.086, 29: 2.045,
-    }
-    const tFor = (df: number): number => {
-      if (df <= 0) return 12.706
-      if (df >= 30) return 2.0
-      const known = [29, 20, 15, 10, 9, 8, 7, 6, 5, 4, 3, 2, 1]
-      for (const k of known) if (df >= k) return tCrit95[k]
-      return 12.706
-    }
-    const out: OverlapRow[] = []
-    for (const entry of evalHierarchy.benchmark_index) {
-      const bestPerFamily = new Map<string, OverlapAppearance>()
-      for (const appearance of entry.appearances ?? []) {
-        const familyKey = appearance.family_key
-        const familyName = familyDisplayByKey.get(familyKey) ?? familyKey
-        for (const evalId of appearance.constituent_evaluation_ids ?? []) {
-          const evalEntry = comparisonIndex.evals[evalId]
-          if (!evalEntry) continue
-          const targetMetric =
-            evalEntry.metrics.find(
-              (m) =>
-                !isStderrMetricId(m.metric_summary_id) &&
-                /accuracy|score|exact|pass|win|mean/i.test(m.metric_name ?? ""),
-            ) ??
-            evalEntry.metrics.find((m) => !isStderrMetricId(m.metric_summary_id)) ??
-            evalEntry.metrics[0]
-          if (!targetMetric) continue
-          const score = lookupModelScore(evalId, targetMetric)
-          if (score == null || !Number.isFinite(score)) continue
-          const unit = targetMetric.unit ?? null
-          const isPercent = (unit ?? "").toLowerCase().match(/percent|%|pct/) != null
-          const display = isPercent || score > 1.5
-            ? `${score.toFixed(1)}%`
-            : `${(score * 100).toFixed(1)}%`
-          if (!bestPerFamily.has(familyKey)) {
-            bestPerFamily.set(familyKey, {
-              familyKey,
-              familyName,
-              evalSummaryId: evalId,
-              metricSummaryId: targetMetric.metric_summary_id,
-              metricName: targetMetric.metric_name ?? "",
-              score,
-              displayScore: display,
-              unit,
-            })
-          }
-        }
-      }
-      // Two-stage dedup:
-      //   1. Drop duplicate constituent_evaluation_ids — benchmark_index can list
-      //      the same eval under multiple family_keys (e.g.
-      //      `artificial-analysis-llms/mmlu-pro` is listed under both
-      //      `artificial-analysis` and `mmlu`), but that's the same
-      //      observation, not two independent reports.
-      //   2. Aggregator-only score dedup — llm-stats republishes
-      //      canonical sources' numbers, so when its score byte-equals
-      //      an independent evaluator's we drop the llm-stats copy. Two
-      //      independent evaluators that happen to arrive at the same
-      //      number are KEPT — confirming signal, not duplicate data.
-      const allRaw = Array.from(bestPerFamily.values())
-      const isAggregator = (familyKey: string) => familyKey === "llm-stats"
-      const seenEvalIds = new Set<string>()
-      const distinctByEvalId: OverlapAppearance[] = []
-      for (const c of allRaw) {
-        if (seenEvalIds.has(c.evalSummaryId)) continue
-        seenEvalIds.add(c.evalSummaryId)
-        distinctByEvalId.push(c)
-      }
-      // Process non-aggregators first so their scores populate the
-      // seen-set before any llm-stats appearance gets a chance to claim
-      // the score.
-      distinctByEvalId.sort((a, b) => {
-        const aAgg = isAggregator(a.familyKey) ? 1 : 0
-        const bAgg = isAggregator(b.familyKey) ? 1 : 0
-        return aAgg - bAgg
-      })
-      const seenScores = new Set<number>()
-      const collected: OverlapAppearance[] = []
-      for (const c of distinctByEvalId) {
-        if (isAggregator(c.familyKey) && seenScores.has(c.score)) continue
-        seenScores.add(c.score)
-        collected.push(c)
-      }
-      if (collected.length < 2) continue
-
-      const highCount = collected.filter((c) => Math.abs(c.score) > 1.5).length
-      const lowCount = collected.length - highCount
-      const useHigh = highCount >= lowCount
-      const scaled = collected.map((c) => {
-        const isHigh = Math.abs(c.score) > 1.5
-        const score = useHigh
-          ? isHigh ? c.score : c.score * 100
-          : isHigh ? c.score / 100 : c.score
-        return { ...c, score }
-      })
-      const scores = scaled.map((s) => s.score)
-      const mean = scores.reduce((a, b) => a + b, 0) / scores.length
-      const variance = scores.length > 1
-        ? scores.reduce((a, b) => a + (b - mean) ** 2, 0) / (scores.length - 1)
-        : 0
-      const stddev = Math.sqrt(variance)
-      const ci95 = scores.length >= 2
-        ? {
-            low: mean - tFor(scores.length - 1) * (stddev / Math.sqrt(scores.length)),
-            high: mean + tFor(scores.length - 1) * (stddev / Math.sqrt(scores.length)),
-          }
-        : null
-      out.push({
-        canonicalKey: entry.key,
-        canonicalDisplayName: entry.display_name,
-        appearances: scaled.sort((a, b) => b.score - a.score),
-        mean,
-        stddev,
-        min: Math.min(...scores),
-        max: Math.max(...scores),
-        ci95,
-        isPercentScale: useHigh,
-      })
-    }
-    // Row-level dedup: when two benchmark_index entries resolve to the
-    // exact same set of (familyKey, score) appearances, they're aliases
-    // of the same canonical (e.g. AIME vs aime-2025 both resolving to
-    // {Vals.ai 12.9%, Artificial Analysis 11.7%}). Collapse to one row.
-    // Tie-break on the shorter / cleaner canonical key — the longer
-    // alias is usually the year-suffixed or otherwise-disambiguated
-    // variant.
-    const dedupSig = (row: OverlapRow) =>
-      row.appearances
-        .map((a) => `${a.familyKey}::${a.score.toFixed(8)}`)
-        .sort()
-        .join("|")
-    const bestBySig = new Map<string, OverlapRow>()
-    for (const row of out) {
-      const sig = dedupSig(row)
-      const prev = bestBySig.get(sig)
-      if (
-        !prev ||
-        row.canonicalKey.length < prev.canonicalKey.length ||
-        (row.canonicalKey.length === prev.canonicalKey.length &&
-          row.canonicalDisplayName.localeCompare(prev.canonicalDisplayName) < 0)
-      ) {
-        bestBySig.set(sig, row)
-      }
-    }
-    const deduped = Array.from(bestBySig.values())
-    deduped.sort(
-      (a, b) =>
-        b.appearances.length - a.appearances.length ||
-        a.canonicalDisplayName.localeCompare(b.canonicalDisplayName),
-    )
-    return deduped
+    return buildOverlapRows({
+      benchmarkIndex: evalHierarchy?.benchmark_index,
+      comparisonIndex,
+      currentModelRouteId,
+      currentModelIdentityKeys,
+      familyDisplayByKey,
+      summaryCandidates: overlapSummaryInputs.candidates,
+      summaryJoinRows: overlapSummaryInputs.joinRows,
+    })
   }, [
     evalHierarchy,
     comparisonIndex,
     currentModelRouteId,
     currentModelIdentityKeys,
+    overlapSummaryInputs,
   ])
 
   // Effective view: honour the user's explicit pick; otherwise default to
@@ -2971,6 +2859,23 @@ export function BenchmarkDetail({
   // source when it has none so the section never opens empty. Source remains
   // one click away for the full result set.
   const groupingMode = pickedGroupingMode ?? (overlapsRows.length > 0 ? "overlaps" : "source")
+
+  // Overlaps rows after the Show toggle + search box — shared by the §4
+  // header count and the overlaps table so the two never disagree.
+  const visibleOverlapsRows = useMemo(() => {
+    const query = benchmarkSearch.trim().toLowerCase()
+    const toggled =
+      overlapsFilter === "multi"
+        ? overlapsRows.filter((r) => r.appearances.length >= 2)
+        : overlapsRows
+    if (!query) return toggled
+    return toggled.filter(
+      (r) =>
+        r.canonicalDisplayName.toLowerCase().includes(query) ||
+        r.canonicalKey.toLowerCase().includes(query) ||
+        r.appearances.some((a) => a.familyName.toLowerCase().includes(query)),
+    )
+  }, [overlapsRows, overlapsFilter, benchmarkSearch])
 
   // Per-(eval, metric) leaderboards sourced from comparison-index.json.
   const benchmarkHistograms = useMemo<Map<string, BenchmarkHistogram>>(() => {
@@ -2992,7 +2897,7 @@ export function BenchmarkDetail({
     }
 
     const byModelForCurrent =
-      comparisonIndex.by_model[currentModelRouteId] ?? {}
+      comparisonIndex.by_model?.[currentModelRouteId] ?? {}
 
     for (const evalId of wantedEvalIds) {
       const evalEntry = comparisonIndex.evals[evalId]
@@ -3894,7 +3799,7 @@ export function BenchmarkDetail({
       // whisker fires even when the by_model lookup misses: scan the
       // sibling metric's `scores[]` and accept any row whose route or family
       // id is in `currentModelIdentityKeys`.
-      const byModel = comparisonIndex.by_model[currentModelRouteId] ?? {}
+      const byModel = comparisonIndex.by_model?.[currentModelRouteId] ?? {}
       const familyDisplayByKey = new Map<string, string>()
       for (const fam of evalHierarchy?.families ?? []) {
         familyDisplayByKey.set(fam.key, fam.display_name)
@@ -5088,7 +4993,9 @@ export function BenchmarkDetail({
           </h2>
           <div className="flex items-center gap-3">
             <span className="font-mono text-[10px] uppercase tracking-[0.15em] text-[color:var(--fg-subtle)]">
-              {isResearchView ? `${filteredBenchmarkGroups.length} shown` : `${benchmarkGroups.length} reported`}
+              {isResearchView
+                ? `${groupingMode === "overlaps" ? visibleOverlapsRows.length : filteredBenchmarkGroups.length} shown`
+                : `${benchmarkGroups.length} reported`}
             </span>
             {!embedReportedMetricsOnly && (
               <EmbedButton
@@ -5144,7 +5051,7 @@ export function BenchmarkDetail({
         {isResearchView && !embedReportedMetricsOnly && (
           <p className="text-[14px] leading-[1.7] text-[color:var(--fg-muted)] max-w-[64rem] mb-6">
             {groupingMode === "overlaps"
-              ? "Cross-suite overlaps — benchmarks this model reports under more than one suite, with the mean and 95% CI across appearances. Each source links through to its eval. Switch to Source or Category for the full result set."
+              ? "One row per benchmark, with the mean and 95% CI across this model's appearances when more than one suite reports it. Expand a row for per-source scores, generation settings, and flags. Filter to Overlaps only for cross-suite duplicates."
               : groupingMode === "category"
                 ? "Every reported result, regrouped under curated category tags so similar benchmarks cluster across families."
                 : "Every reported result in the warehouse's natural shape — family-rooted plots and accordions, with no cross-family collapse."}
@@ -5308,19 +5215,36 @@ export function BenchmarkDetail({
           </div>
         )}
 
+        {groupingMode === "overlaps" && overlapsRows.length > 0 && (
+          <div className="mb-5 flex flex-wrap items-center gap-2">
+            <span className="kicker mr-2">Show</span>
+            <button
+              type="button"
+              onClick={() => setOverlapsFilter("all")}
+              className={`ec-pill ${overlapsFilter === "all" ? "on" : ""}`}
+            >
+              All ({overlapsRows.length})
+            </button>
+            <button
+              type="button"
+              onClick={() => setOverlapsFilter("multi")}
+              className={`ec-pill ${overlapsFilter === "multi" ? "on" : ""}`}
+            >
+              Overlaps only ({countMultiSourceRows(overlapsRows)})
+            </button>
+          </div>
+        )}
+
         {groupingMode === "overlaps" ? (() => {
           const query = benchmarkSearch.trim().toLowerCase()
-          const visibleOverlaps = query
-            ? overlapsRows.filter(
-                (r) =>
-                  r.canonicalDisplayName.toLowerCase().includes(query) ||
-                  r.canonicalKey.toLowerCase().includes(query) ||
-                  r.appearances.some((a) => a.familyName.toLowerCase().includes(query)),
-              )
-            : overlapsRows
+          const visibleOverlaps = visibleOverlapsRows
           return visibleOverlaps.length === 0 ? (
             <div className="border border-dashed border-[color:var(--border-soft)] bg-[color:var(--bg-warm)] py-12 px-6 text-center font-mono text-[11px] uppercase tracking-[0.2em] text-[color:var(--fg-subtle)]">
-              {query ? "No overlaps match your search" : "No cross-suite overlaps found for this model"}
+              {query
+                ? "No overlaps match your search"
+                : overlapsFilter === "multi"
+                  ? "No benchmarks with multiple sources — switch to All to see single-source results"
+                  : "No benchmark results found for this model"}
             </div>
           ) : (
             <div className="overflow-hidden border border-[color:var(--border-soft)]">
@@ -5332,61 +5256,147 @@ export function BenchmarkDetail({
                 <div>Sources</div>
               </div>
               {visibleOverlaps.map((row, idx) => {
-                const fmt = (v: number) =>
-                  row.isPercentScale ? `${v.toFixed(1)}%` : `${(v * 100).toFixed(1)}%`
+                const fmtNum = (v: number) =>
+                  row.isPercentScale ? v.toFixed(1) : (v * 100).toFixed(1)
+                const fmt = (v: number) => `${fmtNum(v)}%`
+                const isSingle = row.appearances.length < 2
+                const isOpen = expandedOverlapRows.has(row.canonicalKey)
+                const isLast = idx === visibleOverlaps.length - 1
                 const ciLabel = row.ci95
                   ? row.appearances.length === 2
                     ? `±${(((row.ci95.high - row.ci95.low) / 2) || 0).toFixed(1)} (n=2, wide)`
                     : `[${fmt(row.ci95.low)}, ${fmt(row.ci95.high)}]`
                   : "—"
+                const strongText = isSingle
+                  ? "text-[color:var(--fg-muted)]"
+                  : "text-[color:var(--fg)]"
                 return (
-                  <div
-                    key={`overlap-${row.canonicalKey}`}
-                    className="grid grid-cols-[minmax(0,2.2fr)_56px_minmax(0,1.6fr)_minmax(0,1.4fr)_minmax(0,1.6fr)] items-baseline gap-3 px-3 py-3"
-                    style={{
-                      borderBottom:
-                        idx === overlapsRows.length - 1
-                          ? "none"
-                          : "1px solid var(--border-soft)",
-                    }}
-                  >
-                    <div className="min-w-0">
-                      <div className="truncate text-[13px] font-semibold text-[color:var(--fg)]">
-                        {row.canonicalDisplayName}
+                  <Fragment key={`overlap-${row.canonicalKey}`}>
+                    <button
+                      type="button"
+                      onClick={() => toggleOverlapRow(row.canonicalKey)}
+                      aria-expanded={isOpen}
+                      className="grid w-full grid-cols-[minmax(0,2.2fr)_56px_minmax(0,1.6fr)_minmax(0,1.4fr)_minmax(0,1.6fr)] items-baseline gap-3 px-3 py-3 text-left transition-colors hover:bg-[color:var(--bg-warm)]"
+                      style={{
+                        borderBottom:
+                          isLast && !isOpen ? "none" : "1px solid var(--border-soft)",
+                      }}
+                    >
+                      <div className="min-w-0">
+                        <div className={`truncate text-[13px] font-semibold ${strongText}`}>
+                          {row.canonicalDisplayName}
+                        </div>
+                        <div className="mt-0.5 font-mono text-[10px] uppercase tracking-[0.12em] text-[color:var(--fg-subtle)]">
+                          {row.canonicalKey}
+                        </div>
                       </div>
-                      <div className="mt-0.5 font-mono text-[10px] uppercase tracking-[0.12em] text-[color:var(--fg-subtle)]">
-                        {row.canonicalKey}
+                      <div className={`text-center font-mono text-[12px] tabular-nums ${strongText}`}>
+                        {row.appearances.length}
                       </div>
-                    </div>
-                    <div className="text-center font-mono text-[12px] tabular-nums text-[color:var(--fg)]">
-                      {row.appearances.length}
-                    </div>
-                    <div className="font-mono text-[12px] tabular-nums text-[color:var(--fg)]">
-                      {fmt(row.mean)}
-                      <div className="mt-0.5 font-mono text-[10px] tabular-nums text-[color:var(--fg-subtle)]">
-                        {ciLabel}
+                      <div className={`font-mono text-[12px] tabular-nums ${strongText}`}>
+                        {fmt(row.mean)}
+                        <div className="mt-0.5 font-mono text-[10px] tabular-nums text-[color:var(--fg-subtle)]">
+                          {ciLabel}
+                        </div>
                       </div>
-                    </div>
-                    <div className="font-mono text-[11px] tabular-nums text-[color:var(--fg-muted)]">
-                      {fmt(row.min)} – {fmt(row.max)}
-                      <div className="mt-0.5 font-mono text-[10px] tabular-nums text-[color:var(--fg-subtle)]">
-                        Δ {fmt(row.max - row.min)}
+                      <div className={`font-mono text-[11px] tabular-nums ${isSingle ? "text-[color:var(--fg-subtle)]" : "text-[color:var(--fg-muted)]"}`}>
+                        {isSingle
+                          ? `${fmtNum(row.min)} to ${fmt(row.max)}`
+                          : `${fmt(row.min)} – ${fmt(row.max)}`}
+                        {!isSingle && (
+                          <div className="mt-0.5 font-mono text-[10px] tabular-nums text-[color:var(--fg-subtle)]">
+                            Δ {fmt(row.max - row.min)}
+                          </div>
+                        )}
                       </div>
-                    </div>
-                    <div className="flex flex-wrap gap-1">
-                      {row.appearances.map((app) => (
-                        <Link
-                          key={`${row.canonicalKey}::${app.familyKey}::${app.evalSummaryId}`}
-                          href={`/evals/${routeIdToPath(app.evalSummaryId)}?from=${encodeURIComponent(currentDetailHref)}`}
-                          className="ec-tag outline hover:border-[color:var(--accent)] hover:text-[color:var(--accent)] transition-colors"
-                          style={{ fontSize: 10 }}
-                          title={`${app.familyName} · ${app.metricName} — view eval`}
-                        >
-                          {app.familyName} · {fmt(app.score)}
-                        </Link>
-                      ))}
-                    </div>
-                  </div>
+                      <div className={`flex items-center gap-1.5 font-mono text-[11px] tabular-nums ${isSingle ? "text-[color:var(--fg-subtle)]" : "text-[color:var(--fg-muted)]"}`}>
+                        {row.appearances.length} source{row.appearances.length === 1 ? "" : "s"}
+                        <ChevronDown
+                          className="h-3.5 w-3.5 shrink-0 self-center text-[color:var(--fg-muted)] transition-transform"
+                          style={{ transform: isOpen ? "rotate(0deg)" : "rotate(-90deg)" }}
+                        />
+                      </div>
+                    </button>
+                    {isOpen && (
+                      <div
+                        className="bg-[color:var(--bg-warm)] px-3 py-2"
+                        style={{
+                          borderBottom: isLast ? "none" : "1px solid var(--border-soft)",
+                        }}
+                      >
+                        <div className="grid grid-cols-[minmax(0,1.8fr)_minmax(0,0.9fr)_minmax(0,0.9fr)_minmax(0,0.9fr)_minmax(0,1.6fr)] items-center gap-3 px-1 py-1.5 font-mono text-[10px] uppercase tracking-[0.15em] text-[color:var(--fg-subtle)]">
+                          <div>Source</div>
+                          <div>Score</div>
+                          <div>Temperature</div>
+                          <div>Max tokens</div>
+                          <div>Flags</div>
+                        </div>
+                        {row.appearances.map((app) => {
+                          const notReported = (
+                            <span className="text-[color:var(--fg-subtle)]">not reported</span>
+                          )
+                          const hasRepro = Boolean(
+                            app.annotations?.reproducibility_gap?.has_reproducibility_gap,
+                          )
+                          const provType = app.annotations?.provenance?.source_type
+                          const hasProv = provType != null && provType !== "unspecified"
+                          return (
+                            <div
+                              key={`${row.canonicalKey}::${app.familyKey}::${app.evalSummaryId}`}
+                              className="grid grid-cols-[minmax(0,1.8fr)_minmax(0,0.9fr)_minmax(0,0.9fr)_minmax(0,0.9fr)_minmax(0,1.6fr)] items-center gap-3 border-t border-[color:var(--border-soft)] px-1 py-2"
+                            >
+                              <div className="min-w-0">
+                                {app.sourceKind === "comparison-index" ? (
+                                  <Link
+                                    href={`/evals/${routeIdToPath(app.evalSummaryId)}?from=${encodeURIComponent(currentDetailHref)}`}
+                                    className="ec-tag outline hover:border-[color:var(--accent)] hover:text-[color:var(--accent)] transition-colors"
+                                    style={{ fontSize: 10 }}
+                                    title={`${app.familyName} · ${app.metricName} — view eval`}
+                                  >
+                                    {app.familyName}
+                                  </Link>
+                                ) : (
+                                  <span
+                                    className="text-[12px] text-[color:var(--fg-muted)]"
+                                    title={`${app.familyName} · ${app.metricName}`}
+                                  >
+                                    {app.familyName}
+                                  </span>
+                                )}
+                              </div>
+                              <div className="font-mono text-[12px] tabular-nums text-[color:var(--fg)]">
+                                {fmt(app.score)}
+                              </div>
+                              <div className="font-mono text-[11px] tabular-nums text-[color:var(--fg-muted)]">
+                                {app.temperature != null
+                                  ? Number.isInteger(app.temperature)
+                                    ? app.temperature.toFixed(1)
+                                    : app.temperature
+                                  : notReported}
+                              </div>
+                              <div className="font-mono text-[11px] tabular-nums text-[color:var(--fg-muted)]">
+                                {app.maxTokens != null ? app.maxTokens : notReported}
+                              </div>
+                              <div className="flex flex-wrap items-center gap-1">
+                                {hasRepro || hasProv ? (
+                                  <>
+                                    <ReproducibilityBadge
+                                      gap={app.annotations?.reproducibility_gap}
+                                    />
+                                    <ProvenanceBadge
+                                      provenance={app.annotations?.provenance}
+                                    />
+                                  </>
+                                ) : (
+                                  <span className="text-[color:var(--fg-subtle)]">—</span>
+                                )}
+                              </div>
+                            </div>
+                          )
+                        })}
+                      </div>
+                    )}
+                  </Fragment>
                 )
               })}
             </div>

@@ -28,6 +28,9 @@ export interface BenchmarkEvaluation {
   benchmark_family_name?: string
   parent_benchmark_id?: string
   benchmark_parent_name?: string
+  /** Display name of the parent benchmark for slice rows (additive view
+   *  column; absent on older snapshots, null for non-slice rows). */
+  parent_benchmark_display_name?: string
   benchmark_leaf_name?: string
   is_slice?: boolean
   benchmark_component_key?: string | null
