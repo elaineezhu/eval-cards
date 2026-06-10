@@ -35,7 +35,7 @@ A company claims "Model X leads on benchmark Y." Before you repeat it:
 > 🖼️ **Screenshot — `17-card-who-reports.png`**
 > *What to capture:* The §3 first-party vs third-party breakdown.
 
-**3. How documented is it?** The **`DOCUMENTED`** badge (e.g. "36% — 14/39 reported") tells you how much of the record is fully specified. A flashy score with weak documentation is a weak claim — worth a caveat.
+**3. How documented is it?** The **`DOCUMENTED`** badge (e.g. "36%, 14/39 reported") tells you how much of the record is fully specified. A flashy score with weak documentation is a weak claim, worth a caveat.
 
 > 🖼️ **Screenshot — `14-card-summary-top.png`**
 > *What to capture:* The page header with the DOCUMENTED badge.
@@ -68,7 +68,7 @@ This lets you write "according to [organization], reported in [source]" rather t
 - **Cite the snapshot.** Every page is dated; the corpus is versioned and not retroactively edited. Write: *"per Evaluation Cards, snapshot [date]."*
 - **Use the stable identifier.** Each model has an ID like `ec/models/anthropic/claude-opus-4.7`. Link the page directly.
 - **Attribute the evaluator,** not just the model: *"a third-party result reported by [org]"* vs *"the developer's own reported result."*
-- **Quote the number with its context** — the split/metric and whether it's directly comparable.
+- **Quote the number with its context:** the split/metric and whether it's directly comparable.
 
 ---
 
@@ -78,7 +78,7 @@ This lets you write "according to [organization], reported in [source]" rather t
 |---|---|
 | "Model X is the best/safest." | "Model X reports the highest *self-reported* score on [benchmark]; there are no independent results for this in the corpus." |
 | Reporting a blank as a failure. | A blank means *not reported*, not zero. Say "no evaluation was reported." |
-| "Model A beats Model B." | Check Comparability first — different setups can make the comparison invalid. |
+| "Model A beats Model B." | Check Comparability first; different setups can make the comparison invalid. |
 | Citing a launch blog as the source. | Cite the attributed evaluation + reporting organization + snapshot date. |
 | Treating one snapshot as permanent. | Numbers change; date your claim. |
 
@@ -86,6 +86,6 @@ This lets you write "according to [organization], reported in [source]" rather t
 
 ## A note on independence
 
-The most defensible AI-performance reporting distinguishes the developer's own numbers from independent ones. The **§3 "Who reports what"** view makes that distinction in one glance — and a category that is *entirely first-party* is exactly where a careful reporter adds "self-reported, not independently verified."
+The most defensible AI-performance reporting distinguishes the developer's own numbers from independent ones. The **§3 "Who reports what"** view makes that distinction in one glance, and a category that is *entirely first-party* is exactly where a careful reporter adds "self-reported, not independently verified."
 
 ➡️ Related: [Policymakers](policymakers.md) (governance framing) · [General public](general-public.md) (plain-language explainer).

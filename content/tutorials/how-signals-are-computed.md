@@ -10,9 +10,9 @@
 
 Every signal is computed over a **result triple** $r = (m, b, \mu)$:
 
-- $m$ — a canonical model identifier,
-- $b$ — a metric-path through the rollout hierarchy (family → composite → benchmark → split),
-- $\mu$ — a metric.
+- $m$: a canonical model identifier,
+- $b$: a metric-path through the rollout hierarchy (family → composite → benchmark → split),
+- $\mu$: a metric.
 
 $R$ is the set of all such triples in the corpus, and $B$ the set of canonical benchmarks. For any field $f$ and triple $r$:
 
@@ -100,7 +100,7 @@ The multi-party indicator is $\mathrm{MP}(m, b, \mu) = 1$ when $|R(m, b, \mu)| >
 
 ## Comparability
 
-**In plain terms.** For each $(m, b, \mu)$ triple with at least two reports, we check whether reported scores differ by more than 5% of the metric's range. We do this two ways — across setups for the same party (variant divergence) and across different parties (cross-party divergence). Either one triggers a flag.
+**In plain terms.** For each $(m, b, \mu)$ triple with at least two reports, we check whether reported scores differ by more than 5% of the metric's range. We do this two ways: across setups for the same party (variant divergence) and across different parties (cross-party divergence). Either one triggers a flag.
 
 Let $[\mu_{\min}, \mu_{\max}]$ be the metric's native scale and $\theta = 0.05$ the divergence threshold.
 
@@ -140,6 +140,6 @@ The threshold $\theta = 0.05$ is applied uniformly across metrics; metric-specif
 
 ## One thing to keep in mind
 
-None of these signals is a grade. Evaluation Cards assigns no letter grades, pass/fail thresholds, or completeness rankings — when a field is omitted, it lowers the completeness score, may trip the reproducibility, provenance, or comparability signals, and is shown to readers directly. The intent is to make reporting choices visible, not to enforce a particular reporting standard.
+None of these signals is a grade. Evaluation Cards assigns no letter grades, pass/fail thresholds, or completeness rankings. When a field is omitted, it lowers the completeness score, may trip the reproducibility, provenance, or comparability signals, and is shown to readers directly. The intent is to make reporting choices visible, not to enforce a particular reporting standard.
 
 *Adapted from [Appendix H.1, "Computation of Interpretive Signals"](https://arxiv.org/abs/2606.09809) of the paper.*

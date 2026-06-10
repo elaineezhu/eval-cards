@@ -1,16 +1,16 @@
 # What Evaluation Cards is built on
 
-*Evaluation Cards doesn't run evaluations — it composes existing evaluation infrastructure into a single reading surface. Here's what powers it.*
+*Evaluation Cards doesn't run evaluations; it composes existing evaluation infrastructure into a single reading surface. Here's what powers it.*
 
 ---
 
 ## Auto-BenchmarkCards
 
-A schema for benchmark-level metadata — what a benchmark measures, its splits, intended use, validity scope, and known limitations. Each benchmark family has an Auto-BenchmarkCard at the family root and a Policy Note compressed for plain-language reading.
+A schema for benchmark-level metadata: what a benchmark measures, its splits, intended use, validity scope, and known limitations. Each benchmark family has an Auto-BenchmarkCard at the family root and a Policy Note compressed for plain-language reading.
 
 ## Every Eval Ever
 
-A run-level corpus of public evaluation results — `(model, benchmark, metric-path, value, source)` tuples extracted from papers, model cards, and leaderboards. It provides the raw rows that Evaluation Cards canonicalises and joins. [Every Eval Ever](https://evalevalai.com/every_eval_ever/) is a sister [EvalEval](https://evalevalai.com/) project.
+A run-level corpus of public evaluation results: `(model, benchmark, metric-path, value, source)` tuples extracted from papers, model cards, and leaderboards. It provides the raw rows that Evaluation Cards canonicalises and joins. [Every Eval Ever](https://evalevalai.com/every_eval_ever/) is a sister [EvalEval](https://evalevalai.com/) project.
 
 ## IBM Risk Atlas alignment
 

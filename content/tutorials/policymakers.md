@@ -1,6 +1,6 @@
 # Evaluation Cards for Policymakers
 
-*How to read AI evaluation evidence for governance decisions — what it supports, and what it does not.*
+*How to read AI evaluation evidence for governance decisions: what it supports and what it does not.*
 
 > **Prerequisite:** the [Quickstart](quickstart.md) explains the four signals and the snapshot model in a few minutes.
 
@@ -10,7 +10,7 @@
 
 When a company says "our model scored X% on a safety benchmark," that is a **claim**, not an audited fact. Evaluation Cards exists to show you the *quality of the evidence* behind such claims: who produced it, whether it can be reproduced, and whether it can be fairly compared to anyone else's number.
 
-For policy, the headline score is rarely the variable that matters — the documentation and independence behind it usually are.
+For policy, the headline score is rarely the variable that matters. The documentation and independence behind it usually are.
 
 > 🖼️ **Screenshot — `01-home-overview.png`**
 > *What to capture:* The homepage with the corpus snapshot and the four signals.
@@ -21,7 +21,7 @@ For policy, the headline score is rarely the variable that matters — the docum
 
 **It does:**
 - Aggregate how thousands of models have been evaluated, across many independent reporting organizations.
-- Make explicit *what was not disclosed* — treating undocumented setups as a measurable gap, not an oversight.
+- Make explicit *what was not disclosed*, treating undocumented setups as a measurable gap, not an oversight.
 - Distinguish a developer's own results from independent third-party evaluations.
 
 **It does not:**
@@ -49,8 +49,8 @@ For policy, the headline score is rarely the variable that matters — the docum
 
 The single most useful view for governance is **§3 "Who reports what"** on any model page. It splits a model's results into:
 
-- **First-party** — produced by the model's own developer.
-- **Third-party** — produced independently.
+- **First-party**: produced by the model's own developer.
+- **Third-party**: produced independently.
 
 > 🖼️ **Screenshot — `17-card-who-reports.png`**
 > *What to capture:* The §3 "Who reports what" first-party vs third-party breakdown on a model page.
@@ -67,7 +67,7 @@ Suppose you need to assess the evidence base for a specific model.
    > 🖼️ **Screenshot — `09-models-index.png`**
    > *What to capture:* The Models index list.
 
-2. **Read the `DOCUMENTED` badge** (e.g. "36% — 14 / 39 reported"). This is, at a glance, how much of the record is fully documented. Treat a low number as "claims that are hard to verify."
+2. **Read the `DOCUMENTED` badge** (e.g. "36%, 14 / 39 reported"). This is, at a glance, how much of the record is fully documented. Treat a low number as "claims that are hard to verify."
 
    > 🖼️ **Screenshot — `14-card-summary-top.png`**
    > *What to capture:* The top of a model page showing the DOCUMENTED badge and the summary paragraph.
@@ -87,7 +87,7 @@ Suppose you need to assess the evidence base for a specific model.
 When a claim cites a specific benchmark ("scores X on a safety benchmark"), the **Evaluations** tab lets you check what that benchmark actually measures before you weigh the number. Each benchmark's **At a glance** card states what it tests, its main caveat, and who it's intended for, links to the source, and flags whether scores on it can be compared directly across reporters.
 
 > 🖼️ **Screenshot — `05-evals-index.png`**
-> *What to capture:* The Evaluations index — benchmark families with their categories and counts.
+> *What to capture:* The Evaluations index, with benchmark families and their categories and counts.
 
 > 🖼️ **Screenshot — `27-eval-detail-card.png`**
 > *What to capture:* A benchmark's "At a glance" card (what it measures, its caveat, and sources).
@@ -108,6 +108,6 @@ When a claim cites a specific benchmark ("scores X on a safety benchmark"), the 
 
 ## Why the framing matters
 
-Evaluation Cards deliberately treats an undisclosed detail as **a claim intentionally not made** — not an error. For policy this is the useful posture: it shifts the question from *"what's the number?"* to *"how much can we trust and verify this number, and who stands behind it?"* — which is the question governance actually needs answered.
+Evaluation Cards deliberately treats an undisclosed detail as **a claim intentionally not made**, not an error. For policy this is the useful posture: it shifts the question from *"what's the number?"* to *"how much can we trust and verify this number, and who stands behind it?"* That is the question governance actually needs answered.
 
 ➡️ Related: [Journalists](journalists.md) (sourcing claims responsibly) · [Evaluation researchers](evaluation-researchers.md) (deeper methodology).
