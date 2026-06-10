@@ -72,7 +72,7 @@ This is where you read off the actual numbers. In Researcher View the section ha
 > 🖼️ **Screenshot — `25-research-category.png`**
 > *What to capture:* §4 in **Category** grouping.
 
-**Source** — the warehouse's natural shape: family-rooted plots and accordions with no cross-family collapse. This is the full result set (and the default view); drill into any plot for the per-result setup context.
+**Source** — the warehouse's natural shape: family-rooted plots and accordions with no cross-family collapse. This is the full result set; drill into any plot for the per-result setup context. (The section opens in Overlaps when a model has any; switch here for everything.)
 
 > 🖼️ **Screenshot — `26-research-source.png`**
 > *What to capture:* §4 in **Source** grouping.
