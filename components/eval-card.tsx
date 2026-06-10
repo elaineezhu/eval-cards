@@ -19,7 +19,7 @@ import {
 } from "lucide-react"
 import Link from "next/link"
 import { routeIdToPath } from "@/lib/utils"
-import { evaluatorSlug } from "@/lib/evaluators"
+import { evaluatorSlug, isRecognizedEvaluator } from "@/lib/evaluators"
 import type { BenchmarkEvalListItem } from "@/lib/eval-processing"
 import { getTagColor, tagLabel } from "@/lib/benchmark-schema"
 
@@ -278,9 +278,12 @@ export function EvalCard({ summary, delayMs = 0 }: EvalCardProps) {
                             >
                               {name}
                             </Link>
-                            {verifiedEvaluators.has(name) ? (
-                              <VerifiedBadge verified size="sm" className="ml-1 align-middle" />
-                            ) : null}
+                            <VerifiedBadge
+                              verified={verifiedEvaluators.has(name)}
+                              recognized={isRecognizedEvaluator(name)}
+                              size="sm"
+                              className="ml-1 align-middle"
+                            />
                           </span>
                         ))}
                   </span>

@@ -54,7 +54,7 @@ import {
 import type { BenchmarkCard, SourceData } from "@/lib/benchmark-schema"
 import { tagLabel } from "@/lib/benchmark-schema"
 import type { BenchmarkEvalSummary, ModelResultForBenchmark } from "@/lib/eval-processing"
-import { evaluatorSlug } from "@/lib/evaluators"
+import { evaluatorSlug, isRecognizedEvaluator } from "@/lib/evaluators"
 import type { ComparisonIndex, EvalHierarchy } from "@/lib/backend-artifacts"
 import type { HierarchyEvalLocation } from "@/lib/hierarchy-lookup"
 import { PolicyOverview } from "@/components/policy-overview"
@@ -1111,9 +1111,12 @@ export function EvalDetail({
               <span key={name} style={{ color: "var(--fg)" }}>
                 {i > 0 ? ", " : null}
                 <EvaluatorName display={name} linkName={resolveEvaluatorName(name)} />
-                {verifiedEvaluators.has(name) ? (
-                  <VerifiedBadge verified size="sm" className="ml-1 align-middle" />
-                ) : null}
+                <VerifiedBadge
+                  verified={verifiedEvaluators.has(name)}
+                  recognized={isRecognizedEvaluator(name)}
+                  size="sm"
+                  className="ml-1 align-middle"
+                />
               </span>
             ))}
             {evaluatorList.length > 2 ? (
@@ -2022,7 +2025,14 @@ export function EvalDetail({
                                   {sourceTypeLabel}
                                 </span>
                               )}
-                              <VerifiedBadge verified={modelResult.result?.is_verified_evaluator} size="sm" />
+                              <VerifiedBadge
+                                verified={modelResult.result?.is_verified_evaluator}
+                                recognized={isRecognizedEvaluator(
+                                  modelResult.source_metadata?.source_name
+                                    ?? modelResult.source_metadata?.source_organization_name,
+                                )}
+                                size="sm"
+                              />
                             </span>
                           ) : (
                             <span style={{ color: "var(--fg-subtle)" }}>—</span>
@@ -2998,6 +3008,10 @@ function MultiMetricLeaderboard({
                         />
                         <VerifiedBadge
                           verified={Object.values(row.verified ?? {}).some(Boolean)}
+                          recognized={isRecognizedEvaluator(
+                            row.source_metadata?.source_name
+                              ?? row.source_metadata?.source_organization_name,
+                          )}
                           size="sm"
                         />
                       </span>

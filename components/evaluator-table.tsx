@@ -4,7 +4,7 @@ import Link from "next/link"
 import { ArrowUpRight, ChevronDown, ChevronUp, ChevronsUpDown } from "lucide-react"
 
 import { VerifiedBadge } from "@/components/signals/verified-badge"
-import type { EvaluatorGroup } from "@/lib/evaluators"
+import { isRecognizedEvaluator, type EvaluatorGroup } from "@/lib/evaluators"
 import { cn } from "@/lib/utils"
 
 export type EvaluatorTableSortCol = "name" | "evals" | "verified"
@@ -84,7 +84,11 @@ export function EvaluatorTable({ rows, sortCol, sortDir, onSort, verifiedOnly }:
                     <span className="font-semibold text-[14px] text-[color:var(--fg)] group-hover:text-[color:var(--accent)] transition-colors">
                       {row.name}
                     </span>
-                    {row.isVerified && <VerifiedBadge verified size="sm" />}
+                    <VerifiedBadge
+                      verified={row.isVerified}
+                      recognized={isRecognizedEvaluator(row.name)}
+                      size="sm"
+                    />
                   </div>
                 </Link>
               </td>

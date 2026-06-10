@@ -19,6 +19,30 @@
 
 import type { BenchmarkEvalListItem } from "@/lib/eval-processing"
 
+/**
+ * "Recognized" evaluator orgs — public leaderboards whose results we ingest
+ * directly but which are not submitter-verified. They get the grey
+ * VerifiedBadge tier (vs the blue verified one). Keys are the view-layer
+ * evaluator/source names of the four ingested sources:
+ *   artificial_analysis → "Artificial Analysis"
+ *   llm_stats           → "LLM Stats"
+ *   hfopenllm_v2        → "Hugging Face"
+ *   global-mmlu-lite    → "kaggle"
+ * Matched case-insensitively (see isRecognizedEvaluator).
+ */
+export const RECOGNIZED_EVALUATOR_NAMES = new Set([
+  "artificial analysis",
+  "llm stats",
+  "hugging face",
+  "kaggle",
+])
+
+/** True when the org name is one of the recognized leaderboard sources. */
+export function isRecognizedEvaluator(name: string | null | undefined): boolean {
+  if (!name) return false
+  return RECOGNIZED_EVALUATOR_NAMES.has(name.trim().toLowerCase())
+}
+
 export interface EvaluatorGroup {
   /** Canonical org name as it appears in `evaluator_names`. */
   name: string

@@ -11,7 +11,7 @@ import type { EvalHierarchy } from "@/lib/backend-artifacts"
 import type { BenchmarkCard } from "@/lib/benchmark-schema"
 import { fetchBenchmarkMetadata, fetchEvalHierarchy, fetchEvalList } from "@/lib/dashboard-data-client"
 import type { BenchmarkEvalListItem } from "@/lib/eval-processing"
-import { getEvalsForEvaluator, verifiedEvalIds } from "@/lib/evaluators"
+import { getEvalsForEvaluator, isRecognizedEvaluator, verifiedEvalIds } from "@/lib/evaluators"
 
 function EvaluatorDetailInner() {
   const params = useParams()
@@ -159,7 +159,7 @@ function EvaluatorDetailInner() {
         <div className="kicker">Evaluator</div>
         <h1 className="ec-page-h1 inline-flex items-center gap-2">
           {name}
-          {isVerified && <VerifiedBadge verified size="md" />}
+          <VerifiedBadge verified={isVerified} recognized={isRecognizedEvaluator(name)} size="md" />
         </h1>
         <div
           className="mb-5 flex flex-wrap items-center gap-3 font-mono text-[11px] uppercase tracking-[0.12em]"

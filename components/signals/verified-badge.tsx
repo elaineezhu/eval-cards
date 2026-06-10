@@ -47,6 +47,38 @@ export type VerifiedBadgeDesign =
   | "chip"
 export type VerifiedBadgeSize = "sm" | "md"
 
+/**
+ * Two trust tiers share the same mark, distinguished by colour:
+ *   - "verified"   (accent/blue): submitter-validated results.
+ *   - "recognized" (grey):        known public-leaderboard sources we ingest
+ *                                 directly (Artificial Analysis, LLM Stats,
+ *                                 HF Open LLM v2, Global-MMLU-Lite) that are
+ *                                 not submitter-verified.
+ */
+type BadgeTone = "verified" | "recognized"
+
+const TONE_CLASSES: Record<
+  BadgeTone,
+  { text: string; tileBg: string; glyphBorder: string; tickUnderline: string; tagBorder: string; chipBg: string }
+> = {
+  verified: {
+    text: "text-[var(--accent)]",
+    tileBg: "bg-[var(--accent)] text-[var(--accent-fg)]",
+    glyphBorder: "border-[var(--accent)]/55 text-[var(--accent)]",
+    tickUnderline: "text-[var(--accent)] border-[var(--accent)]/40",
+    tagBorder: "border-[var(--accent)]/40 text-[var(--accent)]",
+    chipBg: "bg-[var(--accent)] text-[var(--accent-fg)] hover:bg-[var(--accent-hover)]",
+  },
+  recognized: {
+    text: "text-[color:var(--fg-muted)]",
+    tileBg: "bg-[color:var(--fg-muted)] text-[var(--accent-fg)]",
+    glyphBorder: "border-[color:var(--fg-muted)]/55 text-[color:var(--fg-muted)]",
+    tickUnderline: "text-[color:var(--fg-muted)] border-[color:var(--fg-muted)]/40",
+    tagBorder: "border-[color:var(--fg-muted)]/40 text-[color:var(--fg-muted)]",
+    chipBg: "bg-[color:var(--fg-muted)] text-[var(--accent-fg)]",
+  },
+}
+
 const ICON_SIZE: Record<VerifiedBadgeSize, string> = {
   sm: "h-3.5 w-3.5",
   md: "h-4 w-4",
@@ -61,17 +93,26 @@ export function verifiedTooltipCopy(_mode: "research" | "policy"): string {
   return "Submitted by the organization that ran this evaluation."
 }
 
+export function recognizedTooltipCopy(_mode: "research" | "policy"): string {
+  // Grey tier: the result was ingested directly from a known source's
+  // official API, but the submitter has not been validated.
+  return "Imported from this organization's official API."
+}
+
 function IconOnly({
   design,
   size,
+  tone,
   className,
 }: {
   design: VerifiedBadgeDesign
   size: VerifiedBadgeSize
+  tone: BadgeTone
   className?: string
 }) {
   const sz = ICON_SIZE[size]
-  const base = "inline-flex shrink-0 items-center justify-center align-middle text-[var(--accent)]"
+  const tc = TONE_CLASSES[tone]
+  const base = cn("inline-flex shrink-0 items-center justify-center align-middle", tc.text)
 
   switch (design) {
     case "tile":
@@ -81,7 +122,8 @@ function IconOnly({
       return (
         <span
           className={cn(
-            "inline-flex shrink-0 items-center justify-center rounded-[3px] bg-[var(--accent)] align-middle text-[var(--accent-fg)]",
+            "inline-flex shrink-0 items-center justify-center rounded-[3px] align-middle",
+            tc.tileBg,
             size === "md" ? "h-[18px] w-[18px]" : "h-4 w-4",
             className
           )}
@@ -109,7 +151,8 @@ function IconOnly({
       return (
         <span
           className={cn(
-            "inline-flex shrink-0 items-center justify-center rounded-[3px] border border-[var(--accent)]/55 align-middle text-[var(--accent)]",
+            "inline-flex shrink-0 items-center justify-center rounded-[3px] border align-middle",
+            tc.glyphBorder,
             size === "md" ? "h-[18px] w-[18px]" : "h-4 w-4",
             className
           )}
@@ -122,7 +165,8 @@ function IconOnly({
       return (
         <span
           className={cn(
-            "inline-flex shrink-0 items-center align-middle text-[var(--accent)] border-b border-[var(--accent)]/40 leading-none",
+            "inline-flex shrink-0 items-center align-middle border-b leading-none",
+            tc.tickUnderline,
             className
           )}
         >
@@ -162,14 +206,21 @@ function BadgeCheckScalloped({ className }: { className?: string }) {
 
 export function VerifiedBadge({
   verified,
+  recognized,
   design = "check",
   size = "sm",
   withTooltip = true,
-  label = "Verified",
+  label,
   className,
 }: {
   /** The per-result `is_verified` boolean. Null/false/undefined → renders nothing. */
   verified?: boolean | null
+  /**
+   * Grey fallback tier: result/org comes from a recognized public leaderboard
+   * (see lib/evaluators.ts RECOGNIZED_EVALUATOR_NAMES) but isn't submitter-
+   * verified. Only takes effect when `verified` is falsy; both falsy → null.
+   */
+  recognized?: boolean | null
   design?: VerifiedBadgeDesign
   size?: VerifiedBadgeSize
   withTooltip?: boolean
@@ -180,11 +231,14 @@ export function VerifiedBadge({
   // Hooks must run unconditionally; guard on the value afterwards.
   const { mode } = useAudienceMode()
 
-  if (!verified) {
+  const tone: BadgeTone | null = verified ? "verified" : recognized ? "recognized" : null
+  if (!tone) {
     return null
   }
 
-  const tooltip = verifiedTooltipCopy(mode)
+  const tc = TONE_CLASSES[tone]
+  const tooltip = tone === "verified" ? verifiedTooltipCopy(mode) : recognizedTooltipCopy(mode)
+  const visibleLabel = label ?? (tone === "verified" ? "Verified" : "Recognized")
   // Screen-reader text mirrors the tooltip so the two never drift. `label`
   // ("Verified evaluator") only surfaces visually on the tag/chip designs.
   const ariaLabel = tooltip
@@ -194,7 +248,7 @@ export function VerifiedBadge({
   if (ICON_ONLY.includes(design)) {
     node = (
       <span aria-label={ariaLabel} role="img" className="inline-flex">
-        <IconOnly design={design} size={size} className={className} />
+        <IconOnly design={design} size={size} tone={tone} className={className} />
       </span>
     )
   } else if (design === "tag") {
@@ -204,14 +258,14 @@ export function VerifiedBadge({
       <span
         className={cn(
           "inline-flex shrink-0 items-center gap-1 rounded-[2px] border px-1.5 py-0.5 align-middle",
-          "border-[var(--accent)]/40 text-[var(--accent)]",
+          tc.tagBorder,
           "font-mono text-[10px] font-semibold uppercase tracking-[0.12em]",
           className
         )}
         aria-label={ariaLabel}
       >
         <Check className={size === "md" ? "h-3.5 w-3.5" : "h-3 w-3"} strokeWidth={3} />
-        {label}
+        {visibleLabel}
       </span>
     )
   } else {
@@ -220,13 +274,13 @@ export function VerifiedBadge({
       <Badge
         className={cn(
           "shrink-0 gap-1 rounded-full border-transparent align-middle",
-          "bg-[var(--accent)] text-[var(--accent-fg)] hover:bg-[var(--accent-hover)]",
+          tc.chipBg,
           className
         )}
         aria-label={ariaLabel}
       >
         <Check className={ICON_SIZE[size]} strokeWidth={3} />
-        {label}
+        {visibleLabel}
       </Badge>
     )
   }
