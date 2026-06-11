@@ -83,7 +83,7 @@ export const DOCS: TutorialMeta[] = [
     category: "doc",
     audience: "Data sources & structure",
     blurb:
-      "The infrastructure behind the corpus — Auto-BenchmarkCards, Every Eval Ever, IBM Risk Atlas, and the five-level hierarchy.",
+      "The infrastructure behind the corpus: Auto-BenchmarkCards, Every Eval Ever, IBM Risk Atlas, and the five-level hierarchy.",
   },
   {
     slug: "how-signals-are-computed",
@@ -91,7 +91,7 @@ export const DOCS: TutorialMeta[] = [
     category: "doc",
     audience: "Signal definitions",
     blurb:
-      "The exact computation behind reproducibility, completeness, provenance, and comparability — fields, formulas, and corpus aggregation.",
+      "The exact computation behind reproducibility, completeness, provenance, and comparability: fields, formulas, and corpus aggregation.",
   },
   {
     slug: "cross-post-to-hugging-face",
@@ -99,7 +99,7 @@ export const DOCS: TutorialMeta[] = [
     category: "doc",
     audience: "Contributing evaluation data",
     blurb:
-      "Send your Every Eval Ever results to Hugging Face Community Evals — the YAML schema, the converter, and the backlink to the full EEE record.",
+      "Send your Every Eval Ever results to Hugging Face Community Evals: the YAML schema, the converter, and the backlink to the full EEE record.",
   },
   {
     slug: "get-verified",

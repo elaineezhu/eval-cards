@@ -51,7 +51,7 @@ export function KnownIssuesPanel({ issues, variant = "full" }: KnownIssuesPanelP
           <strong style={{ color: "var(--fg)", fontWeight: 600 }}>
             {issues.length} known issue{issues.length === 1 ? "" : "s"} documented
           </strong>
-          <span className="ml-1">— see below for detail.</span>
+          <span>. See below for details.</span>
         </div>
       </div>
     )

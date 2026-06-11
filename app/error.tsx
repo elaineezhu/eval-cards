@@ -63,7 +63,7 @@ export default function RouteError({
           }}
         >
           We couldn't load this view. The data backend may still be
-          warming up — most cold-start hiccups clear within a few
+          warming up: most cold-start hiccups clear within a few
           seconds.
         </p>
         <div

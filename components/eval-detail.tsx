@@ -1325,7 +1325,7 @@ export function EvalDetail({
               >
                 <div className="kicker mb-2">Benchmark structure</div>
                 <p className="text-[13px] mb-4" style={{ color: "var(--fg-muted)", maxWidth: 640 }}>
-                  Benchmark-level summary metrics and slices grouped in one compact section.
+                  Benchmark-level summary metrics and slices grouped in one section.
                 </p>
 
                 {summary.root_metrics && summary.root_metrics.length > 0 && (
@@ -2656,7 +2656,7 @@ function MultiMetricLeaderboard({
           style={{ color: "var(--fg-muted)", maxWidth: 720 }}
         >
           {isResearchView
-            ? "Each column is a reported benchmark measure. Distinct measures stay separate instead of collapsing into a single raw score."
+            ? "Each column is a reported benchmark measure."
             : "Each column is a separately reported measure so the benchmark can be read without flattening different results into one number."}
         </p>
         <DropdownMenu>

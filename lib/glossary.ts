@@ -48,7 +48,7 @@ const ENTRIES: Record<string, GlossaryEntry> = {
   },
   "exact match": {
     short: "The model's answer is counted correct only if it matches the reference string exactly.",
-    long: "Strict — small formatting differences fail. Often used for short-answer tasks.",
+    long: "Strict: small formatting differences fail. Often used for short-answer tasks.",
   },
   "llm-as-judge": {
     short: "Another language model grades the answers.",
@@ -62,7 +62,7 @@ const ENTRIES: Record<string, GlossaryEntry> = {
   },
   temperature: {
     short: "Controls randomness in the model's output.",
-    long: "Lower (e.g. 0) is deterministic; higher (e.g. 1) is more varied. Affects scores — different temperatures make scores hard to compare.",
+    long: "Lower (e.g. 0) is deterministic; higher (e.g. 1) is more varied. Affects scores: different temperatures make scores hard to compare.",
   },
   "top-p": {
     short: "Limits the model to sampling from the most likely next tokens (nucleus sampling).",
@@ -75,7 +75,7 @@ const ENTRIES: Record<string, GlossaryEntry> = {
   },
   "average normalized score": {
     short: "Each benchmark's score is rescaled to a 0–1 range, then averaged.",
-    long: "Lets you combine benchmarks that use different scales. The exact rescaling rule matters — check the methodology.",
+    long: "Lets you combine benchmarks that use different scales. The exact rescaling rule matters: check the methodology.",
   },
   agentic: {
     short: "The model uses tools, takes multiple steps, and acts on an environment to complete a task.",

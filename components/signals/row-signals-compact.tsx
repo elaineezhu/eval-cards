@@ -54,7 +54,7 @@ export function RowSignalsCompact({
       detail:
         mode === "policy"
           ? "Only the model developer reported this score; no independent replication is recorded."
-          : "First-party only — no independent replication is recorded for this group.",
+          : "First-party only: no independent replication is recorded for this group.",
     })
   }
 

@@ -438,7 +438,7 @@ function CompositeEvalView({
         >
           {tab === "metrics"
             ? "Each card is one component benchmark inside this composite. Click a card to inspect its leaderboard, slices and benchmark card."
-            : "Per-model scores across every component metric. Each column is a separately reported measure — distinct measures stay separate instead of collapsing into one number."}
+            : "Per-model scores across every component metric. Each column is a separately reported measure."}
         </p>
 
         {tab === "metrics" ? (

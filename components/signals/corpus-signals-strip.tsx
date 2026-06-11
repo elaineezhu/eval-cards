@@ -65,7 +65,7 @@ export function CorpusSignalsStrip({
         id="reproducibility"
         statValue={pctNum(reproDocumented)}
         statUnit="%"
-        headline="of reported scores have a complete setup recorded — the rest cannot be independently re-run."
+        headline="of reported scores have a complete setup recorded. The rest cannot be independently re-run."
         detail={
           reproDetail
             ? `${formatPct(reproGapRate)} have at least one undocumented field. Most often missing: ${reproDetail}.`

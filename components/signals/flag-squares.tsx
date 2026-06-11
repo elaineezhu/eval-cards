@@ -89,7 +89,7 @@ export function RowFlagSquares({
         className={AMBER}
         tooltip={
           isResearchView
-            ? `Low reporting completeness — ${pct}% of the benchmark documentation schema populated.`
+            ? `Low reporting completeness: ${pct}% of the benchmark documentation schema populated.`
             : `This benchmark's documentation is largely missing (${pct}% complete).`
         }
       />,

@@ -201,7 +201,7 @@ function deriveReproducibility(summary: BenchmarkEvalSummary): DerivedSignal {
     return {
       statValue: "—",
       statUnit: "",
-      headline: "Reproducibility doesn't apply — no reported scores.",
+      headline: "Reproducibility doesn't apply (no reported scores).",
       detail: "",
       breakdown: {
         formula: "Reproducibility = (results with all required setup fields) / (total results).",

@@ -945,7 +945,7 @@ function FrontierPlot({ events, samples, unit, lowerIsBetter, label }: FrontierP
         <span className="inline-flex items-baseline gap-1" style={{ color: "var(--fg-subtle)" }}>
           <span>·</span>
           <span style={{ fontSize: 9 }}>
-            {lowerIsBetter ? "frontier descends — lower is better" : "frontier ascends — higher is better"}
+            {lowerIsBetter ? "frontier descends: lower is better" : "frontier ascends: higher is better"}
           </span>
         </span>
       </div>

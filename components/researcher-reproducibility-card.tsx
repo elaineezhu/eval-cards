@@ -273,7 +273,7 @@ export function ResearcherReproducibilityCard({
           label: "temperature",
           termKey: "temperature",
           value: formatValue(args.temperature),
-          hint: "Temperature controls randomness — without it, others can't recreate the same outputs.",
+          hint: "Temperature controls randomness. Without it, others can't recreate the same outputs.",
         },
         { label: "top-p", termKey: "top-p", value: formatValue(args.top_p) },
         { label: "top-k", termKey: "top-k", value: formatValue(args.top_k) },

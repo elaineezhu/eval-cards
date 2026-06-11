@@ -283,7 +283,7 @@ function buildPolicyComparabilitySentence(variantCount: number, crossPartyCount:
     return `${variantPhrase[0].toUpperCase()}${variantPhrase.slice(1)}, which may explain some of the variation seen in reported numbers.`
   }
   if (crossPartyPhrase) {
-    return `${crossPartyPhrase[0].toUpperCase()}${crossPartyPhrase.slice(1)} — treat the headline number as a range rather than a single value.`
+    return `${crossPartyPhrase[0].toUpperCase()}${crossPartyPhrase.slice(1)}. Treat the headline number as a range rather than a single value.`
   }
   return ""
 }

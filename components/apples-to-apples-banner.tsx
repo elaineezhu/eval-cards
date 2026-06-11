@@ -60,7 +60,7 @@ export function ApplesToApplesBanner({ summary, hasActionableDetail = false }: A
   // render.
   const body = hasActionableDetail
     ? mode === "policy"
-      ? `${concernPhrases.join(" and ")}. Direct ranking comparisons may be misleading — see the comparability panel above for the affected models.`
+      ? `${concernPhrases.join(" and ")}. Direct ranking comparisons may be misleading. See the comparability panel above for the affected models.`
       : `${concernPhrases.join("; ")}. The comparability panel above lists the affected models.`
     : mode === "policy"
       ? `${concernPhrases.join(" and ")}. Direct ranking comparisons may be misleading. This dataset doesn't report which specific models the divergence applies to.`

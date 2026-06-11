@@ -4861,7 +4861,7 @@ export function BenchmarkDetail({
 
         <p className="text-[14px] leading-[1.7] text-[color:var(--fg-muted)] max-w-[64rem] mb-6">
           {isResearchView
-            ? "Benchmark-first view of this model's reported results, grouped by category. Setup spread and slice-vs-setup differences surface up-front."
+            ? "Benchmark-first view of this model's reported results, grouped by category."
             : "The public evidence behind this model, grouped by category. The strongest and most variable signals are listed first."}
           {policyHighlights.length > 0 && !isResearchView && (
             <>
@@ -5020,19 +5020,19 @@ export function BenchmarkDetail({
                   type="button"
                   className={groupingMode === "source" ? "on" : ""}
                   onClick={() => setGroupingMode("source")}
-                  aria-label="View by source"
-                  title="By source"
+                  aria-label="Plots by source"
+                  title="Plots grouped by source"
                 >
-                  Source
+                  Plots by source
                 </button>
                 <button
                   type="button"
                   className={groupingMode === "category" ? "on" : ""}
                   onClick={() => setGroupingMode("category")}
-                  aria-label="View by category"
-                  title="By category"
+                  aria-label="Plots by category"
+                  title="Plots grouped by category"
                 >
-                  Category
+                  Plots by category
                 </button>
                 <button
                   type="button"
@@ -5051,10 +5051,10 @@ export function BenchmarkDetail({
         {isResearchView && !embedReportedMetricsOnly && (
           <p className="text-[14px] leading-[1.7] text-[color:var(--fg-muted)] max-w-[64rem] mb-6">
             {groupingMode === "overlaps"
-              ? "One row per benchmark, with the mean and 95% CI across this model's appearances when more than one suite reports it. Expand a row for per-source scores, generation settings, and flags. Filter to Overlaps only for cross-suite duplicates."
+              ? "One row per benchmark, with the mean and 95% CI across this model's appearances when more than one source reports it. Expand a row for per-source scores, generation settings, and flags. Filter to Overlaps only for cross-suite duplicates."
               : groupingMode === "category"
-                ? "Every reported result, regrouped under curated category tags so similar benchmarks cluster across families."
-                : "Every reported result in the warehouse's natural shape — family-rooted plots and accordions, with no cross-family collapse."}
+                ? "This model's results in the context of other reported evaluations. Plots are grouped by benchmark categories."
+                : "This model's results in the context of other reported evaluations. Plots are grouped by benchmark family."}
           </p>
         )}
 
@@ -5131,21 +5131,23 @@ export function BenchmarkDetail({
             <div className="ec-mode-toggle">
               <button
                 type="button"
-                className={benchmarkViewMode === "grid" ? "on" : ""}
+                className={`inline-flex items-center gap-1.5 ${benchmarkViewMode === "grid" ? "on" : ""}`}
                 onClick={() => setBenchmarkViewMode("grid")}
-                aria-label="Grid view"
-                title="Grid (plots)"
+                aria-label="Plots view"
+                title="Plots"
               >
                 <LayoutGrid className="h-3 w-3" />
+                Plots
               </button>
               <button
                 type="button"
-                className={benchmarkViewMode === "list" ? "on" : ""}
+                className={`inline-flex items-center gap-1.5 ${benchmarkViewMode === "list" ? "on" : ""}`}
                 onClick={() => setBenchmarkViewMode("list")}
-                aria-label="List view"
-                title="List (table)"
+                aria-label="Table view"
+                title="Table"
               >
                 <List className="h-3 w-3" />
+                Table
               </button>
             </div>
           )}
@@ -5243,7 +5245,7 @@ export function BenchmarkDetail({
               {query
                 ? "No overlaps match your search"
                 : overlapsFilter === "multi"
-                  ? "No benchmarks with multiple sources — switch to All to see single-source results"
+                  ? "No benchmarks with multiple sources. Switch to All to see single-source results."
                   : "No benchmark results found for this model"}
             </div>
           ) : (
@@ -5388,7 +5390,7 @@ export function BenchmarkDetail({
         })() : filteredBenchmarkGroups.length === 0 ||
         (benchmarkViewMode === "grid" && plotboxUnits.length === 0) ? (
           <div className="border border-dashed border-[color:var(--border-soft)] bg-[color:var(--bg-warm)] py-12 px-6 text-center font-mono text-[11px] uppercase tracking-[0.2em] text-[color:var(--fg-subtle)]">
-            No benchmarks match the current search or category filters
+            No benchmarks match the current search or category filters.
           </div>
         ) : benchmarkViewMode === "grid" && groupingMode === "source" ? (
           /* Hierarchy mode — section per family, one plotbox per composite
@@ -6356,7 +6358,7 @@ function BenchmarkResultCard({
                     <Separator className="my-4" />
                     <div className="mb-2">
                       <div className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">Detailed Breakdown</div>
-                      <div className="text-xs text-muted-foreground mt-1">Scores and structured metadata for individual slices or metrics</div>
+                      <div className="text-xs text-muted-foreground mt-1">Scores and structured metadata for individual slices or metrics.</div>
                     </div>
 
                     {numericBreakdown.length > 0 && (
@@ -6537,486 +6539,6 @@ function BenchmarkResultCard({
         </CollapsibleContent>
       </Card>
     </Collapsible>
-  )
-}
-
-function AggregatedBenchmarkCard({
-  group,
-  anchorId,
-  isOpen,
-  onOpenChange,
-  motionIndex = 0,
-}: {
-  group: BenchmarkGroup
-  anchorId: string
-  isOpen: boolean
-  onOpenChange: (open: boolean) => void
-  motionIndex?: number
-}) {
-  const { mode } = useAudienceMode()
-  const isResearchView = mode === "research"
-  const [expandedRows, setExpandedRows] = useState<Record<string, boolean>>({})
-  const [selectedFilters, setSelectedFilters] = useState<Record<string, string>>({})
-
-  const variantRows = useMemo<VariantRowData[]>(
-    () =>
-      group.variants.map((variant, index) => {
-        const configMap = getVariantConfigMap(variant)
-
-        return {
-          rowKey: `${variant.evaluation.evaluation_id}-${index}`,
-          variant,
-          configMap,
-          configEntries: Object.entries(configMap),
-          sampleCount: Array.isArray(variant.evaluation.source_data)
-            ? null
-            : variant.evaluation.source_data.samples_number ?? null,
-        }
-      }),
-    [group.variants]
-  )
-
-  const filterDefinitions = useMemo(() => {
-    const valuesByKey = new Map<string, Set<string>>()
-
-    for (const row of variantRows) {
-      for (const [key, value] of row.configEntries) {
-        if (!valuesByKey.has(key)) {
-          valuesByKey.set(key, new Set())
-        }
-        valuesByKey.get(key)?.add(value)
-      }
-    }
-
-    return Array.from(valuesByKey.entries())
-      .filter(([, values]) => values.size > 1)
-      .sort(([a], [b]) => {
-        if (a === "setup") return -1
-        if (b === "setup") return 1
-        return a.localeCompare(b)
-      })
-      .map(([key, values]) => ({
-        key,
-        label: key === "setup" ? "Setup" : formatConfigLabel(key),
-        values: Array.from(values).sort((a, b) => a.localeCompare(b)),
-      }))
-  }, [variantRows])
-
-  const filteredRows = useMemo(
-    () =>
-      variantRows.filter((row) =>
-        filterDefinitions.every((definition) => {
-          const selectedValue = selectedFilters[definition.key]
-          if (!selectedValue || selectedValue === "all") {
-            return true
-          }
-
-          return row.configMap[definition.key] === selectedValue
-        })
-      ),
-    [filterDefinitions, selectedFilters, variantRows]
-  )
-
-  const activeFilterCount = Object.values(selectedFilters).filter((value) => value && value !== "all").length
-  const leaderNormalizedScore = filteredRows[0]?.variant.normalizedScore ?? 0
-  const spread = getBenchmarkSpread(group)
-  const sourceOrganizations = new Set(group.variants.map((variant) => getOrganizationDisplayName(variant.evaluation.source_metadata.source_organization_name)))
-  const latestTimestamp = group.variants.reduce((latest, variant) => {
-    const value = Number.parseFloat(variant.evaluation.retrieved_timestamp)
-    return Number.isFinite(value) ? Math.max(latest, value) : latest
-  }, Number.NEGATIVE_INFINITY)
-  const latestReportedLabel =
-    Number.isFinite(latestTimestamp) ? formatCompactDate(String(latestTimestamp)) : formatCompactDate(group.variants[0]?.evaluation.retrieved_timestamp ?? "")
-  const compactDomains = group.domains.slice(0, 2)
-  const progressWidth = Math.max(4, Math.min(100, group.avgNormalizedScore * 100))
-  const sliceCount = getGroupSliceCount(group)
-
-  const toggleRow = (rowKey: string) => {
-    setExpandedRows((current) => ({
-      ...current,
-      [rowKey]: !current[rowKey],
-    }))
-  }
-
-  return (
-    <div
-      id={anchorId}
-      className="motion-academic-enter"
-      style={{ "--enter-delay": `${Math.min(motionIndex * 55, 260)}ms` } as CSSProperties}
-    >
-      <Collapsible open={isOpen} onOpenChange={onOpenChange}>
-      <Card className="motion-academic-surface overflow-hidden border border-border/70 bg-card shadow-[0_1px_0_rgba(255,255,255,0.3),0_8px_24px_rgba(15,23,42,0.04)] dark:shadow-[0_1px_0_rgba(255,255,255,0.02)]">
-        <div
-          role="button"
-          tabIndex={0}
-          onClick={() => onOpenChange(!isOpen)}
-          onKeyDown={(event) => {
-            if (event.key === "Enter" || event.key === " ") {
-              event.preventDefault()
-              onOpenChange(!isOpen)
-            }
-          }}
-          className="block w-full cursor-pointer px-3.5 py-2.5 text-left transition-colors hover:bg-muted/20 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
-        >
-            {/* Compact single-row layout */}
-            <div className="flex items-center gap-3">
-              {/* Category dot */}
-              <span className={`shrink-0 inline-flex items-center rounded-full border px-2 py-0.5 text-[10px] font-semibold ${getCategoryTone(group.category)}`}>
-                {formatTagLabel(group.category as unknown as string)}
-              </span>
-
-              {/* Name + domains */}
-              <div className="min-w-0 flex-1">
-                <div className="flex flex-wrap items-center gap-2">
-                  <Link
-                    href={group.evalDetailHref}
-                    onClick={(event) => event.stopPropagation()}
-                    className="text-sm font-semibold tracking-tight text-foreground/95 underline decoration-dotted underline-offset-4 hover:text-primary"
-                  >
-                    {group.title}
-                  </Link>
-                  {group.benchmarkCard && (
-                    <span className="shrink-0 rounded-full border border-border/50 bg-muted/30 px-1.5 py-0.5 text-[9px] font-semibold uppercase tracking-[0.12em] text-muted-foreground">
-                      card
-                    </span>
-                  )}
-                  {sliceCount > 0 && (
-                    <span className="shrink-0 rounded-full border border-emerald-200/70 bg-emerald-50 px-1.5 py-0.5 text-[9px] font-semibold uppercase tracking-[0.12em] text-emerald-700 dark:border-emerald-900/60 dark:bg-emerald-950/30 dark:text-emerald-300">
-                      {sliceCount} slice{sliceCount === 1 ? "" : "s"}
-                    </span>
-                  )}
-                  {compactDomains.map((domain) => (
-                    <span
-                      key={`${group.key}-${domain}`}
-                      className="hidden sm:inline-flex items-center rounded-full border border-border/50 bg-background/60 px-2 py-0.5 text-[10px] font-medium capitalize text-muted-foreground"
-                    >
-                      {domain}
-                    </span>
-                  ))}
-                  {group.domains.length > compactDomains.length && (
-                    <span className="hidden sm:inline text-[10px] text-muted-foreground/70">+{group.domains.length - compactDomains.length}</span>
-                  )}
-                </div>
-              </div>
-
-              <div className="hidden sm:flex shrink-0 items-center gap-2 text-xs">
-                <span className="rounded-full border border-border/60 bg-muted/30 px-2 py-0.5 font-medium text-muted-foreground">
-                  {group.avgDisplayScore}
-                </span>
-                {group.bestRankPosition != null && (
-                  <span className="rounded-full border border-border/60 bg-background px-2 py-0.5 font-medium text-muted-foreground">
-                    {`#${group.bestRankPosition}${group.bestRankTotal ? `/${group.bestRankTotal}` : ""}`}
-                  </span>
-                )}
-              </div>
-
-              {/* Slice count */}
-              <span className="shrink-0 text-[11px] text-muted-foreground w-16 text-right hidden sm:block">
-                {group.variants.length} {group.variants.length === 1 ? "result" : "results"}
-              </span>
-
-              <div className="shrink-0 text-muted-foreground">
-                {isOpen ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
-              </div>
-            </div>
-          </div>
-
-        <CollapsibleContent>
-          <Separator />
-          <CardContent className="bg-muted/5 p-4 sm:p-5">
-            <div className="space-y-2.5">
-              <div className="flex items-center justify-end">
-                <Link href={group.evalDetailHref}>
-                  <Button size="sm" variant="outline" className="h-8">
-                    View full leaderboard
-                  </Button>
-                </Link>
-              </div>
-
-              {group.benchmarkCard && (
-                <div className="rounded-2xl border border-border/70 bg-background/90 p-3.5">
-                  <div className="flex flex-wrap items-start justify-between gap-3">
-                    <div className="min-w-0 space-y-1">
-                      <div className="text-xs font-semibold uppercase tracking-[0.2em] text-muted-foreground">
-                        Benchmark context
-                      </div>
-                      <div className="text-base font-semibold">
-                        {group.benchmarkCard.benchmark_details.name}
-                      </div>
-                      <p className="max-w-3xl text-sm leading-6 text-muted-foreground">
-                        {group.benchmarkCard.benchmark_details.overview}
-                      </p>
-                    </div>
-                    <div className="flex flex-wrap gap-1.5">
-                      <Badge variant="outline" className="font-normal">
-                        {group.benchmarkCard.benchmark_details.data_type}
-                      </Badge>
-                      {group.benchmarkCard.methodology.metrics.slice(0, 2).map((metric) => (
-                        <Badge key={`${group.key}-${metric}`} variant="secondary" className="font-normal">
-                          {metric}
-                        </Badge>
-                      ))}
-                    </div>
-                  </div>
-                  <div className="mt-3 grid gap-3 lg:grid-cols-3">
-                    <div className="rounded-xl border bg-muted/10 p-3">
-                      <div className="text-[11px] font-semibold uppercase tracking-[0.16em] text-muted-foreground">
-                        Goal
-                      </div>
-                      <div className="mt-1 text-sm text-foreground/90">
-                        {group.benchmarkCard.purpose_and_intended_users.goal}
-                      </div>
-                    </div>
-                    <div className="rounded-xl border bg-muted/10 p-3">
-                      <div className="text-[11px] font-semibold uppercase tracking-[0.16em] text-muted-foreground">
-                        Methods
-                      </div>
-                      <div className="mt-1 text-sm text-foreground/90">
-                        {group.benchmarkCard.methodology.methods.slice(0, 2).join(", ") || "Not specified"}
-                      </div>
-                    </div>
-                    <div className="rounded-xl border bg-muted/10 p-3">
-                      <div className="text-[11px] font-semibold uppercase tracking-[0.16em] text-muted-foreground">
-                        Caveat
-                      </div>
-                      <div className="mt-1 text-sm text-foreground/90">
-                        {group.benchmarkCard.purpose_and_intended_users.limitations}
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              )}
-
-              <div>
-                <div className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">
-                  Metrics & Breakdown
-                </div>
-                <div className="text-xs text-muted-foreground mt-1">
-                  {isResearchView
-                    ? "Benchmark-level metrics and benchmark breakdowns are shown separately from setup changes."
-                    : "Root benchmark metrics and real benchmark breakdowns are shown without inventing extra hierarchy in the UI."}
-                </div>
-              </div>
-
-              {filterDefinitions.length > 0 && (
-                <div className="rounded-lg border bg-background p-4 space-y-3">
-                  <div className="flex items-center justify-between gap-3 flex-wrap">
-                    <div>
-                      <div className="text-sm font-medium">Comparison Filters</div>
-                      <div className="text-xs text-muted-foreground">
-                        {isResearchView
-                          ? "Narrow to matching setup or generation config values for apples-to-apples comparison"
-                          : "Narrow to matching setup and reporting conditions for more comparable policy review"}
-                      </div>
-                    </div>
-                    <div className="flex items-center gap-2 text-xs text-muted-foreground">
-                      <Badge variant="secondary">
-                        {filteredRows.length} of {variantRows.length} shown
-                      </Badge>
-                      {activeFilterCount > 0 && (
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          className="h-8 px-2"
-                          onClick={() => setSelectedFilters({})}
-                        >
-                          Clear filters
-                        </Button>
-                      )}
-                    </div>
-                  </div>
-
-                  <div className="grid grid-cols-[repeat(auto-fit,minmax(220px,1fr))] gap-3">
-                    {filterDefinitions.map((definition) => (
-                      <div key={definition.key} className="grid min-w-0 content-start gap-2 rounded-xl border bg-muted/10 p-3">
-                        <div className="min-h-10 text-xs font-medium leading-5 text-muted-foreground">
-                          {definition.label}
-                        </div>
-                        <Select
-                          value={selectedFilters[definition.key] ?? "all"}
-                          onValueChange={(value) =>
-                            setSelectedFilters((current) => ({
-                              ...current,
-                              [definition.key]: value,
-                            }))
-                          }
-                        >
-                          <SelectTrigger className="min-w-0 w-full bg-background/90">
-                            <SelectValue placeholder={`All ${definition.label}`} />
-                          </SelectTrigger>
-                          <SelectContent>
-                            <SelectItem value="all">All {definition.label}</SelectItem>
-                            {definition.values.map((value) => (
-                              <SelectItem key={value} value={value}>
-                                {value}
-                              </SelectItem>
-                            ))}
-                          </SelectContent>
-                        </Select>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              )}
-
-              {variantRows.length === 1 ? (
-                <div className="space-y-3">
-                  <div className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">
-                    Reported Details
-                  </div>
-                  <VariantExpandedDetail
-                    row={variantRows[0]}
-                    group={group}
-                    mode={mode}
-                  />
-                </div>
-              ) : (
-                <div className="space-y-3">
-                  {filteredRows.map((row, index) => {
-                    const { rowKey, variant } = row
-                    const isRowOpen = expandedRows[rowKey] ?? false
-                    const hasSourceLink = Boolean(variant.evaluation.source_metadata.source_url)
-                    const leaderRawScore = filteredRows[0]?.variant.result.score_details.score ?? variant.result.score_details.score
-                    const gapToLeader = Math.max(0, leaderRawScore - variant.result.score_details.score)
-                    const evidenceStatus = hasSourceLink ? "Linked" : "Inline"
-
-                    return (
-                      <div
-                        key={rowKey}
-                        className="motion-academic-enter-soft overflow-hidden rounded-xl border bg-background"
-                        style={{ "--enter-delay": `${Math.min(index * 40, 180)}ms` } as CSSProperties}
-                      >
-                        <button
-                          type="button"
-                          className="block w-full p-4 text-left transition-colors hover:bg-muted/20 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
-                          onClick={() => toggleRow(rowKey)}
-                        >
-                          <div className="flex flex-col gap-3">
-                            <div className="flex items-start justify-between gap-3">
-                              <div className="flex min-w-0 items-start gap-3">
-                                <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full border text-xs font-semibold">
-                                  {index + 1}
-                                </div>
-                                <div className="min-w-0 space-y-1">
-                                  <div className="flex flex-wrap items-center gap-2">
-                                    <div className="min-w-0 break-words font-medium">{variant.label}</div>
-                                    <Badge className={getVariantTypeTone(variant.variantType)}>
-                                      {getVariantTypeLabel(variant.variantType)}
-                                    </Badge>
-                                  </div>
-                                  <div className="text-xs text-muted-foreground">
-                                    {variant.setupLabel && <span>Setup: {variant.setupLabel}</span>}
-                                    {variant.setupLabel && variant.sliceLabel && <span> • </span>}
-                                    {variant.sliceLabel && <span>Slice: {variant.sliceLabel}</span>}
-                                    {!variant.setupLabel && !variant.sliceLabel && <span>{group.title}</span>}
-                                  </div>
-                                </div>
-                              </div>
-
-                              <span className="inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-full border border-border/60 bg-background/80">
-                                {isRowOpen ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
-                                <span className="sr-only">Toggle variant details</span>
-                              </span>
-                            </div>
-
-                            <div className="grid gap-3 border-t border-border/50 pt-3 lg:grid-cols-[minmax(0,1.1fr)_minmax(180px,1fr)_110px_150px]">
-                              <div className="min-w-0">
-                                <div className="text-[11px] font-semibold uppercase tracking-[0.16em] text-muted-foreground">
-                                  {isResearchView ? "Config" : "Setup"}
-                                </div>
-                                <div className="mt-1 text-sm font-medium text-foreground/90" title={getTableConfigLabel(row)}>
-                                  {getConfigDisplayValue(getTableConfigLabel(row))}
-                                </div>
-                              </div>
-
-                              <div className="min-w-0">
-                                <div className="flex items-center justify-between text-[11px] font-semibold uppercase tracking-[0.16em] text-muted-foreground">
-                                  <span>{isResearchView ? "Relative score" : "Evidence context"}</span>
-                                  <span>{index === 0 ? "Leader" : `-${formatRawScoreValue(gapToLeader)}`}</span>
-                                </div>
-                                {isResearchView ? (
-                                  <>
-                                    <div className="mt-2 h-2 overflow-hidden rounded-full bg-muted">
-                                      <div
-                                        className="h-full rounded-full bg-foreground/70"
-                                        style={{
-                                          width: `${leaderNormalizedScore > 0 ? Math.max(4, (variant.normalizedScore / leaderNormalizedScore) * 100) : 100}%`,
-                                        }}
-                                      />
-                                    </div>
-                                    <div className="mt-1 text-[12px] text-muted-foreground">
-                                      {getRelationshipDisplayName(variant.evaluation.source_metadata.evaluator_relationship)}
-                                    </div>
-                                  </>
-                                ) : (
-                                  <div className="mt-1 text-sm capitalize text-muted-foreground">
-                                    {getRelationshipDisplayName(variant.evaluation.source_metadata.evaluator_relationship)}
-                                  </div>
-                                )}
-                              </div>
-
-                              <div>
-                                <div className="text-[11px] font-semibold uppercase tracking-[0.16em] text-muted-foreground">
-                                  Score
-                                </div>
-                                <div className="mt-1 text-lg font-semibold tracking-tight">
-                                  {variant.displayScore}
-                                  {variant.auxStderr != null && (
-                                    <span
-                                      className="ml-2 align-middle font-mono text-[11px] font-normal text-muted-foreground"
-                                      title="Standard error reported alongside this score"
-                                    >
-                                      ± {formatRawScoreValue(variant.auxStderr, variant.auxStderrUnit)}
-                                    </span>
-                                  )}
-                                </div>
-                                <SignalsRowBadges
-                                  annotations={variant.result.evalcards?.annotations}
-                                  className="justify-start"
-                                />
-                              </div>
-
-                              <div className="min-w-0">
-                                <div className="text-[11px] font-semibold uppercase tracking-[0.16em] text-muted-foreground">
-                                  {isResearchView ? "Source" : "Evidence"}
-                                </div>
-                                <div className="mt-1 truncate text-sm font-medium text-foreground/90">
-                                  {getOrganizationDisplayName(variant.evaluation.source_metadata.source_organization_name)}
-                                </div>
-                                <div className="text-[12px] text-muted-foreground">
-                                  {evidenceStatus}
-                                </div>
-                              </div>
-                            </div>
-                          </div>
-                        </button>
-
-                        {isRowOpen && (
-                          <div className="border-t bg-muted/10 p-4">
-                            <VariantExpandedDetail
-                              row={row}
-                              group={group}
-                              mode={mode}
-                            />
-                          </div>
-                        )}
-                      </div>
-                    )
-                  })}
-
-                  {filteredRows.length === 0 && (
-                    <div className="rounded-xl border bg-background p-6 text-center text-sm text-muted-foreground">
-                      No rows match the current filters.
-                    </div>
-                  )}
-                </div>
-              )}
-            </div>
-          </CardContent>
-        </CollapsibleContent>
-      </Card>
-      </Collapsible>
-    </div>
   )
 }
 
@@ -7554,7 +7076,7 @@ function BenchmarkDeepDiveDialogPanel({
                   : "These rows describe the same benchmark view, so the table surfaces the reported run name or setup differences that separate them."
                 : isResearchView
                   ? "This benchmark reports one setup, so slices, scores, and provenance are merged into one comparison view."
-                  : "This benchmark only reports one setup, so the slice evidence is consolidated into a single reader-friendly view."}
+                  : "This benchmark only reports one setup, so the slice evidence is consolidated into a single view."}
             </p>
 
             <div className="min-h-0 overflow-auto">
@@ -8463,8 +7985,7 @@ function SummaryMetricsList({
   return (
     <div className="space-y-8 mx-auto" style={{ maxWidth: "72rem" }}>
       <p className="text-[13px] leading-[1.65] text-[color:var(--fg-muted)]">
-        Reported benchmarks grouped by source (the prefix of the eval ID — wasp / vals-ai /
-        reward-bench-2 / …), ordered best peer rank first. The number on the right is the model's
+        Reported benchmarks grouped by source (the prefix of the eval ID, e.g., wasp, vals-ai, reward-bench-2), ordered best peer rank first. The number on the right is the model's
         raw score; <em className="not-italic font-mono text-[12px]">12 / 107</em> next to it is
         its peer rank. A medal (🥇 🥈 🥉) marks a top-3 finish. Switch to{" "}
         <em className="text-[color:var(--fg)] not-italic font-medium">Researcher view</em>{" "}

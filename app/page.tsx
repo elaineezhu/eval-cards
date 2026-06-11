@@ -281,7 +281,7 @@ export default async function HomePage() {
                 name: "Metric",
                 count: formatNumber(metricCount),
                 ex: "pass@1, accuracy, F1",
-                def: "The number reported for a slice — what was actually measured.",
+                def: "The number reported for a slice, i.e. what was actually measured.",
                 href: "/benchmarks",
               },
             ].map((node, i, arr) => (

@@ -210,7 +210,7 @@ export function buildModelPolicySummary({
     reportingSentence = "No reporting organization is recorded."
   } else if (organizationCount === 1 && lead) {
     reportingSentence = allThirdParty
-      ? `Tested independently by ${lead} — a third party, not the model's developer.`
+      ? `Tested independently by ${lead} (a third party, not the model's developer).`
       : noThirdParty
         ? `Reported only by ${lead}; no independent third-party scores are available.`
         : `Reported by ${lead}.`
@@ -219,7 +219,7 @@ export function buildModelPolicySummary({
     reportingSentence = allThirdParty
       ? `Tested independently by ${lead} and ${pluralize(others, "other organization")}.`
       : noThirdParty
-        ? `Reported by ${lead} and ${pluralize(others, "other organization")} — but no independent third-party scores are available.`
+        ? `Reported by ${lead} and ${pluralize(others, "other organization")}, but no independent third-party scores are available.`
         : `Reported by ${lead} and ${pluralize(others, "other organization")}.`
   } else {
     reportingSentence = `Reported by ${pluralize(organizationCount, "organization")}.`
@@ -380,7 +380,7 @@ function formatComparabilitySentence(comp?: ComparabilitySummary): string | null
   const crossParty = comp.cross_party_divergent_count
   const noCrossPartyChecks = comp.groups_with_cross_party_check === 0
   if (variant === 0 && crossParty === 0 && !noCrossPartyChecks) {
-    return "Where multiple reports exist, the scores agree closely — direct comparison across reports is reasonable."
+    return "Where multiple reports exist, the scores agree closely; direct comparison across reports is reasonable."
   }
   if (variant > 0 && crossParty > 0) {
     return "These scores have been reported under different setups and by different organizations, which may explain some of the variation seen across reports."
