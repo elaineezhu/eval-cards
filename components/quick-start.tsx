@@ -90,6 +90,9 @@ export function QuickStartProvider({ children }: { children: React.ReactNode }) 
 
   // Auto-open on a visitor's first time, mirroring the audience-mode pattern.
   useEffect(() => {
+    // Embedded views (iframes) never get the tour: storage partitioning means
+    // the seen-flag can't persist there, so it would replay on every load.
+    if (window.self !== window.top) return
     try {
       if (!window.localStorage.getItem(STORAGE_KEY)) {
         setOpen(true)
