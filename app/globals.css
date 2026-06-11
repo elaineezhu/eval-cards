@@ -1061,6 +1061,9 @@
     }
     .ec-nav-links a { padding: 6px 8px; font-size: 11px; white-space: nowrap; }
     .ec-mode-toggle button { padding: 5px 9px; font-size: 10px; }
+    .ec-mode-toggle { flex-wrap: wrap; max-width: 100%; }
+    .section-head { flex-wrap: wrap; row-gap: 10px; }
+    .section-head > div { flex-wrap: wrap; max-width: 100%; }
     .mode-banner { top: 0; position: relative; }
     .mode-banner-inner {
       padding: 8px 16px;
