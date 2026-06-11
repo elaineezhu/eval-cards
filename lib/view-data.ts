@@ -1042,13 +1042,36 @@ export async function getEvalSummaryById(evalId: string): Promise<BenchmarkEvalS
       summary.leaderboard_rows = dedupeLeaderboardRowsByModelIdentity(leaderboardRows)
     }
     if (matrix.subtask_metrics.length > 0) {
-      const existing = (summary.leaderboard_metrics ?? []) as Array<{ column_key: string }>
+      const existing = (summary.leaderboard_metrics ?? []) as Array<{
+        column_key: string
+        scope?: string
+      }>
       const seen = new Set(existing.map((m) => m.column_key))
+      // Root metrics already present from the snapshot. The matrix precompute
+      // emits an aggregate slice (`accuracy::overall`) for every measure, whose
+      // values are byte-identical to the root metric (`accuracy`). Those would
+      // double every column — root "Accuracy" plus a redundant "Accuracy ·
+      // overall" twin — so drop a trivial-aggregate slice when its base measure
+      // already exists as a root metric. Genuine slices (`score::gaming`) are
+      // kept; only overall/all/total/default aggregates are pruned.
+      const rootKeys = new Set(
+        existing.filter((m) => m.scope !== "subtask").map((m) => m.column_key),
+      )
+      const TRIVIAL_AGGREGATE = /^(overall|all|total|default)$/i
+      const isRedundantAggregate = (columnKey: string) => {
+        const parts = columnKey.split("::")
+        if (parts.length < 2) return false
+        const slice = parts[parts.length - 1]
+        const base = parts.slice(0, -1).join("::")
+        return TRIVIAL_AGGREGATE.test(slice) && rootKeys.has(base)
+      }
       const merged = [
         ...existing,
         ...matrix.subtask_metrics.filter(
           (m): m is typeof m & { column_key: string } =>
-            typeof m.column_key === "string" && !seen.has(m.column_key),
+            typeof m.column_key === "string" &&
+            !seen.has(m.column_key) &&
+            !isRedundantAggregate(m.column_key),
         ),
       ]
       summary.leaderboard_metrics =

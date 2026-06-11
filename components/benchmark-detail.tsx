@@ -5013,9 +5013,18 @@ export function BenchmarkDetail({
                     ? "View by source: family-rooted plotboxes / accordions, no cross-family collapse."
                     : groupingMode === "category"
                       ? "View by category: same composite/standalone units, grouped by curated tag."
-                      : "View overlaps: cross-suite duplicate benchmarks only, with mean and 95% CI."
+                      : "Scores: one row per benchmark, merged across sources, with mean and 95% CI."
                 }
               >
+                <button
+                  type="button"
+                  className={groupingMode === "overlaps" ? "on" : ""}
+                  onClick={() => setGroupingMode("overlaps")}
+                  aria-label="Scores"
+                  title="Score table, one row per benchmark, merged across sources"
+                >
+                  Scores
+                </button>
                 <button
                   type="button"
                   className={groupingMode === "source" ? "on" : ""}
@@ -5033,15 +5042,6 @@ export function BenchmarkDetail({
                   title="Plots grouped by category"
                 >
                   Plots by category
-                </button>
-                <button
-                  type="button"
-                  className={groupingMode === "overlaps" ? "on" : ""}
-                  onClick={() => setGroupingMode("overlaps")}
-                  aria-label="View overlaps"
-                  title="Cross-suite overlaps"
-                >
-                  Overlaps
                 </button>
               </div>
             )}

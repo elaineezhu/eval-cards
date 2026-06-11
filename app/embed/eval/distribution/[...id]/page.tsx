@@ -189,12 +189,25 @@ export default function EmbedEvalDistribution() {
 
   return (
     <div>
-      <div
-        className="font-mono uppercase mb-2"
-        style={{ fontSize: 10, letterSpacing: "0.14em", color: "var(--fg-subtle)" }}
-      >
-        {summary.evaluation_name} ·{" "}
-        {defaultView === "frontier" ? "Pareto frontier" : "Score distribution"}
+      <div className="mb-3">
+        <div
+          className="font-mono uppercase"
+          style={{ fontSize: 10, letterSpacing: "0.14em", color: "var(--fg-subtle)" }}
+        >
+          {defaultView === "frontier" ? "Pareto frontier" : "Score distribution"}
+        </div>
+        <div
+          style={{
+            fontSize: 19,
+            fontWeight: 700,
+            letterSpacing: "-0.02em",
+            lineHeight: 1.2,
+            color: "var(--fg)",
+            marginTop: 2,
+          }}
+        >
+          {summary.evaluation_name}
+        </div>
       </div>
       {sliceAxis && (
         <div className="mb-3 flex items-center gap-3">

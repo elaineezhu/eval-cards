@@ -238,13 +238,13 @@ export default function EmbedEvalLeaderboard() {
   )
   const headerKicker = view.isMulti ? (
     <>
-      {summary.evaluation_name} · {view.metrics.length} metrics ·{" "}
+      Leaderboard · {view.metrics.length} metrics ·{" "}
       {view.sortLower ? "lower is better" : "higher is better"} (sorted by{" "}
       {sortMetric ? getMetricChipLabel(sortMetric) : view.sortKey})
     </>
   ) : (
     <>
-      {summary.evaluation_name} ·{" "}
+      Leaderboard ·{" "}
       {view.metrics[0] ? getMetricChipLabel(view.metrics[0]) : "Score"}
       {view.sortLower ? " · lower is better" : " · higher is better"}
     </>
@@ -252,11 +252,25 @@ export default function EmbedEvalLeaderboard() {
 
   return (
     <div>
-      <div
-        className="font-mono uppercase mb-3"
-        style={{ fontSize: 10, letterSpacing: "0.14em", color: "var(--fg-subtle)" }}
-      >
-        {headerKicker}
+      <div className="mb-3">
+        <div
+          className="font-mono uppercase"
+          style={{ fontSize: 10, letterSpacing: "0.14em", color: "var(--fg-subtle)" }}
+        >
+          {headerKicker}
+        </div>
+        <div
+          style={{
+            fontSize: 19,
+            fontWeight: 700,
+            letterSpacing: "-0.02em",
+            lineHeight: 1.2,
+            color: "var(--fg)",
+            marginTop: 2,
+          }}
+        >
+          {summary.evaluation_name}
+        </div>
       </div>
       {sliceAxis && (
         <div className="mb-3 flex items-center gap-3">

@@ -543,7 +543,7 @@ function metricLabelReadsAsPercentage(metricLabel: string, unit?: string) {
 }
 
 function describeLeaderboardMetric(metric: LeaderboardMetric) {
-  const metricLabel = getCompactMetricLabel(metric.display_name)
+  const metricLabel = getMetricChipLabel(metric)
   const metricPhrase = metricLabelReadsAsPercentage(metricLabel, metric.unit)
     ? `${metricLabel} percentage`
     : metricLabel
@@ -552,7 +552,10 @@ function describeLeaderboardMetric(metric: LeaderboardMetric) {
     return `${metricPhrase} for ${metric.subtask_name}`
   }
 
-  return metric.canonical_display_name || metric.display_name
+  // Bold label already carries the compact name; only add a subtitle when the
+  // canonical name says something more than the label (avoid echoing it).
+  const canonical = metric.canonical_display_name?.trim()
+  return canonical && canonical !== metricLabel ? canonical : ""
 }
 
 function compactizePath(value: string): string {
@@ -2363,6 +2366,42 @@ function MultiMetricLeaderboard({
     [leaderboardMetrics]
   )
   const visibleMetricKeySet = useMemo(() => new Set(visibleMetricKeys), [visibleMetricKeys])
+  // Labels for the "Visible measure columns" dropdown. The measure name alone
+  // is ambiguous in two opposite ways: subtask benchmarks repeat one measure
+  // across slices (ACE: every column is "Score"), while others repeat one
+  // trivial slice across distinct measures (BFCL: Accuracy/Rank/… all "overall").
+  // So append the slice ONLY when the measure label actually collides with
+  // another column — and never a trivial "overall"/"all"/"total" token.
+  const metricDropdownLabels = useMemo(() => {
+    const measureLabelOf = (m: LeaderboardMetric) => getMetricChipLabel(m)
+    const measureCounts = new Map<string, number>()
+    for (const m of leaderboardMetrics) {
+      const l = measureLabelOf(m)
+      measureCounts.set(l, (measureCounts.get(l) ?? 0) + 1)
+    }
+    const isTrivialSlice = (s: string) => /^(overall|all|total|default)$/i.test(s)
+    const out = new Map<string, { label: string; description: string }>()
+    for (const m of leaderboardMetrics) {
+      const measureLabel = measureLabelOf(m)
+      let label = measureLabel
+      if ((measureCounts.get(measureLabel) ?? 0) > 1) {
+        const subtask = m.subtask_name?.trim() ?? ""
+        const keySuffix = m.column_key.includes("::")
+          ? humanizeMetricKey(m.column_key.split("::").pop() ?? "")
+          : ""
+        const slice = subtask && !isTrivialSlice(subtask) ? subtask : keySuffix
+        // Last resort: the humanised full key guarantees uniqueness when no
+        // meaningful slice exists.
+        label = slice
+          ? `${measureLabel} · ${slice}`
+          : `${measureLabel} · ${humanizeMetricKey(m.column_key)}`
+      }
+      const canonical = m.canonical_display_name?.trim()
+      const description = canonical && canonical !== measureLabel && canonical !== label ? canonical : ""
+      out.set(m.column_key, { label, description })
+    }
+    return out
+  }, [leaderboardMetrics])
   // Every distinct subtask key surfaces as a slice option; metric chips
   // stay scoped to the eval's root metrics. Without this, evals like
   // Fibble Arena (3 metrics × 6 lies = 18 subtask entries) render every
@@ -2700,7 +2739,11 @@ function MultiMetricLeaderboard({
             {leaderboardMetrics.map((metric) => {
               const isVisible = visibleMetricKeySet.has(metric.column_key)
               const isLastVisible = isVisible && visibleMetrics.length === 1
-              const visibleLabel = getCompactMetricLabel(metric.display_name)
+              const { label: visibleLabel, description: visibleDescription } =
+                metricDropdownLabels.get(metric.column_key) ?? {
+                  label: getMetricChipLabel(metric),
+                  description: "",
+                }
 
               return (
                 <DropdownMenuCheckboxItem
@@ -2718,12 +2761,14 @@ function MultiMetricLeaderboard({
                     >
                       {visibleLabel}
                     </span>
-                    <span
-                      className="leading-tight"
-                      style={{ color: "var(--fg-muted)", fontSize: 11 }}
-                    >
-                      {describeLeaderboardMetric(metric)}
-                    </span>
+                    {visibleDescription && (
+                      <span
+                        className="leading-tight"
+                        style={{ color: "var(--fg-muted)", fontSize: 11 }}
+                      >
+                        {visibleDescription}
+                      </span>
+                    )}
                   </div>
                 </DropdownMenuCheckboxItem>
               )
