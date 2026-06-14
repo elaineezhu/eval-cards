@@ -5326,7 +5326,7 @@ export function BenchmarkDetail({
                           borderBottom: isLast ? "none" : "1px solid var(--border-soft)",
                         }}
                       >
-                        <div className="grid grid-cols-[minmax(0,1.8fr)_minmax(0,0.9fr)_minmax(0,0.9fr)_minmax(0,0.9fr)_minmax(0,1.6fr)] items-center gap-3 px-1 py-1.5 font-mono text-[10px] uppercase tracking-[0.15em] text-[color:var(--fg-subtle)]">
+                        <div className="hidden grid-cols-[minmax(0,1.8fr)_minmax(0,0.9fr)_minmax(0,0.9fr)_minmax(0,0.9fr)_minmax(0,1.6fr)] items-center gap-3 px-1 py-1.5 font-mono text-[10px] uppercase tracking-[0.15em] text-[color:var(--fg-subtle)] sm:grid">
                           <div>Source</div>
                           <div>Score</div>
                           <div>Temperature</div>
@@ -5337,45 +5337,85 @@ export function BenchmarkDetail({
                           const notReported = (
                             <span className="text-[color:var(--fg-subtle)]">not reported</span>
                           )
+                          const sourceNode =
+                            app.sourceKind === "comparison-index" ? (
+                              <Link
+                                href={`/evals/${routeIdToPath(app.evalSummaryId)}?from=${encodeURIComponent(currentDetailHref)}`}
+                                className="ec-tag outline hover:border-[color:var(--accent)] hover:text-[color:var(--accent)] transition-colors"
+                                style={{ fontSize: 10 }}
+                                title={`${app.familyName} · ${app.metricName} — view eval`}
+                              >
+                                {app.familyName}
+                              </Link>
+                            ) : (
+                              <span
+                                className="text-[12px] text-[color:var(--fg-muted)]"
+                                title={`${app.familyName} · ${app.metricName}`}
+                              >
+                                {app.familyName}
+                              </span>
+                            )
+                          const scoreNode = fmt(app.score)
+                          const temperatureNode =
+                            app.temperature != null
+                              ? Number.isInteger(app.temperature)
+                                ? app.temperature.toFixed(1)
+                                : app.temperature
+                              : notReported
+                          const maxTokensNode =
+                            app.maxTokens != null ? app.maxTokens : notReported
+                          const flagsNode = (
+                            <RowFlagSquares annotations={app.annotations} />
+                          )
                           return (
                             <div
                               key={`${row.canonicalKey}::${app.familyKey}::${app.evalSummaryId}`}
-                              className="grid grid-cols-[minmax(0,1.8fr)_minmax(0,0.9fr)_minmax(0,0.9fr)_minmax(0,0.9fr)_minmax(0,1.6fr)] items-center gap-3 border-t border-[color:var(--border-soft)] px-1 py-2"
+                              className="border-t border-[color:var(--border-soft)]"
                             >
-                              <div className="min-w-0">
-                                {app.sourceKind === "comparison-index" ? (
-                                  <Link
-                                    href={`/evals/${routeIdToPath(app.evalSummaryId)}?from=${encodeURIComponent(currentDetailHref)}`}
-                                    className="ec-tag outline hover:border-[color:var(--accent)] hover:text-[color:var(--accent)] transition-colors"
-                                    style={{ fontSize: 10 }}
-                                    title={`${app.familyName} · ${app.metricName} — view eval`}
-                                  >
-                                    {app.familyName}
-                                  </Link>
-                                ) : (
-                                  <span
-                                    className="text-[12px] text-[color:var(--fg-muted)]"
-                                    title={`${app.familyName} · ${app.metricName}`}
-                                  >
-                                    {app.familyName}
-                                  </span>
-                                )}
+                              {/* Wide layout: single-row grid */}
+                              <div className="hidden grid-cols-[minmax(0,1.8fr)_minmax(0,0.9fr)_minmax(0,0.9fr)_minmax(0,0.9fr)_minmax(0,1.6fr)] items-center gap-3 px-1 py-2 sm:grid">
+                                <div className="min-w-0">{sourceNode}</div>
+                                <div className="font-mono text-[12px] tabular-nums text-[color:var(--fg)]">
+                                  {scoreNode}
+                                </div>
+                                <div className="font-mono text-[11px] tabular-nums text-[color:var(--fg-muted)]">
+                                  {temperatureNode}
+                                </div>
+                                <div className="font-mono text-[11px] tabular-nums text-[color:var(--fg-muted)]">
+                                  {maxTokensNode}
+                                </div>
+                                <div className="flex flex-wrap items-center gap-1">
+                                  {flagsNode}
+                                </div>
                               </div>
-                              <div className="font-mono text-[12px] tabular-nums text-[color:var(--fg)]">
-                                {fmt(app.score)}
-                              </div>
-                              <div className="font-mono text-[11px] tabular-nums text-[color:var(--fg-muted)]">
-                                {app.temperature != null
-                                  ? Number.isInteger(app.temperature)
-                                    ? app.temperature.toFixed(1)
-                                    : app.temperature
-                                  : notReported}
-                              </div>
-                              <div className="font-mono text-[11px] tabular-nums text-[color:var(--fg-muted)]">
-                                {app.maxTokens != null ? app.maxTokens : notReported}
-                              </div>
-                              <div className="flex flex-wrap items-center gap-1">
-                                <RowFlagSquares annotations={app.annotations} />
+                              {/* Narrow layout: stacked label/value block */}
+                              <div className="px-1 py-2 sm:hidden">
+                                <div className="flex items-start justify-between gap-2">
+                                  <div className="min-w-0">{sourceNode}</div>
+                                  <div className="flex shrink-0 flex-wrap items-center justify-end gap-1">
+                                    {flagsNode}
+                                  </div>
+                                </div>
+                                <dl className="mt-1.5 grid grid-cols-[88px_minmax(0,1fr)] gap-x-3 gap-y-1">
+                                  <dt className="font-mono text-[10px] uppercase tracking-[0.15em] text-[color:var(--fg-subtle)]">
+                                    Score
+                                  </dt>
+                                  <dd className="font-mono text-[12px] tabular-nums text-[color:var(--fg)]">
+                                    {scoreNode}
+                                  </dd>
+                                  <dt className="font-mono text-[10px] uppercase tracking-[0.15em] text-[color:var(--fg-subtle)]">
+                                    Temperature
+                                  </dt>
+                                  <dd className="font-mono text-[11px] tabular-nums text-[color:var(--fg-muted)]">
+                                    {temperatureNode}
+                                  </dd>
+                                  <dt className="font-mono text-[10px] uppercase tracking-[0.15em] text-[color:var(--fg-subtle)]">
+                                    Max tokens
+                                  </dt>
+                                  <dd className="font-mono text-[11px] tabular-nums text-[color:var(--fg-muted)]">
+                                    {maxTokensNode}
+                                  </dd>
+                                </dl>
                               </div>
                             </div>
                           )
