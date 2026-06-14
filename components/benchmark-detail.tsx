@@ -4987,10 +4987,23 @@ export function BenchmarkDetail({
          ============================================================ */}
       <section>
         <div className="section-head">
-          <h2>
-            <span className="font-mono text-[12px] tracking-[0.1em] text-[color:var(--accent)] mr-3">§4</span>
-            Reported metrics
-          </h2>
+          {embedReportedMetricsOnly ? (
+            // Standalone embed: the document header (with the model name) is
+            // suppressed, so name the model here — otherwise the iframe gives
+            // no clue which model these reported metrics belong to.
+            <div className="min-w-0">
+              <div className="kicker mb-1">Reported metrics</div>
+              <h2 className="truncate">{getModelDisplayName(summary.model_info.name)}</h2>
+              <div className="text-[12px] text-[color:var(--fg-muted)] mt-0.5">
+                {getOrganizationDisplayName(summary.model_info.developer)}
+              </div>
+            </div>
+          ) : (
+            <h2>
+              <span className="font-mono text-[12px] tracking-[0.1em] text-[color:var(--accent)] mr-3">§4</span>
+              Reported metrics
+            </h2>
+          )}
           <div className="flex items-center gap-3">
             <span className="font-mono text-[10px] uppercase tracking-[0.15em] text-[color:var(--fg-subtle)]">
               {isResearchView
