@@ -2614,6 +2614,20 @@ export function BenchmarkDetail({
     ? benchmarkGroupLookup.get(activeBenchmarkGroupKey) ?? null
     : null
 
+  // Deep-link support: `/models/<id>?deepDive=<groupKey>` opens the matching
+  // benchmark deep-dive on load. Used by the histogram embed's "View deep
+  // dive" link (the modal can't render inside the small embed iframe, so the
+  // embed opens the full card with the deep dive already expanded) and works
+  // as a shareable link standalone. Only fires when the param/lookup change,
+  // so closing the dialog doesn't re-open it.
+  const deepDiveParam = searchParams.get("deepDive")
+  useEffect(() => {
+    if (!deepDiveParam) return
+    if (benchmarkGroupLookup.has(deepDiveParam)) {
+      setActiveBenchmarkGroupKey(deepDiveParam)
+    }
+  }, [deepDiveParam, benchmarkGroupLookup])
+
   const toggleSuite = (compositeKey: string) => {
     setExpandedSuites((prev) => {
       const next = new Set(prev)
@@ -4518,13 +4532,30 @@ export function BenchmarkDetail({
             so the deep-dive link is the only thing below it. */}
 
         <div className="mt-3 border-t border-[color:var(--border-soft)] pt-3">
-          <button
-            type="button"
-            onClick={() => jumpToDeepDive(activeView.group.key)}
-            className="font-mono text-[10px] uppercase tracking-[0.12em] text-[color:var(--fg-muted)] hover:text-[color:var(--accent)] transition-colors"
-          >
-            View deep dive →
-          </button>
+          {embedHistogramOnly ? (
+            // Inside the embed iframe the deep-dive modal has no host to
+            // mount into (the dialog lives in the main return block, which
+            // the embed early-return skips) and wouldn't fit the tiny frame
+            // anyway. Link out to the full card with the deep dive
+            // pre-opened via ?deepDive=, in a new tab so we don't navigate
+            // the third-party host page.
+            <a
+              href={`/models/${routeIdToPath(summary.model_info.id)}?deepDive=${encodeURIComponent(activeView.group.key)}`}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="font-mono text-[10px] uppercase tracking-[0.12em] text-[color:var(--fg-muted)] hover:text-[color:var(--accent)] transition-colors"
+            >
+              View deep dive ↗
+            </a>
+          ) : (
+            <button
+              type="button"
+              onClick={() => jumpToDeepDive(activeView.group.key)}
+              className="font-mono text-[10px] uppercase tracking-[0.12em] text-[color:var(--fg-muted)] hover:text-[color:var(--accent)] transition-colors"
+            >
+              View deep dive →
+            </button>
+          )}
         </div>
 
         {!hist && (

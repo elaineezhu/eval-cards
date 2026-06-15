@@ -4,7 +4,10 @@ import { useEffect, useMemo, useState } from "react"
 import { useParams, useSearchParams } from "next/navigation"
 import { ScoreDistribution } from "@/components/score-distribution"
 import { fetchEvalSummary } from "@/lib/dashboard-data-client"
-import { getMetricChipLabel } from "@/lib/metric-labels"
+import {
+  buildDistributionSeries,
+  buildDistributionSliceAxis,
+} from "@/lib/distribution-series"
 import { routeIdFromSegments } from "@/lib/utils"
 import type { BenchmarkEvalSummary } from "@/lib/eval-processing"
 
@@ -45,26 +48,10 @@ export default function EmbedEvalFrontier() {
 
   // Slice axis — present when the eval has multiple subtask-scope metrics
   // sharing a primary root metric (e.g. Global MMLU's 24 language splits).
-  const sliceAxis = useMemo(() => {
-    if (!summary) return null
-    const metrics = summary.leaderboard_metrics ?? []
-    const primary = metrics.find((m) => m.scope !== "subtask")
-    if (!primary?.column_key) return null
-    const seen = new Map<string, string>()
-    for (const m of metrics) {
-      if (m.scope === "subtask" && m.subtask_key && !seen.has(m.subtask_key)) {
-        seen.set(m.subtask_key, m.subtask_name ?? m.subtask_key)
-      }
-    }
-    if (seen.size <= 1) return null
-    return {
-      primaryColumn: primary.column_key,
-      primaryLabel: getMetricChipLabel(primary),
-      unit: primary.unit ?? summary.metric_config.unit,
-      lowerIsBetter: Boolean(primary.lower_is_better ?? summary.metric_config.lower_is_better),
-      slices: Array.from(seen, ([key, label]) => ({ key, label })),
-    }
-  }, [summary])
+  const sliceAxis = useMemo(
+    () => (summary ? buildDistributionSliceAxis(summary) : null),
+    [summary],
+  )
 
   const ALL_SLICE_KEY = "__all__"
   const [activeSlice, setActiveSlice] = useState<string>(() => {
@@ -79,78 +66,10 @@ export default function EmbedEvalFrontier() {
     }
   }, [activeSlice, sliceAxis])
 
-  const series = useMemo(() => {
-    if (!summary) return null
-    const rows = summary.leaderboard_rows ?? []
-
-    // Slice-axis path: render one series for the active slice (Overall or
-    // a specific subtask). Drives the SPLIT dropdown UX.
-    if (sliceAxis) {
-      const columnKey =
-        activeSlice === ALL_SLICE_KEY
-          ? sliceAxis.primaryColumn
-          : `${sliceAxis.primaryColumn}::${activeSlice}`
-      const points: { score: number; releaseDate: string | null; modelName: string }[] = []
-      for (const row of rows) {
-        const raw = (row.values as Record<string, unknown> | undefined)?.[columnKey]
-        const numeric = typeof raw === "number" ? raw : Number(raw)
-        if (!Number.isFinite(numeric)) continue
-        const modelInfo = (row as { model_info?: { name?: string; release_date?: string | null } }).model_info
-        points.push({
-          score: numeric,
-          modelName: modelInfo?.name ?? "",
-          releaseDate: modelInfo?.release_date ?? null,
-        })
-      }
-      if (points.length < 3) return null
-      const sliceLabel =
-        activeSlice === ALL_SLICE_KEY
-          ? "Overall"
-          : sliceAxis.slices.find((s) => s.key === activeSlice)?.label ?? activeSlice
-      return [
-        {
-          key: `${sliceAxis.primaryColumn}::${activeSlice}`,
-          label: `${sliceAxis.primaryLabel} · ${sliceLabel}`,
-          values: points.map((p) => p.score),
-          unit: sliceAxis.unit,
-          lowerIsBetter: sliceAxis.lowerIsBetter,
-          points,
-        },
-      ]
-    }
-
-    // Non-slice path: one series per metric. ScoreDistribution surfaces a
-    // metric chip picker.
-    const metrics = summary.leaderboard_metrics ?? []
-    const built = metrics
-      .map((metric) => {
-        const columnKey = metric.column_key ?? metric.metric_summary_id
-        if (!columnKey) return null
-        const points: { score: number; releaseDate: string | null; modelName: string }[] = []
-        for (const row of rows) {
-          const raw = (row.values as Record<string, unknown> | undefined)?.[columnKey]
-          const numeric = typeof raw === "number" ? raw : Number(raw)
-          if (!Number.isFinite(numeric)) continue
-          const modelInfo = (row as { model_info?: { name?: string; release_date?: string | null } }).model_info
-          points.push({
-            score: numeric,
-            modelName: modelInfo?.name ?? "",
-            releaseDate: modelInfo?.release_date ?? null,
-          })
-        }
-        if (points.length < 3) return null
-        return {
-          key: columnKey,
-          label: getMetricChipLabel(metric),
-          values: points.map((p) => p.score),
-          unit: metric.unit ?? summary.metric_config.unit,
-          lowerIsBetter: Boolean(metric.lower_is_better ?? summary.metric_config.lower_is_better),
-          points,
-        }
-      })
-      .filter((s): s is NonNullable<typeof s> => s !== null)
-    return built.length > 0 ? built : null
-  }, [summary, sliceAxis, activeSlice])
+  const series = useMemo(
+    () => (summary ? buildDistributionSeries(summary, sliceAxis, activeSlice, ALL_SLICE_KEY) : null),
+    [summary, sliceAxis, activeSlice],
+  )
 
   if (error) {
     return (

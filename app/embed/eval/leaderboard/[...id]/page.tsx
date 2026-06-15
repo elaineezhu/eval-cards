@@ -120,7 +120,17 @@ export default function EmbedEvalLeaderboard() {
           const targetKey = `${sliceAxis.primaryColumn}::${activeSlice}`
           return allMetrics.filter((m) => m.column_key === targetKey)
         })()
-      : allMetrics
+      : (() => {
+          // Mirror the eval page / distribution + frontier embeds: when there
+          // is no real slice axis, only root-scope metrics become columns. The
+          // producer emits a redundant self-slice subtask for some evals (e.g.
+          // vals-ai/math-500's `accuracy::vals ai math500`, same
+          // metric_summary_id as the root `accuracy`); without this filter it
+          // renders as a duplicate "Accuracy" column. Fall back to all metrics
+          // only if an eval somehow carries no root metric.
+          const roots = allMetrics.filter((m) => m.scope !== "subtask")
+          return roots.length > 0 ? roots : allMetrics
+        })()
     // Top-level metrics first; subtask metrics keep their order after them.
     // We display all metrics that have at least one numeric score in the
     // rows — pruning empty columns keeps the table readable.
