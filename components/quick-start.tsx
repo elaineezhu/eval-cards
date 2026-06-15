@@ -2,6 +2,7 @@
 
 import { createContext, useContext, useEffect, useMemo, useState } from "react"
 import Link from "next/link"
+import { usePathname } from "next/navigation"
 import {
   ArrowRight,
   BarChart3,
@@ -87,11 +88,17 @@ const SLIDES: Slide[] = [
 
 export function QuickStartProvider({ children }: { children: React.ReactNode }) {
   const [open, setOpen] = useState(false)
+  const pathname = usePathname()
 
   // Auto-open on a visitor's first time, mirroring the audience-mode pattern.
   useEffect(() => {
-    // Embedded views (iframes) never get the tour: storage partitioning means
-    // the seen-flag can't persist there, so it would replay on every load.
+    // Embed surfaces never get the tour. Two independent guards:
+    //  1. Route-based — anything under /embed/* is a self-contained card meant
+    //     for iframing, so the tour must not appear even if the URL is opened
+    //     directly as a top-level tab (e.g. a "preview" link).
+    //  2. Frame-based — when iframed, storage partitioning means the seen-flag
+    //     can't persist, so the tour would replay on every load.
+    if (pathname?.startsWith("/embed")) return
     if (window.self !== window.top) return
     try {
       if (!window.localStorage.getItem(STORAGE_KEY)) {
@@ -100,7 +107,7 @@ export function QuickStartProvider({ children }: { children: React.ReactNode }) 
     } catch {
       // localStorage unavailable (e.g. privacy mode) — skip the tour silently.
     }
-  }, [])
+  }, [pathname])
 
   const markSeen = () => {
     try {
