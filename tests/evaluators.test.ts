@@ -55,6 +55,22 @@ describe("groupEvalsByEvaluator", () => {
     // OpenAI never verified → absent
     expect(groups.find((g) => g.name === "OpenAI")).toBeUndefined()
   })
+
+  it("verified-only also keeps recognized (grey-tier) sources", () => {
+    // "Artificial Analysis" is a recognized source — grey badge, never in
+    // verified_evaluator_names — so it must still surface under verified-only.
+    const withGrey = [
+      ...corpus,
+      evalRow("g1", ["Artificial Analysis"]),
+      evalRow("g2", ["Artificial Analysis", "OpenAI"]),
+    ]
+    const groups = groupEvalsByEvaluator(withGrey, { verifiedOnly: true })
+    const aa = groups.find((g) => g.name === "Artificial Analysis")!
+    expect(aa.evalCount).toBe(2)
+    expect(aa.verifiedCount).toBe(0) // grey is not blue
+    // OpenAI is neither verified nor recognized → still absent.
+    expect(groups.find((g) => g.name === "OpenAI")).toBeUndefined()
+  })
 })
 
 describe("buildEvaluatorSlugMap", () => {

@@ -137,9 +137,10 @@ export function groupEvalsByEvaluator(
       const org = (raw ?? "").trim()
       if (!org) continue
       const isVerifiedHere = verifiedSet.has(org)
-      // In verified-only mode, the membership itself only counts when the
-      // org is verified *for this eval*.
-      if (verifiedOnly && !isVerifiedHere) continue
+      // In verified-only mode, the membership counts when the org carries a
+      // trust badge for this eval — either blue (verified *for this eval*) or
+      // grey (a recognized source). Both are surfaced.
+      if (verifiedOnly && !isVerifiedHere && !isRecognizedEvaluator(org)) continue
       const cur = acc.get(org) ?? { evalCount: 0, verifiedCount: 0, isVerified: false }
       cur.evalCount += 1
       if (isVerifiedHere) {
@@ -196,6 +197,7 @@ export function getEvalsForEvaluator(
   if (!name) return { name: null, isVerified: false, evals: [] }
 
   let isVerified = false
+  const recognized = isRecognizedEvaluator(name)
   const evals = allEvals.filter((ev) => {
     // Exclude slices — evaluator surfaces show root benchmarks only.
     if (ev.is_slice) return false
@@ -203,7 +205,9 @@ export function getEvalsForEvaluator(
     if (!orgs.includes(name)) return false
     const verifiedHere = (ev.verified_evaluator_names ?? []).includes(name)
     if (verifiedHere) isVerified = true
-    if (verifiedOnly) return verifiedHere
+    // Verified-only keeps both trust tiers: blue (verified for this eval) and
+    // grey (recognized source — applies to all of the org's evals).
+    if (verifiedOnly) return verifiedHere || recognized
     return true
   })
 
