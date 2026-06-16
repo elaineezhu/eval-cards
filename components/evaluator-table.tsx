@@ -57,8 +57,11 @@ export function EvaluatorTable({ rows, sortCol, sortDir, onSort, verifiedOnly }:
     )
   }
 
-  const hrefFor = (slug: string) =>
-    verifiedOnly ? `/evaluators/${slug}?verified=1` : `/evaluators/${slug}`
+  // The detail route always shows the org's full profile — the verified-only
+  // list filter is intentionally not carried across (it changed nothing for
+  // grey/recognized orgs and only narrowed blue mixed orgs, while the detail
+  // header already reports total + verified counts side by side).
+  const hrefFor = (slug: string) => `/evaluators/${slug}`
 
   return (
     <div className="overflow-x-auto">

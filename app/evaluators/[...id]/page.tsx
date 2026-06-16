@@ -1,7 +1,7 @@
 "use client"
 
 import { Suspense, useCallback, useEffect, useMemo, useState } from "react"
-import { useParams, useRouter, useSearchParams } from "next/navigation"
+import { useParams, useRouter } from "next/navigation"
 import { ArrowLeft, Search } from "lucide-react"
 
 import { FamilyTable, type FamilySortCol } from "@/components/family-table"
@@ -11,13 +11,11 @@ import type { EvalHierarchy } from "@/lib/backend-artifacts"
 import type { BenchmarkCard } from "@/lib/benchmark-schema"
 import { fetchBenchmarkMetadata, fetchEvalHierarchy, fetchEvalList } from "@/lib/dashboard-data-client"
 import type { BenchmarkEvalListItem } from "@/lib/eval-processing"
-import { getEvalsForEvaluator, isRecognizedEvaluator, verifiedEvalIds } from "@/lib/evaluators"
+import { getEvalsForEvaluator, isRecognizedEvaluator } from "@/lib/evaluators"
 
 function EvaluatorDetailInner() {
   const params = useParams()
   const router = useRouter()
-  const searchParams = useSearchParams()
-  const verifiedOnly = searchParams.get("verified") === "1" || searchParams.get("verified") === "true"
 
   // The slug is a single URL-safe segment, but the route is a catch-all
   // ([...id]) to match the developers/models pattern. Join just in case.
@@ -63,9 +61,13 @@ function EvaluatorDetailInner() {
     }
   }, [sortCol])
 
+  // The evaluator page always shows the org's full profile — the verified
+  // filter is a list-browsing concept that we deliberately do not persist into
+  // this route (the header reports total + verified counts separately, so no
+  // information is hidden). See evaluator-table.tsx hrefFor.
   const { name, isVerified, evals } = useMemo(
-    () => getEvalsForEvaluator(allEvals, slug, { verifiedOnly }),
-    [allEvals, slug, verifiedOnly],
+    () => getEvalsForEvaluator(allEvals, slug),
+    [allEvals, slug],
   )
 
   // Eval-id universe owned by this evaluator — restricts the family tree to
@@ -75,8 +77,6 @@ function EvaluatorDetailInner() {
     for (const ev of evals) set.add(ev.evaluation_id)
     return set
   }, [evals])
-
-  const verifiedIds = useMemo(() => verifiedEvalIds(allEvals), [allEvals])
 
   const evalItems = useMemo(() => {
     const map = new Map<string, BenchmarkEvalListItem>()
@@ -110,8 +110,8 @@ function EvaluatorDetailInner() {
   }, [evals, name, families, restrictEvalIds])
 
   const handleBack = useCallback(() => {
-    router.push(verifiedOnly ? "/evals?groupBy=evaluator&verified=1" : "/evals?groupBy=evaluator")
-  }, [router, verifiedOnly])
+    router.push("/evals?groupBy=evaluator")
+  }, [router])
 
   if (loading) {
     return (
@@ -188,7 +188,7 @@ function EvaluatorDetailInner() {
               , <strong>{verifiedCount.toLocaleString()}</strong> verified
             </>
           )}
-          {verifiedOnly ? " (verified submissions only)" : ""}.
+          .
         </p>
 
         <div className="ec-page-meta mt-2">
@@ -236,12 +236,14 @@ function EvaluatorDetailInner() {
             No evaluations match the current filters
           </div>
         ) : (
+          /* restrictEvalIds scopes the tree to this evaluator's evals; the
+             page never filters by verified status, so no verifiedEvalIds. */
           <FamilyTable
             families={families}
             evalItems={evalItems}
             benchmarkCards={benchmarkCards}
             searchQuery={searchQuery}
-            verifiedEvalIds={verifiedOnly ? verifiedIds : null}
+            verifiedEvalIds={null}
             restrictEvalIds={restrictEvalIds}
             sortCol={sortCol}
             sortDir={sortDir}
