@@ -150,8 +150,9 @@ export function readTutorial(slug: string): string | null {
 
 /**
  * Rewrites the `> 🖼️ **Screenshot — \`file.png\`** / *What to capture:* …`
- * blockquotes into markdown images. Real screenshots resolve to a public path;
- * missing ones become `placeholder:` images so the renderer can style them.
+ * blockquotes into markdown images (`.png` or `.gif`). Real screenshots resolve
+ * to a public path; missing ones become `placeholder:` images so the renderer
+ * can style them.
  */
 function transformScreenshotBlocks(raw: string, existing: Set<string>): string {
   const lines = raw.split("\n")
@@ -174,7 +175,7 @@ function transformScreenshotBlocks(raw: string, existing: Set<string>): string {
     i-- // the outer loop will advance past the last consumed line
 
     const inner = block.map((l) => l.replace(/^\s*>\s?/, "")).join("\n")
-    const file = inner.match(/`([^`]+\.png)`/)?.[1]
+    const file = inner.match(/`([^`]+\.(?:png|gif))`/)?.[1]
     if (!file) continue // malformed marker — drop it rather than render noise
 
     const rawCaption = inner.match(/\*What to capture:\*\s*([\s\S]+)$/)?.[1] ?? ""
