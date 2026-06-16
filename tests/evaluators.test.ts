@@ -67,7 +67,10 @@ describe("groupEvalsByEvaluator", () => {
     const groups = groupEvalsByEvaluator(withGrey, { verifiedOnly: true })
     const aa = groups.find((g) => g.name === "Artificial Analysis")!
     expect(aa.evalCount).toBe(2)
-    expect(aa.verifiedCount).toBe(0) // grey is not blue
+    // Grey recognized tier counts toward verifiedCount (both g1 & g2), but the
+    // org is not blue-verified so the badge tier stays grey.
+    expect(aa.verifiedCount).toBe(2)
+    expect(aa.isVerified).toBe(false)
     // OpenAI is neither verified nor recognized → still absent.
     expect(groups.find((g) => g.name === "OpenAI")).toBeUndefined()
   })

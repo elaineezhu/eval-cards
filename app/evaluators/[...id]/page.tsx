@@ -91,9 +91,14 @@ function EvaluatorDetailInner() {
   // intersect this evaluator's set), so the header agrees with the accordion
   // below it rather than the finer family_display_name grouping.
   const { familyCount, verifiedCount } = useMemo(() => {
+    // "Verified" spans both trust tiers: blue (org verified for this eval) and
+    // grey (a recognized source — the tier applies to all of the org's evals).
+    // So a recognized-only org like Hugging Face reports its full eval count
+    // rather than 0. Mirrors getEvalsForEvaluator's verified-only filter.
+    const recognized = isRecognizedEvaluator(name)
     let verified = 0
     for (const ev of evals) {
-      if (name && (ev.verified_evaluator_names ?? []).includes(name)) verified += 1
+      if (name && (recognized || (ev.verified_evaluator_names ?? []).includes(name))) verified += 1
     }
     let familyCount = 0
     for (const fam of families) {

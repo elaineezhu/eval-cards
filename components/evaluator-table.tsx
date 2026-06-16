@@ -105,9 +105,17 @@ export function EvaluatorTable({ rows, sortCol, sortDir, onSort, verifiedOnly }:
               {!verifiedOnly && (
                 <td className="num font-mono text-[13px]">
                   {row.verifiedCount > 0 ? (
-                    <span className="inline-flex items-center gap-1 text-[color:var(--accent)]">
+                    <span
+                      className="inline-flex items-center gap-1"
+                      style={{ color: row.isVerified ? "var(--accent)" : "var(--fg-muted)" }}
+                    >
                       {row.verifiedCount.toLocaleString()}
-                      <VerifiedBadge verified size="sm" withTooltip={false} />
+                      <VerifiedBadge
+                        verified={row.isVerified}
+                        recognized={isRecognizedEvaluator(row.name)}
+                        size="sm"
+                        withTooltip={false}
+                      />
                     </span>
                   ) : (
                     <span className="text-[color:var(--fg-subtle)]">—</span>

@@ -50,7 +50,9 @@ export interface EvaluatorGroup {
   slug: string
   /** Number of evals this org reported (respecting the verified filter). */
   evalCount: number
-  /** Number of those evals where this org is a *verified* evaluator. */
+  /** Number of those evals carrying a trust badge for this org — blue
+   *  (verified evaluator for the eval) or grey (org is a recognized source).
+   *  For a recognized-only org this equals evalCount. */
   verifiedCount: number
   /** True when the org is a verified evaluator for ≥1 eval (regardless of filter). */
   isVerified: boolean
@@ -137,16 +139,18 @@ export function groupEvalsByEvaluator(
       const org = (raw ?? "").trim()
       if (!org) continue
       const isVerifiedHere = verifiedSet.has(org)
+      const recognized = isRecognizedEvaluator(org)
       // In verified-only mode, the membership counts when the org carries a
       // trust badge for this eval — either blue (verified *for this eval*) or
       // grey (a recognized source). Both are surfaced.
-      if (verifiedOnly && !isVerifiedHere && !isRecognizedEvaluator(org)) continue
+      if (verifiedOnly && !isVerifiedHere && !recognized) continue
       const cur = acc.get(org) ?? { evalCount: 0, verifiedCount: 0, isVerified: false }
       cur.evalCount += 1
-      if (isVerifiedHere) {
-        cur.verifiedCount += 1
-        cur.isVerified = true
-      }
+      // verifiedCount spans both trust tiers (blue verified-here or grey
+      // recognized) so a recognized-only org reports its full count, not 0.
+      // isVerified stays blue-only — it drives the blue vs grey badge tier.
+      if (isVerifiedHere || recognized) cur.verifiedCount += 1
+      if (isVerifiedHere) cur.isVerified = true
       acc.set(org, cur)
     }
   }
