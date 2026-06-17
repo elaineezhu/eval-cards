@@ -5,6 +5,7 @@ import { useRouter, useSearchParams } from "next/navigation"
 import { Search } from "lucide-react"
 
 import { EvaluatorTable, type EvaluatorTableSortCol } from "@/components/evaluator-table"
+import { useOrgMetadata } from "@/components/org-metadata-provider"
 import { FamilyTable, getFamilyNavId, type FamilySortCol } from "@/components/family-table"
 import { InfiniteScrollSentinel } from "@/components/infinite-scroll"
 import { Navigation } from "@/components/navigation"
@@ -172,9 +173,10 @@ function EvalsPageInner() {
 
   // Evaluator groups (group-by-Evaluator mode). Verified filter is
   // evaluator-aware: counts only (eval, org) pairs where org is verified.
+  const orgMeta = useOrgMetadata()
   const evaluatorGroups = useMemo(
-    () => groupEvalsByEvaluator(allEvals, { verifiedOnly }),
-    [allEvals, verifiedOnly],
+    () => groupEvalsByEvaluator(allEvals, { verifiedOnly, orgMeta }),
+    [allEvals, verifiedOnly, orgMeta],
   )
 
   const filteredEvaluators = useMemo(() => {

@@ -39,6 +39,13 @@
   --nav-bg: rgba(255, 255, 254, 0.95);
   --shadow-card: 0 1px 2px rgba(0, 0, 0, 0.04), 0 4px 16px rgba(0, 0, 0, 0.07);
 
+  /* Logo plate — a subtly warm near-white surface for framing org brand marks.
+     Deliberately defined ONLY here (not under .dark) so it never flips to a
+     dark surface: near-black or transparent marks (e.g. Anthropic) stay legible
+     on the evaluator page in both themes. Warmer than #fff so it sits in the
+     warm-neutral system rather than reading as a cold clinical white. */
+  --logo-plate: #fdfcfa;
+
   /* Tracking */
   --tracking-wide: 0.025em;
   --tracking-widest: 0.15em;

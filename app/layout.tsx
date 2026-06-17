@@ -3,9 +3,11 @@ import type { Metadata } from "next"
 import "./globals.css"
 import { AudienceModeProvider } from "@/components/audience-mode-provider"
 import { BackendRefreshListener } from "@/components/backend-refresh-listener"
+import { OrgMetadataProvider } from "@/components/org-metadata-provider"
 import { QuickStartProvider } from "@/components/quick-start"
 import { SiteFooter } from "@/components/site-footer"
 import { ThemeProvider } from "@/components/theme-provider"
+import { getOrganizationsData } from "@/lib/data-backend"
 
 const SITE_URL = "https://evalcards.evalevalai.com"
 const SITE_NAME = "Evaluation Cards"
@@ -59,21 +61,27 @@ export const metadata: Metadata = {
   },
 }
 
-export default function RootLayout({
+export default async function RootLayout({
   children,
 }: Readonly<{
   children: React.ReactNode
 }>) {
+  // Per-org registry metadata (homepage url, logo, stable canonical id) for the
+  // whole app. Small + cached; degrades to {} when the snapshot lacks the
+  // organizations sidecar. Drives rename-stable evaluator URLs (slug = id).
+  const orgMetadata = await getOrganizationsData().catch(() => ({}))
   return (
     <html lang="en" className="antialiased" suppressHydrationWarning>
       <body className="font-sans">
         <ThemeProvider attribute="class" defaultTheme="system" enableSystem disableTransitionOnChange>
           <AudienceModeProvider>
-            <QuickStartProvider>
-              <BackendRefreshListener />
-              {children}
-              <SiteFooter />
-            </QuickStartProvider>
+            <OrgMetadataProvider value={orgMetadata}>
+              <QuickStartProvider>
+                <BackendRefreshListener />
+                {children}
+                <SiteFooter />
+              </QuickStartProvider>
+            </OrgMetadataProvider>
           </AudienceModeProvider>
         </ThemeProvider>
       </body>

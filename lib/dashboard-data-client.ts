@@ -3,6 +3,7 @@ import type {
   ComparisonIndex,
   CorpusAggregates,
   EvalHierarchy,
+  OrgMetadata,
   PeerRanksMap,
 } from "@/lib/backend-artifacts"
 import { decorateHierarchyDerivedTags } from "@/lib/benchmark-tags"
@@ -113,4 +114,8 @@ export function fetchCorpusAggregates() {
 
 export function fetchPeerRanks() {
   return fetchJson<PeerRanksMap>("/api/peer-ranks")
+}
+
+export function fetchOrganizations() {
+  return fetchJson<Record<string, OrgMetadata>>("/api/org-metadata")
 }

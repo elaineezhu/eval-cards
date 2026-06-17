@@ -17,7 +17,13 @@
  * 2025)") still produce a valid, unique, non-empty slug.
  */
 
+import type { OrgMetadata } from "@/lib/backend-artifacts"
 import type { BenchmarkEvalListItem } from "@/lib/eval-processing"
+import { normalizeOrgKey } from "@/lib/evaluator-logo"
+
+/** Display-name → registry org metadata (incl. the stable canonical `id`),
+ *  as delivered by the organizations.json sidecar (keyed by normalizeOrgKey). */
+export type OrgMetaMap = Record<string, OrgMetadata>
 
 /**
  * "Recognized" evaluator orgs — public leaderboards whose results we ingest
@@ -75,6 +81,23 @@ export function evaluatorSlug(name: string): string {
   return slug || "evaluator"
 }
 
+/**
+ * Stable, URL-safe slug for an evaluator — the SINGLE source of truth for
+ * /evaluators/<slug> URLs (every link builder and the detail-route resolver
+ * go through this).
+ *
+ * When the org resolves to a registry entity (`orgMeta` carries its canonical
+ * `id`), the slug is derived from that STABLE id, so renaming the display name
+ * never changes the URL. Orgs with no registry entry (raw corpus strings,
+ * which can't be renamed) fall back to the display-name slug. `evaluatorSlug`
+ * is applied to the id too so the slug stays lowercase/url-safe regardless of
+ * id casing (e.g. id "TIGER-Lab" → "tiger-lab").
+ */
+export function evaluatorSlugFor(name: string, orgMeta?: OrgMetaMap): string {
+  const id = orgMeta?.[normalizeOrgKey(name)]?.id
+  return id && id.trim() ? evaluatorSlug(id) : evaluatorSlug(name)
+}
+
 /** @deprecated internal alias — use {@link evaluatorSlug}. */
 const baseSlug = evaluatorSlug
 
@@ -84,7 +107,10 @@ const baseSlug = evaluatorSlug
  * order (name-sorted) so the same corpus always yields the same slugs;
  * collisions get a numeric suffix (`-2`, `-3`, …).
  */
-export function buildEvaluatorSlugMap(evals: BenchmarkEvalListItem[]): {
+export function buildEvaluatorSlugMap(
+  evals: BenchmarkEvalListItem[],
+  orgMeta?: OrgMetaMap,
+): {
   slugToName: Map<string, string>
   nameToSlug: Map<string, string>
 } {
@@ -101,7 +127,7 @@ export function buildEvaluatorSlugMap(evals: BenchmarkEvalListItem[]): {
   const used = new Map<string, number>()
 
   for (const name of Array.from(names).sort((a, b) => a.localeCompare(b))) {
-    const base = baseSlug(name)
+    const base = evaluatorSlugFor(name, orgMeta)
     const seen = used.get(base) ?? 0
     const slug = seen === 0 ? base : `${base}-${seen + 1}`
     used.set(base, seen + 1)
@@ -120,10 +146,10 @@ export function buildEvaluatorSlugMap(evals: BenchmarkEvalListItem[]): {
  */
 export function groupEvalsByEvaluator(
   evals: BenchmarkEvalListItem[],
-  opts?: { verifiedOnly?: boolean },
+  opts?: { verifiedOnly?: boolean; orgMeta?: OrgMetaMap },
 ): EvaluatorGroup[] {
   const verifiedOnly = opts?.verifiedOnly ?? false
-  const { nameToSlug } = buildEvaluatorSlugMap(evals)
+  const { nameToSlug } = buildEvaluatorSlugMap(evals, opts?.orgMeta)
 
   const acc = new Map<string, { evalCount: number; verifiedCount: number; isVerified: boolean }>()
 
@@ -159,7 +185,7 @@ export function groupEvalsByEvaluator(
   for (const [name, v] of acc) {
     groups.push({
       name,
-      slug: nameToSlug.get(name) ?? baseSlug(name),
+      slug: nameToSlug.get(name) ?? evaluatorSlugFor(name, opts?.orgMeta),
       evalCount: v.evalCount,
       verifiedCount: v.verifiedCount,
       isVerified: v.isVerified,
@@ -179,10 +205,10 @@ export function groupEvalsByEvaluator(
 export function getEvalsForEvaluator(
   allEvals: BenchmarkEvalListItem[],
   slug: string,
-  opts?: { verifiedOnly?: boolean },
+  opts?: { verifiedOnly?: boolean; orgMeta?: OrgMetaMap },
 ): { name: string | null; isVerified: boolean; evals: BenchmarkEvalListItem[] } {
   const verifiedOnly = opts?.verifiedOnly ?? false
-  const { slugToName } = buildEvaluatorSlugMap(allEvals)
+  const { slugToName } = buildEvaluatorSlugMap(allEvals, opts?.orgMeta)
   // Direct hit on the (possibly collision-suffixed) full slug, else fall back
   // to base-slug matching so links built from the shared `evaluatorSlug(name)`
   // helper — which can't see the suffix step — still resolve. The fallback is
@@ -192,7 +218,7 @@ export function getEvalsForEvaluator(
     for (const [, candidate] of Array.from(slugToName.entries()).sort((a, b) =>
       a[1].localeCompare(b[1]),
     )) {
-      if (evaluatorSlug(candidate) === slug) {
+      if (evaluatorSlugFor(candidate, opts?.orgMeta) === slug) {
         name = candidate
         break
       }

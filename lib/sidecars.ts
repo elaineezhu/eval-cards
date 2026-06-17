@@ -18,6 +18,8 @@ import type {
   ComparisonIndex,
   CorpusAggregates,
   EvalHierarchy,
+  OrgMetadata,
+  OrgMetadataIndex,
   PeerRanksMap,
   PeerRanksSidecar,
 } from "@/lib/backend-artifacts"
@@ -35,6 +37,7 @@ let cache: {
   hierarchy?: CacheSlot<EvalHierarchy>
   comparisonIndex?: CacheSlot<ComparisonIndex>
   peerRanks?: CacheSlot<PeerRanksMap>
+  organizations?: CacheSlot<Record<string, OrgMetadata>>
 } = {}
 
 function getSnapshotUrl() {
@@ -374,6 +377,30 @@ export function fetchPeerRanks(): Promise<PeerRanksMap> {
             `falling back to empty map. ${err instanceof Error ? err.message : String(err)}`,
         )
         return {} as PeerRanksMap
+      }),
+  )
+}
+
+/**
+ * Per-evaluator-org metadata (homepage URL + logo pointer) from
+ * `warehouse/<snapshot>/organizations.json`, sourced from the registry.
+ * Resolves to the bare `normalizedName -> OrgMetadata` map the evaluator page
+ * looks up by name.
+ *
+ * Returns an empty map when the snapshot doesn't carry the file (older pinned
+ * snapshots predate the Stage J `organizations` sidecar), logging a warning
+ * rather than throwing so the page still renders with monograms + no links.
+ */
+export function fetchOrganizations(): Promise<Record<string, OrgMetadata>> {
+  return getCachedValue("organizations", "organizations", (preferStale) =>
+    fetchJson<OrgMetadataIndex>("organizations.json", preferStale)
+      .then((payload) => payload?.orgs ?? {})
+      .catch((err) => {
+        console.warn(
+          `[sidecars] organizations.json not available on snapshot; ` +
+            `falling back to empty map. ${err instanceof Error ? err.message : String(err)}`,
+        )
+        return {} as Record<string, OrgMetadata>
       }),
   )
 }

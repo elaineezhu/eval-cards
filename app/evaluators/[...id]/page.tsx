@@ -4,13 +4,15 @@ import { Suspense, useCallback, useEffect, useMemo, useState } from "react"
 import { useParams, useRouter } from "next/navigation"
 import { ArrowLeft, Search } from "lucide-react"
 
+import EvaluatorLetterhead from "@/components/evaluator/evaluator-letterhead"
+import { useOrgMetadata } from "@/components/org-metadata-provider"
 import { FamilyTable, type FamilySortCol } from "@/components/family-table"
 import { Navigation } from "@/components/navigation"
-import { VerifiedBadge } from "@/components/signals/verified-badge"
 import type { EvalHierarchy } from "@/lib/backend-artifacts"
 import type { BenchmarkCard } from "@/lib/benchmark-schema"
 import { fetchBenchmarkMetadata, fetchEvalHierarchy, fetchEvalList } from "@/lib/dashboard-data-client"
 import type { BenchmarkEvalListItem } from "@/lib/eval-processing"
+import { normalizeOrgKey } from "@/lib/evaluator-logo"
 import { getEvalsForEvaluator, isRecognizedEvaluator } from "@/lib/evaluators"
 
 function EvaluatorDetailInner() {
@@ -28,6 +30,9 @@ function EvaluatorDetailInner() {
   const [allEvals, setAllEvals] = useState<BenchmarkEvalListItem[]>([])
   const [hierarchy, setHierarchy] = useState<EvalHierarchy | null>(null)
   const [benchmarkCards, setBenchmarkCards] = useState<Record<string, BenchmarkCard>>({})
+  // Org metadata (homepage url, logo, stable id) comes from the app-wide
+  // provider (server-fetched in the root layout) — no per-page fetch, no flash.
+  const orgMeta = useOrgMetadata()
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const [searchQuery, setSearchQuery] = useState("")
@@ -66,8 +71,8 @@ function EvaluatorDetailInner() {
   // this route (the header reports total + verified counts separately, so no
   // information is hidden). See evaluator-table.tsx hrefFor.
   const { name, isVerified, evals } = useMemo(
-    () => getEvalsForEvaluator(allEvals, slug),
-    [allEvals, slug],
+    () => getEvalsForEvaluator(allEvals, slug, { orgMeta }),
+    [allEvals, slug, orgMeta],
   )
 
   // Eval-id universe owned by this evaluator — restricts the family tree to
@@ -160,24 +165,17 @@ function EvaluatorDetailInner() {
           Evaluators
         </button>
 
-        {/* HEADER --------------------------------------------------- */}
-        <div className="kicker">Evaluator</div>
-        <h1 className="ec-page-h1 inline-flex items-center gap-2">
-          {name}
-          <VerifiedBadge verified={isVerified} recognized={isRecognizedEvaluator(name)} size="md" />
-        </h1>
-        <div
-          className="mb-5 flex flex-wrap items-center gap-3 font-mono text-[11px] uppercase tracking-[0.12em]"
-          style={{ color: "var(--fg-muted)" }}
-        >
-          <span>Reporting organisation</span>
-          <span style={{ color: "var(--fg-subtle)" }}>·</span>
-          <span>
-            {familyCount} {familyCount === 1 ? "family" : "families"}
-          </span>
-          <span style={{ color: "var(--fg-subtle)" }}>·</span>
-          <span>{verifiedCount} verified</span>
-        </div>
+        {/* HEADER — editorial letterhead masthead -------------------- */}
+        <EvaluatorLetterhead
+          name={name}
+          logoSrc={orgMeta[normalizeOrgKey(name)]?.logo ?? null}
+          homepageUrl={orgMeta[normalizeOrgKey(name)]?.url}
+          isVerified={isVerified}
+          recognized={isRecognizedEvaluator(name)}
+          evalCount={evals.length}
+          familyCount={familyCount}
+          verifiedCount={verifiedCount}
+        />
         <p className="ec-page-lede">
           Reported <strong>{evals.length.toLocaleString()}</strong>{" "}
           {evals.length === 1 ? "evaluation" : "evaluations"} across{" "}

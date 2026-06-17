@@ -19,7 +19,8 @@ import {
 } from "lucide-react"
 import Link from "next/link"
 import { routeIdToPath } from "@/lib/utils"
-import { evaluatorSlug, isRecognizedEvaluator } from "@/lib/evaluators"
+import { useEvaluatorSlug } from "@/components/org-metadata-provider"
+import { isRecognizedEvaluator } from "@/lib/evaluators"
 import type { BenchmarkEvalListItem } from "@/lib/eval-processing"
 import { getTagColor, tagLabel } from "@/lib/benchmark-schema"
 
@@ -58,6 +59,7 @@ interface EvalCardProps {
 
 export function EvalCard({ summary, delayMs = 0 }: EvalCardProps) {
   const router = useRouter()
+  const slugFor = useEvaluatorSlug()
   const { mode } = useAudienceMode()
   const isResearchView = mode === "research"
   const scorePercent = `${Math.round(summary.avg_score_norm * 100)}%`
@@ -272,7 +274,7 @@ export function EvalCard({ summary, delayMs = 0 }: EvalCardProps) {
                           <span key={name} className="inline-flex items-center">
                             {i > 0 ? ", " : null}
                             <Link
-                              href={`/evaluators/${evaluatorSlug(name)}`}
+                              href={`/evaluators/${slugFor(name)}`}
                               className="hover:text-[color:var(--accent)] hover:underline"
                               onClick={(e) => e.stopPropagation()}
                             >

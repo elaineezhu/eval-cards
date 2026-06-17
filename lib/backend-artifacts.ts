@@ -525,3 +525,30 @@ export interface PeerRanksSidecar {
   config_version: number
   ranks: PeerRanksMap
 }
+
+// ---------------------------------------------------------------------------
+// organizations.json — per-evaluator-org metadata (homepage URL + logo)
+// ---------------------------------------------------------------------------
+
+/** Metadata for one reporting org, sourced from the registry (canonical_orgs).
+ *  All fields beyond `name` are optional — an org only appears here when it
+ *  carries a website or logo_url, so the evaluator page degrades gracefully
+ *  (monogram, no link) for everyone absent. */
+export interface OrgMetadata {
+  /** Canonical display name (matches an `evaluator_names` string). */
+  name: string
+  /** Canonical org id, when resolved. */
+  id?: string
+  /** Homepage URL (registry `website`). */
+  url?: string
+  /** Brand-mark pointer (registry `logo_url`): frontend-relative path or URL. */
+  logo?: string
+}
+
+/** organizations.json envelope. `orgs` is keyed by the NORMALISED display name
+ *  (lower-cased, whitespace-collapsed — see normalizeOrgKey) so the evaluator
+ *  page can look an org up directly from the name it already holds. */
+export interface OrgMetadataIndex {
+  generated_at: string
+  orgs: Record<string, OrgMetadata>
+}

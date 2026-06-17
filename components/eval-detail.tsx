@@ -54,7 +54,8 @@ import {
 import type { BenchmarkCard, SourceData } from "@/lib/benchmark-schema"
 import { tagLabel } from "@/lib/benchmark-schema"
 import type { BenchmarkEvalSummary, ModelResultForBenchmark } from "@/lib/eval-processing"
-import { evaluatorSlug, isRecognizedEvaluator } from "@/lib/evaluators"
+import { isRecognizedEvaluator } from "@/lib/evaluators"
+import { useEvaluatorSlug } from "@/components/org-metadata-provider"
 import type { ComparisonIndex, EvalHierarchy } from "@/lib/backend-artifacts"
 import type { HierarchyEvalLocation } from "@/lib/hierarchy-lookup"
 import { PolicyOverview } from "@/components/policy-overview"
@@ -425,12 +426,13 @@ function EvaluatorName({
   className?: string
   style?: React.CSSProperties
 }) {
+  const slugFor = useEvaluatorSlug()
   if (!linkName) {
     return <span className={className} style={style}>{display}</span>
   }
   return (
     <Link
-      href={`/evaluators/${evaluatorSlug(linkName)}`}
+      href={`/evaluators/${slugFor(linkName)}`}
       className={cn("hover:text-[color:var(--accent)] hover:underline", className)}
       style={style}
       onClick={(e) => e.stopPropagation()}

@@ -90,6 +90,10 @@ export async function getBackendManifestStatusData(): Promise<BackendManifestSta
   }
 }
 
+export async function getOrganizationsData() {
+  return (await sidecars()).fetchOrganizations()
+}
+
 export async function getEvalHierarchyData() {
   // The v2 sidecar ships hierarchy.json in the composite/family/slice
   // taxonomy shape (top-level `composites[]`, flat `families[]` lookup

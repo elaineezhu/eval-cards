@@ -24,7 +24,8 @@ import {
 } from "@/components/ui/dialog"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 
-function formatDate(isoString: string) {
+function formatDate(isoString: string | null | undefined) {
+  if (!isoString) return "—"
   const numeric = Number(isoString)
   const parsedDate =
     !Number.isNaN(numeric) && !isoString.includes("-")
@@ -430,7 +431,7 @@ export function ModelCompareDialog({
                                 {row.key === "latest" ? (
                                   <div className="flex items-center gap-2">
                                     <span>{model.latest_source_name || `${model.benchmarks_count} benchmark composites summarized`}</span>
-                                    {model.source_urls[0] ? (
+                                    {model.source_urls?.[0] ? (
                                       <a
                                         href={model.source_urls[0]}
                                         target="_blank"
