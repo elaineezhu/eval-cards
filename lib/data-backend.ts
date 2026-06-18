@@ -2,6 +2,7 @@ import "server-only"
 
 import type { BackendManifestStatus } from "@/lib/backend-artifacts"
 import { cleanHierarchy } from "@/lib/clean-hierarchy"
+import { getEvalsForEvaluator, isRecognizedEvaluator } from "@/lib/evaluators"
 
 async function viewBackend() {
   return import("@/lib/view-data")
@@ -71,6 +72,35 @@ export async function getModelSummaryById(modelId: string) {
 
 export async function getEvalSummaryById(evalId: string) {
   return (await viewBackend()).getEvalSummaryById(evalId)
+}
+
+/**
+ * Resolve an evaluator-org slug (/evaluators/<slug>) to the facts the page
+ * metadata + OG card need: canonical org name, evals-reported count, and
+ * verified count. Mirrors the client-side derivation in
+ * app/evaluators/[...id]/page.tsx — getEvalsForEvaluator over the lite eval
+ * list, keyed by the organizations.json sidecar — so the server-rendered
+ * unfurl agrees with what the page shows. Returns null when the slug
+ * resolves to no org (bad/expired link → falls back to the generic card).
+ *
+ * verifiedCount spans both trust tiers (blue verified-for-this-eval and grey
+ * recognized-source), matching the evaluator page header.
+ */
+export async function getEvaluatorSummaryBySlug(slug: string) {
+  const [list, orgMeta] = await Promise.all([
+    getEvalListLiteData(),
+    getOrganizationsData().catch(() => ({})),
+  ])
+  const { name, isVerified, evals } = getEvalsForEvaluator(list.evals, slug, { orgMeta })
+  if (!name) return null
+
+  const recognized = isRecognizedEvaluator(name)
+  let verifiedCount = 0
+  for (const ev of evals) {
+    if (recognized || (ev.verified_evaluator_names ?? []).includes(name)) verifiedCount += 1
+  }
+
+  return { name, isVerified, evalCount: evals.length, verifiedCount }
 }
 
 export async function getBackendManifestData() {
