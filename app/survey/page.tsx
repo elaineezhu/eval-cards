@@ -15,6 +15,7 @@ import {
   SURVEY_TOOL_URL,
   type StakeholderTag,
 } from "@/lib/survey-content"
+import { safeStorage } from "@/lib/safe-storage"
 import { cn } from "@/lib/utils"
 
 interface SurveyField {
@@ -163,7 +164,7 @@ export default function SurveyPage() {
   const [submitState, setSubmitState] = useState<"idle" | "submitting" | "submitted" | "error">("idle")
 
   useEffect(() => {
-    const storedValue = window.localStorage.getItem(STORAGE_KEY)
+    const storedValue = safeStorage().getItem(STORAGE_KEY)
     if (!storedValue) return
 
     try {
@@ -175,7 +176,7 @@ export default function SurveyPage() {
   }, [])
 
   useEffect(() => {
-    window.localStorage.setItem(STORAGE_KEY, JSON.stringify(surveyState))
+    safeStorage().setItem(STORAGE_KEY, JSON.stringify(surveyState))
   }, [surveyState])
 
   useEffect(() => {

@@ -2,6 +2,8 @@
 
 import { createContext, useContext, useEffect, useMemo, useState } from "react"
 
+import { safeStorage } from "@/lib/safe-storage"
+
 type AudienceMode = "research" | "policy"
 
 interface AudienceModeContextValue {
@@ -17,7 +19,7 @@ export function AudienceModeProvider({ children }: { children: React.ReactNode }
   const [mode, setModeState] = useState<AudienceMode>("research")
 
   useEffect(() => {
-    const storedMode = window.localStorage.getItem(STORAGE_KEY)
+    const storedMode = safeStorage().getItem(STORAGE_KEY)
     if (storedMode === "research" || storedMode === "policy") {
       setModeState(storedMode)
     }
@@ -25,7 +27,7 @@ export function AudienceModeProvider({ children }: { children: React.ReactNode }
 
   const setMode = (nextMode: AudienceMode) => {
     setModeState(nextMode)
-    window.localStorage.setItem(STORAGE_KEY, nextMode)
+    safeStorage().setItem(STORAGE_KEY, nextMode)
   }
 
   const value = useMemo(() => ({ mode, setMode }), [mode])
