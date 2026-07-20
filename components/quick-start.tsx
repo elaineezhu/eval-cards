@@ -45,7 +45,7 @@ const SLIDES: Slide[] = [
     icon: BookOpen,
     kicker: "Welcome",
     title: "What this is",
-    body: "Evaluation Cards collects how AI models have been tested across lots of benchmarks. A single score rarely tells you much on its own, so we give you everything you need to read one: the evaluation results, the benchmark's metadata, how the run was set up, and our interpretive signals. And unlike any other artefact out there, you can see those results reported side by side, which makes them easy to compare.",
+    body: "Evaluation Cards collects how AI models have been tested across lots of benchmarks. A single score rarely tells you much on its own, so we give you everything you need to read one: the evaluation results, the benchmark's metadata, how the run was set up, and our interpretive signals. And unlike any other artifact out there, you can see those results reported side by side, which makes them easy to compare.",
   },
   {
     icon: Layers,

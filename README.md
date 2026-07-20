@@ -33,7 +33,7 @@ The Eval Cards project aims to:
 ## Architecture
 
 This app is a **read-only consumer** of a snapshot. The producer (`eval_card_backend`)
-canonicalises raw evaluation data into a typed Parquet warehouse plus a Stage J view
+canonicalizes raw evaluation data into a typed Parquet warehouse plus a Stage J view
 layer (`*.parquet` view tables + JSON sidecars), and the frontend reads that snapshot at
 runtime via DuckDB — it performs no identity resolution or aggregation of its own. The
 view-layer column names match this app's TypeScript interfaces by contract (declared in

@@ -119,7 +119,7 @@ export default async function HomePage() {
             </h1>
             <p className="home-hero-lede">
               <strong>Evaluation Cards</strong> is a collection of reported model–benchmark results,
-              organised under a five-level rollout hierarchy and four interpretive signals
+              organized under a five-level rollout hierarchy and four interpretive signals
               computed over the joined record.
             </p>
             <div className="flex flex-wrap items-center gap-3">

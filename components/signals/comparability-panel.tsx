@@ -398,7 +398,7 @@ function DivergenceGroupItem({
   const fieldLabels = fields.map((f) => formatFieldLabel(f.field))
   const summarySentence =
     fieldLabels.length === 0
-      ? `Reported scores diverge by ${formatSignalNumber(magnitude)}, above the ${formatSignalNumber(threshold)} threshold. The setup difference is not labelled.`
+      ? `Reported scores diverge by ${formatSignalNumber(magnitude)}, above the ${formatSignalNumber(threshold)} threshold. The setup difference is not labeled.`
       : `Reported scores diverge by ${formatSignalNumber(magnitude)} (threshold ${formatSignalNumber(threshold)}) because the runs differ on ${
           fieldLabels.length === 1
             ? fieldLabels[0]

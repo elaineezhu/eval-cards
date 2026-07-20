@@ -32,7 +32,7 @@ export async function generateMetadata(props: {
   const title = developerName
   const description =
     modelCount != null
-      ? `${developerName} — evaluation coverage across ${modelCount.toLocaleString("en-US")} ${modelCount === 1 ? "model" : "models"}, organised under Evaluation Cards' five-level hierarchy and four interpretive signals.`
+      ? `${developerName} — evaluation coverage across ${modelCount.toLocaleString("en-US")} ${modelCount === 1 ? "model" : "models"}, organized under Evaluation Cards' five-level hierarchy and four interpretive signals.`
       : `${developerName} — model evaluation coverage on Evaluation Cards.`
   const imageUrl = `/api/og/developers/${idSlug}`
 

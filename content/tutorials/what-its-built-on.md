@@ -10,7 +10,7 @@ A schema for benchmark-level metadata: what a benchmark measures, its splits, in
 
 ## Every Eval Ever
 
-A run-level corpus of public evaluation results: `(model, benchmark, metric-path, value, source)` tuples extracted from papers, model cards, and leaderboards. It provides the raw rows that Evaluation Cards canonicalises and joins. [Every Eval Ever](https://evalevalai.com/every_eval_ever/) is a sister [EvalEval](https://evalevalai.com/) project.
+A run-level corpus of public evaluation results: `(model, benchmark, metric-path, value, source)` tuples extracted from papers, model cards, and leaderboards. It provides the raw rows that Evaluation Cards canonicalizes and joins. [Every Eval Ever](https://evalevalai.com/every_eval_ever/) is a sister [EvalEval](https://evalevalai.com/) project.
 
 ## IBM Risk Atlas alignment
 

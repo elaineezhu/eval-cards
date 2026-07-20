@@ -24,18 +24,18 @@ import { inferTagsFromBenchmark } from "@/lib/benchmark-schema"
 
 const REF: Record<string, string[]> = categoriesJson as Record<string, string[]>
 
-// Two normalised lookup tables built once at module load. The first
+// Two normalized lookup tables built once at module load. The first
 // keeps spaces (so "MMLU Pro" still differs from "MMLUPro" if both
 // were ever in the file); the second strips everything non-alphanumeric
 // for a tolerant fallback ("ARC-C" ↔ "arc c" ↔ "arcc").
-const NORMALISED_LOOSE: Map<string, string[]> = new Map()
-const NORMALISED_TIGHT: Map<string, string[]> = new Map()
+const NORMALIZED_LOOSE: Map<string, string[]> = new Map()
+const NORMALIZED_TIGHT: Map<string, string[]> = new Map()
 
-function normaliseLoose(name: string): string {
+function normalizeLoose(name: string): string {
   return name.trim().toLowerCase().replace(/\s+/g, " ")
 }
 
-function normaliseTight(name: string): string {
+function normalizeTight(name: string): string {
   return name.toLowerCase().replace(/[^a-z0-9]/g, "")
 }
 
@@ -56,9 +56,9 @@ function stripParenSuffix(name: string): string {
 }
 
 for (const [name, tags] of Object.entries(REF)) {
-  NORMALISED_LOOSE.set(normaliseLoose(name), tags)
-  const tight = normaliseTight(name)
-  if (tight && !NORMALISED_TIGHT.has(tight)) NORMALISED_TIGHT.set(tight, tags)
+  NORMALIZED_LOOSE.set(normalizeLoose(name), tags)
+  const tight = normalizeTight(name)
+  if (tight && !NORMALIZED_TIGHT.has(tight)) NORMALIZED_TIGHT.set(tight, tags)
 }
 
 /**
@@ -78,15 +78,15 @@ export function getBenchmarkTags(
 ): string[] {
   const names = candidates.filter((n): n is string => typeof n === "string" && n.trim().length > 0)
   for (const name of names) {
-    const loose = NORMALISED_LOOSE.get(normaliseLoose(name))
+    const loose = NORMALIZED_LOOSE.get(normalizeLoose(name))
     if (loose) return loose
-    const tight = NORMALISED_TIGHT.get(normaliseTight(name))
+    const tight = NORMALIZED_TIGHT.get(normalizeTight(name))
     if (tight) return tight
     const stripped = stripParenSuffix(name)
     if (stripped && stripped !== name) {
-      const loose2 = NORMALISED_LOOSE.get(normaliseLoose(stripped))
+      const loose2 = NORMALIZED_LOOSE.get(normalizeLoose(stripped))
       if (loose2) return loose2
-      const tight2 = NORMALISED_TIGHT.get(normaliseTight(stripped))
+      const tight2 = NORMALIZED_TIGHT.get(normalizeTight(stripped))
       if (tight2) return tight2
     }
   }
@@ -107,8 +107,8 @@ export function getBenchmarkTags(
 export function hasCuratedTags(...candidates: Array<string | null | undefined>): boolean {
   for (const name of candidates) {
     if (typeof name !== "string" || !name.trim()) continue
-    if (NORMALISED_LOOSE.has(normaliseLoose(name))) return true
-    if (NORMALISED_TIGHT.has(normaliseTight(name))) return true
+    if (NORMALIZED_LOOSE.has(normalizeLoose(name))) return true
+    if (NORMALIZED_TIGHT.has(normalizeTight(name))) return true
   }
   return false
 }

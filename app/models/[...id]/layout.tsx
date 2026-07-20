@@ -31,7 +31,7 @@ export async function generateMetadata(props: {
   const idSlug = routeIdToPath(routeId)
   const title = developer ? `${modelName} — ${developer}` : modelName
   const description = developer
-    ? `${modelName} (${developer}) — every reported model–benchmark result, organised under Evaluation Cards' five-level hierarchy and four interpretive signals.`
+    ? `${modelName} (${developer}) — every reported model–benchmark result, organized under Evaluation Cards' five-level hierarchy and four interpretive signals.`
     : `${modelName} — every reported model–benchmark result on Evaluation Cards.`
   const imageUrl = `/api/og/models/${idSlug}`
 
