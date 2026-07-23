@@ -19,6 +19,22 @@ export function AudienceModeProvider({ children }: { children: React.ReactNode }
   const [mode, setModeState] = useState<AudienceMode>("research")
 
   useEffect(() => {
+    // A `?mode=` query param (used by external embeds / deep-links) takes
+    // precedence over the stored preference, so a link can open a card in a
+    // specific reader mode. Accepts friendly aliases; `summary` == `policy`.
+    const requested = new URLSearchParams(window.location.search)
+      .get("mode")
+      ?.toLowerCase()
+    const fromQuery: AudienceMode | null =
+      requested === "policy" || requested === "summary"
+        ? "policy"
+        : requested === "research" || requested === "researcher"
+          ? "research"
+          : null
+    if (fromQuery) {
+      setModeState(fromQuery)
+      return
+    }
     const storedMode = safeStorage().getItem(STORAGE_KEY)
     if (storedMode === "research" || storedMode === "policy") {
       setModeState(storedMode)
