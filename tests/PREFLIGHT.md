@@ -43,7 +43,9 @@ Both need `SNAPSHOT_URL`. `test:e2e` starts `pnpm dev` against it automatically
   `data-bar-current`, NOT via `#n/m` badges (those come from the peer-*ranks* sidecar) or the
   "No peer scores" string (which never fires on the silent single-bar failure). Catches the
   "chart shows only the current model" bug. Also: 0 "Unknown Model" labels; the current model is
-  not rendered as its own peer.
+  not rendered as its own peer. The researcher view defaults to the Scores **table**, so the
+  test clicks "Plots by source" before counting (a missing/unclickable toggle is a failure), and
+  seeds `eval-cards-onboarding-seen` so the first-visit tour overlay can't swallow the click.
 
 ## The bug taxonomy these were built to catch
 
@@ -58,8 +60,10 @@ The chart checks depend on the inert `data-model-bar` / `data-bar-current` attri
 
 ## Known limitations (spot-check manually when touching the relevant code)
 
-- The chart check only inspects the DEFAULT-rendered metric tab; a break isolated to a
-  non-default tab isn't exercised.
+- The chart check only inspects the "Plots by source" view's default-rendered metric tabs; a
+  break isolated to "Plots by category" or a non-default tab isn't exercised.
+- The "Plots by source" button label is UI copy — if it's renamed, update the click in
+  `frontend-preflight.spec.ts` or the chart check reports every page as unreachable.
 - Eval/benchmark detail pages get liveness-only checking — their leaderboard content isn't
   asserted against the index the way model charts are.
 - Error-marker strings are hardcoded UI copy; update them here if the copy changes.

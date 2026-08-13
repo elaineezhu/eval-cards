@@ -23,6 +23,18 @@ const ERROR_MARKERS = [
   "Something went wrong", "This page could not be found",
 ]
 
+// The first-visit onboarding tour (components/quick-start.tsx) overlays the
+// page and intercepts pointer events; every Playwright page is a fresh
+// profile, so seed its seen-flag before any page script runs. Without this
+// the chart test's click into the plots view times out behind the overlay.
+const newPreppedPage = async (browser: Browser) => {
+  const page = await browser.newPage()
+  await page.addInitScript(() => {
+    try { localStorage.setItem("eval-cards-onboarding-seen", "1") } catch { /* privacy mode */ }
+  })
+  return page
+}
+
 const enc = (s: unknown) => encodeURIComponent(String(s))
 const norm = (s: unknown) => String(s || "").toLowerCase().replace(/[^a-z0-9]/g, "")
 const asArray = (j: any): any[] => Array.isArray(j) ? j
@@ -115,7 +127,7 @@ test("model / eval / developer pages render (incl. regression sets)", async ({ b
   for (const d of sample(devs, 20)) if (d.route_id) add("developer", devUrl(d.route_id))
 
   const results = await mapLimit(targets, 6, async (t) => {
-    const page = await browser.newPage()
+    const page = await newPreppedPage(browser)
     const errs: string[] = []
     page.on("console", (m) => { if (m.type() === "error") errs.push(m.text().slice(0, 120)) })
     page.on("pageerror", (e) => errs.push(String(e).slice(0, 120)))
@@ -139,12 +151,19 @@ test("comparison charts render real peer bars (not only the current model)", asy
     .filter((routeId) => expectedPeersFor(routeId).length > 0)
   const per = await mapLimit(candidates, 6, async (routeId) => {
     const expected = expectedPeersFor(routeId)
-    const page = await browser.newPage()
+    const page = await newPreppedPage(browser)
     const problems: string[] = []
     let bars: { id: string | null; cur: boolean }[] = []
     try {
       await page.goto(`${BASE}/models/${routeId}`, { waitUntil: "networkidle", timeout: 45_000 })
       await page.waitForTimeout(1000)
+      // The researcher view defaults to the Scores TABLE; the comparison
+      // plotboxes render only in the plots views. A page expected to have
+      // peers but missing the toggle is itself a failure.
+      const plotsToggle = page.getByRole("button", { name: "Plots by source" }).first()
+      const toggled = await plotsToggle.click({ timeout: 10_000 }).then(() => true).catch(() => false)
+      if (!toggled) problems.push(`${routeId}: "Plots by source" toggle not found/clickable — charts unreachable`)
+      await page.waitForTimeout(1200)
       const unknown = ((await page.evaluate(() => document.body?.innerText || "")).match(/Unknown Model/g) || []).length
       bars = await page.$$eval("[data-model-bar]", (els) =>
         els.map((e) => ({ id: e.getAttribute("data-model-bar"), cur: e.getAttribute("data-bar-current") === "1" })))
