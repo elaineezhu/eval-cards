@@ -1,7 +1,7 @@
 import type { Metadata } from "next"
 
-import { getEvalSummaryById } from "@/lib/data-backend"
-import { routeIdFromSegments, routeIdToPath } from "@/lib/utils"
+import { getEvalSummaryById, getMergedBenchmarkSummary } from "@/lib/data-backend"
+import { isMergedEvalId, routeIdFromSegments, routeIdToPath } from "@/lib/utils"
 
 /**
  * Server-side metadata for the eval/benchmark detail page. Mirrors
@@ -20,15 +20,23 @@ export async function generateMetadata(props: {
   let modelsCount: number | null = null
 
   try {
-    const summary = await getEvalSummaryById(routeId)
-    if (summary) {
-      evalName =
-        summary.canonical_display_name ??
-        summary.evaluation_name ??
-        summary.composite_display_name ??
-        evalName
-      category = summary.derived_tags?.[0] ?? null
-      modelsCount = summary.models_count ?? null
+    // Single-segment ids are merged all-sources benchmark pages (spec
+    // F2); their identity lives in merged_evals_view, not evals_view.
+    const merged = isMergedEvalId(routeId) ? await getMergedBenchmarkSummary(routeId) : null
+    if (merged) {
+      evalName = merged.display_name
+      modelsCount = merged.models_count ?? null
+    } else {
+      const summary = await getEvalSummaryById(routeId)
+      if (summary) {
+        evalName =
+          summary.canonical_display_name ??
+          summary.evaluation_name ??
+          summary.composite_display_name ??
+          evalName
+        category = summary.derived_tags?.[0] ?? null
+        modelsCount = summary.models_count ?? null
+      }
     }
   } catch {
     // Fall through to generic copy.

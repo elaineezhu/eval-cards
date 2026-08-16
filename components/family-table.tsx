@@ -8,7 +8,7 @@ import type { HierarchyBenchmark, HierarchyComposite, HierarchyFamily } from "@/
 import { formatTagLabel } from "@/lib/benchmark-tags"
 import type { BenchmarkCard } from "@/lib/benchmark-schema"
 import type { BenchmarkEvalListItem } from "@/lib/eval-processing"
-import { routeIdToPath } from "@/lib/utils"
+import { routeIdFromSegments, routeIdToPath } from "@/lib/utils"
 
 const LEAVES_INLINE_MAX = 50
 
@@ -65,6 +65,9 @@ interface LeafEntry {
   id: string
   /** All evaluation_ids this leaf maps to (constituent ids or fallbacks). */
   evalIds: string[]
+  /** Canonical benchmark id when a merged all-sources page exists for this
+   *  node; null on older snapshots / synthetic nodes → per-source link. */
+  benchmarkId: string | null
   leafKey: string
   leafName: string
   evalsCount: number
@@ -112,6 +115,7 @@ function buildLeafEntry(
   return {
     id: ids[0],
     evalIds: ids,
+    benchmarkId: benchmark.benchmark_id ?? null,
     leafKey: benchmark.key,
     leafName: benchmark.display_name || benchmark.key,
     evalsCount: ids.length,
@@ -122,6 +126,32 @@ function buildLeafEntry(
       : null,
     sliceCount: benchmark.slices?.length ?? 0,
   }
+}
+
+function decodeLoose(value: string): string {
+  try {
+    return decodeURIComponent(value)
+  } catch {
+    return value
+  }
+}
+
+/**
+ * Where a leaf click lands (merged-benchmark-view spec F2): when the
+ * node carries the producer's `benchmark_id`, route to the merged
+ * all-sources page with the clicked leaf's source pre-highlighted via
+ * `?source=<composite_slug>` (derived from the leaf's per-source eval
+ * id's first segment). Nodes without a benchmark_id (older snapshots,
+ * client-side re-keyed/synthetic nodes) keep today's per-source link.
+ */
+function leafNavHref(leaf: LeafEntry): string {
+  if (leaf.benchmarkId) {
+    const mergedPath = routeIdFromSegments(leaf.benchmarkId)
+    const sourceSlug = leaf.id.includes("%2F") ? decodeLoose(leaf.id.split("%2F")[0]) : ""
+    const query = sourceSlug ? `?source=${encodeURIComponent(sourceSlug)}` : ""
+    return `/evals/${mergedPath}${query}`
+  }
+  return `/evals/${routeIdToPath(leaf.id)}`
 }
 
 function collectFamilySections(
@@ -191,12 +221,14 @@ function isFamilyDisplayNameMisleading(fam: HierarchyFamily, leafEntries: LeafEn
   )
 }
 
-export function getFamilyNavId(
+/** Nav target for a single-benchmark family: the full `/evals/...` href
+ *  (merged page when the leaf carries a benchmark_id, else per-source). */
+export function getFamilyNavHref(
   fam: HierarchyFamily,
   benchmarkCards?: Record<string, BenchmarkCard>,
 ): string | null {
   const leaves = collectLeafEntries(fam, benchmarkCards)
-  if (leaves.length === 1) return leaves[0].id
+  if (leaves.length === 1) return leafNavHref(leaves[0])
   return null
 }
 
@@ -492,7 +524,7 @@ export function FamilyTable({
 
             const singleLeaf = row.leaves.length === 1 ? row.leaves[0] : null
             const navigateToLeaf = singleLeaf
-              ? () => router.push(`/evals/${routeIdToPath(singleLeaf.id)}`)
+              ? () => router.push(leafNavHref(singleLeaf))
               : null
             return (
               <Fragment key={row.key}>
@@ -644,7 +676,7 @@ export function FamilyTable({
                                     type="button"
                                     onClick={(e) => {
                                       e.stopPropagation()
-                                      router.push(`/evals/${routeIdToPath(leaf.id)}`)
+                                      router.push(leafNavHref(leaf))
                                     }}
                                     className="w-full flex items-start justify-between gap-2 px-3 py-2 text-left transition-colors hover:bg-[color:var(--bg-surface)]"
                                   >

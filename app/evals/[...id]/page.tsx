@@ -7,11 +7,12 @@ import { ArrowLeft, ArrowUpRight, BarChart3, Grid3X3, Search } from "lucide-reac
 import { Navigation } from "@/components/navigation"
 import { ReaderModeBar } from "@/components/reader-mode-bar"
 import { EvalDetail } from "@/components/eval-detail"
+import { MergedBenchmarkView } from "@/components/merged-benchmark-view"
 import { ParamRangePicker } from "@/components/param-range-picker"
 import { useAudienceMode } from "@/components/audience-mode-provider"
 import type { BenchmarkEvalSummary } from "@/lib/eval-processing"
 import { fetchComparisonIndex, fetchEvalHierarchy, fetchEvalSummary } from "@/lib/dashboard-data-client"
-import { humanizeEvaluationId, routeIdFromSegments, routeIdToPath } from "@/lib/utils"
+import { humanizeEvaluationId, isMergedEvalId, routeIdFromSegments, routeIdToPath } from "@/lib/utils"
 import { PARAM_RANGE_MAX_INDEX, parseParamsBillionsFromModelName, paramStepToNumeric } from "@/lib/param-range"
 import type { ComparisonIndex, EvalHierarchy } from "@/lib/backend-artifacts"
 import {
@@ -53,6 +54,10 @@ export default function EvalDetailPage() {
   const [splitSummaries, setSplitSummaries] = useState<Map<string, BenchmarkEvalSummary>>(new Map())
   const [activeSplitId, setActiveSplitId] = useState<string | null>(null)
   const returnTo = searchParams.get("from")
+  // Single URL segment = merged all-sources benchmark page (spec F2);
+  // two segments = per-source eval page (unchanged).
+  const routeEvalId = routeIdFromSegments(params.id as string | string[])
+  const isMergedRoute = isMergedEvalId(routeEvalId)
   const currentDetailHref = useMemo(() => {
     const params = new URLSearchParams(searchParams.toString())
     params.delete("from")
@@ -75,14 +80,19 @@ export default function EvalDetailPage() {
   }, [returnTo, router])
 
   useEffect(() => {
+    // Merged pages own their data flow (components/merged-benchmark-view).
+    if (isMergedRoute) {
+      setLoading(false)
+      return
+    }
     const load = async () => {
       try {
         // The data is keyed by percent-encoded evaluation_ids (literal
         // `%2F` slug form, e.g. `llm-stats%2Fdrop`). The route is
         // catch-all so `params.id` arrives as a path segment array
         // (`["llm-stats", "drop"]`) — join + re-encode for backend
-        // lookup. Every evaluation_id in the snapshot uses `%2F`, so
-        // this is unambiguous.
+        // lookup. Every per-source evaluation_id in the snapshot uses
+        // `%2F`, so this is unambiguous.
         const evalId = routeIdFromSegments(params.id as string | string[])
         const [found, evalHierarchy] = await Promise.all([
           fetchEvalSummary(evalId),
@@ -134,7 +144,7 @@ export default function EvalDetailPage() {
       }
     }
     load()
-  }, [params.id])
+  }, [params.id, isMergedRoute])
 
   // Cross-suite comparability needs the full comparison-index, but it's
   // not on the critical path for first paint — load lazily so the page
@@ -194,6 +204,26 @@ export default function EvalDetailPage() {
         }),
     [splitIds, splitSummaries]
   )
+
+  if (isMergedRoute) {
+    return (
+      <div className="min-h-screen bg-background">
+        <Navigation />
+        <ReaderModeBar />
+        <main className="ec-page">
+          <button
+            type="button"
+            onClick={handleBack}
+            className="ec-crumb mb-6 inline-flex items-center gap-1.5"
+          >
+            <ArrowLeft className="h-3 w-3" />
+            Evaluations
+          </button>
+          <MergedBenchmarkView benchmarkId={routeEvalId} />
+        </main>
+      </div>
+    )
+  }
 
   if (loading) {
     return (

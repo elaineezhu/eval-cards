@@ -315,6 +315,11 @@ export interface HierarchyBenchmark extends SignalSummaries {
   key: string
   display_name: string
   family_id: string
+  /** Canonical benchmark id when a merged all-sources page exists for
+   *  this node (additive, 2026-08 producer). Null/absent on older
+   *  snapshots and on hotfix-re-keyed/synthetic nodes — those leaves
+   *  fall back to the per-source link (merged-benchmark-view spec F2). */
+  benchmark_id?: string | null
   is_slice: boolean
   /** True when this row IS the family/composite root (canonical_id
    *  matches the family or composite key). For a singleton family,

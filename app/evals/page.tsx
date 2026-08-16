@@ -6,7 +6,7 @@ import { Search } from "lucide-react"
 
 import { EvaluatorTable, type EvaluatorTableSortCol } from "@/components/evaluator-table"
 import { useOrgMetadata } from "@/components/org-metadata-provider"
-import { FamilyTable, getFamilyNavId, type FamilySortCol } from "@/components/family-table"
+import { FamilyTable, getFamilyNavHref, type FamilySortCol } from "@/components/family-table"
 import { InfiniteScrollSentinel } from "@/components/infinite-scroll"
 import { Navigation } from "@/components/navigation"
 import { PageLoadingState, type PageLoadingStage } from "@/components/page-loading-state"
@@ -144,9 +144,9 @@ function EvalsPageInner() {
     if (!familyParam || !hierarchy) return
     const fam = hierarchy.families.find((f) => f.key === familyParam)
     if (!fam) return
-    const navId = getFamilyNavId(fam, benchmarkCards)
-    if (navId) {
-      router.replace(`/evals/${navId.replace(/%2F/g, "/")}`)
+    const navHref = getFamilyNavHref(fam, benchmarkCards)
+    if (navHref) {
+      router.replace(navHref)
       return
     }
     setSearchQuery(fam.display_name || fam.key)
