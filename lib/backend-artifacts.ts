@@ -440,9 +440,11 @@ export interface ComparisonSubmission {
 
 /** How a per-source `score` maps onto `score_canonical` (spec F5).
  *  'flagged' rows have no canonical-scale score (never guessed);
- *  'no_bounds' rows pass the raw score through unconverted. Same union as
- *  `MergedScaleConversion` in eval-processing.ts (merged-view rows). */
-export type ScaleConversion = "none" | "div100" | "mul100" | "flagged" | "no_bounds"
+ *  'no_bounds' rows pass the raw score through unconverted; 'curated'
+ *  rows were multiplied by a registry-declared factor (e.g. raw 1-10
+ *  onto a 0-1 metric). Same union as `MergedScaleConversion` in
+ *  eval-processing.ts (merged-view rows). */
+export type ScaleConversion = "none" | "div100" | "mul100" | "curated" | "flagged" | "no_bounds"
 
 export interface ComparisonScoreEntry {
   model_route_id: string

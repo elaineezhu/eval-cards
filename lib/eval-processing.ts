@@ -198,8 +198,9 @@ export type BenchmarkEvalListItem = Omit<BenchmarkEvalSummary, "model_results">
 // ---------------------------------------------------------------------------
 
 /** 'flagged' rows have no canonical-scale score (never guessed); 'no_bounds'
- *  rows pass the raw score through unconverted. */
-export type MergedScaleConversion = "none" | "div100" | "mul100" | "flagged" | "no_bounds"
+ *  rows pass the raw score through unconverted; 'curated' rows were
+ *  multiplied by a registry-declared factor (e.g. raw 1-10 onto 0-1). */
+export type MergedScaleConversion = "none" | "div100" | "mul100" | "curated" | "flagged" | "no_bounds"
 
 export interface MergedAggregateSource {
   /** Per-source eval page id; null for slice-only sources (no top-level page target). */

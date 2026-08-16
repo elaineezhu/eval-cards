@@ -101,7 +101,11 @@ export function resolveCanonicalScaleGroup(
     // Old-snapshot cell in the group ⇒ the whole group stays legacy.
     if (c.scoreCanonical === undefined && c.scaleConversion === undefined) return null
     if (c.scaleConversion === "no_bounds") return null
-    if (c.scoreCanonical == null || c.scaleConversion === "flagged") continue
+    // 'curated' canonicals are trustworthy for display but the tag alone
+    // can't anchor fraction-vs-percent — neutral, like flagged, except
+    // toDisplay uses their canonical exactly.
+    if (c.scoreCanonical == null || c.scaleConversion === "flagged" || c.scaleConversion === "curated")
+      continue
     if (c.scaleConversion === "div100") sawDiv100 = true
     else if (c.scaleConversion === "mul100") sawMul100 = true
     else if (c.scaleConversion === "none") {
