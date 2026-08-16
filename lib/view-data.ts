@@ -22,6 +22,12 @@ import type { DeveloperListEntry, RowAnnotations } from "@/lib/backend-artifacts
 import type {
   BenchmarkEvalListItem,
   BenchmarkEvalSummary,
+  MergedBenchmarkSummary,
+  MergedBestResult,
+  MergedMetricOption,
+  MergedObservationRow,
+  MergedScaleConversion,
+  MergedSliceOption,
   ModelResultForBenchmark,
 } from "@/lib/eval-processing"
 import { dedupeLeaderboardRowsByModelIdentity } from "@/lib/eval-processing"
@@ -1121,6 +1127,189 @@ export async function getEvalSummaryById(evalId: string): Promise<BenchmarkEvalS
   }
 
   return summary
+}
+
+// ---------------------------------------------------------------------------
+// Merged benchmark view (merged-benchmark-view spec F1).
+// ---------------------------------------------------------------------------
+
+// `merged_evals_view` is an additive artifact (2026-08 producer): old
+// snapshots don't ship it and connection init loads it best-effort, so
+// probe the catalog once per process instead of letting every merged
+// lookup binder-error.
+let mergedEvalsViewPresenceCache: boolean | undefined
+async function hasMergedEvalsView(): Promise<boolean> {
+  if (mergedEvalsViewPresenceCache === undefined) {
+    try {
+      const rows = await readRows<{ n: number }>(
+        "SELECT COUNT(*) AS n FROM information_schema.tables WHERE table_name = 'merged_evals_view'"
+      )
+      mergedEvalsViewPresenceCache = asNumber(rows[0]?.n) > 0
+    } catch {
+      // Probe failed (connection blip) — don't cache; retry next request.
+      return false
+    }
+  }
+  return mergedEvalsViewPresenceCache
+}
+
+const MERGED_ROW_COLUMNS = `
+  evaluation_id, benchmark_id, display_name,
+  family_id, family_display_name, grain,
+  preferred_metric_id, preferred_metric_display_name,
+  preferred_from_registry, lower_is_better,
+  sources_count, all_sources_count, results_count, models_count,
+  CAST(to_json(best_result) AS VARCHAR) AS best_result,
+  CAST(to_json(aggregate_sources) AS VARCHAR) AS aggregate_sources,
+  CAST(to_json(metrics) AS VARCHAR) AS metrics,
+  CAST(to_json(slices) AS VARCHAR) AS slices
+`
+
+const MERGED_RESULT_COLUMNS = `
+  r.evaluation_id,
+  r.benchmark_id,
+  r.composite_slug,
+  r.composite_display_name,
+  r.model_key,
+  r.model_route_id,
+  CAST(to_json(r.model_info) AS VARCHAR) AS model_info,
+  r.metric_id_effective,
+  r.score,
+  r.score_canonical,
+  r.scale_conversion,
+  CAST(r.evaluation_timestamp AS VARCHAR) AS evaluation_timestamp,
+  CAST(to_json(r.generation_config) AS VARCHAR) AS generation_config,
+  CAST(to_json(r.source_metadata) AS VARCHAR) AS source_metadata,
+  r.is_verified_evaluator
+`
+
+function mergedObservationFromRow(row: Row): MergedObservationRow {
+  const modelInfo = parseMaybeJson(row.model_info)
+  const generationConfig = parseMaybeJson(row.generation_config)
+  return {
+    model_info: (modelInfo ?? modelInfoFromModelRow(row)) as ModelInfo,
+    model_route_id: optionalString(row.model_route_id),
+    model_key: optionalString(row.model_key),
+    evaluation_id: asString(row.evaluation_id),
+    composite_slug: asString(row.composite_slug),
+    composite_display_name: optionalString(row.composite_display_name),
+    score: asNumber(row.score),
+    score_canonical: optionalNumber(row.score_canonical) ?? null,
+    scale_conversion: (optionalString(row.scale_conversion) ?? null) as MergedScaleConversion | null,
+    evaluation_timestamp: asString(row.evaluation_timestamp, ""),
+    source_metadata: sourceMetadataFromRow(row),
+    generation_config: (generationConfig ?? undefined) as GenerationConfig | undefined,
+    is_verified_evaluator:
+      row.is_verified_evaluator == null ? undefined : Boolean(row.is_verified_evaluator),
+  }
+}
+
+/**
+ * Merged all-sources benchmark page payload: the `merged_evals_view` row
+ * for a canonical benchmark plus its observation-grain leaderboard rows
+ * (one per (model, source) score) queried live from `eval_results_view`
+ * on `metric_id_effective`.
+ *
+ * Deliberately does NOT call `dedupeLeaderboardRowsByModelIdentity` —
+ * aggregator echo rows stay visible (spec design pt 3 / Q3) — and does
+ * not touch `loadEvalMatrices` (merged pages always use live results).
+ *
+ * Returns null when the benchmark has no merged row OR the snapshot
+ * predates `merged_evals_view.parquet`.
+ */
+export async function getMergedBenchmarkSummary(
+  benchmarkId: string,
+  metricId?: string,
+  sliceId?: string,
+): Promise<MergedBenchmarkSummary | null> {
+  if (!benchmarkId) return null
+  if (!(await hasMergedEvalsView())) return null
+
+  // Accept either the decoded canonical benchmark_id ("mmlu-pro") or its
+  // percent-encoded single-segment evaluation_id — equivalent by contract.
+  const decoded = decodeLoose(benchmarkId)
+  const rows = await readRows<Row>(
+    `SELECT ${MERGED_ROW_COLUMNS}
+     FROM merged_evals_view
+     WHERE benchmark_id = ? OR evaluation_id = ?
+     LIMIT 1`,
+    [decoded, benchmarkId],
+    { contextLabel: `merged_lookup=${benchmarkId}` }
+  )
+  const row = rows[0]
+  if (!row) return null
+
+  const metrics = asArray<MergedMetricOption>(parseMaybeJson(row.metrics))
+  const slices = asArray<MergedSliceOption>(parseMaybeJson(row.slices))
+  const grain: MergedBenchmarkSummary["grain"] = row.grain === "slice" ? "slice" : "benchmark"
+  const preferredMetricId = asString(row.preferred_metric_id)
+
+  // Unknown metric ids fall back to the page default rather than
+  // rendering an empty table.
+  const selectedMetricId =
+    metricId && metrics.some((m) => m.metric_id === metricId) ? metricId : preferredMetricId
+  const selectedMetric = metrics.find((m) => m.metric_id === selectedMetricId)
+  const selectedLowerIsBetter =
+    selectedMetric?.lower_is_better != null
+      ? Boolean(selectedMetric.lower_is_better)
+      : selectedMetricId === preferredMetricId
+        ? Boolean(row.lower_is_better)
+        : false
+
+  const selectedSliceId =
+    grain === "slice"
+      ? (sliceId && slices.some((s) => s.slice_id === sliceId) ? sliceId : slices[0]?.slice_id ?? null)
+      : null
+
+  // Observation-grain rows, sorted by canonical score in the metric's
+  // direction (spec Q6). Flagged rows (score_canonical NULL) sort last;
+  // the raw-score tiebreak keeps their relative order sensible.
+  const direction = selectedLowerIsBetter ? "ASC" : "DESC"
+  let resultRows: Row[] = []
+  if (grain === "benchmark" || selectedSliceId) {
+    const targetBenchmarkId = grain === "slice" ? selectedSliceId : asString(row.benchmark_id)
+    resultRows = await readRows<Row>(
+      `SELECT ${MERGED_RESULT_COLUMNS}
+       FROM eval_results_view r
+       WHERE r.benchmark_id = ?
+         AND r.metric_id_effective = ?
+         AND ${grain === "slice" ? "r.is_slice" : "NOT r.is_slice"}
+         AND r.score IS NOT NULL
+       ORDER BY r.score_canonical ${direction} NULLS LAST,
+                r.score ${direction} NULLS LAST,
+                r.model_key ASC`,
+      [targetBenchmarkId, selectedMetricId],
+      { contextLabel: `merged_results=${row.benchmark_id} metric=${selectedMetricId}` }
+    )
+  }
+
+  return {
+    merged: true,
+    evaluation_id: asString(row.evaluation_id),
+    benchmark_id: asString(row.benchmark_id),
+    display_name: asString(row.display_name, asString(row.benchmark_id)),
+    family_id: optionalString(row.family_id) ?? null,
+    family_display_name: optionalString(row.family_display_name) ?? null,
+    grain,
+    preferred_metric_id: preferredMetricId,
+    preferred_metric_display_name: asString(row.preferred_metric_display_name, preferredMetricId),
+    preferred_from_registry: Boolean(row.preferred_from_registry),
+    lower_is_better: Boolean(row.lower_is_better),
+    sources_count: asNumber(row.sources_count),
+    all_sources_count: asNumber(row.all_sources_count),
+    results_count: asNumber(row.results_count),
+    models_count: asNumber(row.models_count),
+    best_result: (parseMaybeJson(row.best_result) ?? null) as MergedBestResult | null,
+    aggregate_sources: asArray<MergedBenchmarkSummary["aggregate_sources"][number]>(
+      parseMaybeJson(row.aggregate_sources)
+    ),
+    metrics,
+    slices: grain === "slice" ? slices : null,
+    selected_metric_id: selectedMetricId,
+    selected_lower_is_better: selectedLowerIsBetter,
+    selected_slice_id: selectedSliceId,
+    results: resultRows.map(mergedObservationFromRow),
+  }
 }
 
 export async function getDeveloperList(): Promise<DeveloperListEntry[]> {

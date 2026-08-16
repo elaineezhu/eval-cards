@@ -9,6 +9,7 @@ import type {
   BenchmarkCard,
   BenchmarkEvaluation,
   EvalTag,
+  GenerationConfig,
   ModelInfo,
   SourceMetadata,
   SourceData,
@@ -188,6 +189,106 @@ export interface BenchmarkLeaderboardRow {
 }
 
 export type BenchmarkEvalListItem = Omit<BenchmarkEvalSummary, "model_results">
+
+// ---------------------------------------------------------------------------
+// Merged benchmark view (merged-benchmark-view spec F1) — one page per
+// resolved canonical benchmark, merging every publishing source at
+// observation grain. Backed by `merged_evals_view.parquet` plus a live
+// query over `eval_results_view`.
+// ---------------------------------------------------------------------------
+
+/** 'flagged' rows have no canonical-scale score (never guessed); 'no_bounds'
+ *  rows pass the raw score through unconverted. */
+export type MergedScaleConversion = "none" | "div100" | "mul100" | "flagged" | "no_bounds"
+
+export interface MergedAggregateSource {
+  /** Per-source eval page id; null for slice-only sources (no top-level page target). */
+  evaluation_id: string | null
+  composite_slug: string
+  composite_display_name: string
+  models_count: number
+  results_count: number
+  /** False = excluded from the default view (source reports only other metrics). */
+  reports_preferred: boolean
+  /** True = source reports slice-level results only (disclosure note). */
+  slice_only: boolean
+}
+
+export interface MergedMetricOption {
+  metric_id: string
+  display_name: string
+  results_count: number
+  models_count: number
+  sources_count: number
+  lower_is_better: boolean | null
+}
+
+export interface MergedSliceOption {
+  slice_id: string
+  display_name: string
+}
+
+export interface MergedBestResult {
+  model_name: string | null
+  model_key: string | null
+  score: number | null
+  score_canonical: number | null
+  composite_slug: string | null
+  evaluation_id: string | null
+}
+
+/** One (model, source) observation row. Echo republications stay visible —
+ *  the merged accessor never dedupes by model identity (spec design pt 3). */
+export interface MergedObservationRow {
+  model_info: ModelInfo
+  model_route_id?: string
+  model_key?: string
+  /** The observation's per-source evaluation_id (two-segment) — Source link target. */
+  evaluation_id: string
+  composite_slug: string
+  composite_display_name?: string
+  score: number
+  /** Score on the metric's registry canonical scale; null for flagged rows. */
+  score_canonical: number | null
+  scale_conversion: MergedScaleConversion | null
+  evaluation_timestamp: string
+  source_metadata: SourceMetadata
+  generation_config?: GenerationConfig
+  is_verified_evaluator?: boolean
+}
+
+export interface MergedBenchmarkSummary {
+  /** Discriminator vs the per-source BenchmarkEvalSummary payload. */
+  merged: true
+  /** Single-segment percent-encoded benchmark id (never contains %2F). */
+  evaluation_id: string
+  benchmark_id: string
+  display_name: string
+  family_id?: string | null
+  family_display_name?: string | null
+  /** 'slice' = benchmark has no top-level data; page shows a slice selector. */
+  grain: "benchmark" | "slice"
+  preferred_metric_id: string
+  preferred_metric_display_name: string
+  preferred_from_registry: boolean
+  lower_is_better: boolean
+  /** Counts at default-metric grain (spec P5). */
+  sources_count: number
+  all_sources_count: number
+  results_count: number
+  models_count: number
+  best_result: MergedBestResult | null
+  aggregate_sources: MergedAggregateSource[]
+  metrics: MergedMetricOption[]
+  /** Non-null only for grain='slice'. */
+  slices: MergedSliceOption[] | null
+  /** Metric actually queried for `results` (defaults to preferred). */
+  selected_metric_id: string
+  selected_lower_is_better: boolean
+  /** For grain='slice': the slice actually queried (defaults to the first). */
+  selected_slice_id: string | null
+  results: MergedObservationRow[]
+}
 
 /**
  * Collapse leaderboard rows that describe the same model under two

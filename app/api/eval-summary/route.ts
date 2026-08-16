@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server"
 
-import { getEvalSummaryById } from "@/lib/data-backend"
+import { getEvalSummaryById, getMergedBenchmarkSummary } from "@/lib/data-backend"
+import { isMergedEvalId, routeIdFromSegments } from "@/lib/utils"
 
 export async function GET(request: Request) {
   const { searchParams } = new URL(request.url)
@@ -8,6 +9,21 @@ export async function GET(request: Request) {
 
   if (!id) {
     return NextResponse.json({ error: "Missing evaluation id" }, { status: 400 })
+  }
+
+  // Merged benchmark page: single-segment ids (no %2F after
+  // normalization) resolve through the merged accessor and return the
+  // `{ merged: true, ... }` discriminated payload. Two-segment
+  // per-source ids keep the existing path untouched. When the snapshot
+  // predates merged_evals_view (accessor returns null) we fall through
+  // to the per-source lookup so old snapshots behave exactly as before.
+  if (isMergedEvalId(id)) {
+    const metricId = searchParams.get("metric")?.trim() || undefined
+    const sliceId = searchParams.get("slice")?.trim() || undefined
+    const merged = await getMergedBenchmarkSummary(routeIdFromSegments(id), metricId, sliceId)
+    if (merged) {
+      return NextResponse.json(merged)
+    }
   }
 
   const summary = await getEvalSummaryById(id)

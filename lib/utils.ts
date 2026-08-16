@@ -62,6 +62,19 @@ export function routeIdFromSegments(value: string | string[] | undefined): strin
 }
 
 /**
+ * True when an eval id routes to the MERGED benchmark page: merged ids
+ * are single-segment (percent-encoded canonical benchmark ids, e.g.
+ * `mmlu-pro`) and never contain `%2F`; per-source evaluation_ids always
+ * do — that's the routing discriminator (merged-benchmark-view spec F2).
+ * Normalises through `routeIdFromSegments` first so raw path arrays,
+ * pre-joined paths, and already-encoded ids all classify identically.
+ */
+export function isMergedEvalId(value: string | string[] | undefined): boolean {
+  const id = routeIdFromSegments(value)
+  return id !== "" && !id.includes("%2F")
+}
+
+/**
  * Build the backend `%2F`-encoded route id form from a plain canonical
  * model id (`org/name`). Matches the producer's `route_id` /
  * `model_route_id` encoding (RFC 3986 percent-encoding of the whole id),

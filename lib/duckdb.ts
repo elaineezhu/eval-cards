@@ -28,6 +28,15 @@ const VIEW_FILES = {
   eval_results_view: "eval_results_view.parquet",
 } as const
 
+// Additive snapshot artifacts that older snapshots don't ship. Loaded
+// best-effort: a missing file must NOT fail connection init (the required
+// loop above hard-fails by design). Consumers probe table presence and
+// degrade — getMergedBenchmarkSummary returns null when the merged view
+// is absent.
+const OPTIONAL_VIEW_FILES = {
+  merged_evals_view: "merged_evals_view.parquet",
+} as const
+
 export async function getConnection(): Promise<DuckDBConnection> {
   if (!connectionPromise) {
     const pending = (async () => {
@@ -59,8 +68,25 @@ export async function getConnection(): Promise<DuckDBConnection> {
           `CREATE OR REPLACE TABLE ${viewName} AS SELECT * FROM read_parquet(${sqlString(source)})`,
         )
       }
+      let optionalLoaded = 0
+      for (const [viewName, fileName] of Object.entries(OPTIONAL_VIEW_FILES)) {
+        const url = snapshotArtifact(fileName)
+        const source = url.startsWith("file://") ? fileURLToPath(url) : url
+        try {
+          await connection.run(
+            `CREATE OR REPLACE TABLE ${viewName} AS SELECT * FROM read_parquet(${sqlString(source)})`,
+          )
+          optionalLoaded += 1
+        } catch (err) {
+          console.warn(
+            `[duckdb] optional snapshot table ${viewName} unavailable (${
+              err instanceof Error ? err.message : String(err)
+            }) — continuing without it`,
+          )
+        }
+      }
       console.warn(
-        `[duckdb] loaded ${Object.keys(VIEW_FILES).length} snapshot tables in ${Date.now() - t0}ms`,
+        `[duckdb] loaded ${Object.keys(VIEW_FILES).length + optionalLoaded} snapshot tables in ${Date.now() - t0}ms`,
       )
 
       return connection

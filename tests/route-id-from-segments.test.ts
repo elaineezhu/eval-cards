@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest"
 
-import { routeIdFromSegments, routeIdToPath } from "@/lib/utils"
+import { isMergedEvalId, routeIdFromSegments, routeIdToPath } from "@/lib/utils"
 
 // F7 — routeIdFromSegments must invert Next's percent-decoding of catch-all
 // params back to the producer's stored id form, which is Python
@@ -56,5 +56,29 @@ describe("routeIdFromSegments", () => {
 
     const plain = "llm-stats%2Fdrop"
     expect(routeIdFromSegments(routeIdToPath(plain))).toBe(plain)
+  })
+})
+
+// F2 — merged benchmark routing discriminator: single-segment ids (no %2F
+// after normalization) are merged pages; per-source evaluation_ids always
+// carry %2F.
+describe("isMergedEvalId", () => {
+  it("classifies single-segment ids as merged", () => {
+    expect(isMergedEvalId("mmlu-pro")).toBe(true)
+    expect(isMergedEvalId(["mmlu-pro"])).toBe(true)
+    // Raw-key merged ids with encoded characters are still one segment.
+    expect(isMergedEvalId(["Humanity's Last Exam (accuracy)"])).toBe(true)
+  })
+
+  it("classifies per-source two-segment ids as NOT merged", () => {
+    expect(isMergedEvalId("llm-stats%2Fdrop")).toBe(false)
+    expect(isMergedEvalId(["llm-stats", "drop"])).toBe(false)
+    expect(isMergedEvalId("llm-stats/drop")).toBe(false)
+  })
+
+  it("treats empty input as not merged", () => {
+    expect(isMergedEvalId(undefined)).toBe(false)
+    expect(isMergedEvalId("")).toBe(false)
+    expect(isMergedEvalId([])).toBe(false)
   })
 })

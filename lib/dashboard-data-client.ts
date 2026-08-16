@@ -13,8 +13,10 @@ import type {
   BenchmarkCard,
   BenchmarkEvalListItem,
   BenchmarkEvalSummary,
+  MergedBenchmarkSummary,
   ModelEvaluationSummary,
 } from "@/lib/eval-processing"
+import { isMergedBenchmarkSummary, mergedSummaryToEvalSummary } from "@/lib/merged-adapter"
 
 export interface EvalListResponse {
   evals: BenchmarkEvalListItem[]
@@ -71,8 +73,33 @@ export function fetchModelSummary(modelId: string) {
 }
 
 export function fetchEvalSummary(evalId: string) {
-  return fetchJson<BenchmarkEvalSummary>(
+  // Single-segment (merged benchmark) ids come back as the discriminated
+  // `{ merged: true, ... }` payload; adapt it to the BenchmarkEvalSummary
+  // shape so legacy consumers (embeds especially) render without their
+  // own wiring. Two-segment ids pass through byte-identical.
+  return fetchJson<BenchmarkEvalSummary | MergedBenchmarkSummary>(
     `/api/eval-summary?id=${encodeURIComponent(evalId)}`
+  ).then((payload) =>
+    isMergedBenchmarkSummary(payload) ? mergedSummaryToEvalSummary(payload) : payload,
+  )
+}
+
+/**
+ * Raw merged-benchmark payload for the merged detail page
+ * (merged-benchmark-view spec F1). `metricId`/`sliceId` re-query the
+ * observation table server-side. A non-merged payload comes back when
+ * the snapshot predates merged_evals_view — callers should treat that
+ * as "no merged page".
+ */
+export function fetchMergedBenchmarkSummary(
+  benchmarkId: string,
+  query: { metricId?: string; sliceId?: string } = {},
+) {
+  const params = new URLSearchParams({ id: benchmarkId })
+  if (query.metricId) params.set("metric", query.metricId)
+  if (query.sliceId) params.set("slice", query.sliceId)
+  return fetchJson<MergedBenchmarkSummary | BenchmarkEvalSummary | { error: string }>(
+    `/api/eval-summary?${params.toString()}`
   )
 }
 

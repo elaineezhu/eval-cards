@@ -3,7 +3,7 @@ import os from "os"
 import path from "path"
 
 import { DuckDBConnection } from "@duckdb/node-api"
-import { describe, expect, it } from "vitest"
+import { describe, expect, it, vi } from "vitest"
 
 function sqlString(value: string) {
   return `'${value.replace(/'/g, "''")}'`
@@ -13,7 +13,14 @@ async function copyParquet(connection: DuckDBConnection, sql: string, outputPath
   await connection.run(`COPY (${sql}) TO ${sqlString(outputPath)} (FORMAT parquet)`)
 }
 
-async function writeSyntheticStageJSnapshot(snapshotDir: string) {
+async function writeSyntheticStageJSnapshot(
+  snapshotDir: string,
+  options: { includeMergedView?: boolean } = {},
+) {
+  // includeMergedView=false emulates a pre-merged-view snapshot: no
+  // merged_evals_view.parquet and no metric_id_effective /
+  // scale_conversion / score_canonical columns on eval_results_view.
+  const { includeMergedView = true } = options
   await mkdir(snapshotDir, { recursive: true })
   const connection = await DuckDBConnection.create()
 
@@ -203,15 +210,24 @@ async function writeSyntheticStageJSnapshot(snapshotDir: string) {
     path.join(snapshotDir, "evals_view.parquet")
   )
 
-  await copyParquet(
-    connection,
+  await connection.run(
     `
+      CREATE OR REPLACE TABLE eval_results_fixture AS
       SELECT
         TIMESTAMP '2026-05-03 00:00:00' AS snapshot_id,
         'mmlu' AS evaluation_id,
         'mmlu%3Aaccuracy' AS metric_summary_id,
         'mmlu' AS benchmark_id,
         'accuracy' AS metric_id,
+        'openai' AS composite_slug,
+        'OpenAI' AS composite_display_name,
+        'mmlu' AS family_id,
+        'MMLU' AS family_display_name,
+        false AS is_slice,
+        NULL::VARCHAR AS parent_benchmark_id,
+        'accuracy' AS metric_id_effective,
+        'none' AS scale_conversion,
+        0.8::DOUBLE AS score_canonical,
         'openai/gpt-5' AS model_key,
         'openai/gpt-5' AS model_id,
         'openai%2Fgpt-5' AS model_route_id,
@@ -232,7 +248,7 @@ async function writeSyntheticStageJSnapshot(snapshotDir: string) {
         'proportion' AS metric_unit,
         false AS lower_is_better,
         '["applied_reasoning"]' AS derived_tags,
-        0.8 AS score,
+        0.8::DOUBLE AS score,
         struct_pack(
           score := 0.8,
           standard_error := 0.01,
@@ -292,9 +308,197 @@ async function writeSyntheticStageJSnapshot(snapshotDir: string) {
         NULL::VARCHAR AS instance_file_format,
         0::INTEGER AS instance_rows,
         true AS is_verified_evaluator
-    `,
+    `
+  )
+
+  // Extra observation rows for the merged-benchmark accessor: an echo
+  // pair (byte-identical Llama 4 rows from two sources), a div100
+  // percent-scale row, a second metric (f1), and a slice-grain row.
+  // All derive from the base row via SELECT * REPLACE so the fixture
+  // schema stays defined in one place.
+  const llamaModelInfo = `struct_pack(
+    name := 'Llama 4',
+    id := 'meta/llama-4',
+    developer := 'Meta',
+    inference_platform := 'platform',
+    inference_engine := 'engine',
+    model_version := NULL::VARCHAR,
+    architecture := 'transformer',
+    parameter_count := '400B',
+    release_date := '2026-02-01',
+    model_url := 'https://example.test/llama',
+    modalities := struct_pack(input := ['text']::VARCHAR[], output := ['text']::VARCHAR[])
+  )`
+  const grokModelInfo = `struct_pack(
+    name := 'Grok 5',
+    id := 'xai/grok-5',
+    developer := 'xAI',
+    inference_platform := 'platform',
+    inference_engine := 'engine',
+    model_version := NULL::VARCHAR,
+    architecture := 'transformer',
+    parameter_count := '300B',
+    release_date := '2026-03-01',
+    model_url := 'https://example.test/grok',
+    modalities := struct_pack(input := ['text']::VARCHAR[], output := ['text']::VARCHAR[])
+  )`
+  const insertVariant = (replacements: string) =>
+    connection.run(
+      `INSERT INTO eval_results_fixture
+       SELECT * REPLACE (${replacements})
+       FROM eval_results_fixture WHERE evaluation_id = 'mmlu'`
+    )
+  // Echo pair: same model, same score, two different sources.
+  for (const source of ["src-a", "src-b"]) {
+    await insertVariant(`
+      '${source}%2Fmmlu' AS evaluation_id,
+      '${source}' AS composite_slug,
+      'Source ${source === "src-a" ? "A" : "B"}' AS composite_display_name,
+      'meta/llama-4' AS model_key,
+      'meta/llama-4' AS model_id,
+      'meta%2Fllama-4' AS model_route_id,
+      ${llamaModelInfo} AS model_info,
+      0.9 AS score,
+      0.9 AS score_canonical
+    `)
+  }
+  // Percent-scale publication, converted per-row (85 -> 0.85).
+  await insertVariant(`
+    'src-a%2Fmmlu' AS evaluation_id,
+    'src-a' AS composite_slug,
+    'Source A' AS composite_display_name,
+    'xai/grok-5' AS model_key,
+    'xai/grok-5' AS model_id,
+    'xai%2Fgrok-5' AS model_route_id,
+    ${grokModelInfo} AS model_info,
+    85.0 AS score,
+    0.85 AS score_canonical,
+    'div100' AS scale_conversion
+  `)
+  // Secondary metric reported by one source only.
+  await insertVariant(`
+    'src-a%2Fmmlu' AS evaluation_id,
+    'src-a' AS composite_slug,
+    'Source A' AS composite_display_name,
+    'mmlu%3Af1' AS metric_summary_id,
+    'f1' AS metric_id,
+    'f1' AS metric_id_effective,
+    'F1' AS metric_display_name,
+    'meta/llama-4' AS model_key,
+    'meta/llama-4' AS model_id,
+    'meta%2Fllama-4' AS model_route_id,
+    ${llamaModelInfo} AS model_info,
+    0.7 AS score,
+    0.7 AS score_canonical
+  `)
+  // Slice-grain observation for the slice-only benchmark mt-bench.
+  // Uses a non-gpt-5 model so getModelSummaryById fixtures stay stable.
+  await insertVariant(`
+    'src-c%2Fmt-bench-turn1' AS evaluation_id,
+    'mt-bench-turn1' AS benchmark_id,
+    'src-c' AS composite_slug,
+    'Source C' AS composite_display_name,
+    true AS is_slice,
+    'mt-bench' AS parent_benchmark_id,
+    'mt-bench-turn1%3Ascore' AS metric_summary_id,
+    'score' AS metric_id,
+    'score' AS metric_id_effective,
+    'Score' AS metric_display_name,
+    'meta/llama-4' AS model_key,
+    'meta/llama-4' AS model_id,
+    'meta%2Fllama-4' AS model_route_id,
+    ${llamaModelInfo} AS model_info,
+    8.1 AS score,
+    8.1 AS score_canonical,
+    'no_bounds' AS scale_conversion
+  `)
+
+  await copyParquet(
+    connection,
+    includeMergedView
+      ? "SELECT * FROM eval_results_fixture"
+      : "SELECT * EXCLUDE (metric_id_effective, scale_conversion, score_canonical) FROM eval_results_fixture",
     path.join(snapshotDir, "eval_results_view.parquet")
   )
+
+  if (includeMergedView) {
+    await copyParquet(
+      connection,
+      `
+        SELECT
+          TIMESTAMP '2026-05-03 00:00:00' AS snapshot_id,
+          'mmlu' AS evaluation_id,
+          'mmlu' AS benchmark_id,
+          'MMLU' AS display_name,
+          'mmlu' AS family_id,
+          'MMLU' AS family_display_name,
+          'benchmark' AS grain,
+          'accuracy' AS preferred_metric_id,
+          'Accuracy' AS preferred_metric_display_name,
+          true AS preferred_from_registry,
+          false AS lower_is_better,
+          3::INTEGER AS sources_count,
+          4::INTEGER AS all_sources_count,
+          4::INTEGER AS results_count,
+          3::INTEGER AS models_count,
+          struct_pack(
+            model_name := 'Llama 4',
+            model_key := 'meta/llama-4',
+            score := 0.9,
+            score_canonical := 0.9,
+            composite_slug := 'src-a',
+            evaluation_id := 'src-a%2Fmmlu'
+          ) AS best_result,
+          [
+            struct_pack(evaluation_id := 'src-a%2Fmmlu'::VARCHAR, composite_slug := 'src-a', composite_display_name := 'Source A', models_count := 2::INTEGER, results_count := 3::INTEGER, reports_preferred := true, slice_only := false),
+            struct_pack(evaluation_id := 'src-b%2Fmmlu'::VARCHAR, composite_slug := 'src-b', composite_display_name := 'Source B', models_count := 1::INTEGER, results_count := 1::INTEGER, reports_preferred := true, slice_only := false),
+            struct_pack(evaluation_id := 'mmlu'::VARCHAR, composite_slug := 'openai', composite_display_name := 'OpenAI', models_count := 1::INTEGER, results_count := 1::INTEGER, reports_preferred := true, slice_only := false),
+            struct_pack(evaluation_id := NULL::VARCHAR, composite_slug := 'src-d', composite_display_name := 'Source D', models_count := 1::INTEGER, results_count := 2::INTEGER, reports_preferred := false, slice_only := true)
+          ] AS aggregate_sources,
+          [
+            struct_pack(metric_id := 'accuracy', display_name := 'Accuracy', results_count := 4::INTEGER, models_count := 3::INTEGER, sources_count := 3::INTEGER, lower_is_better := false),
+            struct_pack(metric_id := 'f1', display_name := 'F1', results_count := 1::INTEGER, models_count := 1::INTEGER, sources_count := 1::INTEGER, lower_is_better := false)
+          ] AS metrics,
+          CAST(NULL AS STRUCT(slice_id VARCHAR, display_name VARCHAR)[]) AS slices
+        UNION ALL
+        SELECT
+          TIMESTAMP '2026-05-03 00:00:00' AS snapshot_id,
+          'mt-bench' AS evaluation_id,
+          'mt-bench' AS benchmark_id,
+          'MT-Bench' AS display_name,
+          NULL::VARCHAR AS family_id,
+          NULL::VARCHAR AS family_display_name,
+          'slice' AS grain,
+          'score' AS preferred_metric_id,
+          'Score' AS preferred_metric_display_name,
+          false AS preferred_from_registry,
+          false AS lower_is_better,
+          1::INTEGER AS sources_count,
+          1::INTEGER AS all_sources_count,
+          1::INTEGER AS results_count,
+          1::INTEGER AS models_count,
+          struct_pack(
+            model_name := 'Llama 4',
+            model_key := 'meta/llama-4',
+            score := 8.1,
+            score_canonical := 8.1,
+            composite_slug := 'src-c',
+            evaluation_id := NULL::VARCHAR
+          ) AS best_result,
+          [
+            struct_pack(evaluation_id := NULL::VARCHAR, composite_slug := 'src-c', composite_display_name := 'Source C', models_count := 1::INTEGER, results_count := 1::INTEGER, reports_preferred := true, slice_only := true)
+          ] AS aggregate_sources,
+          [
+            struct_pack(metric_id := 'score', display_name := 'Score', results_count := 1::INTEGER, models_count := 1::INTEGER, sources_count := 1::INTEGER, lower_is_better := false)
+          ] AS metrics,
+          [
+            struct_pack(slice_id := 'mt-bench-turn1', display_name := 'Turn 1'),
+            struct_pack(slice_id := 'mt-bench-turn2', display_name := 'Turn 2')
+          ] AS slices
+      `,
+      path.join(snapshotDir, "merged_evals_view.parquet")
+    )
+  }
 
   await writeFile(
     path.join(snapshotDir, "manifest.json"),
@@ -488,5 +692,128 @@ describe("Stage J view-layer backend", () => {
       }
       await rm(snapshotDir, { recursive: true, force: true })
     }
+  })
+})
+
+// Each test points the (module-cached) DuckDB connection at its own
+// snapshot dir, so reset modules before importing the backend.
+async function withSnapshot(
+  options: { includeMergedView?: boolean },
+  run: (dataBackend: typeof import("../lib/data-backend")) => Promise<void>,
+) {
+  const snapshotDir = await mkdtemp(path.join(os.tmpdir(), "eval-card-merged-"))
+  const previousBackend = process.env.DATA_BACKEND
+  const previousSnapshotUrl = process.env.SNAPSHOT_URL
+
+  try {
+    await writeSyntheticStageJSnapshot(snapshotDir, options)
+    vi.resetModules()
+    process.env.DATA_BACKEND = "v2"
+    process.env.SNAPSHOT_URL = `file://${snapshotDir}`
+    const dataBackend = await import("../lib/data-backend")
+    await run(dataBackend)
+  } finally {
+    if (previousBackend == null) {
+      delete process.env.DATA_BACKEND
+    } else {
+      process.env.DATA_BACKEND = previousBackend
+    }
+    if (previousSnapshotUrl == null) {
+      delete process.env.SNAPSHOT_URL
+    } else {
+      process.env.SNAPSHOT_URL = previousSnapshotUrl
+    }
+    await rm(snapshotDir, { recursive: true, force: true })
+  }
+}
+
+describe("merged benchmark accessor (merged-benchmark-view F1)", () => {
+  it("returns the merged row with echo rows intact, sorted by score_canonical", async () => {
+    await withSnapshot({}, async (dataBackend) => {
+      const merged = await dataBackend.getMergedBenchmarkSummary("mmlu")
+      expect(merged).toMatchObject({
+        merged: true,
+        evaluation_id: "mmlu",
+        benchmark_id: "mmlu",
+        display_name: "MMLU",
+        grain: "benchmark",
+        preferred_metric_id: "accuracy",
+        preferred_from_registry: true,
+        selected_metric_id: "accuracy",
+        sources_count: 3,
+        all_sources_count: 4,
+        models_count: 3,
+      })
+      expect(merged!.metrics.map((m) => m.metric_id)).toEqual(["accuracy", "f1"])
+      expect(merged!.best_result).toMatchObject({
+        model_name: "Llama 4",
+        score_canonical: 0.9,
+        composite_slug: "src-a",
+      })
+
+      // Observation grain, canonical-score order, echoes NOT deduped:
+      // two byte-identical Llama 4 rows from different sources survive.
+      expect(merged!.results.map((r) => r.score_canonical)).toEqual([0.9, 0.9, 0.85, 0.8])
+      const echoes = merged!.results.filter((r) => r.model_info.name === "Llama 4")
+      expect(echoes).toHaveLength(2)
+      expect(new Set(echoes.map((r) => r.composite_slug))).toEqual(new Set(["src-a", "src-b"]))
+
+      // Per-row scale conversion surfaces (85 raw -> 0.85 canonical).
+      const grok = merged!.results.find((r) => r.model_info.name === "Grok 5")
+      expect(grok).toMatchObject({
+        score: 85,
+        score_canonical: 0.85,
+        scale_conversion: "div100",
+        composite_slug: "src-a",
+      })
+    })
+  })
+
+  it("narrows results when a non-default metric is selected", async () => {
+    await withSnapshot({}, async (dataBackend) => {
+      const f1 = await dataBackend.getMergedBenchmarkSummary("mmlu", "f1")
+      expect(f1).toMatchObject({ selected_metric_id: "f1", preferred_metric_id: "accuracy" })
+      expect(f1!.results).toHaveLength(1)
+      expect(f1!.results[0]).toMatchObject({
+        score: 0.7,
+        composite_slug: "src-a",
+      })
+
+      // Unknown metric ids fall back to the page default.
+      const unknown = await dataBackend.getMergedBenchmarkSummary("mmlu", "does-not-exist")
+      expect(unknown!.selected_metric_id).toBe("accuracy")
+      expect(unknown!.results).toHaveLength(4)
+    })
+  })
+
+  it("serves slice-grain pages from the first slice by default", async () => {
+    await withSnapshot({}, async (dataBackend) => {
+      const sliceGrain = await dataBackend.getMergedBenchmarkSummary("mt-bench")
+      expect(sliceGrain).toMatchObject({
+        grain: "slice",
+        selected_slice_id: "mt-bench-turn1",
+      })
+      expect(sliceGrain!.slices?.map((s) => s.slice_id)).toEqual([
+        "mt-bench-turn1",
+        "mt-bench-turn2",
+      ])
+      expect(sliceGrain!.results).toHaveLength(1)
+      expect(sliceGrain!.results[0]).toMatchObject({
+        composite_slug: "src-c",
+        score: 8.1,
+        scale_conversion: "no_bounds",
+      })
+    })
+  })
+
+  it("tolerates snapshots without merged_evals_view: connects, accessor returns null", async () => {
+    await withSnapshot({ includeMergedView: false }, async (dataBackend) => {
+      // The connection still initialises and existing accessors work.
+      const evalSummary = await dataBackend.getEvalSummaryById("mmlu")
+      expect(evalSummary?.model_results).toHaveLength(1)
+
+      const merged = await dataBackend.getMergedBenchmarkSummary("mmlu")
+      expect(merged).toBeNull()
+    })
   })
 })
