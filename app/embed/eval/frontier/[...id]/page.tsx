@@ -63,9 +63,15 @@ export default function EmbedEvalFrontier() {
   )
 
   if (error) {
+    // Keep the source picker reachable so a failed pinned-source fetch
+    // isn't a dead end — switching back to Merged (or another source)
+    // clears the error and refetches.
     return (
-      <div className="font-mono" style={{ fontSize: 12, color: "var(--fg-muted)" }}>
-        Failed to load: {error}
+      <div>
+        <EmbedSourcePicker sources={sources} value={activeSource} onChange={setActiveSource} />
+        <div className="font-mono" style={{ fontSize: 12, color: "var(--fg-muted)" }}>
+          Failed to load: {error}
+        </div>
       </div>
     )
   }

@@ -1244,6 +1244,9 @@ export async function getMergedBenchmarkSummary(
   const row = rows[0]
   if (!row) return null
 
+  const aggregateSources = asArray<MergedBenchmarkSummary["aggregate_sources"][number]>(
+    parseMaybeJson(row.aggregate_sources)
+  )
   const metrics = asArray<MergedMetricOption>(parseMaybeJson(row.metrics))
   const slices = asArray<MergedSliceOption>(parseMaybeJson(row.slices))
   const grain: MergedBenchmarkSummary["grain"] = row.grain === "slice" ? "slice" : "benchmark"
@@ -1288,6 +1291,26 @@ export async function getMergedBenchmarkSummary(
     )
   }
 
+  // Benchmark card: merged pages surface the same card a per-source page
+  // shows. Any instantiation of this benchmark that authored one will do;
+  // prefer a source that reports the preferred metric.
+  let benchmarkCard: BenchmarkCard | null = null
+  const cardRows = await readRows<Row>(
+    `SELECT composite_slug, CAST(to_json(benchmark_card) AS VARCHAR) AS benchmark_card
+     FROM evals_view
+     WHERE benchmark_id = ? AND benchmark_card IS NOT NULL`,
+    [asString(row.benchmark_id)],
+    { contextLabel: `merged_card=${benchmarkId}` }
+  )
+  if (cardRows.length > 0) {
+    const preferredSlugs = new Set(
+      aggregateSources.filter((s) => s.reports_preferred).map((s) => s.composite_slug)
+    )
+    const cardRow =
+      cardRows.find((r) => preferredSlugs.has(asString(r.composite_slug))) ?? cardRows[0]
+    benchmarkCard = (parseMaybeJson(cardRow.benchmark_card) ?? null) as BenchmarkCard | null
+  }
+
   return {
     merged: true,
     evaluation_id: asString(row.evaluation_id),
@@ -1305,15 +1328,14 @@ export async function getMergedBenchmarkSummary(
     results_count: asNumber(row.results_count),
     models_count: asNumber(row.models_count),
     best_result: (parseMaybeJson(row.best_result) ?? null) as MergedBestResult | null,
-    aggregate_sources: asArray<MergedBenchmarkSummary["aggregate_sources"][number]>(
-      parseMaybeJson(row.aggregate_sources)
-    ),
+    aggregate_sources: aggregateSources,
     metrics,
     slices: grain === "slice" ? slices : null,
     selected_metric_id: selectedMetricId,
     selected_lower_is_better: selectedLowerIsBetter,
     selected_slice_id: selectedSliceId,
     results: resultRows.map(mergedObservationFromRow),
+    benchmark_card: benchmarkCard,
   }
 }
 

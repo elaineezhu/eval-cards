@@ -27,9 +27,20 @@ import { EvalDetail } from "@/components/eval-detail"
 import { fetchMergedBenchmarkSummary } from "@/lib/dashboard-data-client"
 import { isMergedBenchmarkSummary, mergedSummaryToEvalSummary } from "@/lib/merged-adapter"
 import type { MergedBenchmarkSummary, ModelResultForBenchmark } from "@/lib/eval-processing"
+import type { ComparisonIndex, EvalHierarchy } from "@/lib/backend-artifacts"
 import { routeIdToPath } from "@/lib/utils"
 
-export function MergedBenchmarkView({ benchmarkId }: { benchmarkId: string }) {
+export function MergedBenchmarkView({
+  benchmarkId,
+  evalHierarchy,
+  comparisonIndex,
+}: {
+  benchmarkId: string
+  /** Cross-suite comparability inputs, lazily loaded by the route page —
+   *  same wiring the per-source path gives EvalDetail. */
+  evalHierarchy?: EvalHierarchy | null
+  comparisonIndex?: ComparisonIndex | null
+}) {
   const router = useRouter()
   const pathname = usePathname()
   const searchParams = useSearchParams()
@@ -108,6 +119,10 @@ export function MergedBenchmarkView({ benchmarkId }: { benchmarkId: string }) {
   const disclosureSources = (summary?.aggregate_sources ?? []).filter(
     (s) => !s.reports_preferred || s.slice_only,
   )
+
+  // Rows the adapter dropped from the pool: flagged observations whose
+  // raw score could not be converted to the metric's canonical scale.
+  const excludedCount = summary && adapted ? summary.results.length - adapted.model_results.length : 0
 
   if (loading) {
     return (
@@ -249,13 +264,22 @@ export function MergedBenchmarkView({ benchmarkId }: { benchmarkId: string }) {
       {/* FULL EVAL PAGE at merged grain -------------------------------- */}
       <EvalDetail
         summary={adapted}
+        evalHierarchy={evalHierarchy}
+        comparisonIndex={comparisonIndex}
         splitConfig={metricSplitConfig}
         rowHighlight={rowHighlight}
       />
 
       {/* DISCLOSURE NOTES -------------------------------------------------- */}
-      {disclosureSources.length > 0 && (
+      {(disclosureSources.length > 0 || excludedCount > 0) && (
         <div className="space-y-1.5">
+          {excludedCount > 0 && (
+            <p className="text-[12px] leading-[1.6]" style={{ color: "var(--fg-muted)" }}>
+              {excludedCount.toLocaleString()} {excludedCount === 1 ? "result is" : "results are"} not
+              shown: {excludedCount === 1 ? "its score" : "their scores"} could not be converted to
+              this metric&apos;s common scale.
+            </p>
+          )}
           {disclosureSources.map((source) => {
             const name = source.composite_display_name || source.composite_slug
             const note = source.slice_only

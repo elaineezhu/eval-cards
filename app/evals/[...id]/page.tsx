@@ -80,9 +80,14 @@ export default function EvalDetailPage() {
   }, [returnTo, router])
 
   useEffect(() => {
-    // Merged pages own their data flow (components/merged-benchmark-view).
+    // Merged pages own their summary data flow (components/
+    // merged-benchmark-view), but the signals strip inside still needs
+    // the hierarchy for cross-suite comparability.
     if (isMergedRoute) {
       setLoading(false)
+      fetchEvalHierarchy()
+        .then(setHierarchy)
+        .catch((err) => console.warn("Failed to load eval-hierarchy:", err))
       return
     }
     const load = async () => {
@@ -219,7 +224,11 @@ export default function EvalDetailPage() {
             <ArrowLeft className="h-3 w-3" />
             Evaluations
           </button>
-          <MergedBenchmarkView benchmarkId={routeEvalId} />
+          <MergedBenchmarkView
+            benchmarkId={routeEvalId}
+            evalHierarchy={hierarchy}
+            comparisonIndex={comparisonIndex}
+          />
         </main>
       </div>
     )

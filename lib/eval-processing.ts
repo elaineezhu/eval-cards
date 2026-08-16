@@ -65,6 +65,10 @@ export interface BenchmarkEvalSummary extends SignalSummaries {
   evaluation_name: string
   /** URL-safe slug derived from evaluation_name */
   evaluation_id: string
+  /** True when this summary was adapted from a merged all-sources payload
+   *  (lib/merged-adapter) — lets shared UI phrase observation-grain rows
+   *  correctly ("N results · M models", not "N of M"). */
+  merged_view?: true
   canonical_display_name?: string
   composite_benchmark_key: string
   composite_benchmark_name: string
@@ -292,6 +296,9 @@ export interface MergedBenchmarkSummary {
   /** For grain='slice': the slice actually queried (defaults to the first). */
   selected_slice_id: string | null
   results: MergedObservationRow[]
+  /** The benchmark's card, sourced from a per-source instantiation that
+   *  authored one (preferring a source that reports the preferred metric). */
+  benchmark_card?: BenchmarkCard | null
 }
 
 /**

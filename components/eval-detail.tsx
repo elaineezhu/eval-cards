@@ -1510,9 +1510,14 @@ export function EvalDetail({
               className="font-mono text-[10px] uppercase tracking-[0.12em]"
               style={{ color: "var(--fg-muted)" }}
             >
-              {leaderboardRows.length === lb.models_count
-                ? `${lb.models_count} models`
-                : `${leaderboardRows.length} of ${lb.models_count}`}
+              {/* Merged pages count OBSERVATION rows (one per model+source),
+                  so "5024 of 4882" phrasing would read as a broken filter —
+                  spell out both grains instead. */}
+              {lb.merged_view
+                ? `${leaderboardRows.length.toLocaleString()} results · ${lb.models_count.toLocaleString()} models`
+                : leaderboardRows.length === lb.models_count
+                  ? `${lb.models_count} models`
+                  : `${leaderboardRows.length} of ${lb.models_count}`}
               {" · "}
               {lb.metric_config.lower_is_better ? "lower is better ↓" : "higher is better ↑"}
               {isResearchView && (

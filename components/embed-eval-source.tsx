@@ -90,8 +90,13 @@ export function useEmbedEvalSummary(
 
   const sources: EmbedSourceOption[] | null = useMemo(() => {
     if (!mergedRaw) return null
+    // Every source with a per-source page is pinnable — a pinned source
+    // shows ITS OWN per-source data, so sources that only report other
+    // metrics (reports_preferred=false, e.g. HELM Capabilities on gpqa)
+    // belong in the list too. Slice-only sources have no top-level page
+    // to pin, so they stay out.
     const options = mergedRaw.aggregate_sources
-      .filter((s) => s.evaluation_id && s.reports_preferred && !s.slice_only)
+      .filter((s) => s.evaluation_id && !s.slice_only)
       .map((s) => ({
         slug: s.composite_slug,
         label: s.composite_display_name || s.composite_slug,
@@ -128,12 +133,20 @@ export function useEmbedEvalSummary(
     }
   }, [effectiveSource, sources])
 
+  // Clear any stale error when the viewer changes selection, so a failed
+  // pinned-source fetch doesn't leave the embed stuck on the error state
+  // after switching back to Merged (or to another source).
+  const selectSource = (slug: string) => {
+    setError(null)
+    setActiveSource(slug)
+  }
+
   return {
     summary: effectiveSource ? sourceSummary : base,
     error,
     sources,
     activeSource: effectiveSource,
-    setActiveSource,
+    setActiveSource: selectSource,
   }
 }
 

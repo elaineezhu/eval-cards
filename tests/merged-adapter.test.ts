@@ -136,13 +136,50 @@ describe("mergedSummaryToEvalSummary — EvalDetail surface", () => {
     expect(adapted.evaluator_names).toEqual(["Source A", "Source B"])
   })
 
-  it("uses score_canonical, falling back to raw score for flagged rows", () => {
+  it("excludes flagged rows (null score_canonical) from the pool entirely", () => {
+    // A raw unconverted 7.5 must never be pooled with canonical 0-1
+    // scores — it would fake a #1 rank and poison the bounds inference.
     const results = [
       row({ score: 0.8, score_canonical: 0.8 }),
       row({ score: 7.5, score_canonical: null, scale_conversion: "flagged" }),
     ]
     const adapted = mergedSummaryToEvalSummary(mergedPayload(results))
-    expect(adapted.model_results.map((r) => r.score)).toEqual([0.8, 7.5])
+    expect(adapted.model_results.map((r) => r.score)).toEqual([0.8])
+    expect(adapted.leaderboard_rows).toHaveLength(1)
+    expect(adapted.avg_score).toBeCloseTo(0.8)
+    expect(adapted.metric_config.max_score).toBe(1)
+  })
+
+  it("livebench regression: a flagged raw score above 1 neither ranks nor flips the scale to 0-100", () => {
+    // Shape of the live /evals/livebench bug: canonical pool is 0-1 but
+    // one flagged row carries a raw 1.4155. Before the fix it ranked #1
+    // AND dragged the bounds inference to a bogus 0-100 scale.
+    const results = [
+      row({
+        model_info: { name: "Flagged Model", id: "org/flagged" },
+        score: 1.4155,
+        score_canonical: null,
+        scale_conversion: "flagged",
+      }),
+      row({ score: 0.85, score_canonical: 0.85 }),
+      row({
+        model_info: { name: "Model B", id: "org/model-b" },
+        score: 0.62,
+        score_canonical: 0.62,
+      }),
+      row({
+        model_info: { name: "Model C", id: "org/model-c" },
+        score: 0.1,
+        score_canonical: 0.1,
+      }),
+    ]
+    const adapted = mergedSummaryToEvalSummary(mergedPayload(results))
+    expect(adapted.model_results).toHaveLength(3)
+    expect(adapted.model_results.map((r) => r.model_info.name)).not.toContain("Flagged Model")
+    expect(adapted.metric_config.min_score).toBe(0)
+    expect(adapted.metric_config.max_score).toBe(1)
+    // Best model comes from the converted pool, not the flagged raw row.
+    expect(adapted.best_model).toEqual({ name: "Model A", score: 0.85 })
   })
 
   it("infers 0–1 bounds when every pooled score fits the unit scale", () => {
@@ -167,14 +204,14 @@ describe("mergedSummaryToEvalSummary — EvalDetail surface", () => {
     expect(adapted.metric_config.max_score).toBe(100)
   })
 
-  it("falls back to the data range for unbounded scales (e.g. Elo)", () => {
+  it("falls back to the data range for unbounded scales (e.g. Elo), rounded for display", () => {
     const adapted = mergedSummaryToEvalSummary(
       mergedPayload([
-        row({ score: 1024, score_canonical: 1024 }),
-        row({ score: 1310, score_canonical: 1310 }),
+        row({ score: 1024.31, score_canonical: 1024.31 }),
+        row({ score: 1619.7821471012762, score_canonical: 1619.7821471012762 }),
       ]),
     )
     expect(adapted.metric_config.min_score).toBe(0)
-    expect(adapted.metric_config.max_score).toBe(1310)
+    expect(adapted.metric_config.max_score).toBe(1620)
   })
 })
