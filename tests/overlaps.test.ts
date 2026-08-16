@@ -291,6 +291,37 @@ describe("buildOverlapRows: producer canonical scale (spec F5)", () => {
     expect(rows[0].isPercentScale).toBe(true)
   })
 
+  it("falls back to the legacy vote when unanchored 'none' cells' units disagree", () => {
+    // Real-snapshot regression (terminalbench-hard / DeepSeek-R1): an
+    // all-'none' group where one source's cell mislabels its unit as
+    // "percent" (value 0.0) next to a "proportion" sibling (0.11). A
+    // lone lying percent unit must NOT flip the whole group 100x —
+    // conflicting units mean no anchor, so the legacy vote applies and
+    // both fractions land on the percent axis as [11, 0], not [0.11, 0].
+    const rows = build({
+      benchmarkIndex: [MMLU_INDEX],
+      comparisonIndex: comparisonIndexOf({
+        "fam-a%2Fmmlu": evalEntry("fam-a%2Fmmlu", [
+          metricEntry({
+            unit: "proportion",
+            scores: [ownRow(0.11, { score_canonical: 0.11, scale_conversion: "none" })],
+          }),
+        ]),
+        "fam-b%2Fmmlu": evalEntry("fam-b%2Fmmlu", [
+          metricEntry({
+            unit: "percent",
+            scores: [ownRow(0.0, { score_canonical: 0.0, scale_conversion: "none" })],
+          }),
+        ]),
+      }),
+    })
+    // Legacy keeps raw scores (both low ⇒ no cross-appearance rescale)
+    // and formats per cell: the proportion 0.11 displays as 11%, which
+    // is the truth — the buggy resolved group rendered it "0.1%".
+    expect(rows[0].appearances.map((a) => a.score)).toEqual([0.11, 0])
+    expect(rows[0].appearances.map((a) => a.displayScore)).toEqual(["11.0%", "0.0%"])
+  })
+
   it("reads the canonical fields off by_model cells too", () => {
     const rows = build({
       benchmarkIndex: [MMLU_INDEX],

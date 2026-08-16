@@ -91,7 +91,6 @@ export function MergedBenchmarkView({ benchmarkId }: { benchmarkId: string }) {
     () => summary?.metrics.find((m) => m.metric_id === selectedMetricId) ?? null,
     [summary, selectedMetricId],
   )
-  const isPreferredMetric = summary != null && selectedMetricId === summary.preferred_metric_id
 
   // Counts at the SELECTED metric's grain (hero scalar counts are at the
   // default metric's).

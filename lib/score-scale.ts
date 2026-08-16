@@ -97,6 +97,7 @@ export function resolveCanonicalScaleGroup(
   let sawMul100 = false
   let noneCount = 0
   let nonePercentUnit = false
+  let noneFractionUnit = false
   for (const c of cells) {
     // Old-snapshot cell in the group ⇒ the whole group stays legacy.
     if (c.scoreCanonical === undefined && c.scaleConversion === undefined) return null
@@ -111,12 +112,18 @@ export function resolveCanonicalScaleGroup(
     else if (c.scaleConversion === "none") {
       noneCount += 1
       if (isPercentUnit(c.unit)) nonePercentUnit = true
+      else noneFractionUnit = true
     } else return null // unknown conversion token — don't guess
   }
   // Need at least one convertible cell to anchor the scale, and the
   // conversions must not contradict each other.
   if (!sawDiv100 && !sawMul100 && noneCount === 0) return null
   if (sawDiv100 && sawMul100) return null
+  // When no conversion anchors the scale and the 'none' cells' source
+  // units DISAGREE about percent-ness, the units are lying about at
+  // least one cell (they're source-reported, not registry data) — a lone
+  // mislabeled "percent" must not flip the whole group 100x. Stay legacy.
+  if (!sawDiv100 && !sawMul100 && nonePercentUnit && noneFractionUnit) return null
   const registryIsPercent = sawMul100 || (!sawDiv100 && nonePercentUnit)
   let percentSourceCount = 0
   let fractionSourceCount = 0
