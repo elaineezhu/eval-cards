@@ -438,6 +438,12 @@ export interface ComparisonSubmission {
   raw_model_id: string | null
 }
 
+/** How a per-source `score` maps onto `score_canonical` (spec F5).
+ *  'flagged' rows have no canonical-scale score (never guessed);
+ *  'no_bounds' rows pass the raw score through unconverted. Same union as
+ *  `MergedScaleConversion` in eval-processing.ts (merged-view rows). */
+export type ScaleConversion = "none" | "div100" | "mul100" | "flagged" | "no_bounds"
+
 export interface ComparisonScoreEntry {
   model_route_id: string
   // The group root id, slash-form (e.g. "zhipu/glm-4-6-fc-thinking") — the field
@@ -463,6 +469,11 @@ export interface ComparisonScoreEntry {
    *  source never reported them. */
   temperature?: number | null
   max_tokens?: number | null
+  /** Score on the metric's registry scale ([0,1] fraction metrics, [0,100]
+   *  percent metrics); null when the row was flagged unconvertible. Absent
+   *  on snapshots predating spec F5. */
+  score_canonical?: number | null
+  scale_conversion?: ScaleConversion | null
 }
 
 export interface ComparisonMetricEntry {
@@ -499,6 +510,9 @@ export interface ComparisonByModelEntry {
   total: number
   submission_count: number
   submission_axis: SubmissionAxis
+  /** Same canonical-scale pair as ComparisonScoreEntry; absent pre-F5. */
+  score_canonical?: number | null
+  scale_conversion?: ScaleConversion | null
 }
 
 export interface ComparisonIndex {

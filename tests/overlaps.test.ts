@@ -234,6 +234,156 @@ describe("buildOverlapRows: multi-source rows", () => {
   })
 })
 
+describe("buildOverlapRows: producer canonical scale (spec F5)", () => {
+  it("uses score_canonical instead of the magnitude guess when every cell carries it", () => {
+    // A true low percent (1.2%) next to a fraction: the legacy `>1.5`
+    // vote would call both fractions and keep [1.2, 0.9]; the producer
+    // fields pin the percent row exactly.
+    const rows = build({
+      benchmarkIndex: [MMLU_INDEX],
+      comparisonIndex: comparisonIndexOf(
+        mmluEvals(
+          [ownRow(1.2, { score_canonical: 0.012, scale_conversion: "div100" })],
+          [ownRow(0.9, { score_canonical: 0.9, scale_conversion: "none" })],
+        ),
+      ),
+    })
+    expect(rows).toHaveLength(1)
+    expect(rows[0].appearances.map((a) => a.score)).toEqual([90, 1.2])
+    expect(rows[0].appearances.map((a) => a.displayScore)).toEqual(["90.0%", "1.2%"])
+    expect(rows[0].isPercentScale).toBe(true)
+  })
+
+  it("keeps percent-source values as-is and lifts fraction sources onto the same scale", () => {
+    // Real-snapshot shape (vals-ai aime-2024): a div100 percent source
+    // next to a proportion source — both come out on the 0-100 axis.
+    const rows = build({
+      benchmarkIndex: [MMLU_INDEX],
+      comparisonIndex: comparisonIndexOf(
+        mmluEvals(
+          [ownRow(99.583, { score_canonical: 0.99583, scale_conversion: "div100" })],
+          [ownRow(0.355, { score_canonical: 0.355, scale_conversion: "none" })],
+        ),
+      ),
+    })
+    expect(rows[0].appearances.map((a) => a.score)).toEqual([99.583, 35.5])
+    expect(rows[0].isPercentScale).toBe(true)
+    expect(rows[0].mean).toBeCloseTo((99.583 + 35.5) / 2, 10)
+  })
+
+  it("handles a percent-registry metric (mul100) without double-scaling", () => {
+    const rows = build({
+      benchmarkIndex: [MMLU_INDEX],
+      comparisonIndex: comparisonIndexOf({
+        "fam-a%2Fmmlu": evalEntry("fam-a%2Fmmlu", [
+          metricEntry({ scores: [ownRow(0.7, { score_canonical: 70, scale_conversion: "mul100" })] }),
+        ]),
+        "fam-b%2Fmmlu": evalEntry("fam-b%2Fmmlu", [
+          metricEntry({
+            unit: "percent",
+            scores: [ownRow(65, { score_canonical: 65, scale_conversion: "none" })],
+          }),
+        ]),
+      }),
+    })
+    expect(rows[0].appearances.map((a) => a.score)).toEqual([70, 65])
+    expect(rows[0].appearances.map((a) => a.displayScore)).toEqual(["70.0%", "65.0%"])
+    expect(rows[0].isPercentScale).toBe(true)
+  })
+
+  it("reads the canonical fields off by_model cells too", () => {
+    const rows = build({
+      benchmarkIndex: [MMLU_INDEX],
+      comparisonIndex: comparisonIndexOf(mmluEvals([], []), {
+        [MODEL_ROUTE]: {
+          "fam-a%2Fmmlu": {
+            "m%3Aaccuracy": {
+              score: 99.583, rank: 1, total: 4, submission_count: 1, submission_axis: "default",
+              score_canonical: 0.99583, scale_conversion: "div100",
+            },
+          },
+          "fam-b%2Fmmlu": {
+            "m%3Aaccuracy": {
+              score: 0.355, rank: 2, total: 4, submission_count: 1, submission_axis: "default",
+              score_canonical: 0.355, scale_conversion: "none",
+            },
+          },
+        },
+      }),
+    })
+    expect(rows[0].appearances.map((a) => a.score)).toEqual([99.583, 35.5])
+    expect(rows[0].isPercentScale).toBe(true)
+  })
+
+  it("falls back to the per-row guess for a flagged cell among canonical siblings", () => {
+    const rows = build({
+      benchmarkIndex: [MMLU_INDEX],
+      comparisonIndex: comparisonIndexOf(
+        mmluEvals(
+          [ownRow(80, { score_canonical: 0.8, scale_conversion: "div100" })],
+          [ownRow(0.7, { score_canonical: null, scale_conversion: "flagged" })],
+        ),
+      ),
+    })
+    // Group scale is settled by the canonical sibling (percent display);
+    // the flagged row keeps the legacy `>1.5` guess mapped onto it.
+    expect(rows[0].appearances.map((a) => a.score)).toEqual([80, 70])
+    expect(rows[0].isPercentScale).toBe(true)
+  })
+
+  it("treats a group with any old-snapshot cell as old (no half-conversion)", () => {
+    // fam-b's cell lacks the new keys → the whole group takes the legacy
+    // path: both scores ≤1.5 read as fractions, unlike the canonical
+    // result [90, 1.2] on the percent axis.
+    const rows = build({
+      benchmarkIndex: [MMLU_INDEX],
+      comparisonIndex: comparisonIndexOf(
+        mmluEvals(
+          [ownRow(1.2, { score_canonical: 0.012, scale_conversion: "div100" })],
+          [ownRow(0.9)],
+        ),
+      ),
+    })
+    expect(rows[0].appearances.map((a) => a.score)).toEqual([1.2, 0.9])
+    expect(rows[0].isPercentScale).toBe(false)
+  })
+
+  it("keeps the legacy heuristic for bounds-less metrics (canonical adds nothing)", () => {
+    const rows = build({
+      benchmarkIndex: [MMLU_INDEX],
+      comparisonIndex: comparisonIndexOf(
+        mmluEvals(
+          [ownRow(1468, { score_canonical: 1468, scale_conversion: "no_bounds" })],
+          [ownRow(1450, { score_canonical: 1450, scale_conversion: "no_bounds" })],
+        ),
+      ),
+    })
+    expect(rows[0].appearances.map((a) => a.score)).toEqual([1468, 1450])
+    expect(rows[0].isPercentScale).toBe(true)
+  })
+
+  it("keeps a lone canonical appearance on its source scale", () => {
+    const percentRows = build({
+      benchmarkIndex: [MMLU_INDEX],
+      comparisonIndex: comparisonIndexOf(
+        mmluEvals([ownRow(99.583, { score_canonical: 0.99583, scale_conversion: "div100" })], []),
+      ),
+    })
+    expect(percentRows[0].appearances[0].score).toBe(99.583)
+    expect(percentRows[0].appearances[0].displayScore).toBe("99.6%")
+    expect(percentRows[0].isPercentScale).toBe(true)
+
+    const fractionRows = build({
+      benchmarkIndex: [MMLU_INDEX],
+      comparisonIndex: comparisonIndexOf(
+        mmluEvals([ownRow(0.42, { score_canonical: 0.42, scale_conversion: "none" })], []),
+      ),
+    })
+    expect(fractionRows[0].appearances[0].score).toBe(0.42)
+    expect(fractionRows[0].isPercentScale).toBe(false)
+  })
+})
+
 describe("buildOverlapRows: single-source rows", () => {
   it("keeps benchmarks where the model has only one deduped appearance, with degenerate stats", () => {
     const rows = build({

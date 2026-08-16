@@ -55,9 +55,16 @@ import type {
   ComparisonScoreEntry,
   EvalHierarchy,
   PeerRanksMap,
+  ScaleConversion,
   SubmissionAxis,
 } from "@/lib/backend-artifacts"
 import { fetchPeerRanks } from "@/lib/dashboard-data-client"
+import {
+  canonicalCellIsPercent,
+  resolveCanonicalScaleGroup,
+  scaleOnto,
+  type CanonicalScaleCell,
+} from "@/lib/score-scale"
 import {
   buildOverlapRows,
   countMultiSourceRows,
@@ -2749,6 +2756,11 @@ export function BenchmarkDetail({
     }>
     defaultIds: Set<string>
     currentModelRank: { position: number; total: number } | null
+    /** Producer-resolved display scale (spec F5): non-null when every score
+     *  cell for this metric carried usable canonical-scale fields. Bars are
+     *  then on this exact scale (true ⇒ 0-100) and the legacy `>1.5 ⇒
+     *  percent` guesses are skipped; null keeps them byte-identical. */
+    resolvedIsPercent: boolean | null
   }
 
   const histKeyFor = (evalSummaryId: string, metricSummaryId: string) =>
@@ -2959,6 +2971,45 @@ export function BenchmarkDetail({
             !currentModelIdentityKeys.has(s.model_group_id)
         )
 
+        // Producer-canonical path (spec F5): when the current model's cell
+        // and every peer row carry usable canonical-scale fields, plot the
+        // canonical values — all bars land on one exact scale and the
+        // legacy `>1.5 ⇒ percent` guesses downstream are skipped. Any
+        // old-snapshot cell or bounds-less metric in the group keeps the
+        // raw scores byte-identical to legacy. The display scale mirrors
+        // the legacy majority-vote convention (percent wins ties), so
+        // wherever the old guess was right the plotted numbers are
+        // unchanged; flagged rows (score_canonical null) fall back to the
+        // per-row guess inside toDisplay and stay plotted, like legacy.
+        const scaleCellOf = (cell: {
+          score: number
+          score_canonical?: number | null
+          scale_conversion?: ScaleConversion | null
+        }): CanonicalScaleCell => ({
+          score: cell.score,
+          scoreCanonical: cell.score_canonical,
+          scaleConversion: cell.scale_conversion,
+          unit: metric.unit ?? null,
+        })
+        const currentCell = currentRow ?? byModelRow
+        const scaleGroup = resolveCanonicalScaleGroup(
+          [...(currentCell ? [currentCell] : []), ...peerRows].map(scaleCellOf),
+        )
+        const resolvedIsPercent = scaleGroup
+          ? scaleGroup.percentSourceCount >= scaleGroup.fractionSourceCount
+          : null
+        const displayScoreOf = (cell: {
+          score: number
+          score_canonical?: number | null
+          scale_conversion?: ScaleConversion | null
+        }): number =>
+          scaleGroup && resolvedIsPercent != null
+            ? scaleGroup.toDisplay(scaleCellOf(cell), resolvedIsPercent)
+            : cell.score
+        const currentDisplayScore = currentCell
+          ? displayScoreOf(currentCell)
+          : currentScore
+
         const defaults = new Set<string>()
         if (peerRows.length > 0) {
           // Best and worst come straight off the pre-sorted list.
@@ -2968,8 +3019,8 @@ export function BenchmarkDetail({
           const closest = [...peerRows]
             .sort(
               (a, b) =>
-                Math.abs(a.score - currentScore) -
-                Math.abs(b.score - currentScore)
+                Math.abs(displayScoreOf(a) - currentDisplayScore) -
+                Math.abs(displayScoreOf(b) - currentDisplayScore)
             )
             .filter((p) => !defaults.has(p.model_route_id))
             .slice(0, 2)
@@ -2988,7 +3039,7 @@ export function BenchmarkDetail({
             // human-readable in this codebase, e.g. "anthropic/sonnet-4.5").
             // Without this the peer bars all read "Unknown Model".
             modelName: getModelDisplayName(p.model_family_name || p.model_family_id),
-            score: p.score,
+            score: displayScoreOf(p),
             isCurrent: false,
             isDefault: defaults.has(p.model_route_id),
             submissionCount: p.submission_count,
@@ -3001,7 +3052,7 @@ export function BenchmarkDetail({
         const currentBar: HistogramBar = {
           modelId: currentModelRouteId,
           modelName: currentModelName,
-          score: currentScore,
+          score: currentDisplayScore,
           isCurrent: true,
           isDefault: true,
           submissionCount: currentRow?.submission_count ?? byModelRow?.submission_count ?? 1,
@@ -3025,7 +3076,7 @@ export function BenchmarkDetail({
             // model_family_id (always present, human-readable). Without this the
             // dropdown label resolves to "Unknown Model".
             name: p.model_family_name || p.model_family_id,
-            score: p.score,
+            score: displayScoreOf(p),
             submissionCount: p.submission_count,
             submissionAxis: p.submission_axis,
           }))
@@ -3042,6 +3093,7 @@ export function BenchmarkDetail({
           availableModels,
           defaultIds: defaults,
           currentModelRank,
+          resolvedIsPercent,
         })
       }
     }
@@ -3738,6 +3790,7 @@ export function BenchmarkDetail({
       availableModels: [],
       defaultIds: new Set<string>(),
       currentModelRank: null,
+      resolvedIsPercent: null,
     }
 
     // When a benchmark is reported on both 0-1 and 0-100 scales (e.g. Wordle
@@ -3754,8 +3807,11 @@ export function BenchmarkDetail({
     // ranges across the category-view grid land on the same boundaries
     // and look aligned. Step depends on the scale: 0.05 on proportion,
     // 5 on percent. Pad outward (floor below, ceil above) so the bars
-    // never spill over the chart frame.
-    const isPercentScale = Math.max(Math.abs(rawMin), Math.abs(rawMax)) > 1.5
+    // never spill over the chart frame. Scale comes from the producer
+    // when resolved (spec F5); the magnitude guess covers old snapshots.
+    const isPercentScale =
+      activeHist.resolvedIsPercent ??
+      Math.max(Math.abs(rawMin), Math.abs(rawMax)) > 1.5
     const snapStep = isPercentScale ? 5 : 0.05
     const padBelow = hasSpread ? (rawMax - rawMin) * 0.15 : 0
     const padAbove = hasSpread ? (rawMax - rawMin) * 0.15 : 0
@@ -3831,7 +3887,9 @@ export function BenchmarkDetail({
         .map((b) => b.score)
         .filter((s) => Number.isFinite(s))
       const histMaxAbs = histScores.length ? Math.max(...histScores.map(Math.abs)) : 1
-      const histIsPercent = histMaxAbs > 1.5
+      // Producer-resolved scale when available (spec F5); magnitude guess
+      // only for old snapshots / bounds-less metrics.
+      const histIsPercent = activeHist.resolvedIsPercent ?? histMaxAbs > 1.5
       const reconcileSibling = (score: number, siblingMetricUnit: string | null | undefined): number => {
         const u = (siblingMetricUnit ?? "").toLowerCase().trim()
         const siblingIsPercent =
@@ -3855,10 +3913,15 @@ export function BenchmarkDetail({
             )
           : null
         const siblingMetric = matchByName ?? matchByLocal ?? siblingEval.metrics[0]
-        let siblingScore: number | null = null
+        let siblingCell: CanonicalScaleCell | null = null
         const byModelCell = byModel[siblingId]?.[siblingMetric.metric_summary_id]
         if (byModelCell != null && Number.isFinite(byModelCell.score)) {
-          siblingScore = byModelCell.score
+          siblingCell = {
+            score: byModelCell.score,
+            scoreCanonical: byModelCell.score_canonical,
+            scaleConversion: byModelCell.scale_conversion,
+            unit: siblingMetric.unit ?? null,
+          }
         } else {
           // Fallback: scan scores[] for a row matching any of the model's
           // identity keys. Covers route-id encoding mismatches.
@@ -3868,14 +3931,29 @@ export function BenchmarkDetail({
               currentModelIdentityKeys.has(row.model_group_id)
             ) {
               if (Number.isFinite(row.score)) {
-                siblingScore = row.score
+                siblingCell = {
+                  score: row.score,
+                  scoreCanonical: row.score_canonical,
+                  scaleConversion: row.scale_conversion,
+                  unit: siblingMetric.unit ?? null,
+                }
                 break
               }
             }
           }
         }
-        if (siblingScore == null) continue
-        const reconciledScore = reconcileSibling(siblingScore, siblingMetric.unit)
+        if (siblingCell == null) continue
+        // Exact path (spec F5): when the active histogram's scale is
+        // producer-resolved and the sibling cell carries a usable canonical
+        // value, map it onto the histogram scale directly — no guessing.
+        // Flagged or old-snapshot sibling cells keep the legacy heuristic
+        // for that row.
+        const siblingCellScale =
+          activeHist.resolvedIsPercent != null ? canonicalCellIsPercent(siblingCell) : null
+        const reconciledScore =
+          siblingCellScale != null && siblingCell.scoreCanonical != null
+            ? scaleOnto(siblingCell.scoreCanonical, siblingCellScale, histIsPercent)
+            : reconcileSibling(siblingCell.score, siblingMetric.unit)
         const familyKey = siblingId.split("%2F")[0]
         const familyName = familyDisplayByKey.get(familyKey) ?? familyKey
         collected.push({ familyKey, familyName, score: reconciledScore })
@@ -3939,7 +4017,10 @@ export function BenchmarkDetail({
         .map((b) => b.score)
         .filter((s) => Number.isFinite(s))
       const histMaxAbs = histScores.length ? Math.max(...histScores.map(Math.abs)) : 1
-      const histIsPercent = histMaxAbs > 1.5
+      // Producer-resolved scale when available (spec F5). The stderr value
+      // itself comes from the summary payload (no canonical fields), so
+      // its own scale below still relies on unit / magnitude fallbacks.
+      const histIsPercent = activeHist.resolvedIsPercent ?? histMaxAbs > 1.5
       let isPercent = stderrIsPercent
       if (isPercent == null) {
         // Fallback: assume stderr matches the bar's score scale.

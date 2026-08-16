@@ -18,7 +18,13 @@ import type {
   ComparisonMetricEntry,
   ComparisonScoreEntry,
   RowAnnotations,
+  ScaleConversion,
 } from "./backend-artifacts"
+import {
+  isPercentUnit,
+  resolveCanonicalScaleGroup,
+  type CanonicalScaleCell,
+} from "./score-scale"
 
 export type OverlapSourceKind = "comparison-index" | "summary"
 
@@ -37,6 +43,10 @@ export interface OverlapAppearance {
   /** "comparison-index" appearances have a per-eval leaderboard to link to;
    *  "summary" appearances come from the model's own result rows and don't. */
   sourceKind: OverlapSourceKind
+  /** Producer canonical-scale fields off the comparison-index score cell
+   *  (spec F5); undefined on old snapshots and summary-sourced appearances. */
+  scoreCanonical?: number | null
+  scaleConversion?: ScaleConversion | null
 }
 
 export interface OverlapRow {
@@ -113,14 +123,14 @@ function tFor(df: number): number {
   return 12.706
 }
 
-function isPercentUnit(unit: string | null): boolean {
-  return /percent|%|pct/.test((unit ?? "").toLowerCase())
-}
-
 function formatHeuristicPercent(score: number, unit: string | null): string {
   return isPercentUnit(unit) || score > 1.5
     ? `${score.toFixed(1)}%`
     : `${(score * 100).toFixed(1)}%`
+}
+
+function formatScalePercent(score: number, isPercentScale: boolean): string {
+  return isPercentScale ? `${score.toFixed(1)}%` : `${(score * 100).toFixed(1)}%`
 }
 
 export function buildOverlapRows(input: BuildOverlapRowsInput): OverlapRow[] {
@@ -169,14 +179,28 @@ export function buildOverlapRows(input: BuildOverlapRowsInput): OverlapRow[] {
       }
       return null
     }
+    // Returns the score plus the producer canonical-scale fields off
+    // whichever cell supplied it (by_model preferred, then scores[]).
     const lookupModelScore = (
       evalId: string,
       ownScoreRow: ComparisonScoreEntry | null,
       metric: ComparisonMetricEntry,
-    ): number | null => {
+    ): { score: number; scoreCanonical?: number | null; scaleConversion?: ScaleConversion | null } | null => {
       const cell = byModel[evalId]?.[metric.metric_summary_id]
-      if (cell != null && Number.isFinite(cell.score)) return cell.score
-      return ownScoreRow ? ownScoreRow.score : null
+      if (cell != null && Number.isFinite(cell.score)) {
+        return {
+          score: cell.score,
+          scoreCanonical: cell.score_canonical,
+          scaleConversion: cell.scale_conversion,
+        }
+      }
+      return ownScoreRow
+        ? {
+            score: ownScoreRow.score,
+            scoreCanonical: ownScoreRow.score_canonical,
+            scaleConversion: ownScoreRow.scale_conversion,
+          }
+        : null
     }
 
     for (const entry of benchmarkIndex) {
@@ -197,8 +221,9 @@ export function buildOverlapRows(input: BuildOverlapRowsInput): OverlapRow[] {
             evalEntry.metrics[0]
           if (!targetMetric) continue
           const ownScoreRow = findOwnScoreRow(targetMetric)
-          const score = lookupModelScore(evalId, ownScoreRow, targetMetric)
-          if (score == null || !Number.isFinite(score)) continue
+          const cellInfo = lookupModelScore(evalId, ownScoreRow, targetMetric)
+          if (cellInfo == null || !Number.isFinite(cellInfo.score)) continue
+          const score = cellInfo.score
           const unit = targetMetric.unit ?? null
           if (!bestPerFamily.has(familyKey)) {
             // Generation params prefer the score cell; absent fields (old
@@ -230,6 +255,8 @@ export function buildOverlapRows(input: BuildOverlapRowsInput): OverlapRow[] {
               maxTokens,
               annotations: fallback ? fallback.annotations : null,
               sourceKind: "comparison-index",
+              scoreCanonical: cellInfo.scoreCanonical,
+              scaleConversion: cellInfo.scaleConversion,
             })
           }
         }
@@ -271,25 +298,55 @@ export function buildOverlapRows(input: BuildOverlapRowsInput): OverlapRow[] {
       }
       if (collected.length < 1) continue
 
-      // Cross-appearance scale harmonisation only makes sense for ≥2
-      // appearances. A lone appearance keeps its score as-is and lets the
-      // metric unit settle the scale: |score| ≤ 1.5 with a percent unit
-      // genuinely means a low percent, not a proportion.
-      const single = collected.length === 1 ? collected[0] : null
-      const highCount = collected.filter((c) => Math.abs(c.score) > 1.5).length
-      const lowCount = collected.length - highCount
-      const useHigh = single
-        ? isPercentUnit(single.unit) || Math.abs(single.score) > 1.5
-        : highCount >= lowCount
-      const scaled = single
-        ? [...collected]
-        : collected.map((c) => {
-            const isHigh = Math.abs(c.score) > 1.5
-            const score = useHigh
-              ? isHigh ? c.score : c.score * 100
-              : isHigh ? c.score / 100 : c.score
-            return { ...c, score }
-          })
+      // Producer-canonical path (spec F5): when every appearance's score
+      // cell carries usable canonical-scale fields, the canonical values
+      // already sit on one consistent registry scale — use them and skip
+      // the majority-vote guess below. Any old-snapshot cell (or a
+      // bounds-less metric) in the group falls back wholesale to the
+      // heuristic so a group is never half-converted; flagged cells
+      // (score_canonical null) among canonical siblings keep the legacy
+      // per-row guess, mapped onto the group's display scale.
+      const scaleCellOf = (c: OverlapAppearance): CanonicalScaleCell => ({
+        score: c.score,
+        scoreCanonical: c.scoreCanonical,
+        scaleConversion: c.scaleConversion,
+        unit: c.unit,
+      })
+      const scaleGroup = resolveCanonicalScaleGroup(collected.map(scaleCellOf))
+      let scaled: OverlapAppearance[]
+      let useHigh: boolean
+      if (scaleGroup) {
+        // Same display convention (and tie rule) as the legacy vote, but
+        // counted from the producer's per-cell source scales instead of
+        // score magnitudes: percent display when percent-scale sources
+        // are at least as common as fraction-scale ones.
+        useHigh = scaleGroup.percentSourceCount >= scaleGroup.fractionSourceCount
+        scaled = collected.map((c) => {
+          const score = scaleGroup.toDisplay(scaleCellOf(c), useHigh)
+          return { ...c, score, displayScore: formatScalePercent(score, useHigh) }
+        })
+      } else {
+        // Legacy heuristic (old snapshots): cross-appearance scale
+        // harmonisation only makes sense for ≥2 appearances. A lone
+        // appearance keeps its score as-is and lets the metric unit settle
+        // the scale: |score| ≤ 1.5 with a percent unit genuinely means a
+        // low percent, not a proportion.
+        const single = collected.length === 1 ? collected[0] : null
+        const highCount = collected.filter((c) => Math.abs(c.score) > 1.5).length
+        const lowCount = collected.length - highCount
+        useHigh = single
+          ? isPercentUnit(single.unit) || Math.abs(single.score) > 1.5
+          : highCount >= lowCount
+        scaled = single
+          ? [...collected]
+          : collected.map((c) => {
+              const isHigh = Math.abs(c.score) > 1.5
+              const score = useHigh
+                ? isHigh ? c.score : c.score * 100
+                : isHigh ? c.score / 100 : c.score
+              return { ...c, score }
+            })
+      }
       const scores = scaled.map((s) => s.score)
       const mean = scores.reduce((a, b) => a + b, 0) / scores.length
       const variance = scores.length > 1

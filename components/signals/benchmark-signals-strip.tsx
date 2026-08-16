@@ -11,6 +11,7 @@ import type {
 } from "@/lib/backend-artifacts"
 import type { BenchmarkEvalSummary } from "@/lib/eval-processing"
 import type { ModelResultForBenchmark } from "@/lib/eval-processing"
+import { resolveCanonicalScaleGroup, type CanonicalScaleCell } from "@/lib/score-scale"
 
 type SignalId = "reproducibility" | "completeness" | "provenance" | "comparability"
 
@@ -757,15 +758,34 @@ function buildCrossSuiteAggregate(
   // Decide a normalization scale for cross-suite comparison: if the
   // representative metrics span a 0-1 scale and a 0-100 scale, rescale
   // the smaller into 0-100 so divergence is computed on a common axis.
-  // Mirrors the model-detail overlap heuristic.
+  // Preferred path (spec F5): when every cell across the sibling metrics
+  // carries producer canonical-scale fields, those settle the common axis
+  // exactly. Otherwise (old snapshots, mixed groups, bounds-less metrics)
+  // keep the legacy magnitude heuristic, mirroring the model-detail
+  // overlap fallback.
   const sampleScores: number[] = []
+  const scaleCells: CanonicalScaleCell[] = []
   for (const [evalId, metric] of metricByEval) {
     void evalId
     for (const row of metric.scores ?? []) {
-      if (typeof row.score === "number" && Number.isFinite(row.score)) sampleScores.push(row.score)
+      if (typeof row.score === "number" && Number.isFinite(row.score)) {
+        sampleScores.push(row.score)
+        scaleCells.push({
+          score: row.score,
+          scoreCanonical: row.score_canonical,
+          scaleConversion: row.scale_conversion,
+          unit: metric.unit ?? null,
+        })
+      }
     }
   }
-  const looksPercent = sampleScores.some((s) => Math.abs(s) > 1.5)
+  const scaleGroup = resolveCanonicalScaleGroup(scaleCells)
+  // Same display convention as the legacy guess (any percent-scale source
+  // pulls the whole table onto the 0-100 axis), read off the producer
+  // fields when available.
+  const looksPercent = scaleGroup
+    ? scaleGroup.percentSourceCount > 0
+    : sampleScores.some((s) => Math.abs(s) > 1.5)
   const rescale = (raw: number): number => {
     const isHigh = Math.abs(raw) > 1.5
     if (looksPercent) return isHigh ? raw : raw * 100
@@ -787,9 +807,22 @@ function buildCrossSuiteAggregate(
         scoresByEval: new Map<string, number>(),
       }
       // Take the first score per (model, eval) — the comparison-index
-      // already de-dupes within a metric.
+      // already de-dupes within a metric. On the canonical path, flagged
+      // rows (score_canonical null) fall back to the legacy per-row guess
+      // inside toDisplay — they stay included, matching legacy behavior.
       if (!slot.scoresByEval.has(evalSummaryId)) {
-        slot.scoresByEval.set(evalSummaryId, rescale(row.score))
+        const value = scaleGroup
+          ? scaleGroup.toDisplay(
+              {
+                score: row.score,
+                scoreCanonical: row.score_canonical,
+                scaleConversion: row.scale_conversion,
+                unit: metric.unit ?? null,
+              },
+              looksPercent,
+            )
+          : rescale(row.score)
+        slot.scoresByEval.set(evalSummaryId, value)
       }
       rowsByModel.set(row.model_route_id, slot)
     }
