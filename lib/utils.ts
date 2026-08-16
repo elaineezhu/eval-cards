@@ -20,14 +20,45 @@ export function routeIdToPath(id: string | null | undefined): string {
 }
 
 /**
- * Reconstruct the backend `%2F`-encoded id from a Next.js catch-all
- * params value. Accepts either the raw `string[]` from `useParams()`
- * or a pre-joined string for safety. Empty arrays produce "".
+ * Percent-encode one path segment to match the producer's Python
+ * `urllib.parse.quote(value, safe="")` encoding. `encodeURIComponent`
+ * leaves `! ' ( ) *` bare where Python encodes them, so those are
+ * re-encoded explicitly (raw-key ids contain parens/apostrophes,
+ * e.g. `Humanity's Last Exam (accuracy)`).
+ */
+function encodeSegmentStrict(segment: string): string {
+  return encodeURIComponent(segment).replace(
+    /[!'()*]/g,
+    (c) => `%${c.charCodeAt(0).toString(16).toUpperCase()}`,
+  )
+}
+
+/** decodeURIComponent that tolerates malformed input (lone `%` etc.). */
+function decodeLoose(value: string): string {
+  try {
+    return decodeURIComponent(value)
+  } catch {
+    return value
+  }
+}
+
+/**
+ * Reconstruct the backend fully-percent-encoded id from a Next.js
+ * catch-all params value. Accepts either the raw `string[]` from
+ * `useParams()` or a pre-joined string for safety. Empty arrays
+ * produce "".
+ *
+ * Segments are decoded first (Next has been inconsistent about whether
+ * server `params` / `useParams()` deliver decoded or raw-encoded
+ * values) then re-encoded with Python `quote(safe="")` semantics, so
+ * both cases converge to the canonical stored id form — the transform
+ * is idempotent. Mirrors the tradeoff `safeDecode` in middleware.ts
+ * already makes for values that merely look encoded.
  */
 export function routeIdFromSegments(value: string | string[] | undefined): string {
   if (value == null) return ""
-  const joined = Array.isArray(value) ? value.join("/") : value
-  return joined.replace(/\//g, "%2F")
+  const segments = Array.isArray(value) ? value : value.split("/")
+  return segments.map((s) => encodeSegmentStrict(decodeLoose(s))).join("%2F")
 }
 
 /**
