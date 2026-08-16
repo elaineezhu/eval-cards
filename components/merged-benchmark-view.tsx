@@ -148,12 +148,6 @@ export function MergedBenchmarkView({ benchmarkId }: { benchmarkId: string }) {
     )
   }
 
-  const best = summary.best_result
-  const bestScore = best ? best.score_canonical ?? best.score : null
-  const bestSourceName = best?.composite_slug
-    ? sourceDisplayBySlug.get(best.composite_slug) ?? best.composite_slug
-    : null
-
   const preselectedSource =
     sourceParam && sourceDisplayBySlug.has(sourceParam) ? sourceParam : ""
 
@@ -195,15 +189,6 @@ export function MergedBenchmarkView({ benchmarkId }: { benchmarkId: string }) {
             <span className="ec-page-meta-item-l">Models</span>
             <span className="ec-page-meta-item-v">{modelsCount.toLocaleString()}</span>
           </div>
-          {isPreferredMetric && best?.model_name && bestScore != null && (
-            <div className="ec-page-meta-item">
-              <span className="ec-page-meta-item-l">Best</span>
-              <span className="ec-page-meta-item-v">
-                {formatScore(bestScore)} — {best.model_name}
-                {bestSourceName ? ` (${bestSourceName})` : ""}
-              </span>
-            </div>
-          )}
         </div>
       </header>
 
