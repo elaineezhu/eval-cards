@@ -20,9 +20,16 @@ export async function GET(request: Request) {
   if (isMergedEvalId(id)) {
     const metricId = searchParams.get("metric")?.trim() || undefined
     const sliceId = searchParams.get("slice")?.trim() || undefined
-    const merged = await getMergedBenchmarkSummary(routeIdFromSegments(id), metricId, sliceId)
-    if (merged) {
-      return NextResponse.json(merged)
+    try {
+      const merged = await getMergedBenchmarkSummary(routeIdFromSegments(id), metricId, sliceId)
+      if (merged) {
+        return NextResponse.json(merged)
+      }
+    } catch (error) {
+      // A connection reset can drop the optional merged table between
+      // the presence probe and the query — degrade to the per-source
+      // lookup/404 instead of a 500.
+      console.warn(`[eval-summary] merged lookup failed for ${id}:`, error)
     }
   }
 

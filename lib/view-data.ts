@@ -1144,7 +1144,12 @@ async function hasMergedEvalsView(): Promise<boolean> {
       const rows = await readRows<{ n: number }>(
         "SELECT COUNT(*) AS n FROM information_schema.tables WHERE table_name = 'merged_evals_view'"
       )
-      mergedEvalsViewPresenceCache = asNumber(rows[0]?.n) > 0
+      const present = asNumber(rows[0]?.n) > 0
+      // Cache only the positive: a transient init failure of the
+      // optional parquet must not pin merged pages to "absent" for the
+      // process lifetime — absent-table probes are trivial to repeat.
+      if (present) mergedEvalsViewPresenceCache = true
+      return present
     } catch {
       // Probe failed (connection blip) — don't cache; retry next request.
       return false

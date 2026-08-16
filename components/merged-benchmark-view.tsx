@@ -221,7 +221,14 @@ export function MergedBenchmarkView({ benchmarkId }: { benchmarkId: string }) {
             value={preselectedSource}
             onChange={(e) => {
               const slug = e.target.value
-              if (!slug) return
+              if (!slug) {
+                // Back to "All sources": clear the pre-highlight param.
+                const params = new URLSearchParams(searchParams.toString())
+                params.delete("source")
+                const qs = params.toString()
+                router.replace(qs ? `${pathname}?${qs}` : pathname)
+                return
+              }
               const source = summary.aggregate_sources.find((s) => s.composite_slug === slug)
               if (source?.evaluation_id) {
                 // Navigate-on-select to the per-source page (spec Q5).
