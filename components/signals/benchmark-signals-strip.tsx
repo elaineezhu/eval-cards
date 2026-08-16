@@ -11,7 +11,11 @@ import type {
 } from "@/lib/backend-artifacts"
 import type { BenchmarkEvalSummary } from "@/lib/eval-processing"
 import type { ModelResultForBenchmark } from "@/lib/eval-processing"
-import { resolveCanonicalScaleGroup, type CanonicalScaleCell } from "@/lib/score-scale"
+import {
+  mergeRegistryBounds,
+  resolveCanonicalScaleGroup,
+  type CanonicalScaleCell,
+} from "@/lib/score-scale"
 
 type SignalId = "reproducibility" | "completeness" | "provenance" | "comparability"
 
@@ -779,7 +783,18 @@ function buildCrossSuiteAggregate(
       }
     }
   }
-  const scaleGroup = resolveCanonicalScaleGroup(scaleCells)
+  const scaleGroup = resolveCanonicalScaleGroup(
+    scaleCells,
+    // Registry bounds shared by the sibling metric entries — resolve
+    // anchor-neutral / unit-conflicted groups exactly (conflicting bounds
+    // merge to undefined and keep the fallback).
+    mergeRegistryBounds(
+      Array.from(metricByEval.values(), (m) => ({
+        min: m.canonical_min_score,
+        max: m.canonical_max_score,
+      })),
+    ),
+  )
   // Same display convention as the legacy guess (any percent-scale source
   // pulls the whole table onto the 0-100 axis), read off the producer
   // fields when available.

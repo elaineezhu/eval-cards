@@ -487,6 +487,11 @@ export interface ComparisonMetricEntry {
   group_order: number
   lower_is_better: boolean
   unit: string | null
+  /** Registry bounds of the EFFECTIVE metric — the scale `score_canonical`
+   *  sits on (e.g. [0,1] for a fold target like wb-score). Null when the
+   *  registry declares no bounds; absent on snapshots predating the stamp. */
+  canonical_min_score?: number | null
+  canonical_max_score?: number | null
   scores: ComparisonScoreEntry[]
 }
 

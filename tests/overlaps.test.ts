@@ -322,6 +322,96 @@ describe("buildOverlapRows: producer canonical scale (spec F5)", () => {
     expect(rows[0].appearances.map((a) => a.displayScore)).toEqual(["11.0%", "0.0%"])
   })
 
+  it("resolves an all-curated group from producer registry bounds", () => {
+    // WildBench shape: raw 1-10 'points' scores curated onto a [0,1]
+    // registry metric. The 'curated' tag alone can't anchor
+    // fraction-vs-percent, but the metric-level registry bounds can — a
+    // model whose only appearance is the curated source now shows ~46%
+    // (matching the merged page) instead of the legacy magnitude guess
+    // reading raw 4.597 as "4.6%".
+    const rows = build({
+      benchmarkIndex: [MMLU_INDEX],
+      comparisonIndex: comparisonIndexOf({
+        "fam-a%2Fmmlu": evalEntry("fam-a%2Fmmlu", [
+          metricEntry({
+            unit: "points",
+            canonical_min_score: 0,
+            canonical_max_score: 1,
+            scores: [ownRow(4.597, { score_canonical: 0.4597, scale_conversion: "curated" })],
+          }),
+        ]),
+        "fam-b%2Fmmlu": evalEntry("fam-b%2Fmmlu", [metricEntry({ scores: [] })]),
+      }),
+    })
+    expect(rows).toHaveLength(1)
+    expect(rows[0].appearances[0].score).toBeCloseTo(45.97, 10)
+    expect(rows[0].appearances[0].displayScore).toBe("46.0%")
+    expect(rows[0].isPercentScale).toBe(true)
+  })
+
+  it("resolves a unit-conflicted group exactly when registry bounds are stamped", () => {
+    // Same terminalbench-hard shape as the legacy-fallback test above,
+    // but with the [0,1] registry bounds stamped on both metric entries:
+    // the group resolves as fraction-registry and both canonicals map
+    // exactly onto the percent display axis — no guessing.
+    const rows = build({
+      benchmarkIndex: [MMLU_INDEX],
+      comparisonIndex: comparisonIndexOf({
+        "fam-a%2Fmmlu": evalEntry("fam-a%2Fmmlu", [
+          metricEntry({
+            unit: "proportion",
+            canonical_min_score: 0,
+            canonical_max_score: 1,
+            scores: [ownRow(0.11, { score_canonical: 0.11, scale_conversion: "none" })],
+          }),
+        ]),
+        "fam-b%2Fmmlu": evalEntry("fam-b%2Fmmlu", [
+          metricEntry({
+            unit: "percent",
+            canonical_min_score: 0,
+            canonical_max_score: 1,
+            scores: [ownRow(0.0, { score_canonical: 0.0, scale_conversion: "none" })],
+          }),
+        ]),
+      }),
+    })
+    expect(rows[0].appearances[0].score).toBeCloseTo(11, 10)
+    expect(rows[0].appearances[1].score).toBeCloseTo(0, 10)
+    expect(rows[0].appearances.map((a) => a.displayScore)).toEqual(["11.0%", "0.0%"])
+    expect(rows[0].isPercentScale).toBe(true)
+  })
+
+  it("resolves a percent-registry metric from [0,100] bounds without double-scaling", () => {
+    // Bounds [0,100] pin the percent registry even though one cell's unit
+    // is missing (the unit conflict would otherwise force the legacy
+    // fallback). Canonical values already sit on the percent scale — they
+    // must pass through unscaled, not get multiplied or divided again.
+    const rows = build({
+      benchmarkIndex: [MMLU_INDEX],
+      comparisonIndex: comparisonIndexOf({
+        "fam-a%2Fmmlu": evalEntry("fam-a%2Fmmlu", [
+          metricEntry({
+            unit: "percent",
+            canonical_min_score: 0,
+            canonical_max_score: 100,
+            scores: [ownRow(65, { score_canonical: 65, scale_conversion: "none" })],
+          }),
+        ]),
+        "fam-b%2Fmmlu": evalEntry("fam-b%2Fmmlu", [
+          metricEntry({
+            unit: null,
+            canonical_min_score: 0,
+            canonical_max_score: 100,
+            scores: [ownRow(60, { score_canonical: 60, scale_conversion: "none" })],
+          }),
+        ]),
+      }),
+    })
+    expect(rows[0].appearances.map((a) => a.score)).toEqual([65, 60])
+    expect(rows[0].appearances.map((a) => a.displayScore)).toEqual(["65.0%", "60.0%"])
+    expect(rows[0].isPercentScale).toBe(true)
+  })
+
   it("reads the canonical fields off by_model cells too", () => {
     const rows = build({
       benchmarkIndex: [MMLU_INDEX],

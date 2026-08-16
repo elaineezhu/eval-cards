@@ -2994,6 +2994,9 @@ export function BenchmarkDetail({
         const currentCell = currentRow ?? byModelRow
         const scaleGroup = resolveCanonicalScaleGroup(
           [...(currentCell ? [currentCell] : []), ...peerRows].map(scaleCellOf),
+          // Metric-level registry bounds (the scale score_canonical sits
+          // on): resolve anchor-neutral (all-curated) groups exactly.
+          { min: metric.canonical_min_score, max: metric.canonical_max_score },
         )
         const resolvedIsPercent = scaleGroup
           ? scaleGroup.percentSourceCount >= scaleGroup.fractionSourceCount
@@ -3949,7 +3952,12 @@ export function BenchmarkDetail({
         // Flagged or old-snapshot sibling cells keep the legacy heuristic
         // for that row.
         const siblingCellScale =
-          activeHist.resolvedIsPercent != null ? canonicalCellIsPercent(siblingCell) : null
+          activeHist.resolvedIsPercent != null
+            ? canonicalCellIsPercent(siblingCell, {
+                min: siblingMetric.canonical_min_score,
+                max: siblingMetric.canonical_max_score,
+              })
+            : null
         const reconciledScore =
           siblingCellScale != null && siblingCell.scoreCanonical != null
             ? scaleOnto(siblingCell.scoreCanonical, siblingCellScale, histIsPercent)

@@ -9,14 +9,19 @@
 //   `scale_conversion` — how `score` maps onto `score_canonical`.
 // Old snapshots lack both keys entirely.
 //
+// Newer snapshots additionally stamp every comparison-index METRIC entry
+// with `canonical_min_score` / `canonical_max_score` — the effective
+// metric's registry bounds, i.e. the scale `score_canonical` sits on.
+//
 // `resolveCanonicalScaleGroup` decides whether a set of cells that a view
 // needs on ONE common scale can be settled exactly from those fields. When
 // it can, callers use the producer values and skip the legacy
 // `|score| > 1.5 ⇒ percent` guess; when it can't — any cell missing the
 // keys (old snapshot, or a mixed old/new group which must never be
 // half-converted), a bounds-less metric (canonical === raw guarantees
-// nothing about scale consistency), an all-flagged group, or contradictory
-// conversions — callers keep the legacy heuristic byte-for-byte.
+// nothing about scale consistency), an all-flagged group with no usable
+// registry bounds, or contradictory conversions — callers keep the legacy
+// heuristic byte-for-byte.
 //
 // NOTE: the comparison-index metric `unit` is source-reported, not the
 // registry's — a div100 metric can say "percent" while its canonical
@@ -42,6 +47,45 @@ export function isPercentUnit(unit: string | null | undefined): boolean {
   return /percent|%|pct/.test((unit ?? "").toLowerCase())
 }
 
+/** The effective metric's registry bounds off a comparison-index metric
+ *  entry (`canonical_min_score` / `canonical_max_score`); fields are
+ *  undefined on snapshots predating the stamp, null when the registry
+ *  declares no bounds. */
+export interface RegistryBounds {
+  min?: number | null
+  max?: number | null
+}
+
+/** Scale the registry bounds pin down: true ⇒ percent ([0,100]), false ⇒
+ *  fraction (max ≤ 1.5), null ⇒ absent or not usable (open-ended scales
+ *  like Elo, unusual ranges). */
+export function registryBoundsIsPercent(
+  bounds: RegistryBounds | null | undefined,
+): boolean | null {
+  if (!bounds) return null
+  if (bounds.min === 0 && bounds.max === 100) return true
+  if (bounds.max != null && bounds.max <= 1.5) return false
+  return null
+}
+
+/** Merge the per-metric registry bounds behind a cross-metric cell group:
+ *  the shared bounds when every stamped metric agrees, undefined when they
+ *  conflict (sibling metrics on different registry scales must not share
+ *  one anchor) or when no metric carries the stamp. */
+export function mergeRegistryBounds(
+  boundsList: Iterable<RegistryBounds | null | undefined>,
+): RegistryBounds | undefined {
+  let merged: { min: number | null; max: number | null } | undefined
+  for (const b of boundsList) {
+    if (!b || (b.min === undefined && b.max === undefined)) continue // pre-stamp metric
+    const min = b.min ?? null
+    const max = b.max ?? null
+    if (!merged) merged = { min, max }
+    else if (merged.min !== min || merged.max !== max) return undefined
+  }
+  return merged
+}
+
 /** Legacy per-row scale guess (`|raw| > 1.5 ⇒ percent`), mapped onto the
  *  requested display scale. Kept for old snapshots and flagged rows. */
 export function heuristicToScale(raw: number, toPercent: boolean): number {
@@ -62,7 +106,10 @@ export function scaleOnto(value: number, fromPercent: boolean, toPercent: boolea
  *  group prefer the group's `registryIsPercent` — a 'none' cell's
  *  source-reported unit can misstate the metric scale that its converted
  *  siblings pin down exactly. */
-export function canonicalCellIsPercent(cell: CanonicalScaleCell): boolean | null {
+export function canonicalCellIsPercent(
+  cell: CanonicalScaleCell,
+  registryBounds?: RegistryBounds | null,
+): boolean | null {
   if (cell.scoreCanonical == null) return null
   switch (cell.scaleConversion) {
     case "div100":
@@ -70,7 +117,15 @@ export function canonicalCellIsPercent(cell: CanonicalScaleCell): boolean | null
     case "mul100":
       return true // raw fraction × 100 ⇒ the registry scale is the percent
     case "none":
-      return isPercentUnit(cell.unit) // raw already sits on the registry scale
+    case "curated": {
+      // The producer-stamped registry bounds settle the canonical scale
+      // exactly when usable. Otherwise 'none' falls back to the
+      // source-reported unit (raw already sits on the registry scale) and
+      // 'curated' stays underivable — the tag alone can't anchor.
+      const fromBounds = registryBoundsIsPercent(registryBounds)
+      if (fromBounds != null) return fromBounds
+      return cell.scaleConversion === "none" ? isPercentUnit(cell.unit) : null
+    }
     default:
       return null // 'no_bounds', 'flagged', unexpected tokens
   }
@@ -91,6 +146,7 @@ export interface CanonicalScaleGroup {
 
 export function resolveCanonicalScaleGroup(
   cells: readonly CanonicalScaleCell[],
+  registryBounds?: RegistryBounds | null,
 ): CanonicalScaleGroup | null {
   if (cells.length === 0) return null
   let sawDiv100 = false
@@ -115,23 +171,38 @@ export function resolveCanonicalScaleGroup(
       else noneFractionUnit = true
     } else return null // unknown conversion token — don't guess
   }
-  // Need at least one convertible cell to anchor the scale, and the
-  // conversions must not contradict each other.
-  if (!sawDiv100 && !sawMul100 && noneCount === 0) return null
-  if (sawDiv100 && sawMul100) return null
-  // When no conversion anchors the scale and the 'none' cells' source
-  // units DISAGREE about percent-ness, the units are lying about at
-  // least one cell (they're source-reported, not registry data) — a lone
-  // mislabeled "percent" must not flip the whole group 100x. Stay legacy.
-  if (!sawDiv100 && !sawMul100 && nonePercentUnit && noneFractionUnit) return null
-  const registryIsPercent = sawMul100 || (!sawDiv100 && nonePercentUnit)
+  if (sawDiv100 && sawMul100) return null // contradictory conversions
+  // Scale precedence: a conversion pins the registry scale exactly; next
+  // the metric's stamped registry bounds; last the 'none' cells' unit
+  // vote. Bounds let anchor-neutral groups (all-curated, all-flagged) and
+  // unit-conflicted groups resolve exactly instead of falling back.
+  let registryIsPercent: boolean
+  if (sawMul100) registryIsPercent = true
+  else if (sawDiv100) registryIsPercent = false
+  else {
+    const boundsScale = registryBoundsIsPercent(registryBounds)
+    if (boundsScale != null) registryIsPercent = boundsScale
+    else {
+      // Need at least one 'none' cell to anchor the unit vote…
+      if (noneCount === 0) return null
+      // …and when the 'none' cells' source units DISAGREE about
+      // percent-ness, the units are lying about at least one cell
+      // (they're source-reported, not registry data) — a lone mislabeled
+      // "percent" must not flip the whole group 100x. Stay legacy.
+      if (nonePercentUnit && noneFractionUnit) return null
+      registryIsPercent = nonePercentUnit
+    }
+  }
   let percentSourceCount = 0
   let fractionSourceCount = 0
   for (const c of cells) {
     if (c.scoreCanonical == null) continue
+    // 'curated' sources sit on neither scale (e.g. 1-10 points) — they
+    // don't vote; ties break percent-ward at the call sites.
+    if (c.scaleConversion === "curated") continue
     if (c.scaleConversion === "div100") percentSourceCount += 1
     else if (c.scaleConversion === "mul100") fractionSourceCount += 1
-    else if (registryIsPercent) percentSourceCount += 1
+    else if (isPercentUnit(c.unit)) percentSourceCount += 1
     else fractionSourceCount += 1
   }
   return {

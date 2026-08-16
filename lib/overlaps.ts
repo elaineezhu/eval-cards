@@ -22,6 +22,7 @@ import type {
 } from "./backend-artifacts"
 import {
   isPercentUnit,
+  mergeRegistryBounds,
   resolveCanonicalScaleGroup,
   type CanonicalScaleCell,
 } from "./score-scale"
@@ -47,6 +48,10 @@ export interface OverlapAppearance {
    *  (spec F5); undefined on old snapshots and summary-sourced appearances. */
   scoreCanonical?: number | null
   scaleConversion?: ScaleConversion | null
+  /** Registry bounds off the owning metric entry (the scale
+   *  `scoreCanonical` sits on); undefined pre-stamp / summary-sourced. */
+  canonicalMinScore?: number | null
+  canonicalMaxScore?: number | null
 }
 
 export interface OverlapRow {
@@ -257,6 +262,8 @@ export function buildOverlapRows(input: BuildOverlapRowsInput): OverlapRow[] {
               sourceKind: "comparison-index",
               scoreCanonical: cellInfo.scoreCanonical,
               scaleConversion: cellInfo.scaleConversion,
+              canonicalMinScore: targetMetric.canonical_min_score,
+              canonicalMaxScore: targetMetric.canonical_max_score,
             })
           }
         }
@@ -312,7 +319,16 @@ export function buildOverlapRows(input: BuildOverlapRowsInput): OverlapRow[] {
         scaleConversion: c.scaleConversion,
         unit: c.unit,
       })
-      const scaleGroup = resolveCanonicalScaleGroup(collected.map(scaleCellOf))
+      // Registry bounds shared by the appearances' metric entries (spec:
+      // producer-stamped `canonical_min_score` / `canonical_max_score`) —
+      // they let anchor-neutral groups (all-curated) and unit-conflicted
+      // groups resolve exactly; conflicting bounds merge to undefined.
+      const scaleGroup = resolveCanonicalScaleGroup(
+        collected.map(scaleCellOf),
+        mergeRegistryBounds(
+          collected.map((c) => ({ min: c.canonicalMinScore, max: c.canonicalMaxScore })),
+        ),
+      )
       let scaled: OverlapAppearance[]
       let useHigh: boolean
       if (scaleGroup) {
