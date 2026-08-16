@@ -5,8 +5,11 @@
  * `fetchEvalSummary` runs every payload through
  * `mergedSummaryToEvalSummary`, so legacy consumers — the embed
  * leaderboard / distribution / frontier pages in particular — render
- * merged ids without their own wiring. The merged page itself uses
- * `fetchMergedBenchmarkSummary` and consumes the raw payload.
+ * merged ids without their own wiring. The merged page
+ * (components/merged-benchmark-view) fetches the raw payload via
+ * `fetchMergedBenchmarkSummary` (for the source/metric/slice controls and
+ * disclosure notes) and adapts it through here to mount the full
+ * EvalDetail experience at merged grain.
  *
  * Client-safe: types only, no server imports.
  */
@@ -45,12 +48,30 @@ export function mergedSummaryToEvalSummary(merged: MergedBenchmarkSummary): Benc
     selectedMetric?.display_name ??
     (columnKey === merged.preferred_metric_id ? merged.preferred_metric_display_name : columnKey)
 
+  // Infer canonical-scale bounds from the pooled scores so score bars /
+  // normalisation in EvalDetail behave: prefer the conventional 0–1 and
+  // 0–100 scales when every score fits, else fall back to the data range.
+  // (The merged payload doesn't carry declared bounds — scores are already
+  // on the metric's registry canonical scale.)
+  const finiteScores = merged.results
+    .map(displayScore)
+    .filter((s): s is number => Number.isFinite(s))
+  let bounds: Pick<MetricConfig, "min_score" | "max_score"> = {}
+  if (finiteScores.length > 0) {
+    const lo = Math.min(...finiteScores)
+    const hi = Math.max(...finiteScores)
+    if (lo >= 0 && hi <= 1) bounds = { min_score: 0, max_score: 1 }
+    else if (lo >= 0 && hi <= 100) bounds = { min_score: 0, max_score: 100 }
+    else bounds = { min_score: Math.min(0, lo), max_score: hi }
+  }
+
   const metricConfig: MetricConfig = {
     evaluation_description: `${metricDisplayName} — merged across ${
       selectedMetric?.sources_count ?? merged.sources_count
     } sources`,
     lower_is_better: merged.selected_lower_is_better,
     score_type: "continuous",
+    ...bounds,
   }
 
   const sourceData: SourceData = { dataset_name: merged.display_name }
@@ -65,6 +86,7 @@ export function mergedSummaryToEvalSummary(merged: MergedBenchmarkSummary): Benc
       evaluation_timestamp: row.evaluation_timestamp,
       source_metadata: row.source_metadata,
       source_data: sourceData,
+      merged_source_slug: row.composite_slug,
       is_verified_evaluator: row.is_verified_evaluator,
       result: {
         evaluation_name: metricDisplayName,

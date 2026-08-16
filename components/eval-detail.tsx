@@ -94,6 +94,9 @@ interface EvalDetailProps {
    */
   activeSummary?: BenchmarkEvalSummary
   splitConfig?: SplitConfig
+  /** Rows for which this returns true get a warm background tint. Used by
+   *  the merged page for the ?source= pre-highlight. */
+  rowHighlight?: (modelResult: ModelResultForBenchmark) => boolean
 }
 
 interface LeaderboardRow {
@@ -709,6 +712,7 @@ export function EvalDetail({
   comparisonIndex,
   activeSummary,
   splitConfig,
+  rowHighlight,
 }: EvalDetailProps) {
   const { mode } = useAudienceMode()
   const isResearchView = mode === "research"
@@ -1674,7 +1678,13 @@ export function EvalDetail({
                 </thead>
                 <tbody>
                   {pagedLeaderboardRows.map(({ key, rank, modelResult }) => (
-                    <tr key={key} style={{ borderBottom: "1px solid var(--border-soft)" }}>
+                    <tr
+                      key={key}
+                      style={{
+                        borderBottom: "1px solid var(--border-soft)",
+                        ...(rowHighlight?.(modelResult) ? { background: "var(--bg-warm)" } : undefined),
+                      }}
+                    >
                       <td
                         className="font-mono tabular-nums"
                         style={{
@@ -1856,7 +1866,10 @@ export function EvalDetail({
                     <Fragment key={key}>
                       <tr
                         id={modelResult.model_route_id ? `row-${modelResult.model_route_id}` : undefined}
-                        className={cn("align-top", isExpanded && "bg-[color:var(--bg-warm)]")}
+                        className={cn(
+                          "align-top",
+                          (isExpanded || rowHighlight?.(modelResult)) && "bg-[color:var(--bg-warm)]",
+                        )}
                       >
                         <td className="num align-top">
                           <span

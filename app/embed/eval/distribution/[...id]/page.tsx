@@ -3,13 +3,12 @@
 import { useEffect, useMemo, useState } from "react"
 import { useParams, useSearchParams } from "next/navigation"
 import { ScoreDistribution } from "@/components/score-distribution"
-import { fetchEvalSummary } from "@/lib/dashboard-data-client"
+import { EmbedSourcePicker, useEmbedEvalSummary } from "@/components/embed-eval-source"
 import {
   buildDistributionSeries,
   buildDistributionSliceAxis,
 } from "@/lib/distribution-series"
 import { routeIdFromSegments } from "@/lib/utils"
-import type { BenchmarkEvalSummary } from "@/lib/eval-processing"
 
 /**
  * Embed-only render of the score-distribution histogram for one eval.
@@ -26,6 +25,10 @@ import type { BenchmarkEvalSummary } from "@/lib/eval-processing"
  *   ?view=frontier              — lock to frontier, hide toggle
  *   ?view=both                  — show the Distribution/Frontier toggle
  *   ?slice=<subtask_key>        — start with this slice selected
+ *
+ * Merged (single-segment) ids default to the MERGED all-sources data and
+ * render a Source selector; ?source=<composite_slug> pins one source's
+ * instantiation, ?metric=<metric_id> selects the merged metric.
  */
 export default function EmbedEvalDistribution() {
   const params = useParams()
@@ -37,22 +40,10 @@ export default function EmbedEvalDistribution() {
   const defaultView: "distribution" | "frontier" =
     viewParam === "frontier" ? "frontier" : "distribution"
 
-  const [summary, setSummary] = useState<BenchmarkEvalSummary | null>(null)
-  const [error, setError] = useState<string | null>(null)
-
-  useEffect(() => {
-    let cancelled = false
-    fetchEvalSummary(evalId)
-      .then((s) => {
-        if (!cancelled) setSummary(s)
-      })
-      .catch((err) => {
-        if (!cancelled) setError(err instanceof Error ? err.message : String(err))
-      })
-    return () => {
-      cancelled = true
-    }
-  }, [evalId])
+  const { summary, error, sources, activeSource, setActiveSource } = useEmbedEvalSummary(
+    evalId,
+    { metricParam: searchParams.get("metric"), sourceParam: searchParams.get("source") },
+  )
 
   // Slice axis — present when the eval has multiple subtask-scope metrics
   // sharing a primary root metric (e.g. Global MMLU's 24 language splits).
@@ -128,6 +119,7 @@ export default function EmbedEvalDistribution() {
           {summary.evaluation_name}
         </div>
       </div>
+      <EmbedSourcePicker sources={sources} value={activeSource} onChange={setActiveSource} />
       {sliceAxis && (
         <div className="mb-3 flex items-center gap-3">
           <span

@@ -44,6 +44,9 @@ export interface ModelResultForBenchmark {
   source_record_url?: string
   /** Deep-link to the raw EEE_datastore source record this score came from, when known. */
   eee_record_url?: string
+  /** Merged-page rows only (set by lib/merged-adapter): the observation's
+   *  source composite slug, used for the ?source= row pre-highlight. */
+  merged_source_slug?: string
   aggregate_components?: Array<{
     evaluation_id: string
     composite_benchmark_key: string

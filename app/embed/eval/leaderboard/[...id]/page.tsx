@@ -2,10 +2,9 @@
 
 import { useEffect, useMemo, useState } from "react"
 import { useParams, useSearchParams } from "next/navigation"
-import { fetchEvalSummary } from "@/lib/dashboard-data-client"
+import { EmbedSourcePicker, useEmbedEvalSummary } from "@/components/embed-eval-source"
 import { getMetricChipLabel } from "@/lib/metric-labels"
 import { routeIdFromSegments } from "@/lib/utils"
-import type { BenchmarkEvalSummary } from "@/lib/eval-processing"
 
 /**
  * Embed-only leaderboard for one eval. Single-metric evals render as a
@@ -19,7 +18,12 @@ import type { BenchmarkEvalSummary } from "@/lib/eval-processing"
  * Query params:
  *   ?limit=25            — cap rows (default 25, max 100)
  *   ?metric=<column_key> — for multi-metric evals, sort by this column
+ *                          (doubles as the merged metric id for merged ids)
  *   ?slice=<subtask_key> — start with this slice selected
+ *
+ * Merged (single-segment) ids default to the MERGED all-sources data and
+ * render a Source selector; ?source=<composite_slug> pins one source's
+ * instantiation of the benchmark.
  */
 export default function EmbedEvalLeaderboard() {
   const params = useParams()
@@ -30,22 +34,10 @@ export default function EmbedEvalLeaderboard() {
   const sortMetricKey = searchParams.get("metric")
   const sliceParam = searchParams.get("slice")
 
-  const [summary, setSummary] = useState<BenchmarkEvalSummary | null>(null)
-  const [error, setError] = useState<string | null>(null)
-
-  useEffect(() => {
-    let cancelled = false
-    fetchEvalSummary(evalId)
-      .then((s) => {
-        if (!cancelled) setSummary(s)
-      })
-      .catch((err) => {
-        if (!cancelled) setError(err instanceof Error ? err.message : String(err))
-      })
-    return () => {
-      cancelled = true
-    }
-  }, [evalId])
+  const { summary, error, sources, activeSource, setActiveSource } = useEmbedEvalSummary(
+    evalId,
+    { metricParam: sortMetricKey, sourceParam: searchParams.get("source") },
+  )
 
   type LbMetric = {
     column_key?: string
@@ -282,6 +274,7 @@ export default function EmbedEvalLeaderboard() {
           {summary.evaluation_name}
         </div>
       </div>
+      <EmbedSourcePicker sources={sources} value={activeSource} onChange={setActiveSource} />
       {sliceAxis && (
         <div className="mb-3 flex items-center gap-3">
           <span

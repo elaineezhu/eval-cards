@@ -3,13 +3,12 @@
 import { useEffect, useMemo, useState } from "react"
 import { useParams, useSearchParams } from "next/navigation"
 import { ScoreDistribution } from "@/components/score-distribution"
-import { fetchEvalSummary } from "@/lib/dashboard-data-client"
+import { EmbedSourcePicker, useEmbedEvalSummary } from "@/components/embed-eval-source"
 import {
   buildDistributionSeries,
   buildDistributionSliceAxis,
 } from "@/lib/distribution-series"
 import { routeIdFromSegments } from "@/lib/utils"
-import type { BenchmarkEvalSummary } from "@/lib/eval-processing"
 
 /**
  * Embed-only render of the Pareto-frontier (score vs release date)
@@ -22,6 +21,10 @@ import type { BenchmarkEvalSummary } from "@/lib/eval-processing"
  *
  * Query params:
  *   ?slice=<subtask_key> — start with this slice selected
+ *
+ * Merged (single-segment) ids default to the MERGED all-sources data and
+ * render a Source selector; ?source=<composite_slug> pins one source's
+ * instantiation, ?metric=<metric_id> selects the merged metric.
  */
 export default function EmbedEvalFrontier() {
   const params = useParams()
@@ -29,22 +32,10 @@ export default function EmbedEvalFrontier() {
   const evalId = routeIdFromSegments(params.id)
   const sliceParam = searchParams.get("slice")
 
-  const [summary, setSummary] = useState<BenchmarkEvalSummary | null>(null)
-  const [error, setError] = useState<string | null>(null)
-
-  useEffect(() => {
-    let cancelled = false
-    fetchEvalSummary(evalId)
-      .then((s) => {
-        if (!cancelled) setSummary(s)
-      })
-      .catch((err) => {
-        if (!cancelled) setError(err instanceof Error ? err.message : String(err))
-      })
-    return () => {
-      cancelled = true
-    }
-  }, [evalId])
+  const { summary, error, sources, activeSource, setActiveSource } = useEmbedEvalSummary(
+    evalId,
+    { metricParam: searchParams.get("metric"), sourceParam: searchParams.get("source") },
+  )
 
   // Slice axis — present when the eval has multiple subtask-scope metrics
   // sharing a primary root metric (e.g. Global MMLU's 24 language splits).
@@ -118,6 +109,7 @@ export default function EmbedEvalFrontier() {
           {summary.evaluation_name}
         </div>
       </div>
+      <EmbedSourcePicker sources={sources} value={activeSource} onChange={setActiveSource} />
       {sliceAxis && (
         <div className="mb-3 flex items-center gap-3">
           <span
