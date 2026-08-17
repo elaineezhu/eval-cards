@@ -154,7 +154,15 @@ export function mergedSummaryToEvalSummary(merged: MergedBenchmarkSummary): Benc
     derived_tags: [],
     metric_config: metricConfig,
     model_results,
-    models_count: selectedMetric?.models_count ?? merged.models_count,
+    // Distinct models among the rows actually SHOWN (flagged rows are
+    // excluded from the pool) — the producer's rollup counts models whose
+    // only observation is hidden, which reads as "80 results · 81 models".
+    models_count: (() => {
+      const shown = new Set(
+        rows.map((r) => r.model_key ?? r.model_route_id ?? r.model_info?.name),
+      )
+      return shown.size > 0 ? shown.size : (selectedMetric?.models_count ?? merged.models_count)
+    })(),
     evaluator_names: Array.from(
       new Set(merged.aggregate_sources.map((s) => s.composite_display_name).filter(Boolean)),
     ),

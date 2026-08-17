@@ -1295,11 +1295,19 @@ export async function getMergedBenchmarkSummary(
   // shows. Any instantiation of this benchmark that authored one will do;
   // prefer a source that reports the preferred metric.
   let benchmarkCard: BenchmarkCard | null = null
+  // Slice-grain fallback: for benchmarks with no top-level data the cards
+  // live under the slice ids (rewardbench-2 → rewardbench-2-factuality),
+  // so include them in the lookup.
+  const cardIds = [
+    asString(row.benchmark_id),
+    ...(grain === "slice" ? slices.map((s) => s.slice_id) : []),
+  ]
   const cardRows = await readRows<Row>(
     `SELECT composite_slug, CAST(to_json(benchmark_card) AS VARCHAR) AS benchmark_card
      FROM evals_view
-     WHERE benchmark_id = ? AND benchmark_card IS NOT NULL`,
-    [asString(row.benchmark_id)],
+     WHERE benchmark_id IN (${cardIds.map(() => "?").join(", ")})
+       AND benchmark_card IS NOT NULL`,
+    cardIds,
     { contextLabel: `merged_card=${benchmarkId}` }
   )
   if (cardRows.length > 0) {
