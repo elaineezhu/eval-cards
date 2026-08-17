@@ -1,8 +1,8 @@
 import { ImageResponse } from "next/og"
 
 import { OG_CONTENT_TYPE, OG_SIZE, ellipsize, resolveBrandLogoUrl } from "@/app/api/og/_shared"
-import { getEvalSummaryById } from "@/lib/data-backend"
-import { routeIdFromSegments } from "@/lib/utils"
+import { getEvalSummaryById, getMergedBenchmarkSummary } from "@/lib/data-backend"
+import { isMergedEvalId, routeIdFromSegments } from "@/lib/utils"
 
 export const runtime = "nodejs"
 
@@ -35,18 +35,30 @@ export async function GET(
   let unit: string | null = null
 
   try {
-    const summary = await getEvalSummaryById(evalId)
-    if (summary) {
-      evalName =
-        summary.canonical_display_name ??
-        summary.evaluation_name ??
-        summary.composite_display_name ??
-        evalName
-      category = summary.derived_tags?.[0] ?? null
-      modelsCount = summary.models_count ?? null
-      topModelName = summary.best_model?.name ?? null
-      topScore = summary.best_model?.score ?? null
-      unit = summary.metric_config?.unit ?? null
+    // Single-segment ids are merged all-sources benchmark pages (spec
+    // F2); their identity lives in merged_evals_view, not evals_view.
+    // Mirrors the branch in app/evals/[...id]/layout.tsx.
+    const merged = isMergedEvalId(evalId) ? await getMergedBenchmarkSummary(evalId) : null
+    if (merged) {
+      evalName = merged.display_name
+      modelsCount = merged.models_count ?? null
+      topModelName = merged.best_result?.model_name ?? null
+      topScore = merged.best_result?.score_canonical ?? merged.best_result?.score ?? null
+      unit = merged.preferred_metric_display_name ?? null
+    } else {
+      const summary = await getEvalSummaryById(evalId)
+      if (summary) {
+        evalName =
+          summary.canonical_display_name ??
+          summary.evaluation_name ??
+          summary.composite_display_name ??
+          evalName
+        category = summary.derived_tags?.[0] ?? null
+        modelsCount = summary.models_count ?? null
+        topModelName = summary.best_model?.name ?? null
+        topScore = summary.best_model?.score ?? null
+        unit = summary.metric_config?.unit ?? null
+      }
     }
   } catch {
     // Fall through to the generic card.
