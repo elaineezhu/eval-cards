@@ -22,6 +22,8 @@ import type {
 } from "./backend-artifacts"
 import {
   isPercentUnit,
+  isPhysicalQuantityUnit,
+  isPlainQuantityUnit,
   mergeRegistryBounds,
   resolveCanonicalScaleGroup,
   type CanonicalScaleCell,
@@ -65,6 +67,10 @@ export interface OverlapRow {
   ci95: { low: number; high: number } | null
   /** Tagged 0-1 (proportion) vs 0-100 (percent) — drives display. */
   isPercentScale: boolean
+  /** Set when every appearance shares a plain-quantity unit (Elo points,
+   *  latency, cost…): scores are raw quantities in that unit and must never
+   *  be %-formatted or ×100-harmonised. Null → percent-family display. */
+  plainUnit: string | null
 }
 
 /** One of the current model's own result rows, keyed by eval_summary_id.
@@ -128,7 +134,35 @@ function tFor(df: number): number {
   return 12.706
 }
 
+export function formatPlainUnitScore(score: number, unit: string): string {
+  const a = Math.abs(score)
+  const v =
+    a >= 100
+      ? score.toFixed(0)
+      : a >= 10
+        ? score.toFixed(1)
+        : a >= 0.1 || a === 0
+          ? score.toFixed(2)
+          : // Sub-0.1 physical quantities (per-task USD costs) must not
+            // floor to "0.00" — keep two significant digits instead.
+            score.toPrecision(2)
+  return `${v} ${unit}`
+}
+
+/** The plain-display decision for one (score, unit) pair — see the trust
+ *  classes on isPhysicalQuantityUnit/isPlainQuantityUnit: physical units
+ *  are trusted at any magnitude, ambiguous score-like units only when the
+ *  value sits outside fraction range. Null → percent-family display. */
+function plainUnitFor(score: number, unit: string | null): string | null {
+  if (!unit) return null
+  if (isPhysicalQuantityUnit(unit)) return unit
+  if (isPlainQuantityUnit(unit) && Math.abs(score) > 1.5) return unit
+  return null
+}
+
 function formatHeuristicPercent(score: number, unit: string | null): string {
+  const plain = plainUnitFor(score, unit)
+  if (plain) return formatPlainUnitScore(score, plain)
   return isPercentUnit(unit) || score > 1.5
     ? `${score.toFixed(1)}%`
     : `${(score * 100).toFixed(1)}%`
@@ -329,6 +363,22 @@ export function buildOverlapRows(input: BuildOverlapRowsInput): OverlapRow[] {
           collected.map((c) => ({ min: c.canonicalMinScore, max: c.canonicalMaxScore })),
         ),
       )
+      // Plain-quantity rows (all appearances agree on an Elo/points/latency
+      // style unit): scores are already commensurable raw quantities — no
+      // percent-vs-fraction harmonisation applies, and neither does percent
+      // display.
+      // A producer-resolved scale group outranks the unit: e.g. WildBench's
+      // raw 1-10 "points" carry a curated conversion onto [0,1] registry
+      // bounds, so they ARE percent-displayable despite the plain unit.
+      // Only groups the producer can't settle fall to plain-unit display.
+      const plainUnit =
+        !scaleGroup &&
+        collected.length > 0 &&
+        collected.every((c) => plainUnitFor(c.score, c.unit) !== null) &&
+        new Set(collected.map((c) => (c.unit ?? "").trim().toLowerCase())).size === 1
+          ? collected[0].unit
+          : null
+
       let scaled: OverlapAppearance[]
       let useHigh: boolean
       if (scaleGroup) {
@@ -341,6 +391,9 @@ export function buildOverlapRows(input: BuildOverlapRowsInput): OverlapRow[] {
           const score = scaleGroup.toDisplay(scaleCellOf(c), useHigh)
           return { ...c, score, displayScore: formatScalePercent(score, useHigh) }
         })
+      } else if (plainUnit) {
+        useHigh = false
+        scaled = [...collected]
       } else {
         // Legacy heuristic (old snapshots): cross-appearance scale
         // harmonisation only makes sense for ≥2 appearances. A lone
@@ -385,6 +438,7 @@ export function buildOverlapRows(input: BuildOverlapRowsInput): OverlapRow[] {
         max: Math.max(...scores),
         ci95,
         isPercentScale: useHigh,
+        plainUnit,
       })
     }
   }
@@ -429,6 +483,7 @@ export function buildOverlapRows(input: BuildOverlapRowsInput): OverlapRow[] {
       max: c.score,
       ci95: null,
       isPercentScale: isPercentUnit(c.unit) || Math.abs(c.score) > 1.5,
+      plainUnit: plainUnitFor(c.score, c.unit),
     })
   }
 

@@ -47,6 +47,34 @@ export function isPercentUnit(unit: string | null | undefined): boolean {
   return /percent|%|pct/.test((unit ?? "").toLowerCase())
 }
 
+/** Plain-quantity units come in two trust classes (conservative allowlists
+ *  over the source-reported vocabulary, which is small but unnormalised):
+ *
+ *  PHYSICAL units (latency, cost, token counts…) name a real-world
+ *  dimension — a value in them is never a percent or fraction-of-one, at
+ *  any magnitude: `0.8 seconds` is 0.8 seconds, not 80%.
+ *
+ *  AMBIGUOUS score-like units (`points`, `elo`) are only trustworthy for
+ *  out-of-fraction-range values: sources stamp "points" on genuine 0–1
+ *  fractions (omni-math accuracy 0.8258 "points"), so callers must
+ *  corroborate with magnitude (|score| > 1.5) before treating them as
+ *  plain quantities. */
+const PHYSICAL_QUANTITY_UNIT_RE =
+  /^(seconds?|ms|milliseconds?|tokens?|tokens[_\s]per[_\s]second|usd|usd[_\s]per[_\s]1m[_\s]tokens|attempts?|guess(es)?|positions?|ranks?|pairwise[_\s]battle[_\s]net[_\s]wins)$/
+
+const AMBIGUOUS_QUANTITY_UNIT_RE = /^(points?|elo([\s_-]+rating)?)$/
+
+export function isPhysicalQuantityUnit(unit: string | null | undefined): boolean {
+  const u = (unit ?? "").trim().toLowerCase()
+  return u !== "" && PHYSICAL_QUANTITY_UNIT_RE.test(u)
+}
+
+export function isPlainQuantityUnit(unit: string | null | undefined): boolean {
+  const u = (unit ?? "").trim().toLowerCase()
+  if (!u) return false
+  return PHYSICAL_QUANTITY_UNIT_RE.test(u) || AMBIGUOUS_QUANTITY_UNIT_RE.test(u)
+}
+
 /** The effective metric's registry bounds off a comparison-index metric
  *  entry (`canonical_min_score` / `canonical_max_score`); fields are
  *  undefined on snapshots predating the stamp, null when the registry

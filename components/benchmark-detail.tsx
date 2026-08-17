@@ -68,6 +68,7 @@ import {
 import {
   buildOverlapRows,
   countMultiSourceRows,
+  formatPlainUnitScore,
   type OverlapRow,
   type OverlapSummaryCandidate,
   type OverlapSummaryJoinRow,
@@ -5392,8 +5393,13 @@ export function BenchmarkDetail({
               </div>
               {visibleOverlaps.map((row, idx) => {
                 const fmtNum = (v: number) =>
-                  row.isPercentScale ? v.toFixed(1) : (v * 100).toFixed(1)
-                const fmt = (v: number) => `${fmtNum(v)}%`
+                  row.plainUnit
+                    ? formatPlainUnitScore(v, row.plainUnit).split(" ")[0]
+                    : row.isPercentScale
+                      ? v.toFixed(1)
+                      : (v * 100).toFixed(1)
+                const fmt = (v: number) =>
+                  row.plainUnit ? formatPlainUnitScore(v, row.plainUnit) : `${fmtNum(v)}%`
                 const isSingle = row.appearances.length < 2
                 const isOpen = expandedOverlapRows.has(row.canonicalKey)
                 const isLast = idx === visibleOverlaps.length - 1

@@ -598,6 +598,96 @@ describe("buildOverlapRows: single-source rows", () => {
   })
 })
 
+describe("buildOverlapRows: plain-quantity units", () => {
+  it("formats an Elo points summary candidate plainly, never as a percent", () => {
+    const rows = build({
+      summaryCandidates: [
+        candidate({ groupKey: "llm-stats%2Fgdpval-aa", displayName: "Gdpval Aa", evalSummaryIds: ["llm-stats%2Fgdpval-aa"], score: 1525, unit: "points" }),
+      ],
+    })
+    expect(rows).toHaveLength(1)
+    expect(rows[0].plainUnit).toBe("points")
+    expect(rows[0].appearances[0].displayScore).toBe("1525 points")
+    expect(rows[0].appearances[0].displayScore).not.toContain("%")
+  })
+
+  it("skips percent harmonisation for multi-appearance plain-unit rows", () => {
+    const rows = build({
+      benchmarkIndex: [MMLU_INDEX],
+      comparisonIndex: comparisonIndexOf(
+        mmluEvals(
+          [ownRow(1525)],
+          [ownRow(1493)],
+        ),
+      ),
+    })
+    // Force units via the metric entries: rebuild with points units.
+    const idx = comparisonIndexOf(
+      mmluEvals([ownRow(1525)], [ownRow(1493)]),
+    )
+    for (const evalEntry of Object.values(idx.evals)) {
+      for (const metric of evalEntry.metrics) {
+        ;(metric as { unit: string | null }).unit = "points"
+      }
+    }
+    const rows2 = build({ benchmarkIndex: [MMLU_INDEX], comparisonIndex: idx })
+    expect(rows2).toHaveLength(1)
+    expect(rows2[0].plainUnit).toBe("points")
+    // Raw magnitudes preserved — no /100 or x100 harmonisation.
+    expect(rows2[0].min).toBe(1493)
+    expect(rows2[0].max).toBe(1525)
+    expect(rows2[0].appearances.map((a) => a.displayScore)).toEqual([
+      "1525 points",
+      "1493 points",
+    ])
+    void rows
+  })
+
+  it("keeps percent display for fraction-range scores despite a plain-listed unit", () => {
+    // Source units lie: omni-math stamps "points" on a genuine 0-1 accuracy
+    // fraction. The magnitude gate keeps this on the percent path.
+    const rows = build({
+      summaryCandidates: [candidate({ score: 0.8258, unit: "points" })],
+    })
+    expect(rows[0].plainUnit).toBeNull()
+    expect(rows[0].appearances[0].displayScore).toBe("82.6%")
+  })
+
+  it("recognizes underscore unit spellings like elo_rating", () => {
+    const rows = build({
+      summaryCandidates: [candidate({ score: 1525, unit: "elo_rating" })],
+    })
+    expect(rows[0].plainUnit).toBe("elo_rating")
+    expect(rows[0].appearances[0].displayScore).toBe("1525 elo_rating")
+  })
+
+  it("trusts physical units at any magnitude", () => {
+    // 0.8 seconds is 0.8 seconds, not 80% — physical units never lie
+    // the way "points" does.
+    const rows = build({
+      summaryCandidates: [candidate({ score: 0.8, unit: "seconds" })],
+    })
+    expect(rows[0].plainUnit).toBe("seconds")
+    expect(rows[0].appearances[0].displayScore).toBe("0.80 seconds")
+  })
+
+  it("keeps significant digits for sub-cent costs", () => {
+    const rows = build({
+      summaryCandidates: [candidate({ score: 0.0012, unit: "usd" })],
+    })
+    expect(rows[0].plainUnit).toBe("usd")
+    expect(rows[0].appearances[0].displayScore).toBe("0.0012 usd")
+  })
+
+  it("keeps the magnitude heuristic when the unit does not settle the scale", () => {
+    const rows = build({
+      summaryCandidates: [candidate({ score: 1525, unit: null })],
+    })
+    expect(rows[0].plainUnit).toBeNull()
+    expect(rows[0].appearances[0].displayScore).toBe("1525.0%")
+  })
+})
+
 describe("buildOverlapRows: row dedup scoping", () => {
   it("collapses alias index entries with identical (family, score) signatures onto the shorter key", () => {
     const aime = indexEntry("aime", "AIME", [
