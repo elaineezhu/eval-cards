@@ -198,17 +198,15 @@ export function MergedBenchmarkView({
             </span>
             <select
               className="ec-select"
-              value={preselectedSource}
+              // ALWAYS displays "All sources (merged)" here: this page IS
+              // the merged view, and the select is a navigator, not state.
+              // The ?source= came-from param must never render as the
+              // select's value — that read as "you are viewing one source"
+              // on a merged page. It only drives the row highlight.
+              value=""
               onChange={(e) => {
                 const slug = e.target.value
-                if (!slug) {
-                  // Back to "All sources": clear the pre-highlight param.
-                  const params = new URLSearchParams(searchParams.toString())
-                  params.delete("source")
-                  const qs = params.toString()
-                  router.replace(qs ? `${pathname}?${qs}` : pathname)
-                  return
-                }
+                if (!slug) return
                 const source = summary.aggregate_sources.find((s) => s.composite_slug === slug)
                 if (source?.evaluation_id) {
                   // Navigate-on-select to the per-source page (spec Q5).
