@@ -641,6 +641,8 @@ function reshapeCellToModelResult(row: Row): ModelResultForBenchmark {
     source_data: sourceDataFromRow(row),
     source_record_url: optionalString(row.source_record_url),
     eee_record_url: optionalString(row.eee_record_url),
+    collection_id: optionalString(row.collection_id),
+    protocol_condition: optionalString(row.protocol_condition) ?? undefined,
     aggregate_components: asArray<NonNullable<ModelResultForBenchmark["aggregate_components"]>[number]>(
       aggregateComponents
     ),
@@ -778,6 +780,32 @@ async function evalsViewHasParentDisplayName(): Promise<boolean> {
     }
   }
   return evalsViewParentDisplayNameCache
+}
+
+// Probe (once per process) whether the loaded snapshot's eval_results_view
+// carries the additive collections columns (collection_id /
+// protocol_condition), so projections degrade to NULL aliases on older
+// snapshots instead of binder-erroring the query. Same lifecycle as the
+// parent_display_name probe above.
+let ervCollectionColumnsCache: boolean | undefined
+async function evalResultsViewHasCollectionColumns(): Promise<boolean> {
+  if (ervCollectionColumnsCache === undefined) {
+    try {
+      const columns = await readRows<{ column_name: string }>("DESCRIBE eval_results_view")
+      const names = new Set(columns.map((column) => column.column_name))
+      ervCollectionColumnsCache = names.has("collection_id") && names.has("protocol_condition")
+    } catch {
+      return false
+    }
+  }
+  return ervCollectionColumnsCache
+}
+
+function evalCellJoinColumns(hasCollections: boolean) {
+  return `${EVAL_CELL_JOIN_COLUMNS},
+  ${hasCollections
+    ? "r.collection_id, r.protocol_condition"
+    : "CAST(NULL AS VARCHAR) AS collection_id, CAST(NULL AS VARCHAR) AS protocol_condition"}`
 }
 
 async function getModelEvaluationRows(modelKey: string): Promise<Row[]> {
@@ -964,8 +992,9 @@ export async function getEvalSummaryById(evalId: string): Promise<BenchmarkEvalS
   const evalRow = evalRows[0]
   if (!evalRow) return null
 
+  const hasCollectionColumns = await evalResultsViewHasCollectionColumns()
   let cellRows = await readRows<Row>(
-    `SELECT ${EVAL_CELL_JOIN_COLUMNS}
+    `SELECT ${evalCellJoinColumns(hasCollectionColumns)}
      FROM eval_results_view r
      LEFT JOIN evals_view e ON r.evaluation_id = e.evaluation_id
      WHERE r.evaluation_id = ?
@@ -978,7 +1007,7 @@ export async function getEvalSummaryById(evalId: string): Promise<BenchmarkEvalS
 
   if (cellRows.length === 0) {
     cellRows = await readRows<Row>(
-      `SELECT ${EVAL_CELL_JOIN_COLUMNS}
+      `SELECT ${evalCellJoinColumns(hasCollectionColumns)}
        FROM eval_results_view r
        LEFT JOIN evals_view e ON r.evaluation_id = e.evaluation_id
        WHERE r.evaluation_id = ?
@@ -1170,6 +1199,13 @@ const MERGED_ROW_COLUMNS = `
   CAST(to_json(slices) AS VARCHAR) AS slices
 `
 
+function mergedResultColumns(hasCollections: boolean) {
+  return `${MERGED_RESULT_COLUMNS},
+  ${hasCollections
+    ? "r.collection_id, r.protocol_condition"
+    : "CAST(NULL AS VARCHAR) AS collection_id, CAST(NULL AS VARCHAR) AS protocol_condition"}`
+}
+
 const MERGED_RESULT_COLUMNS = `
   r.evaluation_id,
   r.benchmark_id,
@@ -1206,6 +1242,8 @@ function mergedObservationFromRow(row: Row): MergedObservationRow {
     generation_config: (generationConfig ?? undefined) as GenerationConfig | undefined,
     is_verified_evaluator:
       row.is_verified_evaluator == null ? undefined : Boolean(row.is_verified_evaluator),
+    collection_id: optionalString(row.collection_id),
+    protocol_condition: optionalString(row.protocol_condition) ?? undefined,
   }
 }
 
@@ -1277,7 +1315,7 @@ export async function getMergedBenchmarkSummary(
   if (grain === "benchmark" || selectedSliceId) {
     const targetBenchmarkId = grain === "slice" ? selectedSliceId : asString(row.benchmark_id)
     resultRows = await readRows<Row>(
-      `SELECT ${MERGED_RESULT_COLUMNS}
+      `SELECT ${mergedResultColumns(await evalResultsViewHasCollectionColumns())}
        FROM eval_results_view r
        WHERE r.benchmark_id = ?
          AND r.metric_id_effective = ?

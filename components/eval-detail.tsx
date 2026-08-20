@@ -53,6 +53,7 @@ import {
 } from "lucide-react"
 import type { BenchmarkCard, SourceData } from "@/lib/benchmark-schema"
 import { tagLabel } from "@/lib/benchmark-schema"
+import { isAssistedResult } from "@/lib/eval-processing"
 import type { BenchmarkEvalSummary, ModelResultForBenchmark } from "@/lib/eval-processing"
 import { isRecognizedEvaluator } from "@/lib/evaluators"
 import { useEvaluatorSlug } from "@/components/org-metadata-provider"
@@ -851,6 +852,21 @@ export function EvalDetail({
 
   const [showUnknownSize, setShowUnknownSize] = useState(true)
 
+  // Protocol-varied collections (e.g. the AISI inference-scaling study):
+  // rows may carry a protocol_condition. Assisted (answer-feedback) runs
+  // are shown but UNRANKED by default — mirroring the backend, which never
+  // serves them a rank — with an explicit opt-in that re-includes them in
+  // the client-side ranking.
+  const hasProtocolRows = useMemo(
+    () => lb.model_results.some((r) => r.protocol_condition != null),
+    [lb.model_results]
+  )
+  const hasAssistedRows = useMemo(
+    () => lb.model_results.some((r) => isAssistedResult(r.protocol_condition)),
+    [lb.model_results]
+  )
+  const [includeAssistedInRanking, setIncludeAssistedInRanking] = useState(false)
+
   const hasParameterData = useMemo(
     () => sortedResults.some((result) => getParamsBillions(result) != null),
     [sortedResults]
@@ -871,21 +887,39 @@ export function EvalDetail({
   const leaderboardRows = useMemo<LeaderboardRow[]>(() => {
     let currentRank = 0
     let previousScore: number | null = null
+    let rankedCount = 0
 
     return filteredResults.map((modelResult, index) => {
-      if (previousScore === null || Math.abs(modelResult.score - previousScore) > 1e-9) {
-        currentRank = index + 1
-        previousScore = modelResult.score
+      // Assisted runs are visible but take no rank (rank 0 sentinel)
+      // unless the reader explicitly re-includes them.
+      const unranked =
+        !includeAssistedInRanking && isAssistedResult(modelResult.protocol_condition)
+      let rank = 0
+      if (!unranked) {
+        rankedCount += 1
+        if (previousScore === null || Math.abs(modelResult.score - previousScore) > 1e-9) {
+          currentRank = rankedCount
+          previousScore = modelResult.score
+        }
+        rank = currentRank
       }
 
       return {
         key: `${modelResult.model_info.id}-${index}`,
-        rank: currentRank,
+        rank,
         modelResult,
         normalizedScore: normalizeScore(modelResult.score),
       }
     })
-  }, [filteredResults])
+  }, [filteredResults, includeAssistedInRanking])
+
+  // Plotbox input: assisted runs stay out of the distribution stats and
+  // the frontier cumulative-best regardless of the ranking toggle — a
+  // "best" that needed the answer oracle is not a frontier.
+  const unassistedLeaderboardRows = useMemo(
+    () => leaderboardRows.filter((r) => !isAssistedResult(r.modelResult.protocol_condition)),
+    [leaderboardRows]
+  )
 
   // Optional user-driven sort. `default` keeps the score-ordered rows
   // the ranker already produced. The rank label is always by score
@@ -1560,7 +1594,43 @@ export function EvalDetail({
 
           {/* Score distribution — paper-themed mean/median/quartile summary,
               with an optional Frontier toggle when models carry release dates. */}
-          {leaderboardRows.length >= 3 && (
+          {hasProtocolRows && (
+            <div
+              className="mb-4 flex items-start gap-3 px-4 py-3"
+              style={{
+                border: "1px solid var(--border-soft)",
+                borderLeft: "2px solid var(--fg-muted)",
+                background: "var(--bg-warm)",
+                color: "var(--fg)",
+              }}
+            >
+              <div className="text-[13px] leading-relaxed">
+                <span style={{ fontWeight: 600 }}>Study-specific protocol.</span>{" "}
+                These results were run under expanded, study-specific inference
+                budgets and are not directly comparable to standard published
+                benchmark results.
+                {hasAssistedRows && (
+                  <>
+                    {" "}Assisted runs — where the model is told when its answer
+                    is correct — are labeled and excluded from ranking
+                    {includeAssistedInRanking ? " (currently included)" : ""}.{" "}
+                    <button
+                      type="button"
+                      onClick={() => setIncludeAssistedInRanking((v) => !v)}
+                      className="underline underline-offset-2 hover:text-[color:var(--accent)]"
+                      style={{ color: "var(--fg-muted)" }}
+                    >
+                      {includeAssistedInRanking
+                        ? "Exclude assisted runs from ranking"
+                        : "Include assisted runs in ranking"}
+                    </button>
+                  </>
+                )}
+              </div>
+            </div>
+          )}
+
+          {unassistedLeaderboardRows.length >= 3 && (
             <div className="mb-4">
               <div className="flex justify-end mb-2">
                 <EmbedButton
@@ -1590,10 +1660,10 @@ export function EvalDetail({
                 series={[{
                   key: "primary",
                   label: lb.metric_config.unit ?? "Score",
-                  values: leaderboardRows.map((r) => r.modelResult.score),
+                  values: unassistedLeaderboardRows.map((r) => r.modelResult.score),
                   unit: lb.metric_config.unit,
                   lowerIsBetter: lb.metric_config.lower_is_better,
-                  points: leaderboardRows.map((r) => ({
+                  points: unassistedLeaderboardRows.map((r) => ({
                     score: r.modelResult.score,
                     releaseDate: r.modelResult.model_info.release_date,
                     modelName: r.modelResult.model_info.name,
@@ -1866,6 +1936,7 @@ export function EvalDetail({
                     : null
                   const isTopRank = rank === 1
                   const rankColor = rank === 1 ? "var(--accent)" : "var(--fg-muted)"
+                  const isAssisted = isAssistedResult(modelResult.protocol_condition)
 
                   return (
                     <Fragment key={key}>
@@ -1882,10 +1953,13 @@ export function EvalDetail({
                             style={{
                               fontSize: 14,
                               fontWeight: isTopRank ? 600 : 500,
-                              color: rankColor,
+                              color: rank === 0 ? "var(--fg-subtle)" : rankColor,
                             }}
+                            title={rank === 0
+                              ? "Assisted run (answer feedback) — shown, not ranked"
+                              : undefined}
                           >
-                            #{rank}
+                            {rank === 0 ? "—" : `#${rank}`}
                           </span>
                         </td>
 
@@ -1911,6 +1985,22 @@ export function EvalDetail({
                               >
                                 {modelResult.model_info.name}
                               </Link>
+                              {isAssisted && (
+                                <span
+                                  className="ml-1.5 inline-block align-middle font-mono uppercase"
+                                  style={{
+                                    fontSize: 9,
+                                    letterSpacing: "0.08em",
+                                    color: "var(--fg-muted)",
+                                    border: "1px solid var(--border-soft)",
+                                    borderRadius: 3,
+                                    padding: "1px 4px",
+                                  }}
+                                  title="The model was told when its answer was correct (oracle answer feedback)."
+                                >
+                                  assisted
+                                </span>
+                              )}
                               {familyLabel && (
                                 <div
                                   className="mt-0.5 font-mono uppercase truncate"

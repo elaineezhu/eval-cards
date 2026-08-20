@@ -23,6 +23,23 @@ import type { EvalcardsAnnotations, RowAnnotations, SignalSummaries } from './ba
 export type { BenchmarkCard }
 export type { ModelEvaluationSummary }
 
+
+/**
+ * True when a result ran under the oracle answer-feedback arm of a
+ * protocol-varied collection (the model was told when its answer was
+ * correct). Assisted rows are shown but excluded from client-side ranking
+ * by default — mirroring the backend, which never serves them a rank.
+ */
+export function isAssistedResult(protocolCondition: string | null | undefined): boolean {
+  if (!protocolCondition) return false
+  try {
+    const parsed = JSON.parse(protocolCondition) as { feedback?: unknown } | null
+    return parsed != null && typeof parsed === "object" && parsed.feedback === "answer_feedback"
+  } catch {
+    return false
+  }
+}
+
 export interface ModelResultForBenchmark {
   model_info: ModelInfo
   model_route_id?: string
@@ -273,6 +290,11 @@ export interface MergedObservationRow {
   source_metadata: SourceMetadata
   generation_config?: GenerationConfig
   is_verified_evaluator?: boolean
+  /** Collections: submission-channel id of the observation's source row. */
+  collection_id?: string
+  /** Protocol point (canonical sorted-key JSON) for protocol-varied
+   *  collections; absent/null for ordinary observations. */
+  protocol_condition?: string | null
 }
 
 export interface MergedBenchmarkSummary {
