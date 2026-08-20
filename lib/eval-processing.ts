@@ -47,6 +47,16 @@ export interface ModelResultForBenchmark {
   /** Merged-page rows only (set by lib/merged-adapter): the observation's
    *  source composite slug, used for the ?source= row pre-highlight. */
   merged_source_slug?: string
+  /** Collections (see the backend's collections spec, warehouse-outputs section): submission-channel id of
+   *  the row's representative fact row — key into the snapshot's
+   *  `collections.json` sidecar. */
+  collection_id?: string
+  /** Protocol point for protocol-varied collections: canonical sorted-key
+   *  JSON typed by the collection's declared `protocol_axes`; absent/null
+   *  for ordinary rows. The view ships one row per protocol point; rows
+   *  whose reserved `feedback` key is `answer_feedback` are
+   *  shown-but-not-ranked (backend already emits NULL position for them). */
+  protocol_condition?: string | null
   aggregate_components?: Array<{
     evaluation_id: string
     composite_benchmark_key: string

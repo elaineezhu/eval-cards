@@ -35,6 +35,10 @@ const VIEW_FILES = {
 // is absent.
 const OPTIONAL_VIEW_FILES = {
   merged_evals_view: "merged_evals_view.parquet",
+  // Collections (notes/collection-dashboard-spec.md): per-attempt
+  // trajectories for protocol-varied collections; only present on
+  // snapshots whose backend shipped a vendored collection extract.
+  collection_trajectories: "collection_trajectories.parquet",
 } as const
 
 export async function getConnection(): Promise<DuckDBConnection> {

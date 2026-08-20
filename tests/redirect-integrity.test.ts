@@ -91,3 +91,58 @@ describe.skipIf(!shouldRun)("redirect-map + fallback integrity (vs SNAPSHOT_URL)
     expect(nullRaw, `${nullRaw}/${rowCount} rows have NULL raw_model_ids`).toBe(0)
   })
 })
+
+// ---------------------------------------------------------------------------
+// collections.json integrity (backend collections spec, registry-sidecar section)
+// ---------------------------------------------------------------------------
+//
+// Snapshots that carry the collections columns must also ship a parseable
+// `collections.json` covering every collection_id the view references.
+// Pre-collections snapshots (no `collection_id` column) self-skip so this
+// suite stays usable for older pins.
+
+describe.skipIf(!shouldRun)("collections sidecar integrity (vs SNAPSHOT_URL)", () => {
+  let hasCollections = false
+  let viewIds: string[] = []
+  let registry: Record<string, { display_name?: string; curated?: boolean }> | null = null
+
+  beforeAll(async () => {
+    const con = await DuckDBConnection.create()
+    await con.run("INSTALL httpfs; LOAD httpfs;")
+    const cols = (await con.runAndReadAll(
+      `SELECT column_name FROM (DESCRIBE SELECT * FROM read_parquet('${SNAPSHOT}/eval_results_view.parquet'))`,
+    )).getRowObjects().map((r) => String(r.column_name))
+    hasCollections = cols.includes("collection_id") && cols.includes("protocol_condition")
+    if (!hasCollections) return
+    viewIds = (await con.runAndReadAll(
+      `SELECT DISTINCT collection_id FROM read_parquet('${SNAPSHOT}/eval_results_view.parquet')
+       WHERE collection_id IS NOT NULL`,
+    )).getRowObjects().map((r) => String(r.collection_id))
+    if (SNAPSHOT.startsWith("http")) {
+      try {
+        const res = await fetch(`${SNAPSHOT}/collections.json`)
+        registry = res.ok ? await res.json() : null
+      } catch {
+        registry = null
+      }
+    } else {
+      const path = SNAPSHOT.replace(/^file:\/\//, "")
+      try {
+        registry = JSON.parse(readFileSync(`${path}/collections.json`, "utf8"))
+      } catch {
+        registry = null
+      }
+    }
+  }, 120_000)
+
+  it("collections.json is present and parseable when the view carries collection columns", () => {
+    if (!hasCollections) return
+    expect(registry, "collections.json missing/unparseable").toBeTruthy()
+  })
+
+  it("every view collection_id has a registry entry with a display name", () => {
+    if (!hasCollections || !registry) return
+    const missing = viewIds.filter((id) => !registry![id]?.display_name)
+    expect(missing, `unregistered collection ids: ${missing.slice(0, 8)}`).toEqual([])
+  })
+})
