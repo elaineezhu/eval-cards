@@ -1913,6 +1913,11 @@ export function EvalDetail({
                   // useless to a reader. Fall back to source_type only
                   // when nothing else is set.
                   const sourceTypeLabel =
+                    // De-aliased evaluator identity first: upstream raw
+                    // strings can carry stale spellings (e.g. the AISI
+                    // "Initiative"→"Institute" rename) that the registry
+                    // has already resolved.
+                    modelResult.evaluator_display_name?.trim() ||
                     modelResult.source_metadata.source_name?.trim() ||
                     modelResult.source_metadata.source_organization_name?.trim() ||
                     (!Array.isArray(modelResult.source_data) && modelResult.source_data.source_type) ||

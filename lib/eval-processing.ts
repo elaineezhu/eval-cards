@@ -56,6 +56,11 @@ export interface ModelResultForBenchmark {
   source_data: BenchmarkEvaluation['source_data']
   /** Per-result verification flag; mirrors `result.is_verified_evaluator`. */
   is_verified_evaluator?: boolean
+  /** De-aliased evaluator identity (registry canonical display name when
+   *  the org resolves, raw string otherwise). Preferred for the Source
+   *  label so upstream spelling drift never leaks into display; the raw
+   *  source_metadata strings stay available for provenance. */
+  evaluator_display_name?: string
   result: EvaluationResult
   /** URL to the underlying record JSON in the upstream HF dataset, when known. */
   source_record_url?: string
@@ -290,6 +295,8 @@ export interface MergedObservationRow {
   source_metadata: SourceMetadata
   generation_config?: GenerationConfig
   is_verified_evaluator?: boolean
+  /** De-aliased evaluator identity (canonical display when resolvable). */
+  evaluator_display_name?: string
   /** Collections: submission-channel id of the observation's source row. */
   collection_id?: string
   /** Protocol point (canonical sorted-key JSON) for protocol-varied

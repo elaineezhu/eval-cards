@@ -175,6 +175,7 @@ const EVAL_CELL_JOIN_COLUMNS = `
   CAST(to_json(r.source_data) AS VARCHAR) AS source_data,
   r.source_record_url,
   r.eee_record_url,
+  r.evaluator_display_name,
   CAST(to_json(r.eval_library) AS VARCHAR) AS eval_library,
   CAST(to_json(r.aggregate_components) AS VARCHAR) AS aggregate_components,
   CAST(to_json(r.evalcards_annotations) AS VARCHAR) AS evalcards_annotations,
@@ -641,6 +642,7 @@ function reshapeCellToModelResult(row: Row): ModelResultForBenchmark {
     source_data: sourceDataFromRow(row),
     source_record_url: optionalString(row.source_record_url),
     eee_record_url: optionalString(row.eee_record_url),
+    evaluator_display_name: optionalString(row.evaluator_display_name),
     collection_id: optionalString(row.collection_id),
     protocol_condition: optionalString(row.protocol_condition) ?? undefined,
     aggregate_components: asArray<NonNullable<ModelResultForBenchmark["aggregate_components"]>[number]>(
@@ -1221,6 +1223,7 @@ const MERGED_RESULT_COLUMNS = `
   CAST(r.evaluation_timestamp AS VARCHAR) AS evaluation_timestamp,
   CAST(to_json(r.generation_config) AS VARCHAR) AS generation_config,
   CAST(to_json(r.source_metadata) AS VARCHAR) AS source_metadata,
+  r.evaluator_display_name,
   r.is_verified_evaluator
 `
 
@@ -1242,6 +1245,7 @@ function mergedObservationFromRow(row: Row): MergedObservationRow {
     generation_config: (generationConfig ?? undefined) as GenerationConfig | undefined,
     is_verified_evaluator:
       row.is_verified_evaluator == null ? undefined : Boolean(row.is_verified_evaluator),
+    evaluator_display_name: optionalString(row.evaluator_display_name),
     collection_id: optionalString(row.collection_id),
     protocol_condition: optionalString(row.protocol_condition) ?? undefined,
   }

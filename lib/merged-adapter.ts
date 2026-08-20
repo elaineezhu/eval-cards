@@ -99,6 +99,7 @@ export function mergedSummaryToEvalSummary(merged: MergedBenchmarkSummary): Benc
       source_data: sourceData,
       merged_source_slug: row.composite_slug,
       is_verified_evaluator: row.is_verified_evaluator,
+      evaluator_display_name: row.evaluator_display_name,
       collection_id: row.collection_id,
       protocol_condition: row.protocol_condition,
       result: {
