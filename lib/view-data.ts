@@ -175,7 +175,6 @@ const EVAL_CELL_JOIN_COLUMNS = `
   CAST(to_json(r.source_data) AS VARCHAR) AS source_data,
   r.source_record_url,
   r.eee_record_url,
-  r.evaluator_display_name,
   CAST(to_json(r.eval_library) AS VARCHAR) AS eval_library,
   CAST(to_json(r.aggregate_components) AS VARCHAR) AS aggregate_components,
   CAST(to_json(r.evalcards_annotations) AS VARCHAR) AS evalcards_annotations,
@@ -789,25 +788,42 @@ async function evalsViewHasParentDisplayName(): Promise<boolean> {
 // protocol_condition), so projections degrade to NULL aliases on older
 // snapshots instead of binder-erroring the query. Same lifecycle as the
 // parent_display_name probe above.
-let ervCollectionColumnsCache: boolean | undefined
-async function evalResultsViewHasCollectionColumns(): Promise<boolean> {
-  if (ervCollectionColumnsCache === undefined) {
+let ervColumnsCache: Set<string> | undefined
+async function evalResultsViewColumns(): Promise<Set<string>> {
+  if (ervColumnsCache === undefined) {
     try {
       const columns = await readRows<{ column_name: string }>("DESCRIBE eval_results_view")
-      const names = new Set(columns.map((column) => column.column_name))
-      ervCollectionColumnsCache = names.has("collection_id") && names.has("protocol_condition")
+      ervColumnsCache = new Set(columns.map((column) => column.column_name))
     } catch {
-      return false
+      return new Set()
     }
   }
-  return ervCollectionColumnsCache
+  return ervColumnsCache
 }
 
-function evalCellJoinColumns(hasCollections: boolean) {
-  return `${EVAL_CELL_JOIN_COLUMNS},
+async function evalResultsViewHasCollectionColumns(): Promise<boolean> {
+  const names = await evalResultsViewColumns()
+  return names.has("collection_id") && names.has("protocol_condition")
+}
+
+// Older snapshots predate the de-aliased evaluator column too — every
+// additive column gets the same NULL-alias degradation.
+async function evalResultsViewHasEvaluatorDisplayName(): Promise<boolean> {
+  return (await evalResultsViewColumns()).has("evaluator_display_name")
+}
+
+function additiveEvalRowColumns(hasCollections: boolean, hasEvaluatorDisplay: boolean) {
+  return `
   ${hasCollections
     ? "r.collection_id, r.protocol_condition"
-    : "CAST(NULL AS VARCHAR) AS collection_id, CAST(NULL AS VARCHAR) AS protocol_condition"}`
+    : "CAST(NULL AS VARCHAR) AS collection_id, CAST(NULL AS VARCHAR) AS protocol_condition"},
+  ${hasEvaluatorDisplay
+    ? "r.evaluator_display_name"
+    : "CAST(NULL AS VARCHAR) AS evaluator_display_name"}`
+}
+
+function evalCellJoinColumns(hasCollections: boolean, hasEvaluatorDisplay: boolean) {
+  return `${EVAL_CELL_JOIN_COLUMNS},${additiveEvalRowColumns(hasCollections, hasEvaluatorDisplay)}`
 }
 
 async function getModelEvaluationRows(modelKey: string): Promise<Row[]> {
@@ -995,8 +1011,9 @@ export async function getEvalSummaryById(evalId: string): Promise<BenchmarkEvalS
   if (!evalRow) return null
 
   const hasCollectionColumns = await evalResultsViewHasCollectionColumns()
+  const hasEvaluatorDisplay = await evalResultsViewHasEvaluatorDisplayName()
   let cellRows = await readRows<Row>(
-    `SELECT ${evalCellJoinColumns(hasCollectionColumns)}
+    `SELECT ${evalCellJoinColumns(hasCollectionColumns, hasEvaluatorDisplay)}
      FROM eval_results_view r
      LEFT JOIN evals_view e ON r.evaluation_id = e.evaluation_id
      WHERE r.evaluation_id = ?
@@ -1009,7 +1026,7 @@ export async function getEvalSummaryById(evalId: string): Promise<BenchmarkEvalS
 
   if (cellRows.length === 0) {
     cellRows = await readRows<Row>(
-      `SELECT ${evalCellJoinColumns(hasCollectionColumns)}
+      `SELECT ${evalCellJoinColumns(hasCollectionColumns, hasEvaluatorDisplay)}
        FROM eval_results_view r
        LEFT JOIN evals_view e ON r.evaluation_id = e.evaluation_id
        WHERE r.evaluation_id = ?
@@ -1201,11 +1218,8 @@ const MERGED_ROW_COLUMNS = `
   CAST(to_json(slices) AS VARCHAR) AS slices
 `
 
-function mergedResultColumns(hasCollections: boolean) {
-  return `${MERGED_RESULT_COLUMNS},
-  ${hasCollections
-    ? "r.collection_id, r.protocol_condition"
-    : "CAST(NULL AS VARCHAR) AS collection_id, CAST(NULL AS VARCHAR) AS protocol_condition"}`
+function mergedResultColumns(hasCollections: boolean, hasEvaluatorDisplay: boolean) {
+  return `${MERGED_RESULT_COLUMNS},${additiveEvalRowColumns(hasCollections, hasEvaluatorDisplay)}`
 }
 
 const MERGED_RESULT_COLUMNS = `
@@ -1223,7 +1237,6 @@ const MERGED_RESULT_COLUMNS = `
   CAST(r.evaluation_timestamp AS VARCHAR) AS evaluation_timestamp,
   CAST(to_json(r.generation_config) AS VARCHAR) AS generation_config,
   CAST(to_json(r.source_metadata) AS VARCHAR) AS source_metadata,
-  r.evaluator_display_name,
   r.is_verified_evaluator
 `
 
@@ -1319,7 +1332,10 @@ export async function getMergedBenchmarkSummary(
   if (grain === "benchmark" || selectedSliceId) {
     const targetBenchmarkId = grain === "slice" ? selectedSliceId : asString(row.benchmark_id)
     resultRows = await readRows<Row>(
-      `SELECT ${mergedResultColumns(await evalResultsViewHasCollectionColumns())}
+      `SELECT ${mergedResultColumns(
+         await evalResultsViewHasCollectionColumns(),
+         await evalResultsViewHasEvaluatorDisplayName(),
+       )}
        FROM eval_results_view r
        WHERE r.benchmark_id = ?
          AND r.metric_id_effective = ?
