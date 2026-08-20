@@ -30,7 +30,7 @@ import type {
   MergedSliceOption,
   ModelResultForBenchmark,
 } from "@/lib/eval-processing"
-import { dedupeLeaderboardRowsByModelIdentity } from "@/lib/eval-processing"
+import { dedupeLeaderboardRowsByModelIdentity, isAssistedResult } from "@/lib/eval-processing"
 
 type Row = Record<string, any>
 
@@ -1150,8 +1150,20 @@ export async function getEvalSummaryById(evalId: string): Promise<BenchmarkEvalS
     const columnKey = primaryMetric?.column_key
       ?? (summary.leaderboard_metrics ?? [])[0]?.column_key
       ?? "score"
+    const lowerIsBetter = Boolean(summary.metric_config?.lower_is_better)
     summary.leaderboard_rows = summary.model_results
       .filter((mr) => Number.isFinite(mr.score) && mr.model_route_id)
+      // Deterministic pick order for the identity-dedupe below: clean
+      // (non-assisted) rows first, then best score in the metric's
+      // direction — an assisted run must never become a model's
+      // synthesized leaderboard cell while a clean run exists.
+      .sort((a, b) => {
+        const assistedDelta =
+          Number(isAssistedResult(a.protocol_condition)) -
+          Number(isAssistedResult(b.protocol_condition))
+        if (assistedDelta !== 0) return assistedDelta
+        return lowerIsBetter ? a.score - b.score : b.score - a.score
+      })
       .map((mr) => ({
         model_info: mr.model_info,
         model_route_id: mr.model_route_id,

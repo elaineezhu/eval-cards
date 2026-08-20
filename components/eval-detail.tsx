@@ -861,6 +861,11 @@ export function EvalDetail({
     () => lb.model_results.some((r) => r.protocol_condition != null),
     [lb.model_results]
   )
+  const protocolRowCount = useMemo(
+    () => lb.model_results.filter((r) => r.protocol_condition != null).length,
+    [lb.model_results]
+  )
+  const allRowsHaveProtocol = protocolRowCount === lb.model_results.length
   const hasAssistedRows = useMemo(
     () => lb.model_results.some((r) => isAssistedResult(r.protocol_condition)),
     [lb.model_results]
@@ -1606,9 +1611,9 @@ export function EvalDetail({
             >
               <div className="text-[13px] leading-relaxed">
                 <span style={{ fontWeight: 600 }}>Study-specific protocol.</span>{" "}
-                These results were run under expanded, study-specific inference
-                budgets and are not directly comparable to standard published
-                benchmark results.
+                {allRowsHaveProtocol
+                  ? "These results were run under expanded, study-specific inference budgets and are not directly comparable to standard published benchmark results."
+                  : `${protocolRowCount} of the results below were run under expanded, study-specific inference budgets and are not directly comparable to the other rows or to standard published benchmark results.`}
                 {hasAssistedRows && (
                   <>
                     {" "}Assisted runs — where the model is told when its answer
