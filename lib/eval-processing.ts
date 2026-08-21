@@ -19,6 +19,7 @@ import type {
   ModelEvaluationSummary,
 } from './benchmark-schema'
 import type { EvalcardsAnnotations, RowAnnotations, SignalSummaries } from './backend-artifacts'
+import type { CollectionAttachment } from './collections'
 
 export type { BenchmarkCard }
 export type { ModelEvaluationSummary }
@@ -177,6 +178,30 @@ export interface BenchmarkEvalSummary extends SignalSummaries {
   /** Matrix rows for multi-metric benchmark leaderboards */
   leaderboard_rows?: BenchmarkLeaderboardRow[]
   evalcards?: { annotations?: EvalcardsAnnotations }
+  /** Curated protocol-varied collection attachment. Per-source-only:
+   *  built server-side from the
+   *  collections.json sidecar; the merged adapter never sets it, which
+   *  gates every collection surface off merged pages and embeds. */
+  collection?: CollectionAttachment
+  /** Source ↔ merged switcher data for per-source pages.
+   *  Absent when the page has neither a merged page nor sibling sources,
+   *  and on old snapshots. */
+  source_options?: EvalSourceOptions
+}
+
+export interface EvalSourceOption {
+  /** Per-source eval page id (URL-encoded, straight off evals_view). */
+  evaluation_id: string
+  composite_slug?: string
+  composite_display_name?: string
+  models_count?: number
+}
+
+export interface EvalSourceOptions {
+  /** Merged-page id to navigate to, or null when NO merged page exists —
+   *  the switcher must never navigate to a nonexistent merged page. */
+  merged_evaluation_id: string | null
+  sources: EvalSourceOption[]
 }
 
 export interface BenchmarkSummaryMetric {

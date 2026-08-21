@@ -24,6 +24,7 @@ import type {
   PeerRanksSidecar,
 } from "@/lib/backend-artifacts"
 import { cleanHierarchy } from "@/lib/clean-hierarchy"
+import type { CollectionsSidecarEntry } from "@/lib/collections"
 
 interface CacheSlot<T> {
   value: Promise<T>
@@ -38,6 +39,7 @@ let cache: {
   comparisonIndex?: CacheSlot<ComparisonIndex>
   peerRanks?: CacheSlot<PeerRanksMap>
   organizations?: CacheSlot<Record<string, OrgMetadata>>
+  collections?: CacheSlot<Record<string, CollectionsSidecarEntry>>
 } = {}
 
 function getSnapshotUrl() {
@@ -401,6 +403,30 @@ export function fetchOrganizations(): Promise<Record<string, OrgMetadata>> {
             `falling back to empty map. ${err instanceof Error ? err.message : String(err)}`,
         )
         return {} as Record<string, OrgMetadata>
+      }),
+  )
+}
+
+/**
+ * Per-collection metadata from `warehouse/<snapshot>/collections.json`,
+ * keyed by `eval_results_view.collection_id`. Curated entries carry the
+ * study attribution + protocol axes the collection surfaces read
+ * (notes/collection-benchmark-page-spec.md R1.2).
+ *
+ * Returns an empty map when the snapshot doesn't carry the file (older
+ * pinned snapshots predate the collections sidecar), logging a warning
+ * rather than throwing so eval pages render exactly as before.
+ */
+export function fetchCollections(): Promise<Record<string, CollectionsSidecarEntry>> {
+  return getCachedValue("collections", "collections", (preferStale) =>
+    fetchJson<Record<string, CollectionsSidecarEntry>>("collections.json", preferStale)
+      .then((payload) => payload ?? {})
+      .catch((err) => {
+        console.warn(
+          `[sidecars] collections.json not available on snapshot; ` +
+            `falling back to empty map. ${err instanceof Error ? err.message : String(err)}`,
+        )
+        return {} as Record<string, CollectionsSidecarEntry>
       }),
   )
 }

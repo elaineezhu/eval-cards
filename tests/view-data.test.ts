@@ -15,12 +15,24 @@ async function copyParquet(connection: DuckDBConnection, sql: string, outputPath
 
 async function writeSyntheticStageJSnapshot(
   snapshotDir: string,
-  options: { includeMergedView?: boolean } = {},
+  options: {
+    includeMergedView?: boolean
+    includeCollections?: boolean
+    includeTrajectories?: boolean
+  } = {},
 ) {
   // includeMergedView=false emulates a pre-merged-view snapshot: no
   // merged_evals_view.parquet and no metric_id_effective /
   // scale_conversion / score_canonical columns on eval_results_view.
-  const { includeMergedView = true } = options
+  // includeCollections=false (the default) emulates a pre-collections
+  // snapshot: no collection_id / protocol_condition columns and no
+  // collections.json sidecar. includeTrajectories controls the optional
+  // collection_trajectories.parquet independently.
+  const {
+    includeMergedView = true,
+    includeCollections = false,
+    includeTrajectories = includeCollections,
+  } = options
   await mkdir(snapshotDir, { recursive: true })
   const connection = await DuckDBConnection.create()
 
@@ -105,9 +117,9 @@ async function writeSyntheticStageJSnapshot(
     path.join(snapshotDir, "models_view.parquet")
   )
 
-  await copyParquet(
-    connection,
+  await connection.run(
     `
+      CREATE OR REPLACE TABLE evals_fixture AS
       SELECT
         TIMESTAMP '2026-05-03 00:00:00' AS snapshot_id,
         'mmlu' AS evaluation_id,
@@ -206,7 +218,30 @@ async function writeSyntheticStageJSnapshot(
         )] AS root_metrics,
         [] AS subtasks,
         0::INTEGER AS subtasks_count
-    `,
+    `
+  )
+  if (includeCollections) {
+    // Synthetic protocol-varied study page (curated collection).
+    await connection.run(
+      `INSERT INTO evals_fixture
+       SELECT * REPLACE (
+         'study%2Fbench' AS evaluation_id,
+         'bench-x' AS benchmark_id,
+         'Study Bench' AS evaluation_name,
+         'Study Bench' AS canonical_display_name,
+         'aisi-study' AS composite_benchmark_key,
+         'AISI Study' AS composite_benchmark_name,
+         'aisi-study' AS composite_slug,
+         'AISI Study' AS composite_display_name,
+         'bench-x' AS family_id,
+         'Study Bench' AS family_display_name
+       )
+       FROM evals_fixture WHERE evaluation_id = 'mmlu'`
+    )
+  }
+  await copyParquet(
+    connection,
+    "SELECT * FROM evals_fixture",
     path.join(snapshotDir, "evals_view.parquet")
   )
 
@@ -307,7 +342,9 @@ async function writeSyntheticStageJSnapshot(
         NULL::VARCHAR AS instance_file_path,
         NULL::VARCHAR AS instance_file_format,
         0::INTEGER AS instance_rows,
-        true AS is_verified_evaluator
+        true AS is_verified_evaluator,
+        'plain-src' AS collection_id,
+        NULL::VARCHAR AS protocol_condition
     `
   )
 
@@ -413,13 +450,114 @@ async function writeSyntheticStageJSnapshot(
     'no_bounds' AS scale_conversion
   `)
 
+  if (includeCollections) {
+    // Study rows: one model across two clean budgets plus an assisted
+    // run (the R1 compute-view shape).
+    const studyCondition = (feedback: string, tokenLimit: number) =>
+      `{"feedback":"${feedback}","token_limit":${tokenLimit}}`
+    const studyVariants: Array<[number, string]> = [
+      [0.4, studyCondition("none", 2000000)],
+      [0.5, studyCondition("none", 5000000)],
+      [0.7, studyCondition("answer_feedback", 5000000)],
+    ]
+    for (const [score, condition] of studyVariants) {
+      await insertVariant(`
+        'study%2Fbench' AS evaluation_id,
+        'bench-x' AS benchmark_id,
+        'bench-x%3Aaccuracy' AS metric_summary_id,
+        'aisi-study' AS composite_slug,
+        'AISI Study' AS composite_display_name,
+        'uk-study' AS collection_id,
+        '${condition}' AS protocol_condition,
+        ${score} AS score,
+        ${score} AS score_canonical
+      `)
+    }
+  }
+
+  const evalResultsExcludes = [
+    ...(includeMergedView ? [] : ["metric_id_effective", "scale_conversion", "score_canonical"]),
+    ...(includeCollections ? [] : ["collection_id", "protocol_condition"]),
+  ]
   await copyParquet(
     connection,
-    includeMergedView
+    evalResultsExcludes.length === 0
       ? "SELECT * FROM eval_results_fixture"
-      : "SELECT * EXCLUDE (metric_id_effective, scale_conversion, score_canonical) FROM eval_results_fixture",
+      : `SELECT * EXCLUDE (${evalResultsExcludes.join(", ")}) FROM eval_results_fixture`,
     path.join(snapshotDir, "eval_results_view.parquet")
   )
+
+  if (includeCollections) {
+    await writeFile(
+      path.join(snapshotDir, "collections.json"),
+      JSON.stringify({
+        "plain-src": { curated: false, display_name: "Plain source", kind: "unknown" },
+        "uk-study": {
+          curated: true,
+          display_name: "Synthetic Inference Study",
+          kind: "paper_study",
+          url: "https://example.test/paper",
+          has_trajectories: true,
+          outcome_type: { benchraw: "binary" },
+          protocol_axes: [
+            { key: "feedback", type: "categorical", values: ["none", "answer_feedback"] },
+            { key: "token_limit", type: "int", unit: "tokens" },
+          ],
+        },
+      })
+    )
+  }
+
+  if (includeTrajectories) {
+    // Trajectory extract for the study benchmark. benchmark_id is NULL on
+    // purpose — the accessor must join on coalesce(benchmark_id,
+    // benchmark_key). The model id is a dated raw id that resolves to the
+    // canonical model via models_view.raw_model_ids membership.
+    const trajectoryRow = (
+      condition: string,
+      taskId: string,
+      isCorrect: string,
+      totalTokens: number,
+      stopReason: string,
+    ) => `
+      SELECT
+        'uk-study' AS collection_id,
+        'benchraw' AS benchmark_raw,
+        'openai/gpt-5' AS model_raw,
+        '${taskId}' AS task_id,
+        '${condition}' AS protocol_condition,
+        ${isCorrect} AS is_correct,
+        ${totalTokens}::BIGINT AS total_tokens,
+        '${stopReason}' AS stop_reason,
+        'openai/gpt-5-2026-01-01' AS model_id,
+        NULL::VARCHAR AS benchmark_id,
+        'openai/gpt-5-2026-01-01' AS model_key,
+        'bench-x' AS benchmark_key
+    `
+    const assisted = `{"feedback":"answer_feedback","token_limit":5000000}`
+    const clean = `{"feedback":"none","token_limit":5000000}`
+    await copyParquet(
+      connection,
+      [
+        // Oracle-feedback condition: two solve events (t1 twice — the later cheap
+        // correct tool_calls attempt must NOT lower the solve step),
+        // one correct-but-censored task, two failures.
+        trajectoryRow(assisted, "t1", "true", 1000, "completed_on_successful_submit"),
+        trajectoryRow(assisted, "t1", "true", 500, "tool_calls"),
+        trajectoryRow(assisted, "t2", "true", 4000, "completed_on_successful_submit"),
+        trajectoryRow(assisted, "t3", "true", 9000, "tool_calls"),
+        trajectoryRow(assisted, "t4", "false", 2500000, "repetition_guard"),
+        trajectoryRow(assisted, "t5", "false", 1800000, "token_limit"),
+        // No-feedback condition: mixed outcomes incl. a NULL outcome.
+        trajectoryRow(clean, "t1", "true", 3000, "tool_calls"),
+        trajectoryRow(clean, "t2", "false", 2000, "repetition_guard"),
+        trajectoryRow(clean, "t3", "NULL::BOOLEAN", 1000, "token_limit"),
+        trajectoryRow(clean, "t4", "true", 1500, "tool_calls"),
+        trajectoryRow(clean, "t5", "false", 800, "tool_calls"),
+      ].join(" UNION ALL "),
+      path.join(snapshotDir, "collection_trajectories.parquet")
+    )
+  }
 
   if (includeMergedView) {
     await copyParquet(
@@ -698,7 +836,11 @@ describe("Stage J view-layer backend", () => {
 // Each test points the (module-cached) DuckDB connection at its own
 // snapshot dir, so reset modules before importing the backend.
 async function withSnapshot(
-  options: { includeMergedView?: boolean },
+  options: {
+    includeMergedView?: boolean
+    includeCollections?: boolean
+    includeTrajectories?: boolean
+  },
   run: (dataBackend: typeof import("../lib/data-backend")) => Promise<void>,
 ) {
   const snapshotDir = await mkdtemp(path.join(os.tmpdir(), "eval-card-merged-"))
@@ -815,5 +957,136 @@ describe("merged benchmark accessor (merged-benchmark-view F1)", () => {
       const merged = await dataBackend.getMergedBenchmarkSummary("mmlu")
       expect(merged).toBeNull()
     })
+  })
+})
+
+describe("collection surfaces (collection-benchmark-page spec)", () => {
+  it("attaches the curated collection + compute axis on the study page only", async () => {
+    await withSnapshot({ includeCollections: true }, async (dataBackend) => {
+      const study = await dataBackend.getEvalSummaryById("study%2Fbench")
+      expect(study?.collection).toMatchObject({
+        collection_id: "uk-study",
+        display_name: "Synthetic Inference Study",
+        curated: true,
+        has_trajectories: true,
+        outcome_type: undefined,
+        compute_axis: { key: "token_limit", label: "token budget (limit)" },
+      })
+      // Protocol fields flow through onto the study rows.
+      expect(study?.model_results.some((r) => r.protocol_condition != null)).toBe(true)
+
+      // Ordinary pages carry a collection_id too (every submission
+      // channel has one) but their entry is uncurated → no attachment.
+      const plain = await dataBackend.getEvalSummaryById("mmlu")
+      expect(plain?.collection).toBeUndefined()
+    })
+  })
+
+  it("attaches source_options with the merged target when a merged page exists", async () => {
+    await withSnapshot({}, async (dataBackend) => {
+      const summary = await dataBackend.getEvalSummaryById("mmlu")
+      expect(summary?.source_options).toMatchObject({ merged_evaluation_id: "mmlu" })
+      expect(
+        summary?.source_options?.sources.map((s) => s.evaluation_id),
+      ).toContain("mmlu")
+    })
+  })
+
+  it("omits source_options for single-source benchmarks with no merged page", async () => {
+    await withSnapshot({ includeMergedView: false }, async (dataBackend) => {
+      const summary = await dataBackend.getEvalSummaryById("mmlu")
+      // One sibling and no merged page → never render a switcher that
+      // could navigate to a nonexistent merged page.
+      expect(summary?.source_options).toBeUndefined()
+    })
+  })
+
+  it("keeps pre-collections snapshots byte-compatible: no attachment, no trajectories", async () => {
+    await withSnapshot({}, async (dataBackend) => {
+      const summary = await dataBackend.getEvalSummaryById("mmlu")
+      expect(summary?.collection).toBeUndefined()
+      expect(await dataBackend.getEvalTrajectories("mmlu")).toBeNull()
+    })
+  })
+
+  it("serves shaped trajectory panels through the full resolution chain", async () => {
+    await withSnapshot({ includeCollections: true }, async (dataBackend) => {
+      const payload = await dataBackend.getEvalTrajectories("study%2Fbench")
+      expect(payload).not.toBeNull()
+      expect(payload).toMatchObject({
+        evaluation_id: "study%2Fbench",
+        benchmark_id: "bench-x",
+        collection_id: "uk-study",
+        outcome_type: "binary",
+        task_count: 5,
+      })
+      // Canonical model identity via raw_model_ids membership (dated
+      // trajectory id → the page's canonical model_key).
+      expect(payload!.models).toEqual([
+        {
+          key: "openai/gpt-5",
+          label: "GPT 5",
+          releaseDate: expect.stringContaining("2026-01-01"),
+          unmatched: false,
+        },
+      ])
+      expect(payload!.conditions).toEqual(["none", "answer_feedback"])
+
+      // R2a: solve events only (the cheap correct tool_calls attempt on
+      // t1 never lowers the step; t3 is correct-but-censored).
+      const curve = payload!.tokens_to_success?.curves[0]
+      expect(curve).toMatchObject({
+        modelKey: "openai/gpt-5",
+        attemptedTasks: 5,
+        solvedTasks: 2,
+        censoredTasks: 3,
+        censorTokens: 2500000,
+      })
+      expect(curve?.steps).toEqual([
+        { tokens: 1000, rate: 0.2 },
+        { tokens: 4000, rate: 0.4 },
+      ])
+
+      // R2b: bins are SHARED across condition panels and pooled across
+      // both conditions for the difficulty axis, so t3 (unscored under
+      // no feedback, scored under oracle) still gets a bin — all five
+      // tasks bin, hardest (t5: both conditions failed) first.
+      const nonePanel = payload!.reliability.find((p) => p.condition === "none")
+      const oraclePanel = payload!.reliability.find((p) => p.condition === "answer_feedback")
+      expect(nonePanel?.bins.reduce((acc, b) => acc + b.taskCount, 0)).toBe(5)
+      expect(nonePanel?.bins[0].taskIds).toEqual(["t5"])
+      expect(oraclePanel?.bins).toEqual(nonePanel?.bins)
+
+      // R2c: the termination partition sums to the run count, the
+      // correct-submission row is withheld outside oracle feedback, and
+      // the separate outcome line excludes the NULL outcome from its
+      // denominator (4 scored of 5 runs, 2 correct) — never counted
+      // incorrect.
+      const noneTermination = payload!.termination.find((t) => t.condition === "none")
+      expect(noneTermination).toMatchObject({
+        runCount: 5,
+        endedOnCorrectSubmission: null,
+        repetitionGuard: { n: 1, denominator: 5 },
+        budgetExhausted: { n: 1, denominator: 5 },
+        otherEndings: { n: 3, denominator: 5 },
+        reachedCorrectAnswer: { n: 2, denominator: 4 },
+      })
+      const oracleTermination = payload!.termination.find(
+        (t) => t.condition === "answer_feedback",
+      )
+      expect(oracleTermination?.endedOnCorrectSubmission).toEqual({ n: 2, denominator: 6 })
+    })
+  })
+
+  it("returns clean absence when the trajectory table is missing", async () => {
+    await withSnapshot(
+      { includeCollections: true, includeTrajectories: false },
+      async (dataBackend) => {
+        // The attachment (sidecar-driven) still works; the panels don't.
+        const study = await dataBackend.getEvalSummaryById("study%2Fbench")
+        expect(study?.collection?.collection_id).toBe("uk-study")
+        expect(await dataBackend.getEvalTrajectories("study%2Fbench")).toBeNull()
+      },
+    )
   })
 })

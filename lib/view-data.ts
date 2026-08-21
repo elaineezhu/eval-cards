@@ -3,7 +3,19 @@ import "server-only"
 import fs from "node:fs"
 import path from "node:path"
 import { getConnection } from "@/lib/duckdb"
-import { fetchHeadline } from "@/lib/sidecars"
+import { fetchCollections, fetchHeadline } from "@/lib/sidecars"
+import { buildCollectionAttachment, type FeedbackCondition } from "@/lib/collections"
+import {
+  CONDITION_ORDER,
+  buildReliabilityBins,
+  buildReliabilityHeatmap,
+  buildTerminationSummaries,
+  buildTokensToSuccess,
+  type EvalTrajectoriesPayload,
+  type TrajectoryModelEntry,
+  type TrajectoryStopAgg,
+  type TrajectoryTaskAgg,
+} from "@/lib/collection-trajectories"
 import {
   type BenchmarkCard,
   type BenchmarkEvaluation,
@@ -1186,6 +1198,75 @@ export async function getEvalSummaryById(evalId: string): Promise<BenchmarkEvalS
     summary.leaderboard_rows = dedupeLeaderboardRowsByModelIdentity(summary.leaderboard_rows)
   }
 
+  // R0 — source ↔ merged switcher data. Attached only when the canonical
+  // benchmark has a merged page and/or sibling per-source pages; both
+  // lookups degrade to absence (old snapshots, probe blips) so the page
+  // renders exactly as before.
+  try {
+    const benchmarkId = optionalString(evalRow.benchmark_id)
+    if (benchmarkId) {
+      const siblingRows = await readRows<Row>(
+        `SELECT evaluation_id, composite_slug, composite_display_name, models_count
+         FROM evals_view
+         WHERE benchmark_id = ?
+         ORDER BY composite_display_name ASC, evaluation_id ASC`,
+        [benchmarkId],
+        { contextLabel: `source_options=${evalId}` }
+      )
+      let mergedEvaluationId: string | null = null
+      if (await hasMergedEvalsView()) {
+        const mergedRows = await readRows<Row>(
+          `SELECT evaluation_id FROM merged_evals_view WHERE benchmark_id = ? LIMIT 1`,
+          [benchmarkId]
+        )
+        mergedEvaluationId = optionalString(mergedRows[0]?.evaluation_id) ?? null
+      }
+      const sources = siblingRows
+        .map((row) => ({
+          evaluation_id: asString(row.evaluation_id),
+          composite_slug: optionalString(row.composite_slug),
+          composite_display_name: optionalString(row.composite_display_name),
+          models_count: optionalNumber(row.models_count),
+        }))
+        .filter((source) => source.evaluation_id.length > 0)
+      if (mergedEvaluationId || sources.length > 1) {
+        summary.source_options = { merged_evaluation_id: mergedEvaluationId, sources }
+      }
+    }
+  } catch (err) {
+    console.warn(
+      `[view-data] source_options lookup failed for ${evalId}: ${
+        err instanceof Error ? err.message : String(err)
+      }`
+    )
+  }
+
+  // R1.2 — curated-collection attachment, keyed by the page rows'
+  // collection_id (NOT the composite slug). Every ordinary row also
+  // carries a collection_id, so buildCollectionAttachment only attaches
+  // curated study entries. Missing sidecar / uncurated → absent.
+  try {
+    const collectionId = cellRows
+      .map((row) => optionalString(row.collection_id))
+      .find((value): value is string => Boolean(value))
+    if (collectionId) {
+      const entries = await fetchCollections()
+      const attachment = buildCollectionAttachment(
+        collectionId,
+        entries[collectionId],
+        optionalString(evalRow.benchmark_id),
+        cellRows.map((row) => optionalString(row.protocol_condition) ?? null)
+      )
+      if (attachment) summary.collection = attachment
+    }
+  } catch (err) {
+    console.warn(
+      `[view-data] collection attachment failed for ${evalId}: ${
+        err instanceof Error ? err.message : String(err)
+      }`
+    )
+  }
+
   return summary
 }
 
@@ -1454,6 +1535,203 @@ export async function getDeveloperSummaryById(routeId: string) {
   return {
     ...developer,
     models: modelRows.map(finalizeModelCard),
+  }
+}
+
+// ---------------------------------------------------------------------------
+// Collection trajectory panels (per-source study pages).
+// ---------------------------------------------------------------------------
+
+// `collection_trajectories` is an additive optional artifact — same
+// probe/degrade lifecycle as merged_evals_view above.
+let collectionTrajectoriesPresenceCache: boolean | undefined
+async function hasCollectionTrajectoriesTable(): Promise<boolean> {
+  if (collectionTrajectoriesPresenceCache === undefined) {
+    try {
+      const rows = await readRows<{ n: number }>(
+        "SELECT COUNT(*) AS n FROM information_schema.tables WHERE table_name = 'collection_trajectories'"
+      )
+      const present = asNumber(rows[0]?.n) > 0
+      if (present) collectionTrajectoriesPresenceCache = true
+      return present
+    } catch {
+      return false
+    }
+  }
+  return collectionTrajectoriesPresenceCache
+}
+
+function coerceCondition(value: unknown): FeedbackCondition {
+  return value === "none" || value === "answer_feedback" ? value : "unknown"
+}
+
+// Shared trajectory scope: the page's collection AND canonical benchmark.
+// Joined on coalesce(benchmark_id, benchmark_key) — benchmark_id can be
+// NULL in older extracts (producer follow-up filed); benchmark_key is
+// populated for every row. The feedback CONDITION is lifted out of the
+// protocol_condition JSON here so every aggregate groups by it.
+const TRAJECTORY_SCOPE = `
+  SELECT *,
+         coalesce(json_extract_string(protocol_condition, '$.feedback'), 'unknown') AS feedback_condition
+  FROM collection_trajectories
+  WHERE collection_id = ? AND coalesce(benchmark_id, benchmark_key) = ?
+`
+
+/**
+ * Server-shaped trajectory panels for one per-source eval page
+ * (`?id=<url-encoded evaluation_id>`). Resolution chain: evaluation_id →
+ * benchmark_id (evals_view) → collection_id (the page's
+ * eval_results_view rows) → trajectory aggregates → canonical model
+ * identity via models_view raw-id list membership. Any empty step, a
+ * missing table/sidecar, or an uncurated collection returns null and the
+ * page renders exactly as today. Scores are aggregated in SQL and shaped
+ * by the pure builders — never recomputed client-side.
+ */
+export async function getEvalTrajectories(evalId: string): Promise<EvalTrajectoriesPayload | null> {
+  if (!(await evalResultsViewHasCollectionColumns())) return null
+  if (!(await hasCollectionTrajectoriesTable())) return null
+
+  const evalRows = await readRows<Row>(
+    `SELECT benchmark_id FROM evals_view WHERE evaluation_id = ? LIMIT 1`,
+    [evalId],
+    { contextLabel: `trajectories_eval=${evalId}` }
+  )
+  const benchmarkId = optionalString(evalRows[0]?.benchmark_id)
+  if (!benchmarkId) return null
+
+  const collectionRows = await readRows<Row>(
+    `SELECT collection_id FROM eval_results_view
+     WHERE evaluation_id = ? AND collection_id IS NOT NULL
+     LIMIT 1`,
+    [evalId],
+    { contextLabel: `trajectories_collection=${evalId}` }
+  )
+  const collectionId = optionalString(collectionRows[0]?.collection_id)
+  if (!collectionId) return null
+
+  const entry = (await fetchCollections())[collectionId]
+  if (!entry?.curated) return null
+
+  const scopeParams = [collectionId, benchmarkId]
+  const taskRows = await readRows<Row>(
+    `SELECT model_key, feedback_condition, task_id,
+            count(*) AS attempts,
+            count(is_correct) AS scored_attempts,
+            coalesce(sum(CASE WHEN is_correct THEN 1 ELSE 0 END), 0) AS correct_attempts,
+            min(total_tokens) FILTER (WHERE stop_reason = 'completed_on_successful_submit' AND is_correct)
+              AS min_success_tokens,
+            max(total_tokens) AS max_observed_tokens
+     FROM (${TRAJECTORY_SCOPE})
+     GROUP BY 1, 2, 3`,
+    scopeParams,
+    { contextLabel: `trajectories_tasks=${evalId}` }
+  )
+  if (taskRows.length === 0) return null
+
+  const stopRows = await readRows<Row>(
+    `SELECT model_key, feedback_condition, stop_reason, count(*) AS n,
+            coalesce(sum(CASE WHEN is_correct THEN 1 ELSE 0 END), 0) AS correct_n,
+            count(is_correct) AS scored_n
+     FROM (${TRAJECTORY_SCOPE})
+     GROUP BY 1, 2, 3`,
+    scopeParams,
+    { contextLabel: `trajectories_stops=${evalId}` }
+  )
+
+  // Canonical model identity: trajectory ids are dated raw ids that need
+  // not match the page's canonical model_keys, but every one should map
+  // through a models_view row's raw_model_ids list. Unmapped ids render
+  // under their raw name flagged unmatched — never guessed.
+  const modelMapRows = await readRows<Row>(
+    `SELECT t.model_key AS traj_key,
+            any_value(t.benchmark_raw) AS benchmark_raw,
+            any_value(m.model_key) AS canonical_key,
+            any_value(m.model_name) AS model_name,
+            any_value(CAST(m.release_date AS VARCHAR)) AS release_date
+     FROM (
+       SELECT DISTINCT model_key, model_raw, model_id, benchmark_raw
+       FROM collection_trajectories
+       WHERE collection_id = ? AND coalesce(benchmark_id, benchmark_key) = ?
+     ) t
+     LEFT JOIN models_view m
+       ON m.model_key = t.model_key
+       OR list_contains(list_transform(m.raw_model_ids, x -> lower(x)), lower(t.model_key))
+       OR list_contains(list_transform(m.raw_model_ids, x -> lower(x)), lower(t.model_raw))
+       OR list_contains(list_transform(m.raw_model_ids, x -> lower(x)), lower(t.model_id))
+     GROUP BY 1`,
+    scopeParams,
+    { contextLabel: `trajectories_models=${evalId}` }
+  )
+
+  const modelByTrajKey = new Map<string, TrajectoryModelEntry>()
+  let benchmarkRaw: string | undefined
+  for (const row of modelMapRows) {
+    const trajKey = asString(row.traj_key)
+    if (!trajKey || modelByTrajKey.has(trajKey)) continue
+    benchmarkRaw = benchmarkRaw ?? optionalString(row.benchmark_raw)
+    const canonical = optionalString(row.canonical_key)
+    modelByTrajKey.set(trajKey, {
+      key: canonical ?? trajKey,
+      label: optionalString(row.model_name) ?? trajKey,
+      releaseDate: optionalString(row.release_date) ?? null,
+      unmatched: canonical == null,
+    })
+  }
+  const canonicalKey = (trajKey: string) => modelByTrajKey.get(trajKey)?.key ?? trajKey
+
+  const taskAggs: TrajectoryTaskAgg[] = taskRows.map((row) => ({
+    modelKey: canonicalKey(asString(row.model_key)),
+    condition: coerceCondition(row.feedback_condition),
+    taskId: asString(row.task_id),
+    attempts: asNumber(row.attempts),
+    scoredAttempts: asNumber(row.scored_attempts),
+    correctAttempts: asNumber(row.correct_attempts),
+    minSuccessTokens: optionalNumber(row.min_success_tokens) ?? null,
+    maxObservedTokens: optionalNumber(row.max_observed_tokens) ?? null,
+  }))
+  const stopAggs: TrajectoryStopAgg[] = stopRows.map((row) => ({
+    modelKey: canonicalKey(asString(row.model_key)),
+    condition: coerceCondition(row.feedback_condition),
+    stopReason: asString(row.stop_reason, "unknown"),
+    n: asNumber(row.n),
+    correctN: asNumber(row.correct_n),
+    scoredN: asNumber(row.scored_n),
+  }))
+
+  const outcomeType =
+    (benchmarkRaw ? entry.outcome_type?.[benchmarkRaw] : undefined) ?? null
+  const outcomeIsBinary = outcomeType === "binary"
+  const presentConditions = new Set(taskAggs.map((agg) => agg.condition))
+  const conditions = CONDITION_ORDER.filter((condition) => presentConditions.has(condition))
+
+  const models = Array.from(modelByTrajKey.values()).sort((a, b) => {
+    if (a.unmatched !== b.unmatched) return a.unmatched ? 1 : -1
+    if (a.releaseDate == null || b.releaseDate == null) {
+      if (a.releaseDate == null && b.releaseDate == null) return a.label.localeCompare(b.label)
+      return a.releaseDate == null ? 1 : -1
+    }
+    return a.releaseDate.localeCompare(b.releaseDate)
+  })
+
+  // Difficulty bins are shared across every condition panel (the
+  // paper's difficulty axis pools both feedback conditions).
+  const reliabilityBins = outcomeIsBinary ? buildReliabilityBins(taskAggs) : null
+
+  return {
+    evaluation_id: evalId,
+    benchmark_id: benchmarkId,
+    collection_id: collectionId,
+    outcome_type: outcomeType,
+    task_count: new Set(taskAggs.map((agg) => agg.taskId)).size,
+    models,
+    conditions,
+    tokens_to_success: outcomeIsBinary ? buildTokensToSuccess(taskAggs) : null,
+    reliability: reliabilityBins
+      ? conditions
+          .map((condition) => buildReliabilityHeatmap(taskAggs, condition, reliabilityBins))
+          .filter((panel): panel is NonNullable<typeof panel> => panel !== null)
+      : [],
+    termination: buildTerminationSummaries(stopAggs, outcomeIsBinary),
   }
 }
 

@@ -103,6 +103,17 @@ export function fetchMergedBenchmarkSummary(
   )
 }
 
+/**
+ * Trajectory panels for protocol-varied collection pages.
+ * Resolves to null on 404 / any failure — absence means the page renders
+ * without the Trajectories section, exactly as before.
+ */
+export function fetchEvalTrajectories(evalId: string) {
+  return fetchJson<import("@/lib/collection-trajectories").EvalTrajectoriesPayload>(
+    `/api/eval-trajectories?id=${encodeURIComponent(evalId)}`
+  ).catch(() => null)
+}
+
 export function fetchEvalDetail(evalId: string) {
   return fetchJson<HFEvalDetail>(
     `/api/eval-detail?id=${encodeURIComponent(evalId)}`

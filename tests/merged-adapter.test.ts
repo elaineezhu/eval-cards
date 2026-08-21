@@ -134,6 +134,11 @@ describe("mergedSummaryToEvalSummary — EvalDetail surface", () => {
     expect(adapted.leaderboard_metrics?.[0].column_key).toBe("accuracy")
     expect(adapted.leaderboard_rows?.map((r) => r.values.accuracy)).toEqual([91.2, 91.2, 55.5])
     expect(adapted.evaluator_names).toEqual(["Source A", "Source B"])
+    // Collection-page gate (spec requirement 8): the adapter must never
+    // set the per-source-only `collection` attachment — it is what keeps
+    // the Compute chip and trajectory panels off merged pages.
+    expect("collection" in adapted).toBe(false)
+    expect(adapted.collection).toBeUndefined()
   })
 
   it("excludes flagged rows (null score_canonical) from the pool entirely", () => {

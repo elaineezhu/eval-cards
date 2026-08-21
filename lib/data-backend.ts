@@ -82,6 +82,10 @@ export async function getMergedBenchmarkSummary(
   return (await viewBackend()).getMergedBenchmarkSummary(benchmarkId, metricId, sliceId)
 }
 
+export async function getEvalTrajectories(evalId: string) {
+  return (await viewBackend()).getEvalTrajectories(evalId)
+}
+
 /**
  * Resolve an evaluator-org slug (/evaluators/<slug>) to the facts the page
  * metadata + OG card need: canonical org name, evals-reported count, and
