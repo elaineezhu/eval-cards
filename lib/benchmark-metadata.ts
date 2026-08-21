@@ -59,7 +59,17 @@ export async function getAllBenchmarkCards(): Promise<Record<string, BenchmarkCa
     }
 
     seen.add(card)
-    result[normalizeBenchmarkKey(card.benchmark_details.name)] = card
+    const key = normalizeBenchmarkKey(card.benchmark_details.name)
+    result[key] = card
+    // Cards titled "Full Name (ACRONYM)" are also reachable by the acronym
+    // and by the bare full name, so a tile displaying "HLE" still finds
+    // "Humanity's Last Exam (HLE)". Never overwrite an exact-name key.
+    const paren = /^(.+?)\s*\(([^()]+)\)$/.exec(key)
+    if (paren) {
+      for (const extra of [paren[1].trim(), paren[2].trim()]) {
+        if (extra && !result[extra]) result[extra] = card
+      }
+    }
   }
 
   return result
