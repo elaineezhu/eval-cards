@@ -55,11 +55,7 @@ import type { BenchmarkCard, SourceData } from "@/lib/benchmark-schema"
 import { tagLabel } from "@/lib/benchmark-schema"
 import { isAssistedResult } from "@/lib/eval-processing"
 import type { BenchmarkEvalSummary, ModelResultForBenchmark } from "@/lib/eval-processing"
-import {
-  buildComputeMarks,
-  computeChipAvailable,
-  hasMismatchedConditionBudgets,
-} from "@/lib/collections"
+import { buildComputeProtocolSeries } from "@/lib/collections"
 import { CollectionTrajectories } from "@/components/collection-trajectories"
 import { isRecognizedEvaluator } from "@/lib/evaluators"
 import { useEvaluatorSlug } from "@/components/org-metadata-provider"
@@ -938,24 +934,17 @@ export function EvalDetail({
     [leaderboardRows]
   )
 
-  // R1 — Compute-view protocol points, fed to the plotbox as a SEPARATE
+  // Compute-view protocol points, fed to the plotbox as a SEPARATE
   // series (the Distribution/Frontier paths never read it). Gated on the
   // per-source-only collection attachment + the server-chosen axis, so
-  // the chip can never appear on merged pages or embeds. Assisted rows
-  // ARE included here — the condition legend makes the labeling explicit.
-  const computeProtocol = useMemo(() => {
-    const axis = summary.collection?.compute_axis
-    if (!axis || !computeChipAvailable(summary)) return undefined
-    const { marks, omitted } = buildComputeMarks(lb.model_results, axis.key)
-    if (marks.length === 0) return undefined
-    return {
-      axisLabel: axis.label,
-      marks,
-      omitted,
-      mismatchedConditionBudgets: hasMismatchedConditionBudgets(marks),
-      researcherMode: isResearchView,
-    }
-  }, [summary, lb.model_results, isResearchView])
+  // the chip can never appear on merged pages. Assisted rows ARE
+  // included here — the condition legend makes the labeling explicit.
+  const computeProtocol = useMemo(
+    () =>
+      buildComputeProtocolSeries(lb.model_results, summary.collection, isResearchView) ??
+      undefined,
+    [summary.collection, lb.model_results, isResearchView],
+  )
 
   // Optional user-driven sort. `default` keeps the score-ordered rows
   // the ranker already produced. The rank label is always by score
@@ -1723,6 +1712,17 @@ export function EvalDetail({
                       label: "Both",
                       embedPath: `/embed/eval/distribution/${routeIdToPath(summary.evaluation_id)}?view=both`,
                     },
+                    // Study pages only: the embed route renders the same
+                    // marks this page's Compute chip shows.
+                    ...(computeProtocol
+                      ? [
+                          {
+                            id: "compute",
+                            label: "Compute",
+                            embedPath: `/embed/eval/distribution/${routeIdToPath(summary.evaluation_id)}?view=compute`,
+                          },
+                        ]
+                      : []),
                   ]}
                 />
               </div>
@@ -1751,6 +1751,7 @@ export function EvalDetail({
             <CollectionTrajectories
               evaluationId={summary.evaluation_id}
               isResearchView={isResearchView}
+              showEmbedButton
             />
           )}
 

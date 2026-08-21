@@ -46,7 +46,8 @@ export interface CollectionComputeAxis {
  * The eval-summary payload's optional `collection` attachment. Built
  * server-side for per-source pages whose rows belong to a CURATED
  * collection; the merged adapter never sets it, which is what keeps the
- * Compute chip off merged pages and embeds.
+ * Compute view off merged summaries everywhere. Per-source embeds carry
+ * the attachment and render the study surfaces deliberately.
  */
 export interface CollectionAttachment {
   collection_id: string
@@ -220,15 +221,56 @@ export function hasMismatchedConditionBudgets(marks: ComputeMark[]): boolean {
 }
 
 /**
- * The Compute chip's availability gate: the payload carries the
- * per-source-only collection attachment AND the server chose an axis.
- * Merged-page adapted summaries never carry the attachment, so the chip
- * can never leak there.
+ * Protocol points for the plotbox Compute view. A SEPARATE series from
+ * the distribution/frontier feeds: those code paths never read it, so
+ * the assisted-row exclusion on those views cannot regress. Marks
+ * include assisted rows — this is the one view where condition labeling
+ * is explicit.
  */
-export function computeChipAvailable(summary: {
-  collection?: CollectionAttachment | null
-}): boolean {
-  return summary.collection?.compute_axis != null
+export interface ProtocolSeries {
+  /** Names the NOMINAL quantity ("token budget (limit)") — never reads
+   *  as tokens consumed. */
+  axisLabel: string
+  marks: ComputeMark[]
+  /** Protocol rows without a numeric value on the axis (caption count). */
+  omitted: number
+  /** Marks from different feedback conditions sit at different nominal
+   *  budgets → the caption carries the study's matched-budget caveat. */
+  mismatchedConditionBudgets: boolean
+  /** Researcher mode appends full protocol fields to the hover; policy
+   *  mode appends the plain-language condition sentence. */
+  researcherMode?: boolean
+}
+
+/**
+ * Build the Compute-view series for one page. Shared by the eval page
+ * and the compute embed so the two surfaces can never disagree on the
+ * marks. Gated on the per-source-only curated attachment plus the
+ * server-chosen axis — never derives an axis from the rows themselves,
+ * because merged adapted summaries also carry per-row protocol fields
+ * and must never light up a compute view. Null means the view is
+ * absent by design.
+ */
+export function buildComputeProtocolSeries(
+  rows: Array<{
+    score: number
+    protocol_condition?: string | null
+    model_info: { name: string }
+  }>,
+  collection: CollectionAttachment | null | undefined,
+  researcherMode: boolean,
+): ProtocolSeries | null {
+  const axis = collection?.compute_axis
+  if (!axis || !collection?.curated) return null
+  const { marks, omitted } = buildComputeMarks(rows, axis.key)
+  if (marks.length === 0) return null
+  return {
+    axisLabel: axis.label,
+    marks,
+    omitted,
+    mismatchedConditionBudgets: hasMismatchedConditionBudgets(marks),
+    researcherMode,
+  }
 }
 
 /**

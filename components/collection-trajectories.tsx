@@ -11,15 +11,20 @@
 import { useEffect, useMemo, useRef, useState } from "react"
 import type { CSSProperties, MouseEvent as ReactMouseEvent, ReactNode } from "react"
 
+import { EmbedButton } from "@/components/embed-button"
 import { fetchEvalTrajectories } from "@/lib/dashboard-data-client"
-import type {
-  EvalTrajectoriesPayload,
-  ReliabilityPanel,
-  TerminationSummary,
-  TokensToSuccessPanel,
-  TrajectoryModelEntry,
+import {
+  availableTrajectoryPanels,
+  TRAJECTORY_PANEL_LABELS,
+  type EvalTrajectoriesPayload,
+  type ReliabilityPanel,
+  type TerminationSummary,
+  type TokensToSuccessPanel,
+  type TrajectoryModelEntry,
+  type TrajectoryPanelKey,
 } from "@/lib/collection-trajectories"
 import type { FeedbackCondition } from "@/lib/collections"
+import { routeIdToPath } from "@/lib/utils"
 
 const CONDITION_LABELS: Record<FeedbackCondition, string> = {
   none: "No feedback",
@@ -268,7 +273,7 @@ function TokensToSuccessCard({
     : 0
 
   return (
-    <PanelCard kicker="Trajectories" title="Lowest observed tokens to success">
+    <PanelCard kicker="Trajectories" title={TRAJECTORY_PANEL_LABELS.tokens}>
       <TrajectorySeriesStyle />
       <div className="traj-series">
         <div
@@ -451,14 +456,20 @@ function ReliabilityCard({
   panels,
   models,
   isResearchView,
+  initialCondition,
 }: {
   panels: ReliabilityPanel[]
   models: TrajectoryModelEntry[]
   isResearchView: boolean
+  initialCondition?: FeedbackCondition
 }) {
   const conditions = panels.map((p) => p.condition)
   const [condition, setCondition] = useState<FeedbackCondition>(
-    conditions.includes("none") ? "none" : conditions[0],
+    initialCondition && conditions.includes(initialCondition)
+      ? initialCondition
+      : conditions.includes("none")
+        ? "none"
+        : conditions[0],
   )
   const panel = panels.find((p) => p.condition === condition) ?? panels[0]
   const gridRef = useRef<HTMLDivElement>(null)
@@ -481,7 +492,7 @@ function ReliabilityCard({
   const hoverCell = hover ? cellFor(hover.modelKey, hover.binKey) : null
 
   return (
-    <PanelCard kicker="Trajectories" title="Reliability by task difficulty">
+    <PanelCard kicker="Trajectories" title={TRAJECTORY_PANEL_LABELS.reliability}>
       <ConditionChips conditions={conditions} active={panel.condition} onChange={setCondition} />
       <div ref={gridRef} style={{ position: "relative" }} onMouseLeave={() => setHover(null)}>
         {hover && hoverBin && (
@@ -611,14 +622,20 @@ function TerminationCard({
   summaries,
   models,
   isResearchView,
+  initialCondition,
 }: {
   summaries: TerminationSummary[]
   models: TrajectoryModelEntry[]
   isResearchView: boolean
+  initialCondition?: FeedbackCondition
 }) {
   const conditions = summaries.map((s) => s.condition)
   const [condition, setCondition] = useState<FeedbackCondition>(
-    conditions.includes("none") ? "none" : conditions[0],
+    initialCondition && conditions.includes(initialCondition)
+      ? initialCondition
+      : conditions.includes("none")
+        ? "none"
+        : conditions[0],
   )
   const [breakdownOpen, setBreakdownOpen] = useState(false)
   const rowsRef = useRef<HTMLDivElement>(null)
@@ -782,7 +799,7 @@ function TerminationCard({
   }
 
   return (
-    <PanelCard kicker="Trajectories" title="How runs ended">
+    <PanelCard kicker="Trajectories" title={TRAJECTORY_PANEL_LABELS.termination}>
       <ConditionChips conditions={conditions} active={summary.condition} onChange={setCondition} />
       <div ref={rowsRef} style={{ position: "relative" }} onMouseLeave={() => setHover(null)}>
         {hover && <Nameplate x={hover.x} y={hover.y} wide>{hoverContent(hover.key)}</Nameplate>}
@@ -906,57 +923,98 @@ function TerminationCard({
 export function CollectionTrajectories({
   evaluationId,
   isResearchView,
+  payload: servedPayload,
+  panels: panelFilter,
+  initialCondition,
+  showEmbedButton = false,
 }: {
   evaluationId: string
   isResearchView: boolean
+  /** Pre-fetched route payload. When provided the section renders it
+   *  directly and never fetches — the trajectories embed owns its own
+   *  fetch so it can render absence copy instead of nothing. Leaving
+   *  the prop off means the section fetches for itself; a parent that
+   *  owns the fetch must therefore hold off mounting the section until
+   *  it has a payload, rather than passing an in-flight placeholder. */
+  payload?: EvalTrajectoriesPayload
+  /** Restrict to these panels; omitted = all the payload carries. */
+  panels?: TrajectoryPanelKey[]
+  /** Preselect this feedback condition on chip-bearing panels that
+   *  carry it; the chips stay interactive. */
+  initialCondition?: FeedbackCondition
+  /** Renders an embed-this button row above the cards. Kept off inside
+   *  the embed route itself, so an iframe never offers to re-embed. */
+  showEmbedButton?: boolean
 }) {
-  const [payload, setPayload] = useState<EvalTrajectoriesPayload | null>(null)
+  const ownsFetch = servedPayload === undefined
+  const [fetched, setFetched] = useState<EvalTrajectoriesPayload | null>(null)
 
   useEffect(() => {
+    if (!ownsFetch) return
     let cancelled = false
-    setPayload(null)
+    setFetched(null)
     fetchEvalTrajectories(evaluationId).then((data) => {
-      if (!cancelled) setPayload(data)
+      if (!cancelled) setFetched(data)
     })
     return () => {
       cancelled = true
     }
-  }, [evaluationId])
+  }, [evaluationId, ownsFetch])
 
-  const hasPanels = useMemo(
-    () =>
-      payload != null &&
-      ((payload.tokens_to_success?.curves.length ?? 0) > 0 ||
-        payload.reliability.length > 0 ||
-        payload.termination.length > 0),
-    [payload],
-  )
+  const payload = ownsFetch ? fetched : servedPayload
+  const visiblePanels = useMemo(() => {
+    const available = availableTrajectoryPanels(payload)
+    return panelFilter ? available.filter((p) => panelFilter.includes(p)) : available
+  }, [payload, panelFilter])
 
   // Route absent / table absent / zero rows → the page renders exactly
   // as it does without this feature.
-  if (!payload || !hasPanels) return null
+  if (!payload || visiblePanels.length === 0) return null
 
   return (
     <div className="mb-4 space-y-4">
-      {payload.tokens_to_success && payload.tokens_to_success.curves.length > 0 && (
+      {showEmbedButton && (
+        <div className="flex justify-end">
+          <EmbedButton
+            label="Study trajectories"
+            defaultHeight={640}
+            size="sm"
+            variants={[
+              {
+                id: "all",
+                label: "All panels",
+                embedPath: `/embed/eval/trajectories/${routeIdToPath(evaluationId)}`,
+              },
+              ...visiblePanels.map((panel) => ({
+                id: panel,
+                label: TRAJECTORY_PANEL_LABELS[panel],
+                embedPath: `/embed/eval/trajectories/${routeIdToPath(evaluationId)}?panel=${panel}`,
+              })),
+            ]}
+          />
+        </div>
+      )}
+      {visiblePanels.includes("tokens") && payload.tokens_to_success && (
         <TokensToSuccessCard
           panel={payload.tokens_to_success}
           models={payload.models}
           taskCount={payload.task_count}
         />
       )}
-      {payload.reliability.length > 0 && (
+      {visiblePanels.includes("reliability") && (
         <ReliabilityCard
           panels={payload.reliability}
           models={payload.models}
           isResearchView={isResearchView}
+          initialCondition={initialCondition}
         />
       )}
-      {payload.termination.length > 0 && (
+      {visiblePanels.includes("termination") && (
         <TerminationCard
           summaries={payload.termination}
           models={payload.models}
           isResearchView={isResearchView}
+          initialCondition={initialCondition}
         />
       )}
     </div>

@@ -3,8 +3,8 @@ import { describe, expect, it } from "vitest"
 import {
   buildCollectionAttachment,
   buildComputeMarks,
+  buildComputeProtocolSeries,
   chooseComputeAxis,
-  computeChipAvailable,
   feedbackConditionOf,
   hasMismatchedConditionBudgets,
 } from "@/lib/collections"
@@ -94,25 +94,6 @@ describe("buildComputeMarks (R1 marks)", () => {
   })
 })
 
-describe("computeChipAvailable (merged-page leak gate)", () => {
-  it("requires the per-source-only collection attachment AND an axis", () => {
-    expect(computeChipAvailable({})).toBe(false)
-    expect(computeChipAvailable({ collection: undefined })).toBe(false)
-    const base = {
-      collection_id: "c",
-      display_name: "Study",
-      curated: true as const,
-      compute_axis: null,
-    }
-    expect(computeChipAvailable({ collection: base })).toBe(false)
-    expect(
-      computeChipAvailable({
-        collection: { ...base, compute_axis: { key: "token_limit", label: "token budget (limit)" } },
-      }),
-    ).toBe(true)
-  })
-})
-
 describe("buildCollectionAttachment (R1.2)", () => {
   const entry = {
     curated: true,
@@ -148,5 +129,69 @@ describe("buildCollectionAttachment (R1.2)", () => {
     // sidecar's terminalbench key — declared absence, not a guess.
     const attachment = buildCollectionAttachment("uk-x", entry, "terminal-bench-2", conditions)
     expect(attachment?.outcome_type).toBeUndefined()
+  })
+})
+
+describe("buildComputeProtocolSeries (shared page/embed compute feed)", () => {
+  const attachment = {
+    collection_id: "uk-aisi-inference-scaling",
+    display_name: "Study",
+    curated: true as const,
+    compute_axis: { key: "reasoning_tokens", label: "reasoning-token allowance", unit: "tokens" },
+  }
+  const row = (score: number, fields: Record<string, unknown> | null, name = "m") => ({
+    score,
+    protocol_condition: fields ? cond(fields) : null,
+    model_info: { name },
+  })
+
+  it("builds marks, omitted count, and the mismatched-budget flag from the attachment's axis", () => {
+    const series = buildComputeProtocolSeries(
+      [
+        row(0.4, { feedback: "none", reasoning_tokens: 16000 }),
+        row(0.5, { feedback: "none", reasoning_tokens: 64000 }),
+        row(0.6, { feedback: "answer_feedback", reasoning_tokens: 32000 }),
+        // Null on the chosen axis: omitted from the plot, counted in the caption.
+        row(0.7, { feedback: "answer_feedback", reasoning_tokens: null }),
+        // No protocol at all: skipped silently, exactly like the marks builder.
+        row(0.8, null),
+      ],
+      attachment,
+      true,
+    )
+    expect(series).not.toBeNull()
+    expect(series!.axisLabel).toBe("reasoning-token allowance")
+    expect(series!.marks).toHaveLength(3)
+    expect(series!.omitted).toBe(1)
+    expect(series!.mismatchedConditionBudgets).toBe(true)
+    expect(series!.researcherMode).toBe(true)
+  })
+
+  it("returns null without the attachment even when rows carry protocol fields (merged-shaped summary)", () => {
+    const rows = [
+      row(0.4, { feedback: "none", reasoning_tokens: 16000 }),
+      row(0.5, { feedback: "none", reasoning_tokens: 64000 }),
+    ]
+    expect(buildComputeProtocolSeries(rows, undefined, false)).toBeNull()
+    expect(buildComputeProtocolSeries(rows, null, false)).toBeNull()
+  })
+
+  it("returns null when the server chose no axis (frontiermath) or the entry is uncurated", () => {
+    const rows = [row(0.4, { feedback: "none", reasoning_tokens: 16000 })]
+    expect(
+      buildComputeProtocolSeries(rows, { ...attachment, compute_axis: null }, false),
+    ).toBeNull()
+    expect(
+      buildComputeProtocolSeries(rows, { ...attachment, curated: false as never }, false),
+    ).toBeNull()
+  })
+
+  it("returns null when no row yields a mark, so callers render absence rather than an empty plot", () => {
+    const series = buildComputeProtocolSeries(
+      [row(0.4, { feedback: "none", reasoning_tokens: null }), row(0.5, null)],
+      attachment,
+      false,
+    )
+    expect(series).toBeNull()
   })
 })

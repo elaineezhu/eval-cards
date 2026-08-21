@@ -428,3 +428,51 @@ export interface EvalTrajectoriesPayload {
   reliability: ReliabilityPanel[]
   termination: TerminationSummary[]
 }
+
+// ---------------------------------------------------------------------------
+// Panel selection, shared by the on-page section and the trajectories
+// embed so an embed asking for a panel this eval doesn't carry gets a
+// declared absence rather than an empty card.
+// ---------------------------------------------------------------------------
+
+export type TrajectoryPanelKey = "tokens" | "reliability" | "termination"
+
+export const TRAJECTORY_PANEL_LABELS: Record<TrajectoryPanelKey, string> = {
+  tokens: "Lowest observed tokens to success",
+  reliability: "Reliability by task difficulty",
+  termination: "How runs ended",
+}
+
+/** Panels the served payload can actually render, in display order.
+ *  Graded-outcome pages (e.g. HealthBench) serve only termination. */
+export function availableTrajectoryPanels(
+  payload: EvalTrajectoriesPayload | null | undefined,
+): TrajectoryPanelKey[] {
+  if (!payload) return []
+  const panels: TrajectoryPanelKey[] = []
+  if ((payload.tokens_to_success?.curves.length ?? 0) > 0) panels.push("tokens")
+  if (payload.reliability.length > 0) panels.push("reliability")
+  if (payload.termination.length > 0) panels.push("termination")
+  return panels
+}
+
+/** Normalize a `?panel=` value; anything unrecognized means "all". */
+export function parseTrajectoryPanelParam(
+  raw: string | null | undefined,
+): TrajectoryPanelKey | null {
+  const value = raw?.trim().toLowerCase()
+  return value === "tokens" || value === "reliability" || value === "termination"
+    ? value
+    : null
+}
+
+/** Normalize a `?condition=` value; anything unrecognized falls back to
+ *  the panels' own default. */
+export function parseFeedbackConditionParam(
+  raw: string | null | undefined,
+): FeedbackCondition | null {
+  const value = raw?.trim().toLowerCase()
+  return value === "none" || value === "answer_feedback" || value === "unknown"
+    ? value
+    : null
+}

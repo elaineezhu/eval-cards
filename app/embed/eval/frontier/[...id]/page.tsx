@@ -4,6 +4,7 @@ import { useEffect, useMemo, useState } from "react"
 import { useParams, useSearchParams } from "next/navigation"
 import { ScoreDistribution } from "@/components/score-distribution"
 import { EmbedSourcePicker, useEmbedEvalSummary } from "@/components/embed-eval-source"
+import { EmbedStudyContext } from "@/components/embed-study-context"
 import {
   buildDistributionSeries,
   buildDistributionSliceAxis,
@@ -116,6 +117,7 @@ export default function EmbedEvalFrontier() {
         </div>
       </div>
       <EmbedSourcePicker sources={sources} value={activeSource} onChange={setActiveSource} />
+      <EmbedStudyContext summary={summary} />
       {sliceAxis && (
         <div className="mb-3 flex items-center gap-3">
           <span

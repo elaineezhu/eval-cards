@@ -1,10 +1,14 @@
 import { describe, expect, it } from "vitest"
 
 import {
+  availableTrajectoryPanels,
   buildReliabilityBins,
   buildReliabilityHeatmap,
   buildTerminationSummaries,
   buildTokensToSuccess,
+  parseFeedbackConditionParam,
+  parseTrajectoryPanelParam,
+  type EvalTrajectoriesPayload,
   type TrajectoryStopAgg,
   type TrajectoryTaskAgg,
 } from "@/lib/collection-trajectories"
@@ -248,5 +252,64 @@ describe("buildTerminationSummaries (R2c)", () => {
     // completed_on_successful_submit never leaks into the no-feedback
     // condition.
     expect(none.byModel.every((m) => m.reasons.completed_on_successful_submit == null)).toBe(true)
+  })
+})
+
+describe("availableTrajectoryPanels (embed/page panel gate)", () => {
+  const payload = (over: Partial<EvalTrajectoriesPayload>): EvalTrajectoriesPayload => ({
+    evaluation_id: "e",
+    benchmark_id: "b",
+    collection_id: "c",
+    outcome_type: "binary",
+    task_count: 10,
+    models: [],
+    conditions: ["none"],
+    tokens_to_success: null,
+    reliability: [],
+    termination: [],
+    ...over,
+  })
+
+  it("lists panels in display order for a full payload", () => {
+    const full = payload({
+      tokens_to_success: { curves: [{} as never], droppedModels: [] },
+      reliability: [{} as never],
+      termination: [{} as never],
+    })
+    expect(availableTrajectoryPanels(full)).toEqual(["tokens", "reliability", "termination"])
+  })
+
+  it("serves only termination for a graded-outcome page (healthbench shape)", () => {
+    const graded = payload({ outcome_type: "graded", termination: [{} as never] })
+    expect(availableTrajectoryPanels(graded)).toEqual(["termination"])
+  })
+
+  it("treats a tokens panel with zero curves as absent", () => {
+    const empty = payload({ tokens_to_success: { curves: [], droppedModels: [] } })
+    expect(availableTrajectoryPanels(empty)).toEqual([])
+  })
+
+  it("returns nothing for a missing payload", () => {
+    expect(availableTrajectoryPanels(null)).toEqual([])
+    expect(availableTrajectoryPanels(undefined)).toEqual([])
+  })
+})
+
+describe("embed query-param normalization", () => {
+  it("accepts exactly the three panel keys and defaults everything else to all-panels", () => {
+    expect(parseTrajectoryPanelParam("tokens")).toBe("tokens")
+    expect(parseTrajectoryPanelParam(" Reliability ")).toBe("reliability")
+    expect(parseTrajectoryPanelParam("TERMINATION")).toBe("termination")
+    expect(parseTrajectoryPanelParam("histogram")).toBeNull()
+    expect(parseTrajectoryPanelParam("")).toBeNull()
+    expect(parseTrajectoryPanelParam(null)).toBeNull()
+  })
+
+  it("accepts exactly the three feedback conditions and defaults everything else", () => {
+    expect(parseFeedbackConditionParam("none")).toBe("none")
+    expect(parseFeedbackConditionParam("Answer_Feedback")).toBe("answer_feedback")
+    expect(parseFeedbackConditionParam("unknown")).toBe("unknown")
+    expect(parseFeedbackConditionParam("oracle")).toBeNull()
+    expect(parseFeedbackConditionParam(null)).toBeNull()
   })
 })

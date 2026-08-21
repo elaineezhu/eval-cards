@@ -181,7 +181,8 @@ export interface BenchmarkEvalSummary extends SignalSummaries {
   /** Curated protocol-varied collection attachment. Per-source-only:
    *  built server-side from the
    *  collections.json sidecar; the merged adapter never sets it, which
-   *  gates every collection surface off merged pages and embeds. */
+   *  gates every collection surface off merged summaries. Per-source
+   *  embeds carry it and render the study surfaces deliberately. */
   collection?: CollectionAttachment
   /** Source ↔ merged switcher data for per-source pages.
    *  Absent when the page has neither a merged page nor sibling sources,

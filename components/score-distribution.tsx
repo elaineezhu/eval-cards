@@ -7,29 +7,12 @@ import type {
   MouseEvent as ReactMouseEvent,
 } from "react"
 
-import { feedbackConditionDescription, type ComputeMark, type FeedbackCondition } from "@/lib/collections"
-
-/**
- * Protocol points for the Compute view (collection-benchmark-page spec
- * R1). A SEPARATE series from `values`/`points`: the Distribution and
- * Frontier code paths never read it, so the shipped assisted-exclusion
- * on those views cannot regress. Marks include assisted rows — this is
- * the one view where condition labeling is explicit.
- */
-interface ProtocolSeries {
-  /** Nominal-quantity axis label ("token budget (limit)") — never reads
-   *  as tokens consumed. */
-  axisLabel: string
-  marks: ComputeMark[]
-  /** Protocol rows without a numeric value on the axis (caption count). */
-  omitted: number
-  /** Marks from different feedback conditions sit at different nominal budgets → the
-   *  caption carries the study's matched-budget caveat. */
-  mismatchedConditionBudgets: boolean
-  /** Researcher mode appends full protocol fields to the hover; policy
-   *  mode appends the plain-language condition sentence. */
-  researcherMode?: boolean
-}
+import {
+  feedbackConditionDescription,
+  type ComputeMark,
+  type FeedbackCondition,
+  type ProtocolSeries,
+} from "@/lib/collections"
 
 interface ScoreSeries {
   /** Stable key — used by the metric dropdown to switch series. */
@@ -1080,7 +1063,7 @@ function ConditionGlyph({
   )
 }
 
-function ComputePlot({
+export function ComputePlot({
   protocol,
   unit,
   label,
