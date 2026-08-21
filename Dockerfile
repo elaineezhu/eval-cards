@@ -14,13 +14,11 @@ ARG PNPM_VERSION=10.25.0
 # Override at build time via `--build-arg ...`.
 ARG DATA_BACKEND=v2
 ARG HF_DATASET_REPO=https://huggingface.co/datasets/evaleval/card_backend
-# SNAPSHOT_URL: explicit snapshot pin, bumped deliberately per deploy (same
-# philosophy as the producer's upstream revision pins). An empty value falls
-# back to resolve-latest-snapshot.mjs, but that resolution both races the
-# CDN's directory-listing cache and gets frozen into the Docker layer cache,
-# so "latest" can silently be days old. The resolved value is baked for
-# runtime so prerendered pages and live queries read the same snapshot.
-ARG SNAPSHOT_URL=https://huggingface.co/datasets/evaleval/card_backend/resolve/main/warehouse/2026-08-21T13-14-29Z
+# SNAPSHOT_URL is resolved at build time (see the build step below): pass an
+# explicit `--build-arg SNAPSHOT_URL=...` to pin a snapshot; leave it empty to
+# default to the latest published one. The resolved value is baked for runtime
+# so prerendered pages and live queries read the same snapshot.
+ARG SNAPSHOT_URL=
 # Static prerender (`next build`) executes route handlers against SNAPSHOT_URL.
 ENV DATA_BACKEND=${DATA_BACKEND} \
     HF_DATASET_REPO=${HF_DATASET_REPO} \
