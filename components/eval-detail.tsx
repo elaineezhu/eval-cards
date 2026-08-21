@@ -55,6 +55,12 @@ import type { BenchmarkCard, SourceData } from "@/lib/benchmark-schema"
 import { tagLabel } from "@/lib/benchmark-schema"
 import { isAssistedResult } from "@/lib/eval-processing"
 import type { BenchmarkEvalSummary, ModelResultForBenchmark } from "@/lib/eval-processing"
+import {
+  buildComputeMarks,
+  computeChipAvailable,
+  hasMismatchedConditionBudgets,
+} from "@/lib/collections"
+import { CollectionTrajectories } from "@/components/collection-trajectories"
 import { isRecognizedEvaluator } from "@/lib/evaluators"
 import { useEvaluatorSlug } from "@/components/org-metadata-provider"
 import type { ComparisonIndex, EvalHierarchy } from "@/lib/backend-artifacts"
@@ -98,6 +104,11 @@ interface EvalDetailProps {
   /** Rows for which this returns true get a warm background tint. Used by
    *  the merged page for the ?source= pre-highlight. */
   rowHighlight?: (modelResult: ModelResultForBenchmark) => boolean
+  /** Merged pages only: link target for "view the study's per-setting
+   *  analysis" inside the study-protocol banner. The merged page has no
+   *  per-source evaluation_id in scope here, so MergedBenchmarkView
+   *  passes the resolved per-source href down. */
+  studySourceHref?: string
 }
 
 interface LeaderboardRow {
@@ -714,6 +725,7 @@ export function EvalDetail({
   activeSummary,
   splitConfig,
   rowHighlight,
+  studySourceHref,
 }: EvalDetailProps) {
   const { mode } = useAudienceMode()
   const isResearchView = mode === "research"
@@ -925,6 +937,25 @@ export function EvalDetail({
     () => leaderboardRows.filter((r) => !isAssistedResult(r.modelResult.protocol_condition)),
     [leaderboardRows]
   )
+
+  // R1 — Compute-view protocol points, fed to the plotbox as a SEPARATE
+  // series (the Distribution/Frontier paths never read it). Gated on the
+  // per-source-only collection attachment + the server-chosen axis, so
+  // the chip can never appear on merged pages or embeds. Assisted rows
+  // ARE included here — the condition legend makes the labeling explicit.
+  const computeProtocol = useMemo(() => {
+    const axis = summary.collection?.compute_axis
+    if (!axis || !computeChipAvailable(summary)) return undefined
+    const { marks, omitted } = buildComputeMarks(lb.model_results, axis.key)
+    if (marks.length === 0) return undefined
+    return {
+      axisLabel: axis.label,
+      marks,
+      omitted,
+      mismatchedConditionBudgets: hasMismatchedConditionBudgets(marks),
+      researcherMode: isResearchView,
+    }
+  }, [summary, lb.model_results, isResearchView])
 
   // Optional user-driven sort. `default` keeps the score-ordered rows
   // the ranker already produced. The rank label is always by score
@@ -1204,6 +1235,28 @@ export function EvalDetail({
             </>
           )}
         </div>
+        {/* Study attribution, curated collections only. */}
+        {summary.collection?.curated && (
+          <div className="-mt-3 mb-6 text-[13px]" style={{ color: "var(--fg-muted)" }}>
+            Part of{" "}
+            <span style={{ fontWeight: 600, color: "var(--fg)" }}>
+              {summary.collection.display_name}
+            </span>
+            {summary.collection.url && (
+              <>
+                {" · "}
+                <a
+                  href={summary.collection.url}
+                  target="_blank"
+                  rel="noreferrer"
+                  className="underline underline-offset-2 hover:text-[color:var(--accent)]"
+                >
+                  paper ↗
+                </a>
+              </>
+            )}
+          </div>
+        )}
         {/* Summary view renders the description inside the "At a glance"
             card just below — avoid duplicating it in the hero. Researcher
             view's heroLede is the metric-config description (different
@@ -1612,12 +1665,12 @@ export function EvalDetail({
               <div className="text-[13px] leading-relaxed">
                 <span style={{ fontWeight: 600 }}>Study-specific protocol.</span>{" "}
                 {allRowsHaveProtocol
-                  ? "These results were run under expanded, study-specific inference budgets and are not directly comparable to standard published benchmark results."
-                  : `${protocolRowCount} of the results below were run under expanded, study-specific inference budgets and are not directly comparable to the other rows or to standard published benchmark results.`}
+                  ? "This study ran models with much larger inference budgets than standard evaluations. Compare with published scores with caution."
+                  : `${protocolRowCount} of the results below come from a study that used much larger inference budgets. Compare them with the other rows or with published scores with caution.`}
                 {hasAssistedRows && (
                   <>
-                    {" "}Assisted runs — where the model is told when its answer
-                    is correct — are labeled and excluded from ranking
+                    {" "}Assisted runs, where the model is told when its answer
+                    is correct, are labeled and excluded from ranking
                     {includeAssistedInRanking ? " (currently included)" : ""}.{" "}
                     <button
                       type="button"
@@ -1629,6 +1682,18 @@ export function EvalDetail({
                         ? "Exclude assisted runs from ranking"
                         : "Include assisted runs in ranking"}
                     </button>
+                  </>
+                )}
+                {studySourceHref && (
+                  <>
+                    {" "}
+                    <Link
+                      href={studySourceHref}
+                      className="underline underline-offset-2 hover:text-[color:var(--accent)]"
+                      style={{ color: "var(--fg-muted)" }}
+                    >
+                      View the study&apos;s per-setting analysis →
+                    </Link>
                   </>
                 )}
               </div>
@@ -1674,8 +1739,19 @@ export function EvalDetail({
                     modelName: r.modelResult.model_info.name,
                   })),
                 }]}
+                protocol={computeProtocol}
               />
             </div>
+          )}
+
+          {/* Trajectory panels for per-source collection pages
+              only: the attachment is per-source, and the section hides
+              itself when the route serves no data. */}
+          {summary.collection?.has_trajectories && (
+            <CollectionTrajectories
+              evaluationId={summary.evaluation_id}
+              isResearchView={isResearchView}
+            />
           )}
 
           {hasParameterData && (

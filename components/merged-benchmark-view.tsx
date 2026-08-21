@@ -166,6 +166,15 @@ export function MergedBenchmarkView({
     ? (row: ModelResultForBenchmark) => row.merged_source_slug === preselectedSource
     : undefined
 
+  // Study-protocol banner link target: the shared EvalDetail
+  // has no per-source evaluation_id in scope on merged pages, so resolve
+  // the study source here — the protocol-carrying observation rows name
+  // their per-source page directly.
+  const studyRow = summary.results.find(
+    (row) => row.protocol_condition != null && row.evaluation_id,
+  )
+  const studySourceHref = studyRow ? `/evals/${routeIdToPath(studyRow.evaluation_id)}` : undefined
+
   return (
     <div className="space-y-8">
       {/* MERGED SCOPE BAR — merged-specific controls above the shared
@@ -266,6 +275,7 @@ export function MergedBenchmarkView({
         comparisonIndex={comparisonIndex}
         splitConfig={metricSplitConfig}
         rowHighlight={rowHighlight}
+        studySourceHref={studySourceHref}
       />
 
       {/* DISCLOSURE NOTES -------------------------------------------------- */}

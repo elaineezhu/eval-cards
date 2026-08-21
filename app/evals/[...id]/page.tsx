@@ -292,7 +292,9 @@ export default function EvalDetailPage() {
             hierarchyLocation={hierarchyLocation}
           />
         ) : (
-          <EvalDetail
+          <>
+            <PerSourceScopeBar summary={summary} />
+            <EvalDetail
             summary={summary}
             hierarchyLocation={hierarchyLocation}
             evalHierarchy={hierarchy}
@@ -308,9 +310,78 @@ export default function EvalDetailPage() {
                   }
                 : undefined
             }
-          />
+            />
+          </>
         )}
       </main>
+    </div>
+  )
+}
+
+// ---------------------------------------------------------------------------
+// Per-source scope bar: the merged
+// page's Source control gets a counterpart here — a scope-bar-style flex
+// row above EvalDetail, matching the merged page's visual position. The
+// select semantics differ by design: merged pins the merged option; the
+// per-source page selects the CURRENT source. Navigate-on-select; the
+// merged option only appears when a merged page actually exists
+// (server-provided merged_evaluation_id — never navigate to a 404).
+// ---------------------------------------------------------------------------
+
+function PerSourceScopeBar({ summary }: { summary: BenchmarkEvalSummary }) {
+  const router = useRouter()
+  const options = summary.source_options
+  if (!options || (!options.merged_evaluation_id && options.sources.length <= 1)) {
+    return null
+  }
+
+  const currentId = summary.evaluation_id
+  const sources = options.sources.some((s) => s.evaluation_id === currentId)
+    ? options.sources
+    : [
+        ...options.sources,
+        { evaluation_id: currentId, composite_display_name: summary.composite_display_name },
+      ]
+
+  return (
+    <div className="mb-8 flex flex-wrap items-end justify-between gap-x-6 gap-y-3">
+      <div
+        className="font-mono text-[10px] uppercase tracking-[0.16em]"
+        style={{ color: "var(--fg-subtle)" }}
+      >
+        Per-source page · one source of this benchmark
+      </div>
+      <label className="flex flex-col gap-1">
+        <span
+          className="font-mono text-[10px] uppercase tracking-[0.14em]"
+          style={{ color: "var(--fg-subtle)" }}
+        >
+          Source
+        </span>
+        <select
+          className="ec-select"
+          value={currentId}
+          onChange={(e) => {
+            const id = e.target.value
+            if (!id || id === currentId) return
+            router.push(`/evals/${routeIdToPath(id)}`)
+          }}
+        >
+          {options.merged_evaluation_id && (
+            <option value={options.merged_evaluation_id}>All sources (merged)</option>
+          )}
+          {sources.map((source) => (
+            <option key={source.evaluation_id} value={source.evaluation_id}>
+              {source.composite_display_name ||
+                source.composite_slug ||
+                humanizeEvaluationId(source.evaluation_id)}
+              {source.models_count != null
+                ? ` (${source.models_count} ${source.models_count === 1 ? "model" : "models"})`
+                : ""}
+            </option>
+          ))}
+        </select>
+      </label>
     </div>
   )
 }

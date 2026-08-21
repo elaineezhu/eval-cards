@@ -1,6 +1,35 @@
 "use client"
 
 import { useMemo, useState } from "react"
+import type {
+  CSSProperties,
+  FocusEvent as ReactFocusEvent,
+  MouseEvent as ReactMouseEvent,
+} from "react"
+
+import { feedbackConditionDescription, type ComputeMark, type FeedbackCondition } from "@/lib/collections"
+
+/**
+ * Protocol points for the Compute view (collection-benchmark-page spec
+ * R1). A SEPARATE series from `values`/`points`: the Distribution and
+ * Frontier code paths never read it, so the shipped assisted-exclusion
+ * on those views cannot regress. Marks include assisted rows — this is
+ * the one view where condition labeling is explicit.
+ */
+interface ProtocolSeries {
+  /** Nominal-quantity axis label ("token budget (limit)") — never reads
+   *  as tokens consumed. */
+  axisLabel: string
+  marks: ComputeMark[]
+  /** Protocol rows without a numeric value on the axis (caption count). */
+  omitted: number
+  /** Marks from different feedback conditions sit at different nominal budgets → the
+   *  caption carries the study's matched-budget caveat. */
+  mismatchedConditionBudgets: boolean
+  /** Researcher mode appends full protocol fields to the hover; policy
+   *  mode appends the plain-language condition sentence. */
+  researcherMode?: boolean
+}
 
 interface ScoreSeries {
   /** Stable key — used by the metric dropdown to switch series. */
@@ -47,6 +76,10 @@ interface ScoreDistributionProps {
    *  *or* Frontier). The metric chips above still appear when the panel
    *  carries more than one series. Defaults to true. */
   showViewToggle?: boolean
+  /** Optional Compute view. Only the eval-detail single-metric
+   *  call site passes this — matrix/embed sites must not (their row
+   *  shapes carry no protocol fields). */
+  protocol?: ProtocolSeries
 }
 
 interface SummaryStats {
@@ -141,6 +174,7 @@ export function ScoreDistribution({
   compact = false,
   defaultView,
   showViewToggle = true,
+  protocol,
 }: ScoreDistributionProps) {
   // Normalize: either we got a single series (via values) or many.
   const seriesList: ScoreSeries[] = useMemo(() => {
@@ -193,17 +227,28 @@ export function ScoreDistribution({
   }, [active])
 
   const canShowFrontier = frontier != null
-  const [view, setView] = useState<"distribution" | "frontier">(
+  const canShowCompute = (protocol?.marks.length ?? 0) > 0
+  const [view, setView] = useState<"distribution" | "frontier" | "compute">(
     defaultView ?? "distribution",
   )
-  // If the active series doesn't support frontier (e.g. user switched to
-  // a metric whose models don't carry release_date), fall back to the
-  // distribution view rather than rendering an empty panel.
-  const effectiveView = canShowFrontier ? view : "distribution"
+  // If the active series doesn't support the selected view (e.g. user
+  // switched to a metric whose models don't carry release_date), fall
+  // back to the distribution view rather than rendering an empty panel.
+  const effectiveView =
+    view === "frontier" && canShowFrontier
+      ? "frontier"
+      : view === "compute" && canShowCompute
+        ? "compute"
+        : "distribution"
   // When the caller hides the toggle (embed locks to one view), force the
   // panel to whatever defaultView/view it was created with — the user
   // can't switch, so any "frontier" inference must come from props.
-  const renderViewToggle = showViewToggle && canShowFrontier
+  const renderViewToggle = showViewToggle && (canShowFrontier || canShowCompute)
+  const availableViews = [
+    "distribution" as const,
+    ...(canShowFrontier ? ["frontier" as const] : []),
+    ...(canShowCompute ? ["compute" as const] : []),
+  ]
 
   const density = useMemo(() => {
     if (!active || !stats) return null
@@ -307,9 +352,14 @@ export function ScoreDistribution({
                   aria-label="Chart view"
                   className="inline-flex items-center gap-1"
                 >
-                  {(["distribution", "frontier"] as const).map((view) => {
+                  {availableViews.map((view) => {
                     const on = effectiveView === view
-                    const label = view === "distribution" ? "Distribution" : "Frontier"
+                    const label =
+                      view === "distribution"
+                        ? "Distribution"
+                        : view === "frontier"
+                          ? "Frontier"
+                          : "Compute"
                     return (
                       <button
                         key={view}
@@ -320,7 +370,9 @@ export function ScoreDistribution({
                         title={
                           view === "frontier"
                             ? "Frontier score over model release dates (cumulative best)."
-                            : "Kernel-density distribution of model scores."
+                            : view === "compute"
+                              ? `Per-run scores across the study's ${protocol?.axisLabel ?? "compute axis"} settings.`
+                              : "Kernel-density distribution of model scores."
                         }
                         className={`ec-pill${on ? " on" : ""}`}
                       >
@@ -398,7 +450,9 @@ export function ScoreDistribution({
         </div>
       )}
 
-      {effectiveView === "frontier" && frontier ? (
+      {effectiveView === "compute" && protocol ? (
+        <ComputePlot protocol={protocol} unit={active.unit} label={active.label} />
+      ) : effectiveView === "frontier" && frontier ? (
         <FrontierPlot
           events={frontier.events}
           samples={frontier.samples}
@@ -497,9 +551,9 @@ export function ScoreDistribution({
       </svg>
       )}
 
-      {/* Caption row — hidden in frontier view since it tracks
-          distribution stats; the frontier panel renders its own caption. */}
-      {effectiveView !== "frontier" && (
+      {/* Caption row — distribution view only; the frontier and compute
+          panels render their own captions. */}
+      {effectiveView === "distribution" && (
       <div
         className="mt-2 flex flex-wrap items-baseline font-mono"
         style={{
@@ -540,7 +594,7 @@ export function ScoreDistribution({
       </div>
       )}
 
-      {!compact && effectiveView !== "frontier" && (
+      {!compact && effectiveView === "distribution" && (
         <div
           className="mt-1 flex items-center gap-3 font-mono"
           style={{ fontSize: 9, letterSpacing: "0.06em", color: "var(--fg-subtle)" }}
@@ -948,6 +1002,320 @@ function FrontierPlot({ events, samples, unit, lowerIsBetter, label }: FrontierP
             {lowerIsBetter ? "frontier descends: lower is better" : "frontier ascends: higher is better"}
           </span>
         </span>
+      </div>
+    </div>
+  )
+}
+
+// ---------------------------------------------------------------------------
+// Compute view: per-run scores over
+// the study's nominal budget axis. Honest-estimator rules: no trend
+// lines (2–3 nominal levels per axis, conditions at unmatched budgets — a line
+// would assert a compute trend the study says must be compared at
+// matched budgets); highlight scopes to one (model, condition), never across
+// conditions; the condition legend is always visible.
+// ---------------------------------------------------------------------------
+
+const CONDITION_LEGEND: Record<FeedbackCondition, string> = {
+  none: "no feedback",
+  unknown: "condition unknown",
+  answer_feedback: "oracle score feedback (assisted)",
+}
+
+function formatTokenTick(v: number): string {
+  const trim = (n: number) => {
+    const s = n.toFixed(n >= 10 ? 0 : 1)
+    return s.replace(/\.0$/, "")
+  }
+  if (v >= 1_000_000) return `${trim(v / 1_000_000)}M`
+  if (v >= 1_000) return `${trim(v / 1_000)}k`
+  return String(v)
+}
+
+function ConditionGlyph({
+  condition,
+  highlighted,
+}: {
+  condition: FeedbackCondition
+  highlighted?: boolean
+}) {
+  const ink = highlighted ? "var(--accent)" : "var(--fg-muted)"
+  const base: CSSProperties = { display: "inline-block", boxSizing: "border-box" }
+  if (condition === "none") {
+    return (
+      <span
+        aria-hidden
+        style={{ ...base, width: 9, height: 9, borderRadius: "50%", background: ink }}
+      />
+    )
+  }
+  if (condition === "unknown") {
+    return (
+      <span
+        aria-hidden
+        style={{
+          ...base,
+          width: 8,
+          height: 8,
+          border: `1.5px solid ${ink}`,
+          transform: "rotate(45deg)",
+          background: "transparent",
+        }}
+      />
+    )
+  }
+  return (
+    <span
+      aria-hidden
+      style={{
+        ...base,
+        width: 9,
+        height: 9,
+        borderRadius: "50%",
+        border: `1.5px solid ${ink}`,
+        background: "transparent",
+        opacity: highlighted ? 1 : 0.55,
+      }}
+    />
+  )
+}
+
+function ComputePlot({
+  protocol,
+  unit,
+  label,
+}: {
+  protocol: ProtocolSeries
+  unit?: string
+  label: string
+}) {
+  const { marks, axisLabel, omitted, mismatchedConditionBudgets, researcherMode } = protocol
+  const PLOT_HEIGHT = 190
+  const PAD_T = 8
+  const PAD_B = 24
+
+  const logs = marks.map((m) => Math.log10(m.x))
+  let xLo = Math.min(...logs)
+  let xHi = Math.max(...logs)
+  if (xHi - xLo < 1e-9) {
+    xLo -= 0.5
+    xHi += 0.5
+  }
+  const xPad = (xHi - xLo) * 0.06
+  xLo -= xPad
+  xHi += xPad
+
+  const scores = marks.map((m) => m.score)
+  const sMin = Math.min(...scores)
+  const sMax = Math.max(...scores)
+  const sRange = sMax - sMin || Math.abs(sMax) || 1
+  const yLo = sMin - sRange * 0.05
+  const yHi = sMax + sRange * 0.05
+  const yRange = yHi - yLo || 1
+
+  const xPct = (v: number) => ((Math.log10(v) - xLo) / (xHi - xLo)) * 98 + 1
+  const yPct = (s: number) => 100 - ((s - yLo) / yRange) * 100
+
+  // Ticks at the distinct NOMINAL levels actually present (2–6 values).
+  const ticks = Array.from(new Set(marks.map((m) => m.x))).sort((a, b) => a - b)
+  const conditionsPresent = (["none", "unknown", "answer_feedback"] as FeedbackCondition[]).filter(
+    (condition) => marks.some((m) => m.condition === condition),
+  )
+
+  const [highlightKey, setHighlightKey] = useState<string | null>(null)
+  const [hover, setHover] = useState<{ x: number; y: number; mark: ComputeMark } | null>(null)
+  const markKey = (mark: ComputeMark) => `${mark.modelName}|${mark.condition}`
+
+  const hoverDetail = (mark: ComputeMark): string => {
+    if (researcherMode) {
+      return Object.entries(mark.protocolFields)
+        .filter(([, v]) => v != null)
+        .map(([k, v]) => `${k}=${String(v)}`)
+        .join(" · ")
+    }
+    return feedbackConditionDescription(mark.condition)
+  }
+
+  return (
+    <div>
+      <div
+        role="img"
+        aria-label={`${label}: ${marks.length} runs over ${axisLabel}`}
+        style={{
+          position: "relative",
+          width: "100%",
+          height: PLOT_HEIGHT,
+          paddingTop: PAD_T,
+          paddingBottom: PAD_B,
+          boxSizing: "border-box",
+        }}
+        onMouseLeave={() => {
+          setHover(null)
+          setHighlightKey(null)
+        }}
+      >
+        <div style={{ position: "absolute", top: PAD_T, bottom: PAD_B, left: 0, right: 0 }}>
+          {/* Tick rules at the nominal levels */}
+          {ticks.map((t) => (
+            <div
+              key={t}
+              aria-hidden
+              style={{
+                position: "absolute",
+                left: `${xPct(t)}%`,
+                top: 0,
+                bottom: 0,
+                width: 1,
+                background: "var(--border-soft)",
+              }}
+            />
+          ))}
+
+          {marks.map((mark, i) => {
+            const highlighted = highlightKey === markKey(mark)
+            const dimmed = highlightKey != null && !highlighted
+            const enter = (
+              event: ReactMouseEvent<HTMLButtonElement> | ReactFocusEvent<HTMLButtonElement>,
+            ) => {
+              const rect = event.currentTarget.parentElement!.getBoundingClientRect()
+              const dot = event.currentTarget.getBoundingClientRect()
+              setHover({
+                x: dot.left + dot.width / 2 - rect.left,
+                y: dot.top + dot.height / 2 - rect.top,
+                mark,
+              })
+              // Highlight every mark of this (model, condition) pair —
+              // never across conditions, which would imply a
+              // cross-condition per-model trend.
+              setHighlightKey(markKey(mark))
+            }
+            return (
+              <button
+                key={`m-${i}`}
+                type="button"
+                aria-label={`${mark.modelName} · ${CONDITION_LEGEND[mark.condition]} · ${formatValue(mark.score, unit)} at ${formatTokenTick(mark.x)} ${axisLabel}`}
+                onMouseEnter={enter}
+                onFocus={enter}
+                style={{
+                  position: "absolute",
+                  left: `${xPct(mark.x)}%`,
+                  top: `${yPct(mark.score)}%`,
+                  transform: "translate(-50%, -50%)",
+                  padding: 0,
+                  border: "none",
+                  background: "transparent",
+                  cursor: "pointer",
+                  opacity: dimmed ? 0.3 : 1,
+                  zIndex: highlighted ? 1 : undefined,
+                }}
+              >
+                <ConditionGlyph condition={mark.condition} highlighted={highlighted} />
+              </button>
+            )
+          })}
+
+          {hover && (
+            <div
+              role="status"
+              style={{
+                position: "absolute",
+                left: hover.x,
+                top: hover.y - 14,
+                transform: "translate(-50%, -100%)",
+                pointerEvents: "none",
+                background: "var(--fg)",
+                color: "var(--bg)",
+                padding: "5px 9px",
+                fontSize: 11,
+                lineHeight: 1.3,
+                whiteSpace: "nowrap",
+                maxWidth: 420,
+                boxShadow: "var(--shadow-card, 0 2px 6px rgba(0,0,0,0.18))",
+                zIndex: 2,
+              }}
+            >
+              <div style={{ fontWeight: 600 }}>{hover.mark.modelName}</div>
+              <div
+                className="font-mono"
+                style={{ fontSize: 10, letterSpacing: "0.04em", opacity: 0.8, marginTop: 1 }}
+              >
+                {formatValue(hover.mark.score, unit)} · {formatTokenTick(hover.mark.x)}{" "}
+                {axisLabel}
+              </div>
+              <div style={{ fontSize: 10, opacity: 0.8, marginTop: 1, whiteSpace: "normal" }}>
+                {hoverDetail(hover.mark)}
+              </div>
+            </div>
+          )}
+
+          {/* Baseline */}
+          <div
+            aria-hidden
+            style={{
+              position: "absolute",
+              left: 0,
+              right: 0,
+              bottom: 0,
+              height: 1,
+              background: "var(--border-strong)",
+            }}
+          />
+        </div>
+
+        {/* Nominal-level labels under the baseline (log-positioned) */}
+        {ticks.map((t) => (
+          <div
+            key={`t-${t}`}
+            aria-hidden
+            style={{
+              position: "absolute",
+              left: `${xPct(t)}%`,
+              bottom: 4,
+              transform: "translateX(-50%)",
+              fontFamily: "var(--font-mono)",
+              fontSize: 10,
+              color: "var(--fg-subtle)",
+              letterSpacing: "0.06em",
+            }}
+          >
+            {formatTokenTick(t)}
+          </div>
+        ))}
+      </div>
+
+      {/* Condition legend — ALWAYS visible: the study's own figures use
+          solid/hollow marks with a different meaning, so arriving
+          readers need the encoding spelled out. */}
+      <div
+        className="mt-1 flex flex-wrap items-center gap-x-4 gap-y-1 font-mono"
+        style={{ fontSize: 9.5, letterSpacing: "0.06em", color: "var(--fg-subtle)" }}
+      >
+        {conditionsPresent.map((condition) => (
+          <span key={condition} className="inline-flex items-center gap-1.5">
+            <ConditionGlyph condition={condition} />
+            {CONDITION_LEGEND[condition]}
+          </span>
+        ))}
+      </div>
+
+      <div
+        className="mt-1.5 space-y-0.5 font-mono"
+        style={{ fontSize: 10, letterSpacing: "0.04em", color: "var(--fg-muted)" }}
+      >
+        <div>
+          {marks.length} runs · x: {axisLabel} (log scale) · y: {label}
+        </div>
+        {omitted > 0 && (
+          <div style={{ color: "var(--fg-subtle)" }}>
+            {omitted} {omitted === 1 ? "run has" : "runs have"} no recorded {axisLabel} and{" "}
+            {omitted === 1 ? "is" : "are"} left out
+          </div>
+        )}
+        {mismatchedConditionBudgets && (
+          <div style={{ color: "var(--fg-subtle)" }}>
+            feedback conditions ran at different budgets; compare them only where budgets match
+          </div>
+        )}
       </div>
     </div>
   )
