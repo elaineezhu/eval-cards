@@ -68,12 +68,17 @@ test("compute embed on non-study surfaces: declared absence, never a substituted
   const merged = await bodyText(page, "/embed/eval/distribution/hle?view=compute")
   expect(has(merged, COMPUTE_ABSENCE)).toBe(true)
   expect(has(merged, "merged (all sources)")).toBe(true)
-  expect(has(merged, STUDY_STRIP)).toBe(false)
+  // No strip. Assert on the strip's own sentence, not the study name —
+  // the source picker's option label can carry the study title when the
+  // snapshot uses it as the composite display name.
+  expect(has(merged, BUDGET_LINE)).toBe(false)
 
   // Pinning the study source swaps in its per-source payload.
   const pinned = await bodyText(page, `/embed/eval/distribution/hle?view=compute&source=${STUDY}`)
   expect(has(pinned, "reasoning-token allowance")).toBe(true)
-  expect(has(pinned, STUDY_STRIP)).toBe(true)
+  // The strip's own sentence — the picker's option label can carry the
+  // study title, so the name alone doesn't prove the strip rendered.
+  expect(has(pinned, BUDGET_LINE)).toBe(true)
 })
 
 test("existing embed views: study pages gain the context strip, ordinary pages are untouched", async ({ page }) => {
