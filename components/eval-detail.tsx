@@ -2600,6 +2600,31 @@ function MultiMetricLeaderboard({
     [visibleMetrics]
   )
 
+  // Column-uniform percent presentation: matrix cells arrive on the
+  // metric's canonical scale, so a percent-unit column whose values are
+  // all fractions renders ×100 with a % suffix. Decided per column over
+  // every row — a mixed column (old snapshot without canonical scores)
+  // keeps raw values untouched rather than half-converting.
+  const percentDisplayColumns = useMemo(() => {
+    const out = new Set<string>()
+    for (const metric of leaderboardMetrics) {
+      if (!/percent|%|pct/i.test(metric.unit ?? "")) continue
+      let sawValue = false
+      let allFractions = true
+      for (const row of leaderboardRows) {
+        const v = row.values[metric.column_key]
+        if (typeof v !== "number" || !Number.isFinite(v)) continue
+        sawValue = true
+        if (Math.abs(v) > 1.5) {
+          allFractions = false
+          break
+        }
+      }
+      if (sawValue && allFractions) out.add(metric.column_key)
+    }
+    return out
+  }, [leaderboardMetrics, leaderboardRows])
+
   const numericMinParams = useMemo(() => paramStepToNumeric(minParamStep, "min"), [minParamStep])
   const numericMaxParams = useMemo(() => paramStepToNumeric(maxParamStep, "max"), [maxParamStep])
   const [showUnknownSize, setShowUnknownSize] = useState(true)
@@ -2905,12 +2930,15 @@ function MultiMetricLeaderboard({
       {(() => {
         const distSeries = visibleMetrics
           .map((metric) => {
+            // Same ×100 presentation as the leaderboard cells, so the
+            // distribution axis and frontier labels match the table.
+            const scale = percentDisplayColumns.has(metric.column_key) ? 100 : 1
             const points: Array<{ score: number; releaseDate: string | null; modelName: string }> = []
             for (const r of filteredRows) {
               const score = r.values[metric.column_key]
               if (!isNumericScore(score)) continue
               points.push({
-                score,
+                score: score * scale,
                 releaseDate: r.model_info?.release_date ?? null,
                 modelName: r.model_info?.name ?? "",
               })
@@ -3130,6 +3158,11 @@ function MultiMetricLeaderboard({
                     const score = row.values[metric.column_key]
                     const annotations = row.annotations_by_metric?.[metric.column_key]
                     const valid = isNumericScore(score)
+                    const display = !valid
+                      ? "—"
+                      : percentDisplayColumns.has(metric.column_key)
+                        ? `${(score * 100).toFixed(1)}%`
+                        : formatRawScore(score, undefined)
                     return (
                       <td
                         key={metric.column_key}
@@ -3140,7 +3173,7 @@ function MultiMetricLeaderboard({
                           color: valid ? "var(--fg)" : "var(--fg-subtle)",
                         }}
                       >
-                        <div>{valid ? formatRawScore(score, undefined) : "—"}</div>
+                        <div>{display}</div>
                         <SignalsRowBadges annotations={annotations} variant="cell" />
                       </td>
                     )

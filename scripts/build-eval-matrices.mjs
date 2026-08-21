@@ -127,16 +127,40 @@ async function main() {
 
   // 1. All (eval, model, metric, score) rows. Includes non-primary
   //    metrics that getEvalSummaryById currently filters out.
+  //    Exactly one row per (eval, model, metric): the pipeline's
+  //    ranked-best row (position ranks on the canonical scale in the
+  //    metric's direction; unranked rows — feedback arms, flagged
+  //    scales — sort last). The verified flag rides the same chosen
+  //    row, so a cell's value and checkmark can't come from different
+  //    observations. `score_canonical` puts every cell of a column on
+  //    one scale; older snapshots without the column fall back to raw.
+  const viewCols = new Set(
+    readDuckRows(
+      await con.runAndReadAll(
+        `SELECT column_name FROM (DESCRIBE SELECT * FROM read_parquet(${fileRef("eval_results_view.parquet")}))`,
+      ),
+    ).map((r) => r.column_name),
+  )
+  const hasCanonical = viewCols.has("score_canonical")
+  const hasPosition = viewCols.has("position")
   const metricRows = await con.runAndReadAll(`
     SELECT
       r.evaluation_id,
       r.metric_id,
       r.model_route_id,
       r.score,
+      ${hasCanonical ? "r.score_canonical" : "NULL"} AS score_canonical,
       r.is_verified_evaluator
     FROM read_parquet(${fileRef("eval_results_view.parquet")}) r
     WHERE r.score IS NOT NULL
       AND r.model_route_id IS NOT NULL
+    QUALIFY row_number() OVER (
+      PARTITION BY r.evaluation_id, r.model_route_id, r.metric_id
+      ORDER BY
+        ${hasPosition ? "(r.position IS NULL), r.position," : ""}
+        ${hasCanonical ? "r.score_canonical DESC NULLS LAST," : ""}
+        r.score DESC
+    ) = 1
   `)
 
   // 2. Per-slice (composite_slug, benchmark, model, metric, slice_key,
@@ -211,9 +235,10 @@ async function main() {
   // 4. Map model_id → model_route_id so per-slice rows (which carry
   //    model_id) can land alongside per-metric rows (model_route_id).
   const modelKeyRows = await con.runAndReadAll(`
-    SELECT DISTINCT model_id, model_route_id
+    SELECT model_id, min(model_route_id) AS model_route_id
     FROM read_parquet(${fileRef("eval_results_view.parquet")})
     WHERE model_route_id IS NOT NULL
+    GROUP BY model_id
   `)
 
   await con.disconnectSync()
@@ -275,7 +300,9 @@ async function main() {
   for (const row of metricRows.getRowObjects().map(normalizeDuck)) {
     const bucket = ensureEval(row.evaluation_id)
     const modelEntry = ensureModelEntry(bucket, row.model_route_id)
-    modelEntry.values[row.metric_id] = Number(row.score)
+    modelEntry.values[row.metric_id] = Number(
+      row.score_canonical != null ? row.score_canonical : row.score,
+    )
     if (row.is_verified_evaluator != null) {
       modelEntry.verified[row.metric_id] = Boolean(row.is_verified_evaluator)
     }
