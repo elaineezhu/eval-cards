@@ -23,7 +23,9 @@ const treeUrl = `https://huggingface.co/api/datasets/${REPO}/tree/${BRANCH}/ware
 
 let entries
 try {
-  const res = await fetch(treeUrl)
+  // no-cache: the tree listing is CDN-cached and can lag a fresh publish by
+  // minutes — a build racing a publish would silently pin the previous snapshot.
+  const res = await fetch(treeUrl, { headers: { "Cache-Control": "no-cache" } })
   if (!res.ok) throw new Error(`HTTP ${res.status} from ${treeUrl}`)
   entries = await res.json()
 } catch (e) {
