@@ -13,7 +13,7 @@ import { cn } from "@/lib/utils"
  *
  *   eyebrow ("Evaluator")
  *   [ logo plate ]  Org Name  ✓        ← vertically-centred hero row
- *                   reporting organisation · N evaluations · N families · N verified
+ *                   reporting organization · N evaluations · N families · N verified
  *
  * The logo is rendered through <OrgLogo/>, which auto-squares and auto-sizes
  * any aspect ratio onto a consistent light plate and falls back to a monogram
@@ -90,7 +90,7 @@ export default function EvaluatorLetterhead({
 
         {/* Mono-caps colophon — indented to begin under the name. */}
         <div className="mt-3 flex flex-wrap items-center gap-x-3 gap-y-1 pl-[84px] font-mono text-[11px] uppercase tracking-[0.12em] text-[color:var(--fg-muted)] sm:pl-[96px]">
-          <span>Reporting organisation</span>
+          <span>Reporting organization</span>
           <Dot />
           <span>
             <span className="font-semibold tabular-nums text-[color:var(--fg)]">

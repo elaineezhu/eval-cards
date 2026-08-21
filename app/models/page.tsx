@@ -317,7 +317,7 @@ export default function ModelsPage() {
         <h1 className="ec-page-h1">{groupByDeveloper ? "Model developers" : "Models"}</h1>
         <p className="ec-page-lede">
           {groupByDeveloper
-            ? "Every reporting organisation in the corpus and the breadth of evaluation it ships."
+            ? "Every reporting organization in the corpus and the breadth of evaluation it ships."
             : (
               <>
                 Every indexed model and the shape of its published evaluation record across{" "}

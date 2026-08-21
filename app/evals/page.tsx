@@ -343,7 +343,7 @@ function EvalsPageInner() {
         <p className="ec-page-lede">
           {groupBy === "evaluator" ? (
             <>
-              Evaluations grouped by the <strong>organisation that reported them</strong>. A
+              Evaluations grouped by the <strong>organization that reported them</strong>. A
               verified evaluator submitted the results from the org that ran the evaluation.
             </>
           ) : (

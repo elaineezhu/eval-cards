@@ -107,7 +107,7 @@ export const DOCS: TutorialMeta[] = [
     category: "doc",
     audience: "Verification",
     blurb:
-      "Submit your data through your organisation's Hugging Face account to have your results show up verified — our call for apples-to-apples comparison.",
+      "Submit your data through your organization's Hugging Face account to have your results show up verified — our call for apples-to-apples comparison.",
   },
 ]
 
