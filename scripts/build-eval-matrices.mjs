@@ -159,8 +159,10 @@ async function main() {
       ORDER BY
         ${hasPosition ? "(r.position IS NULL), r.position," : ""}
         ${hasCanonical ? "r.score_canonical DESC NULLS LAST," : ""}
-        r.score DESC
+        r.score DESC,
+        r.metric_summary_id
     ) = 1
+    ORDER BY r.evaluation_id, r.model_route_id, r.metric_id
   `)
 
   // 2. Per-slice (composite_slug, benchmark, model, metric, slice_key,
@@ -214,6 +216,7 @@ async function main() {
            != regexp_replace(lower(f.parent_benchmark_id), '[^a-z0-9]+', '', 'g')
       )
     GROUP BY 1,2,3,4,5,6,7
+    ORDER BY 1,2,3,4,5,6,7
   `)
 
   // 3. eval → (composite_slug, benchmark_id) mapping so we can join
