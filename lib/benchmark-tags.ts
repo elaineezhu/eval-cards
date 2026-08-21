@@ -130,11 +130,44 @@ export function decorateHierarchyDerivedTags(h: EvalHierarchy): EvalHierarchy {
   // the same output (sanitiseName / unionTags are idempotent) but would
   // pay an unnecessary walk through every node on each fetch.
   if ((h as { _evalCardCleaned?: boolean })._evalCardCleaned) return h
+  const suspects = collectDuplicatedDisplayNames(h)
   for (const fam of h.families ?? []) {
-    sanitizeFamilyDisplayNames(fam)
+    sanitizeFamilyDisplayNames(fam, suspects)
     decorateFamily(fam)
   }
   return h
+}
+
+// The copy-paste signature the sanitiser exists for: one display_name
+// string shipping under 2+ DISTINCT keys (e.g. `math-mc` and `gsm-mc`
+// both carrying "wasp (…)"). A display unique to its node is trusted
+// even when it shares nothing with the key — legitimate names often
+// don't (paper titles, "Humanity's Last Exam" under key `hle`).
+function collectDuplicatedDisplayNames(h: EvalHierarchy): Set<string> {
+  const normed = (s: string) => s.toLowerCase().replace(/[^a-z0-9]+/g, "")
+  const keysByDisplay = new Map<string, Set<string>>()
+  const note = (display: string | null | undefined, key: string | null | undefined) => {
+    if (!display || !display.trim() || !key) return
+    const d = normed(display)
+    if (!d) return
+    let keys = keysByDisplay.get(d)
+    if (!keys) keysByDisplay.set(d, (keys = new Set()))
+    keys.add(normed(key))
+  }
+  for (const fam of h.families ?? []) {
+    note(fam.display_name, fam.key)
+    for (const c of fam.composites ?? []) {
+      note(c.display_name, c.key)
+      for (const b of c.benchmarks ?? []) note(b.display_name, b.key)
+    }
+    for (const b of fam.standalone_benchmarks ?? []) note(b.display_name, b.key)
+    for (const b of fam.benchmarks ?? []) note(b.display_name, b.key)
+  }
+  const suspects = new Set<string>()
+  for (const [display, keys] of keysByDisplay) {
+    if (keys.size >= 2) suspects.add(display)
+  }
+  return suspects
 }
 
 // Workaround for an upstream warehouse bug where some families inherit a
@@ -172,28 +205,36 @@ function humanizeKey(key: string): string {
     .join("-")
 }
 
-function sanitizeName(displayName: string | null | undefined, key: string): string {
+function sanitizeName(
+  displayName: string | null | undefined,
+  key: string,
+  suspects: Set<string>,
+): string {
   if (!displayName || !displayName.trim()) return humanizeKey(key)
-  if (!shareToken(displayName, key)) return humanizeKey(key)
+  // Replace only names showing the copy-paste signature: unrelated to
+  // this key AND shipping under other keys too. A unique display is
+  // trusted verbatim.
+  const normed = displayName.toLowerCase().replace(/[^a-z0-9]+/g, "")
+  if (!shareToken(displayName, key) && suspects.has(normed)) return humanizeKey(key)
   return displayName
 }
 
-function sanitizeFamilyDisplayNames(fam: HierarchyFamily): void {
-  fam.display_name = sanitizeName(fam.display_name, fam.key)
+function sanitizeFamilyDisplayNames(fam: HierarchyFamily, suspects: Set<string>): void {
+  fam.display_name = sanitizeName(fam.display_name, fam.key, suspects)
   for (const c of fam.composites ?? []) {
-    c.display_name = sanitizeName(c.display_name, c.key)
+    c.display_name = sanitizeName(c.display_name, c.key, suspects)
     for (const b of c.benchmarks ?? []) {
-      b.display_name = sanitizeName(b.display_name, b.key)
-      for (const s of b.slices ?? []) s.display_name = sanitizeName(s.display_name, s.key)
+      b.display_name = sanitizeName(b.display_name, b.key, suspects)
+      for (const s of b.slices ?? []) s.display_name = sanitizeName(s.display_name, s.key, suspects)
     }
   }
   for (const b of fam.standalone_benchmarks ?? []) {
-    b.display_name = sanitizeName(b.display_name, b.key)
-    for (const s of b.slices ?? []) s.display_name = sanitizeName(s.display_name, s.key)
+    b.display_name = sanitizeName(b.display_name, b.key, suspects)
+    for (const s of b.slices ?? []) s.display_name = sanitizeName(s.display_name, s.key, suspects)
   }
   for (const b of fam.benchmarks ?? []) {
-    b.display_name = sanitizeName(b.display_name, b.key)
-    for (const s of b.slices ?? []) s.display_name = sanitizeName(s.display_name, s.key)
+    b.display_name = sanitizeName(b.display_name, b.key, suspects)
+    for (const s of b.slices ?? []) s.display_name = sanitizeName(s.display_name, s.key, suspects)
   }
 }
 
