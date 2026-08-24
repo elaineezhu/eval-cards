@@ -1,16 +1,14 @@
 import { expect, test, type Page } from "@playwright/test"
 
-// Collection-study embeds e2e — the compute view and trajectory panels
+// Collection-study embeds e2e — the context view and trajectory panels
 // inside /embed/eval/*. Opt-in via `SNAPSHOT_URL=<warehouse> pnpm
-// test:e2e`; self-skips otherwise. Asserts CONTENT (axis labels, run
-// counts, panel titles, declared-absence copy), not liveness, because a
-// blank iframe and a silently substituted chart both return 200.
+// test:e2e`; self-skips otherwise. Asserts CONTENT (captions, panel
+// titles, declared-absence copy), not liveness, because a blank iframe
+// and a silently substituted chart both return 200.
 //
 // The AISI expectations are pinned to the study's shape in the
-// warehouse: four of the five pages carry a compute axis (two on the
-// token budget, two on the reasoning-token allowance) and frontiermath
-// carries none by design; healthbench (graded outcome) serves only the
-// termination panel.
+// warehouse; healthbench (graded outcome) serves only the termination
+// panel.
 
 const BASE = `http://localhost:${process.env.PORT || 3211}`
 const SNAPSHOT = (process.env.SNAPSHOT_URL || "").replace(/\/+$/, "")
@@ -21,8 +19,6 @@ test.skip(!SNAPSHOT, "set SNAPSHOT_URL to run the collection-embeds e2e")
 const STUDY = "aisi-inference-scaling"
 const STUDY_STRIP = "How Inference Compute Shapes Frontier LLM Evaluation"
 const BUDGET_LINE = "Runs used larger inference budgets than standard evaluation setups."
-const COMPUTE_ABSENCE = "no compute-varied protocol settings"
-const HARVEST_LINE = "leaderboard entries harvested"
 
 // innerText reflects CSS text-transform (kickers and card titles render
 // uppercased), so every containment check is case-insensitive.
@@ -33,78 +29,36 @@ const bodyText = async (page: Page, url: string) => {
 }
 const has = (text: string, needle: string) => text.includes(needle.toLowerCase())
 
-test("compute embeds: four AISI pages render marks on the right axis, frontiermath declares absence", async ({ page }) => {
-  const cases: Array<{ id: string; axis: string; runs: string }> = [
-    { id: "swe-bench-pro", axis: "token budget (limit)", runs: "33 runs" },
-    { id: "terminal-bench-2", axis: "token budget (limit)", runs: "39 runs" },
-    { id: "hle", axis: "reasoning-token allowance", runs: "17 runs" },
-    { id: "healthbench", axis: "reasoning-token allowance", runs: "17 runs" },
-  ]
-  for (const c of cases) {
-    const text = await bodyText(page, `/embed/eval/distribution/${STUDY}%2F${c.id}?view=compute`)
-    expect(has(text, "score by compute setting"), `${c.id}: kicker`).toBe(true)
-    expect(has(text, c.axis), `${c.id}: axis label`).toBe(true)
-    expect(has(text, c.runs), `${c.id}: mark count`).toBe(true)
-    expect(has(text, STUDY_STRIP), `${c.id}: attribution`).toBe(true)
-    expect(has(text, BUDGET_LINE), `${c.id}: budget line`).toBe(true)
-    expect(has(text, COMPUTE_ABSENCE), `${c.id}: no absence line`).toBe(false)
-  }
-
-  // hle drops 10 of its 27 protocol rows (null on the chosen axis); the
-  // caption must say so rather than silently shrinking the population.
-  const hle = await bodyText(page, `/embed/eval/distribution/${STUDY}%2Fhle?view=compute`)
-  expect(has(hle, "10 runs have no recorded")).toBe(true)
-
-  // frontiermath: nothing numeric varies within a feedback condition, so
-  // the axis is null by design and the embed declares absence (the strip
-  // still attributes the page's data to the study).
-  const fm = await bodyText(page, `/embed/eval/distribution/${STUDY}%2Ffrontiermath?view=compute`)
-  expect(has(fm, COMPUTE_ABSENCE)).toBe(true)
-  expect(has(fm, STUDY_STRIP)).toBe(true)
-})
-
-test("compute embed on non-study surfaces: declared absence, never a substituted chart", async ({ page }) => {
-  // Merged id unpinned: merged summaries never carry the collection
-  // attachment, so compute is unreachable until a source is pinned.
-  const merged = await bodyText(page, "/embed/eval/distribution/hle?view=compute")
-  expect(has(merged, COMPUTE_ABSENCE)).toBe(true)
-  expect(has(merged, "merged (all sources)")).toBe(true)
-  // No strip. Assert on the strip's own sentence, not the study name —
-  // the source picker's option label can carry the study title when the
-  // snapshot uses it as the composite display name.
-  expect(has(merged, BUDGET_LINE)).toBe(false)
-
-  // Pinning the study source swaps in its per-source payload.
-  const pinned = await bodyText(page, `/embed/eval/distribution/hle?view=compute&source=${STUDY}`)
-  expect(has(pinned, "reasoning-token allowance")).toBe(true)
-  // The strip's own sentence — the picker's option label can carry the
-  // study title, so the name alone doesn't prove the strip rendered.
-  expect(has(pinned, BUDGET_LINE)).toBe(true)
-})
-
 test("existing embed views: study pages gain the context strip, ordinary pages are untouched", async ({ page }) => {
   const study = await bodyText(page, `/embed/eval/distribution/${STUDY}%2Fterminal-bench-2`)
   expect(has(study, "score distribution")).toBe(true)
-  expect(has(study, "21 of 39 runs received oracle score feedback")).toBe(true)
+  expect(has(study, BUDGET_LINE)).toBe(true)
+  expect(has(study, "received oracle score feedback")).toBe(false)
 
   const frontier = await bodyText(page, `/embed/eval/frontier/${STUDY}%2Fswe-bench-pro`)
   expect(has(frontier, "pareto frontier")).toBe(true)
   expect(has(frontier, STUDY_STRIP)).toBe(true)
 
-  // The harvest sentence belongs to the Context embed alone; the shared
-  // strip renders its pre-change text on every other surface.
+  // The study strip rides every embed surface for a curated page.
   for (const url of [
     `/embed/eval/distribution/${STUDY}%2Fterminal-bench-2`,
-    `/embed/eval/distribution/${STUDY}%2Fterminal-bench-2?view=compute`,
     `/embed/eval/frontier/${STUDY}%2Fterminal-bench-2`,
     `/embed/eval/trajectories/${STUDY}%2Fterminal-bench-2`,
   ]) {
     const surface = await bodyText(page, url)
     expect(has(surface, STUDY_STRIP), `${url}: strip still renders`).toBe(true)
-    expect(has(surface, HARVEST_LINE), `${url}: no harvest sentence`).toBe(false)
   }
 
-  // An ordinary two-segment eval: no strip, and ?view=compute is absence.
+  // The retired compute view: a live ?view=compute link falls back to the
+  // distribution rather than rendering an empty frame.
+  const retired = await bodyText(
+    page,
+    `/embed/eval/distribution/${STUDY}%2Fterminal-bench-2?view=compute`,
+  )
+  expect(has(retired, "score distribution")).toBe(true)
+  expect(has(retired, "score by compute setting")).toBe(false)
+
+  // An ordinary two-segment eval carries no study strip.
   const listRes = await page.request.get(`${BASE}/api/eval-list-lite`)
   const listJson = (await listRes.json()) as
     | { evals?: Array<{ evaluation_id?: string }> }
@@ -116,8 +70,6 @@ test("existing embed views: study pages gain the context strip, ordinary pages a
   expect(ordinary, "an ordinary per-source eval exists").toBeTruthy()
   const ord = await bodyText(page, `/embed/eval/distribution/${ordinary}`)
   expect(has(ord, BUDGET_LINE)).toBe(false)
-  const ordCompute = await bodyText(page, `/embed/eval/distribution/${ordinary}?view=compute`)
-  expect(has(ordCompute, COMPUTE_ABSENCE)).toBe(true)
 })
 
 test("trajectories embed: per-page panel sets, panel filter, and declared absence", async ({ page }) => {
@@ -173,28 +125,20 @@ test("context embed: the scaffold-context strips render, and ?view=context falls
   )
 
   const text = await bodyText(page, `/embed/eval/distribution/${STUDY}%2Fterminal-bench-2?view=context`)
-  expect(has(text, "score in scaffold context")).toBe(true)
+  expect(has(text, "study scores among other reported evaluations")).toBe(true)
   expect(has(text, STUDY_STRIP)).toBe(true)
-  // The three standing caption lines: what a circle is, what a diamond
-  // is, what the band is.
-  expect(has(text, "each circle is one agent scaffold on the terminal-bench 2.0 leaderboard")).toBe(
-    true,
-  )
-  expect(has(text, "diamonds: this study's no-feedback score over 86–88 of the 89 tasks")).toBe(true)
-  expect(has(text, "shaded band: estimated score range for a re-run at 5 runs per task")).toBe(true)
-  // The absence list comes from the sidecar, never from a client-side join.
-  expect(has(text, "no leaderboard entries for claude opus 4 and gpt-5.4")).toBe(true)
-  // The ranked-score line names the differing models once, not per strip.
+  // The two standing caption lines: what a diamond is, what a circle is.
   expect(
     has(
       text,
-      "the ranked list shows each model's best score, for claude opus 4.6 and gpt-5.2 from a smaller task set",
+      "diamonds: the current study's score for the no-feedback (blue) and with-oracle (orange) setup",
     ),
   ).toBe(true)
-  // The harvest date lives in the study strip, not in the captions, and
-  // it is a date, never the raw stamp.
-  expect(has(text, "leaderboard entries harvested 2026-08-23.")).toBe(true)
-  expect(has(text, "2026-08-23t")).toBe(false)
+  expect(has(text, "whiskers show the standard error")).toBe(true)
+  expect(has(text, "circles: reported scores from other sources in every eval ever")).toBe(true)
+  // The retired band and harvest sentence are gone from every surface.
+  expect(has(text, "shaded band")).toBe(false)
+  expect(has(text, "measurements harvested")).toBe(false)
   // The strips are not the histogram.
   expect(has(text, "kernel-density")).toBe(false)
 })
@@ -211,7 +155,7 @@ test("context embed on a no-context eval: unknown-view fallback, never an empty 
     `/embed/eval/distribution/${STUDY}%2Ffrontiermath?view=not-a-view`,
   )
   expect(has(fm, "score distribution")).toBe(true)
-  expect(has(fm, "score in scaffold context")).toBe(false)
+  expect(has(fm, "study scores among other reported evaluations")).toBe(false)
   expect(has(fmUnknown, "score distribution")).toBe(true)
 
   const listRes = await page.request.get(`${BASE}/api/eval-list-lite`)
@@ -225,5 +169,5 @@ test("context embed on a no-context eval: unknown-view fallback, never an empty 
   expect(ordinary, "an ordinary per-source eval exists").toBeTruthy()
   const ord = await bodyText(page, `/embed/eval/distribution/${ordinary}?view=context`)
   expect(has(ord, "score distribution")).toBe(true)
-  expect(has(ord, "score in scaffold context")).toBe(false)
+  expect(has(ord, "study scores among other reported evaluations")).toBe(false)
 })

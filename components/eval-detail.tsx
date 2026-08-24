@@ -55,7 +55,6 @@ import type { BenchmarkCard, SourceData } from "@/lib/benchmark-schema"
 import { tagLabel } from "@/lib/benchmark-schema"
 import { isAssistedResult } from "@/lib/eval-processing"
 import type { BenchmarkEvalSummary, ModelResultForBenchmark } from "@/lib/eval-processing"
-import { buildComputeProtocolSeries } from "@/lib/collections"
 import { CollectionTrajectories } from "@/components/collection-trajectories"
 import { isRecognizedEvaluator } from "@/lib/evaluators"
 import { useEvaluatorSlug } from "@/components/org-metadata-provider"
@@ -934,22 +933,10 @@ export function EvalDetail({
     [leaderboardRows]
   )
 
-  // Compute-view protocol points, fed to the plotbox as a SEPARATE
-  // series (the Distribution/Frontier paths never read it). Gated on the
-  // per-source-only collection attachment + the server-chosen axis, so
-  // the chip can never appear on merged pages. Assisted rows ARE
-  // included here — the condition legend makes the labeling explicit.
-  const computeProtocol = useMemo(
-    () =>
-      buildComputeProtocolSeries(lb.model_results, summary.collection, isResearchView) ??
-      undefined,
-    [summary.collection, lb.model_results, isResearchView],
-  )
-
-  // Context view: the study's own score for each model placed inside the
-  // official leaderboard's per-scaffold distribution. Server-built and
-  // pre-joined by the producer; null unless this exact (collection,
-  // benchmark) pair passed the bake gates.
+  // Context view: the study's own score for each model placed among the
+  // community's published measurements. Server-built and pre-joined by
+  // the producer; null unless this exact (collection, benchmark) pair
+  // passed the bake gates.
   const scaffoldContext = summary.collection?.context ?? undefined
 
   // Optional user-driven sort. `default` keeps the score-ordered rows
@@ -1718,17 +1705,6 @@ export function EvalDetail({
                       label: "Both",
                       embedPath: `/embed/eval/distribution/${routeIdToPath(summary.evaluation_id)}?view=both`,
                     },
-                    // Study pages only: the embed route renders the same
-                    // marks this page's Compute chip shows.
-                    ...(computeProtocol
-                      ? [
-                          {
-                            id: "compute",
-                            label: "Compute",
-                            embedPath: `/embed/eval/distribution/${routeIdToPath(summary.evaluation_id)}?view=compute`,
-                          },
-                        ]
-                      : []),
                     // Same gate as the Context chip: the server-built
                     // scaffold-context payload on this page's summary.
                     ...(scaffoldContext
@@ -1756,7 +1732,6 @@ export function EvalDetail({
                     modelName: r.modelResult.model_info.name,
                   })),
                 }]}
-                protocol={computeProtocol}
                 context={scaffoldContext}
               />
             </div>

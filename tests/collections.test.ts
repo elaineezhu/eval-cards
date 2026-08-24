@@ -2,12 +2,9 @@ import { describe, expect, it } from "vitest"
 
 import {
   buildCollectionAttachment,
-  buildComputeMarks,
-  buildComputeProtocolSeries,
   buildScaffoldContext,
   chooseComputeAxis,
   feedbackConditionOf,
-  hasMismatchedConditionBudgets,
   type CollectionContextSidecar,
   type ScaffoldContextEntry,
   type ScaffoldContextSummaryInput,
@@ -68,38 +65,6 @@ describe("chooseComputeAxis (R1 axis selection)", () => {
   })
 })
 
-describe("buildComputeMarks (R1 marks)", () => {
-  const rows = [
-    { score: 0.4, protocol_condition: cond({ feedback: "none", token_limit: 2_000_000 }), model_info: { name: "A" } },
-    { score: 0.5, protocol_condition: cond({ feedback: "none", token_limit: 5_000_000 }), model_info: { name: "A" } },
-    { score: 0.7, protocol_condition: cond({ feedback: "answer_feedback", token_limit: 5_000_000 }), model_info: { name: "A" } },
-    // Protocol row without a numeric value on the axis → omitted + counted.
-    { score: 0.3, protocol_condition: cond({ feedback: "none", token_limit: null }), model_info: { name: "B" } },
-    // Ordinary row (no protocol) → not part of the scatter, not counted.
-    { score: 0.9, protocol_condition: null, model_info: { name: "C" } },
-  ]
-
-  it("keeps assisted marks (labeled by condition) and counts null-axis rows as omitted", () => {
-    const { marks, omitted } = buildComputeMarks(rows, "token_limit")
-    expect(marks).toHaveLength(3)
-    expect(omitted).toBe(1)
-    expect(marks.map((m) => m.condition)).toEqual(["none", "none", "answer_feedback"])
-    expect(marks.every((m) => m.modelName === "A")).toBe(true)
-  })
-
-  it("flags mismatched condition budgets only when nominal sets differ", () => {
-    const { marks } = buildComputeMarks(rows, "token_limit")
-    // no-feedback condition at {2M, 5M}, assisted at {5M} → mismatched.
-    expect(hasMismatchedConditionBudgets(marks)).toBe(true)
-    const matched = buildComputeMarks(
-      rows.filter((r) => r.score !== 0.4),
-      "token_limit",
-    ).marks
-    // Both conditions only at 5M → matched.
-    expect(hasMismatchedConditionBudgets(matched)).toBe(false)
-  })
-})
-
 describe("buildCollectionAttachment (R1.2)", () => {
   const entry = {
     curated: true,
@@ -135,70 +100,6 @@ describe("buildCollectionAttachment (R1.2)", () => {
     // sidecar's terminalbench key — declared absence, not a guess.
     const attachment = buildCollectionAttachment("uk-x", entry, "terminal-bench-2", conditions)
     expect(attachment?.outcome_type).toBeUndefined()
-  })
-})
-
-describe("buildComputeProtocolSeries (shared page/embed compute feed)", () => {
-  const attachment = {
-    collection_id: "uk-aisi-inference-scaling",
-    display_name: "Study",
-    curated: true as const,
-    compute_axis: { key: "reasoning_tokens", label: "reasoning-token allowance", unit: "tokens" },
-  }
-  const row = (score: number, fields: Record<string, unknown> | null, name = "m") => ({
-    score,
-    protocol_condition: fields ? cond(fields) : null,
-    model_info: { name },
-  })
-
-  it("builds marks, omitted count, and the mismatched-budget flag from the attachment's axis", () => {
-    const series = buildComputeProtocolSeries(
-      [
-        row(0.4, { feedback: "none", reasoning_tokens: 16000 }),
-        row(0.5, { feedback: "none", reasoning_tokens: 64000 }),
-        row(0.6, { feedback: "answer_feedback", reasoning_tokens: 32000 }),
-        // Null on the chosen axis: omitted from the plot, counted in the caption.
-        row(0.7, { feedback: "answer_feedback", reasoning_tokens: null }),
-        // No protocol at all: skipped silently, exactly like the marks builder.
-        row(0.8, null),
-      ],
-      attachment,
-      true,
-    )
-    expect(series).not.toBeNull()
-    expect(series!.axisLabel).toBe("reasoning-token allowance")
-    expect(series!.marks).toHaveLength(3)
-    expect(series!.omitted).toBe(1)
-    expect(series!.mismatchedConditionBudgets).toBe(true)
-    expect(series!.researcherMode).toBe(true)
-  })
-
-  it("returns null without the attachment even when rows carry protocol fields (merged-shaped summary)", () => {
-    const rows = [
-      row(0.4, { feedback: "none", reasoning_tokens: 16000 }),
-      row(0.5, { feedback: "none", reasoning_tokens: 64000 }),
-    ]
-    expect(buildComputeProtocolSeries(rows, undefined, false)).toBeNull()
-    expect(buildComputeProtocolSeries(rows, null, false)).toBeNull()
-  })
-
-  it("returns null when the server chose no axis (frontiermath) or the entry is uncurated", () => {
-    const rows = [row(0.4, { feedback: "none", reasoning_tokens: 16000 })]
-    expect(
-      buildComputeProtocolSeries(rows, { ...attachment, compute_axis: null }, false),
-    ).toBeNull()
-    expect(
-      buildComputeProtocolSeries(rows, { ...attachment, curated: false as never }, false),
-    ).toBeNull()
-  })
-
-  it("returns null when no row yields a mark, so callers render absence rather than an empty plot", () => {
-    const series = buildComputeProtocolSeries(
-      [row(0.4, { feedback: "none", reasoning_tokens: null }), row(0.5, null)],
-      attachment,
-      false,
-    )
-    expect(series).toBeNull()
   })
 })
 
@@ -313,18 +214,74 @@ describe("buildScaffoldContext (Context view payload, finding I1)", () => {
     expect(opus46.points).toHaveLength(10)
     expect(opus46.points[0]).toEqual({
       scaffold: "Meta-Harness",
+      source: null,
       score: 0.764,
       scoreSe: 0.024,
       runDate: "2026-05-14",
     })
-    // The published score is NOT the band midpoint — a thin-attempt model
-    // sits at its upper edge, which is why the band must never be drawn
-    // as if it were centred on the diamond.
-    expect(opus46.score).toBeGreaterThan((opus46.bandLo + opus46.bandHi) / 2)
+    // Old-schema sidecar: no published SE on the model entry, so the
+    // diamond renders without a whisker.
+    expect(opus46.scoreSe).toBeNull()
     // Caption 2's attempts range spans the strips: 1 (opus-4.6, gpt-5.2)
     // through 10 (opus-4.5, gpt-5).
     expect(Math.min(...payload.models.map((m) => m.attemptsMin))).toBe(1)
     expect(Math.max(...payload.models.map((m) => m.attemptsMax))).toBe(10)
+  })
+
+  it("carries scaffold-less measurements and their source through to the points", () => {
+    // New-schema sidecar: a provenance-unknown point (scaffold null) from a
+    // named source alongside an old-schema point without a source field.
+    const mixed: ScaffoldContextEntry = {
+      ...entry,
+      models: {
+        "openai/gpt-5": {
+          ...entry.models["openai/gpt-5"],
+          score_se: 0.045,
+          external: [
+            { scaffold: null, source: "LLM Stats", score: 0.751, score_se: null, run_date: null },
+            { scaffold: "Terminus 2", score: 0.462, score_se: 0.024, run_date: "2025-11-22" },
+          ],
+        },
+      },
+    }
+    const built = buildScaffoldContext(mixed, summary)!.models[0]
+    expect(built.points).toEqual([
+      { scaffold: null, source: "LLM Stats", score: 0.751, scoreSe: null, runDate: null },
+      { scaffold: "Terminus 2", source: null, score: 0.462, scoreSe: 0.024, runDate: "2025-11-22" },
+    ])
+    // New-schema model entry: the study's published SE feeds the whisker.
+    expect(built.scoreSe).toBe(0.045)
+  })
+
+  it("threads the assisted companion cell and its gate list; old sidecars stay null", () => {
+    // Old bake: no assisted field anywhere in the entry.
+    const old = buildScaffoldContext(entry, summary)!
+    expect(old.models.every((m) => m.assisted === null)).toBe(true)
+    expect(old.modelsWithoutAssisted).toEqual([])
+
+    const withAssisted: ScaffoldContextEntry = {
+      ...entry,
+      models_without_assisted: [{ display_name: "GPT-5", n_tasks: 76 }],
+      models: {
+        "openai/gpt-5.2": {
+          ...entry.models["openai/gpt-5.2"],
+          assisted: {
+            score: 0.764902,
+            score_se: 0.040599,
+            n_tasks: 85,
+            protocol_condition: AISI.assisted,
+          },
+        },
+      },
+    }
+    const built = buildScaffoldContext(withAssisted, summary)!
+    expect(built.models[0].assisted).toEqual({
+      score: 0.764902,
+      scoreSe: 0.040599,
+      nTasks: 85,
+      protocolCondition: AISI.assisted,
+    })
+    expect(built.modelsWithoutAssisted).toEqual([{ displayName: "GPT-5", nTasks: 76 }])
   })
 
   it("falls back to the aggregation key when the sidecar carries no display name", () => {

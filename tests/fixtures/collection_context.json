@@ -237,8 +237,12 @@
   },
   "uk-study": {
     "bench-x": {
-      "context_source_display": "Synthetic Board",
+      "context_source_display": "Agg Board, Synthetic Board",
       "context_sources": [
+        {
+          "display_name": "Agg Board",
+          "id": "agg-board"
+        },
         {
           "display_name": "Synthetic Board",
           "id": "synthetic-board"
@@ -260,29 +264,48 @@
               "run_date": "2026-04-18",
               "scaffold": "Codex CLI",
               "score": 0.52,
-              "score_se": 0.03
+              "score_se": 0.03,
+              "source": "Synthetic Board"
+            },
+            {
+              "retrieved_at": "2026-04-20",
+              "run_date": null,
+              "scaffold": null,
+              "score": 0.47,
+              "score_se": null,
+              "source": "Agg Board"
             },
             {
               "run_date": "2026-04-02",
               "scaffold": "OpenHands",
               "score": 0.44,
-              "score_se": null
+              "score_se": null,
+              "source": "Synthetic Board"
             },
             {
               "run_date": "2026-03-21",
               "scaffold": "Terminus 2",
               "score": 0.36,
-              "score_se": 0.04
+              "score_se": 0.04,
+              "source": "Synthetic Board"
             }
           ],
           "n_tasks": 9,
           "protocol_condition": "{\"feedback\":\"none\",\"token_limit\":2000000}",
-          "score": 0.4
+          "score": 0.4,
+          "score_se": 0.045,
+          "assisted": {
+            "score": 0.55,
+            "score_se": 0.05,
+            "n_tasks": 9,
+            "protocol_condition": "{\"feedback\":\"answer_feedback\",\"token_limit\":2000000}"
+          }
         }
       },
       "models_without_context": [
         "Llama 4"
       ],
+      "models_without_assisted": [],
       "official_task_count": 10
     }
   }

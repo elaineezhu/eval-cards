@@ -94,21 +94,6 @@ export function feedbackConditionOf(raw: string | null | undefined): FeedbackCon
   return "unknown"
 }
 
-/** Plain-language feedback-condition description (policy-mode hover),
- *  using the study's own condition names. The no-feedback condition must
- *  never be described as "single attempt" — both conditions allow
- *  resubmission. */
-export function feedbackConditionDescription(condition: FeedbackCondition): string {
-  switch (condition) {
-    case "answer_feedback":
-      return "Oracle score feedback (assisted): the model was told when its submission was correct."
-    case "none":
-      return "No feedback: no correctness signal during the run; the model could still revise and resubmit."
-    default:
-      return "Feedback condition unknown."
-  }
-}
-
 // Preference order is the study's own: token_limit is the headline
 // budget axis; reasoning_tokens is the fallback for pages where the
 // budget never varies within a condition.
@@ -152,131 +137,6 @@ export function chooseComputeAxis(
   return null
 }
 
-export interface ComputeMark {
-  x: number
-  score: number
-  condition: FeedbackCondition
-  modelName: string
-  /** Full parsed protocol fields (researcher-mode hover). */
-  protocolFields: Record<string, unknown>
-}
-
-export interface ComputeMarksResult {
-  marks: ComputeMark[]
-  /** Protocol rows whose condition lacks a numeric value on the chosen
-   *  axis — omitted from the plot and counted in the caption. */
-  omitted: number
-}
-
-/**
- * Build the compute-view marks from the page's model_results. Only rows
- * carrying a protocol_condition participate; assisted rows are included
- * (this is the one view where the condition labeling is explicit) and
- * the condition is carried on every mark so the renderer can encode and
- * highlight per (model, condition) — never across conditions.
- */
-export function buildComputeMarks(
-  rows: Array<{
-    score: number
-    protocol_condition?: string | null
-    model_info: { name: string }
-  }>,
-  axisKey: string,
-): ComputeMarksResult {
-  const marks: ComputeMark[] = []
-  let omitted = 0
-  for (const row of rows) {
-    const fields = parseProtocolCondition(row.protocol_condition)
-    if (!fields) continue
-    if (!Number.isFinite(row.score)) continue
-    const value = axisValue(fields, axisKey)
-    if (value == null || value <= 0) {
-      omitted += 1
-      continue
-    }
-    marks.push({
-      x: value,
-      score: row.score,
-      condition: feedbackConditionOf(row.protocol_condition),
-      modelName: row.model_info.name,
-      protocolFields: fields,
-    })
-  }
-  return { marks, omitted }
-}
-
-/**
- * True when marks from different feedback conditions sit at different
- * nominal budgets — the caption must then carry the study's
- * matched-budget caveat.
- */
-export function hasMismatchedConditionBudgets(marks: ComputeMark[]): boolean {
-  const xsByCondition = new Map<FeedbackCondition, Set<number>>()
-  for (const mark of marks) {
-    const xs = xsByCondition.get(mark.condition) ?? new Set<number>()
-    xs.add(mark.x)
-    xsByCondition.set(mark.condition, xs)
-  }
-  if (xsByCondition.size < 2) return false
-  const signatures = new Set(
-    Array.from(xsByCondition.values(), (xs) => Array.from(xs).sort((a, b) => a - b).join("|")),
-  )
-  return signatures.size > 1
-}
-
-/**
- * Protocol points for the plotbox Compute view. A SEPARATE series from
- * the distribution/frontier feeds: those code paths never read it, so
- * the assisted-row exclusion on those views cannot regress. Marks
- * include assisted rows — this is the one view where condition labeling
- * is explicit.
- */
-export interface ProtocolSeries {
-  /** Names the NOMINAL quantity ("token budget (limit)") — never reads
-   *  as tokens consumed. */
-  axisLabel: string
-  marks: ComputeMark[]
-  /** Protocol rows without a numeric value on the axis (caption count). */
-  omitted: number
-  /** Marks from different feedback conditions sit at different nominal
-   *  budgets → the caption carries the study's matched-budget caveat. */
-  mismatchedConditionBudgets: boolean
-  /** Researcher mode appends full protocol fields to the hover; policy
-   *  mode appends the plain-language condition sentence. */
-  researcherMode?: boolean
-}
-
-/**
- * Build the Compute-view series for one page. Shared by the eval page
- * and the compute embed so the two surfaces can never disagree on the
- * marks. Gated on the per-source-only curated attachment plus the
- * server-chosen axis — never derives an axis from the rows themselves,
- * because merged adapted summaries also carry per-row protocol fields
- * and must never light up a compute view. Null means the view is
- * absent by design.
- */
-export function buildComputeProtocolSeries(
-  rows: Array<{
-    score: number
-    protocol_condition?: string | null
-    model_info: { name: string }
-  }>,
-  collection: CollectionAttachment | null | undefined,
-  researcherMode: boolean,
-): ProtocolSeries | null {
-  const axis = collection?.compute_axis
-  if (!axis || !collection?.curated) return null
-  const { marks, omitted } = buildComputeMarks(rows, axis.key)
-  if (marks.length === 0) return null
-  return {
-    axisLabel: axis.label,
-    marks,
-    omitted,
-    mismatchedConditionBudgets: hasMismatchedConditionBudgets(marks),
-    researcherMode,
-  }
-}
-
 /**
  * Build the payload attachment from the sidecar entry. Curated entries
  * only — every ordinary leaderboard row also carries a collection_id,
@@ -317,9 +177,10 @@ export function buildCollectionAttachment(
 }
 
 // ---------------------------------------------------------------------------
-// Scaffold context (finding I1): the collection's own published score for a
-// model, placed inside the community's per-scaffold score distribution for
-// the same model on the same benchmark.
+// Measurement context (finding I1): the collection's own published score for
+// a model, placed among the community's published measurements of the same
+// model on the same benchmark. Scaffold names, where a source records them,
+// are point metadata — not the unit of the plot.
 //
 // The producer pre-joins EVERYTHING into `collection_context.json` — the
 // external points are already matched to the collection's models on
@@ -329,16 +190,19 @@ export function buildCollectionAttachment(
 // join would mislabel a failed match as an absence.
 // ---------------------------------------------------------------------------
 
-/** One external leaderboard entry: a (scaffold, model) pair run under the
- *  scaffold's own budget, which the leaderboard does not record. */
+/** One external measurement: a published run of this model under the
+ *  reporting source's own setup, which the source mostly does not record.
+ *  `scaffold` is present only where the source names one; `source` is the
+ *  reporting composite's display name (absent on old-schema sidecars). */
 export interface ScaffoldContextExternalEntry {
-  scaffold: string
+  scaffold: string | null
+  source?: string | null
   score: number
   score_se?: number | null
   run_date?: string | null
 }
 
-/** A curated context source: the leaderboard the external points come
+/** A curated context source: a composite the external measurements come
  *  from. The producer resolves the display name, so the frontend never
  *  has to prettify an id. */
 export interface ScaffoldContextSource {
@@ -350,18 +214,29 @@ export interface ScaffoldContextSource {
 export interface ScaffoldContextSidecarModel {
   display_name: string
   score: number
+  /** The study's published standard error for the plotted row. */
+  score_se?: number | null
   n_tasks: number
-  /** Recorded attempts per task behind the band, from the trajectory pool. */
+  /** Recorded attempts per task, from the trajectory pool. */
   attempts_min: number
   attempts_max: number
   /** Copied VERBATIM from the fact rows by the producer — caption 3
    *  depends on byte equality with the page's own condition strings. */
   protocol_condition: string
-  band_lo: number
-  band_hi: number
-  band_runs: number
+  /** Legacy re-run band fields; still emitted, no longer rendered. */
+  band_lo?: number
+  band_hi?: number
+  band_runs?: number
   band_method?: string
   band_seed?: number
+  /** The fullest-coverage answer-feedback (assisted) cell, when it clears
+   *  the same coverage gate as the main pick. Absent on old sidecars. */
+  assisted?: {
+    score: number
+    score_se?: number | null
+    n_tasks: number
+    protocol_condition: string
+  } | null
   external: ScaffoldContextExternalEntry[]
 }
 
@@ -374,6 +249,10 @@ export interface ScaffoldContextEntry {
    *  caption 1 names as the origin of the external points. */
   context_source_display: string
   models_without_context: string[]
+  /** Models shown in the view whose assisted cell was gated out (low task
+   *  coverage), with that cell's coverage for the caption. Absent on old
+   *  sidecars. */
+  models_without_assisted?: Array<{ display_name: string; n_tasks: number | null }>
   models: Record<string, ScaffoldContextSidecarModel>
 }
 
@@ -381,14 +260,15 @@ export interface ScaffoldContextEntry {
 export type CollectionContextSidecar = Record<string, Record<string, ScaffoldContextEntry>>
 
 export interface ScaffoldContextPoint {
-  scaffold: string
+  scaffold: string | null
+  source?: string | null
   score: number
   scoreSe?: number | null
   runDate?: string | null
 }
 
-/** One horizontal strip: the model's published score (diamond), its
- *  re-run band, and the external per-scaffold points (circles). */
+/** One horizontal strip: the model's published score (diamond) with its
+ *  published-SE whisker, and the external measurement points (circles). */
 export interface ScaffoldContextModel {
   /** `model_aggregation_key` — the dated↔undated bridge the producer
    *  joined on. Display-only here. */
@@ -396,13 +276,25 @@ export interface ScaffoldContextModel {
   displayName: string
   /** Published score of the fullest no-feedback condition. */
   score: number
+  /** The study's published standard error for that row, if reported. */
+  scoreSe: number | null
   nTasks: number
-  bandLo: number
-  bandHi: number
-  bandRuns: number
-  /** Recorded attempts per task the band was simulated from. */
+  /** Legacy re-run band; tolerated from old sidecars, never rendered. */
+  bandLo?: number
+  bandHi?: number
+  bandRuns?: number
+  /** Recorded attempts per task, from the trajectory pool. */
   attemptsMin: number
   attemptsMax: number
+  /** The study's assisted (oracle answer feedback) companion cell — a
+   *  second study mark on the strip. Null when gated out or on old
+   *  sidecars. */
+  assisted: {
+    score: number
+    scoreSe: number | null
+    nTasks: number
+    protocolCondition: string
+  } | null
   points: ScaffoldContextPoint[]
   /** External points dropped by the >30 rule (0 in every shipped case). */
   hiddenCount: number
@@ -423,6 +315,10 @@ export interface ScaffoldContextPayload {
   contextSourceDisplay: string
   /** Producer-computed: collection models with no external entry. */
   modelsWithoutContext: string[]
+  /** Models on the plot whose assisted cell was gated out, with that
+   *  cell's task coverage for the caption. */
+  modelsWithoutAssisted: Array<{ displayName: string; nTasks: number | null }>
+
   /** Benchmark display name for the captions. */
   benchmarkLabel: string
   /** Collection display name for the captions. */
@@ -554,7 +450,8 @@ export function buildScaffoldContext(
     const external = (model.external ?? [])
       .filter((point) => Number.isFinite(point?.score))
       .map((point) => ({
-        scaffold: point.scaffold,
+        scaffold: point.scaffold ?? null,
+        source: point.source ?? null,
         score: point.score,
         scoreSe: point.score_se ?? null,
         runDate: point.run_date ?? null,
@@ -565,12 +462,22 @@ export function buildScaffoldContext(
       key,
       displayName,
       score: model.score,
+      scoreSe: model.score_se ?? null,
       nTasks: model.n_tasks,
       bandLo: model.band_lo,
       bandHi: model.band_hi,
       bandRuns: model.band_runs,
       attemptsMin: model.attempts_min,
       attemptsMax: model.attempts_max,
+      assisted:
+        model.assisted && Number.isFinite(model.assisted.score)
+          ? {
+              score: model.assisted.score,
+              scoreSe: model.assisted.score_se ?? null,
+              nTasks: model.assisted.n_tasks,
+              protocolCondition: model.assisted.protocol_condition,
+            }
+          : null,
       points,
       hiddenCount,
       // String equality on the verbatim producer-copied condition. A
@@ -588,6 +495,10 @@ export function buildScaffoldContext(
     contextSources: entry.context_sources ?? [],
     contextSourceDisplay: entry.context_source_display,
     modelsWithoutContext: entry.models_without_context ?? [],
+    modelsWithoutAssisted: (entry.models_without_assisted ?? []).map((m) => ({
+      displayName: m.display_name,
+      nTasks: m.n_tasks ?? null,
+    })),
     benchmarkLabel:
       summary.canonical_display_name?.trim() || summary.evaluation_name?.trim() || "this benchmark",
     collectionLabel: summary.collection?.display_name?.trim() || "This study",

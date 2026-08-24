@@ -1,19 +1,8 @@
 "use client"
 
 import { useMemo, useState } from "react"
-import type {
-  CSSProperties,
-  FocusEvent as ReactFocusEvent,
-  MouseEvent as ReactMouseEvent,
-} from "react"
 
-import {
-  feedbackConditionDescription,
-  type ComputeMark,
-  type FeedbackCondition,
-  type ProtocolSeries,
-  type ScaffoldContextPayload,
-} from "@/lib/collections"
+import { type ScaffoldContextPayload } from "@/lib/collections"
 
 interface ScoreSeries {
   /** Stable key — used by the metric dropdown to switch series. */
@@ -60,12 +49,8 @@ interface ScoreDistributionProps {
    *  *or* Frontier). The metric chips above still appear when the panel
    *  carries more than one series. Defaults to true. */
   showViewToggle?: boolean
-  /** Optional Compute view. Only the eval-detail single-metric
-   *  call site passes this — matrix/embed sites must not (their row
-   *  shapes carry no protocol fields). */
-  protocol?: ProtocolSeries
-  /** Optional Context view: the collection's own score placed inside the
-   *  community's per-scaffold distribution. Server-built and carried on
+  /** Optional Context view: the collection's own score placed among the
+   *  community's published measurements. Server-built and carried on
    *  the per-source summary; absent everywhere else. */
   context?: ScaffoldContextPayload
 }
@@ -162,7 +147,6 @@ export function ScoreDistribution({
   compact = false,
   defaultView,
   showViewToggle = true,
-  protocol,
   context,
 }: ScoreDistributionProps) {
   // Normalize: either we got a single series (via values) or many.
@@ -216,9 +200,8 @@ export function ScoreDistribution({
   }, [active])
 
   const canShowFrontier = frontier != null
-  const canShowCompute = (protocol?.marks.length ?? 0) > 0
   const canShowContext = (context?.models.length ?? 0) > 0
-  const [view, setView] = useState<"distribution" | "frontier" | "compute" | "context">(
+  const [view, setView] = useState<"distribution" | "frontier" | "context">(
     defaultView ?? "distribution",
   )
   // If the active series doesn't support the selected view (e.g. user
@@ -227,19 +210,16 @@ export function ScoreDistribution({
   const effectiveView =
     view === "frontier" && canShowFrontier
       ? "frontier"
-      : view === "compute" && canShowCompute
-        ? "compute"
-        : view === "context" && canShowContext
-          ? "context"
-          : "distribution"
+      : view === "context" && canShowContext
+        ? "context"
+        : "distribution"
   // When the caller hides the toggle (embed locks to one view), force the
   // panel to whatever defaultView/view it was created with — the user
   // can't switch, so any "frontier" inference must come from props.
-  const renderViewToggle = showViewToggle && (canShowFrontier || canShowCompute || canShowContext)
+  const renderViewToggle = showViewToggle && (canShowFrontier || canShowContext)
   const availableViews = [
     "distribution" as const,
     ...(canShowFrontier ? ["frontier" as const] : []),
-    ...(canShowCompute ? ["compute" as const] : []),
     ...(canShowContext ? ["context" as const] : []),
   ]
 
@@ -352,9 +332,7 @@ export function ScoreDistribution({
                         ? "Distribution"
                         : view === "frontier"
                           ? "Frontier"
-                          : view === "compute"
-                            ? "Compute"
-                            : "Context"
+                          : "Context"
                     return (
                       <button
                         key={view}
@@ -365,11 +343,9 @@ export function ScoreDistribution({
                         title={
                           view === "frontier"
                             ? "Frontier score over model release dates (cumulative best)."
-                            : view === "compute"
-                              ? `Per-run scores across the study's ${protocol?.axisLabel ?? "compute axis"} settings.`
-                              : view === "context"
-                                ? "This study's score for each model against the official leaderboard's per-scaffold entries."
-                                : "Kernel-density distribution of model scores."
+                            : view === "context"
+                              ? "This study's score for each model among other published measurements of the same model."
+                              : "Kernel-density distribution of model scores."
                         }
                         className={`ec-pill${on ? " on" : ""}`}
                       >
@@ -449,8 +425,6 @@ export function ScoreDistribution({
 
       {effectiveView === "context" && context ? (
         <ContextPlot context={context} />
-      ) : effectiveView === "compute" && protocol ? (
-        <ComputePlot protocol={protocol} unit={active.unit} label={active.label} />
       ) : effectiveView === "frontier" && frontier ? (
         <FrontierPlot
           events={frontier.events}
@@ -1007,323 +981,9 @@ function FrontierPlot({ events, samples, unit, lowerIsBetter, label }: FrontierP
 }
 
 // ---------------------------------------------------------------------------
-// Compute view: per-run scores over
-// the study's nominal budget axis. Honest-estimator rules: no trend
-// lines (2–3 nominal levels per axis, conditions at unmatched budgets — a line
-// would assert a compute trend the study says must be compared at
-// matched budgets); highlight scopes to one (model, condition), never across
-// conditions; the condition legend is always visible.
-// ---------------------------------------------------------------------------
-
-const CONDITION_LEGEND: Record<FeedbackCondition, string> = {
-  none: "no feedback",
-  unknown: "condition unknown",
-  answer_feedback: "oracle score feedback (assisted)",
-}
-
-function formatTokenTick(v: number): string {
-  const trim = (n: number) => {
-    const s = n.toFixed(n >= 10 ? 0 : 1)
-    return s.replace(/\.0$/, "")
-  }
-  if (v >= 1_000_000) return `${trim(v / 1_000_000)}M`
-  if (v >= 1_000) return `${trim(v / 1_000)}k`
-  return String(v)
-}
-
-function ConditionGlyph({
-  condition,
-  highlighted,
-}: {
-  condition: FeedbackCondition
-  highlighted?: boolean
-}) {
-  const ink = highlighted ? "var(--accent)" : "var(--fg-muted)"
-  const base: CSSProperties = { display: "inline-block", boxSizing: "border-box" }
-  if (condition === "none") {
-    return (
-      <span
-        aria-hidden
-        style={{ ...base, width: 9, height: 9, borderRadius: "50%", background: ink }}
-      />
-    )
-  }
-  if (condition === "unknown") {
-    return (
-      <span
-        aria-hidden
-        style={{
-          ...base,
-          width: 8,
-          height: 8,
-          border: `1.5px solid ${ink}`,
-          transform: "rotate(45deg)",
-          background: "transparent",
-        }}
-      />
-    )
-  }
-  return (
-    <span
-      aria-hidden
-      style={{
-        ...base,
-        width: 9,
-        height: 9,
-        borderRadius: "50%",
-        border: `1.5px solid ${ink}`,
-        background: "transparent",
-        opacity: highlighted ? 1 : 0.55,
-      }}
-    />
-  )
-}
-
-export function ComputePlot({
-  protocol,
-  unit,
-  label,
-}: {
-  protocol: ProtocolSeries
-  unit?: string
-  label: string
-}) {
-  const { marks, axisLabel, omitted, mismatchedConditionBudgets, researcherMode } = protocol
-  const PLOT_HEIGHT = 190
-  const PAD_T = 8
-  const PAD_B = 24
-
-  const logs = marks.map((m) => Math.log10(m.x))
-  let xLo = Math.min(...logs)
-  let xHi = Math.max(...logs)
-  if (xHi - xLo < 1e-9) {
-    xLo -= 0.5
-    xHi += 0.5
-  }
-  const xPad = (xHi - xLo) * 0.06
-  xLo -= xPad
-  xHi += xPad
-
-  const scores = marks.map((m) => m.score)
-  const sMin = Math.min(...scores)
-  const sMax = Math.max(...scores)
-  const sRange = sMax - sMin || Math.abs(sMax) || 1
-  const yLo = sMin - sRange * 0.05
-  const yHi = sMax + sRange * 0.05
-  const yRange = yHi - yLo || 1
-
-  const xPct = (v: number) => ((Math.log10(v) - xLo) / (xHi - xLo)) * 98 + 1
-  const yPct = (s: number) => 100 - ((s - yLo) / yRange) * 100
-
-  // Ticks at the distinct NOMINAL levels actually present (2–6 values).
-  const ticks = Array.from(new Set(marks.map((m) => m.x))).sort((a, b) => a - b)
-  const conditionsPresent = (["none", "unknown", "answer_feedback"] as FeedbackCondition[]).filter(
-    (condition) => marks.some((m) => m.condition === condition),
-  )
-
-  const [highlightKey, setHighlightKey] = useState<string | null>(null)
-  const [hover, setHover] = useState<{ x: number; y: number; mark: ComputeMark } | null>(null)
-  const markKey = (mark: ComputeMark) => `${mark.modelName}|${mark.condition}`
-
-  const hoverDetail = (mark: ComputeMark): string => {
-    if (researcherMode) {
-      return Object.entries(mark.protocolFields)
-        .filter(([, v]) => v != null)
-        .map(([k, v]) => `${k}=${String(v)}`)
-        .join(" · ")
-    }
-    return feedbackConditionDescription(mark.condition)
-  }
-
-  return (
-    <div>
-      <div
-        role="img"
-        aria-label={`${label}: ${marks.length} runs over ${axisLabel}`}
-        style={{
-          position: "relative",
-          width: "100%",
-          height: PLOT_HEIGHT,
-          paddingTop: PAD_T,
-          paddingBottom: PAD_B,
-          boxSizing: "border-box",
-        }}
-        onMouseLeave={() => {
-          setHover(null)
-          setHighlightKey(null)
-        }}
-      >
-        <div style={{ position: "absolute", top: PAD_T, bottom: PAD_B, left: 0, right: 0 }}>
-          {/* Tick rules at the nominal levels */}
-          {ticks.map((t) => (
-            <div
-              key={t}
-              aria-hidden
-              style={{
-                position: "absolute",
-                left: `${xPct(t)}%`,
-                top: 0,
-                bottom: 0,
-                width: 1,
-                background: "var(--border-soft)",
-              }}
-            />
-          ))}
-
-          {marks.map((mark, i) => {
-            const highlighted = highlightKey === markKey(mark)
-            const dimmed = highlightKey != null && !highlighted
-            const enter = (
-              event: ReactMouseEvent<HTMLButtonElement> | ReactFocusEvent<HTMLButtonElement>,
-            ) => {
-              const rect = event.currentTarget.parentElement!.getBoundingClientRect()
-              const dot = event.currentTarget.getBoundingClientRect()
-              setHover({
-                x: dot.left + dot.width / 2 - rect.left,
-                y: dot.top + dot.height / 2 - rect.top,
-                mark,
-              })
-              // Highlight every mark of this (model, condition) pair —
-              // never across conditions, which would imply a
-              // cross-condition per-model trend.
-              setHighlightKey(markKey(mark))
-            }
-            return (
-              <button
-                key={`m-${i}`}
-                type="button"
-                aria-label={`${mark.modelName} · ${CONDITION_LEGEND[mark.condition]} · ${formatValue(mark.score, unit)} at ${formatTokenTick(mark.x)} ${axisLabel}`}
-                onMouseEnter={enter}
-                onFocus={enter}
-                style={{
-                  position: "absolute",
-                  left: `${xPct(mark.x)}%`,
-                  top: `${yPct(mark.score)}%`,
-                  transform: "translate(-50%, -50%)",
-                  padding: 0,
-                  border: "none",
-                  background: "transparent",
-                  cursor: "pointer",
-                  opacity: dimmed ? 0.3 : 1,
-                  zIndex: highlighted ? 1 : undefined,
-                }}
-              >
-                <ConditionGlyph condition={mark.condition} highlighted={highlighted} />
-              </button>
-            )
-          })}
-
-          {hover && (
-            <div
-              role="status"
-              style={{
-                position: "absolute",
-                left: hover.x,
-                top: hover.y - 14,
-                transform: "translate(-50%, -100%)",
-                pointerEvents: "none",
-                background: "var(--fg)",
-                color: "var(--bg)",
-                padding: "5px 9px",
-                fontSize: 11,
-                lineHeight: 1.3,
-                whiteSpace: "nowrap",
-                maxWidth: 420,
-                boxShadow: "var(--shadow-card, 0 2px 6px rgba(0,0,0,0.18))",
-                zIndex: 2,
-              }}
-            >
-              <div style={{ fontWeight: 600 }}>{hover.mark.modelName}</div>
-              <div
-                className="font-mono"
-                style={{ fontSize: 10, letterSpacing: "0.04em", opacity: 0.8, marginTop: 1 }}
-              >
-                {formatValue(hover.mark.score, unit)} · {formatTokenTick(hover.mark.x)}{" "}
-                {axisLabel}
-              </div>
-              <div style={{ fontSize: 10, opacity: 0.8, marginTop: 1, whiteSpace: "normal" }}>
-                {hoverDetail(hover.mark)}
-              </div>
-            </div>
-          )}
-
-          {/* Baseline */}
-          <div
-            aria-hidden
-            style={{
-              position: "absolute",
-              left: 0,
-              right: 0,
-              bottom: 0,
-              height: 1,
-              background: "var(--border-strong)",
-            }}
-          />
-        </div>
-
-        {/* Nominal-level labels under the baseline (log-positioned) */}
-        {ticks.map((t) => (
-          <div
-            key={`t-${t}`}
-            aria-hidden
-            style={{
-              position: "absolute",
-              left: `${xPct(t)}%`,
-              bottom: 4,
-              transform: "translateX(-50%)",
-              fontFamily: "var(--font-mono)",
-              fontSize: 10,
-              color: "var(--fg-subtle)",
-              letterSpacing: "0.06em",
-            }}
-          >
-            {formatTokenTick(t)}
-          </div>
-        ))}
-      </div>
-
-      {/* Condition legend — ALWAYS visible: the study's own figures use
-          solid/hollow marks with a different meaning, so arriving
-          readers need the encoding spelled out. */}
-      <div
-        className="mt-1 flex flex-wrap items-center gap-x-4 gap-y-1 font-mono"
-        style={{ fontSize: 9.5, letterSpacing: "0.06em", color: "var(--fg-subtle)" }}
-      >
-        {conditionsPresent.map((condition) => (
-          <span key={condition} className="inline-flex items-center gap-1.5">
-            <ConditionGlyph condition={condition} />
-            {CONDITION_LEGEND[condition]}
-          </span>
-        ))}
-      </div>
-
-      <div
-        className="mt-1.5 space-y-0.5 font-mono"
-        style={{ fontSize: 10, letterSpacing: "0.04em", color: "var(--fg-muted)" }}
-      >
-        <div>
-          {marks.length} runs · x: {axisLabel} (log scale) · y: {label}
-        </div>
-        {omitted > 0 && (
-          <div style={{ color: "var(--fg-subtle)" }}>
-            {omitted} {omitted === 1 ? "run has" : "runs have"} no recorded {axisLabel} and{" "}
-            {omitted === 1 ? "is" : "are"} left out
-          </div>
-        )}
-        {mismatchedConditionBudgets && (
-          <div style={{ color: "var(--fg-subtle)" }}>
-            feedback conditions ran at different budgets; compare them only where budgets match
-          </div>
-        )}
-      </div>
-    </div>
-  )
-}
-
-// ---------------------------------------------------------------------------
 // Context view: the collection's own published score for each model placed
-// inside the community's per-scaffold score distribution for the same model
-// on the same benchmark (finding I1).
+// among the community's published measurements of the same model on the same
+// benchmark (finding I1). Scaffold names, where recorded, are hover metadata.
 //
 // Presentation rules that carry meaning:
 //   - the band is a posterior-predictive interval over re-runs of the SAME
@@ -1339,22 +999,6 @@ function formatAccuracyPct(value: number): string {
   return `${(value * 100).toFixed(1)}%`
 }
 
-/** Distinct values as "a" or "a–b" — the strips can disagree on task count
- *  and runs/task, and a single number would misreport the others. */
-function formatSpan(values: number[]): string {
-  const finite = values.filter((v) => Number.isFinite(v))
-  if (finite.length === 0) return "?"
-  const lo = Math.min(...finite)
-  const hi = Math.max(...finite)
-  return lo === hi ? String(lo) : `${lo}–${hi}`
-}
-
-/** "A", "A and B", "A, B and C" — the caption register's list form. */
-function joinNames(names: string[]): string {
-  if (names.length <= 1) return names[0] ?? ""
-  return `${names.slice(0, -1).join(", ")} and ${names[names.length - 1]}`
-}
-
 /** Round percent ticks inside the padded range (3–6 of them). */
 function contextTicks(lo: number, hi: number): number[] {
   const span = hi - lo
@@ -1368,25 +1012,76 @@ function contextTicks(lo: number, hi: number): number[] {
   return ticks
 }
 
-export function ContextPlot({ context }: { context: ScaffoldContextPayload }) {
-  const {
-    models,
-    officialTaskCount,
-    contextSourceDisplay,
-    modelsWithoutContext,
-    hiddenTotal,
-  } = context
+const STRIP_HEIGHT = 30
 
-  // Hover is addressed by (strip, point index) so the tooltip can be
-  // positioned on the same percentage scale as the dot it describes —
-  // no measurement, no drift when the panel resizes.
-  const [hover, setHover] = useState<{ modelKey: string; index: number } | null>(null)
+/** Which mark of a strip the tooltip describes. */
+type ContextHoverTarget =
+  | { modelKey: string; mark: "study" }
+  | { modelKey: string; mark: "assisted" }
+  | { modelKey: string; mark: "point"; index: number }
+
+function ContextTooltip({
+  leftPct,
+  title,
+  meta,
+  modelName,
+}: {
+  leftPct: number
+  title: string
+  meta: string
+  modelName: string
+}) {
+  return (
+    <div
+      role="status"
+      style={{
+        position: "absolute",
+        left: `${leftPct}%`,
+        bottom: STRIP_HEIGHT / 2 + 8,
+        transform: "translateX(-50%)",
+        pointerEvents: "none",
+        background: "var(--fg)",
+        color: "var(--bg)",
+        padding: "5px 9px",
+        fontSize: 11,
+        lineHeight: 1.3,
+        whiteSpace: "nowrap",
+        boxShadow: "var(--shadow-card, 0 2px 6px rgba(0,0,0,0.18))",
+        zIndex: 2,
+      }}
+    >
+      <div style={{ fontWeight: 600 }}>{title}</div>
+      <div
+        className="font-mono"
+        style={{ fontSize: 10, letterSpacing: "0.04em", opacity: 0.8, marginTop: 1 }}
+      >
+        {meta}
+      </div>
+      <div style={{ fontSize: 10, opacity: 0.8, marginTop: 1 }}>{modelName}</div>
+    </div>
+  )
+}
+
+export function ContextPlot({ context }: { context: ScaffoldContextPayload }) {
+  const { models } = context
+
+  // Hover is addressed by (strip, mark) so the tooltip can be positioned
+  // on the same percentage scale as the mark it describes — no
+  // measurement, no drift when the panel resizes.
+  const [hover, setHover] = useState<ContextHoverTarget | null>(null)
 
   // One shared scale over every quantity actually drawn, padded so the
   // extreme marks are not clipped by the strip edge.
   const values: number[] = []
   for (const model of models) {
-    values.push(model.score, model.bandLo, model.bandHi)
+    values.push(model.score)
+    if (model.scoreSe != null) {
+      values.push(model.score - model.scoreSe, model.score + model.scoreSe)
+    }
+    if (model.assisted) {
+      const se = model.assisted.scoreSe ?? 0
+      values.push(model.assisted.score - se, model.assisted.score + se)
+    }
     for (const point of model.points) values.push(point.score)
   }
   const finite = values.filter((v) => Number.isFinite(v))
@@ -1398,16 +1093,7 @@ export function ContextPlot({ context }: { context: ScaffoldContextPayload }) {
   const xPct = (value: number) => ((value - xLo) / (xHi - xLo)) * 100
   const ticks = contextTicks(xLo, xHi)
 
-  const STRIP_HEIGHT = 30
-  // The producer resolves the source display string; never re-derive it
-  // from ids here.
-  const sourceLabel = contextSourceDisplay?.trim() || "official"
-  // Models whose ranked (best-scoring) no-feedback row is a different
-  // condition from the one plotted. Named once, in one caption, rather
-  // than repeated under every strip.
-  const rankedDifferentModels = models
-    .filter((model) => model.conditionDiffersFromBestScoring)
-    .map((model) => model.displayName)
+  const anyAssisted = models.some((model) => model.assisted != null)
 
   return (
     <div>
@@ -1424,24 +1110,9 @@ export function ContextPlot({ context }: { context: ScaffoldContextPayload }) {
               </div>
               <div
                 role="img"
-                aria-label={`${model.displayName}: this study's score ${formatAccuracyPct(model.score)} over ${model.nTasks} tasks, re-run band ${formatAccuracyPct(model.bandLo)} to ${formatAccuracyPct(model.bandHi)}, ${model.points.length} leaderboard ${model.points.length === 1 ? "scaffold" : "scaffolds"} from ${formatAccuracyPct(Math.min(...model.points.map((p) => p.score), model.score))} to ${formatAccuracyPct(Math.max(...model.points.map((p) => p.score), model.score))}`}
+                aria-label={`${model.displayName}: this study's score ${formatAccuracyPct(model.score)}${model.scoreSe != null ? ` ± ${formatAccuracyPct(model.scoreSe)}` : ""} over ${model.nTasks} tasks${model.assisted ? `, with oracle feedback ${formatAccuracyPct(model.assisted.score)} over ${model.assisted.nTasks} tasks` : ""}, ${model.points.length} external ${model.points.length === 1 ? "measurement" : "measurements"} from ${formatAccuracyPct(Math.min(...model.points.map((p) => p.score), model.score))} to ${formatAccuracyPct(Math.max(...model.points.map((p) => p.score), model.score))}`}
                 style={{ position: "relative", flex: 1, height: STRIP_HEIGHT }}
               >
-                {/* Re-run band. Drawn behind everything and deliberately
-                    without a centre marker: it is a posterior-predictive
-                    interval, not an error bar around the diamond. */}
-                <div
-                  aria-hidden
-                  style={{
-                    position: "absolute",
-                    left: `${xPct(model.bandLo)}%`,
-                    width: `${Math.max(xPct(model.bandHi) - xPct(model.bandLo), 0.4)}%`,
-                    top: 5,
-                    bottom: 5,
-                    background: "var(--fg-muted)",
-                    opacity: 0.16,
-                  }}
-                />
                 {/* Strip baseline */}
                 <div
                   aria-hidden
@@ -1454,13 +1125,42 @@ export function ContextPlot({ context }: { context: ScaffoldContextPayload }) {
                     background: "var(--border-soft)",
                   }}
                 />
+                {/* The study's published-SE whisker: score ± 1 SE. */}
+                {model.scoreSe != null && (
+                  <div
+                    aria-hidden
+                    style={{
+                      position: "absolute",
+                      left: `${xPct(model.score - model.scoreSe)}%`,
+                      width: `${Math.max(xPct(model.score + model.scoreSe) - xPct(model.score - model.scoreSe), 0.4)}%`,
+                      top: STRIP_HEIGHT / 2 - 1,
+                      height: 2,
+                      background: "var(--accent)",
+                      opacity: 0.35,
+                    }}
+                  />
+                )}
+                {model.assisted?.scoreSe != null && (
+                  <div
+                    aria-hidden
+                    style={{
+                      position: "absolute",
+                      left: `${xPct(model.assisted.score - model.assisted.scoreSe)}%`,
+                      width: `${Math.max(xPct(model.assisted.score + model.assisted.scoreSe) - xPct(model.assisted.score - model.assisted.scoreSe), 0.4)}%`,
+                      top: STRIP_HEIGHT / 2 - 1,
+                      height: 2,
+                      background: "var(--chart-4)",
+                      opacity: 0.35,
+                    }}
+                  />
+                )}
                 {model.points.map((point, index) => (
                   <button
-                    key={`${point.scaffold}-${index}`}
+                    key={`${point.scaffold ?? point.source ?? "measurement"}-${index}`}
                     type="button"
-                    aria-label={`${point.scaffold} · ${formatAccuracyPct(point.score)}${point.runDate ? ` · ${point.runDate}` : ""}`}
-                    onMouseEnter={() => setHover({ modelKey: model.key, index })}
-                    onFocus={() => setHover({ modelKey: model.key, index })}
+                    aria-label={`${point.scaffold ?? point.source ?? "external measurement"} · ${formatAccuracyPct(point.score)}${point.runDate ? ` · ${point.runDate}` : ""}`}
+                    onMouseEnter={() => setHover({ modelKey: model.key, mark: "point", index })}
+                    onFocus={() => setHover({ modelKey: model.key, mark: "point", index })}
                     onBlur={() => setHover(null)}
                     style={{
                       position: "absolute",
@@ -1487,54 +1187,111 @@ export function ContextPlot({ context }: { context: ScaffoldContextPayload }) {
                     />
                   </button>
                 ))}
+                {/* Assisted (oracle answer feedback) companion cell. Second
+                    series hue (chart-4 orange): CVD-validated against the
+                    accent, so color alone may carry the condition. */}
+                {model.assisted && (
+                  <button
+                    type="button"
+                    aria-label={`Current study (oracle feedback) · ${formatAccuracyPct(model.assisted.score)}${model.assisted.scoreSe != null ? ` ± ${formatAccuracyPct(model.assisted.scoreSe)}` : ""} · ${model.assisted.nTasks} tasks`}
+                    onMouseEnter={() => setHover({ modelKey: model.key, mark: "assisted" })}
+                    onFocus={() => setHover({ modelKey: model.key, mark: "assisted" })}
+                    onBlur={() => setHover(null)}
+                    style={{
+                      position: "absolute",
+                      left: `${xPct(model.assisted.score)}%`,
+                      top: STRIP_HEIGHT / 2,
+                      transform: "translate(-50%, -50%)",
+                      padding: 0,
+                      border: "none",
+                      background: "transparent",
+                      cursor: "pointer",
+                    }}
+                  >
+                    <span
+                      aria-hidden
+                      style={{
+                        display: "block",
+                        width: 9,
+                        height: 9,
+                        transform: "rotate(45deg)",
+                        background: "var(--chart-4)",
+                        boxSizing: "border-box",
+                      }}
+                    />
+                  </button>
+                )}
                 {/* Published score. Always a served fact_results number. */}
-                <span
-                  aria-hidden
+                <button
+                  type="button"
+                  aria-label={`Current study (no feedback) · ${formatAccuracyPct(model.score)}${model.scoreSe != null ? ` ± ${formatAccuracyPct(model.scoreSe)}` : ""} · ${model.nTasks} tasks`}
+                  onMouseEnter={() => setHover({ modelKey: model.key, mark: "study" })}
+                  onFocus={() => setHover({ modelKey: model.key, mark: "study" })}
+                  onBlur={() => setHover(null)}
                   style={{
                     position: "absolute",
                     left: `${xPct(model.score)}%`,
                     top: STRIP_HEIGHT / 2,
-                    transform: "translate(-50%, -50%) rotate(45deg)",
-                    width: 9,
-                    height: 9,
-                    background: "var(--accent)",
-                    boxSizing: "border-box",
+                    transform: "translate(-50%, -50%)",
+                    padding: 0,
+                    border: "none",
+                    background: "transparent",
+                    cursor: "pointer",
                   }}
-                />
-                {hover?.modelKey === model.key && model.points[hover.index] && (
-                  <div
-                    role="status"
+                >
+                  <span
+                    aria-hidden
                     style={{
-                      position: "absolute",
-                      left: `${xPct(model.points[hover.index].score)}%`,
-                      bottom: STRIP_HEIGHT / 2 + 8,
-                      transform: "translateX(-50%)",
-                      pointerEvents: "none",
-                      background: "var(--fg)",
-                      color: "var(--bg)",
-                      padding: "5px 9px",
-                      fontSize: 11,
-                      lineHeight: 1.3,
-                      whiteSpace: "nowrap",
-                      boxShadow: "var(--shadow-card, 0 2px 6px rgba(0,0,0,0.18))",
-                      zIndex: 2,
+                      display: "block",
+                      width: 9,
+                      height: 9,
+                      transform: "rotate(45deg)",
+                      background: "var(--accent)",
+                      boxSizing: "border-box",
                     }}
-                  >
-                    <div style={{ fontWeight: 600 }}>{model.points[hover.index].scaffold}</div>
-                    <div
-                      className="font-mono"
-                      style={{ fontSize: 10, letterSpacing: "0.04em", opacity: 0.8, marginTop: 1 }}
-                    >
-                      {formatAccuracyPct(model.points[hover.index].score)}
-                      {model.points[hover.index].runDate
-                        ? ` · ${model.points[hover.index].runDate}`
-                        : ""}
-                    </div>
-                    <div style={{ fontSize: 10, opacity: 0.8, marginTop: 1 }}>
-                      {model.displayName}
-                    </div>
-                  </div>
+                  />
+                </button>
+                {hover?.modelKey === model.key && hover.mark === "study" && (
+                  <ContextTooltip
+                    leftPct={xPct(model.score)}
+                    title="Current study (no feedback)"
+                    meta={`${formatAccuracyPct(model.score)}${model.scoreSe != null ? ` ± ${formatAccuracyPct(model.scoreSe)}` : ""} · ${model.nTasks} tasks`}
+                    modelName={model.displayName}
+                  />
                 )}
+                {hover?.modelKey === model.key && hover.mark === "assisted" && model.assisted && (
+                  <ContextTooltip
+                    leftPct={xPct(model.assisted.score)}
+                    title="Current study (oracle feedback)"
+                    meta={`${formatAccuracyPct(model.assisted.score)}${model.assisted.scoreSe != null ? ` ± ${formatAccuracyPct(model.assisted.scoreSe)}` : ""} · ${model.assisted.nTasks} tasks`}
+                    modelName={model.displayName}
+                  />
+                )}
+                {hover?.modelKey === model.key &&
+                  hover.mark === "point" &&
+                  model.points[hover.index] && (
+                    <ContextTooltip
+                      leftPct={xPct(model.points[hover.index].score)}
+                      title={
+                        model.points[hover.index].scaffold ??
+                        model.points[hover.index].source ??
+                        "external measurement"
+                      }
+                      meta={[
+                        formatAccuracyPct(model.points[hover.index].score) +
+                          (model.points[hover.index].scoreSe != null
+                            ? ` ± ${formatAccuracyPct(model.points[hover.index].scoreSe ?? 0)}`
+                            : ""),
+                        model.points[hover.index].runDate,
+                        model.points[hover.index].scaffold
+                          ? model.points[hover.index].source
+                          : null,
+                      ]
+                        .filter(Boolean)
+                        .join(" · ")}
+                      modelName={model.displayName}
+                    />
+                  )}
               </div>
             </div>
           </div>
@@ -1582,27 +1339,11 @@ export function ContextPlot({ context }: { context: ScaffoldContextPayload }) {
         className="mt-3 space-y-0.5 font-mono"
         style={{ fontSize: 10, letterSpacing: "0.04em", color: "var(--fg-muted)" }}
       >
-        <div>each circle is one agent scaffold on the {sourceLabel} leaderboard</div>
         <div>
-          diamonds: this study&apos;s no-feedback score over{" "}
-          {formatSpan(models.map((m) => m.nTasks))} of the {officialTaskCount} tasks
+          Diamonds: the current study&apos;s score for the no-feedback (blue)
+          {anyAssisted ? " and with-oracle (orange)" : ""} setup; whiskers show the standard error.
         </div>
-        <div>
-          shaded band: estimated score range for a re-run at{" "}
-          {formatSpan(models.map((m) => m.bandRuns))} runs per task
-        </div>
-        {rankedDifferentModels.length > 0 && (
-          <div style={{ color: "var(--fg-subtle)" }}>
-            the ranked list shows each model&apos;s best score, for{" "}
-            {joinNames(rankedDifferentModels)} from a smaller task set
-          </div>
-        )}
-        {modelsWithoutContext.length > 0 && (
-          <div style={{ color: "var(--fg-subtle)" }}>
-            no leaderboard entries for {joinNames(modelsWithoutContext)}
-          </div>
-        )}
-        {hiddenTotal > 0 && <div style={{ color: "var(--fg-subtle)" }}>+{hiddenTotal} not shown</div>}
+        <div>Circles: reported scores from other sources in Every Eval Ever.</div>
       </div>
     </div>
   )

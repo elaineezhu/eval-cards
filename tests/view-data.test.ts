@@ -1110,9 +1110,13 @@ describe("collection surfaces (collection-benchmark-page spec)", () => {
         expect(context).toMatchObject({
           harvestedAt: "2026-05-03T00:00:00Z",
           officialTaskCount: 10,
-          contextSourceDisplay: "Synthetic Board",
-          contextSources: [{ id: "synthetic-board", display_name: "Synthetic Board" }],
+          contextSourceDisplay: "Agg Board, Synthetic Board",
+          contextSources: [
+            { id: "agg-board", display_name: "Agg Board" },
+            { id: "synthetic-board", display_name: "Synthetic Board" },
+          ],
           modelsWithoutContext: ["Llama 4"],
+          modelsWithoutAssisted: [],
           collectionLabel: "Synthetic Inference Study",
           hiddenTotal: 0,
         })
@@ -1121,22 +1125,33 @@ describe("collection surfaces (collection-benchmark-page spec)", () => {
           key: "openai/gpt-5",
           displayName: "GPT 5",
           score: 0.4,
+          scoreSe: 0.045,
           nTasks: 9,
-          bandLo: 0.31,
-          bandHi: 0.48,
-          bandRuns: 5,
           attemptsMin: 2,
           attemptsMax: 4,
           hiddenCount: 0,
           // The sidecar shows the 2M no-feedback condition; the page's
           // best-scoring no-feedback row is the 5M one at 0.5.
           conditionDiffersFromBestScoring: true,
+          assisted: {
+            score: 0.55,
+            scoreSe: 0.05,
+            nTasks: 9,
+            protocolCondition: '{"feedback":"answer_feedback","token_limit":2000000}',
+          },
         })
         expect(context!.models[0].points.map((p) => p.scaffold)).toEqual([
           "Codex CLI",
+          null,
           "OpenHands",
           "Terminus 2",
         ])
+        expect(context!.models[0].points[1]).toMatchObject({
+          scaffold: null,
+          source: "Agg Board",
+          score: 0.47,
+          scoreSe: null,
+        })
 
         // Ordinary pages never reach the builder at all — no attachment.
         expect((await dataBackend.getEvalSummaryById("mmlu"))?.collection).toBeUndefined()
