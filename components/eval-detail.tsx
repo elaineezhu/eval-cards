@@ -946,6 +946,12 @@ export function EvalDetail({
     [summary.collection, lb.model_results, isResearchView],
   )
 
+  // Context view: the study's own score for each model placed inside the
+  // official leaderboard's per-scaffold distribution. Server-built and
+  // pre-joined by the producer; null unless this exact (collection,
+  // benchmark) pair passed the bake gates.
+  const scaffoldContext = summary.collection?.context ?? undefined
+
   // Optional user-driven sort. `default` keeps the score-ordered rows
   // the ranker already produced. The rank label is always by score
   // regardless of row order — it's the model's standing on this metric,
@@ -1723,6 +1729,17 @@ export function EvalDetail({
                           },
                         ]
                       : []),
+                    // Same gate as the Context chip: the server-built
+                    // scaffold-context payload on this page's summary.
+                    ...(scaffoldContext
+                      ? [
+                          {
+                            id: "context",
+                            label: "Context",
+                            embedPath: `/embed/eval/distribution/${routeIdToPath(summary.evaluation_id)}?view=context`,
+                          },
+                        ]
+                      : []),
                   ]}
                 />
               </div>
@@ -1740,6 +1757,7 @@ export function EvalDetail({
                   })),
                 }]}
                 protocol={computeProtocol}
+                context={scaffoldContext}
               />
             </div>
           )}

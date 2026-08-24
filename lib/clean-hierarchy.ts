@@ -1165,11 +1165,42 @@ function dedupValsAiAliasedBenches(h: CleanableHierarchy) {
   }
 }
 
+/**
+ * Every `evaluation_id` the raw hierarchy actually vouches for: the union of
+ * `constituent_evaluation_ids` on families, composites, benchmarks and
+ * `benchmark_index[]` appearances. Used to validate ids that the cleaner
+ * would otherwise reconstruct by string concatenation, so a synthesised id
+ * that no eval backs can never reach the page as a "split" (each phantom
+ * costs one 404 on every sibling page view).
+ */
+function collectRealEvaluationIds(h: CleanableHierarchy): Set<string> {
+  const ids = new Set<string>()
+  const walk = (node: unknown): void => {
+    if (Array.isArray(node)) {
+      for (const item of node) walk(item)
+      return
+    }
+    if (node == null || typeof node !== "object") return
+    const record = node as Record<string, unknown>
+    const constituents = record.constituent_evaluation_ids
+    if (Array.isArray(constituents)) {
+      for (const id of constituents) if (typeof id === "string" && id) ids.add(id)
+    }
+    for (const value of Object.values(record)) {
+      if (value != null && typeof value === "object") walk(value)
+    }
+  }
+  walk(h.families ?? [])
+  walk((h as { benchmark_index?: unknown }).benchmark_index ?? [])
+  return ids
+}
+
 function consolidateAirBench(h: CleanableHierarchy) {
   const isAirBenchEvalId = (id: string) =>
     /(?:^|%2F)air-bench-2024(?:[-%]|$)/i.test(id)
   const isAirBenchBenchmarkKey = (key: string) =>
     /^air-bench-2024(?:[-_]|$)/i.test(key)
+  const realEvalIds = collectRealEvaluationIds(h)
 
   // Collect every AIR-Bench eval id surfaced anywhere in the hierarchy.
   const airBenchEvalIds = new Set<string>()
@@ -1177,14 +1208,24 @@ function consolidateAirBench(h: CleanableHierarchy) {
     for (const id of fam.constituent_evaluation_ids ?? []) {
       if (isAirBenchEvalId(id)) airBenchEvalIds.add(id)
     }
-    // The HELM AIR-Bench composite ships its 60+ leaf categories as
-    // entries on the rollup benchmark's `slices[]`, NOT in
-    // `family.constituent_evaluation_ids` (which only carries the rollup itself).
-    // Reconstruct the slice eval ids by combining the source prefix with
-    // each slice key so the consolidation step can plant them all under
-    // helm. Without this the leaves orphan to evalEntry.family_id and
-    // either land under their own ad-hoc section or vanish entirely
-    // when the standalone `air-bench-2024` family is dropped below.
+    // The HELM AIR-Bench composite historically shipped its 60+ leaf
+    // categories as entries on the rollup benchmark's `slices[]` rather than
+    // as constituent ids, so the cleaner reconstructs the slice eval ids and
+    // plants them under helm. Without that the leaves orphan to
+    // evalEntry.family_id and either land under their own ad-hoc section or
+    // vanish entirely when the standalone `air-bench-2024` family is dropped
+    // below.
+    //
+    // Reconstruction is a guess, so nothing is planted that the hierarchy
+    // does not already vouch for. When more than one source reports the
+    // rollup, prefix × slice-key is a CROSS PRODUCT: with `helm-air-bench`
+    // (60 real category rows) and `llm-stats` (the rollup only) both present,
+    // it used to invent 59 `llm-stats%2F<slice>` ids, and every AIR-Bench
+    // page then fetched all 59 as siblings and 404'd on each.
+    //
+    // The real fix belongs upstream: the producer should emit real slice
+    // `evaluation_id`s on `bench.slices[]` (or in
+    // `constituent_evaluation_ids`) and this reconstruction can be deleted.
     for (const composite of fam.composites ?? []) {
       for (const bench of composite.benchmarks ?? []) {
         if (!isAirBenchBenchmarkKey(bench.key)) continue
@@ -1196,11 +1237,11 @@ function consolidateAirBench(h: CleanableHierarchy) {
         for (const slice of bench.slices ?? []) {
           // Only synthesise ids for real category slices (clean slugs). The
           // raw fine-subtask keys ("airbench 2024 - #1.1: ...") aren't real
-          // evals, so they'd produce phantom constituents that 404. Stopgap —
-          // the proper fix is resolving those names to slugs upstream in the data.
+          // evals.
           if (!/^[a-z0-9][a-z0-9._-]*$/.test(slice.key)) continue
           for (const prefix of sourcePrefixes) {
-            airBenchEvalIds.add(`${prefix}%2F${slice.key}`)
+            const candidate = `${prefix}%2F${slice.key}`
+            if (realEvalIds.has(candidate)) airBenchEvalIds.add(candidate)
           }
         }
       }

@@ -4,10 +4,16 @@ import {
   buildCollectionAttachment,
   buildComputeMarks,
   buildComputeProtocolSeries,
+  buildScaffoldContext,
   chooseComputeAxis,
   feedbackConditionOf,
   hasMismatchedConditionBudgets,
+  type CollectionContextSidecar,
+  type ScaffoldContextEntry,
+  type ScaffoldContextSummaryInput,
 } from "@/lib/collections"
+
+import contextFixture from "./fixtures/collection_context.json"
 
 const cond = (fields: Record<string, unknown>) => JSON.stringify(fields)
 
@@ -193,5 +199,171 @@ describe("buildComputeProtocolSeries (shared page/embed compute feed)", () => {
       false,
     )
     expect(series).toBeNull()
+  })
+})
+
+describe("buildScaffoldContext (Context view payload, finding I1)", () => {
+  const sidecar = contextFixture as unknown as CollectionContextSidecar
+  const entry = sidecar["uk-aisi-inference-scaling"]["terminal-bench-2"]
+
+  // The terminal-bench-2 conditions the page's ranked list actually shows,
+  // verbatim from eval_results_view.
+  const AISI = {
+    opus45Fullest:
+      '{"compaction":false,"feedback":"none","reasoning_effort":"xhigh","reasoning_tokens":64000,"scaffold":"S-adaptive","token_limit":10000000}',
+    opus46Fullest:
+      '{"compaction":false,"feedback":"none","reasoning_effort":null,"reasoning_tokens":null,"scaffold":"S-adaptive","token_limit":10000000}',
+    opus46Best:
+      '{"compaction":false,"feedback":"none","reasoning_effort":"high","reasoning_tokens":32000,"scaffold":"S-adaptive","token_limit":10000000}',
+    gpt5Fullest:
+      '{"compaction":false,"feedback":"none","reasoning_effort":"high","reasoning_tokens":64000,"scaffold":"S-adaptive","token_limit":10000000}',
+    gpt52Best:
+      '{"compaction":false,"feedback":"none","reasoning_effort":"high","reasoning_tokens":32000,"scaffold":"S-adaptive","token_limit":10000000}',
+    gpt52Fullest:
+      '{"compaction":false,"feedback":"none","reasoning_effort":"high","reasoning_tokens":null,"scaffold":"S-adaptive","token_limit":10000000}',
+    assisted:
+      '{"compaction":true,"feedback":"answer_feedback","reasoning_effort":"high","reasoning_tokens":16000,"scaffold":"S-adaptive","token_limit":10000000}',
+  }
+
+  const modelRow = (
+    id: string,
+    name: string,
+    score: number,
+    condition: string,
+  ): ScaffoldContextSummaryInput["model_results"][number] => ({
+    score,
+    protocol_condition: condition,
+    model_route_id: id.replace("/", "%2F"),
+    model_group_id: id,
+    model_info: { name, id },
+  })
+
+  // The page as it really is: opus-4.5 and gpt-5 have exactly one
+  // no-feedback row (the one the sidecar shows), opus-4.6 and gpt-5.2
+  // have a higher-scoring one at a different condition.
+  const summary: ScaffoldContextSummaryInput = {
+    evaluation_name: "Terminal-Bench 2.0",
+    canonical_display_name: "Terminal-Bench 2.0",
+    collection: { display_name: "UK AISI inference scaling" },
+    model_results: [
+      modelRow("anthropic/claude-opus-4.5", "Claude Opus 4.5", 0.563258, AISI.opus45Fullest),
+      modelRow("anthropic/claude-opus-4.6", "Claude Opus 4.6", 0.9286, AISI.opus46Best),
+      modelRow("anthropic/claude-opus-4.6", "Claude Opus 4.6", 0.666667, AISI.opus46Fullest),
+      modelRow("openai/gpt-5", "GPT-5", 0.496717, AISI.gpt5Fullest),
+      modelRow("openai/gpt-5.2", "GPT-5.2", 0.6875, AISI.gpt52Best),
+      modelRow("openai/gpt-5.2", "GPT-5.2", 0.604457, AISI.gpt52Fullest),
+      // An assisted row scoring higher than every clean row must never
+      // become the caption-3 comparison target.
+      modelRow("anthropic/claude-opus-4.5", "Claude Opus 4.5", 0.98, AISI.assisted),
+    ],
+  }
+
+  it("fires caption 3 only for models whose fullest condition is not their best-scoring one", () => {
+    const payload = buildScaffoldContext(entry, summary)
+    expect(payload).not.toBeNull()
+    const fires = Object.fromEntries(
+      payload!.models.map((m) => [m.key, m.conditionDiffersFromBestScoring]),
+    )
+    expect(fires).toEqual({
+      // Single no-feedback condition: the sidecar string IS the best row.
+      "anthropic/claude-opus-4.5": false,
+      "openai/gpt-5": false,
+      // Fullest-coverage condition scores below the best-scoring one.
+      "anthropic/claude-opus-4.6": true,
+      "openai/gpt-5.2": true,
+    })
+  })
+
+  it("never fires caption 3 from a row the page does not carry", () => {
+    // No matching model row at all — we cannot see a difference, so we
+    // must not assert one.
+    const payload = buildScaffoldContext(entry, { ...summary, model_results: [] })
+    expect(payload!.models.every((m) => m.conditionDiffersFromBestScoring)).toBe(false)
+  })
+
+  it("resolves display names from the sidecar and carries the caption inputs", () => {
+    const payload = buildScaffoldContext(entry, summary)!
+    expect(payload.models.map((m) => m.displayName)).toEqual([
+      "Claude Opus 4.5",
+      "Claude Opus 4.6",
+      "GPT-5",
+      "GPT-5.2",
+    ])
+    expect(payload).toMatchObject({
+      harvestedAt: "2026-08-23T00:00:00Z",
+      officialTaskCount: 89,
+      // Caption 1 names the producer-resolved display string, never an id.
+      contextSourceDisplay: "Terminal-Bench 2.0",
+      contextSources: [{ id: "terminal-bench-2-0", display_name: "Terminal-Bench 2.0" }],
+      // Producer-computed, never derived from a client-side join.
+      modelsWithoutContext: ["Claude Opus 4", "GPT-5.4"],
+      benchmarkLabel: "Terminal-Bench 2.0",
+      collectionLabel: "UK AISI inference scaling",
+      hiddenTotal: 0,
+    })
+    const opus46 = payload.models.find((m) => m.key === "anthropic/claude-opus-4.6")!
+    expect(opus46).toMatchObject({
+      score: 0.666667,
+      nTasks: 86,
+      bandRuns: 5,
+      attemptsMin: 1,
+      attemptsMax: 4,
+      hiddenCount: 0,
+    })
+    expect(opus46.points).toHaveLength(10)
+    expect(opus46.points[0]).toEqual({
+      scaffold: "Meta-Harness",
+      score: 0.764,
+      scoreSe: 0.024,
+      runDate: "2026-05-14",
+    })
+    // The published score is NOT the band midpoint — a thin-attempt model
+    // sits at its upper edge, which is why the band must never be drawn
+    // as if it were centred on the diamond.
+    expect(opus46.score).toBeGreaterThan((opus46.bandLo + opus46.bandHi) / 2)
+    // Caption 2's attempts range spans the strips: 1 (opus-4.6, gpt-5.2)
+    // through 10 (opus-4.5, gpt-5).
+    expect(Math.min(...payload.models.map((m) => m.attemptsMin))).toBe(1)
+    expect(Math.max(...payload.models.map((m) => m.attemptsMax))).toBe(10)
+  })
+
+  it("falls back to the aggregation key when the sidecar carries no display name", () => {
+    const nameless: ScaffoldContextEntry = {
+      ...entry,
+      models: {
+        "openai/gpt-5": { ...entry.models["openai/gpt-5"], display_name: "  " },
+      },
+    }
+    expect(buildScaffoldContext(nameless, summary)!.models[0].displayName).toBe("openai/gpt-5")
+  })
+
+  it("keeps both extremes when the >30 rule fires and reports the hidden count", () => {
+    // 41 points; the min and the max are the two the finding is about.
+    const external = Array.from({ length: 41 }, (_, i) => ({
+      scaffold: `scaffold-${String(i).padStart(2, "0")}`,
+      score: 0.30 + i * 0.01,
+      score_se: null,
+      run_date: "2026-01-01",
+    }))
+    const wide: ScaffoldContextEntry = {
+      ...entry,
+      models: {
+        "openai/gpt-5": { ...entry.models["openai/gpt-5"], external: external.slice().reverse() },
+      },
+    }
+    const model = buildScaffoldContext(wide, summary)!.models[0]
+    expect(model.points).toHaveLength(30)
+    expect(model.hiddenCount).toBe(11)
+    const scores = model.points.map((p) => p.score)
+    expect(Math.min(...scores)).toBeCloseTo(0.3, 10)
+    expect(Math.max(...scores)).toBeCloseTo(0.7, 10)
+    // Producer emit order (score desc) is preserved among the survivors.
+    expect(scores).toEqual([...scores].sort((a, b) => b - a))
+  })
+
+  it("returns null when the sidecar has no entry or the entry has no models", () => {
+    expect(buildScaffoldContext(undefined, summary)).toBeNull()
+    expect(buildScaffoldContext(null, summary)).toBeNull()
+    expect(buildScaffoldContext({ ...entry, models: {} }, summary)).toBeNull()
   })
 })

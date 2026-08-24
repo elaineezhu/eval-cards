@@ -326,6 +326,85 @@ describe("cleanHierarchy", () => {
     expect(fams.helm.composites).toHaveLength(2)
   })
 
+  it("never plants a synthesised slice id that no eval backs (two-prefix cross product)", () => {
+    // The AIR-Bench rollup benchmark ships its leaf categories on
+    // `slices[]`, so the cleaner reconstructs ids as prefix + slice key.
+    // With TWO reporting sources that reconstruction is a cross product:
+    // helm-air-bench really does own a per-category row, llm-stats only
+    // ever reported the rollup. Only the ids the hierarchy vouches for
+    // may be planted — every invented sibling costs a 404 on each of the
+    // benchmark's page views.
+    const raw: EvalHierarchy = {
+      families: [
+        family("helm", "HELM", {
+          constituent_evaluation_ids: ["helm-air-bench%2Fair-bench-2024"],
+          composites: [
+            {
+              key: "helm-air-bench",
+              display_name: "HELM AIR-Bench",
+              category: "Safety",
+              tags: { domains: [], languages: [], tasks: [] },
+              benchmarks: [
+                {
+                  ...bench("air-bench-2024", "AIR-Bench 2024"),
+                  is_overall: true,
+                  // Both prefixes appear: 2 real helm category rows plus
+                  // the llm-stats ROLLUP (no per-category llm-stats rows).
+                  constituent_evaluation_ids: [
+                    "helm-air-bench%2Fair-bench-2024",
+                    "helm-air-bench%2Fair-bench-2024-privacy",
+                    "helm-air-bench%2Fair-bench-2024-deception",
+                    "llm-stats%2Fair-bench-2024",
+                  ],
+                  slices: [
+                    { key: "air-bench-2024-privacy", display_name: "Privacy" },
+                    { key: "air-bench-2024-deception", display_name: "Deception" },
+                    // A fine-subtask key, not a real eval either way.
+                    { key: "airbench 2024 - #1.1: military", display_name: "1.1" },
+                  ],
+                } as HierarchyBenchmark,
+              ],
+            },
+          ],
+        }),
+        family("llm-stats", "LLM Stats", {
+          constituent_evaluation_ids: ["llm-stats%2Fair-bench-2024", "llm-stats%2Fmmlu"],
+          benchmarks: [bench("mmlu", "MMLU")],
+        }),
+      ],
+    }
+
+    const cleaned = cleanHierarchy(raw)
+    const helm = cleaned.families.find((f) => f.key === "helm")!
+    const airBench = helm.composites
+      ?.find((c) => c.key === "helm-air-bench")
+      ?.benchmarks?.find((b) => b.key === "air-bench-2024")!
+
+    // Exactly the four real ids, no cross-product phantoms.
+    expect(new Set(airBench.constituent_evaluation_ids)).toEqual(
+      new Set([
+        "helm-air-bench%2Fair-bench-2024",
+        "helm-air-bench%2Fair-bench-2024-privacy",
+        "helm-air-bench%2Fair-bench-2024-deception",
+        "llm-stats%2Fair-bench-2024",
+      ]),
+    )
+    for (const id of airBench.constituent_evaluation_ids ?? []) {
+      expect(id.startsWith("llm-stats%2Fair-bench-2024-")).toBe(false)
+    }
+    // The same holds on the family node the split lookup reads.
+    expect(
+      (helm.constituent_evaluation_ids ?? []).filter((id) =>
+        id.startsWith("llm-stats%2Fair-bench-2024-"),
+      ),
+    ).toEqual([])
+    // The real llm-stats rollup is still consolidated under helm, and no
+    // longer sits on the llm-stats family.
+    expect(helm.constituent_evaluation_ids).toContain("llm-stats%2Fair-bench-2024")
+    const llmStats = cleaned.families.find((f) => f.key === "llm-stats")
+    expect(llmStats?.constituent_evaluation_ids ?? []).not.toContain("llm-stats%2Fair-bench-2024")
+  })
+
   it("consolidates AIR-Bench under HELM > helm-air-bench, dropping the standalone family and stripping it from agentharm", () => {
     const raw: EvalHierarchy = {
       families: [

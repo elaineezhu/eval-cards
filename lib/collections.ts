@@ -63,6 +63,10 @@ export interface CollectionAttachment {
   /** Server-computed R1 x-axis choice; null = no Compute view for this
    *  page by design (nothing numeric varies within a condition). */
   compute_axis: CollectionComputeAxis | null
+  /** Scaffold-context strips for this (collection, benchmark), built from
+   *  the `collection_context.json` sidecar. Null when the sidecar carries
+   *  no entry for this pair — the Context view is then absent by design. */
+  context?: ScaffoldContextPayload | null
 }
 
 export function parseProtocolCondition(
@@ -309,5 +313,285 @@ export function buildCollectionAttachment(
     outcome_type: outcomeType,
     protocol_axes: entry.protocol_axes,
     compute_axis: chooseComputeAxis(protocolConditions),
+  }
+}
+
+// ---------------------------------------------------------------------------
+// Scaffold context (finding I1): the collection's own published score for a
+// model, placed inside the community's per-scaffold score distribution for
+// the same model on the same benchmark.
+//
+// The producer pre-joins EVERYTHING into `collection_context.json` — the
+// external points are already matched to the collection's models on
+// `model_aggregation_key`, already scale-converted, already restricted to
+// the source's latest harvest, and the "no official entries" list is
+// producer-computed. Nothing here joins across artifacts; a client-side
+// join would mislabel a failed match as an absence.
+// ---------------------------------------------------------------------------
+
+/** One external leaderboard entry: a (scaffold, model) pair run under the
+ *  scaffold's own budget, which the leaderboard does not record. */
+export interface ScaffoldContextExternalEntry {
+  scaffold: string
+  score: number
+  score_se?: number | null
+  run_date?: string | null
+}
+
+/** A curated context source: the leaderboard the external points come
+ *  from. The producer resolves the display name, so the frontend never
+ *  has to prettify an id. */
+export interface ScaffoldContextSource {
+  id: string
+  display_name: string
+}
+
+/** One model's entry in the sidecar, keyed by `model_aggregation_key`. */
+export interface ScaffoldContextSidecarModel {
+  display_name: string
+  score: number
+  n_tasks: number
+  /** Recorded attempts per task behind the band, from the trajectory pool. */
+  attempts_min: number
+  attempts_max: number
+  /** Copied VERBATIM from the fact rows by the producer — caption 3
+   *  depends on byte equality with the page's own condition strings. */
+  protocol_condition: string
+  band_lo: number
+  band_hi: number
+  band_runs: number
+  band_method?: string
+  band_seed?: number
+  external: ScaffoldContextExternalEntry[]
+}
+
+/** One (collection, benchmark) entry of `collection_context.json`. */
+export interface ScaffoldContextEntry {
+  harvested_at: string
+  official_task_count: number
+  context_sources: ScaffoldContextSource[]
+  /** Producer-joined display names, in `context_sources` order — what
+   *  caption 1 names as the origin of the external points. */
+  context_source_display: string
+  models_without_context: string[]
+  models: Record<string, ScaffoldContextSidecarModel>
+}
+
+/** `collection_context.json`: collection_id → benchmark_key → entry. */
+export type CollectionContextSidecar = Record<string, Record<string, ScaffoldContextEntry>>
+
+export interface ScaffoldContextPoint {
+  scaffold: string
+  score: number
+  scoreSe?: number | null
+  runDate?: string | null
+}
+
+/** One horizontal strip: the model's published score (diamond), its
+ *  re-run band, and the external per-scaffold points (circles). */
+export interface ScaffoldContextModel {
+  /** `model_aggregation_key` — the dated↔undated bridge the producer
+   *  joined on. Display-only here. */
+  key: string
+  displayName: string
+  /** Published score of the fullest no-feedback condition. */
+  score: number
+  nTasks: number
+  bandLo: number
+  bandHi: number
+  bandRuns: number
+  /** Recorded attempts per task the band was simulated from. */
+  attemptsMin: number
+  attemptsMax: number
+  points: ScaffoldContextPoint[]
+  /** External points dropped by the >30 rule (0 in every shipped case). */
+  hiddenCount: number
+  /** Caption 3: this model is shown at its fullest-coverage condition,
+   *  which is NOT the best-scoring no-feedback condition the ranked list
+   *  above shows. Per-model — a global caption would be wrong for the
+   *  single-condition models. */
+  conditionDiffersFromBestScoring: boolean
+}
+
+export interface ScaffoldContextPayload {
+  /** Snapshot id of the harvest the external points come from. */
+  harvestedAt: string
+  officialTaskCount: number
+  /** Curated context sources, verbatim from the sidecar. */
+  contextSources: ScaffoldContextSource[]
+  /** Producer-resolved display string for those sources (caption 1). */
+  contextSourceDisplay: string
+  /** Producer-computed: collection models with no external entry. */
+  modelsWithoutContext: string[]
+  /** Benchmark display name for the captions. */
+  benchmarkLabel: string
+  /** Collection display name for the captions. */
+  collectionLabel: string
+  models: ScaffoldContextModel[]
+  /** Sum of `hiddenCount` — drives the "+N not shown" caption. */
+  hiddenTotal: number
+}
+
+/** The summary fields the builder reads. Structural so this module stays
+ *  client-safe and free of a payload-type import cycle. */
+export interface ScaffoldContextSummaryInput {
+  evaluation_name?: string
+  canonical_display_name?: string
+  collection?: { display_name?: string } | null
+  model_results: Array<{
+    score: number
+    protocol_condition?: string | null
+    model_route_id?: string
+    model_group_id?: string
+    model_info: { name?: string; id?: string }
+  }>
+}
+
+/** Never truncate below this many external points per model (today's max
+ *  is 10; the live board has 11). */
+const CONTEXT_POINT_CAP = 30
+
+/**
+ * Rank-quantile thinning that ALWAYS keeps both extremes. Top-N-by-score
+ * truncation would narrow the visible spread — the exact quantity the
+ * finding is about. Returns the kept points in the producer's original
+ * order plus the number dropped.
+ */
+export function thinContextPoints(
+  points: ScaffoldContextPoint[],
+): { points: ScaffoldContextPoint[]; hiddenCount: number } {
+  if (points.length <= CONTEXT_POINT_CAP) return { points, hiddenCount: 0 }
+
+  // Rank order (ties broken by original position) so the quantile spacing
+  // is over ranks, not over the producer's emit order.
+  const byRank = points
+    .map((point, index) => ({ point, index }))
+    .sort((a, b) => a.point.score - b.point.score || a.index - b.index)
+
+  const last = byRank.length - 1
+  const keptRanks = new Set<number>([0, last])
+  // Interior slots: quantile positions across the rank axis, rounded and
+  // deduped, then topped up from the unused ranks so the cap is always met.
+  const interior = CONTEXT_POINT_CAP - 2
+  for (let i = 1; i <= interior; i += 1) {
+    keptRanks.add(Math.round((i / (interior + 1)) * last))
+  }
+  for (let rank = 0; rank <= last && keptRanks.size < CONTEXT_POINT_CAP; rank += 1) {
+    keptRanks.add(rank)
+  }
+
+  const keptIndices = new Set(
+    Array.from(keptRanks, (rank) => byRank[rank].index),
+  )
+  return {
+    points: points.filter((_, index) => keptIndices.has(index)),
+    hiddenCount: points.length - keptIndices.size,
+  }
+}
+
+/** Identity candidates a page row can be addressed by. The sidecar keys on
+ *  `model_aggregation_key`, which equals the page's `model_key` for the
+ *  collection's own rows; the display name is the last resort. */
+function rowIdentities(row: ScaffoldContextSummaryInput["model_results"][number]): string[] {
+  const ids: string[] = []
+  if (row.model_info?.id) ids.push(row.model_info.id)
+  if (row.model_group_id) ids.push(row.model_group_id)
+  if (row.model_route_id) {
+    try {
+      ids.push(decodeURIComponent(row.model_route_id))
+    } catch {
+      ids.push(row.model_route_id)
+    }
+  }
+  return ids
+}
+
+/**
+ * The model's highest-scoring `feedback == "none"` row — the row the ranked
+ * list above the plot shows. Caption 3 fires when the sidecar's condition
+ * (fullest coverage) is a DIFFERENT string from this one.
+ */
+function bestScoringNoFeedbackCondition(
+  summary: ScaffoldContextSummaryInput,
+  key: string,
+  displayName: string,
+): string | null {
+  const normalizedName = displayName.trim().toLowerCase()
+  let best: { score: number; condition: string } | null = null
+  for (const row of summary.model_results ?? []) {
+    if (!Number.isFinite(row.score)) continue
+    const condition = row.protocol_condition
+    if (!condition) continue
+    if (feedbackConditionOf(condition) !== "none") continue
+    const matches =
+      rowIdentities(row).includes(key) ||
+      (row.model_info?.name ?? "").trim().toLowerCase() === normalizedName
+    if (!matches) continue
+    if (!best || row.score > best.score) best = { score: row.score, condition }
+  }
+  return best?.condition ?? null
+}
+
+/**
+ * Build the Context view payload from one sidecar entry. Pure. Returns null
+ * when the sidecar carries no entry for this (collection, benchmark) or the
+ * entry has no models — the view is then absent by design, never an empty
+ * plot.
+ */
+export function buildScaffoldContext(
+  entry: ScaffoldContextEntry | null | undefined,
+  summary: ScaffoldContextSummaryInput,
+): ScaffoldContextPayload | null {
+  if (!entry) return null
+  const sidecarModels = Object.entries(entry.models ?? {})
+  if (sidecarModels.length === 0) return null
+
+  const models: ScaffoldContextModel[] = []
+  for (const [key, model] of sidecarModels) {
+    if (!model) continue
+    if (!Number.isFinite(model.score)) continue
+    const displayName = model.display_name?.trim() || key
+    const external = (model.external ?? [])
+      .filter((point) => Number.isFinite(point?.score))
+      .map((point) => ({
+        scaffold: point.scaffold,
+        score: point.score,
+        scoreSe: point.score_se ?? null,
+        runDate: point.run_date ?? null,
+      }))
+    const { points, hiddenCount } = thinContextPoints(external)
+    const bestCondition = bestScoringNoFeedbackCondition(summary, key, displayName)
+    models.push({
+      key,
+      displayName,
+      score: model.score,
+      nTasks: model.n_tasks,
+      bandLo: model.band_lo,
+      bandHi: model.band_hi,
+      bandRuns: model.band_runs,
+      attemptsMin: model.attempts_min,
+      attemptsMax: model.attempts_max,
+      points,
+      hiddenCount,
+      // String equality on the verbatim producer-copied condition. A
+      // missing page row can never fire the caption — we would be
+      // asserting a difference we cannot see.
+      conditionDiffersFromBestScoring:
+        bestCondition != null && bestCondition !== model.protocol_condition,
+    })
+  }
+  if (models.length === 0) return null
+
+  return {
+    harvestedAt: entry.harvested_at,
+    officialTaskCount: entry.official_task_count,
+    contextSources: entry.context_sources ?? [],
+    contextSourceDisplay: entry.context_source_display,
+    modelsWithoutContext: entry.models_without_context ?? [],
+    benchmarkLabel:
+      summary.canonical_display_name?.trim() || summary.evaluation_name?.trim() || "this benchmark",
+    collectionLabel: summary.collection?.display_name?.trim() || "This study",
+    models,
+    hiddenTotal: models.reduce((acc, model) => acc + model.hiddenCount, 0),
   }
 }

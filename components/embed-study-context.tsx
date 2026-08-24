@@ -9,7 +9,24 @@
 import { isAssistedResult } from "@/lib/eval-processing"
 import type { BenchmarkEvalSummary } from "@/lib/eval-processing"
 
-export function EmbedStudyContext({ summary }: { summary: BenchmarkEvalSummary }) {
+/** Leading calendar date of a `harvested_at` stamp, whichever stamp form
+ *  the producer emits (ISO instant or snapshot id). Null when the value
+ *  does not start with a date, so we never print a half-parsed string. */
+function harvestDate(value: string | undefined): string | null {
+  const match = value?.trim().match(/^(\d{4}-\d{2}-\d{2})/)
+  return match ? match[1] : null
+}
+
+export function EmbedStudyContext({
+  summary,
+  /** Context view only: that embed shows external leaderboard points, so
+   *  their currency is a fact about what is on screen. Every other embed
+   *  surface renders the strip without it. */
+  showHarvestDate = false,
+}: {
+  summary: BenchmarkEvalSummary
+  showHarvestDate?: boolean
+}) {
   const collection = summary.collection
   if (!collection?.curated) return null
 
@@ -21,6 +38,7 @@ export function EmbedStudyContext({ summary }: { summary: BenchmarkEvalSummary }
   // web URL from the sidecar, never any other scheme.
   const paperUrl =
     collection.url && /^https?:\/\//.test(collection.url) ? collection.url : null
+  const harvestedOn = showHarvestDate ? harvestDate(collection.context?.harvestedAt) : null
 
   return (
     <div
@@ -60,6 +78,7 @@ export function EmbedStudyContext({ summary }: { summary: BenchmarkEvalSummary }
             was told when its answer was correct).
           </>
         )}
+        {harvestedOn && <> Leaderboard entries harvested {harvestedOn}.</>}
       </div>
     </div>
   )

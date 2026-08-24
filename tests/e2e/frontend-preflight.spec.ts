@@ -17,6 +17,11 @@ const CHART_MODELS = 16
 test.describe.configure({ mode: "serial" })
 test.skip(!SNAPSHOT, "set SNAPSHOT_URL to run the frontend preflight e2e")
 
+// Matched case-INSENSITIVELY: the error text renders inside `.kicker`,
+// which sets `text-transform: uppercase` (app/globals.css), and innerText
+// returns the transformed string ("FAILED TO LOAD MODEL DATA"). With a
+// case-sensitive match these never fire, and a page that dies quietly —
+// error text, no console error — passes.
 const ERROR_MARKERS = [
   "Model not found", "Failed to load model data", "Eval not found",
   "Benchmark not found", "Failed to load", "Application error",
@@ -135,7 +140,8 @@ test("model / eval / developer pages render (incl. regression sets)", async ({ b
     try { const r = await page.goto(`${BASE}${t.url}`, { waitUntil: "networkidle", timeout: 45_000 }); status = r ? r.status() : 0; await page.waitForTimeout(700) }
     catch (e) { errs.push(`goto: ${String(e).slice(0, 120)}`) }
     const text = await page.evaluate(() => document.body?.innerText || "").catch(() => "")
-    const marker = ERROR_MARKERS.find((m) => text.includes(m))
+    const haystack = text.toLowerCase()
+  const marker = ERROR_MARKERS.find((m) => haystack.includes(m.toLowerCase()))
     await page.close()
     return (!(status > 0 && status < 400) || marker || errs.length)
       ? `${t.url} [${status}]${marker ? ` "${marker}"` : ""}${errs.length ? ` ${JSON.stringify(errs.slice(0, 2))}` : ""}`

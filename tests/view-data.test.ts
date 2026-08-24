@@ -5,6 +5,8 @@ import path from "path"
 import { DuckDBConnection } from "@duckdb/node-api"
 import { describe, expect, it, vi } from "vitest"
 
+import collectionContextFixture from "./fixtures/collection_context.json"
+
 function sqlString(value: string) {
   return `'${value.replace(/'/g, "''")}'`
 }
@@ -19,6 +21,7 @@ async function writeSyntheticStageJSnapshot(
     includeMergedView?: boolean
     includeCollections?: boolean
     includeTrajectories?: boolean
+    includeCollectionContext?: boolean
   } = {},
 ) {
   // includeMergedView=false emulates a pre-merged-view snapshot: no
@@ -27,11 +30,14 @@ async function writeSyntheticStageJSnapshot(
   // includeCollections=false (the default) emulates a pre-collections
   // snapshot: no collection_id / protocol_condition columns and no
   // collections.json sidecar. includeTrajectories controls the optional
-  // collection_trajectories.parquet independently.
+  // collection_trajectories.parquet independently, and
+  // includeCollectionContext (default false — every snapshot before the
+  // scaffold-context bake) the collection_context.json sidecar.
   const {
     includeMergedView = true,
     includeCollections = false,
     includeTrajectories = includeCollections,
+    includeCollectionContext = false,
   } = options
   await mkdir(snapshotDir, { recursive: true })
   const connection = await DuckDBConnection.create()
@@ -112,7 +118,7 @@ async function writeSyntheticStageJSnapshot(
           last_updated := TIMESTAMP '2026-05-03 00:00:00',
           tags_covered := ['applied_reasoning']::VARCHAR[]
         )] AS variants,
-        ['openai/gpt-5']::VARCHAR[] AS raw_model_ids
+        ['openai/gpt-5', 'openai/GPT-5-Folded-2025-08-07']::VARCHAR[] AS raw_model_ids
     `,
     path.join(snapshotDir, "models_view.parquet")
   )
@@ -470,7 +476,13 @@ async function writeSyntheticStageJSnapshot(
         'uk-study' AS collection_id,
         '${condition}' AS protocol_condition,
         ${score} AS score,
-        ${score} AS score_canonical
+        ${score} AS score_canonical,
+        struct_pack(
+          score := ${score},
+          standard_error := 0.01,
+          sample_size := 9,
+          confidence_interval := struct_pack(lower := 0.7, upper := 0.9, confidence_level := 0.95)
+        ) AS score_details
       `)
     }
   }
@@ -505,6 +517,15 @@ async function writeSyntheticStageJSnapshot(
           ],
         },
       })
+    )
+  }
+
+  if (includeCollectionContext) {
+    // Hand-authored sidecar (tests/fixtures/collection_context.json); its
+    // uk-study / bench-x entry is sized for this synthetic snapshot.
+    await writeFile(
+      path.join(snapshotDir, "collection_context.json"),
+      JSON.stringify(collectionContextFixture),
     )
   }
 
@@ -840,6 +861,7 @@ async function withSnapshot(
     includeMergedView?: boolean
     includeCollections?: boolean
     includeTrajectories?: boolean
+    includeCollectionContext?: boolean
   },
   run: (dataBackend: typeof import("../lib/data-backend")) => Promise<void>,
 ) {
@@ -1078,6 +1100,68 @@ describe("collection surfaces (collection-benchmark-page spec)", () => {
     })
   })
 
+  it("attaches the scaffold-context payload from the collection_context sidecar", async () => {
+    await withSnapshot(
+      { includeCollections: true, includeCollectionContext: true },
+      async (dataBackend) => {
+        const study = await dataBackend.getEvalSummaryById("study%2Fbench")
+        const context = study?.collection?.context
+        expect(context).not.toBeNull()
+        expect(context).toMatchObject({
+          harvestedAt: "2026-05-03T00:00:00Z",
+          officialTaskCount: 10,
+          contextSourceDisplay: "Synthetic Board",
+          contextSources: [{ id: "synthetic-board", display_name: "Synthetic Board" }],
+          modelsWithoutContext: ["Llama 4"],
+          collectionLabel: "Synthetic Inference Study",
+          hiddenTotal: 0,
+        })
+        expect(context!.models).toHaveLength(1)
+        expect(context!.models[0]).toMatchObject({
+          key: "openai/gpt-5",
+          displayName: "GPT 5",
+          score: 0.4,
+          nTasks: 9,
+          bandLo: 0.31,
+          bandHi: 0.48,
+          bandRuns: 5,
+          attemptsMin: 2,
+          attemptsMax: 4,
+          hiddenCount: 0,
+          // The sidecar shows the 2M no-feedback condition; the page's
+          // best-scoring no-feedback row is the 5M one at 0.5.
+          conditionDiffersFromBestScoring: true,
+        })
+        expect(context!.models[0].points.map((p) => p.scaffold)).toEqual([
+          "Codex CLI",
+          "OpenHands",
+          "Terminus 2",
+        ])
+
+        // Ordinary pages never reach the builder at all — no attachment.
+        expect((await dataBackend.getEvalSummaryById("mmlu"))?.collection).toBeUndefined()
+      },
+    )
+  })
+
+  it("leaves the context null when the snapshot carries no collection_context sidecar", async () => {
+    await withSnapshot({ includeCollections: true }, async (dataBackend) => {
+      const study = await dataBackend.getEvalSummaryById("study%2Fbench")
+      // The collection attachment is unaffected; only the Context view is
+      // absent, so the page renders exactly as it did before the feature.
+      expect(study?.collection?.collection_id).toBe("uk-study")
+      expect(study?.collection?.compute_axis).toMatchObject({ key: "token_limit" })
+      expect(study?.collection?.context).toBeNull()
+    })
+  })
+
+  it("is a no-op on pre-collections snapshots even when the sidecar is present", async () => {
+    await withSnapshot({ includeCollectionContext: true }, async (dataBackend) => {
+      const summary = await dataBackend.getEvalSummaryById("mmlu")
+      expect(summary?.collection).toBeUndefined()
+    })
+  })
+
   it("returns clean absence when the trajectory table is missing", async () => {
     await withSnapshot(
       { includeCollections: true, includeTrajectories: false },
@@ -1088,5 +1172,44 @@ describe("collection surfaces (collection-benchmark-page spec)", () => {
         expect(await dataBackend.getEvalTrajectories("study%2Fbench")).toBeNull()
       },
     )
+  })
+})
+
+
+describe("folded model id resolution (preflight bug A)", () => {
+  // The browser page path re-encodes the decoded Next.js path param before
+  // fetching, so `getModelSummaryById` receives the id still percent-ENCODED.
+  // `route_id` is stored encoded, so the primary lookup is fine; the
+  // `raw_model_ids` fallback is not, because those store plain spellings.
+  // Matching the encoded form there 404'd every fold the baked redirect map
+  // did not already cover (239 of 2,392 folded URLs on the live snapshot).
+  const FOLDED = "openai/GPT-5-Folded-2025-08-07"
+
+  it("resolves a folded raw id sent in the ENCODED form the page path produces", async () => {
+    await withSnapshot({}, async (dataBackend) => {
+      const summary = await dataBackend.getModelSummaryById(encodeURIComponent(FOLDED))
+      expect(summary).not.toBeNull()
+      expect(summary?.model_info?.id).toBe("openai/gpt-5")
+    })
+  })
+
+  it("still resolves the plain and case-shifted forms, and the canonical route id", async () => {
+    await withSnapshot({}, async (dataBackend) => {
+      // Plain id: what a direct API caller sends (worked before the fix).
+      expect(await dataBackend.getModelSummaryById(FOLDED)).not.toBeNull()
+      // raw_model_ids preserve HF casing, so the match stays case-insensitive
+      // in the decoded domain too.
+      expect(
+        await dataBackend.getModelSummaryById(encodeURIComponent(FOLDED.toLowerCase())),
+      ).not.toBeNull()
+      // The primary encoded route_id lookup is untouched.
+      expect(await dataBackend.getModelSummaryById("openai%2Fgpt-5")).not.toBeNull()
+    })
+  })
+
+  it("still returns null for an id no row and no raw_model_ids entry backs", async () => {
+    await withSnapshot({}, async (dataBackend) => {
+      expect(await dataBackend.getModelSummaryById("openai%2Fnot-a-model")).toBeNull()
+    })
   })
 })

@@ -3,8 +3,12 @@ import "server-only"
 import fs from "node:fs"
 import path from "node:path"
 import { getConnection } from "@/lib/duckdb"
-import { fetchCollections, fetchHeadline } from "@/lib/sidecars"
-import { buildCollectionAttachment, type FeedbackCondition } from "@/lib/collections"
+import { fetchCollectionContext, fetchCollections, fetchHeadline } from "@/lib/sidecars"
+import {
+  buildCollectionAttachment,
+  buildScaffoldContext,
+  type FeedbackCondition,
+} from "@/lib/collections"
 import {
   CONDITION_ORDER,
   buildReliabilityBins,
@@ -939,10 +943,14 @@ export async function getModelSummaryById(routeId: string): Promise<ModelEvaluat
   // OR chain as a back-compat fallback for old links.
   //
   // Three slug shapes flow into this route handler:
-  //   - URL-encoded form (canonical, e.g. `google%2Fgemini-3-pro`) —
-  //     Next.js already decodes path params before they reach here, so
-  //     `routeId` lands as `google/gemini-3-pro`.
-  //   - Plain canonical id with `/` (same shape after Next.js decode).
+  //   - URL-encoded form (canonical, e.g. `google%2Fgemini-3-pro`). The
+  //     browser page path RE-encodes the decoded Next.js path param
+  //     before fetching, and the route handler's searchParams decodes
+  //     exactly once, so `routeId` lands here still ENCODED. That is the
+  //     right domain for `route_id` / `model_route_id`, which the
+  //     producer stores percent-encoded, and the wrong domain for every
+  //     plain-spelling column (see the fallback below).
+  //   - Plain canonical id with `/` — direct API callers send this.
   //   - Legacy `__`-separated form (e.g. `google__gemini-3-pro`) — the
   //     old client-side family route computation emitted this; bookmarks
   //     may still use it. Convert `__` → `/` for lookup.
@@ -965,13 +973,24 @@ export async function getModelSummaryById(routeId: string): Promise<ModelEvaluat
     // never as their own row, so resolve them to that group. Case-insensitive,
     // since raw_model_ids preserve HF casing. This makes every inbound model
     // link/bookmark resolve to a real page instead of 404-ing.
+    //
+    // `raw_model_ids` store PLAIN, unencoded spellings
+    // (`alibaba/Qwen3-Next-80B-A3B-Instruct`), so the match has to happen in
+    // the decoded domain. Matching the encoded form the page path sends
+    // never hits, which 404'd every fold the baked redirect map did not
+    // already cover. The encoded spellings stay in the candidate list so a
+    // caller that passes a raw id containing a literal `%` still resolves.
+    const decoded = decodeLoose(routeId)
+    const decodedDunder = decoded.includes("__") ? decoded.replace(/__/g, "/") : decoded
+    const candidates = [...new Set([decoded, decodedDunder, routeId, dunder])]
     const byRaw = await readRows<Row>(
       `SELECT *
        FROM models_view
-       WHERE list_contains(list_transform(raw_model_ids, x -> lower(x)), lower(?))
-          OR list_contains(list_transform(raw_model_ids, x -> lower(x)), lower(?))
+       WHERE ${candidates
+         .map(() => "list_contains(list_transform(raw_model_ids, x -> lower(x)), lower(?))")
+         .join(" OR ")}
        LIMIT 1`,
-      [routeId, dunder]
+      candidates
     )
     modelRow = byRaw[0]
   }
@@ -1257,7 +1276,20 @@ export async function getEvalSummaryById(evalId: string): Promise<BenchmarkEvalS
         optionalString(evalRow.benchmark_id),
         cellRows.map((row) => optionalString(row.protocol_condition) ?? null)
       )
-      if (attachment) summary.collection = attachment
+      if (attachment) {
+        summary.collection = attachment
+        // Scaffold context (finding I1): the collection's own score placed
+        // inside the community's per-scaffold distribution. Keyed
+        // collection_id → benchmark_key; the producer pre-joined the
+        // external points, so the builder only reshapes what it is handed.
+        // Null when this (collection, benchmark) has no sidecar entry.
+        const contextSidecar = await fetchCollectionContext()
+        const benchmarkKey = optionalString(evalRow.benchmark_id)
+        attachment.context = buildScaffoldContext(
+          benchmarkKey ? contextSidecar[collectionId]?.[benchmarkKey] : undefined,
+          summary
+        )
+      }
     }
   } catch (err) {
     console.warn(

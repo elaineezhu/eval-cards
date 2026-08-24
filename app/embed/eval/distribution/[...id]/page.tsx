@@ -3,7 +3,7 @@
 import { useEffect, useMemo, useState } from "react"
 import { useParams, useSearchParams } from "next/navigation"
 import { useAudienceMode } from "@/components/audience-mode-provider"
-import { ComputePlot, ScoreDistribution } from "@/components/score-distribution"
+import { ComputePlot, ContextPlot, ScoreDistribution } from "@/components/score-distribution"
 import { EmbedSourcePicker, useEmbedEvalSummary } from "@/components/embed-eval-source"
 import { EmbedStudyContext } from "@/components/embed-study-context"
 import { buildComputeProtocolSeries } from "@/lib/collections"
@@ -30,6 +30,10 @@ import { routeIdFromSegments } from "@/lib/utils"
  *   ?view=compute               — study pages only: per-run scores over
  *                                 the study's compute axis; declared
  *                                 absence everywhere else
+ *   ?view=context               — study pages whose (collection, benchmark)
+ *                                 carries the scaffold-context sidecar;
+ *                                 falls back to distribution elsewhere,
+ *                                 exactly like an unknown view
  *   ?slice=<subtask_key>        — start with this slice selected
  *
  * Merged (single-segment) ids default to the MERGED all-sources data and
@@ -44,6 +48,7 @@ export default function EmbedEvalDistribution() {
   const sliceParam = searchParams.get("slice")
   const showToggle = viewParam === "both"
   const computeRequested = viewParam === "compute"
+  const contextRequested = viewParam === "context"
   const defaultView: "distribution" | "frontier" =
     viewParam === "frontier" ? "frontier" : "distribution"
 
@@ -160,6 +165,42 @@ export default function EmbedEvalDistribution() {
             This evaluation has no compute-varied protocol settings to plot.
           </div>
         )}
+      </div>
+    )
+  }
+
+  // Context view: summary-fed exactly like the compute branch — the
+  // producer pre-joined the payload and it rides `summary.collection`.
+  // When the pinned summary carries no context payload the branch is
+  // skipped entirely and the page renders the distribution, which is what
+  // an unknown ?view= does.
+  const scaffoldContext = summary.collection?.context
+  if (contextRequested && scaffoldContext) {
+    return (
+      <div>
+        <div className="mb-3">
+          <div
+            className="font-mono uppercase"
+            style={{ fontSize: 10, letterSpacing: "0.14em", color: "var(--fg-subtle)" }}
+          >
+            Score in scaffold context
+          </div>
+          <div
+            style={{
+              fontSize: 19,
+              fontWeight: 700,
+              letterSpacing: "-0.02em",
+              lineHeight: 1.2,
+              color: "var(--fg)",
+              marginTop: 2,
+            }}
+          >
+            {summary.evaluation_name}
+          </div>
+        </div>
+        <EmbedSourcePicker sources={sources} value={activeSource} onChange={setActiveSource} />
+        <EmbedStudyContext summary={summary} showHarvestDate />
+        <ContextPlot context={scaffoldContext} />
       </div>
     )
   }

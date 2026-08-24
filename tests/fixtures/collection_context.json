@@ -1,0 +1,289 @@
+{
+  "__test_fixture__": "TEST FIXTURE ONLY, not warehouse output. The uk-aisi-inference-scaling / terminal-bench-2 entry is copied verbatim from a real producer bake so the frontend types and captions are exercised against the shipped collection_context.json shape. The uk-study / bench-x entry is hand-authored and sized for the synthetic Stage J snapshot in tests/view-data.test.ts.",
+  "uk-aisi-inference-scaling": {
+    "terminal-bench-2": {
+      "context_source_display": "Terminal-Bench 2.0",
+      "context_sources": [
+        {
+          "display_name": "Terminal-Bench 2.0",
+          "id": "terminal-bench-2-0"
+        }
+      ],
+      "harvested_at": "2026-08-23T00:00:00Z",
+      "models": {
+        "anthropic/claude-opus-4.5": {
+          "attempts_max": 10,
+          "attempts_min": 1,
+          "band_hi": 0.593182,
+          "band_lo": 0.522727,
+          "band_method": "jeffreys",
+          "band_runs": 5,
+          "band_seed": 20260823,
+          "display_name": "Claude Opus 4.5",
+          "external": [
+            {
+              "run_date": "2025-12-11",
+              "scaffold": "Droid",
+              "score": 0.631,
+              "score_se": 0.027
+            },
+            {
+              "run_date": "2025-12-17",
+              "scaffold": "Letta Code",
+              "score": 0.591,
+              "score_se": 0.024
+            },
+            {
+              "run_date": "2026-01-17",
+              "scaffold": "Mux",
+              "score": 0.584,
+              "score_se": null
+            },
+            {
+              "run_date": "2025-11-22",
+              "scaffold": "Terminus 2",
+              "score": 0.578,
+              "score_se": 0.025
+            },
+            {
+              "run_date": "2025-12-11",
+              "scaffold": "Goose",
+              "score": 0.543,
+              "score_se": 0.026
+            },
+            {
+              "run_date": "2025-12-18",
+              "scaffold": "Claude Code",
+              "score": 0.521,
+              "score_se": 0.025
+            },
+            {
+              "run_date": "2026-01-04",
+              "scaffold": "OpenHands",
+              "score": 0.519,
+              "score_se": 0.029
+            },
+            {
+              "run_date": "2026-01-12",
+              "scaffold": "OpenCode",
+              "score": 0.517,
+              "score_se": null
+            }
+          ],
+          "n_tasks": 88,
+          "protocol_condition": "{\"compaction\":false,\"feedback\":\"none\",\"reasoning_effort\":\"xhigh\",\"reasoning_tokens\":64000,\"scaffold\":\"S-adaptive\",\"token_limit\":10000000}",
+          "score": 0.563258
+        },
+        "anthropic/claude-opus-4.6": {
+          "attempts_max": 4,
+          "attempts_min": 1,
+          "band_hi": 0.667442,
+          "band_lo": 0.562791,
+          "band_method": "jeffreys",
+          "band_runs": 5,
+          "band_seed": 20260823,
+          "display_name": "Claude Opus 4.6",
+          "external": [
+            {
+              "run_date": "2026-05-14",
+              "scaffold": "Meta-Harness",
+              "score": 0.764,
+              "score_se": 0.024
+            },
+            {
+              "run_date": "2026-03-12",
+              "scaffold": "Capy",
+              "score": 0.753,
+              "score_se": 0.024
+            },
+            {
+              "run_date": "2026-02-22",
+              "scaffold": "Terminus-KIRA",
+              "score": 0.747,
+              "score_se": 0.026
+            },
+            {
+              "run_date": "2026-03-12",
+              "scaffold": "MAYA-V2",
+              "score": 0.721,
+              "score_se": 0.022
+            },
+            {
+              "run_date": "2026-02-22",
+              "scaffold": "TongAgents",
+              "score": 0.719,
+              "score_se": 0.027
+            },
+            {
+              "run_date": "2026-02-05",
+              "scaffold": "Droid",
+              "score": 0.699,
+              "score_se": 0.025
+            },
+            {
+              "run_date": "2026-02-23",
+              "scaffold": "Crux",
+              "score": 0.669,
+              "score_se": null
+            },
+            {
+              "run_date": "2026-02-13",
+              "scaffold": "Mux",
+              "score": 0.665,
+              "score_se": 0.025
+            },
+            {
+              "run_date": "2026-02-06",
+              "scaffold": "Terminus 2",
+              "score": 0.629,
+              "score_se": 0.027
+            },
+            {
+              "run_date": "2026-02-07",
+              "scaffold": "Claude Code",
+              "score": 0.58,
+              "score_se": 0.029
+            }
+          ],
+          "n_tasks": 86,
+          "protocol_condition": "{\"compaction\":false,\"feedback\":\"none\",\"reasoning_effort\":null,\"reasoning_tokens\":null,\"scaffold\":\"S-adaptive\",\"token_limit\":10000000}",
+          "score": 0.666667
+        },
+        "openai/gpt-5": {
+          "attempts_max": 10,
+          "attempts_min": 6,
+          "band_hi": 0.534091,
+          "band_lo": 0.463636,
+          "band_method": "jeffreys",
+          "band_runs": 5,
+          "band_seed": 20260823,
+          "display_name": "GPT-5",
+          "external": [
+            {
+              "run_date": "2025-11-04",
+              "scaffold": "Codex CLI",
+              "score": 0.496,
+              "score_se": 0.029
+            },
+            {
+              "run_date": "2025-11-02",
+              "scaffold": "OpenHands",
+              "score": 0.438,
+              "score_se": 0.03
+            },
+            {
+              "run_date": "2025-10-31",
+              "scaffold": "Terminus 2",
+              "score": 0.352,
+              "score_se": 0.031
+            },
+            {
+              "run_date": "2025-11-03",
+              "scaffold": "Mini-SWE-Agent",
+              "score": 0.339,
+              "score_se": 0.029
+            }
+          ],
+          "n_tasks": 88,
+          "protocol_condition": "{\"compaction\":false,\"feedback\":\"none\",\"reasoning_effort\":\"high\",\"reasoning_tokens\":64000,\"scaffold\":\"S-adaptive\",\"token_limit\":10000000}",
+          "score": 0.496717
+        },
+        "openai/gpt-5.2": {
+          "attempts_max": 5,
+          "attempts_min": 1,
+          "band_hi": 0.632558,
+          "band_lo": 0.530233,
+          "band_method": "jeffreys",
+          "band_runs": 5,
+          "band_seed": 20260823,
+          "display_name": "GPT-5.2",
+          "external": [
+            {
+              "run_date": "2025-12-24",
+              "scaffold": "Droid",
+              "score": 0.649,
+              "score_se": 0.028
+            },
+            {
+              "run_date": "2025-12-18",
+              "scaffold": "Codex CLI",
+              "score": 0.629,
+              "score_se": 0.03
+            },
+            {
+              "run_date": "2026-01-17",
+              "scaffold": "Mux",
+              "score": 0.607,
+              "score_se": null
+            },
+            {
+              "run_date": "2025-12-12",
+              "scaffold": "Terminus 2",
+              "score": 0.54,
+              "score_se": 0.029
+            }
+          ],
+          "n_tasks": 86,
+          "protocol_condition": "{\"compaction\":false,\"feedback\":\"none\",\"reasoning_effort\":\"high\",\"reasoning_tokens\":null,\"scaffold\":\"S-adaptive\",\"token_limit\":10000000}",
+          "score": 0.604457
+        }
+      },
+      "models_without_context": [
+        "Claude Opus 4",
+        "GPT-5.4"
+      ],
+      "official_task_count": 89
+    }
+  },
+  "uk-study": {
+    "bench-x": {
+      "context_source_display": "Synthetic Board",
+      "context_sources": [
+        {
+          "display_name": "Synthetic Board",
+          "id": "synthetic-board"
+        }
+      ],
+      "harvested_at": "2026-05-03T00:00:00Z",
+      "models": {
+        "openai/gpt-5": {
+          "attempts_max": 4,
+          "attempts_min": 2,
+          "band_hi": 0.48,
+          "band_lo": 0.31,
+          "band_method": "jeffreys",
+          "band_runs": 5,
+          "band_seed": 20260823,
+          "display_name": "GPT 5",
+          "external": [
+            {
+              "run_date": "2026-04-18",
+              "scaffold": "Codex CLI",
+              "score": 0.52,
+              "score_se": 0.03
+            },
+            {
+              "run_date": "2026-04-02",
+              "scaffold": "OpenHands",
+              "score": 0.44,
+              "score_se": null
+            },
+            {
+              "run_date": "2026-03-21",
+              "scaffold": "Terminus 2",
+              "score": 0.36,
+              "score_se": 0.04
+            }
+          ],
+          "n_tasks": 9,
+          "protocol_condition": "{\"feedback\":\"none\",\"token_limit\":2000000}",
+          "score": 0.4
+        }
+      },
+      "models_without_context": [
+        "Llama 4"
+      ],
+      "official_task_count": 10
+    }
+  }
+}

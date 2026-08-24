@@ -24,7 +24,7 @@ import type {
   PeerRanksSidecar,
 } from "@/lib/backend-artifacts"
 import { cleanHierarchy } from "@/lib/clean-hierarchy"
-import type { CollectionsSidecarEntry } from "@/lib/collections"
+import type { CollectionContextSidecar, CollectionsSidecarEntry } from "@/lib/collections"
 
 interface CacheSlot<T> {
   value: Promise<T>
@@ -40,6 +40,7 @@ let cache: {
   peerRanks?: CacheSlot<PeerRanksMap>
   organizations?: CacheSlot<Record<string, OrgMetadata>>
   collections?: CacheSlot<Record<string, CollectionsSidecarEntry>>
+  collectionContext?: CacheSlot<CollectionContextSidecar>
 } = {}
 
 function getSnapshotUrl() {
@@ -427,6 +428,30 @@ export function fetchCollections(): Promise<Record<string, CollectionsSidecarEnt
             `falling back to empty map. ${err instanceof Error ? err.message : String(err)}`,
         )
         return {} as Record<string, CollectionsSidecarEntry>
+      }),
+  )
+}
+
+/**
+ * Scaffold-context strips from `warehouse/<snapshot>/collection_context.json`,
+ * keyed collection_id → benchmark_key. The producer pre-joins the external
+ * per-scaffold leaderboard points onto the collection's own models, so the
+ * frontend only has to render what it is handed.
+ *
+ * Returns an empty map when the snapshot doesn't carry the file (every
+ * snapshot before the scaffold-context bake), logging a warning rather than
+ * throwing so the Context view is simply absent.
+ */
+export function fetchCollectionContext(): Promise<CollectionContextSidecar> {
+  return getCachedValue("collectionContext", "collection context", (preferStale) =>
+    fetchJson<CollectionContextSidecar>("collection_context.json", preferStale)
+      .then((payload) => payload ?? {})
+      .catch((err) => {
+        console.warn(
+          `[sidecars] collection_context.json not available on snapshot; ` +
+            `falling back to empty map. ${err instanceof Error ? err.message : String(err)}`,
+        )
+        return {} as CollectionContextSidecar
       }),
   )
 }

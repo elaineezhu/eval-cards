@@ -12,6 +12,7 @@ import {
   type ComputeMark,
   type FeedbackCondition,
   type ProtocolSeries,
+  type ScaffoldContextPayload,
 } from "@/lib/collections"
 
 interface ScoreSeries {
@@ -63,6 +64,10 @@ interface ScoreDistributionProps {
    *  call site passes this — matrix/embed sites must not (their row
    *  shapes carry no protocol fields). */
   protocol?: ProtocolSeries
+  /** Optional Context view: the collection's own score placed inside the
+   *  community's per-scaffold distribution. Server-built and carried on
+   *  the per-source summary; absent everywhere else. */
+  context?: ScaffoldContextPayload
 }
 
 interface SummaryStats {
@@ -158,6 +163,7 @@ export function ScoreDistribution({
   defaultView,
   showViewToggle = true,
   protocol,
+  context,
 }: ScoreDistributionProps) {
   // Normalize: either we got a single series (via values) or many.
   const seriesList: ScoreSeries[] = useMemo(() => {
@@ -211,7 +217,8 @@ export function ScoreDistribution({
 
   const canShowFrontier = frontier != null
   const canShowCompute = (protocol?.marks.length ?? 0) > 0
-  const [view, setView] = useState<"distribution" | "frontier" | "compute">(
+  const canShowContext = (context?.models.length ?? 0) > 0
+  const [view, setView] = useState<"distribution" | "frontier" | "compute" | "context">(
     defaultView ?? "distribution",
   )
   // If the active series doesn't support the selected view (e.g. user
@@ -222,15 +229,18 @@ export function ScoreDistribution({
       ? "frontier"
       : view === "compute" && canShowCompute
         ? "compute"
-        : "distribution"
+        : view === "context" && canShowContext
+          ? "context"
+          : "distribution"
   // When the caller hides the toggle (embed locks to one view), force the
   // panel to whatever defaultView/view it was created with — the user
   // can't switch, so any "frontier" inference must come from props.
-  const renderViewToggle = showViewToggle && (canShowFrontier || canShowCompute)
+  const renderViewToggle = showViewToggle && (canShowFrontier || canShowCompute || canShowContext)
   const availableViews = [
     "distribution" as const,
     ...(canShowFrontier ? ["frontier" as const] : []),
     ...(canShowCompute ? ["compute" as const] : []),
+    ...(canShowContext ? ["context" as const] : []),
   ]
 
   const density = useMemo(() => {
@@ -342,7 +352,9 @@ export function ScoreDistribution({
                         ? "Distribution"
                         : view === "frontier"
                           ? "Frontier"
-                          : "Compute"
+                          : view === "compute"
+                            ? "Compute"
+                            : "Context"
                     return (
                       <button
                         key={view}
@@ -355,7 +367,9 @@ export function ScoreDistribution({
                             ? "Frontier score over model release dates (cumulative best)."
                             : view === "compute"
                               ? `Per-run scores across the study's ${protocol?.axisLabel ?? "compute axis"} settings.`
-                              : "Kernel-density distribution of model scores."
+                              : view === "context"
+                                ? "This study's score for each model against the official leaderboard's per-scaffold entries."
+                                : "Kernel-density distribution of model scores."
                         }
                         className={`ec-pill${on ? " on" : ""}`}
                       >
@@ -433,7 +447,9 @@ export function ScoreDistribution({
         </div>
       )}
 
-      {effectiveView === "compute" && protocol ? (
+      {effectiveView === "context" && context ? (
+        <ContextPlot context={context} />
+      ) : effectiveView === "compute" && protocol ? (
         <ComputePlot protocol={protocol} unit={active.unit} label={active.label} />
       ) : effectiveView === "frontier" && frontier ? (
         <FrontierPlot
@@ -1299,6 +1315,294 @@ export function ComputePlot({
             feedback conditions ran at different budgets; compare them only where budgets match
           </div>
         )}
+      </div>
+    </div>
+  )
+}
+
+// ---------------------------------------------------------------------------
+// Context view: the collection's own published score for each model placed
+// inside the community's per-scaffold score distribution for the same model
+// on the same benchmark (finding I1).
+//
+// Presentation rules that carry meaning:
+//   - the band is a posterior-predictive interval over re-runs of the SAME
+//     tasks. It is not centered on the published score and must never be
+//     drawn as if it were: no centre tick, no midpoint marker.
+//   - one accent token (the published score) and one neutral token
+//     (everything else), so the strip reads the same in both themes.
+//   - the x scale is shared across strips and clipped to a padded data
+//     range; placements are only comparable on one axis.
+// ---------------------------------------------------------------------------
+
+function formatAccuracyPct(value: number): string {
+  return `${(value * 100).toFixed(1)}%`
+}
+
+/** Distinct values as "a" or "a–b" — the strips can disagree on task count
+ *  and runs/task, and a single number would misreport the others. */
+function formatSpan(values: number[]): string {
+  const finite = values.filter((v) => Number.isFinite(v))
+  if (finite.length === 0) return "?"
+  const lo = Math.min(...finite)
+  const hi = Math.max(...finite)
+  return lo === hi ? String(lo) : `${lo}–${hi}`
+}
+
+/** "A", "A and B", "A, B and C" — the caption register's list form. */
+function joinNames(names: string[]): string {
+  if (names.length <= 1) return names[0] ?? ""
+  return `${names.slice(0, -1).join(", ")} and ${names[names.length - 1]}`
+}
+
+/** Round percent ticks inside the padded range (3–6 of them). */
+function contextTicks(lo: number, hi: number): number[] {
+  const span = hi - lo
+  if (!(span > 0)) return [lo]
+  const steps = [0.005, 0.01, 0.02, 0.025, 0.05, 0.1, 0.2, 0.25, 0.5]
+  const step = steps.find((s) => span / s <= 6) ?? steps[steps.length - 1]
+  const ticks: number[] = []
+  for (let t = Math.ceil(lo / step) * step; t <= hi + 1e-9; t += step) {
+    ticks.push(Number(t.toFixed(6)))
+  }
+  return ticks
+}
+
+export function ContextPlot({ context }: { context: ScaffoldContextPayload }) {
+  const {
+    models,
+    officialTaskCount,
+    contextSourceDisplay,
+    modelsWithoutContext,
+    hiddenTotal,
+  } = context
+
+  // Hover is addressed by (strip, point index) so the tooltip can be
+  // positioned on the same percentage scale as the dot it describes —
+  // no measurement, no drift when the panel resizes.
+  const [hover, setHover] = useState<{ modelKey: string; index: number } | null>(null)
+
+  // One shared scale over every quantity actually drawn, padded so the
+  // extreme marks are not clipped by the strip edge.
+  const values: number[] = []
+  for (const model of models) {
+    values.push(model.score, model.bandLo, model.bandHi)
+    for (const point of model.points) values.push(point.score)
+  }
+  const finite = values.filter((v) => Number.isFinite(v))
+  const dataLo = finite.length > 0 ? Math.min(...finite) : 0
+  const dataHi = finite.length > 0 ? Math.max(...finite) : 1
+  const spread = dataHi - dataLo || 0.05
+  const xLo = dataLo - spread * 0.08
+  const xHi = dataHi + spread * 0.08
+  const xPct = (value: number) => ((value - xLo) / (xHi - xLo)) * 100
+  const ticks = contextTicks(xLo, xHi)
+
+  const STRIP_HEIGHT = 30
+  // The producer resolves the source display string; never re-derive it
+  // from ids here.
+  const sourceLabel = contextSourceDisplay?.trim() || "official"
+  // Models whose ranked (best-scoring) no-feedback row is a different
+  // condition from the one plotted. Named once, in one caption, rather
+  // than repeated under every strip.
+  const rankedDifferentModels = models
+    .filter((model) => model.conditionDiffersFromBestScoring)
+    .map((model) => model.displayName)
+
+  return (
+    <div>
+      <div style={{ position: "relative" }} onMouseLeave={() => setHover(null)}>
+        {models.map((model) => (
+          <div key={model.key} className="mb-2">
+            <div className="flex items-center gap-3">
+              <div
+                className="font-mono truncate shrink-0"
+                style={{ width: 132, fontSize: 10.5, letterSpacing: "0.04em", color: "var(--fg)" }}
+                title={model.displayName}
+              >
+                {model.displayName}
+              </div>
+              <div
+                role="img"
+                aria-label={`${model.displayName}: this study's score ${formatAccuracyPct(model.score)} over ${model.nTasks} tasks, re-run band ${formatAccuracyPct(model.bandLo)} to ${formatAccuracyPct(model.bandHi)}, ${model.points.length} leaderboard ${model.points.length === 1 ? "scaffold" : "scaffolds"} from ${formatAccuracyPct(Math.min(...model.points.map((p) => p.score), model.score))} to ${formatAccuracyPct(Math.max(...model.points.map((p) => p.score), model.score))}`}
+                style={{ position: "relative", flex: 1, height: STRIP_HEIGHT }}
+              >
+                {/* Re-run band. Drawn behind everything and deliberately
+                    without a centre marker: it is a posterior-predictive
+                    interval, not an error bar around the diamond. */}
+                <div
+                  aria-hidden
+                  style={{
+                    position: "absolute",
+                    left: `${xPct(model.bandLo)}%`,
+                    width: `${Math.max(xPct(model.bandHi) - xPct(model.bandLo), 0.4)}%`,
+                    top: 5,
+                    bottom: 5,
+                    background: "var(--fg-muted)",
+                    opacity: 0.16,
+                  }}
+                />
+                {/* Strip baseline */}
+                <div
+                  aria-hidden
+                  style={{
+                    position: "absolute",
+                    left: 0,
+                    right: 0,
+                    top: STRIP_HEIGHT / 2,
+                    height: 1,
+                    background: "var(--border-soft)",
+                  }}
+                />
+                {model.points.map((point, index) => (
+                  <button
+                    key={`${point.scaffold}-${index}`}
+                    type="button"
+                    aria-label={`${point.scaffold} · ${formatAccuracyPct(point.score)}${point.runDate ? ` · ${point.runDate}` : ""}`}
+                    onMouseEnter={() => setHover({ modelKey: model.key, index })}
+                    onFocus={() => setHover({ modelKey: model.key, index })}
+                    onBlur={() => setHover(null)}
+                    style={{
+                      position: "absolute",
+                      left: `${xPct(point.score)}%`,
+                      top: STRIP_HEIGHT / 2,
+                      transform: "translate(-50%, -50%)",
+                      padding: 0,
+                      border: "none",
+                      background: "transparent",
+                      cursor: "pointer",
+                    }}
+                  >
+                    <span
+                      aria-hidden
+                      style={{
+                        display: "block",
+                        width: 9,
+                        height: 9,
+                        borderRadius: "50%",
+                        border: "1.5px solid var(--fg-muted)",
+                        background: "transparent",
+                        boxSizing: "border-box",
+                      }}
+                    />
+                  </button>
+                ))}
+                {/* Published score. Always a served fact_results number. */}
+                <span
+                  aria-hidden
+                  style={{
+                    position: "absolute",
+                    left: `${xPct(model.score)}%`,
+                    top: STRIP_HEIGHT / 2,
+                    transform: "translate(-50%, -50%) rotate(45deg)",
+                    width: 9,
+                    height: 9,
+                    background: "var(--accent)",
+                    boxSizing: "border-box",
+                  }}
+                />
+                {hover?.modelKey === model.key && model.points[hover.index] && (
+                  <div
+                    role="status"
+                    style={{
+                      position: "absolute",
+                      left: `${xPct(model.points[hover.index].score)}%`,
+                      bottom: STRIP_HEIGHT / 2 + 8,
+                      transform: "translateX(-50%)",
+                      pointerEvents: "none",
+                      background: "var(--fg)",
+                      color: "var(--bg)",
+                      padding: "5px 9px",
+                      fontSize: 11,
+                      lineHeight: 1.3,
+                      whiteSpace: "nowrap",
+                      boxShadow: "var(--shadow-card, 0 2px 6px rgba(0,0,0,0.18))",
+                      zIndex: 2,
+                    }}
+                  >
+                    <div style={{ fontWeight: 600 }}>{model.points[hover.index].scaffold}</div>
+                    <div
+                      className="font-mono"
+                      style={{ fontSize: 10, letterSpacing: "0.04em", opacity: 0.8, marginTop: 1 }}
+                    >
+                      {formatAccuracyPct(model.points[hover.index].score)}
+                      {model.points[hover.index].runDate
+                        ? ` · ${model.points[hover.index].runDate}`
+                        : ""}
+                    </div>
+                    <div style={{ fontSize: 10, opacity: 0.8, marginTop: 1 }}>
+                      {model.displayName}
+                    </div>
+                  </div>
+                )}
+              </div>
+            </div>
+          </div>
+        ))}
+
+      </div>
+
+      {/* Shared x axis */}
+      <div className="flex items-center gap-3">
+        <div className="shrink-0" style={{ width: 132 }} />
+        <div style={{ position: "relative", flex: 1, height: 16 }}>
+          <div
+            aria-hidden
+            style={{
+              position: "absolute",
+              left: 0,
+              right: 0,
+              top: 0,
+              height: 1,
+              background: "var(--border-strong)",
+            }}
+          />
+          {ticks.map((tick) => (
+            <div
+              key={tick}
+              aria-hidden
+              style={{
+                position: "absolute",
+                left: `${xPct(tick)}%`,
+                top: 2,
+                transform: "translateX(-50%)",
+                fontFamily: "var(--font-mono)",
+                fontSize: 9.5,
+                color: "var(--fg-subtle)",
+                letterSpacing: "0.06em",
+              }}
+            >
+              {formatAccuracyPct(tick)}
+            </div>
+          ))}
+        </div>
+      </div>
+
+      <div
+        className="mt-3 space-y-0.5 font-mono"
+        style={{ fontSize: 10, letterSpacing: "0.04em", color: "var(--fg-muted)" }}
+      >
+        <div>each circle is one agent scaffold on the {sourceLabel} leaderboard</div>
+        <div>
+          diamonds: this study&apos;s no-feedback score over{" "}
+          {formatSpan(models.map((m) => m.nTasks))} of the {officialTaskCount} tasks
+        </div>
+        <div>
+          shaded band: estimated score range for a re-run at{" "}
+          {formatSpan(models.map((m) => m.bandRuns))} runs per task
+        </div>
+        {rankedDifferentModels.length > 0 && (
+          <div style={{ color: "var(--fg-subtle)" }}>
+            the ranked list shows each model&apos;s best score, for{" "}
+            {joinNames(rankedDifferentModels)} from a smaller task set
+          </div>
+        )}
+        {modelsWithoutContext.length > 0 && (
+          <div style={{ color: "var(--fg-subtle)" }}>
+            no leaderboard entries for {joinNames(modelsWithoutContext)}
+          </div>
+        )}
+        {hiddenTotal > 0 && <div style={{ color: "var(--fg-subtle)" }}>+{hiddenTotal} not shown</div>}
       </div>
     </div>
   )
