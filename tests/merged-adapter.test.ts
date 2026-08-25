@@ -155,6 +155,42 @@ describe("mergedSummaryToEvalSummary — EvalDetail surface", () => {
     expect(adapted.metric_config.max_score).toBe(1)
   })
 
+  it("keeps assisted study rows out of the default merged pool", () => {
+    const assistedCondition = JSON.stringify({
+      feedback: "answer_feedback",
+      token_limit: 5_000_000,
+    })
+    const results = [
+      row({
+        model_info: { name: "Assisted Model", id: "org/assisted" },
+        model_route_id: "org%2Fassisted",
+        score: 0.99,
+        score_canonical: 0.99,
+        protocol_condition: assistedCondition,
+      }),
+      row({ score: 0.8, score_canonical: 0.8 }),
+      row({
+        model_info: { name: "Model B", id: "org/model-b" },
+        model_route_id: "org%2Fmodel-b",
+        score: 0.7,
+        score_canonical: 0.7,
+        protocol_condition: JSON.stringify({ feedback: "none" }),
+      }),
+    ]
+    const adapted = mergedSummaryToEvalSummary(mergedPayload(results))
+
+    expect(adapted.model_results.map((result) => result.model_info.name)).toEqual([
+      "Model A",
+      "Model B",
+    ])
+    expect(adapted.leaderboard_rows?.map((result) => result.values.accuracy)).toEqual([
+      0.8,
+      0.7,
+    ])
+    expect(adapted.avg_score).toBeCloseTo(0.75)
+    expect(adapted.best_model).toEqual({ name: "Model A", score: 0.8 })
+  })
+
   it("livebench regression: a flagged raw score above 1 neither ranks nor flips the scale to 0-100", () => {
     // Shape of the live /evals/livebench bug: canonical pool is 0-1 but
     // one flagged row carries a raw 1.4155. Before the fix it ranked #1

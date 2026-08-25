@@ -150,6 +150,13 @@ test("context embed: the scaffold-context strips render, and ?view=context falls
   expect(has(text, "kernel-density")).toBe(false)
 })
 
+test("merged benchmark view omits assisted study observations", async ({ page }) => {
+  const text = await bodyText(page, "/evals/terminal-bench-2")
+  expect(has(text, "assisted study results are omitted from this merged view")).toBe(true)
+  // The disclosure remains, but no leaderboard row carries the assisted badge.
+  await expect(page.getByText("assisted", { exact: true })).toHaveCount(0)
+})
+
 test("context embed on a no-context eval: unknown-view fallback, never an empty frame", async ({
   page,
 }) => {

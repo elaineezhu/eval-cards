@@ -19,6 +19,7 @@ import type {
   MergedBenchmarkSummary,
   MergedObservationRow,
 } from "@/lib/eval-processing"
+import { isAssistedResult } from "@/lib/eval-processing"
 import type { MetricConfig, SourceData } from "@/lib/benchmark-schema"
 
 export function isMergedBenchmarkSummary(payload: unknown): payload is MergedBenchmarkSummary {
@@ -30,17 +31,24 @@ export function isMergedBenchmarkSummary(payload: unknown): payload is MergedBen
 }
 
 /**
- * Rows eligible for the merged pool: only observations with a score on
- * the metric's registry canonical scale. Flagged rows (score_canonical
- * null — the producer could not safely convert the raw score) are
- * EXCLUDED from the leaderboard, the distribution pool, the average and
- * the bounds inference: pooling raw unconverted numbers with canonical
- * ones would rank apples against oranges (e.g. a raw 1.42 outranking a
- * true 0.85 best). The merged page discloses the excluded count.
+ * Rows eligible for the default merged pool: unassisted observations with
+ * a score on the metric's registry canonical scale. Assisted conditions
+ * belong on their source study's dedicated views, where their protocol is
+ * explicit; treating them as ordinary all-sources observations would make
+ * the merged comparison misleading.
+ *
+ * Flagged rows (score_canonical null — the producer could not safely
+ * convert the raw score) are also excluded from the leaderboard,
+ * distribution pool, average, and bounds inference. Pooling raw
+ * unconverted numbers with canonical ones would rank apples against
+ * oranges (e.g. a raw 1.42 outranking a true 0.85 best).
  */
 function convertedRows(merged: MergedBenchmarkSummary): MergedObservationRow[] {
   return merged.results.filter(
-    (row) => row.score_canonical != null && Number.isFinite(row.score_canonical),
+    (row) =>
+      !isAssistedResult(row.protocol_condition) &&
+      row.score_canonical != null &&
+      Number.isFinite(row.score_canonical),
   )
 }
 
@@ -132,17 +140,12 @@ export function mergedSummaryToEvalSummary(merged: MergedBenchmarkSummary): Benc
     .filter((s): s is number => Number.isFinite(s))
   const avgScore = scores.length > 0 ? scores.reduce((a, b) => a + b, 0) / scores.length : 0
 
-  // Best model on the CANONICAL scale only. The backend best_result can
-  // itself be a flagged raw score, so prefer its canonical value and fall
-  // back to the top converted row (rows arrive pre-sorted best-first in
-  // the metric's direction, spec Q6).
-  const best = merged.best_result
-  const bestModel =
-    best && best.model_name != null && best.score_canonical != null
-      ? { name: best.model_name, score: best.score_canonical }
-      : rows.length > 0
-        ? { name: rows[0].model_info.name, score: rows[0].score_canonical as number }
-        : null
+  // Best model comes from the visible pool itself. The producer's raw
+  // best_result may describe an assisted or unconvertible observation;
+  // the merged query returns rows best-first in the metric's direction.
+  const bestModel = rows.length > 0
+    ? { name: rows[0].model_info.name, score: rows[0].score_canonical as number }
+    : null
 
   return {
     evaluation_id: merged.evaluation_id,

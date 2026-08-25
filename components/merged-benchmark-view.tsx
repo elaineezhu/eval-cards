@@ -26,7 +26,11 @@ import { usePathname, useRouter, useSearchParams } from "next/navigation"
 import { EvalDetail } from "@/components/eval-detail"
 import { fetchMergedBenchmarkSummary } from "@/lib/dashboard-data-client"
 import { isMergedBenchmarkSummary, mergedSummaryToEvalSummary } from "@/lib/merged-adapter"
-import type { MergedBenchmarkSummary, ModelResultForBenchmark } from "@/lib/eval-processing"
+import {
+  isAssistedResult,
+  type MergedBenchmarkSummary,
+  type ModelResultForBenchmark,
+} from "@/lib/eval-processing"
 import type { ComparisonIndex, EvalHierarchy } from "@/lib/backend-artifacts"
 import { routeIdToPath } from "@/lib/utils"
 
@@ -100,16 +104,19 @@ export function MergedBenchmarkView({
   )
 
   const selectedMetricId = summary?.selected_metric_id
-  const selectedMetric = useMemo(
-    () => summary?.metrics.find((m) => m.metric_id === selectedMetricId) ?? null,
-    [summary, selectedMetricId],
-  )
+  const activeMetricId = selectedMetricId ?? summary?.preferred_metric_id
 
-  // Counts at the SELECTED metric's grain (hero scalar counts are at the
-  // default metric's).
-  const resultsCount = selectedMetric?.results_count ?? summary?.results_count ?? 0
-  const sourcesCount = selectedMetric?.sources_count ?? summary?.sources_count ?? 0
-  const modelsCount = selectedMetric?.models_count ?? summary?.models_count ?? 0
+  // Counts at the SELECTED metric's visible merged grain. The raw payload
+  // can include assisted and unconvertible observations that the merged
+  // adapter intentionally withholds.
+  const visibleRows = adapted?.model_results ?? []
+  const resultsCount = visibleRows.length
+  const sourcesCount = new Set(
+    visibleRows.map((row) => row.merged_source_slug).filter(Boolean),
+  ).size
+  const modelsCount = new Set(
+    visibleRows.map((row) => row.model_route_id ?? row.model_info.id),
+  ).size
 
   const sourceSlugSet = useMemo(
     () => new Set((summary?.aggregate_sources ?? []).map((s) => s.composite_slug)),
@@ -120,9 +127,18 @@ export function MergedBenchmarkView({
     (s) => !s.reports_preferred || s.slice_only,
   )
 
-  // Rows the adapter dropped from the pool: flagged observations whose
-  // raw score could not be converted to the metric's canonical scale.
-  const excludedCount = summary && adapted ? summary.results.length - adapted.model_results.length : 0
+  const assistedExcludedCount = summary
+    ? summary.results.filter((row) => isAssistedResult(row.protocol_condition)).length
+    : 0
+  // Keep this disclosure distinct from intentional protocol filtering:
+  // these rows are absent because their scores cannot share the axis.
+  const unconvertibleCount = summary
+    ? summary.results.filter(
+        (row) =>
+          !isAssistedResult(row.protocol_condition) &&
+          (row.score_canonical == null || !Number.isFinite(row.score_canonical)),
+      ).length
+    : 0
 
   if (loading) {
     return (
@@ -153,12 +169,17 @@ export function MergedBenchmarkView({
           activeId: selectedMetricId ?? summary.preferred_metric_id,
           onChange: (metricId: string) =>
             setQueryParam("metric", metricId === summary.preferred_metric_id ? null : metricId),
-          options: summary.metrics.map((metric) => ({
-            id: metric.metric_id,
-            label: `${metric.display_name} (${metric.sources_count} ${
-              metric.sources_count === 1 ? "source" : "sources"
-            }, ${metric.results_count} ${metric.results_count === 1 ? "result" : "results"})`,
-          })),
+          options: summary.metrics.map((metric) => {
+            const isSelected = metric.metric_id === activeMetricId
+            const displayedSources = isSelected ? sourcesCount : metric.sources_count
+            const displayedResults = isSelected ? resultsCount : metric.results_count
+            return {
+              id: metric.metric_id,
+              label: `${metric.display_name} (${displayedSources} ${
+                displayedSources === 1 ? "source" : "sources"
+              }, ${displayedResults} ${displayedResults === 1 ? "result" : "results"})`,
+            }
+          }),
         }
       : undefined
 
@@ -279,12 +300,30 @@ export function MergedBenchmarkView({
       />
 
       {/* DISCLOSURE NOTES -------------------------------------------------- */}
-      {(disclosureSources.length > 0 || excludedCount > 0) && (
+      {(disclosureSources.length > 0 || unconvertibleCount > 0 || assistedExcludedCount > 0) && (
         <div className="space-y-1.5">
-          {excludedCount > 0 && (
+          {assistedExcludedCount > 0 && (
             <p className="text-[12px] leading-[1.6]" style={{ color: "var(--fg-muted)" }}>
-              {excludedCount.toLocaleString()} {excludedCount === 1 ? "result is" : "results are"} not
-              shown: {excludedCount === 1 ? "its score" : "their scores"} could not be converted to
+              {assistedExcludedCount.toLocaleString()} assisted study{" "}
+              {assistedExcludedCount === 1 ? "result is" : "results are"} omitted from this
+              merged view and {assistedExcludedCount === 1 ? "remains" : "remain"} available on the{" "}
+              {studySourceHref ? (
+                <Link
+                  href={studySourceHref}
+                  className="underline underline-offset-2 hover:text-[color:var(--accent)]"
+                  style={{ color: "var(--fg)" }}
+                >
+                  source study page
+                </Link>
+              ) : (
+                "source study page"
+              )}.
+            </p>
+          )}
+          {unconvertibleCount > 0 && (
+            <p className="text-[12px] leading-[1.6]" style={{ color: "var(--fg-muted)" }}>
+              {unconvertibleCount.toLocaleString()} {unconvertibleCount === 1 ? "result is" : "results are"} not
+              shown: {unconvertibleCount === 1 ? "its score" : "their scores"} could not be converted to
               this metric&apos;s common scale.
             </p>
           )}
