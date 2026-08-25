@@ -981,18 +981,18 @@ function FrontierPlot({ events, samples, unit, lowerIsBetter, label }: FrontierP
 }
 
 // ---------------------------------------------------------------------------
-// Context view: the collection's own published score for each model placed
-// among the community's published measurements of the same model on the same
-// benchmark (finding I1). Scaffold names, where recorded, are hover metadata.
+// Context view: the collection's canonical score for each model placed among
+// other EEE measurements of the same model on the same benchmark. Scaffold
+// names, where recorded, are hover metadata.
 //
 // Presentation rules that carry meaning:
-//   - the band is a posterior-predictive interval over re-runs of the SAME
-//     tasks. It is not centered on the published score and must never be
-//     drawn as if it were: no centre tick, no midpoint marker.
-//   - one accent token (the published score) and one neutral token
-//     (everything else), so the strip reads the same in both themes.
+//   - whiskers show the collection-reported standard error around each study
+//     mark; they are not uncertainty bands for the external measurements.
+//   - blue identifies the no-feedback study mark, orange its with-oracle
+//     companion, and neutral tokens identify external EEE measurements.
 //   - the x scale is shared across strips and clipped to a padded data
-//     range; placements are only comparable on one axis.
+//     range; scores are comparable on the accuracy axis, while protocol and
+//     task-coverage differences remain visible as provenance.
 // ---------------------------------------------------------------------------
 
 function formatAccuracyPct(value: number): string {
@@ -1125,7 +1125,7 @@ export function ContextPlot({ context }: { context: ScaffoldContextPayload }) {
                     background: "var(--border-soft)",
                   }}
                 />
-                {/* The study's published-SE whisker: score ± 1 SE. */}
+                {/* The study's reported-SE whisker: score ± 1 SE. */}
                 {model.scoreSe != null && (
                   <div
                     aria-hidden
@@ -1221,7 +1221,7 @@ export function ContextPlot({ context }: { context: ScaffoldContextPayload }) {
                     />
                   </button>
                 )}
-                {/* Published score. Always a served fact_results number. */}
+                {/* Canonical study score. Always a served fact_results number. */}
                 <button
                   type="button"
                   aria-label={`Current study (no feedback) · ${formatAccuracyPct(model.score)}${model.scoreSe != null ? ` ± ${formatAccuracyPct(model.scoreSe)}` : ""} · ${model.nTasks} tasks`}
@@ -1340,10 +1340,28 @@ export function ContextPlot({ context }: { context: ScaffoldContextPayload }) {
         style={{ fontSize: 10, letterSpacing: "0.04em", color: "var(--fg-muted)" }}
       >
         <div>
-          Diamonds: the current study&apos;s score for the no-feedback (blue)
-          {anyAssisted ? " and with-oracle (orange)" : ""} setup; whiskers show the standard error.
+          X-axis: binary run success rates. Runs may differ in setup (e.g. scaffolds,
+          budgets, task coverage, and submission protocols).
+        </div>
+        <div>
+          Diamonds: the current study&apos;s {anyAssisted ? "scores" : "score"} for the
+          no-feedback (blue)
+          {anyAssisted ? " and with-oracle (orange) setups" : " setup"}; whiskers show
+          the standard error.
         </div>
         <div>Circles: reported scores from other sources in Every Eval Ever.</div>
+        {context.modelsWithoutContext.length > 0 && (
+          <div>
+            No comparable external entries for {context.modelsWithoutContext.join(", ")}.
+          </div>
+        )}
+        {context.modelsWithoutAssisted.length > 0 && (
+          <div>
+            No eligible with-oracle mark for {context.modelsWithoutAssisted
+              .map((model) => model.displayName)
+              .join(", ")}.
+          </div>
+        )}
       </div>
     </div>
   )

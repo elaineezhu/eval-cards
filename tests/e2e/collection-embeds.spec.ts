@@ -127,15 +127,22 @@ test("context embed: the scaffold-context strips render, and ?view=context falls
   const text = await bodyText(page, `/embed/eval/distribution/${STUDY}%2Fterminal-bench-2?view=context`)
   expect(has(text, "study scores among other reported evaluations")).toBe(true)
   expect(has(text, STUDY_STRIP)).toBe(true)
-  // The two standing caption lines: what a diamond is, what a circle is.
+  // The standing caption lines: score semantics, what a diamond is, and what a circle is.
+  expect(has(text, "x-axis: binary run success rates")).toBe(true)
+  expect(has(text, "runs may differ in setup")).toBe(true)
   expect(
     has(
       text,
-      "diamonds: the current study's score for the no-feedback (blue) and with-oracle (orange) setup",
+      "diamonds: the current study's scores for the no-feedback (blue) and with-oracle (orange) setups",
     ),
   ).toBe(true)
   expect(has(text, "whiskers show the standard error")).toBe(true)
   expect(has(text, "circles: reported scores from other sources in every eval ever")).toBe(true)
+  // GPT-5's row-level accessible summary proves the with-oracle diamond
+  // is rendered, in addition to the explanatory caption.
+  await expect(
+    page.getByRole("img", { name: /gpt-5:.*with oracle feedback/i }),
+  ).toHaveCount(1)
   // The retired band and harvest sentence are gone from every surface.
   expect(has(text, "shaded band")).toBe(false)
   expect(has(text, "measurements harvested")).toBe(false)
