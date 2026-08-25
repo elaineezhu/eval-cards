@@ -1025,11 +1025,13 @@ function ContextTooltip({
   title,
   meta,
   modelName,
+  source,
 }: {
   leftPct: number
-  title: string
+  title?: string | null
   meta: string
   modelName: string
+  source?: string | null
 }) {
   return (
     <div
@@ -1050,13 +1052,18 @@ function ContextTooltip({
         zIndex: 2,
       }}
     >
-      <div style={{ fontWeight: 600 }}>{title}</div>
+      {title && <div style={{ fontWeight: 600 }}>{title}</div>}
       <div
         className="font-mono"
         style={{ fontSize: 10, letterSpacing: "0.04em", opacity: 0.8, marginTop: 1 }}
       >
         {meta}
       </div>
+      {source && (
+        <div style={{ fontSize: 10, opacity: 0.8, marginTop: 1 }}>
+          Source: {source}
+        </div>
+      )}
       <div style={{ fontSize: 10, opacity: 0.8, marginTop: 1 }}>{modelName}</div>
     </div>
   )
@@ -1158,7 +1165,9 @@ export function ContextPlot({ context }: { context: ScaffoldContextPayload }) {
                   <button
                     key={`${point.scaffold ?? point.source ?? "measurement"}-${index}`}
                     type="button"
-                    aria-label={`${point.scaffold ?? point.source ?? "external measurement"} · ${formatAccuracyPct(point.score)}${point.runDate ? ` · ${point.runDate}` : ""}`}
+                    aria-label={`${point.scaffold ? `${point.scaffold} · ` : ""}${formatAccuracyPct(point.score)}${
+                      point.source ? ` · Source: ${point.source}` : ""
+                    }${point.runDate ? ` · ${point.runDate}` : ""}`}
                     onMouseEnter={() => setHover({ modelKey: model.key, mark: "point", index })}
                     onFocus={() => setHover({ modelKey: model.key, mark: "point", index })}
                     onBlur={() => setHover(null)}
@@ -1272,24 +1281,18 @@ export function ContextPlot({ context }: { context: ScaffoldContextPayload }) {
                   model.points[hover.index] && (
                     <ContextTooltip
                       leftPct={xPct(model.points[hover.index].score)}
-                      title={
-                        model.points[hover.index].scaffold ??
-                        model.points[hover.index].source ??
-                        "external measurement"
-                      }
+                      title={model.points[hover.index].scaffold}
                       meta={[
                         formatAccuracyPct(model.points[hover.index].score) +
                           (model.points[hover.index].scoreSe != null
                             ? ` ± ${formatAccuracyPct(model.points[hover.index].scoreSe ?? 0)}`
                             : ""),
                         model.points[hover.index].runDate,
-                        model.points[hover.index].scaffold
-                          ? model.points[hover.index].source
-                          : null,
                       ]
                         .filter(Boolean)
                         .join(" · ")}
                       modelName={model.displayName}
+                      source={model.points[hover.index].source}
                     />
                   )}
               </div>
