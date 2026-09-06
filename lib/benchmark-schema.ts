@@ -246,8 +246,8 @@ const TAG_FALLBACK_RULES: Array<[RegExp, EvalTag]> = [
   [/\b(?:reasoning|bbh|musr|gpqa|arc[-_]?c|logiqa|winogrande)\b/i, 'applied_reasoning'],
   [/\b(?:mmlu|knowledge|trivia|medqa|legalbench|theory[-_]?of[-_]?mind)\b/i, 'knowledge'],
   [/\b(?:multimodal|vision|vqa|mmmu|image|video|visual)\b/i, 'multimodal'],
-  [/(?:hallucin|\bfaithful\b|\bfactual\b)/i, 'hallucination'],
-  [/(?:robust|\bperturbation\b|\bnoisy\b|\bcorrupted\b)/i, 'robustness'],
+  [/(?:hallucin|\bfaithful|\bfactual)/i, 'hallucination'],
+  [/(?:robust|\bperturbation|\bnoisy|\bcorrupted)/i, 'robustness'],
   [/\b(?:legal|law|jurisprudence)\b/i, 'law'],
   [/\b(?:finance|financial|trading|accounting)\b/i, 'finance'],
 ]
@@ -258,8 +258,11 @@ const TAG_FALLBACK_RULES: Array<[RegExp, EvalTag]> = [
  * warehouse left untagged.
  */
 export function inferTagsFromBenchmark(benchmarkName: string): EvalTag[] {
-  const tags = TAG_FALLBACK_RULES.filter(([re]) => re.test(benchmarkName)).map(([, tag]) => tag)
-  return tags.length > 0 ? Array.from(new Set(tags)) : ['general']
+  // First matching rule wins, exactly as the producer's resolve_benchmark_tags
+  // does; a union here made the two repos tag the same fallback name
+  // differently (SWE-bench-Live: agentic vs agentic + software_engineering).
+  const hit = TAG_FALLBACK_RULES.find(([re]) => re.test(benchmarkName))
+  return hit ? [hit[1]] : ['general']
 }
 
 /**

@@ -20,5 +20,12 @@ describe("inferTagsFromBenchmark fallback stems", () => {
     expect(inferTagsFromBenchmark("AgentDojo")).toContain("agentic")
     expect(inferTagsFromBenchmark("Anti-Corruption Law QA")).toEqual(["law"])
     expect(inferTagsFromBenchmark("Reagents Chemistry QA")).not.toContain("agentic")
+    expect(inferTagsFromBenchmark("T2I-FactualBench")).toEqual(["hallucination"])
+    expect(inferTagsFromBenchmark("corrupted_weather_records")).toEqual(["robustness"])
+  })
+
+  it("takes the first matching rule, like the producer", () => {
+    expect(inferTagsFromBenchmark("SWE-bench-Live")).toEqual(["agentic"])
+    expect(inferTagsFromBenchmark("civil_comments")).toEqual(["safety"])
   })
 })
