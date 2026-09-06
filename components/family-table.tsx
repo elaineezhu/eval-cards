@@ -211,7 +211,10 @@ function collectLeafEntries(
   return out
 }
 
-function isFamilyDisplayNameMisleading(fam: HierarchyFamily, leafEntries: LeafEntry[]): boolean {
+function isFamilyDisplayNameMisleading(
+  fam: Pick<HierarchyFamily, "key" | "display_name">,
+  leafEntries: LeafEntry[],
+): boolean {
   const nameSlug = slugify(fam.display_name)
   if (!nameSlug) return false
   if (nameSlug === slugify(fam.key)) return false
@@ -219,6 +222,32 @@ function isFamilyDisplayNameMisleading(fam: HierarchyFamily, leafEntries: LeafEn
   return leafEntries.some(
     (l) => slugify(l.leafKey) === nameSlug || slugify(l.leafName) === nameSlug,
   )
+}
+
+/** The label a family row shows (distinct from lib/hierarchy-lookup's
+ * familyDisplayName, which returns the raw upstream value). Humanize the key when:
+ *   - the upstream display_name is misleading (matches a leaf, not the family);
+ *   - the display_name *is* the key (raw slug never humanized upstream); or
+ *   - the display_name slugifies to the key AND is still all-lowercase, i.e. it
+ *     is the raw slug with different separators ("commonsense_qa" vs key
+ *     "commonsense-qa").
+ * A curated name that merely slugifies to the key ("HELM", "aiXamine", "MMMU",
+ * "LiveBench") is already the right label; humanizing it lowercases the
+ * mid-word capitals and is data loss, so it is kept verbatim. */
+export function familyRowLabel(
+  fam: Pick<HierarchyFamily, "key" | "display_name">,
+  leafEntries: LeafEntry[],
+): string {
+  const display = fam.display_name ?? ""
+  const isRawSlug =
+    display !== "" &&
+    slugify(display) === slugify(fam.key) &&
+    display === display.toLowerCase()
+  return isFamilyDisplayNameMisleading(fam, leafEntries) ||
+    display === fam.key ||
+    isRawSlug
+    ? humanizeFamilyKey(fam.key)
+    : display
 }
 
 /** Nav target for a single-benchmark family: the full `/evals/...` href
@@ -386,20 +415,7 @@ export function FamilyTable({
         leaves: filterActive ? section.leaves.filter(leafFilter) : section.leaves,
       })).filter((s) => s.leaves.length > 0)
 
-      // Humanize when:
-      //   - the upstream display_name is misleading (matches a leaf, not the family);
-      //   - the display_name *is* the key (raw slug never humanized upstream); or
-      //   - the display_name slugifies to the key (separators / casing differ but
-      //     it's still the unhumanized form, e.g. "commonsense_qa" vs key
-      //     "commonsense-qa").
-      const slugMatchesKey =
-        slugify(fam.display_name) === slugify(fam.key) && fam.display_name !== ""
-      const displayName =
-        isFamilyDisplayNameMisleading(fam, leafEntries) ||
-        fam.display_name === fam.key ||
-        slugMatchesKey
-          ? humanizeFamilyKey(fam.key)
-          : fam.display_name
+      const displayName = familyRowLabel(fam, leafEntries)
 
       // Description: try family-level eval item (via a single benchmark family)
       // or fall back to the benchmark cards on the family's own leaves.
