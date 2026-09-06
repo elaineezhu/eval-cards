@@ -50,11 +50,16 @@ const LOCAL_CACHE_DIR = process.env.HF_DATA_LOCAL_DIR?.trim()
   ? path.resolve(process.env.HF_DATA_LOCAL_DIR.trim())
   : path.join(process.cwd(), ".cache", "hf-data")
 
+// Bound wire form ("Infinity" / "-Infinity" on bound keys): see
+// lib/json-bounds.ts. Re-exported so existing imports keep working.
+import { parseJsonWithBounds } from "@/lib/json-bounds"
+export { reviveNonFiniteBounds } from "@/lib/json-bounds"
+
 async function readLocalCache<T>(relativePath: string): Promise<T | null> {
   try {
     const filePath = path.join(LOCAL_CACHE_DIR, relativePath)
     const text = await fs.readFile(filePath, "utf8")
-    return JSON.parse(text) as T
+    return parseJsonWithBounds<T>(text) as T
   } catch {
     return null
   }
@@ -178,7 +183,7 @@ async function fetchRemoteJson<T>(relativePath: string): Promise<T> {
         throw new Error(`HF fetch failed: ${res.status} ${res.statusText} for ${url}`)
       }
 
-      return (await res.json()) as T
+      return parseJsonWithBounds<T>(await res.text()) as T
     } catch (err) {
       lastError = err instanceof Error ? err : new Error(String(err))
       if (!String(err).includes("429")) {

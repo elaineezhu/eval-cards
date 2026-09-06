@@ -24,6 +24,7 @@ import type {
   PeerRanksSidecar,
 } from "@/lib/backend-artifacts"
 import { cleanHierarchy } from "@/lib/clean-hierarchy"
+import { parseJsonWithBounds, stringifyJsonWithBounds } from "@/lib/json-bounds"
 import type { CollectionContextSidecar, CollectionsSidecarEntry } from "@/lib/collections"
 
 interface CacheSlot<T> {
@@ -204,7 +205,7 @@ async function fetchJson<T>(name: string, preferStale = true): Promise<T> {
 
   if (url.startsWith("file://")) {
     const text = await readFile(new URL(url), "utf8")
-    return JSON.parse(text) as T
+    return parseJsonWithBounds<T>(text)
   }
 
   const cachePath = diskCachePath(url)
@@ -217,17 +218,17 @@ async function fetchJson<T>(name: string, preferStale = true): Promise<T> {
           await writeToDisk(cachePath, text)
         })
       }
-      return JSON.parse(cached.text) as T
+      return parseJsonWithBounds<T>(cached.text)
     }
 
     if (!cached.stale) {
-      return JSON.parse(cached.text) as T
+      return parseJsonWithBounds<T>(cached.text)
     }
   }
 
   const text = await fetchRemoteSidecar(url)
   void writeToDisk(cachePath, text)
-  return JSON.parse(text) as T
+  return parseJsonWithBounds<T>(text)
 }
 
 function getCachedValue<K extends keyof typeof cache>(
@@ -298,11 +299,11 @@ async function fetchCleanedHierarchy(preferStale = true): Promise<EvalHierarchy>
 
   if (cached.text !== null) {
     try {
-      const parsed = JSON.parse(cached.text) as EvalHierarchy
+      const parsed = parseJsonWithBounds<EvalHierarchy>(cached.text)
       if (preferStale && cached.stale) {
         queueRefresh(cleanCachePath, "clean-hierarchy.json", async () => {
           const cleaned = await buildCleanedHierarchy()
-          await writeToDisk(cleanCachePath, JSON.stringify(cleaned))
+          await writeToDisk(cleanCachePath, stringifyJsonWithBounds(cleaned))
         })
       }
       if (preferStale || !cached.stale) {
@@ -316,7 +317,7 @@ async function fetchCleanedHierarchy(preferStale = true): Promise<EvalHierarchy>
   }
 
   const cleaned = await buildCleanedHierarchy()
-  void writeToDisk(cleanCachePath, JSON.stringify(cleaned))
+  void writeToDisk(cleanCachePath, stringifyJsonWithBounds(cleaned))
   return cleaned
 }
 

@@ -4,6 +4,8 @@ import { createHash } from "node:crypto"
 import { gzip } from "node:zlib"
 import { promisify } from "node:util"
 
+import { stringifyJsonWithBounds } from "@/lib/json-bounds"
+
 const gzipAsync = promisify(gzip)
 
 // These index payloads are large (model-cards-lite ~15 MB, eval-list-lite
@@ -25,7 +27,9 @@ const inflight = new Map<string, { at: number; promise: Promise<Entry> }>()
 
 async function buildEntry(producer: () => Promise<unknown>): Promise<Entry> {
   const data = await producer()
-  const raw = Buffer.from(JSON.stringify(data))
+  // Bound wire form: a bare JSON.stringify would turn a revived infinite
+  // registry bound into null on its way to the browser.
+  const raw = Buffer.from(stringifyJsonWithBounds(data))
   const gz = await gzipAsync(raw)
   const etag = `"${createHash("sha1").update(raw).digest("hex").slice(0, 27)}"`
   return { gz, raw, etag }

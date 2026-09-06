@@ -106,8 +106,10 @@ export function mergeRegistryBounds(
   let merged: { min: number | null; max: number | null } | undefined
   for (const b of boundsList) {
     if (!b || (b.min === undefined && b.max === undefined)) continue // pre-stamp metric
-    const min = b.min ?? null
-    const max = b.max ?? null
+    // An infinite bound is the registry's "unbounded by definition"; for
+    // scale placement it is no bound on that side, as in the producer.
+    const min = b.min != null && Number.isFinite(b.min) ? b.min : null
+    const max = b.max != null && Number.isFinite(b.max) ? b.max : null
     if (!merged) merged = { min, max }
     else if (merged.min !== min || merged.max !== max) return undefined
   }

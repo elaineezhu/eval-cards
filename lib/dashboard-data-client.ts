@@ -17,6 +17,7 @@ import type {
   ModelEvaluationSummary,
 } from "@/lib/eval-processing"
 import { isMergedBenchmarkSummary, mergedSummaryToEvalSummary } from "@/lib/merged-adapter"
+import { parseJsonWithBounds } from "@/lib/json-bounds"
 
 export interface EvalListResponse {
   evals: BenchmarkEvalListItem[]
@@ -55,7 +56,9 @@ async function fetchJson<T>(input: string): Promise<T> {
     throw new Error(`Request failed: ${response.status}`)
   }
 
-  return response.json() as Promise<T>
+  // Producer-shaped payloads carry infinite registry bounds as "Infinity";
+  // the same reviver the server-side readers use restores them.
+  return parseJsonWithBounds<T>(await response.text())
 }
 
 export function fetchModelCards() {
