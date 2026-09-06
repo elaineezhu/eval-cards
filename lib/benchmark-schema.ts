@@ -240,14 +240,14 @@ export function getTagColor(tag: string): string {
 // (evalcard_tags.py). Returns 1+ tags; defaults to ['general'].
 const TAG_FALLBACK_RULES: Array<[RegExp, EvalTag]> = [
   [/\b(?:safety|harmful|toxic|truthful|unsafe|civilcomments|civil_comments|jailbreak|red[-_]?team|adversarial)\b/i, 'safety'],
-  [/\b(?:agent|swe[-_]?bench|terminal[-_]?bench|tau[-_]?bench|appworld|browsecomp)\b/i, 'agentic'],
+  [/\b(?:agent|swe[-_]?bench\b|terminal[-_]?bench\b|tau[-_]?bench\b|appworld\b|browsecomp\b)/i, 'agentic'],
   [/\b(?:math|gsm|aime|minerva|olympiad|arithmetic)\b/i, 'mathematics'],
   [/\b(?:code|humaneval|livecodebench|mbpp|codecontests|apps|bigcodebench|swe)\b/i, 'software_engineering'],
   [/\b(?:reasoning|bbh|musr|gpqa|arc[-_]?c|logiqa|winogrande)\b/i, 'applied_reasoning'],
   [/\b(?:mmlu|knowledge|trivia|medqa|legalbench|theory[-_]?of[-_]?mind)\b/i, 'knowledge'],
   [/\b(?:multimodal|vision|vqa|mmmu|image|video|visual)\b/i, 'multimodal'],
-  [/\b(?:hallucin|faithful|factual)/i, 'hallucination'],
-  [/\b(?:robust|perturbation|noisy|corrupt)/i, 'robustness'],
+  [/(?:hallucin|\bfaithful\b|\bfactual\b)/i, 'hallucination'],
+  [/(?:robust|\bperturbation\b|\bnoisy\b|\bcorrupted\b)/i, 'robustness'],
   [/\b(?:legal|law|jurisprudence)\b/i, 'law'],
   [/\b(?:finance|financial|trading|accounting)\b/i, 'finance'],
 ]
