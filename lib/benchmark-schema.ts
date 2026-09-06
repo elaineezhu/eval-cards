@@ -246,8 +246,8 @@ const TAG_FALLBACK_RULES: Array<[RegExp, EvalTag]> = [
   [/\b(?:reasoning|bbh|musr|gpqa|arc[-_]?c|logiqa|winogrande)\b/i, 'applied_reasoning'],
   [/\b(?:mmlu|knowledge|trivia|medqa|legalbench|theory[-_]?of[-_]?mind)\b/i, 'knowledge'],
   [/\b(?:multimodal|vision|vqa|mmmu|image|video|visual)\b/i, 'multimodal'],
-  [/\b(?:hallucin|faithful|factual)\b/i, 'hallucination'],
-  [/\b(?:robust|perturbation|noisy|corrupt)\b/i, 'robustness'],
+  [/\b(?:hallucin|faithful|factual)/i, 'hallucination'],
+  [/\b(?:robust|perturbation|noisy|corrupt)/i, 'robustness'],
   [/\b(?:legal|law|jurisprudence)\b/i, 'law'],
   [/\b(?:finance|financial|trading|accounting)\b/i, 'finance'],
 ]
