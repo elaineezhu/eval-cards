@@ -2,7 +2,7 @@
 # - Builder stage installs deps and builds the Next app
 # - Runner stage copies build artifacts and runs `npm run start` on $PORT (default 3000)
 
-FROM node:18-bullseye-slim AS builder
+FROM node:24-bookworm-slim AS builder
 WORKDIR /app
 
 ARG PNPM_VERSION=10.25.0
@@ -54,7 +54,7 @@ RUN set -e; \
     echo "[docker] building against snapshot: $SNAPSHOT_URL"; \
     DATA_BACKEND="${DATA_BACKEND}" SNAPSHOT_URL="$SNAPSHOT_URL" pnpm run build
 
-FROM node:18-bullseye-slim AS runner
+FROM node:24-bookworm-slim AS runner
 WORKDIR /app
 
 ARG DATA_BACKEND=v2
