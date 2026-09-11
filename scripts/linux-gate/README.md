@@ -221,13 +221,13 @@ the full gate is the complete set of checks run through it, not the smoke alone.
 
 ## Moving this to CI
 
-**Prerequisite — there is no GitHub remote.** Every git remote on this repo points
-at `hf.co` (the deploy target is the HuggingFace Space; `origin` is
-`git@hf.co:spaces/evaleval/general-eval-card`). GitHub Actions can't run against an
-hf.co repo, so the first real step is **mirroring this repo to GitHub** and pushing
-there. CI on the mirror becomes the authoritative gate while the HF Space stays the
-deploy target (push-to-deploy unchanged). Everything below assumes that mirror
-exists.
+**Prerequisite — satisfied.** This repo now lives on GitHub at
+[`evaleval/eval-cards`](https://github.com/evaleval/eval-cards), which is the source of
+truth; `origin` points there and `space` points at
+`https://huggingface.co/spaces/evaleval/general-eval-card`. Pushes to `main` are mirrored
+to the Space by `.github/workflows/sync-to-hf-space.yml`, so GitHub Actions is the
+authoritative gate while the Space stays the deploy target. Everything below can be
+built on that.
 
 With that in place, the gate ports cleanly. Things to preserve and decisions
 you'll face:

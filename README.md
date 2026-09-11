@@ -19,7 +19,7 @@ tags:
 A Next.js application for **viewing** AI evaluations. It is the reader frontend of the
 Eval Cards platform: it does not author or store evaluation data itself — it renders a
 materialised warehouse **view layer** produced upstream by the `eval_card_backend`
-pipeline, and deploys to the Hugging Face Space `evaleval/eval-cards` (Docker runtime).
+pipeline, and deploys to the Hugging Face Space `evaleval/general-eval-card` (Docker runtime).
 
 ## Project Goals
 
@@ -101,8 +101,27 @@ Visit `http://localhost:3000` to verify.
 
 ### Deploy to Hugging Face Spaces
 
-1. Create a new Space at https://huggingface.co/new-space and choose **Docker** as the runtime.
-2. Push this repository to the Space Git (or upload files through the UI). The Space builds the Docker image using the included `Dockerfile` and serves the app on port 3000.
+**GitHub is the source of truth.** This repo lives at
+[`evaleval/eval-cards`](https://github.com/evaleval/eval-cards); the Space
+[`evaleval/general-eval-card`](https://huggingface.co/spaces/evaleval/general-eval-card)
+is a mirror of it. Every push to `main` runs
+[`.github/workflows/sync-to-hf-space.yml`](.github/workflows/sync-to-hf-space.yml), which
+uses [`huggingface/hub-sync`](https://github.com/huggingface/hub-sync) to upload the tree
+to the Space; the Space then rebuilds the Docker image and serves the app on port 3000.
+The workflow can also be run by hand from the Actions tab (`workflow_dispatch`).
+
+Consequences worth knowing:
+
+- **Do not commit directly to the Space.** The sync runs with `delete_removed: true`, so
+  anything on the Hub that is not in the GitHub tree is removed on the next push. Make
+  changes here and let them flow downstream.
+- The sync needs an `HF_TOKEN` repository secret — a Hugging Face token with **write**
+  access to the `evaleval` org.
+- `.github/` and root `.git*` files (including `.gitattributes`) are never uploaded, so
+  the Space keeps its own copy of those.
+- Binary assets under `public/` are tracked with Git LFS, which is why the workflow checks
+  out with `lfs: true`. Without it the Space would receive LFS pointer text instead of the
+  actual images.
 
 Notes:
 - If your build needs native dependencies (e.g. `sharp`), the Docker image may require extra apt packages; update the Dockerfile accordingly.
