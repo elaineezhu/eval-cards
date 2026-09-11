@@ -3,7 +3,7 @@ import Link from "next/link"
 const linkCls = "text-[color:var(--fg)] underline underline-offset-2 hover:opacity-80"
 const EEE_SITE = "https://evalevalai.com/every_eval_ever/"
 const EEE_ISSUES = "https://github.com/evaleval/every_eval_ever/issues"
-const HF_DISCUSSIONS = "https://huggingface.co/spaces/evaleval/general-eval-card/discussions"
+const GH_ISSUES = "https://github.com/evaleval/eval-cards/issues"
 const ROADMAP = "https://changemap.co/evaleval/evalcards/"
 
 /**
@@ -42,8 +42,8 @@ export function ContributeSection() {
             </li>
             <li>
               See a wrong or missing number for your model? Flag it in the{" "}
-              <a href={HF_DISCUSSIONS} target="_blank" rel="noreferrer" className={linkCls}>
-                Space discussions
+              <a href={GH_ISSUES} target="_blank" rel="noreferrer" className={linkCls}>
+                Eval Cards issue tracker
               </a>{" "}
               or via each record's correction path.
             </li>
@@ -100,11 +100,11 @@ export function ContributeSection() {
             <li>
               Flag discrepancies or suggest methodology improvements on the{" "}
               <a href={EEE_ISSUES} target="_blank" rel="noreferrer" className={linkCls}>
-                issue tracker
+                EEE issue tracker
               </a>{" "}
-              or in the{" "}
-              <a href={HF_DISCUSSIONS} target="_blank" rel="noreferrer" className={linkCls}>
-                discussions
+              or the{" "}
+              <a href={GH_ISSUES} target="_blank" rel="noreferrer" className={linkCls}>
+                Eval Cards issue tracker
               </a>
               .
             </li>
@@ -166,8 +166,8 @@ export function ContributeSection() {
           EEE issue tracker
         </a>
         , and the{" "}
-        <a href={HF_DISCUSSIONS} target="_blank" rel="noreferrer" className={linkCls}>
-          Space discussions
+        <a href={GH_ISSUES} target="_blank" rel="noreferrer" className={linkCls}>
+          Eval Cards issue tracker
         </a>{" "}
         are always open.
       </p>
