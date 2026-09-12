@@ -3,12 +3,11 @@
 import { type CSSProperties, useEffect, useMemo, useRef, useState } from "react"
 import { Check, Code2, Copy, ExternalLink, X } from "lucide-react"
 
-const EMBED_ORIGIN =
-  process.env.NEXT_PUBLIC_EMBED_SITE_URL?.trim().replace(/\/+$/, "") ||
-  "https://evaleval-general-eval-card.hf.space"
-
 export function resolveEmbedUrl(embedPath: string): string {
-  return embedPath ? new URL(embedPath, EMBED_ORIGIN).toString() : embedPath
+  const embedOrigin =
+    process.env.NEXT_PUBLIC_EMBED_SITE_URL?.trim().replace(/\/+$/, "") ||
+    "https://evaleval-general-eval-card.hf.space"
+  return embedPath ? new URL(embedPath, embedOrigin).toString() : embedPath
 }
 
 export interface EmbedVariant {
