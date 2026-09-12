@@ -3,6 +3,14 @@
 import { type CSSProperties, useEffect, useMemo, useRef, useState } from "react"
 import { Check, Code2, Copy, ExternalLink, X } from "lucide-react"
 
+const EMBED_ORIGIN =
+  process.env.NEXT_PUBLIC_EMBED_SITE_URL?.trim().replace(/\/+$/, "") ||
+  "https://evaleval-general-eval-card.hf.space"
+
+export function resolveEmbedUrl(embedPath: string): string {
+  return embedPath ? new URL(embedPath, EMBED_ORIGIN).toString() : embedPath
+}
+
 export interface EmbedVariant {
   id: string
   /** Display name in the variant picker (e.g. "Histogram", "Frontier"). */
@@ -80,14 +88,10 @@ export function EmbedButton({
     }
   }, [open])
 
-  // Build the snippet at render time so it picks up the deployed origin
-  // when copied from the user's browser. Falls back to a relative URL
-  // during SSR so initial markup stays stable.
+  // Build the snippet against the embeddable host rather than whichever
+  // domain rendered the parent page.
   const activePath = activeVariant?.embedPath ?? ""
-  const fullUrl =
-    typeof window !== "undefined" && activePath
-      ? new URL(activePath, window.location.origin).toString()
-      : activePath
+  const fullUrl = resolveEmbedUrl(activePath)
   const titleAttr =
     resolvedVariants.length > 1 && activeVariant
       ? `${label} — ${activeVariant.label}`
@@ -282,7 +286,7 @@ export function EmbedButton({
             <div className="flex-1" />
 
             <a
-              href={activePath}
+              href={fullUrl || activePath}
               target="_blank"
               rel="noreferrer"
               className="inline-flex items-center gap-1 font-mono uppercase"
