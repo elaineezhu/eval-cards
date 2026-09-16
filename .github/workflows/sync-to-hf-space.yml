@@ -1,0 +1,30 @@
+name: Sync to Hugging Face Space
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+# Never let two syncs race; the Hub is a single mutable target.
+concurrency:
+  group: sync-to-hf-space
+  cancel-in-progress: false
+
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          # hub-sync uploads file *contents* over HTTP, so LFS objects must be
+          # materialised here. Without this the Space receives pointer text
+          # instead of the screenshots and org logos.
+          lfs: true
+
+      - uses: huggingface/hub-sync@v0.3.0
+        with:
+          github_repo_id: ${{ github.repository }}
+          huggingface_repo_id: evaleval/general-eval-card
+          hf_token: ${{ secrets.HF_TOKEN }}
+          repo_type: space
+          space_sdk: docker
