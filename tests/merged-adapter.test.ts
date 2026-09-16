@@ -191,6 +191,42 @@ describe("mergedSummaryToEvalSummary — EvalDetail surface", () => {
     expect(adapted.best_model).toEqual({ name: "Model A", score: 0.8 })
   })
 
+  it("keeps non-headline judge rows out of the merged pool", () => {
+    // Three judge readings of one model are three rows on the
+    // per-source page, but ONE observation on the merged page.
+    const judged = (judge: string, score: number) =>
+      row({
+        score,
+        score_canonical: score,
+        is_headline: false,
+        judge_condition: JSON.stringify({ judges: [judge], label: `${judge}_score` }),
+        metric_source_label: `${judge}_score`,
+      })
+    const results = [
+      row({
+        score: 0.8,
+        score_canonical: 0.8,
+        is_headline: true,
+        judge_condition: JSON.stringify({ judges: ["a", "b", "c"], label: "score" }),
+      }),
+      judged("a", 0.99),
+      judged("b", 0.61),
+      row({
+        model_info: { name: "Model B", id: "org/model-b" },
+        model_route_id: "org%2Fmodel-b",
+        score: 0.7,
+        score_canonical: 0.7,
+      }),
+    ]
+    const adapted = mergedSummaryToEvalSummary(mergedPayload(results))
+
+    expect(adapted.model_results.map((r) => r.score)).toEqual([0.8, 0.7])
+    expect(adapted.models_count).toBe(2)
+    // The losing judge's 0.99 never becomes the page's best model.
+    expect(adapted.best_model).toEqual({ name: "Model A", score: 0.8 })
+    expect(adapted.avg_score).toBeCloseTo(0.75)
+  })
+
   it("livebench regression: a flagged raw score above 1 neither ranks nor flips the scale to 0-100", () => {
     // Shape of the live /evals/livebench bug: canonical pool is 0-1 but
     // one flagged row carries a raw 1.4155. Before the fix it ranked #1

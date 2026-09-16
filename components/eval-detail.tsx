@@ -53,7 +53,17 @@ import {
 } from "lucide-react"
 import type { BenchmarkCard, SourceData } from "@/lib/benchmark-schema"
 import { tagLabel } from "@/lib/benchmark-schema"
-import { isAssistedResult } from "@/lib/eval-processing"
+import {
+  groupByHeadlineModel,
+  isAssistedResult,
+  isHeadlineResult,
+  judgeCellSummary,
+  judgeConditionSummary,
+  modelGroupKey,
+  orderGroupsByScore,
+  primaryMetricColumnKey,
+  scoreSortBaseDirection,
+} from "@/lib/eval-processing"
 import type { BenchmarkEvalSummary, ModelResultForBenchmark } from "@/lib/eval-processing"
 import { CollectionTrajectories } from "@/components/collection-trajectories"
 import { isRecognizedEvaluator } from "@/lib/evaluators"
@@ -111,6 +121,14 @@ interface LeaderboardRow {
   rank: number
   modelResult: ModelResultForBenchmark
   normalizedScore: number
+  /** "judged by <model>" / "mean of N judges" for a row whose
+   *  source disclosed its LLM judges; null for ordinary rows. */
+  judgeLabel: string | null
+  /** Hover text for the judge label: the panel's members on a multi-judge
+   *  row, and on a single-judge row the judge's raw canonical id — two
+   *  dated variants that folded into one survivor share a display name,
+   *  so the id is the only thing telling those rows apart. */
+  judgeTooltip?: string
 }
 
 type LeaderboardMetric = NonNullable<BenchmarkEvalSummary["leaderboard_metrics"]>[number]
@@ -743,8 +761,10 @@ export function EvalDetail({
     if ((ann?.cross_party_divergence_groups?.length ?? 0) > 0) return true
     for (const r of summary.model_results ?? []) {
       const a = r.result?.evalcards?.annotations
-      if (a?.variant_divergence?.has_variant_divergence) return true
-      if (a?.cross_party_divergence?.has_cross_party_divergence) return true
+      // Strict `=== true`: the flags are nullable and a NULL means the
+      // group was never assessed, which is not per-model attribution.
+      if (a?.variant_divergence?.has_variant_divergence === true) return true
+      if (a?.cross_party_divergence?.has_cross_party_divergence === true) return true
     }
     return false
   }, [summary.evalcards?.annotations?.benchmark_comparability, summary.model_results])
@@ -840,6 +860,21 @@ export function EvalDetail({
     lb.leaderboard_rows,
   ])
 
+  // Judge display names are resolved server-side against models_view (a
+  // judge need not appear on this page at all, and its id can be a dated
+  // variant that folded into another model). An id models_view cannot
+  // place keeps its raw spelling rather than being hidden.
+  const judgeDisplayName = useMemo(() => {
+    const names = lb.judge_display_names ?? summary.judge_display_names ?? {}
+    return (modelId: string) => names[modelId] ?? modelId
+  }, [lb.judge_display_names, summary.judge_display_names])
+
+  // The view ships one row per (model, protocol arm, judge
+  // panel) and marks ONE of them as the model's headline reading. Sort
+  // and rank the headline rows; each model's other rows follow directly
+  // beneath their headline, in the order the producer served them, and
+  // never take a rank. On snapshots predating the column every row is a
+  // headline, so this is the old flat ordering exactly.
   const sortedResults = useMemo(() => {
     const sourceResults = slicedScoreByRoute
       ? lb.model_results
@@ -852,9 +887,36 @@ export function EvalDetail({
           })
           .filter((r): r is NonNullable<typeof r> => r !== null)
       : lb.model_results
-    return [...sourceResults].sort((a, b) =>
+
+    const secondaryByModel = new Map<string, ModelResultForBenchmark[]>()
+    const headline: ModelResultForBenchmark[] = []
+    for (const result of sourceResults) {
+      if (isHeadlineResult(result)) {
+        headline.push(result)
+        continue
+      }
+      const key = modelGroupKey(result)
+      secondaryByModel.set(key, [...(secondaryByModel.get(key) ?? []), result])
+    }
+    headline.sort((a, b) =>
       lb.metric_config.lower_is_better ? a.score - b.score : b.score - a.score
     )
+
+    const ordered: ModelResultForBenchmark[] = []
+    for (const result of headline) {
+      ordered.push(result)
+      const key = modelGroupKey(result)
+      const secondary = secondaryByModel.get(key)
+      if (secondary) {
+        ordered.push(...secondary)
+        secondaryByModel.delete(key)
+      }
+    }
+    // A non-headline row whose model has no headline row on this page
+    // (e.g. the headline lives on another metric) still deserves to be
+    // readable, so keep it at the end rather than dropping it.
+    for (const secondary of secondaryByModel.values()) ordered.push(...secondary)
+    return ordered
   }, [lb.model_results, lb.metric_config.lower_is_better, slicedScoreByRoute])
 
   const [showUnknownSize, setShowUnknownSize] = useState(true)
@@ -877,7 +939,22 @@ export function EvalDetail({
     () => lb.model_results.some((r) => isAssistedResult(r.protocol_condition)),
     [lb.model_results]
   )
+  // In the producer's current contract an assisted row is never its
+  // model's headline reading, so it cannot be ranked back in — the
+  // backend has already withheld the rank, and offering to "include it in
+  // the ranking" would promise something the data forbids. On such a page
+  // the toggle governs whether the assisted rows are SHOWN. On a snapshot
+  // that still serves assisted rows as headlines, the old meaning stands.
+  const assistedRowsAreNonHeadline = useMemo(
+    () =>
+      hasAssistedRows &&
+      lb.model_results.every(
+        (r) => !isAssistedResult(r.protocol_condition) || r.is_headline === false
+      ),
+    [hasAssistedRows, lb.model_results]
+  )
   const [includeAssistedInRanking, setIncludeAssistedInRanking] = useState(false)
+  const [showAssistedRows, setShowAssistedRows] = useState(true)
 
   const hasParameterData = useMemo(
     () => sortedResults.some((result) => getParamsBillions(result) != null),
@@ -886,6 +963,13 @@ export function EvalDetail({
 
   const filteredResults = useMemo(() => {
     return sortedResults.filter((modelResult) => {
+      if (
+        assistedRowsAreNonHeadline &&
+        !showAssistedRows &&
+        isAssistedResult(modelResult.protocol_condition)
+      ) {
+        return false
+      }
       const paramsBillions = getParamsBillions(modelResult)
 
       if (paramsBillions == null) return showUnknownSize
@@ -894,7 +978,14 @@ export function EvalDetail({
       if (numericMaxParams != null && paramsBillions > numericMaxParams) return false
       return true
     })
-  }, [numericMaxParams, numericMinParams, showUnknownSize, sortedResults])
+  }, [
+    assistedRowsAreNonHeadline,
+    numericMaxParams,
+    numericMinParams,
+    showAssistedRows,
+    showUnknownSize,
+    sortedResults,
+  ])
 
   const leaderboardRows = useMemo<LeaderboardRow[]>(() => {
     let currentRank = 0
@@ -903,9 +994,13 @@ export function EvalDetail({
 
     return filteredResults.map((modelResult, index) => {
       // Assisted runs are visible but take no rank (rank 0 sentinel)
-      // unless the reader explicitly re-includes them.
+      // unless the reader explicitly re-includes them. Non-headline rows
+      // (a losing judge panel or protocol arm) are never ranked — the
+      // backend serves them a NULL rank and the reader must not see the
+      // same model twice in the standings.
       const unranked =
-        !includeAssistedInRanking && isAssistedResult(modelResult.protocol_condition)
+        !isHeadlineResult(modelResult) ||
+        (!includeAssistedInRanking && isAssistedResult(modelResult.protocol_condition))
       let rank = 0
       if (!unranked) {
         rankedCount += 1
@@ -916,20 +1011,42 @@ export function EvalDetail({
         rank = currentRank
       }
 
+      const judge = judgeConditionSummary(modelResult.judge_condition, judgeDisplayName)
+
       return {
         key: `${modelResult.model_info.id}-${index}`,
         rank,
         modelResult,
         normalizedScore: normalizeScore(modelResult.score),
+        judgeLabel: judge?.label ?? null,
+        judgeTooltip: !judge
+          ? undefined
+          : judge.names.length > 1
+            ? `Judges: ${judge.names.join(", ")}`
+            : `Judge model id: ${judge.judges[0]}`,
       }
     })
-  }, [filteredResults, includeAssistedInRanking])
+  }, [filteredResults, includeAssistedInRanking, judgeDisplayName])
 
   // Plotbox input: assisted runs stay out of the distribution stats and
   // the frontier cumulative-best regardless of the ranking toggle — a
-  // "best" that needed the answer oracle is not a frontier.
+  // "best" that needed the answer oracle is not a frontier. Non-headline
+  // rows stay out for the same reason the ranking excludes them: one
+  // model must contribute one measurement to a distribution.
   const unassistedLeaderboardRows = useMemo(
-    () => leaderboardRows.filter((r) => !isAssistedResult(r.modelResult.protocol_condition)),
+    () =>
+      leaderboardRows.filter(
+        (r) =>
+          isHeadlineResult(r.modelResult) &&
+          !isAssistedResult(r.modelResult.protocol_condition)
+      ),
+    [leaderboardRows]
+  )
+
+  // The models line counts the page's STANDINGS, not its table rows: a
+  // model's judge and protocol rows are extra readings of the same model.
+  const rankedRowCount = useMemo(
+    () => leaderboardRows.filter((r) => r.rank > 0).length,
     [leaderboardRows]
   )
 
@@ -956,13 +1073,25 @@ export function EvalDetail({
     { key: "default", dir: "desc" },
   )
 
+  // A model and the judge / protocol readings sitting beneath it move
+  // together. Sorting the flattened row list would immediately break that:
+  // reversing it alone puts every secondary row ABOVE its own headline.
+  const leaderboardGroups = useMemo(
+    () => groupByHeadlineModel(leaderboardRows, (row) => row.modelResult),
+    [leaderboardRows]
+  )
+
   const orderedLeaderboardRows = useMemo(() => {
     if (userRowSort.key === "default") return leaderboardRows
-    // `leaderboardRows` is already "best first" — descending for
+    // `leaderboardGroups` is already "best first" — descending for
     // higher-is-better metrics, ascending for lower-is-better. Sorting
-    // by score just toggles that order verbatim.
+    // by score just toggles that order verbatim, group by group.
     if (userRowSort.key === "score") {
-      return userRowSort.dir === "desc" ? leaderboardRows : [...leaderboardRows].reverse()
+      return orderGroupsByScore(
+        leaderboardGroups,
+        userRowSort.dir,
+        lb.metric_config.lower_is_better,
+      )
     }
     const parseTs = (d?: string | null): number | null => {
       if (!d) return null
@@ -982,9 +1111,11 @@ export function EvalDetail({
 
     const dirSign = userRowSort.dir === "asc" ? 1 : -1
 
-    return [...leaderboardRows].sort((a, b) => {
-      const ma = a.modelResult
-      const mb = b.modelResult
+    // Every comparator reads the group's HEADLINE row, so a model sorts
+    // by its own standing and its extra readings follow it.
+    return [...leaderboardGroups].sort((a, b) => {
+      const ma = a[0].modelResult
+      const mb = b[0].modelResult
       let cmp = 0
       switch (userRowSort.key) {
         case "model":
@@ -1023,8 +1154,8 @@ export function EvalDetail({
       // Stable name fallback so equal keys don't shuffle on re-render.
       if (cmp === 0) cmp = (ma.model_info.name ?? "").localeCompare(mb.model_info.name ?? "")
       return cmp * dirSign
-    })
-  }, [leaderboardRows, userRowSort])
+    }).flat()
+  }, [leaderboardGroups, leaderboardRows, userRowSort, lb.metric_config.lower_is_better])
 
   const LEADERBOARD_PAGE_SIZE = 50
   const pagedLeaderboardRows = useMemo(
@@ -1040,12 +1171,18 @@ export function EvalDetail({
       ? "asc"
       : "desc"
 
+  // The direction the page's natural order already reads in: ascending on a
+  // lower-is-better metric, where the best score is the smallest.
+  const scoreBaseDir = scoreSortBaseDirection(lb.metric_config.lower_is_better)
+
   const cycleRowSort = (key: Exclude<RowSortKey, "default">) =>
     setUserRowSort((prev) => {
-      // For "score" the default order already IS desc, so the visible
-      // first-click flip is to asc.
+      // For "score" the default order already IS the metric's own
+      // direction, so the visible first-click flip is to the other one.
       if (key === "score") {
-        if (prev.key !== "score") return { key: "score", dir: "asc" }
+        if (prev.key !== "score") {
+          return { key: "score", dir: scoreBaseDir === "asc" ? "desc" : "asc" }
+        }
         return { key: "default", dir: "desc" }
       }
       const initial = naturalDir(key)
@@ -1056,7 +1193,7 @@ export function EvalDetail({
 
   const rowSortIndicator = (key: Exclude<RowSortKey, "default">): "↑" | "↓" | null => {
     if (key === "score") {
-      if (userRowSort.key === "default") return "↓"
+      if (userRowSort.key === "default") return scoreBaseDir === "asc" ? "↑" : "↓"
       if (userRowSort.key === "score") return userRowSort.dir === "asc" ? "↑" : "↓"
       return null
     }
@@ -1570,6 +1707,7 @@ export function EvalDetail({
             summary={lb}
             isResearchView={isResearchView}
             splitConfig={splitConfig}
+            judgeDisplayName={judgeDisplayName}
           />
         </section>
       ) : (
@@ -1589,9 +1727,9 @@ export function EvalDetail({
                   spell out both grains instead. */}
               {lb.merged_view
                 ? `${leaderboardRows.length.toLocaleString()} results · ${lb.models_count.toLocaleString()} models`
-                : leaderboardRows.length === lb.models_count
+                : unassistedLeaderboardRows.length === lb.models_count
                   ? `${lb.models_count} models`
-                  : `${leaderboardRows.length} of ${lb.models_count}`}
+                  : `${rankedRowCount} of ${lb.models_count}`}
               {" · "}
               {lb.metric_config.lower_is_better ? "lower is better ↓" : "higher is better ↑"}
               {isResearchView && (
@@ -1649,7 +1787,21 @@ export function EvalDetail({
                 {allRowsHaveProtocol
                   ? "This study ran models with much larger inference budgets than standard evaluations. Compare with published scores with caution."
                   : `${protocolRowCount} of the results below come from a study that used much larger inference budgets. Compare them with the other rows or with published scores with caution.`}
-                {hasAssistedRows && (
+                {hasAssistedRows && (assistedRowsAreNonHeadline ? (
+                  <>
+                    {" "}Assisted runs, where the model is told when its answer
+                    is correct, are labeled and never ranked
+                    {showAssistedRows ? "" : " (currently hidden)"}.{" "}
+                    <button
+                      type="button"
+                      onClick={() => setShowAssistedRows((v) => !v)}
+                      className="underline underline-offset-2 hover:text-[color:var(--accent)]"
+                      style={{ color: "var(--fg-muted)" }}
+                    >
+                      {showAssistedRows ? "Hide assisted runs" : "Show assisted runs"}
+                    </button>
+                  </>
+                ) : (
                   <>
                     {" "}Assisted runs, where the model is told when its answer
                     is correct, are labeled and excluded from ranking
@@ -1665,7 +1817,7 @@ export function EvalDetail({
                         : "Include assisted runs in ranking"}
                     </button>
                   </>
-                )}
+                ))}
                 {studySourceHref && (
                   <>
                     {" "}
@@ -1827,7 +1979,7 @@ export function EvalDetail({
                   </tr>
                 </thead>
                 <tbody>
-                  {pagedLeaderboardRows.map(({ key, rank, modelResult }) => (
+                  {pagedLeaderboardRows.map(({ key, rank, modelResult, judgeLabel, judgeTooltip }) => (
                     <tr
                       key={key}
                       style={{
@@ -1844,7 +1996,7 @@ export function EvalDetail({
                           fontWeight: rank === 1 ? 600 : 500,
                         }}
                       >
-                        {rank}
+                        {rank === 0 ? "—" : rank}
                       </td>
                       <td style={{ padding: "10px 8px", color: "var(--fg)" }}>
                         <Link
@@ -1861,6 +2013,20 @@ export function EvalDetail({
                           >
                             · {modelResult.model_info.developer}
                           </span>
+                        )}
+                        {(judgeLabel || modelResult.metric_source_label) && (
+                          <div
+                            style={{ fontSize: 11, color: "var(--fg-muted)" }}
+                            title={judgeTooltip}
+                          >
+                            {judgeLabel}
+                            {judgeLabel && modelResult.metric_source_label ? " · " : null}
+                            {modelResult.metric_source_label && (
+                              <span className="font-mono" style={{ fontSize: 10 }}>
+                                {modelResult.metric_source_label}
+                              </span>
+                            )}
+                          </div>
                         )}
                       </td>
                       <td
@@ -1956,7 +2122,7 @@ export function EvalDetail({
                 </tr>
               </thead>
               <tbody>
-                {pagedLeaderboardRows.map(({ key, rank, modelResult, normalizedScore }) => {
+                {pagedLeaderboardRows.map(({ key, rank, modelResult, normalizedScore, judgeLabel, judgeTooltip }) => {
                   const isExpanded = expandedRows[key] ?? false
                   const slices = modelResult.score_details.details
                     ? Object.entries(modelResult.score_details.details).filter(([, value]) => typeof value === "number")
@@ -2017,6 +2183,14 @@ export function EvalDetail({
                   const isTopRank = rank === 1
                   const rankColor = rank === 1 ? "var(--accent)" : "var(--fg-muted)"
                   const isAssisted = isAssistedResult(modelResult.protocol_condition)
+                  // Assisted first: an assisted row is also a non-headline
+                  // row in the current contract, and "the model was told the
+                  // answer" is the reason a reader needs.
+                  const unrankedReason = isAssisted
+                    ? "Assisted run (answer feedback) — shown, not ranked"
+                    : judgeLabel
+                      ? "Another judge's reading of the same model — shown, not ranked"
+                      : "Another run of the same model — shown, not ranked"
 
                   return (
                     <Fragment key={key}>
@@ -2035,9 +2209,7 @@ export function EvalDetail({
                               fontWeight: isTopRank ? 600 : 500,
                               color: rank === 0 ? "var(--fg-subtle)" : rankColor,
                             }}
-                            title={rank === 0
-                              ? "Assisted run (answer feedback) — shown, not ranked"
-                              : undefined}
+                            title={rank === 0 ? unrankedReason : undefined}
                           >
                             {rank === 0 ? "—" : `#${rank}`}
                           </span>
@@ -2080,6 +2252,21 @@ export function EvalDetail({
                                 >
                                   assisted
                                 </span>
+                              )}
+                              {(judgeLabel || modelResult.metric_source_label) && (
+                                <div
+                                  className="mt-0.5 truncate"
+                                  style={{ fontSize: 11, color: "var(--fg-muted)" }}
+                                  title={judgeTooltip}
+                                >
+                                  {judgeLabel}
+                                  {judgeLabel && modelResult.metric_source_label ? " · " : null}
+                                  {modelResult.metric_source_label && (
+                                    <span className="font-mono" style={{ fontSize: 10 }}>
+                                      {modelResult.metric_source_label}
+                                    </span>
+                                  )}
+                                </div>
                               )}
                               {familyLabel && (
                                 <div
@@ -2170,7 +2357,11 @@ export function EvalDetail({
                               — make the apples-to-apples banner's
                               "per-row signal badges below" reference
                               concrete on the single-metric leaderboard. */}
-                          <SignalsRowBadges annotations={rowAnnotations} className="justify-end" />
+                          <SignalsRowBadges
+                            annotations={rowAnnotations}
+                            comparabilityStatus={modelResult.comparability_status}
+                            className="justify-end"
+                          />
                         </td>
 
                         <td className="hidden lg:table-cell align-top">
@@ -2477,22 +2668,36 @@ function MultiMetricLeaderboard({
   summary,
   isResearchView,
   splitConfig,
+  judgeDisplayName,
 }: {
   summary: BenchmarkEvalSummary
   isResearchView: boolean
   splitConfig?: SplitConfig
+  /** Same server-resolved map the per-row leaderboard labels with, so one
+   *  judge id reads the same on both surfaces. */
+  judgeDisplayName: (modelId: string) => string
 }) {
   const [page, setPage] = useState(1)
-  // Default sort: the first root-scope metric (the benchmark's overall
-  // score), falling back to the first metric overall, then to model name.
+  // The column the page ranks on: the eval's declared primary metric, which
+  // is what the hero, the metric spec block and every other surface here
+  // summarise. Sorting on whichever measure comes first instead would open a
+  // page like OpenEval HarmBench on an attack-success-rate ranking under a
+  // refusal-score heading. Falls back to the first root metric.
+  const primaryMetricKey = useMemo(
+    () => primaryMetricColumnKey(summary.leaderboard_metrics, summary.primary_metric_id),
+    [summary.leaderboard_metrics, summary.primary_metric_id],
+  )
   // We don't sort by metric coverage by default — coverage tells you how
   // many slices reported, not how the model performed.
-  const [sortKey, setSortKey] = useState<string>(() => {
-    const metrics = summary.leaderboard_metrics ?? []
-    const root = metrics.find((m) => m.scope === "root")
-    return root?.column_key ?? metrics[0]?.column_key ?? "model"
-  })
-  const [sortDirection, setSortDirection] = useState<"asc" | "desc">("desc")
+  const [sortKey, setSortKey] = useState<string>(() => primaryMetricKey ?? "model")
+  // Best-first in the metric's own direction, the same rule a header click
+  // applies — a lower-is-better primary metric must not open worst-first.
+  const [sortDirection, setSortDirection] = useState<"asc" | "desc">(() =>
+    (summary.leaderboard_metrics ?? []).find((m) => m.column_key === primaryMetricKey)
+      ?.lower_is_better
+      ? "asc"
+      : "desc",
+  )
   const [activeSliceTab, setActiveSliceTab] = useState<string>("all")
   const [minParamStep, setMinParamStep] = useState(0)
   const [maxParamStep, setMaxParamStep] = useState(PARAM_RANGE_MAX_INDEX)
@@ -2695,6 +2900,14 @@ function MultiMetricLeaderboard({
     return out
   }, [leaderboardMetrics, leaderboardRows])
 
+  // One number rendered the way its column renders it. The judge tooltip
+  // reuses this so an alternate reading reads on the same scale as the cell
+  // it hangs off.
+  const formatMetricValue = (columnKey: string, value: number) =>
+    percentDisplayColumns.has(columnKey)
+      ? `${(value * 100).toFixed(1)}%`
+      : formatRawScore(value, undefined)
+
   const numericMinParams = useMemo(() => paramStepToNumeric(minParamStep, "min"), [minParamStep])
   const numericMaxParams = useMemo(() => paramStepToNumeric(maxParamStep, "max"), [maxParamStep])
   const [showUnknownSize, setShowUnknownSize] = useState(true)
@@ -2802,19 +3015,28 @@ function MultiMetricLeaderboard({
 
   useEffect(() => {
     if (leaderboardMetricMap.has(sortKey) && !visibleMetricColumnKeySet.has(sortKey)) {
-      // The currently-sorted metric was hidden — fall back to the first
-      // visible root-scope metric, then the first visible metric overall,
-      // then to the model name.
+      // The currently-sorted metric was hidden — fall back to the primary
+      // metric when it is still visible, then the first visible root-scope
+      // metric, then the first visible metric overall, then the model name.
       const visibleRoot = leaderboardMetrics.find(
         (m) => m.scope === "root" && visibleMetricColumnKeySet.has(m.column_key),
       )
-      const fallback = visibleRoot?.column_key
+      const fallback = (primaryMetricKey && visibleMetricColumnKeySet.has(primaryMetricKey)
+        ? primaryMetricKey
+        : undefined)
+        ?? visibleRoot?.column_key
         ?? leaderboardMetrics.find((m) => visibleMetricColumnKeySet.has(m.column_key))?.column_key
         ?? "model"
       setSortKey(fallback)
-      setSortDirection("desc")
+      setSortDirection(leaderboardMetricMap.get(fallback)?.lower_is_better ? "asc" : "desc")
     }
-  }, [leaderboardMetricMap, leaderboardMetrics, sortKey, visibleMetricColumnKeySet])
+  }, [
+    leaderboardMetricMap,
+    leaderboardMetrics,
+    primaryMetricKey,
+    sortKey,
+    visibleMetricColumnKeySet,
+  ])
 
   useEffect(() => {
     if (!hasSliceTabs) {
@@ -3054,7 +3276,16 @@ function MultiMetricLeaderboard({
                 ]}
               />
             </div>
-            <ScoreDistribution series={distSeries} />
+            <ScoreDistribution
+              series={distSeries}
+              // Open on the metric the page ranks on, not the first column
+              // that happened to have enough points to plot.
+              initialKey={
+                distSeries.some((entry) => entry.key === primaryMetricKey)
+                  ? primaryMetricKey
+                  : undefined
+              }
+            />
           </div>
         )
       })()}
@@ -3227,12 +3458,20 @@ function MultiMetricLeaderboard({
                   {visibleMetrics.map((metric) => {
                     const score = row.values[metric.column_key]
                     const annotations = row.annotations_by_metric?.[metric.column_key]
+                    const comparabilityStatus =
+                      row.comparability_status_by_metric?.[metric.column_key]
                     const valid = isNumericScore(score)
-                    const display = !valid
-                      ? "—"
-                      : percentDisplayColumns.has(metric.column_key)
-                        ? `${(score * 100).toFixed(1)}%`
-                        : formatRawScore(score, undefined)
+                    const display = !valid ? "—" : formatMetricValue(metric.column_key, score)
+                    // The pivot keeps one row per model, so a judged cell
+                    // carries its panel — and the readings the producer's
+                    // headline pick left out — here rather than as rows of
+                    // its own.
+                    const judgeCell = judgeCellSummary(
+                      row.judge_condition_by_metric?.[metric.column_key],
+                      row.judge_alternates_by_metric?.[metric.column_key],
+                      judgeDisplayName,
+                      (value) => formatMetricValue(metric.column_key, value),
+                    )
                     return (
                       <td
                         key={metric.column_key}
@@ -3244,7 +3483,20 @@ function MultiMetricLeaderboard({
                         }}
                       >
                         <div>{display}</div>
-                        <SignalsRowBadges annotations={annotations} variant="cell" />
+                        {judgeCell && (
+                          <div
+                            className="truncate"
+                            style={{ fontSize: 10, fontWeight: 400, color: "var(--fg-muted)" }}
+                            title={judgeCell.tooltip}
+                          >
+                            {judgeCell.label}
+                          </div>
+                        )}
+                        <SignalsRowBadges
+                          annotations={annotations}
+                          comparabilityStatus={comparabilityStatus}
+                          variant="cell"
+                        />
                       </td>
                     )
                   })}

@@ -11,6 +11,7 @@ import { MergedBenchmarkView } from "@/components/merged-benchmark-view"
 import { ParamRangePicker } from "@/components/param-range-picker"
 import { useAudienceMode } from "@/components/audience-mode-provider"
 import type { BenchmarkEvalSummary } from "@/lib/eval-processing"
+import { compositeScoresByModel } from "@/lib/eval-processing"
 import { fetchComparisonIndex, fetchEvalHierarchy, fetchEvalSummary } from "@/lib/dashboard-data-client"
 import { humanizeEvaluationId, isMergedEvalId, routeIdFromSegments, routeIdToPath } from "@/lib/utils"
 import { PARAM_RANGE_MAX_INDEX, parseParamsBillionsFromModelName, paramStepToNumeric } from "@/lib/param-range"
@@ -748,20 +749,7 @@ function MatrixLeaderboard({
 
   const { models, metrics } = useMemo(() => {
     const metricNames = subSummaries.map((s) => s.evaluation_name)
-    const modelScores = new Map<string, { name: string; developer: string; scores: Map<string, number | null> }>()
-
-    for (const sub of subSummaries) {
-      for (const result of sub.model_results) {
-        const id = result.model_info.id
-        const existing = modelScores.get(id) ?? {
-          name: result.model_info.name,
-          developer: result.model_info.developer ?? "",
-          scores: new Map<string, number | null>(),
-        }
-        existing.scores.set(sub.evaluation_name, result.score)
-        modelScores.set(id, existing)
-      }
-    }
+    const modelScores = compositeScoresByModel(subSummaries)
 
     const modelList = Array.from(modelScores.entries())
       .map(([id, data]) => {

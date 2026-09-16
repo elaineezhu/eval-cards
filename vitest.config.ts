@@ -3,6 +3,10 @@ import { fileURLToPath } from "url"
 import { defineConfig } from "vitest/config"
 
 export default defineConfig({
+  // tsconfig sets `jsx: preserve` for Next's own compiler; esbuild needs an
+  // explicit automatic runtime or component modules transpile to classic
+  // `React.createElement` calls with no React import in scope.
+  esbuild: { jsx: "automatic" },
   resolve: {
     alias: {
       "@": fileURLToPath(new URL(".", import.meta.url)),

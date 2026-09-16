@@ -19,7 +19,7 @@ import type {
   MergedBenchmarkSummary,
   MergedObservationRow,
 } from "@/lib/eval-processing"
-import { isAssistedResult } from "@/lib/eval-processing"
+import { isAssistedResult, isHeadlineResult } from "@/lib/eval-processing"
 import type { MetricConfig, SourceData } from "@/lib/benchmark-schema"
 
 export function isMergedBenchmarkSummary(payload: unknown): payload is MergedBenchmarkSummary {
@@ -42,10 +42,15 @@ export function isMergedBenchmarkSummary(payload: unknown): payload is MergedBen
  * distribution pool, average, and bounds inference. Pooling raw
  * unconverted numbers with canonical ones would rank apples against
  * oranges (e.g. a raw 1.42 outranking a true 0.85 best).
+ *
+ * Non-headline rows (a losing judge panel or protocol arm) are excluded
+ * too — the merged page pools ONE observation per (model,
+ * source), and a model's three judge readings are not three sources.
  */
 function convertedRows(merged: MergedBenchmarkSummary): MergedObservationRow[] {
   return merged.results.filter(
     (row) =>
+      isHeadlineResult(row) &&
       !isAssistedResult(row.protocol_condition) &&
       row.score_canonical != null &&
       Number.isFinite(row.score_canonical),
@@ -110,6 +115,11 @@ export function mergedSummaryToEvalSummary(merged: MergedBenchmarkSummary): Benc
       evaluator_display_name: row.evaluator_display_name,
       collection_id: row.collection_id,
       protocol_condition: row.protocol_condition,
+      judge_condition: row.judge_condition,
+      is_headline: row.is_headline,
+      metric_source_label: row.metric_source_label,
+      comparability_status: row.comparability_status,
+      score_published: row.score_published,
       result: {
         evaluation_name: metricDisplayName,
         display_name: metricDisplayName,
@@ -150,6 +160,7 @@ export function mergedSummaryToEvalSummary(merged: MergedBenchmarkSummary): Benc
   return {
     evaluation_id: merged.evaluation_id,
     evaluation_name: merged.display_name,
+    judge_display_names: merged.judge_display_names,
     canonical_display_name: merged.display_name,
     benchmark_id: merged.benchmark_id,
     composite_benchmark_key: merged.benchmark_id,

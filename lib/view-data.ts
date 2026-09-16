@@ -34,10 +34,17 @@ import {
   type SourceData,
   type SourceMetadata,
 } from "@/lib/benchmark-schema"
-import type { DeveloperListEntry, RowAnnotations } from "@/lib/backend-artifacts"
+import type {
+  ComparabilityStatus,
+  CrossPartyDivergence,
+  DeveloperListEntry,
+  RowAnnotations,
+  VariantDivergence,
+} from "@/lib/backend-artifacts"
 import type {
   BenchmarkEvalListItem,
   BenchmarkEvalSummary,
+  JudgeReading,
   MergedBenchmarkSummary,
   MergedBestResult,
   MergedMetricOption,
@@ -46,7 +53,12 @@ import type {
   MergedSliceOption,
   ModelResultForBenchmark,
 } from "@/lib/eval-processing"
-import { dedupeLeaderboardRowsByModelIdentity, isAssistedResult } from "@/lib/eval-processing"
+import {
+  dedupeLeaderboardRowsByModelIdentity,
+  isAssistedResult,
+  isHeadlineResult,
+  parseJudgeCondition,
+} from "@/lib/eval-processing"
 
 type Row = Record<string, any>
 
@@ -572,13 +584,79 @@ function modelInfoFromModelRow(row: Row): ModelInfo {
 // the (model, benchmark, metric) group, see stage J), not inside the
 // evalcards_annotations struct. Fold them into the annotation blocks the
 // spec'd types declare so every annotations consumer sees one shape.
+function comparabilityStatusFromRow(row: Row): ComparabilityStatus | undefined {
+  const raw = optionalString(row.comparability_status)
+  return raw === "ok" || raw === "mixed_scale" || raw === "no_bounds" ? raw : undefined
+}
+
+function booleanOrNull(value: unknown): boolean | null {
+  return value == null ? null : Boolean(value)
+}
+
+/**
+ * One divergence block out of the producer's several spellings.
+ *
+ * The warehouse struct names the verdict `has_divergence` and its numbers
+ * `magnitude` / `threshold` / `basis` / `differing_fields`; snapshots from
+ * before the verdict existed omit it from the struct entirely and carry it
+ * only in the view's flat column. The HF v1 artifacts use the long names
+ * this codebase's types declare. Normalise all three into the long names,
+ * with the flat column winning — it is the same number the producer wrote
+ * into the struct, and it is the only one an older snapshot has.
+ *
+ * `verdictKey` stays ABSENT when no source declared a verdict, which is
+ * what lets `isNotAssessable` tell "looked at, not assessable" from
+ * "this snapshot never said".
+ */
+function normalizedDivergence<T>(
+  block: unknown,
+  flat: boolean | null,
+  verdictKey: "has_variant_divergence" | "has_cross_party_divergence",
+): T | null {
+  if (block == null && flat == null) return null
+  const raw = (block ?? {}) as Record<string, unknown>
+  const {
+    magnitude,
+    threshold,
+    basis,
+    differing_fields: differingFields,
+    has_divergence: hasDivergence,
+    ...rest
+  } = raw
+  const declared = flat != null || verdictKey in raw || "has_divergence" in raw
+  return {
+    ...rest,
+    ...(declared ? { [verdictKey]: flat ?? booleanOrNull(raw[verdictKey] ?? hasDivergence) } : {}),
+    divergence_magnitude: rest.divergence_magnitude ?? magnitude ?? null,
+    threshold_used: rest.threshold_used ?? threshold ?? null,
+    threshold_basis: rest.threshold_basis ?? basis ?? null,
+    differing_setup_fields: asArray(rest.differing_setup_fields ?? differingFields),
+  } as T
+}
+
 function withGroupSignals(
   annotations: RowAnnotations | undefined,
   row: Row
 ): RowAnnotations | undefined {
   if (!annotations) return annotations
+  const variantFlag = booleanOrNull(row.has_variant_divergence)
+  const crossPartyFlag = booleanOrNull(row.has_cross_party_divergence)
   return {
     ...annotations,
+    variant_divergence: normalizedDivergence<VariantDivergence>(
+      annotations.variant_divergence,
+      variantFlag,
+      "has_variant_divergence",
+    ),
+    cross_party_divergence: normalizedDivergence<CrossPartyDivergence>(
+      annotations.cross_party_divergence,
+      crossPartyFlag,
+      "has_cross_party_divergence",
+    ),
+    // The group's comparability verdict. Only `ok` groups were
+    // assessed, so the badges can tell "not assessable" from "no divergence"
+    // instead of reading a NULL boolean as FALSE.
+    comparability_status: comparabilityStatusFromRow(row) ?? annotations.comparability_status,
     provenance: annotations.provenance
       ? {
           ...annotations.provenance,
@@ -660,6 +738,13 @@ function reshapeCellToModelResult(row: Row): ModelResultForBenchmark {
     evaluator_display_name: optionalString(row.evaluator_display_name),
     collection_id: optionalString(row.collection_id),
     protocol_condition: optionalString(row.protocol_condition) ?? undefined,
+    judge_condition: optionalString(row.judge_condition) ?? undefined,
+    // Always projected: the producer's column, or the rule derived from
+    // the ranking on a snapshot that predates it.
+    is_headline: row.is_headline == null ? undefined : Boolean(row.is_headline),
+    metric_source_label: optionalString(row.metric_source_label),
+    comparability_status: comparabilityStatusFromRow(row),
+    score_published: optionalNumber(row.score_published),
     aggregate_components: asArray<NonNullable<ModelResultForBenchmark["aggregate_components"]>[number]>(
       aggregateComponents
     ),
@@ -807,52 +892,208 @@ async function evalsViewHasParentDisplayName(): Promise<boolean> {
 let ervColumnsCache: Set<string> | undefined
 async function evalResultsViewColumns(): Promise<Set<string>> {
   if (ervColumnsCache === undefined) {
+    let columns: Array<{ column_name: string }>
     try {
-      const columns = await readRows<{ column_name: string }>("DESCRIBE eval_results_view")
-      ervColumnsCache = new Set(columns.map((column) => column.column_name))
-    } catch {
-      return new Set()
+      columns = await readRows<{ column_name: string }>("DESCRIBE eval_results_view")
+    } catch (error) {
+      // Fail CLOSED. Swallowing this would make a connection blip
+      // indistinguishable from a successfully identified legacy snapshot,
+      // and the model / merged queries would then silently drop their
+      // headline predicate and serve every judge arm as a result.
+      throw new Error(
+        `eval_results_view capability probe failed: ${
+          error instanceof Error ? error.message : String(error)
+        }`,
+        { cause: error },
+      )
     }
+    ervColumnsCache = new Set(columns.map((column) => column.column_name))
   }
   return ervColumnsCache
 }
 
-async function evalResultsViewHasCollectionColumns(): Promise<boolean> {
+/**
+ * One capability object per process, derived from the single
+ * `DESCRIBE eval_results_view` probe above. Every eval / model / merged
+ * query splices the SAME object into its projection AND its predicates:
+ * projecting a fallback alias is not enough on its own, because a
+ * `WHERE r.is_headline` against an older snapshot binder-errors the whole
+ * query before the alias is ever read.
+ */
+interface EvalResultsViewCapabilities {
+  collections: boolean
+  evaluatorDisplayName: boolean
+  judgeCondition: boolean
+  isHeadline: boolean
+  /** SQL that stands in for `is_headline` on a snapshot without it, or
+   *  null when the snapshot cannot even be ranked — see
+   *  legacyHeadlineExpression. */
+  legacyHeadline: string | null
+  metricSourceLabel: boolean
+  comparabilityStatus: boolean
+  scorePublished: boolean
+  divergenceFlags: boolean
+}
+
+/**
+ * The headline rule for a snapshot predating the `is_headline` column.
+ *
+ * Aliasing every row TRUE serves a model's protocol arms as extra
+ * standings — the exact double-counting the column exists to stop. Reading
+ * "headline = ranked" alone would empty every page the producer never
+ * ranked. The rule that holds both: inside a
+ * (composite, benchmark, metric, model) group, if ANY row carries a
+ * `position` then only the ranked rows are headline; a group with no
+ * ranking at all keeps all of its rows.
+ *
+ * Returns null when the snapshot has no `position` column to rank by, so
+ * callers fall back to the old TRUE alias and emit no predicate.
+ */
+function legacyHeadlineExpression(names: Set<string>): string | null {
+  if (!names.has("position")) return null
+  const modelColumn = ["model_key", "model_route_id", "model_id"].find((name) =>
+    names.has(name),
+  )
+  if (!modelColumn) return null
+  const partition = ["composite_slug", "benchmark_id", "metric_id", modelColumn]
+    .filter((name) => names.has(name))
+    .map((name) => `r.${name}`)
+  return `(r.position IS NOT NULL OR NOT COALESCE(bool_or(r.position IS NOT NULL) OVER (PARTITION BY ${partition.join(", ")}), FALSE))`
+}
+
+async function evalResultsViewCapabilities(): Promise<EvalResultsViewCapabilities> {
   const names = await evalResultsViewColumns()
-  return names.has("collection_id") && names.has("protocol_condition")
+  const isHeadline = names.has("is_headline")
+  return {
+    collections: names.has("collection_id") && names.has("protocol_condition"),
+    evaluatorDisplayName: names.has("evaluator_display_name"),
+    judgeCondition: names.has("judge_condition"),
+    isHeadline,
+    legacyHeadline: isHeadline ? null : legacyHeadlineExpression(names),
+    metricSourceLabel: names.has("metric_source_label"),
+    comparabilityStatus: names.has("comparability_status"),
+    scorePublished: names.has("score_published"),
+    divergenceFlags:
+      names.has("has_variant_divergence") && names.has("has_cross_party_divergence"),
+  }
 }
 
-// Older snapshots predate the de-aliased evaluator column too — every
-// additive column gets the same NULL-alias degradation.
-async function evalResultsViewHasEvaluatorDisplayName(): Promise<boolean> {
-  return (await evalResultsViewColumns()).has("evaluator_display_name")
+async function evalResultsViewHasCollectionColumns(): Promise<boolean> {
+  return (await evalResultsViewCapabilities()).collections
 }
 
-function additiveEvalRowColumns(hasCollections: boolean, hasEvaluatorDisplay: boolean) {
+// Judge conditions, benchmark-scoped scores, and the flat divergence
+// verdicts. A snapshot predating the judge axis carries none of it, so the
+// headline marker is derived from the producer's own ranking instead — see
+// legacyHeadlineExpression. The flat `has_*_divergence` columns are the
+// AUTHORITY on the two verdicts: the producer's annotation struct has
+// carried them under different names (and, on older snapshots, not at
+// all), so withGroupSignals normalises the struct against these.
+function issue47Columns(caps: EvalResultsViewCapabilities) {
   return `
-  ${hasCollections
+  ${caps.judgeCondition ? "r.judge_condition" : "CAST(NULL AS VARCHAR) AS judge_condition"},
+  ${headlineProjection(caps)},
+  ${caps.metricSourceLabel ? "r.metric_source_label" : "CAST(NULL AS VARCHAR) AS metric_source_label"},
+  ${caps.comparabilityStatus ? "r.comparability_status" : "CAST(NULL AS VARCHAR) AS comparability_status"},
+  ${caps.scorePublished ? "r.score_published" : "r.score AS score_published"},
+  ${caps.divergenceFlags
+    ? "r.has_variant_divergence, r.has_cross_party_divergence"
+    : "CAST(NULL AS BOOLEAN) AS has_variant_divergence, CAST(NULL AS BOOLEAN) AS has_cross_party_divergence"}`
+}
+
+// The headline marker every projection carries: the producer's column, or
+// the derived rule on a snapshot without it.
+function headlineProjection(caps: EvalResultsViewCapabilities) {
+  if (caps.isHeadline) return "r.is_headline"
+  if (caps.legacyHeadline) return `${caps.legacyHeadline} AS is_headline`
+  return "TRUE AS is_headline"
+}
+
+// Headline filter for the pages that show one row per model. The derived
+// rule is a window expression, so it filters through QUALIFY rather than
+// WHERE — callers append this after the last WHERE predicate and before
+// ORDER BY. Empty only when the snapshot cannot be ranked at all.
+function headlinePredicate(caps: EvalResultsViewCapabilities, indent = "       ") {
+  if (caps.isHeadline) return `\n${indent}AND r.is_headline`
+  if (caps.legacyHeadline) return `\n${indent}QUALIFY ${caps.legacyHeadline}`
+  return ""
+}
+
+function additiveEvalRowColumns(caps: EvalResultsViewCapabilities) {
+  return `
+  ${caps.collections
     ? "r.collection_id, r.protocol_condition"
     : "CAST(NULL AS VARCHAR) AS collection_id, CAST(NULL AS VARCHAR) AS protocol_condition"},
-  ${hasEvaluatorDisplay
+  ${caps.evaluatorDisplayName
     ? "r.evaluator_display_name"
-    : "CAST(NULL AS VARCHAR) AS evaluator_display_name"}`
+    : "CAST(NULL AS VARCHAR) AS evaluator_display_name"},${issue47Columns(caps)}`
 }
 
-function evalCellJoinColumns(hasCollections: boolean, hasEvaluatorDisplay: boolean) {
-  return `${EVAL_CELL_JOIN_COLUMNS},${additiveEvalRowColumns(hasCollections, hasEvaluatorDisplay)}`
+function evalCellJoinColumns(caps: EvalResultsViewCapabilities) {
+  return `${EVAL_CELL_JOIN_COLUMNS},${additiveEvalRowColumns(caps)}`
+}
+
+/**
+ * Registry display names for every judge model named on a page, in one
+ * query. A judge id is the canonical model id at the time the source
+ * published, which can be a dated variant that has since folded into
+ * another model row — the same raw-id membership test the model lookup
+ * uses resolves those to the surviving row's name.
+ *
+ * Returns undefined when the page names no judge, and simply omits ids
+ * models_view cannot place; the label then reads the raw id. A failed
+ * lookup degrades the same way rather than failing the page.
+ */
+async function fetchJudgeDisplayNames(rows: Row[]): Promise<Record<string, string> | undefined> {
+  const judgeIds = new Set<string>()
+  for (const row of rows) {
+    const condition = parseJudgeCondition(optionalString(row.judge_condition))
+    for (const judge of condition?.judges ?? []) judgeIds.add(judge)
+  }
+  if (judgeIds.size === 0) return undefined
+
+  const ids = [...judgeIds]
+  const placeholders = ids.map(() => "?").join(", ")
+  let nameRows: Row[]
+  try {
+    nameRows = await readRows<Row>(
+      `WITH judges(judge) AS (SELECT unnest(list_value(${placeholders})))
+       SELECT judges.judge AS judge, any_value(m.model_name) AS model_name
+       FROM judges
+       LEFT JOIN models_view m
+         ON lower(m.model_key) = lower(judges.judge)
+         OR list_contains(list_transform(m.raw_model_ids, x -> lower(x)), lower(judges.judge))
+       GROUP BY 1`,
+      ids,
+      { contextLabel: `judge_names=${ids.length}` }
+    )
+  } catch {
+    return undefined
+  }
+
+  const names: Record<string, string> = {}
+  for (const row of nameRows) {
+    const judge = optionalString(row.judge)
+    const name = optionalString(row.model_name)
+    if (judge && name) names[judge] = name
+  }
+  return Object.keys(names).length > 0 ? names : undefined
 }
 
 async function getModelEvaluationRows(modelKey: string): Promise<Row[]> {
   const hasParentDisplayName = await evalsViewHasParentDisplayName()
+  const caps = await evalResultsViewCapabilities()
   // model_key is the producer's addressable identifier — non-null for both
   // resolved and unresolved models (the latter fall back to the raw source
   // name). Querying by model_id alone would silently miss unresolved models.
+  // The model page summarises a model's standing, so it reads headline rows
+  // only — a losing judge or protocol arm belongs on the benchmark page.
   return readRows<Row>(
-    `SELECT ${modelCellJoinColumns(hasParentDisplayName)}
+    `SELECT ${modelCellJoinColumns(hasParentDisplayName)},${issue47Columns(caps)}
      FROM eval_results_view r
      LEFT JOIN evals_view e ON r.evaluation_id = e.evaluation_id
      WHERE r.model_key = ?
-       AND r.score IS NOT NULL
+       AND r.score IS NOT NULL${headlinePredicate(caps)}
      ORDER BY r.percentile DESC NULLS LAST`,
     [modelKey],
     { contextLabel: `model_key=${modelKey}` }
@@ -1007,7 +1248,14 @@ export async function getModelSummaryById(routeId: string): Promise<ModelEvaluat
 // nobody ran `pnpm build-eval-matrices` yet), we fall through and the
 // summary degrades to single-metric exactly like before.
 type MatrixEntry = {
-  leaderboard_rows: Array<{ model_route_id: string; values: Record<string, number | null>; verified?: Record<string, boolean> }>
+  leaderboard_rows: Array<{
+    model_route_id: string
+    values: Record<string, number | null>
+    verified?: Record<string, boolean>
+    comparability_status?: Record<string, ComparabilityStatus | null>
+    judge_condition?: Record<string, string | null>
+    judge_alternates?: Record<string, JudgeReading[]>
+  }>
   subtask_metrics: Array<Record<string, unknown>>
 }
 
@@ -1030,8 +1278,12 @@ export async function getEvalSummaryById(evalId: string): Promise<BenchmarkEvalS
   // `composite_benchmark_*` / `benchmark_family_*` consumer fields are
   // populated. A bare `SELECT *` returns the raw v2 column names which
   // leaves the legacy fields NULL on the deserialised summary.
+  // `primary_metric_id` rides along on the detail projection only — the
+  // eval LIST has no use for it, and the cell query below already treats the
+  // column as required on this table.
   const evalRows = await readRows<Row>(
-    `SELECT ${evalListColumns(await evalsViewHasParentDisplayName())}
+    `SELECT ${evalListColumns(await evalsViewHasParentDisplayName())},
+            primary_metric_id
      FROM evals_view
      WHERE evaluation_id = ?
      LIMIT 1`,
@@ -1041,10 +1293,11 @@ export async function getEvalSummaryById(evalId: string): Promise<BenchmarkEvalS
   const evalRow = evalRows[0]
   if (!evalRow) return null
 
-  const hasCollectionColumns = await evalResultsViewHasCollectionColumns()
-  const hasEvaluatorDisplay = await evalResultsViewHasEvaluatorDisplayName()
+  const caps = await evalResultsViewCapabilities()
+  // No headline predicate here: the benchmark page deliberately shows the
+  // non-headline judge / protocol rows beneath each model's headline row.
   let cellRows = await readRows<Row>(
-    `SELECT ${evalCellJoinColumns(hasCollectionColumns, hasEvaluatorDisplay)}
+    `SELECT ${evalCellJoinColumns(caps)}
      FROM eval_results_view r
      LEFT JOIN evals_view e ON r.evaluation_id = e.evaluation_id
      WHERE r.evaluation_id = ?
@@ -1057,7 +1310,7 @@ export async function getEvalSummaryById(evalId: string): Promise<BenchmarkEvalS
 
   if (cellRows.length === 0) {
     cellRows = await readRows<Row>(
-      `SELECT ${evalCellJoinColumns(hasCollectionColumns, hasEvaluatorDisplay)}
+      `SELECT ${evalCellJoinColumns(caps)}
        FROM eval_results_view r
        LEFT JOIN evals_view e ON r.evaluation_id = e.evaluation_id
        WHERE r.evaluation_id = ?
@@ -1066,6 +1319,23 @@ export async function getEvalSummaryById(evalId: string): Promise<BenchmarkEvalS
       [evalId],
       { contextLabel: `eval_id=${evalId} fallback` }
     )
+  }
+
+  // The matrix is read before the summary is assembled because the judge
+  // ids it names have to reach the display-name lookup: a judge that only
+  // ever graded a non-primary metric appears nowhere in `cellRows`, and its
+  // matrix cell would then label itself with a raw model id.
+  const matrix = loadEvalMatrices()?.[evalId]
+  const matrixJudgeRows: Row[] = []
+  for (const row of matrix?.leaderboard_rows ?? []) {
+    for (const condition of Object.values(row.judge_condition ?? {})) {
+      if (condition) matrixJudgeRows.push({ judge_condition: condition })
+    }
+    for (const readings of Object.values(row.judge_alternates ?? {})) {
+      for (const reading of readings) {
+        matrixJudgeRows.push({ judge_condition: reading.judge_condition })
+      }
+    }
   }
 
   const summary = {
@@ -1086,6 +1356,7 @@ export async function getEvalSummaryById(evalId: string): Promise<BenchmarkEvalS
     comparability_summary: parseMaybeJson(evalRow.comparability_summary),
     source_data: parseMaybeJson(evalRow.source_data),
     model_results: cellRows.map(reshapeCellToModelResult),
+    judge_display_names: await fetchJudgeDisplayNames([...cellRows, ...matrixJudgeRows]),
   } as unknown as BenchmarkEvalSummary
 
   // Splice in precomputed multi-metric leaderboard_rows and subtask
@@ -1093,8 +1364,6 @@ export async function getEvalSummaryById(evalId: string): Promise<BenchmarkEvalS
   // but not in cellRows (zero-coverage primary metric) are also surfaced
   // so a user can still see per-slice or non-primary scores. The base row
   // shape comes from any matching cellRow when one exists.
-  const matrices = loadEvalMatrices()
-  const matrix = matrices?.[evalId]
   if (matrix) {
     const baseRowByRoute = new Map<string, ModelResultForBenchmark>()
     for (const result of summary.model_results) {
@@ -1116,6 +1385,16 @@ export async function getEvalSummaryById(evalId: string): Promise<BenchmarkEvalS
           source_data: base.source_data,
           values: row.values,
           verified: row.verified,
+          // Per-cell comparability verdict from the matrix precompute.
+          // Absent on a matrix baked before the column existed, which
+          // reads as "no verdict" and renders exactly as it used to.
+          comparability_status_by_metric: row.comparability_status,
+          // Judge treatment of the pivoted cell: the panel behind the number
+          // it shows, plus the readings the headline pick left out. Absent
+          // on a matrix baked before the judge axis, which reads as "no
+          // judge disclosed" and renders exactly as it used to.
+          judge_condition_by_metric: row.judge_condition,
+          judge_alternates_by_metric: row.judge_alternates,
           metrics_present: Object.values(row.values).filter(
             (v): v is number => typeof v === "number" && Number.isFinite(v),
           ).length,
@@ -1183,7 +1462,12 @@ export async function getEvalSummaryById(evalId: string): Promise<BenchmarkEvalS
       ?? "score"
     const lowerIsBetter = Boolean(summary.metric_config?.lower_is_better)
     summary.leaderboard_rows = summary.model_results
-      .filter((mr) => Number.isFinite(mr.score) && mr.model_route_id)
+      // Headline rows only. Everything downstream of this field ranks or
+      // pools it — the embed leaderboard re-ranks it, the distribution and
+      // frontier series read it — so a losing judge panel or protocol arm
+      // must never reach it. The dedupe below cannot repair it either: it
+      // deliberately KEEPS same-model rows whose scores differ.
+      .filter((mr) => isHeadlineResult(mr) && Number.isFinite(mr.score) && mr.model_route_id)
       // Deterministic pick order for the identity-dedupe below: clean
       // (non-assisted) rows first, then best score in the metric's
       // direction — an assisted run must never become a model's
@@ -1343,8 +1627,8 @@ const MERGED_ROW_COLUMNS = `
   CAST(to_json(slices) AS VARCHAR) AS slices
 `
 
-function mergedResultColumns(hasCollections: boolean, hasEvaluatorDisplay: boolean) {
-  return `${MERGED_RESULT_COLUMNS},${additiveEvalRowColumns(hasCollections, hasEvaluatorDisplay)}`
+function mergedResultColumns(caps: EvalResultsViewCapabilities) {
+  return `${MERGED_RESULT_COLUMNS},${additiveEvalRowColumns(caps)}`
 }
 
 const MERGED_RESULT_COLUMNS = `
@@ -1386,6 +1670,11 @@ function mergedObservationFromRow(row: Row): MergedObservationRow {
     evaluator_display_name: optionalString(row.evaluator_display_name),
     collection_id: optionalString(row.collection_id),
     protocol_condition: optionalString(row.protocol_condition) ?? undefined,
+    judge_condition: optionalString(row.judge_condition) ?? undefined,
+    is_headline: row.is_headline == null ? undefined : Boolean(row.is_headline),
+    metric_source_label: optionalString(row.metric_source_label),
+    comparability_status: comparabilityStatusFromRow(row),
+    score_published: optionalNumber(row.score_published),
   }
 }
 
@@ -1456,16 +1745,14 @@ export async function getMergedBenchmarkSummary(
   let resultRows: Row[] = []
   if (grain === "benchmark" || selectedSliceId) {
     const targetBenchmarkId = grain === "slice" ? selectedSliceId : asString(row.benchmark_id)
+    const caps = await evalResultsViewCapabilities()
     resultRows = await readRows<Row>(
-      `SELECT ${mergedResultColumns(
-         await evalResultsViewHasCollectionColumns(),
-         await evalResultsViewHasEvaluatorDisplayName(),
-       )}
+      `SELECT ${mergedResultColumns(caps)}
        FROM eval_results_view r
        WHERE r.benchmark_id = ?
          AND r.metric_id_effective = ?
          AND ${grain === "slice" ? "r.is_slice" : "NOT r.is_slice"}
-         AND r.score IS NOT NULL
+         AND r.score IS NOT NULL${headlinePredicate(caps, "         ")}
        ORDER BY r.score_canonical ${direction} NULLS LAST,
                 r.score ${direction} NULLS LAST,
                 r.model_key ASC`,
@@ -1526,6 +1813,10 @@ export async function getMergedBenchmarkSummary(
     selected_lower_is_better: selectedLowerIsBetter,
     selected_slice_id: selectedSliceId,
     results: resultRows.map(mergedObservationFromRow),
+    // Same batched models_view lookup the per-source page runs: a merged
+    // page carries judged rows too, and without the map every one of them
+    // labels its judge with a raw canonical id.
+    judge_display_names: await fetchJudgeDisplayNames(resultRows),
     benchmark_card: benchmarkCard,
   }
 }

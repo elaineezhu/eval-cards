@@ -1,9 +1,10 @@
 "use client"
 
-import type { RowAnnotations } from "@/lib/backend-artifacts"
+import type { ComparabilityStatus, RowAnnotations } from "@/lib/backend-artifacts"
 import { cn } from "@/lib/utils"
 import { CrossPartyDivergenceBadge } from "./cross-party-divergence-badge"
 import { ReproducibilityBadge } from "./reproducibility-badge"
+import { isNotAssessable } from "./signal-utils"
 import { VariantDivergenceBadge } from "./variant-divergence-badge"
 
 /**
@@ -24,28 +25,38 @@ import { VariantDivergenceBadge } from "./variant-divergence-badge"
  */
 export function SignalsRowBadges({
   annotations,
+  comparabilityStatus,
   className,
   hideOnMobile = true,
   variant = "full",
 }: {
   annotations?: RowAnnotations | null
+  /** The row's comparability verdict, when the caller has it
+   *  outside the annotation block (eval_results_view ships it flat). */
+  comparabilityStatus?: ComparabilityStatus | null
   className?: string
   hideOnMobile?: boolean
   variant?: "full" | "cell" | "row"
 }) {
-  if (!annotations) {
-    return null
-  }
-
   const showRowLevel = variant === "full" || variant === "row"
   const showCellLevel = variant === "full" || variant === "cell"
 
-  const hasReproducibility = showRowLevel && annotations.reproducibility_gap?.has_reproducibility_gap
-  const hasVariant = showCellLevel && annotations.variant_divergence?.has_variant_divergence
-  const hasCrossParty =
-    showCellLevel && annotations.cross_party_divergence?.has_cross_party_divergence
+  // A row whose comparability group was never assessed carries the verdict
+  // on the row itself, so it earns a chip even when the producer attached
+  // no annotation struct to it.
+  if (!annotations && !(showCellLevel && isNotAssessable(null, comparabilityStatus))) {
+    return null
+  }
 
-  if (!hasReproducibility && !hasVariant && !hasCrossParty) {
+  const hasReproducibility = showRowLevel && annotations?.reproducibility_gap?.has_reproducibility_gap
+  // Strict `=== true` — the flags are nullable and a NULL is
+  // "not assessable", which the variant badge renders in its own right.
+  const hasVariant = showCellLevel && annotations?.variant_divergence?.has_variant_divergence === true
+  const hasCrossParty =
+    showCellLevel && annotations?.cross_party_divergence?.has_cross_party_divergence === true
+  const notAssessable = showCellLevel && isNotAssessable(annotations, comparabilityStatus)
+
+  if (!hasReproducibility && !hasVariant && !hasCrossParty && !notAssessable) {
     return null
   }
 
@@ -57,9 +68,15 @@ export function SignalsRowBadges({
         className
       )}
     >
-      {showRowLevel && <ReproducibilityBadge gap={annotations.reproducibility_gap} />}
-      {showCellLevel && <VariantDivergenceBadge divergence={annotations.variant_divergence} />}
-      {showCellLevel && <CrossPartyDivergenceBadge divergence={annotations.cross_party_divergence} />}
+      {showRowLevel && <ReproducibilityBadge gap={annotations?.reproducibility_gap} />}
+      {showCellLevel && (
+        <VariantDivergenceBadge
+          divergence={annotations?.variant_divergence}
+          annotations={annotations}
+          comparabilityStatus={comparabilityStatus}
+        />
+      )}
+      {showCellLevel && <CrossPartyDivergenceBadge divergence={annotations?.cross_party_divergence} />}
     </div>
   )
 }

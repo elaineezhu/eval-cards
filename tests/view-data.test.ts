@@ -6,6 +6,7 @@ import { DuckDBConnection } from "@duckdb/node-api"
 import { describe, expect, it, vi } from "vitest"
 
 import collectionContextFixture from "./fixtures/collection_context.json"
+import { isNotAssessable } from "../components/signals/signal-utils"
 
 function sqlString(value: string) {
   return `'${value.replace(/'/g, "''")}'`
@@ -22,6 +23,8 @@ async function writeSyntheticStageJSnapshot(
     includeCollections?: boolean
     includeTrajectories?: boolean
     includeCollectionContext?: boolean
+    includeJudgeColumns?: boolean
+    dropRawModelIds?: boolean
   } = {},
 ) {
   // includeMergedView=false emulates a pre-merged-view snapshot: no
@@ -33,18 +36,23 @@ async function writeSyntheticStageJSnapshot(
   // collection_trajectories.parquet independently, and
   // includeCollectionContext (default false — every snapshot before the
   // scaffold-context bake) the collection_context.json sidecar.
+  // includeJudgeColumns=false (the default) emulates a snapshot from
+  // before the judge axis: no judge_condition / is_headline / metric_source_label /
+  // comparability_status / score_published columns on eval_results_view.
   const {
     includeMergedView = true,
     includeCollections = false,
     includeTrajectories = includeCollections,
     includeCollectionContext = false,
+    includeJudgeColumns = false,
+    dropRawModelIds = false,
   } = options
   await mkdir(snapshotDir, { recursive: true })
   const connection = await DuckDBConnection.create()
 
-  await copyParquet(
-    connection,
+  await connection.run(
     `
+      CREATE OR REPLACE TABLE models_fixture AS
       SELECT
         TIMESTAMP '2026-05-03 00:00:00' AS snapshot_id,
         'openai/gpt-5' AS model_key,
@@ -119,7 +127,40 @@ async function writeSyntheticStageJSnapshot(
           tags_covered := ['applied_reasoning']::VARCHAR[]
         )] AS variants,
         ['openai/gpt-5', 'openai/GPT-5-Folded-2025-08-07']::VARCHAR[] AS raw_model_ids
-    `,
+    `
+  )
+  if (includeJudgeColumns) {
+    // Judge models as models_view rows. Claude has NO result row on the
+    // eval page and is named by a dated id that folded into the survivor,
+    // so it only resolves through raw_model_ids; llama is absent from
+    // models_view entirely and must keep its raw id.
+    const judgeModel = (key: string, name: string, rawIds: string) =>
+      connection.run(
+        `INSERT INTO models_fixture
+         SELECT * REPLACE (
+           '${key}' AS model_key,
+           '${key}' AS model_id,
+           '${key}' AS id,
+           '${name}' AS model_name,
+           '${name}' AS canonical_model_name,
+           ${rawIds} AS raw_model_ids
+         )
+         FROM models_fixture WHERE model_key = 'openai/gpt-5'`
+      )
+    await judgeModel("openai/gpt-4o", "GPT-4o", "['openai/gpt-4o']::VARCHAR[]")
+    await judgeModel(
+      "anthropic/claude-3.5-sonnet",
+      "Claude 3.5 Sonnet",
+      "['anthropic/claude-3.5-sonnet', 'anthropic/claude-3-5-sonnet-20241022']::VARCHAR[]",
+    )
+  }
+  await copyParquet(
+    connection,
+    // dropRawModelIds emulates a snapshot whose models_view predates the
+    // raw-id column: the batched judge-name lookup binder-errors on it.
+    dropRawModelIds
+      ? "SELECT * EXCLUDE (raw_model_ids) FROM models_fixture"
+      : "SELECT * FROM models_fixture",
     path.join(snapshotDir, "models_view.parquet")
   )
 
@@ -291,10 +332,12 @@ async function writeSyntheticStageJSnapshot(
         '["applied_reasoning"]' AS derived_tags,
         0.8::DOUBLE AS score,
         struct_pack(
-          score := 0.8,
-          standard_error := 0.01,
+          score := 0.8::DOUBLE,
+          standard_error := 0.01::DOUBLE,
           sample_size := 10,
-          confidence_interval := struct_pack(lower := 0.7, upper := 0.9, confidence_level := 0.95)
+          confidence_interval := struct_pack(
+            lower := 0.7::DOUBLE, upper := 0.9::DOUBLE, confidence_level := 0.95::DOUBLE
+          )
         ) AS score_details,
         1::INTEGER AS fact_row_count,
         1::INTEGER AS position,
@@ -344,13 +387,51 @@ async function writeSyntheticStageJSnapshot(
         true AS first_party_only,
         false AS has_variant_divergence,
         false AS has_cross_party_divergence,
-        NULL AS evalcards_annotations,
+        -- The producer's annotation struct, copied field-for-field from the
+        -- warehouse: the verdict is has_divergence (NOT the long name the
+        -- client types declare) and the numbers are magnitude / threshold /
+        -- basis / differing_fields. The pre-judge snapshot has no verdict
+        -- field in the struct at all and no comparability_status --
+        -- OLD_SHAPE_ANNOTATIONS below reduces this struct to that shape.
+        struct_pack(
+          reproducibility_gap := struct_pack(
+            missing_fields := ['temperature']::VARCHAR[],
+            populated_count := 1,
+            required_count := 2
+          ),
+          provenance := struct_pack(
+            source_type := 'documentation',
+            evaluator_relationship := 'first_party',
+            organization_name := 'OpenAI'
+          ),
+          comparability_status := 'ok',
+          variant_divergence := struct_pack(
+            has_divergence := false,
+            magnitude := 0.0333::DOUBLE,
+            threshold := 0.05::DOUBLE,
+            basis := 'proportion',
+            differing_fields := [{'field': 'temperature', 'values': '[null,0.6]'::JSON}]
+          ),
+          cross_party_divergence := struct_pack(
+            has_divergence := false,
+            magnitude := 0.0166::DOUBLE,
+            threshold := 0.05::DOUBLE,
+            basis := 'proportion',
+            differing_fields := [{'field': 'temperature', 'values': '[null,0.6]'::JSON}],
+            organization_count := 2
+          )
+        ) AS evalcards_annotations,
         NULL::VARCHAR AS instance_file_path,
         NULL::VARCHAR AS instance_file_format,
         0::INTEGER AS instance_rows,
         true AS is_verified_evaluator,
         'plain-src' AS collection_id,
-        NULL::VARCHAR AS protocol_condition
+        NULL::VARCHAR AS protocol_condition,
+        NULL::VARCHAR AS judge_condition,
+        true AS is_headline,
+        NULL::VARCHAR AS metric_source_label,
+        'ok' AS comparability_status,
+        0.8::DOUBLE AS score_published
     `
   )
 
@@ -487,15 +568,163 @@ async function writeSyntheticStageJSnapshot(
     }
   }
 
+  if (!includeJudgeColumns) {
+    // A snapshot predating `is_headline` still holds duplicate groups —
+    // the same (composite, benchmark, metric, model) cell with the
+    // producer's ranked row and an unranked arm beside it. The ranking is
+    // the only marker such a snapshot has left, so the derived headline
+    // reads that: the ranked row for gpt-5, and BOTH grok rows, because
+    // nothing in that group is ranked at all and a page must not go blank.
+    // Selects the ORIGINAL ranked row only, so each insert below adds one
+    // row rather than re-copying the ones before it.
+    const insertUnrankedMmluRow = (replacements: string) =>
+      connection.run(
+        `INSERT INTO eval_results_fixture
+         SELECT * REPLACE (${replacements})
+         FROM eval_results_fixture
+         WHERE evaluation_id = 'mmlu' AND position IS NOT NULL`
+      )
+    const unranked = (score: number) => `
+      ${score} AS score,
+      ${score} AS score_canonical,
+      ${score} AS score_published,
+      struct_pack(
+        score := ${score},
+        standard_error := 0.01,
+        sample_size := 9,
+        confidence_interval := struct_pack(lower := 0.7, upper := 0.9, confidence_level := 0.95)
+      ) AS score_details,
+      false AS is_headline,
+      NULL::INTEGER AS position,
+      NULL::INTEGER AS total,
+      NULL::DOUBLE AS percentile
+    `
+    await insertUnrankedMmluRow(unranked(0.88))
+    for (const score of [0.62, 0.64]) {
+      await insertUnrankedMmluRow(`
+        'xai/grok-5' AS model_key,
+        'xai/grok-5' AS model_id,
+        'xai%2Fgrok-5' AS model_route_id,
+        ${grokModelInfo} AS model_info,
+        ${unranked(score)}
+      `)
+    }
+  }
+
+  if (includeJudgeColumns) {
+    // WildBench shape: the model's headline reading is the three-judge
+    // mean, with each single-judge reading kept beside it, unranked. One
+    // single-judge row sits in a comparability group that mixed scales,
+    // so its divergence flags are NULL, not FALSE.
+    await connection.run(
+      `UPDATE eval_results_fixture
+       SET judge_condition = '{"judges":["openai/gpt-4o","anthropic/claude-3-5-sonnet-20241022","meta/llama-4"],"label":"score"}',
+           metric_source_label = 'score'
+       WHERE evaluation_id = 'mmlu' AND model_key = 'openai/gpt-5'`
+    )
+    // Seeded from the page's headline row only — the judge rows share its
+    // evaluation_id, so a plain insertVariant would re-select them.
+    const judgeRow = (
+      judge: string,
+      label: string,
+      score: number,
+      status: string,
+      divergence: string,
+    ) =>
+      connection.run(
+        `INSERT INTO eval_results_fixture
+         SELECT * REPLACE (
+           '{"judges":["${judge}"],"label":"${label}"}' AS judge_condition,
+           false AS is_headline,
+           '${label}' AS metric_source_label,
+           '${status}' AS comparability_status,
+           ${divergence} AS has_variant_divergence,
+           ${divergence} AS has_cross_party_divergence,
+           struct_pack(
+             reproducibility_gap := evalcards_annotations.reproducibility_gap,
+             provenance := evalcards_annotations.provenance,
+             comparability_status := '${status}',
+             variant_divergence := struct_pack(
+               has_divergence := ${divergence},
+               magnitude := evalcards_annotations.variant_divergence.magnitude,
+               threshold := evalcards_annotations.variant_divergence.threshold,
+               basis := evalcards_annotations.variant_divergence.basis,
+               differing_fields := evalcards_annotations.variant_divergence.differing_fields
+             ),
+             cross_party_divergence := struct_pack(
+               has_divergence := ${divergence},
+               magnitude := evalcards_annotations.cross_party_divergence.magnitude,
+               threshold := evalcards_annotations.cross_party_divergence.threshold,
+               basis := evalcards_annotations.cross_party_divergence.basis,
+               differing_fields := evalcards_annotations.cross_party_divergence.differing_fields,
+               organization_count := evalcards_annotations.cross_party_divergence.organization_count
+             )
+           ) AS evalcards_annotations,
+           ${score} AS score,
+           ${score} AS score_canonical,
+           ${score} AS score_published,
+           struct_pack(
+             score := ${score}::DOUBLE,
+             standard_error := 0.01::DOUBLE,
+             sample_size := 10,
+             confidence_interval := struct_pack(
+               lower := 0.7::DOUBLE, upper := 0.9::DOUBLE, confidence_level := 0.95::DOUBLE
+             )
+           ) AS score_details,
+           NULL::INTEGER AS position,
+           NULL::INTEGER AS total,
+           NULL::DOUBLE AS percentile
+         )
+         FROM eval_results_fixture
+         WHERE evaluation_id = 'mmlu' AND is_headline`
+      )
+    await judgeRow("openai/gpt-4o", "gpt_score", 0.82, "ok", "false")
+    await judgeRow("anthropic/claude-3-5-sonnet-20241022", "claude_score", 0.79, "mixed_scale", "NULL::BOOLEAN")
+    await judgeRow("meta/llama-4", "llama_score", 0.77, "ok", "false")
+  }
+
+  // The pre-judge warehouse struct: no `comparability_status`, and neither
+  // divergence block carries a verdict at all — the flat columns are the
+  // only place that answer lives on those snapshots.
+  const OLD_SHAPE_ANNOTATIONS = `struct_pack(
+    reproducibility_gap := evalcards_annotations.reproducibility_gap,
+    provenance := evalcards_annotations.provenance,
+    variant_divergence := struct_pack(
+      magnitude := evalcards_annotations.variant_divergence.magnitude,
+      threshold := evalcards_annotations.variant_divergence.threshold,
+      basis := evalcards_annotations.variant_divergence.basis,
+      differing_fields := evalcards_annotations.variant_divergence.differing_fields
+    ),
+    cross_party_divergence := struct_pack(
+      magnitude := evalcards_annotations.cross_party_divergence.magnitude,
+      threshold := evalcards_annotations.cross_party_divergence.threshold,
+      basis := evalcards_annotations.cross_party_divergence.basis,
+      differing_fields := evalcards_annotations.cross_party_divergence.differing_fields,
+      organization_count := evalcards_annotations.cross_party_divergence.organization_count
+    )
+  )`
+
   const evalResultsExcludes = [
     ...(includeMergedView ? [] : ["metric_id_effective", "scale_conversion", "score_canonical"]),
     ...(includeCollections ? [] : ["collection_id", "protocol_condition"]),
+    ...(includeJudgeColumns
+      ? []
+      : [
+          "judge_condition",
+          "is_headline",
+          "metric_source_label",
+          "comparability_status",
+          "score_published",
+        ]),
   ]
+  const annotationsProjection = includeJudgeColumns
+    ? ""
+    : ` REPLACE (${OLD_SHAPE_ANNOTATIONS} AS evalcards_annotations)`
   await copyParquet(
     connection,
-    evalResultsExcludes.length === 0
-      ? "SELECT * FROM eval_results_fixture"
-      : `SELECT * EXCLUDE (${evalResultsExcludes.join(", ")}) FROM eval_results_fixture`,
+    `SELECT *${
+      evalResultsExcludes.length === 0 ? "" : ` EXCLUDE (${evalResultsExcludes.join(", ")})`
+    }${annotationsProjection} FROM eval_results_fixture`,
     path.join(snapshotDir, "eval_results_view.parquet")
   )
 
@@ -862,8 +1091,13 @@ async function withSnapshot(
     includeCollections?: boolean
     includeTrajectories?: boolean
     includeCollectionContext?: boolean
+    includeJudgeColumns?: boolean
+    dropRawModelIds?: boolean
   },
-  run: (dataBackend: typeof import("../lib/data-backend")) => Promise<void>,
+  run: (
+    dataBackend: typeof import("../lib/data-backend"),
+    snapshotDir: string,
+  ) => Promise<void>,
 ) {
   const snapshotDir = await mkdtemp(path.join(os.tmpdir(), "eval-card-merged-"))
   const previousBackend = process.env.DATA_BACKEND
@@ -875,7 +1109,7 @@ async function withSnapshot(
     process.env.DATA_BACKEND = "v2"
     process.env.SNAPSHOT_URL = `file://${snapshotDir}`
     const dataBackend = await import("../lib/data-backend")
-    await run(dataBackend)
+    await run(dataBackend, snapshotDir)
   } finally {
     if (previousBackend == null) {
       delete process.env.DATA_BACKEND
@@ -917,7 +1151,12 @@ describe("merged benchmark accessor (merged-benchmark-view F1)", () => {
 
       // Observation grain, canonical-score order, echoes NOT deduped:
       // two byte-identical Llama 4 rows from different sources survive.
-      expect(merged!.results.map((r) => r.score_canonical)).toEqual([0.9, 0.9, 0.85, 0.8])
+      // The 0.64 / 0.62 pair is the unranked Grok group: this snapshot
+      // marks no headline, and the derived rule keeps every row of a group
+      // the producer never ranked rather than emptying it.
+      expect(merged!.results.map((r) => r.score_canonical)).toEqual([
+        0.9, 0.9, 0.85, 0.8, 0.64, 0.62,
+      ])
       const echoes = merged!.results.filter((r) => r.model_info.name === "Llama 4")
       expect(echoes).toHaveLength(2)
       expect(new Set(echoes.map((r) => r.composite_slug))).toEqual(new Set(["src-a", "src-b"]))
@@ -946,7 +1185,9 @@ describe("merged benchmark accessor (merged-benchmark-view F1)", () => {
       // Unknown metric ids fall back to the page default.
       const unknown = await dataBackend.getMergedBenchmarkSummary("mmlu", "does-not-exist")
       expect(unknown!.selected_metric_id).toBe("accuracy")
-      expect(unknown!.results).toHaveLength(4)
+      // Four ranked readings plus the unranked Grok pair; the unranked
+      // gpt-5 arm is dropped, because its group IS ranked elsewhere.
+      expect(unknown!.results).toHaveLength(6)
     })
   })
 
@@ -974,7 +1215,9 @@ describe("merged benchmark accessor (merged-benchmark-view F1)", () => {
     await withSnapshot({ includeMergedView: false }, async (dataBackend) => {
       // The connection still initialises and existing accessors work.
       const evalSummary = await dataBackend.getEvalSummaryById("mmlu")
-      expect(evalSummary?.model_results).toHaveLength(1)
+      // The ranked gpt-5 row, its unranked arm, and the unranked Grok pair
+      // — the benchmark page shows them all and marks which are headline.
+      expect(evalSummary?.model_results).toHaveLength(4)
 
       const merged = await dataBackend.getMergedBenchmarkSummary("mmlu")
       expect(merged).toBeNull()
@@ -1190,6 +1433,255 @@ describe("collection surfaces (collection-benchmark-page spec)", () => {
   })
 })
 
+
+describe("judge conditions and headline rows", () => {
+  it("keeps the judge rows on the benchmark page and projects their identity columns", async () => {
+    await withSnapshot({ includeJudgeColumns: true }, async (dataBackend) => {
+      const summary = await dataBackend.getEvalSummaryById("mmlu")
+      const gpt5 = summary!.model_results.filter((r) => r.model_route_id === "openai%2Fgpt-5")
+      // One headline (the three-judge mean) plus the three single-judge
+      // readings — the page shows them all, the backend ranks one.
+      expect(gpt5).toHaveLength(4)
+      const headline = gpt5.filter((r) => r.is_headline !== false)
+      expect(headline).toHaveLength(1)
+      expect(headline[0]).toMatchObject({
+        score: 0.8,
+        score_published: 0.8,
+        metric_source_label: "score",
+        comparability_status: "ok",
+      })
+      expect(JSON.parse(headline[0].judge_condition as string).judges).toHaveLength(3)
+
+      // metric_source_label is the SOURCE's own channel name; the metric
+      // identity stays the view's (renamed) metric_id.
+      const byJudge = new Map(
+        gpt5
+          .filter((r) => r.is_headline === false)
+          .map((r) => [r.metric_source_label, r]),
+      )
+      expect([...byJudge.keys()].sort()).toEqual(["claude_score", "gpt_score", "llama_score"])
+      expect(byJudge.get("gpt_score")).toMatchObject({ score: 0.82, comparability_status: "ok" })
+      expect(byJudge.get("gpt_score")!.result.metric_key).toBe("accuracy")
+      // A group that mixed scales was never assessed — status, not a
+      // FALSE boolean.
+      expect(byJudge.get("claude_score")!.comparability_status).toBe("mixed_scale")
+    })
+  })
+
+  it("resolves judge display names from models_view, including judges with no row on the page", async () => {
+    await withSnapshot({ includeJudgeColumns: true }, async (dataBackend) => {
+      const summary = await dataBackend.getEvalSummaryById("mmlu")
+      expect(summary!.judge_display_names).toEqual({
+        "openai/gpt-4o": "GPT-4o",
+        // Named by a dated id that folded into the survivor, and not a
+        // model on this page at all — resolved through raw_model_ids.
+        "anthropic/claude-3-5-sonnet-20241022": "Claude 3.5 Sonnet",
+        // meta/llama-4 has no models_view row, so it is absent and the
+        // label falls back to the raw id.
+      })
+    })
+  })
+
+  it("degrades to raw judge ids when models_view carries no raw_model_ids", async () => {
+    await withSnapshot(
+      { includeJudgeColumns: true, dropRawModelIds: true },
+      async (dataBackend) => {
+        const summary = await dataBackend.getEvalSummaryById("mmlu")
+        // The lookup costs the names, never the page: the rows are all
+        // still here and the labels fall back to the raw ids.
+        expect(summary!.judge_display_names).toBeUndefined()
+        expect(summary!.model_results).toHaveLength(4)
+      },
+    )
+  })
+
+  it("omits the judge name map entirely when no row on the page names a judge", async () => {
+    await withSnapshot({}, async (dataBackend) => {
+      const summary = await dataBackend.getEvalSummaryById("mmlu")
+      expect(summary!.judge_display_names).toBeUndefined()
+    })
+  })
+
+  it("serves headline rows only to the model page and the merged page", async () => {
+    await withSnapshot({ includeJudgeColumns: true }, async (dataBackend) => {
+      const model = await dataBackend.getModelSummaryById("openai%2Fgpt-5")
+      const modelRows = model!.evaluations_by_tag.applied_reasoning
+      expect(modelRows).toHaveLength(1)
+      expect(modelRows[0]?.evaluation_results[0]?.score_details?.score).toBe(0.8)
+
+      // The merged pool is one observation per (model, source); three
+      // judge readings of one model are not three observations.
+      const merged = await dataBackend.getMergedBenchmarkSummary("mmlu")
+      expect(merged!.results.map((r) => r.score_canonical)).toEqual([0.9, 0.9, 0.85, 0.8])
+    })
+  })
+
+  it("normalises the producer's annotation struct into the shape the badges read", async () => {
+    await withSnapshot({ includeJudgeColumns: true }, async (dataBackend) => {
+      const summary = await dataBackend.getEvalSummaryById("mmlu")
+      const gpt5 = summary!.model_results.filter((r) => r.model_route_id === "openai%2Fgpt-5")
+      const headline = gpt5.find((r) => r.is_headline !== false)!
+      const annotations = headline.result.evalcards!.annotations!
+
+      // The warehouse struct calls the verdict has_divergence and its
+      // numbers magnitude / threshold / basis / differing_fields. Every one
+      // of them reaches the client under the name the badges read.
+      expect(annotations.variant_divergence).toMatchObject({
+        has_variant_divergence: false,
+        divergence_magnitude: 0.0333,
+        threshold_used: 0.05,
+        threshold_basis: "proportion",
+      })
+      expect(annotations.variant_divergence!.differing_setup_fields[0]).toMatchObject({
+        field: "temperature",
+      })
+      expect(annotations.cross_party_divergence).toMatchObject({
+        has_cross_party_divergence: false,
+        organization_count: 2,
+      })
+      expect(annotations.comparability_status).toBe("ok")
+      // Assessed and clean — the row must not claim it was never checked.
+      expect(isNotAssessable(annotations, headline.comparability_status)).toBe(false)
+
+      // The mixed-scale judge row: the group was never assessed, so both
+      // verdicts are NULL and the status says why.
+      const claude = gpt5.find((r) => r.metric_source_label === "claude_score")!
+      const claudeAnnotations = claude.result.evalcards!.annotations!
+      expect(claudeAnnotations.variant_divergence!.has_variant_divergence).toBeNull()
+      expect(claudeAnnotations.cross_party_divergence!.has_cross_party_divergence).toBeNull()
+      expect(isNotAssessable(claudeAnnotations, claude.comparability_status)).toBe(true)
+    })
+  })
+
+  it("reads the flat verdict on a pre-judge snapshot rather than calling every row not assessable", async () => {
+    await withSnapshot({}, async (dataBackend) => {
+      const summary = await dataBackend.getEvalSummaryById("mmlu")
+      const annotations = summary!.model_results[0].result.evalcards!.annotations!
+      // That snapshot's struct carries no verdict at all; the flat column
+      // is the only place it lives, and it says FALSE.
+      expect(annotations.variant_divergence).toMatchObject({
+        has_variant_divergence: false,
+        divergence_magnitude: 0.0333,
+      })
+      expect(annotations.cross_party_divergence!.has_cross_party_divergence).toBe(false)
+      expect(annotations.comparability_status).toBeUndefined()
+      expect(isNotAssessable(annotations, summary!.model_results[0].comparability_status)).toBe(
+        false,
+      )
+    })
+  })
+
+  it("builds the fallback leaderboard from headline rows only", async () => {
+    await withSnapshot({ includeJudgeColumns: true }, async (dataBackend) => {
+      const summary = await dataBackend.getEvalSummaryById("mmlu")
+      // The page itself shows 4 rows for GPT-5; the leaderboard the embed
+      // board re-ranks and the distribution series reads must see 1.
+      expect(summary!.model_results).toHaveLength(4)
+      expect(summary!.leaderboard_rows).toHaveLength(1)
+      expect(Object.values(summary!.leaderboard_rows![0].values)).toEqual([0.8])
+    })
+  })
+
+  it("carries score_published and the judge name map onto merged rows", async () => {
+    await withSnapshot({ includeJudgeColumns: true }, async (dataBackend) => {
+      const merged = await dataBackend.getMergedBenchmarkSummary("mmlu")
+      expect(merged!.results.every((r) => typeof r.score_published === "number")).toBe(true)
+      expect(merged!.judge_display_names).toMatchObject({ "openai/gpt-4o": "GPT-4o" })
+    })
+  })
+
+  it("fails closed when the capability probe cannot read the view", async () => {
+    // A probe that errors must not read as "legacy snapshot" — that
+    // silently drops the headline predicate and serves every judge arm as
+    // a separate result. Only the DESCRIBE fails here; every other query
+    // on the connection still works, which is exactly the transient blip
+    // the old catch-and-return-empty swallowed.
+    const snapshotDir = await mkdtemp(path.join(os.tmpdir(), "eval-card-probe-"))
+    const previousBackend = process.env.DATA_BACKEND
+    const previousSnapshotUrl = process.env.SNAPSHOT_URL
+    try {
+      await writeSyntheticStageJSnapshot(snapshotDir, { includeJudgeColumns: true })
+      vi.resetModules()
+      process.env.DATA_BACKEND = "v2"
+      process.env.SNAPSHOT_URL = `file://${snapshotDir}`
+      const duckdb = await import("../lib/duckdb")
+      const realGetConnection = duckdb.getConnection
+      vi.doMock("../lib/duckdb", async () => ({
+        ...duckdb,
+        getConnection: async () => {
+          const connection = await realGetConnection()
+          return new Proxy(connection, {
+            get(target, prop, receiver) {
+              if (prop === "runAndRead") {
+                return async (sql: string, ...rest: unknown[]) => {
+                  if (String(sql).startsWith("DESCRIBE eval_results_view")) {
+                    throw new Error("connection blip")
+                  }
+                  return (target as never as { runAndRead: (...a: unknown[]) => unknown })
+                    .runAndRead(sql, ...rest)
+                }
+              }
+              const value = Reflect.get(target, prop, receiver)
+              return typeof value === "function" ? value.bind(target) : value
+            },
+          })
+        },
+      }))
+      const dataBackend = await import("../lib/data-backend")
+      await expect(dataBackend.getEvalSummaryById("mmlu")).rejects.toThrow(
+        /capability probe failed/,
+      )
+    } finally {
+      vi.doUnmock("../lib/duckdb")
+      vi.resetModules()
+      if (previousBackend == null) delete process.env.DATA_BACKEND
+      else process.env.DATA_BACKEND = previousBackend
+      if (previousSnapshotUrl == null) delete process.env.SNAPSHOT_URL
+      else process.env.SNAPSHOT_URL = previousSnapshotUrl
+      await rm(snapshotDir, { recursive: true, force: true })
+    }
+  })
+
+  it("synthesises the judge columns on an older snapshot instead of binder-erroring", async () => {
+    await withSnapshot({}, async (dataBackend) => {
+      // Every accessor that splices the capability object must still run:
+      // the projection falls back to NULL aliases and no is_headline
+      // predicate is emitted at all.
+      const summary = await dataBackend.getEvalSummaryById("mmlu")
+      expect(summary!.model_results).toHaveLength(4)
+      const ranked = summary!.model_results.find((r) => r.score === 0.8)!
+      expect(ranked).toMatchObject({
+        judge_condition: undefined,
+        metric_source_label: undefined,
+        comparability_status: undefined,
+      })
+      // The headline is DERIVED from the ranking, not aliased TRUE: gpt-5's
+      // group holds a ranked row and an unranked arm, so only the ranked
+      // row is the model's summary reading.
+      expect(ranked.is_headline).toBe(true)
+      expect(ranked.score_published).toBe(0.8)
+      expect(
+        summary!.model_results.find((r) => r.score === 0.88)!.is_headline,
+      ).toBe(false)
+      // Grok's group is ranked nowhere at all, so both of its rows stay —
+      // the rule must not empty a page the producer never ranked.
+      const grok = summary!.model_results.filter(
+        (r) => r.model_route_id === "xai%2Fgrok-5",
+      )
+      expect(grok.map((r) => r.score).sort()).toEqual([0.62, 0.64])
+      expect(grok.every((r) => r.is_headline === true)).toBe(true)
+
+      const model = await dataBackend.getModelSummaryById("openai%2Fgpt-5")
+      expect(model!.evaluations_by_tag.applied_reasoning).toHaveLength(1)
+      const merged = await dataBackend.getMergedBenchmarkSummary("mmlu")
+      // The unranked gpt-5 arm is filtered out of the one-row-per-model
+      // pools; the two unranked grok rows are not, because nothing ranked
+      // them either.
+      expect(merged!.results).toHaveLength(6)
+      expect(merged!.results.every((r) => r.is_headline === true)).toBe(true)
+    })
+  })
+})
 
 describe("folded model id resolution (preflight bug A)", () => {
   // The browser page path re-encodes the decoded Next.js path param before

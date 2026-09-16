@@ -22,7 +22,20 @@
 //         // Per-(model, metric) values across the eval's full
 //         // leaderboard_metrics list. Drives the multi-metric matrix.
 //         leaderboard_rows: [
-//           { model_route_id, values: { "<column_key>": score | null } }
+//           {
+//             model_route_id,
+//             values: { "<column_key>": score | null },
+//             verified: { "<column_key>": boolean },
+//             comparability_status: { "<column_key>": "ok"|"mixed_scale"|"no_bounds" },
+//             // Judge panel behind the cell's number, and the same
+//             // (model, metric)'s other panels — the pivot has one row per
+//             // model, so these ride the cell. Both omitted when the
+//             // benchmark names no judge.
+//             judge_condition: { "<column_key>": "<judge_condition JSON>" },
+//             judge_alternates: {
+//               "<column_key>": [{ judge_condition, score }]
+//             }
+//           }
 //         ],
 //         // Subtask-scope metric entries to *append* to the eval's
 //         // leaderboard_metrics. Each carries column_key
@@ -77,6 +90,84 @@ function readDuckRows(reader) {
   return reader.getRowObjects().map(normalizeDuck).map((row) => normalizeDuck(row))
 }
 
+// Deterministic pick among a cell's judge arms when the snapshot marks no
+// headline: the widest panel wins (a mean of three judges is the reading a
+// source presents as its own), then the canonical condition JSON ascending.
+// On a snapshot WITH is_headline the query has already left exactly one arm
+// standing, so this never fires.
+export function judgeRank(condition) {
+  if (!condition) return 0
+  try {
+    const parsed = JSON.parse(condition)
+    return Array.isArray(parsed?.judges) ? parsed.judges.length : 0
+  } catch {
+    return 0
+  }
+}
+
+export function winsJudgePick(previous, condition) {
+  if (previous === undefined) return true
+  const delta = judgeRank(condition) - judgeRank(previous)
+  if (delta !== 0) return delta > 0
+  return String(condition ?? "") < String(previous ?? "")
+}
+
+// The identity a cell's facts pool under. The producer aggregates on
+// `model_aggregation_key` — the id a fold's members all share — so pooling
+// on the raw `model_id` splits one cell into a cell per folded variant and
+// then loses the ones whose id the view never carries. `model_id` is also
+// NULL on facts whose model never resolved, where the aggregation key still
+// holds the raw spelling.
+export function factModelKeySql(alias, hasAggregationKey) {
+  return hasAggregationKey
+    ? `COALESCE(${alias}.model_aggregation_key, ${alias}.model_id)`
+    : `${alias}.model_id`
+}
+
+// One score column pooled the producer's way: the MEDIAN of the first-party
+// rows, falling back to the median of all rows (stage J `tri_agg`). A
+// snapshot with no `evaluator_relationship` gets the plain median.
+export function pooledMedianSql(column, { alias = "f", hasRelationship = true } = {}) {
+  const col = `${alias}.${column}`
+  const allRows = `MEDIAN(${col}) FILTER (WHERE ${col} IS NOT NULL)`
+  if (!hasRelationship) return allRows
+  return (
+    `COALESCE(MEDIAN(${col}) FILTER (` +
+    `WHERE ${alias}.evaluator_relationship = 'first_party' AND ${col} IS NOT NULL), ` +
+    `${allRows})`
+  )
+}
+
+// A cell's pooled score, by the producer's own rule, so a slice cell and
+// the root cell above it are pooled identically. A flat AVG over the raw
+// rows would report a number no source published on any cell holding more
+// than one fact. Canonical and raw scales pool SEPARATELY (as stage J
+// does) and the canonical value wins, so a cell is never a median taken
+// across two scales.
+export function pooledFactScoreSql({
+  alias = "f",
+  hasCanonical = true,
+  hasRelationship = true,
+} = {}) {
+  const raw = pooledMedianSql("score", { alias, hasRelationship })
+  if (!hasCanonical) return raw
+  return `COALESCE(${pooledMedianSql("score_canonical", { alias, hasRelationship })}, ${raw})`
+}
+
+// Read a snapshot sidecar from whatever SNAPSHOT_URL points at. Node's
+// `fetch` has no file: scheme, so a file:// snapshot (the documented local
+// v2 loop) is read off disk — otherwise the read fails and the build writes
+// an unpinned `snapshot_id: "unknown"`. Directory paths with no scheme are
+// a disk read too; everything else is an HTTPS snapshot and goes over fetch.
+export async function readSnapshotSidecar(base, name) {
+  const url = `${base}/${name}`
+  if (url.startsWith("file://")) return fs.readFile(fileURLToPath(url), "utf8")
+  if (!/^[a-z][a-z0-9+.-]*:\/\//i.test(url)) return fs.readFile(url, "utf8")
+  const response = await fetch(url)
+  if (!response.ok) throw new Error(`${response.status} ${response.statusText}`)
+  return response.text()
+}
+
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..")
 const WAREHOUSE = path.join(ROOT, ".cache/hf-data/warehouse/latest")
 const OUT_PATH = path.join(ROOT, "data/eval-matrices.json")
@@ -116,7 +207,7 @@ async function main() {
   let snapshotId = "unknown"
   try {
     const metaText = useRemote
-      ? await (await fetch(`${base}/snapshot_meta.json`)).text()
+      ? await readSnapshotSidecar(base, "snapshot_meta.json")
       : await fs.readFile(path.join(WAREHOUSE, "snapshot_meta.json"), "utf8")
     snapshotId = JSON.parse(metaText).snapshot_id ?? "unknown"
   } catch (err) {
@@ -127,13 +218,15 @@ async function main() {
 
   // 1. All (eval, model, metric, score) rows. Includes non-primary
   //    metrics that getEvalSummaryById currently filters out.
-  //    Exactly one row per (eval, model, metric): the pipeline's
+  //    Exactly one row per (eval, model, metric): the model's headline
+  //    reading where the snapshot marks one, and otherwise the pipeline's
   //    ranked-best row (position ranks on the canonical scale in the
   //    metric's direction; unranked rows — feedback arms, flagged
-  //    scales — sort last). The verified flag rides the same chosen
-  //    row, so a cell's value and checkmark can't come from different
-  //    observations. `score_canonical` puts every cell of a column on
-  //    one scale; older snapshots without the column fall back to raw.
+  //    scales — sort last). The verified flag and the comparability
+  //    verdict ride the same chosen row, so a cell's value, checkmark and
+  //    badge can't come from different observations. `score_canonical`
+  //    puts every cell of a column on one scale; older snapshots without
+  //    the column fall back to raw.
   const viewCols = new Set(
     readDuckRows(
       await con.runAndReadAll(
@@ -143,6 +236,9 @@ async function main() {
   )
   const hasCanonical = viewCols.has("score_canonical")
   const hasPosition = viewCols.has("position")
+  const viewHasHeadline = viewCols.has("is_headline")
+  const viewHasStatus = viewCols.has("comparability_status")
+  const viewHasJudge = viewCols.has("judge_condition")
   const metricRows = await con.runAndReadAll(`
     SELECT
       r.evaluation_id,
@@ -150,10 +246,13 @@ async function main() {
       r.model_route_id,
       r.score,
       ${hasCanonical ? "r.score_canonical" : "NULL"} AS score_canonical,
+      ${viewHasStatus ? "r.comparability_status" : "NULL"} AS comparability_status,
+      ${viewHasJudge ? "r.judge_condition" : "NULL"} AS judge_condition,
       r.is_verified_evaluator
     FROM read_parquet(${fileRef("eval_results_view.parquet")}) r
     WHERE r.score IS NOT NULL
       AND r.model_route_id IS NOT NULL
+      ${viewHasHeadline ? "AND r.is_headline" : ""}
     QUALIFY row_number() OVER (
       PARTITION BY r.evaluation_id, r.model_route_id, r.metric_id
       ORDER BY
@@ -164,6 +263,31 @@ async function main() {
     ) = 1
     ORDER BY r.evaluation_id, r.model_route_id, r.metric_id
   `)
+
+  // 1b. The judge readings the pick above left behind. The matrix is a
+  //     pivot — one row per model — so a losing judge panel has no row of
+  //     its own here the way it does on a single-metric leaderboard. These
+  //     ride the cell instead, and without them a multi-metric page drops
+  //     every alternate reading silently. One row per (eval, model, metric,
+  //     panel); a snapshot with no headline or no judge axis has none.
+  const judgeAlternateRows =
+    viewHasHeadline && viewHasJudge
+      ? await con.runAndReadAll(`
+          SELECT
+            r.evaluation_id,
+            r.metric_id,
+            r.model_route_id,
+            r.judge_condition,
+            ${hasCanonical ? "COALESCE(any_value(r.score_canonical), any_value(r.score))" : "any_value(r.score)"} AS score
+          FROM read_parquet(${fileRef("eval_results_view.parquet")}) r
+          WHERE r.score IS NOT NULL
+            AND r.model_route_id IS NOT NULL
+            AND r.judge_condition IS NOT NULL
+            AND NOT r.is_headline
+          GROUP BY 1,2,3,4
+          ORDER BY 1,2,3,4
+        `)
+      : null
 
   // 2. Per-slice (composite_slug, benchmark, model, metric, slice_key,
   //    score) rows. The upstream pipeline parks slice scores in
@@ -177,23 +301,54 @@ async function main() {
   //    so HF Open LLM v2's GPQA doesn't inherit Artificial Analysis's
   //    pseudo-slice, etc. Also drop the self-rollup (slice_key ==
   //    benchmark_id) since that duplicates the eval's overall score.
-  //    AVG collapses the rare duplicate (model, slice) pairs.
+  //    Facts pool the producer's way (see pooledFactScoreSql).
+  const factCols = new Set(
+    readDuckRows(
+      await con.runAndReadAll(
+        `SELECT column_name FROM (DESCRIBE SELECT * FROM read_parquet(${fileRef("fact_results.parquet")}))`,
+      ),
+    ).map((r) => r.column_name),
+  )
+  // `metric_key` is the EFFECTIVE metric identity (after the registry's
+  // rename rules); `metric_id` is the pre-rename id and is not what the
+  // view keys its columns on, so slice columns built from it would never
+  // line up with their root metric. `score_canonical` puts a slice cell on
+  // the same scale as the root cell above it.
+  const factMetric = factCols.has("metric_key") ? "f.metric_key" : "f.metric_id"
+  const factScore = pooledFactScoreSql({
+    hasCanonical: factCols.has("score_canonical"),
+    hasRelationship: factCols.has("evaluator_relationship"),
+  })
+  const factModelKey = factModelKeySql("f", factCols.has("model_aggregation_key"))
+  const factHasJudge = factCols.has("judge_condition")
+  const factHasStatus = factCols.has("comparability_status")
+  const factHasHeadline = factCols.has("is_headline")
+  if (!factHasHeadline) {
+    console.warn(
+      "[build-eval-matrices] fact_results has no is_headline column — slice cells fall back to " +
+        "picking one judge condition per cell (highest judge cardinality first). " +
+        "Rebake against a snapshot that carries the column for the producer's own pick.",
+    )
+  }
   const sliceRows = await con.runAndReadAll(`
     SELECT
       f.composite_slug,
       f.benchmark_id,
       f.parent_benchmark_id,
-      f.metric_id,
+      ${factMetric} AS metric_id,
       f.slice_key,
       f.slice_name,
-      f.model_id,
-      AVG(f.score) AS score,
+      ${factModelKey} AS model_key,
+      ${factHasJudge ? "f.judge_condition" : "NULL"} AS judge_condition,
+      ${factScore} AS score,
+      ${factHasStatus ? "any_value(f.comparability_status)" : "NULL"} AS comparability_status,
       bool_or(f.is_verified_evaluator) AS is_verified_evaluator
     FROM read_parquet(${fileRef("fact_results.parquet")}) f
     WHERE f.score IS NOT NULL
       AND f.slice_key IS NOT NULL
-      AND f.metric_id IS NOT NULL
+      AND ${factMetric} IS NOT NULL
       AND f.composite_slug IS NOT NULL
+      ${factHasHeadline ? "AND f.is_headline" : ""}
       -- Drop any slice that's a self-rollup of the eval — slice_key
       -- equals the benchmark, the composite, or the parent benchmark
       -- after normalising separators (so "global mmlu lite" filters
@@ -215,8 +370,12 @@ async function main() {
         OR regexp_replace(lower(f.slice_key), '[^a-z0-9]+', '', 'g')
            != regexp_replace(lower(f.parent_benchmark_id), '[^a-z0-9]+', '', 'g')
       )
-    GROUP BY 1,2,3,4,5,6,7
-    ORDER BY 1,2,3,4,5,6,7
+    -- Grouping by judge_condition keeps a model's judge arms apart. Without
+    -- it the pool mixes a headline reading with the individual judges'
+    -- readings and reports a number no source ever published. On a
+    -- snapshot that marks is_headline only one arm reaches here anyway.
+    GROUP BY 1,2,3,4,5,6,7,8
+    ORDER BY 1,2,3,4,5,6,7,8
   `)
 
   // 3. eval → (composite_slug, benchmark_id) mapping so we can join
@@ -235,23 +394,38 @@ async function main() {
     FROM read_parquet(${fileRef("evals_view.parquet")})
   `)
 
-  // 4. Map model_id → model_route_id so per-slice rows (which carry
-  //    model_id) can land alongside per-metric rows (model_route_id).
+  // 4. Map the producer's model AGGREGATION key → model_route_id so the
+  //    per-slice rows (pooled on that key above) can land alongside the
+  //    per-metric rows (model_route_id). `eval_results_view.model_key` IS
+  //    that key: a fold's member ids are not what the view carries, so a
+  //    lookup keyed on `model_id` finds no route for them and drops the
+  //    cell. The model_id map stays as the fallback for snapshots
+  //    predating `model_key`.
+  const viewHasModelKey = viewCols.has("model_key")
   const modelKeyRows = await con.runAndReadAll(`
-    SELECT model_id, min(model_route_id) AS model_route_id
+    SELECT
+      ${viewHasModelKey ? "model_key" : "model_id"} AS model_key,
+      model_id,
+      min(model_route_id) AS model_route_id
     FROM read_parquet(${fileRef("eval_results_view.parquet")})
     WHERE model_route_id IS NOT NULL
-    GROUP BY model_id
+    GROUP BY 1, 2
   `)
 
   await con.disconnectSync()
 
-  // Index the model_id → route_id map so slice lookups are O(1).
+  // Index both maps so slice lookups are O(1). The smallest route id wins
+  // a key served by several rows, so the build is order-independent.
+  const modelKeyToRoute = new Map()
   const modelIdToRoute = new Map()
+  const rememberRoute = (map, key, route) => {
+    if (key == null || route == null) return
+    const previous = map.get(key)
+    if (previous === undefined || route < previous) map.set(key, route)
+  }
   for (const row of modelKeyRows.getRowObjects().map(normalizeDuck)) {
-    if (!modelIdToRoute.has(row.model_id)) {
-      modelIdToRoute.set(row.model_id, row.model_route_id)
-    }
+    rememberRoute(modelKeyToRoute, row.model_key, row.model_route_id)
+    rememberRoute(modelIdToRoute, row.model_id, row.model_route_id)
   }
 
   // Group eval rows by evaluation_id, indexed by (composite_slug,
@@ -288,13 +462,24 @@ async function main() {
     return out[evalId]
   }
 
-  // modelEntry holds parallel maps: `values` (column_key → score) and
-  // `verified` (column_key → bool), so the per-cell verified-evaluator flag
-  // rides alongside each non-primary metric / slice column.
+  // modelEntry holds parallel maps keyed by column_key: `values` (score),
+  // `verified` (the per-cell verified-evaluator flag),
+  // `comparability_status` (the cell's comparability verdict, so a matrix
+  // cell can render "not assessable" rather than a silence that reads as
+  // "checked, nothing found"), `judge_condition` (the panel behind the cell's
+  // number) and `judge_alternates` (the same model's other panels for that
+  // metric, which the pivot has no row to show).
   const ensureModelEntry = (bucket, route) => {
     let modelEntry = bucket.leaderboard_rows.get(route)
     if (!modelEntry) {
-      modelEntry = { values: {}, verified: {} }
+      modelEntry = {
+        values: {},
+        verified: {},
+        comparability_status: {},
+        judge_condition: {},
+        judge_alternates: {},
+        judgePick: {},
+      }
       bucket.leaderboard_rows.set(route, modelEntry)
     }
     return modelEntry
@@ -309,7 +494,28 @@ async function main() {
     if (row.is_verified_evaluator != null) {
       modelEntry.verified[row.metric_id] = Boolean(row.is_verified_evaluator)
     }
+    if (row.comparability_status != null) {
+      modelEntry.comparability_status[row.metric_id] = String(row.comparability_status)
+    }
+    if (row.judge_condition != null) {
+      modelEntry.judge_condition[row.metric_id] = String(row.judge_condition)
+    }
   }
+
+  for (const row of judgeAlternateRows?.getRowObjects().map(normalizeDuck) ?? []) {
+    const bucket = out[row.evaluation_id]
+    // Only cells the pivot actually renders: an alternate whose model or
+    // metric never produced a headline cell has nothing to hang off.
+    const modelEntry = bucket?.leaderboard_rows.get(row.model_route_id)
+    if (!modelEntry || !(row.metric_id in modelEntry.values)) continue
+    const score = Number(row.score)
+    const list = (modelEntry.judge_alternates[row.metric_id] ??= [])
+    list.push({
+      judge_condition: String(row.judge_condition),
+      score: Number.isFinite(score) ? score : null,
+    })
+  }
+
 
   // Plant slice scores. Each (metric_id, slice_key) becomes a column
   // keyed "<metric_id>::<slice_key>" so it slots into values{} alongside
@@ -321,7 +527,8 @@ async function main() {
       compositeBenchKey(row.composite_slug, row.benchmark_id),
     )
     if (!evalIds) continue
-    const route = modelIdToRoute.get(row.model_id)
+    const route =
+      modelKeyToRoute.get(row.model_key) ?? modelIdToRoute.get(row.model_key)
     if (!route) continue
     const sliceKey = String(row.slice_key)
     const sliceName = row.slice_name ? String(row.slice_name) : sliceKey
@@ -333,9 +540,18 @@ async function main() {
     for (const evalId of evalIds) {
       const bucket = ensureEval(evalId)
       const modelEntry = ensureModelEntry(bucket, route)
-      modelEntry.values[columnKey] = score
-      if (row.is_verified_evaluator != null) {
-        modelEntry.verified[columnKey] = Boolean(row.is_verified_evaluator)
+      if (winsJudgePick(modelEntry.judgePick[columnKey], row.judge_condition ?? null)) {
+        modelEntry.judgePick[columnKey] = row.judge_condition ?? null
+        modelEntry.values[columnKey] = score
+        if (row.judge_condition != null) {
+          modelEntry.judge_condition[columnKey] = String(row.judge_condition)
+        }
+        if (row.is_verified_evaluator != null) {
+          modelEntry.verified[columnKey] = Boolean(row.is_verified_evaluator)
+        }
+        if (row.comparability_status != null) {
+          modelEntry.comparability_status[columnKey] = String(row.comparability_status)
+        }
       }
 
       if (!bucket.subtask_metric_keys.has(columnKey)) {
@@ -371,7 +587,20 @@ async function main() {
   for (const [evalId, bucket] of Object.entries(out)) {
     const rows = []
     for (const [routeId, entry] of bucket.leaderboard_rows) {
-      rows.push({ model_route_id: routeId, values: entry.values, verified: entry.verified })
+      rows.push({
+        model_route_id: routeId,
+        values: entry.values,
+        verified: entry.verified,
+        comparability_status: entry.comparability_status,
+        // Judge maps are empty on all but a handful of benchmarks; omitting
+        // them keeps the artifact the size it was everywhere else.
+        ...(Object.keys(entry.judge_condition).length > 0
+          ? { judge_condition: entry.judge_condition }
+          : {}),
+        ...(Object.keys(entry.judge_alternates).length > 0
+          ? { judge_alternates: entry.judge_alternates }
+          : {}),
+      })
     }
     // Skip evals where every model has at most one metric and no
     // subtask data — adds no information beyond the existing summary.
@@ -400,7 +629,11 @@ async function main() {
   )
 }
 
-main().catch((err) => {
-  console.error("[build-eval-matrices] failed:", err)
-  process.exit(1)
-})
+// Only run the build when invoked as a script; importing the module (tests
+// of the pure helpers above) must not touch the warehouse or the output file.
+if (process.argv[1] && path.resolve(process.argv[1]) === fileURLToPath(import.meta.url)) {
+  main().catch((err) => {
+    console.error("[build-eval-matrices] failed:", err)
+    process.exit(1)
+  })
+}

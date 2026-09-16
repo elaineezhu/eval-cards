@@ -82,7 +82,16 @@ export interface DifferingSetupField {
 }
 
 export interface VariantDivergence {
-  has_variant_divergence: boolean
+  /** NULL means "not assessable" (a contributing comparability
+   *  group was not `ok`), never "no divergence". Read it together with
+   *  `RowAnnotations.comparability_status`.
+   *
+   *  ABSENT is a third state, and not the same as NULL: the snapshot
+   *  never declared a verdict for this row at all (its producer struct
+   *  predates the field), so nothing can be concluded from it. See
+   *  view-data.ts `withGroupSignals`, which normalises the producer's
+   *  `has_divergence` / flat-column spellings into this one. */
+  has_variant_divergence?: boolean | null
   group_id: string
   divergence_magnitude: number
   threshold_used: number
@@ -97,7 +106,9 @@ export interface VariantDivergence {
 }
 
 export interface CrossPartyDivergence {
-  has_cross_party_divergence: boolean
+  /** Nullable — and absent — for the same reasons as
+   *  `has_variant_divergence`. */
+  has_cross_party_divergence?: boolean | null
   group_id: string
   divergence_magnitude: number
   threshold_used: number
@@ -109,6 +120,9 @@ export interface CrossPartyDivergence {
   signal_version: string
 }
 
+/** The comparability group's verdict; only `ok` groups were assessed. */
+export type ComparabilityStatus = "ok" | "mixed_scale" | "no_bounds"
+
 export interface RowAnnotations {
   reproducibility_gap: ReproducibilityGap | null
   provenance: Provenance | null
@@ -118,6 +132,10 @@ export interface RowAnnotations {
   // (group-level C(b) per the paper's 28-field scoring) — see
   // view-data.ts withGroupSignals. Not part of the producer's struct.
   reporting_completeness?: Pick<ReportingCompleteness, "completeness_score"> | null
+  // Folded in client-side from the view's flat
+  // comparability_status column (see view-data.ts withGroupSignals), which
+  // is what separates "not assessable" from "assessed, no divergence".
+  comparability_status?: ComparabilityStatus | null
 }
 
 export interface ReportingCompleteness {

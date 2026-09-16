@@ -1,4 +1,9 @@
-import type { DifferingSetupField, ReportingCompleteness } from "@/lib/backend-artifacts"
+import type {
+  ComparabilityStatus,
+  DifferingSetupField,
+  ReportingCompleteness,
+  RowAnnotations,
+} from "@/lib/backend-artifacts"
 
 const FIELD_PREFIXES = [
   "autobenchmarkcard.",
@@ -101,5 +106,37 @@ export function getCompletenessPopulatedCount(completeness: ReportingCompletenes
 
   return Math.round(
     completeness.field_scores.reduce((sum, field) => sum + field.score, 0)
+  )
+}
+
+/**
+ * A row whose comparability group was never assessed — it mixed
+ * scales or declared no bounds, so the divergence flags are NULL, not
+ * FALSE. Callers must render "not assessable" for these rather than the
+ * silence that means "checked, nothing found".
+ *
+ * The verdict is read from the row's `comparability_status` first — that
+ * is the producer's own answer and it settles the question either way.
+ * Only when the snapshot carries no status does a NULL flag decide, and
+ * then only on a row that DECLARES the flag: a snapshot whose annotation
+ * struct has no verdict field at all tells us nothing, and its flat FALSE
+ * means "checked, no divergence", not "never assessed".
+ */
+export function isNotAssessable(
+  annotations: RowAnnotations | null | undefined,
+  status?: ComparabilityStatus | null,
+): boolean {
+  const rowStatus = status ?? annotations?.comparability_status
+  if (rowStatus === "mixed_scale" || rowStatus === "no_bounds") return true
+  if (rowStatus === "ok") return false
+  const variant = annotations?.variant_divergence
+  const crossParty = annotations?.cross_party_divergence
+  return (
+    (variant != null &&
+      "has_variant_divergence" in variant &&
+      variant.has_variant_divergence == null) ||
+    (crossParty != null &&
+      "has_cross_party_divergence" in crossParty &&
+      crossParty.has_cross_party_divergence == null)
   )
 }

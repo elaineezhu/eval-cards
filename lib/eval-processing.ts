@@ -18,7 +18,12 @@ import type {
   EvaluationResult,
   ModelEvaluationSummary,
 } from './benchmark-schema'
-import type { EvalcardsAnnotations, RowAnnotations, SignalSummaries } from './backend-artifacts'
+import type {
+  ComparabilityStatus,
+  EvalcardsAnnotations,
+  RowAnnotations,
+  SignalSummaries,
+} from './backend-artifacts'
 import type { CollectionAttachment } from './collections'
 
 export type { BenchmarkCard }
@@ -39,6 +44,271 @@ export function isAssistedResult(protocolCondition: string | null | undefined): 
   } catch {
     return false
   }
+}
+
+/** A parsed `judge_condition`. `judges` holds the canonical
+ *  model ids of the LLM judges behind the number, `label` the source's own
+ *  name for the channel. */
+export interface JudgeCondition {
+  judges: string[]
+  label: string | null
+}
+
+/**
+ * Parse the view's canonical `judge_condition` JSON
+ * (`{"judges":[...],"label":"..."}`). NULL/absent means the source did not
+ * disclose a judge — never "no judge" — so it parses to null and the row
+ * is labelled as an ordinary result. Orthogonal to `protocol_condition`,
+ * whose semantics (isAssistedResult above) are unchanged.
+ */
+export function parseJudgeCondition(
+  raw: string | null | undefined,
+): JudgeCondition | null {
+  if (!raw) return null
+  try {
+    const parsed = JSON.parse(raw) as { judges?: unknown; label?: unknown } | null
+    if (parsed == null || typeof parsed !== "object" || Array.isArray(parsed)) return null
+    // Trim, drop empties, dedupe. A blank id would render "judged by "
+    // and a repeated one would inflate "mean of N judges" — both claim
+    // something about the panel that isn't in the data.
+    const judges = Array.isArray(parsed.judges)
+      ? [
+          ...new Set(
+            parsed.judges
+              .filter((judge): judge is string => typeof judge === "string")
+              .map((judge) => judge.trim())
+              .filter((judge) => judge.length > 0),
+          ),
+        ]
+      : []
+    const label =
+      typeof parsed.label === "string" && parsed.label.trim().length > 0
+        ? parsed.label.trim()
+        : null
+    if (judges.length === 0 && label == null) return null
+    return { judges, label }
+  } catch {
+    return null
+  }
+}
+
+/**
+ * Row label for a judged result: the judge when a single model graded it,
+ * the panel size when several did, plus the panel's display names for the
+ * row's tooltip. `displayName` resolves a judge's canonical model id to its
+ * registry display name (server-built, see BenchmarkEvalSummary
+ * .judge_display_names) and falls back to the raw id. Returns null when the
+ * source disclosed no judge at all.
+ */
+export function judgeConditionSummary(
+  raw: string | null | undefined,
+  displayName: (modelId: string) => string,
+): { label: string; names: string[]; judges: string[] } | null {
+  const condition = parseJudgeCondition(raw)
+  if (!condition || condition.judges.length === 0) return null
+  const names = condition.judges.map(displayName)
+  return {
+    label: names.length === 1 ? `judged by ${names[0]}` : `mean of ${names.length} judges`,
+    names,
+    // The raw ids behind the names. Two dated variants that folded into
+    // one survivor resolve to the SAME display name, so the id is the
+    // only thing that tells a reader which reading a row is.
+    judges: condition.judges,
+  }
+}
+
+/** One non-headline judge reading of a (model, metric) cell: the panel the
+ *  producer did not pick, and the number it published. */
+export interface JudgeReading {
+  judge_condition: string
+  score: number | null
+}
+
+/**
+ * Judge treatment for one cell of the multi-metric matrix, which is a pivot
+ * of headline readings only. `label` is the same "judged by …" / "mean of N
+ * judges" wording the per-row leaderboard uses, and `tooltip` names the
+ * panel's members and then lists every OTHER judge reading of the same
+ * (model, metric) with its value — the pivot has no row to put those on, so
+ * dropping them would hide a disagreement the page is meant to show.
+ * `formatScore` renders an alternate's number the way the column renders its
+ * cells. Returns null when nothing about the cell names a judge.
+ */
+export function judgeCellSummary(
+  condition: string | null | undefined,
+  alternates: JudgeReading[] | undefined,
+  displayName: (modelId: string) => string,
+  formatScore: (score: number) => string,
+): { label: string; tooltip: string } | null {
+  const headline = judgeConditionSummary(condition, displayName)
+  const others = (alternates ?? [])
+    .map((reading) => ({
+      summary: judgeConditionSummary(reading.judge_condition, displayName),
+      score: reading.score,
+    }))
+    .filter(
+      (reading): reading is { summary: NonNullable<typeof reading.summary>; score: number | null } =>
+        reading.summary !== null,
+    )
+  if (!headline && others.length === 0) return null
+
+  const lines: string[] = []
+  if (headline) {
+    lines.push(
+      headline.names.length > 1
+        ? `Judges: ${headline.names.join(", ")}`
+        : `Judge model id: ${headline.judges[0]}`,
+    )
+  }
+  if (others.length > 0) {
+    lines.push("Other judge readings, not ranked:")
+    for (const other of others) {
+      const value =
+        typeof other.score === "number" && Number.isFinite(other.score)
+          ? formatScore(other.score)
+          : "—"
+      lines.push(`${other.summary.label}: ${value}`)
+    }
+  }
+
+  return {
+    // No headline judge but alternates exist (the producer's pick was an
+    // undisclosed-judge row): say so rather than showing nothing.
+    label:
+      headline?.label
+      ?? `${others.length} other judge reading${others.length === 1 ? "" : "s"}`,
+    tooltip: lines.join("\n"),
+  }
+}
+
+/**
+ * The matrix column the page ranks on: the eval's `primary_metric_id`, which
+ * is the metric every other surface on the page summarises. A payload that
+ * declares no primary metric, or names one no column carries, falls back to
+ * the first root metric and then to the first column.
+ */
+export function primaryMetricColumnKey(
+  metrics: Array<{ column_key: string; metric_id?: string; scope?: string }> | undefined,
+  primaryMetricId: string | null | undefined,
+): string | undefined {
+  const all = metrics ?? []
+  const roots = all.filter((metric) => metric.scope !== "subtask")
+  const primary = primaryMetricId?.trim()
+  const declared = primary
+    ? roots.find((metric) => metric.column_key === primary || metric.metric_id === primary)
+    : undefined
+  return declared?.column_key ?? roots[0]?.column_key ?? all[0]?.column_key
+}
+
+/** A row the backend did not pick as its model's headline reading (a losing
+ *  judge panel or protocol arm) — shown beneath the headline, never ranked.
+ *  An absent field reads as "headline", which is what a payload assembled
+ *  outside the view layer (a fixture, an embed) gets. */
+export function isHeadlineResult(result: {
+  is_headline?: boolean | null
+}): boolean {
+  return result.is_headline !== false
+}
+
+/** The identity a model's rows group under: the producer's route id when
+ *  it resolved one, else whatever identifies the model at all. */
+export function modelGroupKey(result: {
+  model_route_id?: string
+  model_info?: { id?: string; name?: string }
+}): string {
+  return result.model_route_id ?? result.model_info?.id ?? result.model_info?.name ?? ""
+}
+
+/**
+ * Group rows so that a model's non-headline readings (its judge panels and
+ * protocol arms) stay attached beneath its headline row.
+ *
+ * Sorting a leaderboard must reorder these GROUPS, never the flattened row
+ * list: reversing a flat list alone puts every secondary row above its own
+ * headline, and an arbitrary key sort separates them from their model
+ * entirely. A non-headline row whose model has no group yet opens one of
+ * its own rather than attaching to an unrelated model above it.
+ */
+export function groupByHeadlineModel<T>(
+  rows: readonly T[],
+  resultOf: (row: T) => { is_headline?: boolean | null; model_route_id?: string; model_info?: { id?: string; name?: string } },
+): T[][] {
+  const groups: T[][] = []
+  const openByModel = new Map<string, T[]>()
+  for (const row of rows) {
+    const result = resultOf(row)
+    const key = modelGroupKey(result)
+    const open = openByModel.get(key)
+    if (open && !isHeadlineResult(result)) {
+      open.push(row)
+      continue
+    }
+    const group = [row]
+    groups.push(group)
+    openByModel.set(key, group)
+  }
+  return groups
+}
+
+/**
+ * The direction the ranker's own row order already reads in: best first,
+ * which is ASCENDING when the metric's better end is the low one. A score
+ * sort that assumes "best first == descending" shows a lower-is-better
+ * board upside down and then reverses the wrong way on the toggle.
+ */
+export function scoreSortBaseDirection(lowerIsBetter?: boolean | null): "asc" | "desc" {
+  return lowerIsBetter ? "asc" : "desc"
+}
+
+/**
+ * Score-ordered rows for a user-chosen direction. Takes the GROUPS the
+ * ranker produced (each a headline row plus the judge / protocol readings
+ * beneath it) so a reversal moves whole models — reversing the flat row
+ * list would put every secondary reading above its own headline.
+ */
+export function orderGroupsByScore<T>(
+  groups: readonly T[][],
+  direction: "asc" | "desc",
+  lowerIsBetter?: boolean | null,
+): T[] {
+  return direction === scoreSortBaseDirection(lowerIsBetter)
+    ? groups.flat()
+    : [...groups].reverse().flat()
+}
+
+/**
+ * Composite comparison view: one score per (model, sub-eval) across a
+ * suite's child evaluations, for the models x sub-evals matrix.
+ *
+ * Headline rows only. The cell is written once per matching row, so
+ * without the filter a later judge panel or protocol arm overwrites the
+ * model's summary reading — and that overwritten number is then averaged
+ * across the suite and ranked as the model's standing.
+ */
+export function compositeScoresByModel(
+  subSummaries: ReadonlyArray<{
+    evaluation_name: string
+    model_results: ModelResultForBenchmark[]
+  }>,
+): Map<string, { name: string; developer: string; scores: Map<string, number | null> }> {
+  const modelScores = new Map<
+    string,
+    { name: string; developer: string; scores: Map<string, number | null> }
+  >()
+  for (const sub of subSummaries) {
+    for (const result of sub.model_results) {
+      if (!isHeadlineResult(result)) continue
+      const id = result.model_info.id
+      const existing = modelScores.get(id) ?? {
+        name: result.model_info.name,
+        developer: result.model_info.developer ?? "",
+        scores: new Map<string, number | null>(),
+      }
+      existing.scores.set(sub.evaluation_name, result.score)
+      modelScores.set(id, existing)
+    }
+  }
+  return modelScores
 }
 
 export interface ModelResultForBenchmark {
@@ -80,6 +350,22 @@ export interface ModelResultForBenchmark {
    *  whose reserved `feedback` key is `answer_feedback` are
    *  shown-but-not-ranked (backend already emits NULL position for them). */
   protocol_condition?: string | null
+  /** Canonical `{"judges":[...],"label":"..."}` JSON for a
+   *  judged result; absent/null when the source disclosed no judge. */
+  judge_condition?: string | null
+  /** True on the one row per (composite, benchmark, metric, model) the
+   *  producer picked as the page's summary reading. The view layer always
+   *  projects it, deriving it from the producer's ranking on a snapshot
+   *  that predates the column — see isHeadlineResult. */
+  is_headline?: boolean | null
+  /** The source's own label for the published number (`gpt_score`).
+   *  Display and provenance only — never a key. */
+  metric_source_label?: string | null
+  /** The row's comparability verdict; only `ok` groups were assessed. */
+  comparability_status?: ComparabilityStatus | null
+  /** The number the source published, before any canonical-scale
+   *  conversion applied to `score`. */
+  score_published?: number
   aggregate_components?: Array<{
     evaluation_id: string
     composite_benchmark_key: string
@@ -96,6 +382,13 @@ export interface ModelResultForBenchmark {
 
 export interface BenchmarkEvalSummary extends SignalSummaries {
   evaluation_name: string
+  /** Registry display names for the judge model ids named in this page's
+   *  judge conditions, keyed by the raw id the condition carries (which
+   *  can be a dated variant that folded into the named model). Built
+   *  server-side from models_view; absent when no row on the page names a
+   *  judge, and missing an entry when models_view has no matching row —
+   *  the label then falls back to the raw id. */
+  judge_display_names?: Record<string, string>
   /** URL-safe slug derived from evaluation_name */
   evaluation_id: string
   /** True when this summary was adapted from a merged all-sources payload
@@ -121,7 +414,7 @@ export interface BenchmarkEvalSummary extends SignalSummaries {
   worst_model: { name: string; score: number } | null
   avg_score: number
   /** avg_score normalised to 0-1 using metric_config.min/max_score */
-  avg_score_norm: number
+  avg_score_norm: number | null
   /** Rich benchmark card from the metadata/ folder, when available */
   benchmark_card?: BenchmarkCard
   is_aggregated?: boolean
@@ -130,7 +423,7 @@ export interface BenchmarkEvalSummary extends SignalSummaries {
     composite_benchmark_key: string
     composite_benchmark_name: string
     models_count: number
-    avg_score_norm: number
+    avg_score_norm: number | null
   }>
   /** Tags from the pipeline (domains, languages, tasks) */
   tags?: { domains: string[]; languages: string[]; tasks: string[] }
@@ -173,6 +466,11 @@ export interface BenchmarkEvalSummary extends SignalSummaries {
   root_metrics?: BenchmarkSummaryMetric[]
   /** Canonical benchmark subdivisions from subtasks[] */
   subtasks?: BenchmarkSummarySubtask[]
+  /** The metric the page ranks on (`evals_view.primary_metric_id`) — the one
+   *  every other surface here summarises. The multi-metric matrix sorts and
+   *  charts this column rather than whichever measure happens to come first.
+   *  Absent on payloads assembled outside the view layer. */
+  primary_metric_id?: string
   /** Matrix columns for multi-metric benchmark leaderboards */
   leaderboard_metrics?: BenchmarkLeaderboardMetric[]
   /** Matrix rows for multi-metric benchmark leaderboards */
@@ -227,6 +525,10 @@ export interface BenchmarkSummarySubtask {
 
 export interface BenchmarkLeaderboardMetric {
   column_key: string
+  /** Registry metric id. Equal to `column_key` on root metrics; a subtask
+   *  entry keys its column "<metric_id>::<slice>" and carries the base id
+   *  here. Matches `evals_view.primary_metric_id`. */
+  metric_id?: string
   metric_summary_id: string
   metric_name: string
   display_name: string
@@ -250,6 +552,17 @@ export interface BenchmarkLeaderboardRow {
   /** Per-column verified-evaluator flag, keyed identically to `values`. */
   verified?: Record<string, boolean>
   annotations_by_metric?: Record<string, RowAnnotations | null | undefined>
+  /** Per-column comparability verdict, keyed identically to `values`.
+   *  Prebaked matrix cells carry no annotation struct, so this is what
+   *  lets a matrix cell render "not assessable" instead of silence. */
+  comparability_status_by_metric?: Record<string, ComparabilityStatus | null | undefined>
+  /** Per-column `judge_condition` of the headline reading the cell shows,
+   *  keyed identically to `values`. */
+  judge_condition_by_metric?: Record<string, string | null | undefined>
+  /** Per-column non-headline judge readings of the same (model, metric).
+   *  The pivot keeps one row per model, so these ride the cell rather than
+   *  becoming rows of their own. */
+  judge_alternates_by_metric?: Record<string, JudgeReading[] | undefined>
   metrics_present: number
 }
 
@@ -328,6 +641,16 @@ export interface MergedObservationRow {
   /** Protocol point (canonical sorted-key JSON) for protocol-varied
    *  collections; absent/null for ordinary observations. */
   protocol_condition?: string | null
+  /** Same meanings as on ModelResultForBenchmark. Merged pages
+   *  pool one observation per (model, source), so only headline rows
+   *  belong in the pool (see lib/merged-adapter). */
+  judge_condition?: string | null
+  is_headline?: boolean | null
+  metric_source_label?: string | null
+  comparability_status?: ComparabilityStatus | null
+  /** The number the source published, before any canonical-scale
+   *  conversion applied to `score`. */
+  score_published?: number
 }
 
 export interface MergedBenchmarkSummary {
@@ -361,6 +684,10 @@ export interface MergedBenchmarkSummary {
   /** For grain='slice': the slice actually queried (defaults to the first). */
   selected_slice_id: string | null
   results: MergedObservationRow[]
+  /** Registry display names for the judge ids named by these rows, keyed
+   *  by the raw id — same map and same fallback rule as
+   *  BenchmarkEvalSummary.judge_display_names. */
+  judge_display_names?: Record<string, string>
   /** The benchmark's card, sourced from a per-source instantiation that
    *  authored one (preferring a source that reports the preferred metric). */
   benchmark_card?: BenchmarkCard | null
@@ -448,6 +775,9 @@ export function dedupeLeaderboardRowsByModelIdentity(
 
     const mergedValues: Record<string, number | null> = { ...(canonical.values ?? {}) }
     const mergedAnnotations: Record<string, unknown> = { ...(canonical.annotations_by_metric ?? {}) }
+    const mergedStatus: Record<string, unknown> = {
+      ...(canonical.comparability_status_by_metric ?? {}),
+    }
     for (const candidate of bucket) {
       if (candidate === canonical) continue
       for (const [key, raw] of Object.entries(candidate.values ?? {})) {
@@ -456,6 +786,9 @@ export function dedupeLeaderboardRowsByModelIdentity(
       for (const [key, ann] of Object.entries(candidate.annotations_by_metric ?? {})) {
         if (mergedAnnotations[key] == null && ann != null) mergedAnnotations[key] = ann
       }
+      for (const [key, status] of Object.entries(candidate.comparability_status_by_metric ?? {})) {
+        if (mergedStatus[key] == null && status != null) mergedStatus[key] = status
+      }
       consumed.add(candidate)
     }
 
@@ -463,6 +796,8 @@ export function dedupeLeaderboardRowsByModelIdentity(
       ...canonical,
       values: mergedValues,
       annotations_by_metric: mergedAnnotations as typeof canonical.annotations_by_metric,
+      comparability_status_by_metric:
+        mergedStatus as typeof canonical.comparability_status_by_metric,
     })
     consumed.add(canonical)
   }

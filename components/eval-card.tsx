@@ -62,7 +62,12 @@ export function EvalCard({ summary, delayMs = 0 }: EvalCardProps) {
   const slugFor = useEvaluatorSlug()
   const { mode } = useAudienceMode()
   const isResearchView = mode === "research"
-  const scorePercent = `${Math.round(summary.avg_score_norm * 100)}%`
+  // A null normalised score (metric without bounds, or nothing to normalise)
+  // renders as N/A; rounding null would show a fabricated 0%.
+  const scorePercent =
+    summary.avg_score_norm == null || Number.isNaN(summary.avg_score_norm)
+      ? "N/A"
+      : `${Math.round(summary.avg_score_norm * 100)}%`
   const card = summary.benchmark_card
   const domains: string[] = summary.tags?.domains ?? card?.benchmark_details?.domains ?? []
   const license = card?.ethical_and_legal_considerations?.data_licensing ?? ""

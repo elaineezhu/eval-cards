@@ -11,6 +11,19 @@ import type {
 } from "@/lib/backend-artifacts"
 import type { BenchmarkEvalSummary } from "@/lib/eval-processing"
 import type { ModelResultForBenchmark } from "@/lib/eval-processing"
+import { isHeadlineResult } from "@/lib/eval-processing"
+
+/**
+ * The rows every page-level statistic on this strip is computed over.
+ *
+ * A model's judge panels and protocol arms are extra READINGS of the same
+ * model, not extra results: counting them inflates every denominator here
+ * and lets a page's reproducibility or provenance percentage move when a
+ * source discloses a second judge. One model contributes one row.
+ */
+function headlineResults(summary: BenchmarkEvalSummary): ModelResultForBenchmark[] {
+  return (summary.model_results ?? []).filter(isHeadlineResult)
+}
 import {
   mergeRegistryBounds,
   resolveCanonicalScaleGroup,
@@ -196,7 +209,7 @@ function getGenerationArgs(result: ModelResultForBenchmark): Record<string, unkn
 }
 
 function deriveReproducibility(summary: BenchmarkEvalSummary): DerivedSignal {
-  const triples = summary.model_results ?? []
+  const triples = headlineResults(summary)
   const agentic = isAgenticBenchmark(summary)
   const required: string[] = agentic
     ? [...BASE_REQUIRED_FIELDS, ...AGENTIC_REQUIRED_FIELDS]
@@ -499,7 +512,7 @@ function deriveProvenance(
     return deriveCrossSuiteProvenance(cross)
   }
 
-  const triples = summary.model_results ?? []
+  const triples = headlineResults(summary)
   if (triples.length === 0) {
     return {
       statValue: "—",
@@ -1024,7 +1037,7 @@ function deriveComparability(
 }
 
 function deriveWithinPageComparability(summary: BenchmarkEvalSummary): DerivedSignal {
-  const triples = summary.model_results ?? []
+  const triples = headlineResults(summary)
   if (triples.length === 0) {
     return {
       statValue: "—",

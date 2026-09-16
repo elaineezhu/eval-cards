@@ -337,6 +337,9 @@ export interface ScaffoldContextSummaryInput {
   model_results: Array<{
     score: number
     protocol_condition?: string | null
+    /** The producer's pick of the model's summary reading, or the rule the
+     *  view layer derives on a snapshot predating the column. */
+    is_headline?: boolean | null
     model_route_id?: string
     model_group_id?: string
     model_info: { name?: string; id?: string }
@@ -403,16 +406,20 @@ function rowIdentities(row: ScaffoldContextSummaryInput["model_results"][number]
 }
 
 /**
- * The model's highest-scoring `feedback == "none"` row — the row the ranked
- * list above the plot shows. Caption 3 fires when the sidecar's condition
- * (fullest coverage) is a DIFFERENT string from this one.
+ * The `feedback == "none"` condition of the row the ranked list above the
+ * plot shows — which is the model's HEADLINE row, the one the producer
+ * picked as its summary reading and the only one it serves a rank.
+ * Highest-scoring is the fallback for snapshots that mark no headline.
+ * Caption 3 fires when the sidecar's condition (fullest coverage) is a
+ * DIFFERENT string from this one.
  */
-function bestScoringNoFeedbackCondition(
+function rankedNoFeedbackCondition(
   summary: ScaffoldContextSummaryInput,
   key: string,
   displayName: string,
 ): string | null {
   const normalizedName = displayName.trim().toLowerCase()
+  const headlines: string[] = []
   let best: { score: number; condition: string } | null = null
   for (const row of summary.model_results ?? []) {
     if (!Number.isFinite(row.score)) continue
@@ -423,8 +430,13 @@ function bestScoringNoFeedbackCondition(
       rowIdentities(row).includes(key) ||
       (row.model_info?.name ?? "").trim().toLowerCase() === normalizedName
     if (!matches) continue
+    if (row.is_headline === true) headlines.push(condition)
     if (!best || row.score > best.score) best = { score: row.score, condition }
   }
+  // Exactly one headline is the producer's pick. Several means the group
+  // was never ranked, so no row is privileged, and the highest score is
+  // then what the list shows.
+  if (headlines.length === 1) return headlines[0]
   return best?.condition ?? null
 }
 
@@ -457,7 +469,7 @@ export function buildScaffoldContext(
         runDate: point.run_date ?? null,
       }))
     const { points, hiddenCount } = thinContextPoints(external)
-    const bestCondition = bestScoringNoFeedbackCondition(summary, key, displayName)
+    const rankedCondition = rankedNoFeedbackCondition(summary, key, displayName)
     models.push({
       key,
       displayName,
@@ -484,7 +496,7 @@ export function buildScaffoldContext(
       // missing page row can never fire the caption — we would be
       // asserting a difference we cannot see.
       conditionDiffersFromBestScoring:
-        bestCondition != null && bestCondition !== model.protocol_condition,
+        rankedCondition != null && rankedCondition !== model.protocol_condition,
     })
   }
   if (models.length === 0) return null

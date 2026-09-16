@@ -12,6 +12,7 @@ import {
   formatFieldLabel,
   formatSignalNumber,
   formatSignalValue,
+  isNotAssessable,
 } from "./signal-utils"
 
 interface FlaggedRow {
@@ -34,8 +35,11 @@ function deriveFlaggedRows(modelResults: readonly ModelResultForBenchmark[]): Fl
   for (const r of modelResults) {
     const ann = r.result?.evalcards?.annotations
     if (!ann) continue
-    const variant = Boolean(ann.variant_divergence?.has_variant_divergence)
-    const crossParty = Boolean(ann.cross_party_divergence?.has_cross_party_divergence)
+    // Strict `=== true`: the flags are nullable, and a NULL means the
+    // group was never assessed — Boolean() would silently report it as
+    // "checked, no divergence".
+    const variant = ann.variant_divergence?.has_variant_divergence === true
+    const crossParty = ann.cross_party_divergence?.has_cross_party_divergence === true
     if (!variant && !crossParty) continue
     const routeId = r.model_route_id ?? null
     const name = r.model_info?.name ?? r.model_info?.id ?? routeId ?? "Unknown model"
@@ -52,6 +56,20 @@ function deriveFlaggedRows(modelResults: readonly ModelResultForBenchmark[]): Fl
     })
   }
   return flagged
+}
+
+/** Rows the producer could not assess: the comparability group mixed
+ *  scales or had no declared bounds, so its divergence flags are NULL.
+ *  Counted per model so the panel can say "not assessable" instead of
+ *  letting the absence of a badge read as "checked, nothing found". */
+function countNotAssessable(modelResults: readonly ModelResultForBenchmark[]): number {
+  const seen = new Set<string>()
+  for (const r of modelResults) {
+    if (!isNotAssessable(r.result?.evalcards?.annotations, r.comparability_status)) continue
+    const key = r.model_route_id ?? r.model_info?.name ?? r.model_info?.id ?? ""
+    seen.add(key)
+  }
+  return seen.size
 }
 
 export function ComparabilityPanel({
@@ -82,15 +100,25 @@ export function ComparabilityPanel({
     () => deriveFlaggedRows(modelResults ?? []),
     [modelResults],
   )
+  const notAssessableCount = useMemo(
+    () => countNotAssessable(modelResults ?? []),
+    [modelResults],
+  )
 
   // Hide the panel entirely when we have nothing concrete to show: no
   // per-group detail, no summary concern, and no cross-party gap to call
   // out. We also hide when the only signal is a roll-up count that we
   // can't connect to specific models — vague counts confuse readers.
-  if (noGroupDetail && !showNoCrossPartyNote && !hasSummaryConcern) {
+  if (noGroupDetail && !showNoCrossPartyNote && !hasSummaryConcern && notAssessableCount === 0) {
     return null
   }
-  if (noGroupDetail && hasSummaryConcern && flaggedRows.length === 0 && !showNoCrossPartyNote) {
+  if (
+    noGroupDetail &&
+    hasSummaryConcern &&
+    flaggedRows.length === 0 &&
+    !showNoCrossPartyNote &&
+    notAssessableCount === 0
+  ) {
     return null
   }
 
@@ -133,6 +161,22 @@ export function ComparabilityPanel({
           {isResearchView
             ? "No third-party reports are available for cross-party comparison."
             : "No independent third-party reports are available to cross-check the developer's numbers on this benchmark."}
+        </div>
+      )}
+
+      {notAssessableCount > 0 && (
+        <div
+          className="mt-3 px-3 py-2 text-[13px]"
+          style={{
+            border: "1px dashed var(--border-soft)",
+            background: "var(--bg)",
+            color: "var(--fg-muted)",
+            lineHeight: 1.6,
+          }}
+        >
+          {isResearchView
+            ? `${notAssessableCount} model${notAssessableCount === 1 ? "" : "s"} not assessable: the reported numbers sit on mixed or undeclared scales, so divergence was never checked.`
+            : `${notAssessableCount} model${notAssessableCount === 1 ? "" : "s"} could not be checked here, because the numbers reported for them are not on a common scale.`}
         </div>
       )}
 

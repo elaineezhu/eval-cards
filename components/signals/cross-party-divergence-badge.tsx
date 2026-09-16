@@ -19,7 +19,9 @@ export function CrossPartyDivergenceBadge({
   const { mode } = useAudienceMode()
   const isResearchView = mode === "research"
 
-  if (!divergence?.has_cross_party_divergence) {
+  // Strict `=== true`: a NULL flag means "not assessable", and the
+  // variant badge is what renders that verdict for the row.
+  if (divergence?.has_cross_party_divergence !== true) {
     return null
   }
 
