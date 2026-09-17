@@ -79,6 +79,22 @@ import {
   buildHierarchyEvalIndex,
   type HierarchyEvalLocation,
 } from "@/lib/hierarchy-lookup"
+import {
+  bestPerModel,
+  buildBenchmarkEntryIndex,
+  canonicalScoreOf,
+  collectPeerObservationsFrom,
+  competitionRank,
+  excludedHoverTitle,
+  matchesIdentity,
+  normaliseSplitLabel,
+  partitionPeers,
+  peerCaption,
+  CAPTION_SEPARATOR,
+  type BenchmarkEntryIndex,
+  type PeerCaptionFragments,
+  type SplitLabel,
+} from "@/lib/split-peers"
 import { type CSSProperties, Fragment, useState, useEffect, useMemo } from "react"
 
 interface BenchmarkDetailProps {
@@ -1856,6 +1872,394 @@ function getEvaluationVariantLabel(evaluation: BenchmarkEvaluation) {
   return evaluationPrefix.split("/").filter(Boolean).pop() || null
 }
 
+type HistogramBar = {
+  modelId: string
+  modelName: string
+  score: number
+  isCurrent: boolean
+  isDefault: boolean
+  submissionCount: number
+  submissionAxis: SubmissionAxis
+  headlineRunLabel?: string
+  submissions?: ComparisonScoreEntry["submissions"]
+  variantKey?: string
+}
+
+export type BenchmarkHistogram = {
+  histKey: string
+  evalSummaryId: string
+  metricSummaryId: string
+  metricName: string
+  metricGroup: ComparisonMetricEntry["group"]
+  lowerIsBetter: boolean
+  unit: string | null
+  bars: HistogramBar[]
+  availableModels: Array<{
+    id: string
+    name: string
+    score: number
+    submissionCount: number
+    submissionAxis: SubmissionAxis
+  }>
+  defaultIds: Set<string>
+  currentModelRank: { position: number; total: number } | null
+  /** Producer-resolved display scale: non-null when every score
+   *  cell for this metric carried usable canonical-scale fields. Bars are
+   *  then on this exact scale (true ⇒ 0-100) and the legacy `>1.5 ⇒
+   *  percent` guesses are skipped; null keeps them byte-identical. */
+  resolvedIsPercent: boolean | null
+  /** Split-aware peer caption, kept as fragments so the render can put the
+   *  reported-label caveat hover on the excluded clauses only. Only set on the cross-source path
+   *  (`comparison_index_version >= 2`); absent keeps the source-only output. */
+  caption?: PeerCaptionFragments
+  /** Distinct models dropped per reported split label, same path. */
+  excludedByLabel?: Record<string, number>
+  /** The current model's own reported split, for the excluded-fragment hover. */
+  currentSplitLabel?: SplitLabel | null
+  /** The current model's rank on its own source page, kept as secondary text
+   *  when that page holds more than one model. */
+  sourceRank?: { position: number; total: number; sourceDisplayName: string }
+}
+
+const histKeyFor = (evalSummaryId: string, metricSummaryId: string) =>
+  `${evalSummaryId}::${metricSummaryId}`
+
+type SplitPeerResolution = {
+  peerRows: ComparisonScoreEntry[]
+  rank: { position: number; total: number }
+  caption: PeerCaptionFragments
+  currentLabel: SplitLabel | null
+  excludedByLabel: Record<string, number>
+  sourceRank?: { position: number; total: number; sourceDisplayName: string }
+}
+
+/** The split-aware caption line. Only the excluded clauses carry the
+ *  reported-label caveat hover. */
+export function PeerCaption({
+  caption,
+  currentLabel,
+}: {
+  caption: PeerCaptionFragments
+  currentLabel: SplitLabel | null
+}) {
+  return (
+    <>
+      <span>{caption.base}</span>
+      {caption.unknown && (
+        <>
+          {CAPTION_SEPARATOR}
+          <span>{caption.unknown}</span>
+        </>
+      )}
+      {caption.excluded.map((fragment) => (
+        <Fragment key={fragment.label}>
+          {CAPTION_SEPARATOR}
+          <span title={excludedHoverTitle(currentLabel)}>{fragment.text}</span>
+        </Fragment>
+      ))}
+    </>
+  )
+}
+
+// Split-aware cross-source peer pool. Returns null whenever the
+// source-only histogram must stand: no capability gate, no current row, no
+// canonical benchmark/metric identity, or no other source with a bucket on
+// the same effective metric and direction.
+function resolveSplitPeers({
+  benchmarkEntryIndex,
+  evalId,
+  evalEntry,
+  metric,
+  currentRow,
+  currentModelIdentityKeys,
+  lowerIsBetter,
+}: {
+  benchmarkEntryIndex: BenchmarkEntryIndex | null
+  evalId: string
+  evalEntry: ComparisonEvalEntry
+  metric: ComparisonMetricEntry
+  currentRow: ComparisonScoreEntry | undefined
+  currentModelIdentityKeys: Set<string>
+  lowerIsBetter: boolean
+}): SplitPeerResolution | null {
+  if (benchmarkEntryIndex == null) return null
+  if (currentRow == null) return null
+  const benchmarkId = evalEntry.benchmark_id
+  const metricId = metric.metric_id
+  if (!benchmarkId || !metricId) return null
+  const currentScore = canonicalScoreOf(currentRow)
+  if (currentScore == null) return null
+
+  const observations = collectPeerObservationsFrom(
+    benchmarkEntryIndex,
+    benchmarkId,
+    metricId,
+    lowerIsBetter,
+    currentModelIdentityKeys,
+  )
+  if (observations.every((o) => o.sourceEvalId === evalId)) return null
+
+  const currentLabel = normaliseSplitLabel(currentRow.split)
+  const partition = partitionPeers(currentLabel, observations)
+  const eligible = bestPerModel(
+    [...partition.compared, ...partition.unknown],
+    lowerIsBetter,
+  )
+  const rank = competitionRank(currentScore, eligible, lowerIsBetter)
+
+  const sourceSlug = evalEntry.composite_slug ?? evalEntry.family_id ?? evalId
+  const sourceDisplayName =
+    evalEntry.composite_display_name ??
+    evalEntry.family_display_name ??
+    evalEntry.display_name ??
+    sourceSlug
+  const caption = peerCaption({
+    ...rank,
+    sourceCount: new Set([sourceSlug, ...eligible.map((o) => o.sourceSlug)]).size,
+    currentLabel,
+    unknownCount: eligible.filter((o) => o.label == null).length,
+    anyPeerLabelled: observations.some((o) => o.rawLabel != null),
+    excludedByLabel: partition.excludedByLabel,
+  })
+
+  return {
+    peerRows: eligible.map((o) => o.entry),
+    rank,
+    caption,
+    currentLabel,
+    excludedByLabel: partition.excludedByLabel,
+    sourceRank:
+      currentRow.total > 1
+        ? { position: currentRow.rank, total: currentRow.total, sourceDisplayName }
+        : undefined,
+  }
+}
+
+// Per-(eval, metric) leaderboards sourced from comparison-index.json.
+export function buildBenchmarkHistograms({
+  comparisonIndex,
+  wantedEvalIds,
+  currentModelIdentityKeys,
+  currentModelRouteId,
+  currentModelName,
+  extraModelsByBenchmark,
+}: {
+  comparisonIndex: ComparisonIndex | null | undefined
+  wantedEvalIds: Set<string>
+  currentModelIdentityKeys: Set<string>
+  currentModelRouteId: string
+  currentModelName: string
+  extraModelsByBenchmark: Record<string, string[]>
+}): Map<string, BenchmarkHistogram> {
+  const result = new Map<string, BenchmarkHistogram>()
+  if (!comparisonIndex) return result
+
+  const byModelForCurrent =
+    comparisonIndex.by_model?.[currentModelRouteId] ?? {}
+
+  // One pass over the index per build; the gate decides whether it is needed
+  // at all, so old snapshots pay nothing.
+  const benchmarkEntryIndex =
+    (comparisonIndex.comparison_index_version ?? 0) >= 2
+      ? buildBenchmarkEntryIndex(comparisonIndex)
+      : null
+
+  for (const evalId of wantedEvalIds) {
+    const evalEntry = comparisonIndex.evals[evalId]
+    if (!evalEntry) continue
+
+    for (const metric of evalEntry.metrics) {
+      if (isStderrMetricId(metric.metric_summary_id)) continue
+      const histKey = histKeyFor(evalId, metric.metric_summary_id)
+      const lowerIsBetter = Boolean(metric.lower_is_better)
+
+      // The current model's own row (if present) lives both in scores[] and
+      // in by_model. We look it up by any of the known identity keys and
+      // pull out its score/rank/submission info.
+      let currentRow: ComparisonScoreEntry | undefined
+      for (const s of metric.scores) {
+        if (matchesIdentity(s, currentModelIdentityKeys)) {
+          currentRow = s
+          break
+        }
+      }
+      const byModelRow =
+        byModelForCurrent[evalId]?.[metric.metric_summary_id]
+
+      const currentScore = currentRow?.score ?? byModelRow?.score
+      if (currentScore == null || !Number.isFinite(currentScore)) {
+        // We don't have a score on this (eval, metric) — skip the histogram.
+        // The tab will just not render.
+        continue
+      }
+      const splitPeers = resolveSplitPeers({
+        benchmarkEntryIndex,
+        evalId,
+        evalEntry,
+        metric,
+        currentRow,
+        currentModelIdentityKeys,
+        lowerIsBetter,
+      })
+
+      const currentModelRank =
+        splitPeers != null
+          ? splitPeers.rank
+          : currentRow != null
+            ? { position: currentRow.rank, total: currentRow.total }
+            : byModelRow != null
+              ? { position: byModelRow.rank, total: byModelRow.total }
+              : null
+
+      // Peer rows = everything in scores[] that isn't us. Backend already
+      // sorts best-first in the metric's own direction; we preserve that.
+      // On the split-aware path the pool is instead one eligible observation
+      // per model across every source on the same metric and direction.
+      const peerRows =
+        splitPeers?.peerRows ??
+        metric.scores.filter((s) => !matchesIdentity(s, currentModelIdentityKeys))
+
+      // Producer-canonical path: when the current model's cell
+      // and every peer row carry usable canonical-scale fields, plot the
+      // canonical values — all bars land on one exact scale and the
+      // legacy `>1.5 ⇒ percent` guesses downstream are skipped. Any
+      // old-snapshot cell or bounds-less metric in the group keeps the
+      // raw scores byte-identical to legacy. The display scale mirrors
+      // the legacy majority-vote convention (percent wins ties), so
+      // wherever the old guess was right the plotted numbers are
+      // unchanged; flagged rows (score_canonical null) fall back to the
+      // per-row guess inside toDisplay and stay plotted, like legacy.
+      const scaleCellOf = (cell: {
+        score: number
+        score_canonical?: number | null
+        scale_conversion?: ScaleConversion | null
+      }): CanonicalScaleCell => ({
+        score: cell.score,
+        scoreCanonical: cell.score_canonical,
+        scaleConversion: cell.scale_conversion,
+        unit: metric.unit ?? null,
+      })
+      const currentCell = currentRow ?? byModelRow
+      const scaleGroup = resolveCanonicalScaleGroup(
+        [...(currentCell ? [currentCell] : []), ...peerRows].map(scaleCellOf),
+        // Metric-level registry bounds (the scale score_canonical sits
+        // on): resolve anchor-neutral (all-curated) groups exactly.
+        { min: metric.canonical_min_score, max: metric.canonical_max_score },
+      )
+      const resolvedIsPercent = scaleGroup
+        ? scaleGroup.percentSourceCount >= scaleGroup.fractionSourceCount
+        : null
+      const displayScoreOf = (cell: {
+        score: number
+        score_canonical?: number | null
+        scale_conversion?: ScaleConversion | null
+      }): number =>
+        scaleGroup && resolvedIsPercent != null
+          ? scaleGroup.toDisplay(scaleCellOf(cell), resolvedIsPercent)
+          : cell.score
+      const currentDisplayScore = currentCell
+        ? displayScoreOf(currentCell)
+        : currentScore
+
+      const defaults = new Set<string>()
+      if (peerRows.length > 0) {
+        // Best and worst come straight off the pre-sorted list.
+        defaults.add(peerRows[0].model_route_id)
+        defaults.add(peerRows[peerRows.length - 1].model_route_id)
+        // Two peers closest to the current score.
+        const closest = [...peerRows]
+          .sort(
+            (a, b) =>
+              Math.abs(displayScoreOf(a) - currentDisplayScore) -
+              Math.abs(displayScoreOf(b) - currentDisplayScore)
+          )
+          .filter((p) => !defaults.has(p.model_route_id))
+          .slice(0, 2)
+        for (const p of closest) defaults.add(p.model_route_id)
+      }
+
+      const extras = extraModelsByBenchmark[histKey] ?? []
+      const selectedIds = new Set<string>([...defaults, ...extras])
+
+      const peerBars: HistogramBar[] = peerRows
+        .filter((p) => selectedIds.has(p.model_route_id))
+        .map((p) => ({
+          modelId: p.model_route_id,
+          // Most comparison score rows carry an empty model_family_name, so
+          // fall back to model_family_id (always present, and already
+          // human-readable in this codebase, e.g. "anthropic/sonnet-4.5").
+          // Without this the peer bars all read "Unknown Model".
+          modelName: getModelDisplayName(p.model_family_name || p.model_family_id),
+          score: displayScoreOf(p),
+          isCurrent: false,
+          isDefault: defaults.has(p.model_route_id),
+          submissionCount: p.submission_count,
+          submissionAxis: p.submission_axis,
+          headlineRunLabel: p.headline_run_label,
+          submissions: p.submissions,
+          variantKey: p.variant_key,
+        }))
+
+      const currentBar: HistogramBar = {
+        modelId: currentModelRouteId,
+        modelName: currentModelName,
+        score: currentDisplayScore,
+        isCurrent: true,
+        isDefault: true,
+        submissionCount: currentRow?.submission_count ?? byModelRow?.submission_count ?? 1,
+        submissionAxis:
+          currentRow?.submission_axis ?? byModelRow?.submission_axis ?? "default",
+        headlineRunLabel: currentRow?.headline_run_label,
+        submissions: currentRow?.submissions,
+        variantKey: currentRow?.variant_key,
+      }
+
+      const bars = [currentBar, ...peerBars].sort((a, b) =>
+        lowerIsBetter ? a.score - b.score : b.score - a.score
+      )
+
+      const availableModels = peerRows
+        .filter((p) => !selectedIds.has(p.model_route_id))
+        .map((p) => ({
+          id: p.model_route_id,
+          // Same fallback as the rendered bar (peerBars above): score rows
+          // usually have an empty model_family_name, so fall back to
+          // model_family_id (always present, human-readable). Without this the
+          // dropdown label resolves to "Unknown Model".
+          name: p.model_family_name || p.model_family_id,
+          score: displayScoreOf(p),
+          submissionCount: p.submission_count,
+          submissionAxis: p.submission_axis,
+        }))
+
+      result.set(histKey, {
+        histKey,
+        evalSummaryId: evalId,
+        metricSummaryId: metric.metric_summary_id,
+        metricName: metric.metric_name,
+        metricGroup: metric.group,
+        lowerIsBetter,
+        unit: metric.unit,
+        bars,
+        availableModels,
+        defaultIds: defaults,
+        currentModelRank,
+        resolvedIsPercent,
+        ...(splitPeers != null
+          ? {
+              caption: splitPeers.caption,
+              excludedByLabel: splitPeers.excludedByLabel,
+              sourceRank: splitPeers.sourceRank,
+              currentSplitLabel: splitPeers.currentLabel,
+            }
+          : {}),
+      })
+    }
+  }
+
+  return result
+}
+
 export function BenchmarkDetail({
   summary,
   benchmarkCards,
@@ -2726,47 +3130,6 @@ export function BenchmarkDetail({
   // the backend-authoritative per-(eval, metric) leaderboard artifact. The old
   // `top_scores`-on-model-cards and per-eval-detail fan-out paths are retired.
 
-  type HistogramBar = {
-    modelId: string
-    modelName: string
-    score: number
-    isCurrent: boolean
-    isDefault: boolean
-    submissionCount: number
-    submissionAxis: SubmissionAxis
-    headlineRunLabel?: string
-    submissions?: ComparisonScoreEntry["submissions"]
-    variantKey?: string
-  }
-
-  type BenchmarkHistogram = {
-    histKey: string
-    evalSummaryId: string
-    metricSummaryId: string
-    metricName: string
-    metricGroup: ComparisonMetricEntry["group"]
-    lowerIsBetter: boolean
-    unit: string | null
-    bars: HistogramBar[]
-    availableModels: Array<{
-      id: string
-      name: string
-      score: number
-      submissionCount: number
-      submissionAxis: SubmissionAxis
-    }>
-    defaultIds: Set<string>
-    currentModelRank: { position: number; total: number } | null
-    /** Producer-resolved display scale (spec F5): non-null when every score
-     *  cell for this metric carried usable canonical-scale fields. Bars are
-     *  then on this exact scale (true ⇒ 0-100) and the legacy `>1.5 ⇒
-     *  percent` guesses are skipped; null keeps them byte-identical. */
-    resolvedIsPercent: boolean | null
-  }
-
-  const histKeyFor = (evalSummaryId: string, metricSummaryId: string) =>
-    `${evalSummaryId}::${metricSummaryId}`
-
   // Every identifier the current model may appear under in comparison-index.
   // Used to (a) pull our own score out of `by_model` and (b) drop ourselves
   // out of the peer score list.
@@ -2906,11 +3269,6 @@ export function BenchmarkDetail({
 
   // Per-(eval, metric) leaderboards sourced from comparison-index.json.
   const benchmarkHistograms = useMemo<Map<string, BenchmarkHistogram>>(() => {
-    const result = new Map<string, BenchmarkHistogram>()
-    if (!comparisonIndex) return result
-
-    const currentModelName = getModelDisplayName(summary.model_info.name)
-
     // Resolve every eval_summary_id we care about from the current model's
     // benchmarkGroups — this is the intersection of "what this model reports"
     // and "what comparison-index covers".
@@ -2922,187 +3280,14 @@ export function BenchmarkDetail({
         }
       }
     }
-
-    const byModelForCurrent =
-      comparisonIndex.by_model?.[currentModelRouteId] ?? {}
-
-    for (const evalId of wantedEvalIds) {
-      const evalEntry = comparisonIndex.evals[evalId]
-      if (!evalEntry) continue
-
-      for (const metric of evalEntry.metrics) {
-        if (isStderrMetricId(metric.metric_summary_id)) continue
-        const histKey = histKeyFor(evalId, metric.metric_summary_id)
-        const lowerIsBetter = Boolean(metric.lower_is_better)
-
-        // The current model's own row (if present) lives both in scores[] and
-        // in by_model. We look it up by any of the known identity keys and
-        // pull out its score/rank/submission info.
-        let currentRow: ComparisonScoreEntry | undefined
-        for (const s of metric.scores) {
-          if (
-            currentModelIdentityKeys.has(s.model_route_id) ||
-            currentModelIdentityKeys.has(s.model_group_id)
-          ) {
-            currentRow = s
-            break
-          }
-        }
-        const byModelRow =
-          byModelForCurrent[evalId]?.[metric.metric_summary_id]
-
-        const currentScore = currentRow?.score ?? byModelRow?.score
-        if (currentScore == null || !Number.isFinite(currentScore)) {
-          // We don't have a score on this (eval, metric) — skip the histogram.
-          // The tab will just not render.
-          continue
-        }
-        const currentModelRank =
-          currentRow != null
-            ? { position: currentRow.rank, total: currentRow.total }
-            : byModelRow != null
-              ? { position: byModelRow.rank, total: byModelRow.total }
-              : null
-
-        // Peer rows = everything in scores[] that isn't us. Backend already
-        // sorts best-first in the metric's own direction; we preserve that.
-        const peerRows = metric.scores.filter(
-          (s) =>
-            !currentModelIdentityKeys.has(s.model_route_id) &&
-            !currentModelIdentityKeys.has(s.model_group_id)
-        )
-
-        // Producer-canonical path (spec F5): when the current model's cell
-        // and every peer row carry usable canonical-scale fields, plot the
-        // canonical values — all bars land on one exact scale and the
-        // legacy `>1.5 ⇒ percent` guesses downstream are skipped. Any
-        // old-snapshot cell or bounds-less metric in the group keeps the
-        // raw scores byte-identical to legacy. The display scale mirrors
-        // the legacy majority-vote convention (percent wins ties), so
-        // wherever the old guess was right the plotted numbers are
-        // unchanged; flagged rows (score_canonical null) fall back to the
-        // per-row guess inside toDisplay and stay plotted, like legacy.
-        const scaleCellOf = (cell: {
-          score: number
-          score_canonical?: number | null
-          scale_conversion?: ScaleConversion | null
-        }): CanonicalScaleCell => ({
-          score: cell.score,
-          scoreCanonical: cell.score_canonical,
-          scaleConversion: cell.scale_conversion,
-          unit: metric.unit ?? null,
-        })
-        const currentCell = currentRow ?? byModelRow
-        const scaleGroup = resolveCanonicalScaleGroup(
-          [...(currentCell ? [currentCell] : []), ...peerRows].map(scaleCellOf),
-          // Metric-level registry bounds (the scale score_canonical sits
-          // on): resolve anchor-neutral (all-curated) groups exactly.
-          { min: metric.canonical_min_score, max: metric.canonical_max_score },
-        )
-        const resolvedIsPercent = scaleGroup
-          ? scaleGroup.percentSourceCount >= scaleGroup.fractionSourceCount
-          : null
-        const displayScoreOf = (cell: {
-          score: number
-          score_canonical?: number | null
-          scale_conversion?: ScaleConversion | null
-        }): number =>
-          scaleGroup && resolvedIsPercent != null
-            ? scaleGroup.toDisplay(scaleCellOf(cell), resolvedIsPercent)
-            : cell.score
-        const currentDisplayScore = currentCell
-          ? displayScoreOf(currentCell)
-          : currentScore
-
-        const defaults = new Set<string>()
-        if (peerRows.length > 0) {
-          // Best and worst come straight off the pre-sorted list.
-          defaults.add(peerRows[0].model_route_id)
-          defaults.add(peerRows[peerRows.length - 1].model_route_id)
-          // Two peers closest to the current score.
-          const closest = [...peerRows]
-            .sort(
-              (a, b) =>
-                Math.abs(displayScoreOf(a) - currentDisplayScore) -
-                Math.abs(displayScoreOf(b) - currentDisplayScore)
-            )
-            .filter((p) => !defaults.has(p.model_route_id))
-            .slice(0, 2)
-          for (const p of closest) defaults.add(p.model_route_id)
-        }
-
-        const extras = extraModelsByBenchmark[histKey] ?? []
-        const selectedIds = new Set<string>([...defaults, ...extras])
-
-        const peerBars: HistogramBar[] = peerRows
-          .filter((p) => selectedIds.has(p.model_route_id))
-          .map((p) => ({
-            modelId: p.model_route_id,
-            // Most comparison score rows carry an empty model_family_name, so
-            // fall back to model_family_id (always present, and already
-            // human-readable in this codebase, e.g. "anthropic/sonnet-4.5").
-            // Without this the peer bars all read "Unknown Model".
-            modelName: getModelDisplayName(p.model_family_name || p.model_family_id),
-            score: displayScoreOf(p),
-            isCurrent: false,
-            isDefault: defaults.has(p.model_route_id),
-            submissionCount: p.submission_count,
-            submissionAxis: p.submission_axis,
-            headlineRunLabel: p.headline_run_label,
-            submissions: p.submissions,
-            variantKey: p.variant_key,
-          }))
-
-        const currentBar: HistogramBar = {
-          modelId: currentModelRouteId,
-          modelName: currentModelName,
-          score: currentDisplayScore,
-          isCurrent: true,
-          isDefault: true,
-          submissionCount: currentRow?.submission_count ?? byModelRow?.submission_count ?? 1,
-          submissionAxis:
-            currentRow?.submission_axis ?? byModelRow?.submission_axis ?? "default",
-          headlineRunLabel: currentRow?.headline_run_label,
-          submissions: currentRow?.submissions,
-          variantKey: currentRow?.variant_key,
-        }
-
-        const bars = [currentBar, ...peerBars].sort((a, b) =>
-          lowerIsBetter ? a.score - b.score : b.score - a.score
-        )
-
-        const availableModels = peerRows
-          .filter((p) => !selectedIds.has(p.model_route_id))
-          .map((p) => ({
-            id: p.model_route_id,
-            // Same fallback as the rendered bar (peerBars above): score rows
-            // usually have an empty model_family_name, so fall back to
-            // model_family_id (always present, human-readable). Without this the
-            // dropdown label resolves to "Unknown Model".
-            name: p.model_family_name || p.model_family_id,
-            score: displayScoreOf(p),
-            submissionCount: p.submission_count,
-            submissionAxis: p.submission_axis,
-          }))
-
-        result.set(histKey, {
-          histKey,
-          evalSummaryId: evalId,
-          metricSummaryId: metric.metric_summary_id,
-          metricName: metric.metric_name,
-          metricGroup: metric.group,
-          lowerIsBetter,
-          unit: metric.unit,
-          bars,
-          availableModels,
-          defaultIds: defaults,
-          currentModelRank,
-          resolvedIsPercent,
-        })
-      }
-    }
-
-    return result
+    return buildBenchmarkHistograms({
+      comparisonIndex,
+      wantedEvalIds,
+      currentModelIdentityKeys,
+      currentModelRouteId,
+      currentModelName: getModelDisplayName(summary.model_info.name),
+      extraModelsByBenchmark,
+    })
   }, [
     benchmarkGroups,
     comparisonIndex,
@@ -3111,6 +3296,7 @@ export function BenchmarkDetail({
     extraModelsByBenchmark,
     summary.model_info.name,
   ])
+
 
   // A plotbox can expose a top-level "view" selector (slices, child
   // benchmarks, components) and an optional metric tab rail beneath the chart.
@@ -4615,6 +4801,24 @@ export function BenchmarkDetail({
             )
           })}
         </div>
+
+        {/* Split-aware peer caption. Only present on snapshots that
+            declare comparison_index_version >= 2. */}
+        {activeHist.caption && (
+          <div className="mt-2 text-[10px] leading-relaxed text-[color:var(--fg-muted)]">
+            <PeerCaption
+              caption={activeHist.caption}
+              currentLabel={activeHist.currentSplitLabel ?? null}
+            />
+            {activeHist.sourceRank && (
+              <span className="text-[color:var(--fg-subtle)]">
+                {" · "}
+                {activeHist.sourceRank.position} of {activeHist.sourceRank.total} on{" "}
+                {activeHist.sourceRank.sourceDisplayName}
+              </span>
+            )}
+          </div>
+        )}
 
         {/* Axis-zoomed caption + metric tabs moved above the chart —
             see the matching blocks next to the view selector. Anything

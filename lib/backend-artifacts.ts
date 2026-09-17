@@ -494,6 +494,10 @@ export interface ComparisonScoreEntry {
    *  on snapshots predating spec F5. */
   score_canonical?: number | null
   scale_conversion?: ScaleConversion | null
+  /** Dataset split as the source reported it (`train`, `test`, `validation`,
+   *  `val`, `dev`, or an uncontrolled token like `gpt`). Null when the source
+   *  stated none; absent on snapshots predating comparison_index_version 2. */
+  split?: string | null
 }
 
 export interface ComparisonMetricEntry {
@@ -526,6 +530,9 @@ export interface ComparisonEvalEntry {
   is_slice: boolean
   is_summary_score: boolean
   summary_score_for: string | null
+  /** True on the cross-source merged entry (one best row per model, one
+   *  preferred metric). Absent on snapshots that never emitted the flag. */
+  is_merged?: boolean
   metrics: ComparisonMetricEntry[]
 }
 
@@ -543,6 +550,10 @@ export interface ComparisonByModelEntry {
 export interface ComparisonIndex {
   generated_at: string
   config_version: number
+  /** Capability gate for split-aware cross-source peers: >= 2 means every
+   *  per-source score entry carries `split`. Absent on older snapshots, which
+   *  keep the source-only histogram path. */
+  comparison_index_version?: number
   metric_group_order: MetricGroup[]
   evals: Record<string, ComparisonEvalEntry>
   /** Per-model score acceleration map. Optional — slated for removal from the
