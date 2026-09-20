@@ -54,7 +54,7 @@ export function computeSeDelta(s1: number, sN: number, nEff: number): number {
  * returns 0.0 to indicate maximum compression.
  */
 export function computeNormalizedRange(s1: number, sN: number, seDelta: number): number {
-  if (seDelta === 0) return 0
+  if (seDelta === 0) return s1 === sN ? 0 : Number.POSITIVE_INFINITY
   return (s1 - sN) / seDelta
 }
 
